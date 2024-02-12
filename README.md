@@ -3,7 +3,7 @@
 ## Introduction
 A data-verification flowchart application
 
-## features
+## Features
 - [x] rendering terminator shape 
 - [x] rendering process shape 
 - [x] rendering data shape
