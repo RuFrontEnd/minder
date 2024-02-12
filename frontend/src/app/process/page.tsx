@@ -16,6 +16,7 @@ let useEffected = false,
   ctx: CanvasRenderingContext2D | null | undefined = null,
   shapes: (Terminal | Process | Data | Desicion)[] = [],
   sender: null | ConnectTarget = null,
+  offset: Vec = { x: 0, y: 0 },
   dragP: Vec = { x: 0, y: 0 }
 
 const getFramePosition = (shape: Core) => {
@@ -128,7 +129,13 @@ export default function ProcessPage() {
         y: e.nativeEvent.offsetY,
       };
 
-      const movingCanvas = space && leftMouseBtn
+      const movingCanvas = space && leftMouseBtn;
+
+      if (movingCanvas) {
+        offset.x += p.x - dragP.x
+        offset.y += p.y - dragP.y
+        dragP = p
+      }
 
       shapes.forEach((shape) => {
         shape.onMouseMove(
@@ -137,8 +144,7 @@ export default function ProcessPage() {
         );
 
         if (movingCanvas) {
-          shape.offset.x += p.x - dragP.x
-          shape.offset.y += p.y - dragP.y
+          shape.offset = offset
         }
 
         if (shape.checkBoundry(p) && dbClickedShape?.id === shape.id) {
@@ -159,10 +165,6 @@ export default function ProcessPage() {
           }
         }
       });
-
-      if (movingCanvas) {
-        dragP = p
-      }
     },
     [dbClickedShape, space, leftMouseBtn]
   );
@@ -289,9 +291,10 @@ export default function ProcessPage() {
       `process_${shapes.length + 1}`,
       200,
       100,
-      { x: 100, y: 100 },
+      { x: -offset.x + 200, y: -offset.y + 200 },
       "red"
     );
+    process_new.offset = offset
 
     shapes.push(process_new);
   };
@@ -301,9 +304,10 @@ export default function ProcessPage() {
       `data_${shapes.length + 1}`,
       200,
       100,
-      { x: 100, y: 100 },
+      { x: -offset.x + 200, y: -offset.y + 200 },
       "green"
     );
+    data_new.offset = offset
 
     shapes.push(data_new);
   };
@@ -313,9 +317,10 @@ export default function ProcessPage() {
       `data_${shapes.length + 1}`,
       200,
       100,
-      { x: 100, y: 100 },
+      { x: -offset.x + 200, y: -offset.y + 200 },
       "#3498db"
     );
+    data_new.offset = offset
 
     shapes.push(data_new);
   };
