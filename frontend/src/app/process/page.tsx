@@ -21,7 +21,7 @@ let useEffected = false,
 
 const getFramePosition = (shape: Core) => {
   const frameOffset = 12;
-  return { x: shape.p.x + shape.w / 2 + frameOffset, y: shape.p.y };
+  return { x: shape.getOffsetP().x + shape.w / 2 + frameOffset, y: shape.getOffsetP().y };
 };
 
 export default function ProcessPage() {
@@ -132,6 +132,8 @@ export default function ProcessPage() {
       const movingCanvas = space && leftMouseBtn;
 
       if (movingCanvas) {
+        setSelectFrame(undefined);
+        setImportFrame(undefined)
         offset.x += p.x - dragP.x
         offset.y += p.y - dragP.y
         dragP = p
