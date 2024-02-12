@@ -15,7 +15,8 @@ import cloneDeep from "lodash/cloneDeep";
 let useEffected = false,
   ctx: CanvasRenderingContext2D | null | undefined = null,
   shapes: (Terminal | Process | Data | Desicion)[] = [],
-  sender: null | ConnectTarget = null;
+  sender: null | ConnectTarget = null,
+  dragP: Vec = { x: 0, y: 0 }
 
 const getFramePosition = (shape: Core) => {
   const frameOffset = 12;
@@ -26,12 +27,15 @@ export default function ProcessPage() {
   let { current: $canvas } = useRef<HTMLCanvasElement | null>(null);
 
   const [importFrame, setImportFrame] = useState<{ p: Vec } | undefined>(
-      undefined
-    ),
+    undefined
+  ),
     [selectFrame, setSelectFrame] = useState<{ p: Vec } | undefined>(undefined),
     [dbClickedShape, setDbClickedShape] = useState<
       Terminal | Data | Process | Desicion | null
-    >(null);
+    >(null),
+    [space, setSpace] = useState(false),
+    [leftMouseBtn, setLeftMouseBtn] = useState(false);
+
 
   const checkData = (dbClickedShapeId?: string) => {
     // traversal to give all shapes corresponding options
@@ -53,6 +57,7 @@ export default function ProcessPage() {
 
   const onMouseDown = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     e.preventDefault();
+    setLeftMouseBtn(true)
 
     let $canvas = document.querySelector("canvas");
     const p = {
@@ -109,7 +114,11 @@ export default function ProcessPage() {
         }
       }
     });
-  }, []);
+
+    if (space) {
+      dragP = p
+    }
+  }, [space, setLeftMouseBtn]);
 
   const onMouseMove = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -119,11 +128,18 @@ export default function ProcessPage() {
         y: e.nativeEvent.offsetY,
       };
 
+      const movingCanvas = space && leftMouseBtn
+
       shapes.forEach((shape) => {
         shape.onMouseMove(
           p,
           sender && sender.shape.id !== shape.id ? true : false
         );
+
+        if (movingCanvas) {
+          shape.offset.x += p.x - dragP.x
+          shape.offset.y += p.y - dragP.y
+        }
 
         if (shape.checkBoundry(p) && dbClickedShape?.id === shape.id) {
           if (shape instanceof Data) {
@@ -143,13 +159,19 @@ export default function ProcessPage() {
           }
         }
       });
+
+      if (movingCanvas) {
+        dragP = p
+      }
     },
-    [dbClickedShape]
+    [dbClickedShape, space, leftMouseBtn]
   );
 
   const onMouseUp = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
       e.preventDefault();
+      setLeftMouseBtn(false)
+
       const p = {
         x: e.nativeEvent.offsetX,
         y: e.nativeEvent.offsetY,
@@ -179,7 +201,7 @@ export default function ProcessPage() {
 
       sender = null;
     },
-    [dbClickedShape]
+    [dbClickedShape, setLeftMouseBtn]
   );
 
   const onDoubleClick = useCallback(
@@ -214,7 +236,6 @@ export default function ProcessPage() {
 
   function handleKeyDown(this: Window, e: KeyboardEvent) {
     // delete
-
     if (
       e.key === "Backspace" &&
       !importFrame &&
@@ -249,6 +270,17 @@ export default function ProcessPage() {
       } else if (removeCurve) {
         removeCurve.shape.removeCurve(removeCurve.direction);
       }
+    }
+
+    // space
+    if (e.key === " " && !space) {
+      setSpace(true)
+    }
+  }
+
+  function handleKeyUp(this: Window, e: KeyboardEvent) {
+    if (e.key === " " && space) {
+      setSpace(false)
     }
   }
 
@@ -309,12 +341,14 @@ export default function ProcessPage() {
   };
 
   const draw = useCallback(() => {
+
     ctx?.clearRect(0, 0, window.innerWidth, window.innerHeight);
     shapes.forEach((shape) => {
       if (!ctx) return;
       shape.draw(ctx);
     });
     requestAnimationFrame(draw);
+
   }, []);
 
   useEffect(() => {
@@ -325,35 +359,36 @@ export default function ProcessPage() {
       $canvas.height = window.innerHeight;
       if (!ctx) return;
       let terminal = new Terminal(
-          "terminal_1",
-          200,
-          100,
-          { x: 300, y: 100 },
-          "orange",
-          true
-        ),
-        process = new Process("process_1", 200, 100, { x: 300, y: 350 }, "red"),
-        process_2 = new Process(
-          "process_2",
-          200,
-          100,
-          { x: 1200, y: 300 },
-          "blue"
-        ),
-        data_1 = new Data("data_1", 200, 100, { x: 600, y: 600 }, "green"),
-        desicion_1 = new Desicion(
-          "desicion_1",
-          150,
-          100,
-          { x: 500, y: 100 },
-          "#3498db"
-        );
+        "terminal_1",
+        200,
+        100,
+        { x: 0, y: 0 },
+        "orange",
+        true
+      );
+      // ,
+      //   process = new Process("process_1", 200, 100, { x: 300, y: 350 }, "red"),
+      //   process_2 = new Process(
+      //     "process_2",
+      //     200,
+      //     100,
+      //     { x: 1200, y: 300 },
+      //     "blue"
+      //   ),
+      //   data_1 = new Data("data_1", 200, 100, { x: 600, y: 600 }, "green"),
+      //   desicion_1 = new Desicion(
+      //     "desicion_1",
+      //     150,
+      //     100,
+      //     { x: 500, y: 100 },
+      //     "#3498db"
+      //   );
 
       shapes.push(terminal);
-      shapes.push(process);
-      shapes.push(process_2);
-      shapes.push(data_1);
-      shapes.push(desicion_1);
+      // shapes.push(process);
+      // shapes.push(process_2);
+      // shapes.push(data_1);
+      // shapes.push(desicion_1);
 
       requestAnimationFrame(draw);
     }
@@ -363,9 +398,13 @@ export default function ProcessPage() {
 
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
 
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [importFrame, selectFrame, dbClickedShape]);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown)
+      window.removeEventListener("keyup", handleKeyUp)
+    };
+  }, [importFrame, selectFrame, dbClickedShape, space]);
 
   return (
     <>
@@ -392,6 +431,7 @@ export default function ProcessPage() {
         </div>
       </div>
       <canvas
+        className={space ? "cursor-grab" : ""}
         tabIndex={1}
         ref={(el) => {
           $canvas = el;

@@ -31,7 +31,7 @@ export default class Data extends Core {
 
   draw(ctx: CanvasRenderingContext2D) {
     ctx.save();
-    ctx.translate(this.p.x, this.p.y);
+    ctx.translate(this.getOffsetP().x, this.getOffsetP().y);
     ctx.fillStyle = this.c;
 
     const x1 = -this.w / 2 + this.frameOffset,

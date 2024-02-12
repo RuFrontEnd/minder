@@ -22,13 +22,13 @@ export default class Process extends Core {
 
   draw(ctx: CanvasRenderingContext2D) {
     ctx.save();
-    ctx.translate(this.p.x, this.p.y);
+    ctx.translate(this.getOffsetP().x, this.getOffsetP().y);
     ctx.fillStyle = this.c;
 
     const edge = this.getEdge();
 
     ctx.beginPath();
-    ctx.fillRect(edge.l - this.p.x, edge.t - this.p.y, this.w, this.h);
+    ctx.fillRect(edge.l - this.getOffsetP().x, edge.t - this.getOffsetP().y, this.w, this.h);
     ctx.closePath();
 
     ctx.restore();
