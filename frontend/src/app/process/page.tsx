@@ -1,9 +1,10 @@
-// TODO: 刪除 shape 時要連同關聯 shape 的關係一併清除 / checkData 時 setDbClickedShape 是否需要 / 修正 arrow 跟隨位置 / 新增 arrow 點擊範圍偵測 / terminal 新增 / infinite whiteboard / zoom 功能 / 修正 receive point 出現時會影響 curve 渲染 / 禁止 shape 頂點未從 terminal 出發 ( 會造成無法 traversal ) / 處理 data shape SelectFrame 開關(點擊 frame 以外要關閉) / 尋找左側列 icons / 後端判斷新增的 data 是否資料重名
+// TODO: 刪除 shape 時要進行走訪 / 刪除 shape 時要連同關聯 shape 的關係一併清除 / checkData 時 setDbClickedShape 是否需要 / 修正 arrow 跟隨位置 / 新增 arrow 點擊範圍偵測 / terminal 新增 / infinite whiteboard / zoom 功能 / 修正 receive point 出現時會影響 curve 渲染 / 禁止 shape 頂點未從 terminal 出發 ( 會造成無法 traversal ) / 處理 data shape SelectFrame 開關(點擊 frame 以外要關閉) / 尋找左側列 icons / 後端判斷新增的 data 是否資料重名
 "use client";
 import Terminal from "@/shapes/terminal";
 import Process from "@/shapes/process";
 import Data from "@/shapes/data";
 import Desicion from "@/shapes/decision";
+import StatusFrame from "@/components/statusFrame";
 import ImportFrame from "@/components/importFrame";
 import SelectDataFrame from "@/components/selectDataFrame";
 import { useState, useRef, useEffect, useCallback, use } from "react";
@@ -27,9 +28,12 @@ const getFramePosition = (shape: Core) => {
 export default function ProcessPage() {
   let { current: $canvas } = useRef<HTMLCanvasElement | null>(null);
 
-  const [importFrame, setImportFrame] = useState<{ p: Vec } | undefined>(
+  const [statusFrame, setStatusFrame] = useState<{ p: Vec } | undefined>(
     undefined
   ),
+    [importFrame, setImportFrame] = useState<{ p: Vec } | undefined>(
+      undefined
+    ),
     [selectFrame, setSelectFrame] = useState<{ p: Vec } | undefined>(undefined),
     [dbClickedShape, setDbClickedShape] = useState<
       Terminal | Data | Process | Desicion | null
@@ -132,6 +136,7 @@ export default function ProcessPage() {
       const movingCanvas = space && leftMouseBtn;
 
       if (movingCanvas) {
+        setStatusFrame(undefined)
         setSelectFrame(undefined);
         setImportFrame(undefined)
         offset.x += p.x - dragP.x
@@ -150,7 +155,14 @@ export default function ProcessPage() {
         }
 
         if (shape.checkBoundry(p) && dbClickedShape?.id === shape.id) {
-          if (shape instanceof Data) {
+          if (shape instanceof Terminal) {
+            const $StatusFrame = document.getElementById(dbClickedShape?.id);
+            if ($StatusFrame) {
+              const framePosition = getFramePosition(shape);
+              $StatusFrame.style.left = `${framePosition.x}px`;
+              $StatusFrame.style.top = `${framePosition.y}px`;
+            }
+          } else if (shape instanceof Data) {
             const $importFrame = document.getElementById(dbClickedShape?.id);
             if ($importFrame) {
               const framePosition = getFramePosition(shape);
@@ -221,12 +233,20 @@ export default function ProcessPage() {
         if (shape.checkBoundry(p)) {
           setDbClickedShape(shape);
 
-          if (shape instanceof Data) {
+          if (shape instanceof Terminal) {
+            setStatusFrame({
+              p: getFramePosition(shape),
+            });
+            setImportFrame(undefined);
+            setSelectFrame(undefined);
+          } else if (shape instanceof Data) {
+            setStatusFrame(undefined)
             setImportFrame({
               p: getFramePosition(shape),
             });
             setSelectFrame(undefined);
           } else if (shape instanceof Process || shape instanceof Desicion) {
+            setStatusFrame(undefined)
             setImportFrame(undefined);
             setSelectFrame({
               p: getFramePosition(shape),
@@ -327,6 +347,14 @@ export default function ProcessPage() {
     shapes.push(data_new);
   };
 
+  const onConfirmStatusFrame = (title: string) => {
+    if (!(dbClickedShape instanceof Terminal)) return;
+    dbClickedShape?.onDataChange(title);
+    setStatusFrame(undefined);
+    setDbClickedShape(null);
+    checkData();
+  };
+
   const onConfirmImportFrame = (title: string, data: DataType) => {
     if (!(dbClickedShape instanceof Data)) return;
     dbClickedShape?.onDataChange(title, data);
@@ -411,7 +439,7 @@ export default function ProcessPage() {
       window.removeEventListener("keydown", handleKeyDown)
       window.removeEventListener("keyup", handleKeyUp)
     };
-  }, [importFrame, selectFrame, dbClickedShape, space]);
+  }, [statusFrame, importFrame, selectFrame, dbClickedShape, space]);
 
   return (
     <>
@@ -449,6 +477,17 @@ export default function ProcessPage() {
         onMouseMove={onMouseMove}
         onDoubleClick={onDoubleClick}
       />
+
+      {statusFrame && dbClickedShape instanceof Terminal &&
+        <StatusFrame
+          id={dbClickedShape.id}
+          key={dbClickedShape.id}
+          coordinate={statusFrame.p}
+          onConfirm={onConfirmStatusFrame}
+          init={{
+            title: dbClickedShape?.title ? dbClickedShape?.title : "",
+          }} />
+      }
 
       {importFrame && dbClickedShape instanceof Data && (
         <ImportFrame

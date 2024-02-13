@@ -10,6 +10,7 @@ import {
   W,
   H,
   C,
+  Title,
   Direction,
   Data as DataType,
 } from "@/types/shapes/common";
@@ -17,11 +18,18 @@ import { cloneDeep } from "lodash";
 
 export default class Terminal extends Core {
   isStart: boolean;
+  title: Title;
+
 
   constructor(id: Id, w: W, h: H, p: Vec, c: C, isStart: boolean) {
     super(id, w, h, p, c);
     this.isStart = isStart;
+    this.title = "";
   }
+
+  onDataChange = (title: Title) => {
+    this.title = title;
+  };
 
   onTraversal() {
     // traversal all relational steps
