@@ -1,4 +1,4 @@
-// TODO: 刪除 shape 時要進行走訪 / 刪除 shape 時要連同關聯 shape 的關係一併清除 / checkData 時 setDbClickedShape 是否需要 / 修正 arrow 跟隨位置 / 新增 arrow 點擊範圍偵測 / terminal 新增 / infinite whiteboard / zoom 功能 / 修正 receive point 出現時會影響 curve 渲染 / 禁止 shape 頂點未從 terminal 出發 ( 會造成無法 traversal ) / 處理 data shape SelectFrame 開關(點擊 frame 以外要關閉) / 尋找左側列 icons / 後端判斷新增的 data 是否資料重名
+// TODO: 刪除 shape 時要進行走訪 / 刪除 shape 時要連同關聯 shape 的關係一併清除 / curve p1 點不可以移動 / checkData 時 setDbClickedShape 是否需要 / 修正 arrow 跟隨位置 / 新增 arrow 點擊範圍偵測 / terminal 新增 / infinite whiteboard / zoom 功能  / 禁止 shape 頂點未從 terminal 出發 ( 會造成無法 traversal ) / 處理 data shape SelectFrame 開關(點擊 frame 以外要關閉) / 尋找左側列 icons / 後端判斷新增的 data 是否資料重名
 "use client";
 import Terminal from "@/shapes/terminal";
 import Process from "@/shapes/process";

@@ -61,7 +61,12 @@ export default class Core {
     b: null | Curve;
   };
   selecting: boolean;
-  receiving: boolean;
+  receiving: {
+    l: boolean;
+    t: boolean;
+    r: boolean;
+    b: boolean;
+  };
   pressing: {
     activate: boolean;
     target: PressingTarget | null;
@@ -107,7 +112,12 @@ export default class Core {
       b: null,
     };
     this.selecting = false;
-    this.receiving = false;
+    this.receiving = {
+      l: false,
+      t: false,
+      r: false,
+      b: false,
+    };;
     this.pressing = this.initPressing;
     this.receiveFrom = {
       l: null,
@@ -285,12 +295,13 @@ export default class Core {
   };
 
   checkReceivingPointsBoundry = (p: Vec) => {
-    const edge = this.getEdge();
+    const edge = this.getEdge(),
+      center = this.getCenter()
 
     let dx, dy;
 
     dx = edge.l - p.x;
-    dy = 0;
+    dy = center.m.y - p.y;
 
     if (dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill) {
       return {
@@ -299,7 +310,7 @@ export default class Core {
       };
     }
 
-    dx = 0;
+    dx = center.m.x - p.x;
     dy = edge.t - p.y;
 
     if (dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill) {
@@ -310,7 +321,7 @@ export default class Core {
     }
 
     dx = p.x - edge.r;
-    dy = 0;
+    dy = center.m.y - p.y;
 
     if (dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill) {
       return {
@@ -319,7 +330,7 @@ export default class Core {
       };
     }
 
-    dx = 0;
+    dx = center.m.x - p.x;
     dy = p.y - edge.b;
 
     if (dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill) {
@@ -427,6 +438,11 @@ export default class Core {
     });
   };
 
+  getIsReceiving = () => {
+    return !this.receiving.l && !this.receiving.t && !this.receiving.r && !this.receiving.b
+  }
+
+
   removeCurve = (d: Direction) => {
     this.curves[d] = null;
 
@@ -458,7 +474,10 @@ export default class Core {
     const edge = this.getEdge(),
       center = this.getCenter();
 
-    if (this.selecting && !this.receiving) {
+    if (
+      this.selecting &&
+      this.getIsReceiving()
+    ) {
       if (
         // lt anchors
         (p.x - center.lt.x) * (p.x - center.lt.x) +
@@ -731,13 +750,12 @@ export default class Core {
   }
 
   onMouseMove(p: Vec, receivable?: boolean) {
-
     if (
       this.selecting &&
       this.pressing.activate &&
       this.dragP.x &&
       this.dragP.y &&
-      !this.receiving
+      this.getIsReceiving()
     ) {
       let xOffset = p.x - this.dragP.x,
         yOffset = p.y - this.dragP.y;
@@ -1504,7 +1522,10 @@ export default class Core {
     }
 
     if (receivable) {
-      this.receiving = this.checkReceivingBoundry(p);
+      this.receiving.l = !this.curves.l && this.checkReceivingBoundry(p);
+      this.receiving.t = !this.curves.t && this.checkReceivingBoundry(p);
+      this.receiving.r = !this.curves.r && this.checkReceivingBoundry(p);
+      this.receiving.b = !this.curves.b && this.checkReceivingBoundry(p);
     }
   }
 
@@ -1513,96 +1534,87 @@ export default class Core {
       this.pressing = this.initPressing;
     }
 
-    if (sender && this.receiving) {
+    if (sender) {
       const pressingReceivingPoint = this.checkReceivingPointsBoundry(p),
         senderCurve = sender.shape.curves[sender.direction];
 
       if (pressingReceivingPoint.activate && senderCurve) {
-        switch (pressingReceivingPoint.direction) {
-          case Direction.l:
-            {
-              // receiver
-              this.receiveFrom.l = sender;
-              // sender
-              sender.shape.sendTo[sender.direction] = {
-                shape: this,
-                direction: pressingReceivingPoint.direction, // l
-              };
+        if (this.receiving.l && pressingReceivingPoint.direction === Direction.l) {
+          // receiver
+          this.receiveFrom.l = sender;
+          // sender
+          sender.shape.sendTo[sender.direction] = {
+            shape: this,
+            direction: pressingReceivingPoint.direction, // l
+          };
 
-              // define l receive curve P2 position
-              const curveOffsetX = curveOffset?.l.x ? curveOffset.l.x : 0,
-                curveOffsetY = curveOffset?.l.y ? curveOffset.l.y : 0
+          // define l receive curve P2 position
+          const curveOffsetX = curveOffset?.l.x ? curveOffset.l.x : 0,
+            curveOffsetY = curveOffset?.l.y ? curveOffset.l.y : 0
 
-              senderCurve.p2 = {
-                x: this.p1.x - sender.shape.p.x + curveOffsetX,
-                y: this.p.y - sender.shape.p.y + curveOffsetY,
-              };
-            }
-            break;
-          case Direction.t:
-            {
-              // receiver
-              this.receiveFrom.t = sender;
-              // sender
-              sender.shape.sendTo[sender.direction] = {
-                shape: this,
-                direction: pressingReceivingPoint.direction, // t
-              };
+          senderCurve.p2 = {
+            x: this.p1.x - sender.shape.p.x + curveOffsetX,
+            y: this.p.y - sender.shape.p.y + curveOffsetY,
+          };
+        } else if (this.receiving.t && pressingReceivingPoint.direction === Direction.t) {
+          // receiver
+          this.receiveFrom.t = sender;
+          // sender
+          sender.shape.sendTo[sender.direction] = {
+            shape: this,
+            direction: pressingReceivingPoint.direction, // t
+          };
 
-              // define t receive curve P2 position
-              const curveOffsetX = curveOffset?.t.x ? curveOffset.t.x : 0,
-                curveOffsetY = curveOffset?.t.y ? curveOffset.t.y : 0
+          // define t receive curve P2 position
+          const curveOffsetX = curveOffset?.t.x ? curveOffset.t.x : 0,
+            curveOffsetY = curveOffset?.t.y ? curveOffset.t.y : 0
 
-              senderCurve.p2 = {
-                x: this.p.x - sender.shape.p.x + curveOffsetX,
-                y: this.p1.y - sender.shape.p.y + curveOffsetY,
-              };
-            }
-            break;
-          case Direction.r:
-            {
-              // receiver
-              this.receiveFrom.r = sender;
-              // sender
-              sender.shape.sendTo[sender.direction] = {
-                shape: this,
-                direction: pressingReceivingPoint.direction, // r
-              };
+          senderCurve.p2 = {
+            x: this.p.x - sender.shape.p.x + curveOffsetX,
+            y: this.p1.y - sender.shape.p.y + curveOffsetY,
+          };
+        } else if (this.receiving.r && pressingReceivingPoint.direction === Direction.r) {
+          // receiver
+          this.receiveFrom.r = sender;
+          // sender
+          sender.shape.sendTo[sender.direction] = {
+            shape: this,
+            direction: pressingReceivingPoint.direction, // r
+          };
 
-              // define r receive curve P2 position
-              const curveOffsetX = curveOffset?.r.x ? curveOffset.r.x : 0,
-                curveOffsetY = curveOffset?.r.y ? curveOffset.r.y : 0
+          // define r receive curve P2 position
+          const curveOffsetX = curveOffset?.r.x ? curveOffset.r.x : 0,
+            curveOffsetY = curveOffset?.r.y ? curveOffset.r.y : 0
 
-              senderCurve.p2 = {
-                x: this.p2.x - sender.shape.p.x + curveOffsetX,
-                y: this.p.y - sender.shape.p.y + curveOffsetY,
-              };
-            }
-            break;
-          case Direction.b:
-            {
-              // receiver
-              this.receiveFrom.b = sender;
-              // sender
-              sender.shape.sendTo[sender.direction] = {
-                shape: this,
-                direction: pressingReceivingPoint.direction, // b
-              };
+          senderCurve.p2 = {
+            x: this.p2.x - sender.shape.p.x + curveOffsetX,
+            y: this.p.y - sender.shape.p.y + curveOffsetY,
+          };
+        } else if (this.receiving.b && pressingReceivingPoint.direction === Direction.b) {
+          // receiver
+          this.receiveFrom.b = sender;
+          // sender
+          sender.shape.sendTo[sender.direction] = {
+            shape: this,
+            direction: pressingReceivingPoint.direction, // b
+          };
 
-              // define b receive curve P2 position
-              const curveOffsetX = curveOffset?.b.x ? curveOffset.b.x : 0,
-                curveOffsetY = curveOffset?.b.y ? curveOffset.b.y : 0
+          // define b receive curve P2 position
+          const curveOffsetX = curveOffset?.b.x ? curveOffset.b.x : 0,
+            curveOffsetY = curveOffset?.b.y ? curveOffset.b.y : 0
 
-              senderCurve.p2 = {
-                x: this.p.x - sender.shape.p.x + curveOffsetX,
-                y: this.p2.y - sender.shape.p.y + curveOffsetY,
-              };
-            }
-            break;
+          senderCurve.p2 = {
+            x: this.p.x - sender.shape.p.x + curveOffsetX,
+            y: this.p2.y - sender.shape.p.y + curveOffsetY,
+          };
         }
       }
-      this.receiving = false;
     }
+
+    this.receiving.l = false;
+    this.receiving.t = false;
+    this.receiving.r = false;
+    this.receiving.b = false;
 
     if (this.curves.l) {
       this.curves.l?.onMouseUp();
@@ -1631,7 +1643,7 @@ export default class Core {
     ctx.translate(this.getOffsetP().x, this.getOffsetP().y);
     ctx.fillStyle = this.c;
 
-    if (!this.receiving) {
+    if (this.getIsReceiving()) {
       if (this.selecting) {
         // draw frame
         ctx.fillStyle = "white";
@@ -1766,22 +1778,6 @@ export default class Core {
           ctx.closePath();
         }
       }
-
-      if (this.curves.l) {
-        this.curves.l.draw(ctx);
-      }
-
-      if (this.curves.t) {
-        this.curves.t.draw(ctx);
-      }
-
-      if (this.curves.r) {
-        this.curves.r.draw(ctx);
-      }
-
-      if (this.curves.b) {
-        this.curves.b.draw(ctx);
-      }
     } else {
       // draw receiving points
       ctx.fillStyle = "white";
@@ -1789,32 +1785,56 @@ export default class Core {
       ctx.lineWidth = this.anchor.size.stroke;
 
       // left
-      ctx.beginPath();
-      ctx.arc(-this.w / 2, 0, this.anchor.size.fill, 0, 2 * Math.PI, false);
-      ctx.stroke();
-      ctx.fill();
-      ctx.closePath();
+      if (this.receiving.l) {
+        ctx.beginPath();
+        ctx.arc(-this.w / 2, 0, this.anchor.size.fill, 0, 2 * Math.PI, false);
+        ctx.stroke();
+        ctx.fill();
+        ctx.closePath();
+      }
 
       // top
-      ctx.beginPath();
-      ctx.arc(0, -this.h / 2, this.anchor.size.fill, 0, 2 * Math.PI, false);
-      ctx.stroke();
-      ctx.fill();
-      ctx.closePath();
+      if (this.receiving.t) {
+        ctx.beginPath();
+        ctx.arc(0, -this.h / 2, this.anchor.size.fill, 0, 2 * Math.PI, false);
+        ctx.stroke();
+        ctx.fill();
+        ctx.closePath();
+      }
 
       // right
-      ctx.beginPath();
-      ctx.arc(this.w / 2, 0, this.anchor.size.fill, 0, 2 * Math.PI, false);
-      ctx.stroke();
-      ctx.fill();
-      ctx.closePath();
+      if (this.receiving.r) {
+        ctx.beginPath();
+        ctx.arc(this.w / 2, 0, this.anchor.size.fill, 0, 2 * Math.PI, false);
+        ctx.stroke();
+        ctx.fill();
+        ctx.closePath();
+      }
 
       // bottom
-      ctx.beginPath();
-      ctx.arc(0, this.h / 2, this.anchor.size.fill, 0, 2 * Math.PI, false);
-      ctx.stroke();
-      ctx.fill();
-      ctx.closePath();
+      if (this.receiving.b) {
+        ctx.beginPath();
+        ctx.arc(0, this.h / 2, this.anchor.size.fill, 0, 2 * Math.PI, false);
+        ctx.stroke();
+        ctx.fill();
+        ctx.closePath();
+      }
+    }
+
+    if (this.curves.l) {
+      this.curves.l.draw(ctx);
+    }
+
+    if (this.curves.t) {
+      this.curves.t.draw(ctx);
+    }
+
+    if (this.curves.r) {
+      this.curves.r.draw(ctx);
+    }
+
+    if (this.curves.b) {
+      this.curves.b.draw(ctx);
     }
 
     // render center text
