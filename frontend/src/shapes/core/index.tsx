@@ -380,13 +380,23 @@ export default class Core {
     }
   };
 
-  resetConnection = (direction: Direction) => {
-    const receiverShape = this.sendTo[direction]?.shape,
-      receiverDirection = this.sendTo[direction]?.direction;
+  resetConnection = (direction: Direction, fromSender: boolean) => {
+    if (fromSender) {
+      const receiverShape = this.sendTo[direction]?.shape,
+        receiverDirection = this.sendTo[direction]?.direction;
 
-    if (receiverShape && receiverDirection) {
-      receiverShape.receiveFrom[receiverDirection] = null;
-      this.sendTo[direction] = null;
+      if (receiverShape && receiverDirection) {
+        receiverShape.receiveFrom[receiverDirection] = null;
+        this.sendTo[direction] = null;
+      }
+    } else {
+      const senderShape = this.receiveFrom[direction]?.shape,
+        senderDirection = this.receiveFrom[direction]?.direction;
+
+      if (senderShape && senderDirection) {
+        senderShape.sendTo[senderDirection] = null;
+        this.receiveFrom[direction] = null;
+      }
     }
   };
 
@@ -460,12 +470,14 @@ export default class Core {
       x: p.x - this.getOffsetP().x,
       y: p.y - this.getOffsetP().y,
     };
-    let pressingCurve = {
+    let curveBoundry = {
       l: this.curves.l?.checkControlPointsBoundry(shapeP),
       t: this.curves.t?.checkControlPointsBoundry(shapeP),
       r: this.curves.r?.checkControlPointsBoundry(shapeP),
       b: this.curves.b?.checkControlPointsBoundry(shapeP),
     };
+
+
 
     if (this.checkBoundry(p)) {
       this.selecting = true;
@@ -653,86 +665,86 @@ export default class Core {
       this.dragP = p;
     }
 
-    if (pressingCurve.l?.p === CurvePressingP.cp1) {
+    if (curveBoundry.l?.p === CurvePressingP.cp1) {
       // l curve cp1
       this.pressing = {
         activate: true,
         target: PressingTarget.clcp1,
       };
-    } else if (pressingCurve.l?.p === CurvePressingP.cp2) {
+    } else if (curveBoundry.l?.p === CurvePressingP.cp2) {
       // l curve cp2
       this.pressing = {
         activate: true,
         target: PressingTarget.clcp2,
       };
-    } else if (pressingCurve.l?.p === CurvePressingP.p2) {
+    } else if (curveBoundry.l?.p === CurvePressingP.p2) {
       // l curve p2
       this.pressing = {
         activate: true,
         target: PressingTarget.clp2,
       };
 
-      this.resetConnection(Direction.l);
-    } else if (pressingCurve.t?.p === CurvePressingP.cp1) {
+      // this.resetConnection(Direction.l);
+    } else if (curveBoundry.t?.p === CurvePressingP.cp1) {
       // t curve cp1
       this.pressing = {
         activate: true,
         target: PressingTarget.ctcp1,
       };
-    } else if (pressingCurve.t?.p === CurvePressingP.cp2) {
+    } else if (curveBoundry.t?.p === CurvePressingP.cp2) {
       // t curve cp2
       this.pressing = {
         activate: true,
         target: PressingTarget.ctcp2,
       };
-    } else if (pressingCurve.t?.p === CurvePressingP.p2) {
+    } else if (curveBoundry.t?.p === CurvePressingP.p2) {
       // t curve p2
       this.pressing = {
         activate: true,
         target: PressingTarget.ctp2,
       };
 
-      this.resetConnection(Direction.t);
-    } else if (pressingCurve.r?.p === CurvePressingP.cp1) {
+      // this.resetConnection(Direction.t);
+    } else if (curveBoundry.r?.p === CurvePressingP.cp1) {
       // r curve cp1
       this.pressing = {
         activate: true,
         target: PressingTarget.crcp1,
       };
-    } else if (pressingCurve.r?.p === CurvePressingP.cp2) {
+    } else if (curveBoundry.r?.p === CurvePressingP.cp2) {
       // r curve cp2
       this.pressing = {
         activate: true,
         target: PressingTarget.crcp2,
       };
-    } else if (pressingCurve.r?.p === CurvePressingP.p2) {
+    } else if (curveBoundry.r?.p === CurvePressingP.p2) {
       // r curve p2
       this.pressing = {
         activate: true,
         target: PressingTarget.crp2,
       };
 
-      this.resetConnection(Direction.r);
-    } else if (pressingCurve.b?.p === CurvePressingP.cp1) {
+      // this.resetConnection(Direction.r);
+    } else if (curveBoundry.b?.p === CurvePressingP.cp1) {
       // b curve cp1
       this.pressing = {
         activate: true,
         target: PressingTarget.cbcp1,
       };
-    } else if (pressingCurve.b?.p === CurvePressingP.cp2) {
+    } else if (curveBoundry.b?.p === CurvePressingP.cp2) {
       // b curve cp2
       this.pressing = {
         activate: true,
         target: PressingTarget.cbcp2,
       };
-    } else if (pressingCurve.b?.p === CurvePressingP.p2) {
+    } else if (curveBoundry.b?.p === CurvePressingP.p2) {
       // b curve p2
       this.pressing = {
         activate: true,
         target: PressingTarget.cbp2,
       };
 
-      this.resetConnection(Direction.b);
+      // this.resetConnection(Direction.b);
     }
 
     if (this.curves.l) {
@@ -1496,6 +1508,19 @@ export default class Core {
 
     const shapeP = { x: p.x - this.getOffsetP().x, y: p.y - this.getOffsetP().y };
 
+    // reset shape connections when moving curve
+    if (this.pressing.activate) {
+      if (this.curves.l?.selecting && this.pressing.target === PressingTarget.clp2) {
+        this.resetConnection(Direction.l, true)
+      } else if (this.curves.t?.selecting && this.pressing.target === PressingTarget.ctp2) {
+        this.resetConnection(Direction.t, true)
+      } else if (this.curves.r?.selecting && this.pressing.target === PressingTarget.crp2) {
+        this.resetConnection(Direction.r, true)
+      } else if (this.curves.b?.selecting && this.pressing.target === PressingTarget.cbp2) {
+        this.resetConnection(Direction.b, true)
+      }
+    }
+
     if (
       // l curve
       this.curves.l
@@ -1615,6 +1640,7 @@ export default class Core {
     this.receiving.t = false;
     this.receiving.r = false;
     this.receiving.b = false;
+
 
     if (this.curves.l) {
       this.curves.l?.onMouseUp();
