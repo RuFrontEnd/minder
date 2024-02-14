@@ -32,6 +32,15 @@ export default class Terminal extends Core {
     this.isStart = isStart
   };
 
+  onMouseUp(p: Vec, sender?: ConnectTarget) {
+    super.onMouseUp(p, sender, {
+      l: { x: -10, y: 0 },
+      t: { x: 0, y: -10 },
+      r: { x: 10, y: 0 },
+      b: { x: 0, y: 10 }
+    })
+  }
+
   onTraversal() {
     // traversal all relational steps
     const queue: (Core | Process | Data | Decision)[] = [this],

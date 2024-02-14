@@ -9,6 +9,7 @@ import {
   Title,
   Data as DataType,
 } from "@/types/shapes/common";
+import { ConnectTarget } from "@/types/shapes/core";
 
 export default class Data extends Core {
   isFrameOpen: boolean;
@@ -28,6 +29,15 @@ export default class Data extends Core {
     this.title = title;
     this.data = data;
   };
+
+  onMouseUp(p: Vec, sender?: ConnectTarget) {
+    super.onMouseUp(p, sender, {
+      l: { x: 0, y: 0 },
+      t: { x: 0, y: -10 },
+      r: { x: 0, y: 0 },
+      b: { x: 0, y: 10 }
+    })
+  }
 
   draw(ctx: CanvasRenderingContext2D) {
     ctx.save();

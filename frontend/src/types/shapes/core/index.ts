@@ -1,6 +1,6 @@
-import { Direction } from "@/types/shapes/common";
 import Core from "@/shapes/core";
 import Curve from "@/shapes/curve";
+import { Vec, Direction } from "@/types/shapes/common";
 
 enum PressingTarget {
   // anchor points
@@ -49,10 +49,18 @@ type ConnectTarget = null | {
   direction: Direction;
 };
 
+type CurveOffset = {
+  l: Vec,
+  t: Vec,
+  r: Vec,
+  b: Vec
+}
+
 export { PressingTarget };
 export type {
   ConncetionTarget,
   ReceivingTarget,
   ConnectTarget,
   Direction,
+  CurveOffset
 };

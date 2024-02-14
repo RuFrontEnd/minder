@@ -10,6 +10,8 @@ import {
   Direction,
   Data as DataType,
 } from "@/types/shapes/common";
+import { ConnectTarget } from "@/types/shapes/core";
+
 export default class Desicion extends Core {
   text: {
     l: null | "Y" | "N";
@@ -40,6 +42,15 @@ export default class Desicion extends Core {
 
     return time;
   };
+
+  onMouseUp(p: Vec, sender?: ConnectTarget) {
+    super.onMouseUp(p, sender, {
+      l: { x: -10, y: 0 },
+      t: { x: 0, y: -10 },
+      r: { x: 10, y: 0 },
+      b: { x: 0, y: 10 }
+    })
+  }
 
   onMouseDown(canvas: HTMLCanvasElement, p: Vec) {
     super.onMouseDown(canvas, p);

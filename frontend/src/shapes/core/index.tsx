@@ -2,7 +2,7 @@
 import Curve from "@/shapes/curve";
 import { Vec, Direction, Data as DataType } from "@/types/shapes/common";
 import { Line, PressingP as CurvePressingP } from "@/types/shapes/curve";
-import { PressingTarget, ConnectTarget } from "@/types/shapes/core";
+import { PressingTarget, ConnectTarget, CurveOffset } from "@/types/shapes/core";
 import { Title } from "@/types/shapes/common";
 
 export default class Core {
@@ -1508,7 +1508,7 @@ export default class Core {
     }
   }
 
-  onMouseUp(p: Vec, sender?: ConnectTarget) {
+  onMouseUp(p: Vec, sender?: ConnectTarget, curveOffset?: CurveOffset) {
     if (this.pressing.activate) {
       this.pressing = this.initPressing;
     }
@@ -1529,9 +1529,13 @@ export default class Core {
                 direction: pressingReceivingPoint.direction, // l
               };
 
+              // define l receive curve P2 position
+              const curveOffsetX = curveOffset?.l.x ? curveOffset.l.x : 0,
+                curveOffsetY = curveOffset?.l.y ? curveOffset.l.y : 0
+
               senderCurve.p2 = {
-                x: this.p1.x - sender.shape.p.x,
-                y: this.p.y - sender.shape.p.y,
+                x: this.p1.x - sender.shape.p.x + curveOffsetX,
+                y: this.p.y - sender.shape.p.y + curveOffsetY,
               };
             }
             break;
@@ -1545,40 +1549,55 @@ export default class Core {
                 direction: pressingReceivingPoint.direction, // t
               };
 
+              // define t receive curve P2 position
+              const curveOffsetX = curveOffset?.t.x ? curveOffset.t.x : 0,
+                curveOffsetY = curveOffset?.t.y ? curveOffset.t.y : 0
+
               senderCurve.p2 = {
-                x: this.p.x - sender.shape.p.x,
-                y: this.p1.y - sender.shape.p.y,
+                x: this.p.x - sender.shape.p.x + curveOffsetX,
+                y: this.p1.y - sender.shape.p.y + curveOffsetY,
               };
             }
             break;
           case Direction.r:
-            // receiver
-            this.receiveFrom.r = sender;
-            // sender
-            sender.shape.sendTo[sender.direction] = {
-              shape: this,
-              direction: pressingReceivingPoint.direction, // r
-            };
+            {
+              // receiver
+              this.receiveFrom.r = sender;
+              // sender
+              sender.shape.sendTo[sender.direction] = {
+                shape: this,
+                direction: pressingReceivingPoint.direction, // r
+              };
 
-            senderCurve.p2 = {
-              x: this.p2.x - sender.shape.p.x,
-              y: this.p.y - sender.shape.p.y,
-            };
+              // define r receive curve P2 position
+              const curveOffsetX = curveOffset?.r.x ? curveOffset.r.x : 0,
+                curveOffsetY = curveOffset?.r.y ? curveOffset.r.y : 0
 
+              senderCurve.p2 = {
+                x: this.p2.x - sender.shape.p.x + curveOffsetX,
+                y: this.p.y - sender.shape.p.y + curveOffsetY,
+              };
+            }
             break;
           case Direction.b:
-            // receiver
-            this.receiveFrom.b = sender;
-            // sender
-            sender.shape.sendTo[sender.direction] = {
-              shape: this,
-              direction: pressingReceivingPoint.direction, // b
-            };
+            {
+              // receiver
+              this.receiveFrom.b = sender;
+              // sender
+              sender.shape.sendTo[sender.direction] = {
+                shape: this,
+                direction: pressingReceivingPoint.direction, // b
+              };
 
-            senderCurve.p2 = {
-              x: this.p.x - sender.shape.p.x,
-              y: this.p2.y - sender.shape.p.y,
-            };
+              // define b receive curve P2 position
+              const curveOffsetX = curveOffset?.b.x ? curveOffset.b.x : 0,
+                curveOffsetY = curveOffset?.b.y ? curveOffset.b.y : 0
+
+              senderCurve.p2 = {
+                x: this.p.x - sender.shape.p.x + curveOffsetX,
+                y: this.p2.y - sender.shape.p.y + curveOffsetY,
+              };
+            }
             break;
         }
       }
