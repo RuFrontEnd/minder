@@ -347,9 +347,9 @@ export default function ProcessPage() {
     shapes.push(data_new);
   };
 
-  const onConfirmStatusFrame = (title: string) => {
+  const onConfirmStatusFrame = (title: string, selection: string) => {
     if (!(dbClickedShape instanceof Terminal)) return;
-    dbClickedShape?.onDataChange(title);
+    dbClickedShape?.onDataChange(title, selection === 'start');
     setStatusFrame(undefined);
     setDbClickedShape(null);
     checkData();
@@ -484,8 +484,11 @@ export default function ProcessPage() {
           key={dbClickedShape.id}
           coordinate={statusFrame.p}
           onConfirm={onConfirmStatusFrame}
+          status={'Type'}
+          options={['start', 'end']}
           init={{
             title: dbClickedShape?.title ? dbClickedShape?.title : "",
+            selection: dbClickedShape.isStart ? 'start' : 'end'
           }} />
       }
 

@@ -27,8 +27,9 @@ export default class Terminal extends Core {
     this.title = "";
   }
 
-  onDataChange = (title: Title) => {
+  onDataChange = (title: Title, isStart: boolean) => {
     this.title = title;
+    this.isStart = isStart
   };
 
   onTraversal() {

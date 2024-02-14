@@ -4,9 +4,11 @@ type Props = {
   id: string;
   key: string;
   coordinate: Vec;
-  onConfirm: (title: Title) => void;
+  init?: { title: Title, selection: string };
+  status: string,
+  options: [string, string];
+  onConfirm: (title: Title, selection: string) => void;
   onClick?: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
-  init?: { title: Title };
 };
 
 export type { Data, Props };
