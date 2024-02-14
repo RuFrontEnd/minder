@@ -290,6 +290,10 @@ export default function ProcessPage() {
       }
 
       if (removeShape) {
+        for (const d of ds) {
+          removeShape?.resetConnection(d, true)
+          removeShape?.resetConnection(d, false)
+        }
         shapes = shapes.filter((shape) => shape.id !== removeShape?.id);
       } else if (removeCurve) {
         removeCurve.shape.removeCurve(removeCurve.direction);
@@ -310,7 +314,7 @@ export default function ProcessPage() {
 
   const onClickProcess = () => {
     let process_new = new Process(
-      `process_${shapes.length + 1}`,
+      `process_${Date.now()}`,
       200,
       100,
       { x: -offset.x + 200, y: -offset.y + 200 },
@@ -323,7 +327,7 @@ export default function ProcessPage() {
 
   const onClickData = () => {
     let data_new = new Data(
-      `data_${shapes.length + 1}`,
+      `data_${Date.now()}`,
       200,
       100,
       { x: -offset.x + 200, y: -offset.y + 200 },
@@ -336,7 +340,7 @@ export default function ProcessPage() {
 
   const onClickDecision = () => {
     let data_new = new Desicion(
-      `data_${shapes.length + 1}`,
+      `data_${Date.now()}`,
       200,
       100,
       { x: -offset.x + 200, y: -offset.y + 200 },
