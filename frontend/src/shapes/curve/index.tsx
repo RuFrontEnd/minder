@@ -130,19 +130,20 @@ export default class Curve {
       };
     }
 
-    dx = this.p1.x - p.x;
-    dy = this.p1.y - p.y;
+    // TODO: keep p1 checking but not using.
+    // dx = this.p1.x - p.x;
+    // dy = this.p1.y - p.y;
 
-    if (dx * dx + dy * dy < this.radius * this.radius) {
-      // this.pressing = {
-      //   activate: true,
-      //   p: PressingP.p1,
-      // };
-      return {
-        activate: true,
-        p: PressingP.p1,
-      };
-    }
+    // if (dx * dx + dy * dy < this.radius * this.radius) {
+    //   // this.pressing = {
+    //   //   activate: true,
+    //   //   p: PressingP.p1,
+    //   // };
+    //   return {
+    //     activate: true,
+    //     p: PressingP.p1,
+    //   };
+    // }
 
     // this.pressing = this.initPressing;
     return this.initPressing;
@@ -340,11 +341,12 @@ export default class Curve {
       ctx.strokeStyle = "#900";
       ctx.fillStyle = "rgba(200, 200, 200, .5)";
 
-      ctx.beginPath();
-      ctx.arc(this.p1.x, this.p1.y, 10, 0, 2 * Math.PI, true); // p1 control point
-      ctx.fill();
-      ctx.stroke();
-      ctx.closePath();
+      // TODO: keep p1 rendering but not using.
+      // ctx.beginPath();
+      // ctx.arc(this.p1.x, this.p1.y, 10, 0, 2 * Math.PI, true); // p1 control point
+      // ctx.fill();
+      // ctx.stroke();
+      // ctx.closePath();
 
       ctx.beginPath();
       ctx.arc(this.cp1.x, this.cp1.y, 10, 0, 2 * Math.PI, true); // cp1 control point
