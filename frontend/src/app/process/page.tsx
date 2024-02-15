@@ -1,5 +1,6 @@
-// TODO: traversal 走訪時機改由操作的 shape 執行 / curve control point 被蓋住時要跳離 shape 範圍 / terminal 為 end type 禁止 send / terminal 為 start type 禁止 receive / 以 terminal 為群組功能 / 雙擊 cp1 || cp2 可自動對位 / checkData 時 setDbClickedShape 是否需要 / zoom 功能 / 處理 data shape SelectFrame 開關(點擊 frame 以外要關閉) / 尋找左側列 icons / 後端判斷新增的 data 是否資料重名 / 對齊功能
+// TODO: curve control point 被蓋住時要跳離 shape 範圍 / terminal 為 end type 禁止 send / terminal 為 start type 禁止 receive / 以 terminal 為群組功能 / 雙擊 cp1 || cp2 可自動對位 / zoom 功能 / 處理 data shape SelectFrame 開關(點擊 frame 以外要關閉) / 尋找左側列 icons / 後端判斷新增的 data 是否資料重名 / 對齊功能
 "use client";
+import Core from "@/shapes/core";
 import Terminal from "@/shapes/terminal";
 import Process from "@/shapes/process";
 import Data from "@/shapes/data";
@@ -10,8 +11,6 @@ import SelectDataFrame from "@/components/selectDataFrame";
 import { useState, useRef, useEffect, useCallback, use } from "react";
 import { PressingTarget, ConnectTarget } from "@/types/shapes/core";
 import { Vec, Direction, Data as DataType } from "@/types/shapes/common";
-import Core from "@/shapes/core";
-import cloneDeep from "lodash/cloneDeep";
 
 let useEffected = false,
   ctx: CanvasRenderingContext2D | null | undefined = null,
@@ -42,7 +41,11 @@ export default function ProcessPage() {
     [space, setSpace] = useState(false),
     [leftMouseBtn, setLeftMouseBtn] = useState(false);
 
-  const checkData = (dbClickedShapeId?: string) => {
+  const checkData = () => {
+    shapes.forEach((shape) => {
+      shape.options = [];
+    });
+
     // traversal to give all shapes corresponding options
     const terminal = shapes.find(
       (shape) => shape instanceof Terminal && shape.isStart
@@ -54,9 +57,6 @@ export default function ProcessPage() {
     // check all correspondants of shapes' between options and selectedData
     shapes.forEach((shape) => {
       shape.getRedundancies();
-      if (shape.id === dbClickedShapeId) {
-        setDbClickedShape(cloneDeep(shape));
-      } // TODO: check if is neccessary
     });
   };
 
@@ -215,7 +215,7 @@ export default function ProcessPage() {
       }
 
       if (sender) {
-        checkData(dbClickedShape?.id);
+        checkData();
       }
 
       sender = null;
@@ -298,8 +298,10 @@ export default function ProcessPage() {
           removeShape?.resetConnection(d, false);
         }
         shapes = shapes.filter((shape) => shape.id !== removeShape?.id);
+        checkData();
       } else if (removeCurve) {
         removeCurve.shape.removeCurve(removeCurve.direction);
+        checkData();
       }
     }
 

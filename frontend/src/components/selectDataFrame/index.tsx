@@ -17,10 +17,10 @@ export default function SelectDataFrame({
     setTitle(e.currentTarget.value);
   };
 
-  const onClickCheckedBox = (dataId: DataItem["id"]) => {
+  const onClickCheckedBox = (DataText: DataItem["text"]) => {
     const _selections: Selections = cloneDeep(selections);
 
-    _selections[dataId] = !_selections[dataId];
+    _selections[DataText] = !_selections[DataText];
 
     setSelections(_selections);
   };
@@ -30,13 +30,13 @@ export default function SelectDataFrame({
       const data: DataType = [];
 
       shape.options.forEach((option) => {
-        if (selections[option.id]) {
+        if (selections[option.text]) {
           data.push(option);
         }
       });
 
       shape.redundancies.forEach((option) => {
-        if (selections[option.id]) {
+        if (selections[option.text]) {
           data.push(option);
         }
       });
@@ -54,11 +54,11 @@ export default function SelectDataFrame({
       const output: Selections = {};
 
       shape.options.forEach((option) => {
-        output[option.id] = false;
+        output[option.text] = false;
       });
 
       shape.selectedData.forEach((selectedDataItem) => {
-        output[selectedDataItem.id] = true;
+        output[selectedDataItem.text] = true;
       });
 
       return output;
@@ -100,10 +100,10 @@ export default function SelectDataFrame({
                 <span
                   className="bg-indigo-100 text-indigo-500 w-4 h-4 rounded-full inline-flex items-center justify-center"
                   onClick={() => {
-                    onClickCheckedBox(option.id);
+                    onClickCheckedBox(option.text);
                   }}
                 >
-                  {selections[option.id] && (
+                  {selections[option.text] && (
                     <svg
                       fill="none"
                       stroke="currentColor"
@@ -129,17 +129,17 @@ export default function SelectDataFrame({
         <label className="leading-7 text-sm text-gray-600">Redundancies</label>
       </div>
       <ul className="flex flex-col">
-        {shape.redundancies.map((option, i) => (
+        {shape.redundancies.map((option) => (
           <li className="mb-2">
             <div className="grid grid-cols-[auto,1fr] gap-2">
               <div className="col-span-1">
                 <span
                   className="bg-red-100 text-red-500 w-4 h-4 rounded-full inline-flex items-center justify-center"
                   onClick={() => {
-                    onClickCheckedBox(option.id);
+                    onClickCheckedBox(option.text);
                   }}
                 >
-                  {selections[option.id] && (
+                  {selections[option.text] && (
                     <svg
                       fill="none"
                       stroke="currentColor"
