@@ -1,4 +1,4 @@
-// TODO: traversal 走訪時機改由操作的 shape 執行 / resize 時改變 canvas width & height / curve p1 點不可以移動 / curve control point 被蓋住時要跳離 shape 範圍 / terminal 為 end type 禁止 send / terminal 為 start type 禁止 receive / 以 terminal 為群組功能 / 雙擊 cp1 || cp2 可自動對位 / checkData 時 setDbClickedShape 是否需要 / zoom 功能 / 處理 data shape SelectFrame 開關(點擊 frame 以外要關閉) / 尋找左側列 icons / 後端判斷新增的 data 是否資料重名 / 對齊功能
+// TODO: traversal 走訪時機改由操作的 shape 執行 / curve p1 點不可以移動 / curve control point 被蓋住時要跳離 shape 範圍 / terminal 為 end type 禁止 send / terminal 為 start type 禁止 receive / 以 terminal 為群組功能 / 雙擊 cp1 || cp2 可自動對位 / checkData 時 setDbClickedShape 是否需要 / zoom 功能 / 處理 data shape SelectFrame 開關(點擊 frame 以外要關閉) / 尋找左側列 icons / 後端判斷新增的 data 是否資料重名 / 對齊功能
 "use client";
 import Terminal from "@/shapes/terminal";
 import Process from "@/shapes/process";
@@ -18,29 +18,29 @@ let useEffected = false,
   shapes: (Terminal | Process | Data | Desicion)[] = [],
   sender: null | ConnectTarget = null,
   offset: Vec = { x: 0, y: 0 },
-  dragP: Vec = { x: 0, y: 0 }
+  dragP: Vec = { x: 0, y: 0 };
 
 const getFramePosition = (shape: Core) => {
   const frameOffset = 12;
-  return { x: shape.getOffsetP().x + shape.w / 2 + frameOffset, y: shape.getOffsetP().y };
+  return {
+    x: shape.getOffsetP().x + shape.w / 2 + frameOffset,
+    y: shape.getOffsetP().y,
+  };
 };
 
 export default function ProcessPage() {
   let { current: $canvas } = useRef<HTMLCanvasElement | null>(null);
 
   const [statusFrame, setStatusFrame] = useState<{ p: Vec } | undefined>(
-    undefined
-  ),
-    [importFrame, setImportFrame] = useState<{ p: Vec } | undefined>(
       undefined
     ),
+    [importFrame, setImportFrame] = useState<{ p: Vec } | undefined>(undefined),
     [selectFrame, setSelectFrame] = useState<{ p: Vec } | undefined>(undefined),
     [dbClickedShape, setDbClickedShape] = useState<
       Terminal | Data | Process | Desicion | null
     >(null),
     [space, setSpace] = useState(false),
     [leftMouseBtn, setLeftMouseBtn] = useState(false);
-
 
   const checkData = (dbClickedShapeId?: string) => {
     // traversal to give all shapes corresponding options
@@ -60,70 +60,73 @@ export default function ProcessPage() {
     });
   };
 
-  const onMouseDown = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
-    e.preventDefault();
-    setLeftMouseBtn(true)
+  const onMouseDown = useCallback(
+    (e: React.MouseEvent<HTMLCanvasElement>) => {
+      e.preventDefault();
+      setLeftMouseBtn(true);
 
-    let $canvas = document.querySelector("canvas");
-    const p = {
-      x: e.nativeEvent.offsetX,
-      y: e.nativeEvent.offsetY,
-    };
+      let $canvas = document.querySelector("canvas");
+      const p = {
+        x: e.nativeEvent.offsetX,
+        y: e.nativeEvent.offsetY,
+      };
 
-    shapes.forEach((shape, shapeI) => {
-      if (!$canvas) return;
+      shapes.forEach((shape, shapeI) => {
+        if (!$canvas) return;
 
-      if (shape instanceof Process || Data || Desicion) {
-        let currentShape =
-          (shapes[shapeI] as Process) ||
-          (shapes[shapeI] as Data) ||
-          (shapes[shapeI] as Desicion);
-        currentShape.onMouseDown($canvas, p);
+        if (shape instanceof Process || Data || Desicion) {
+          let currentShape =
+            (shapes[shapeI] as Process) ||
+            (shapes[shapeI] as Data) ||
+            (shapes[shapeI] as Desicion);
+          currentShape.onMouseDown($canvas, p);
 
-        if (
-          currentShape.pressing.activate &&
-          currentShape.pressing.target === PressingTarget.clp2
-        ) {
-          if (!shape.curves.l) return;
-          sender = {
-            shape: shape,
-            direction: Direction.l,
-          };
-        } else if (
-          currentShape.pressing.activate &&
-          currentShape.pressing.target === PressingTarget.ctp2
-        ) {
-          if (!shape.curves.t) return;
-          sender = {
-            shape: shape,
-            direction: Direction.t,
-          };
-        } else if (
-          currentShape.pressing.activate &&
-          currentShape.pressing.target === PressingTarget.crp2
-        ) {
-          if (!shape.curves.r) return;
-          sender = {
-            shape: shape,
-            direction: Direction.r,
-          };
-        } else if (
-          currentShape.pressing.activate &&
-          currentShape.pressing.target === PressingTarget.cbp2
-        ) {
-          if (!shape.curves.b) return;
-          sender = {
-            shape: shape,
-            direction: Direction.b,
-          };
+          if (
+            currentShape.pressing.activate &&
+            currentShape.pressing.target === PressingTarget.clp2
+          ) {
+            if (!shape.curves.l) return;
+            sender = {
+              shape: shape,
+              direction: Direction.l,
+            };
+          } else if (
+            currentShape.pressing.activate &&
+            currentShape.pressing.target === PressingTarget.ctp2
+          ) {
+            if (!shape.curves.t) return;
+            sender = {
+              shape: shape,
+              direction: Direction.t,
+            };
+          } else if (
+            currentShape.pressing.activate &&
+            currentShape.pressing.target === PressingTarget.crp2
+          ) {
+            if (!shape.curves.r) return;
+            sender = {
+              shape: shape,
+              direction: Direction.r,
+            };
+          } else if (
+            currentShape.pressing.activate &&
+            currentShape.pressing.target === PressingTarget.cbp2
+          ) {
+            if (!shape.curves.b) return;
+            sender = {
+              shape: shape,
+              direction: Direction.b,
+            };
+          }
         }
-      }
-    });
+      });
 
-    if (space) {
-      dragP = p
-    }
-  }, [space, setLeftMouseBtn]);
+      if (space) {
+        dragP = p;
+      }
+    },
+    [space, setLeftMouseBtn]
+  );
 
   const onMouseMove = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -136,12 +139,12 @@ export default function ProcessPage() {
       const movingCanvas = space && leftMouseBtn;
 
       if (movingCanvas) {
-        setStatusFrame(undefined)
+        setStatusFrame(undefined);
         setSelectFrame(undefined);
-        setImportFrame(undefined)
-        offset.x += p.x - dragP.x
-        offset.y += p.y - dragP.y
-        dragP = p
+        setImportFrame(undefined);
+        offset.x += p.x - dragP.x;
+        offset.y += p.y - dragP.y;
+        dragP = p;
       }
 
       shapes.forEach((shape) => {
@@ -151,7 +154,7 @@ export default function ProcessPage() {
         );
 
         if (movingCanvas) {
-          shape.offset = offset
+          shape.offset = offset;
         }
 
         if (shape.checkBoundry(p) && dbClickedShape?.id === shape.id) {
@@ -186,7 +189,7 @@ export default function ProcessPage() {
   const onMouseUp = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
       e.preventDefault();
-      setLeftMouseBtn(false)
+      setLeftMouseBtn(false);
 
       const p = {
         x: e.nativeEvent.offsetX,
@@ -240,13 +243,13 @@ export default function ProcessPage() {
             setImportFrame(undefined);
             setSelectFrame(undefined);
           } else if (shape instanceof Data) {
-            setStatusFrame(undefined)
+            setStatusFrame(undefined);
             setImportFrame({
               p: getFramePosition(shape),
             });
             setSelectFrame(undefined);
           } else if (shape instanceof Process || shape instanceof Desicion) {
-            setStatusFrame(undefined)
+            setStatusFrame(undefined);
             setImportFrame(undefined);
             setSelectFrame({
               p: getFramePosition(shape),
@@ -291,8 +294,8 @@ export default function ProcessPage() {
 
       if (removeShape) {
         for (const d of ds) {
-          removeShape?.resetConnection(d, true)
-          removeShape?.resetConnection(d, false)
+          removeShape?.resetConnection(d, true);
+          removeShape?.resetConnection(d, false);
         }
         shapes = shapes.filter((shape) => shape.id !== removeShape?.id);
       } else if (removeCurve) {
@@ -302,13 +305,13 @@ export default function ProcessPage() {
 
     // space
     if (e.key === " " && !space) {
-      setSpace(true)
+      setSpace(true);
     }
   }
 
   function handleKeyUp(this: Window, e: KeyboardEvent) {
     if (e.key === " " && space) {
-      setSpace(false)
+      setSpace(false);
     }
   }
 
@@ -320,7 +323,7 @@ export default function ProcessPage() {
       { x: -offset.x + 200, y: -offset.y + 200 },
       "red"
     );
-    process_new.offset = offset
+    process_new.offset = offset;
 
     shapes.push(process_new);
   };
@@ -333,7 +336,7 @@ export default function ProcessPage() {
       { x: -offset.x + 200, y: -offset.y + 200 },
       "green"
     );
-    data_new.offset = offset
+    data_new.offset = offset;
 
     shapes.push(data_new);
   };
@@ -346,14 +349,14 @@ export default function ProcessPage() {
       { x: -offset.x + 200, y: -offset.y + 200 },
       "#3498db"
     );
-    data_new.offset = offset
+    data_new.offset = offset;
 
     shapes.push(data_new);
   };
 
   const onConfirmStatusFrame = (title: string, selection: string) => {
     if (!(dbClickedShape instanceof Terminal)) return;
-    dbClickedShape?.onDataChange(title, selection === 'start');
+    dbClickedShape?.onDataChange(title, selection === "start");
     setStatusFrame(undefined);
     setDbClickedShape(null);
     checkData();
@@ -380,14 +383,12 @@ export default function ProcessPage() {
   };
 
   const draw = useCallback(() => {
-
     ctx?.clearRect(0, 0, window.innerWidth, window.innerHeight);
     shapes.forEach((shape) => {
       if (!ctx) return;
       shape.draw(ctx);
     });
     requestAnimationFrame(draw);
-
   }, []);
 
   useEffect(() => {
@@ -436,12 +437,27 @@ export default function ProcessPage() {
   }, []);
 
   useEffect(() => {
+    const resize = () => {
+      if (!$canvas) return;
+      $canvas.width = window.innerWidth;
+      $canvas.height = window.innerHeight;
+    };
+
+    window.addEventListener("resize", resize);
+
+    return () => {
+      // 移除事件監聽器或進行其他清理操作
+      window.removeEventListener("resize", resize);
+    };
+  }, [leftMouseBtn]);
+
+  useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
 
     return () => {
-      window.removeEventListener("keydown", handleKeyDown)
-      window.removeEventListener("keyup", handleKeyUp)
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
     };
   }, [statusFrame, importFrame, selectFrame, dbClickedShape, space]);
 
@@ -482,19 +498,20 @@ export default function ProcessPage() {
         onDoubleClick={onDoubleClick}
       />
 
-      {statusFrame && dbClickedShape instanceof Terminal &&
+      {statusFrame && dbClickedShape instanceof Terminal && (
         <StatusFrame
           id={dbClickedShape.id}
           key={dbClickedShape.id}
           coordinate={statusFrame.p}
           onConfirm={onConfirmStatusFrame}
-          status={'Type'}
-          options={['start', 'end']}
+          status={"Type"}
+          options={["start", "end"]}
           init={{
             title: dbClickedShape?.title ? dbClickedShape?.title : "",
-            selection: dbClickedShape.isStart ? 'start' : 'end'
-          }} />
-      }
+            selection: dbClickedShape.isStart ? "start" : "end",
+          }}
+        />
+      )}
 
       {importFrame && dbClickedShape instanceof Data && (
         <ImportFrame
