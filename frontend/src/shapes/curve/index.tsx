@@ -13,7 +13,7 @@ export default class Curve {
   curve: Line;
   radius: number;
   p1: Vec | null;
-  p2: Vec | null;
+  __p2__: Vec | null;
   cp1: Vec | null;
   cp2: Vec | null;
   pressing: {
@@ -29,13 +29,27 @@ export default class Curve {
     this.curve = curve;
     this.radius = 10;
     this.p1 = null;
-    this.p2 = null;
+    this.__p2__ = null;
     this.cp1 = null;
     this.cp2 = null;
     this.pressing = this.initPressing;
     this.arrow = null;
     this.dragP = null;
     this.selecting = false;
+  }
+
+  get p2() {
+    return this.__p2__;
+  }
+
+  set p2(value: Vec | null) {
+    this.__p2__ = value;
+    if (this.arrow && value && this.cp2) {
+      this.arrow.p = { x: value.x, y: value.y };
+      this.arrow.deg =
+        Math.atan2(value.y - this.cp2.y, value.x - this.cp2.x) +
+        90 * (Math.PI / 180);
+    }
   }
 
   getBezierPoint(t: number, controlPoints: Vec[]) {
