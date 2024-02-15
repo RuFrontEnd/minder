@@ -1,4 +1,4 @@
-// TODO: 刪除 shape 時要進行走訪 / resize 時改變 canvas width & height / curve p1 點不可以移動 / curve control point 被蓋住時要跳離 shape 範圍 / terminal 為 end type 禁止 send / terminal 為 start type 禁止 receive / 以 terminal 為群組功能 / 雙擊 cp1 || cp2 可自動對位 / checkData 時 setDbClickedShape 是否需要 / 新增 arrow 點擊範圍偵測 / zoom 功能  / 禁止 shape 頂點未從 terminal 出發 ( 會造成無法 traversal ) / 處理 data shape SelectFrame 開關(點擊 frame 以外要關閉) / 尋找左側列 icons / 後端判斷新增的 data 是否資料重名 / 對齊功能
+// TODO: traversal 走訪時機改由操作的 shape 執行 / resize 時改變 canvas width & height / curve p1 點不可以移動 / curve control point 被蓋住時要跳離 shape 範圍 / terminal 為 end type 禁止 send / terminal 為 start type 禁止 receive / 以 terminal 為群組功能 / 雙擊 cp1 || cp2 可自動對位 / checkData 時 setDbClickedShape 是否需要 / zoom 功能 / 處理 data shape SelectFrame 開關(點擊 frame 以外要關閉) / 尋找左側列 icons / 後端判斷新增的 data 是否資料重名 / 對齊功能
 "use client";
 import Terminal from "@/shapes/terminal";
 import Process from "@/shapes/process";

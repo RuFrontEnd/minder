@@ -3,20 +3,33 @@ import { Vec } from "@/types/shapes/common";
 export default class Arrow {
   w: number;
   h: number;
-  c?: string;
+  c: string;
+  p: Vec;
+  deg: number;
 
-  constructor(w: number, h: number, c?: string) {
+  constructor(w: number, h: number, c: string, p: Vec, deg: number) {
     this.w = w;
     this.h = h;
     this.c = c;
+    this.p = p;
+    this.deg = deg;
   }
 
-  draw(ctx: CanvasRenderingContext2D, p: Vec, deg?: number) {
+  checkBoundry(p: Vec) {
+    return (
+      p.x >= this.p.x - this.w / 2 &&
+      p.x <= this.p.x + this.w / 2 &&
+      p.y >= this.p.y - this.h / 2 &&
+      p.y <= this.p.y + this.h / 2
+    );
+  }
+
+  draw(ctx: CanvasRenderingContext2D) {
     ctx.beginPath();
-    ctx.fillStyle = this.c ? this.c : "black";
+    ctx.fillStyle = this.c;
     ctx.save();
-    ctx.translate(p.x, p.y);
-    ctx.rotate(deg ? deg : 0);
+    ctx.translate(this.p.x, this.p.y);
+    ctx.rotate(this.deg);
     ctx.moveTo(0, 0);
     ctx.lineTo(0, this.h / 2);
     ctx.lineTo(this.w / 2, this.h / 2);

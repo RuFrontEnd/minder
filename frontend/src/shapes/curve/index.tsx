@@ -20,7 +20,7 @@ export default class Curve {
     activate: boolean;
     p: PressingP | null;
   };
-  arrow: Arrow;
+  arrow: null | Arrow;
   dragP: Vec | null;
   selecting: boolean;
 
@@ -33,7 +33,7 @@ export default class Curve {
     this.cp1 = null;
     this.cp2 = null;
     this.pressing = this.initPressing;
-    this.arrow = new Arrow(20, 20);
+    this.arrow = null;
     this.dragP = null;
     this.selecting = false;
   }
@@ -161,6 +161,15 @@ export default class Curve {
       activate: true,
       p: PressingP.p2,
     };
+
+    this.arrow = new Arrow(
+      20,
+      20,
+      "black",
+      { x: this.p2.x, y: this.p2.y },
+      Math.atan2(this.p2.y - this.cp2.y, this.p2.x - this.cp2.x) +
+        90 * (Math.PI / 180)
+    );
   }
 
   onMouseDown($canvas: HTMLCanvasElement, p: Vec) {
@@ -170,9 +179,13 @@ export default class Curve {
 
     const pressingControlPoint = this.checkControlPointsBoundry(p);
 
-    this.selecting = this.selecting
-      ? this.checkBoundry(p) || pressingControlPoint.activate
-      : this.checkBoundry(p);
+    if (this.arrow) {
+      this.selecting = this.selecting
+        ? this.checkBoundry(p) ||
+          pressingControlPoint.activate ||
+          this.arrow?.checkBoundry(p)
+        : this.checkBoundry(p) || this.arrow?.checkBoundry(p);
+    }
 
     if (!this.selecting) return;
 
@@ -234,6 +247,13 @@ export default class Curve {
           y: p.y,
         };
       }
+
+      if (this.arrow && this.p2 && this.cp2) {
+        this.arrow.p = { x: this.p2.x, y: this.p2.y };
+        this.arrow.deg =
+          Math.atan2(this.p2.y - this.cp2.y, this.p2.x - this.cp2.x) +
+          90 * (Math.PI / 180);
+      }
     }
   }
 
@@ -270,13 +290,9 @@ export default class Curve {
     ctx.stroke();
     ctx.closePath();
 
-    // arrow
-    this.arrow.draw(
-      ctx,
-      { x: this.p2.x, y: this.p2.y },
-      Math.atan2(this.p2.y - this.cp2.y, this.p2.x - this.cp2.x) +
-        90 * (Math.PI / 180)
-    );
+    if (this.arrow) {
+      this.arrow.draw(ctx);
+    }
 
     if (this.selecting) {
       // control lines
