@@ -20,7 +20,6 @@ export default class Terminal extends Core {
   isStart: boolean;
   title: Title;
 
-
   constructor(id: Id, w: W, h: H, p: Vec, c: C, isStart: boolean) {
     super(id, w, h, p, c);
     this.isStart = isStart;
@@ -29,7 +28,7 @@ export default class Terminal extends Core {
 
   onDataChange = (title: Title, isStart: boolean) => {
     this.title = title;
-    this.isStart = isStart
+    this.isStart = isStart;
   };
 
   onMouseUp(p: Vec, sender?: ConnectTarget) {
@@ -37,11 +36,12 @@ export default class Terminal extends Core {
       l: { x: -10, y: 0 },
       t: { x: 0, y: -10 },
       r: { x: 10, y: 0 },
-      b: { x: 0, y: 10 }
-    })
+      b: { x: 0, y: 10 },
+    });
   }
 
   onTraversal() {
+    if (!this.isStart) return;
     // traversal all relational steps
     const queue: (Core | Process | Data | Decision)[] = [this],
       locks = { [this.id]: { l: false, t: false, r: false, b: false } }, // prevent from graph cycle
@@ -51,6 +51,7 @@ export default class Terminal extends Core {
 
     while (queue.length !== 0) {
       const shape = queue[0];
+      console.log("shape", shape);
 
       shape.options = cloneDeep(options); // give options to the shape
 

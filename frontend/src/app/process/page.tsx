@@ -46,13 +46,20 @@ export default function ProcessPage() {
       shape.options = [];
     });
 
-    // traversal to give all shapes corresponding options
-    const terminal = shapes.find(
-      (shape) => shape instanceof Terminal && shape.isStart
-    );
-    if (terminal && terminal instanceof Terminal) {
-      terminal.onTraversal();
-    }
+    // let tmp = false
+    shapes.forEach((shape) => {
+      // if(tmp) return
+      if (
+        shape instanceof Terminal &&
+        shape.receiveFrom.l === null &&
+        shape.receiveFrom.t === null &&
+        shape.receiveFrom.r === null &&
+        shape.receiveFrom.b === null
+      ) {
+        // tmp = true
+        shape.onTraversal(); // shape is Terminator
+      }
+    });
 
     // check all correspondants of shapes' between options and selectedData
     shapes.forEach((shape) => {
@@ -317,6 +324,20 @@ export default function ProcessPage() {
     }
   }
 
+  const onClickTerminator = () => {
+    let terminal = new Terminal(
+      `terminator_${Date.now()}`,
+      200,
+      100,
+      { x: -offset.x + 200, y: -offset.y + 200 },
+      "orange",
+      true
+    );
+    terminal.offset = offset;
+
+    shapes.push(terminal);
+  };
+
   const onClickProcess = () => {
     let process_new = new Process(
       `process_${Date.now()}`,
@@ -400,14 +421,14 @@ export default function ProcessPage() {
       $canvas.width = window.innerWidth;
       $canvas.height = window.innerHeight;
       if (!ctx) return;
-      let terminal = new Terminal(
-        "terminal_1",
-        200,
-        100,
-        { x: 0, y: 0 },
-        "orange",
-        true
-      );
+      // let terminal = new Terminal(
+      //   "terminal_1",
+      //   200,
+      //   100,
+      //   { x: 0, y: 0 },
+      //   "orange",
+      //   true
+      // );
       // ,
       //   process = new Process("process_1", 200, 100, { x: 300, y: 350 }, "red"),
       //   process_2 = new Process(
@@ -426,7 +447,7 @@ export default function ProcessPage() {
       //     "#3498db"
       //   );
 
-      shapes.push(terminal);
+      // shapes.push(terminal);
       // shapes.push(process);
       // shapes.push(process_2);
       // shapes.push(data_1);
@@ -467,6 +488,12 @@ export default function ProcessPage() {
     <>
       <div className="fixed m-4">
         <div className="flex flex-col">
+          <div
+            className="mb-2 w-12 h-12 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
+            onClick={onClickTerminator}
+          >
+            T
+          </div>
           <div
             className="mb-2 w-12 h-12 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
             onClick={onClickProcess}
