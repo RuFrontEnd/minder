@@ -17,18 +17,15 @@ import {
 import { cloneDeep } from "lodash";
 
 export default class Terminal extends Core {
-  isStart: boolean;
   title: Title;
 
-  constructor(id: Id, w: W, h: H, p: Vec, c: C, isStart: boolean) {
+  constructor(id: Id, w: W, h: H, p: Vec, c: C) {
     super(id, w, h, p, c);
-    this.isStart = isStart;
     this.title = "";
   }
 
-  onDataChange = (title: Title, isStart: boolean) => {
+  onDataChange = (title: Title) => {
     this.title = title;
-    this.isStart = isStart;
   };
 
   onMouseUp(p: Vec, sender?: ConnectTarget) {
@@ -41,7 +38,6 @@ export default class Terminal extends Core {
   }
 
   onTraversal() {
-    if (!this.isStart) return;
     // traversal all relational steps
     const queue: (Core | Process | Data | Decision)[] = [this],
       locks = { [this.id]: { l: false, t: false, r: false, b: false } }, // prevent from graph cycle
