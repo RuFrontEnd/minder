@@ -10,11 +10,14 @@ A data-verification flowchart application
 - [x] rendering decision shape
 - [x] draging shapes
 - [x] resizing shapes
+- [x] removing shapes
 - [x] connecting shapes by curves
 - [x] importing data in each data shape
 - [x] verifing data
 - [x] infinite whiteboard
 - [ ] define data usage (data shape hasn't finished)
+- [ ] zoom in / out
+- [ ] groups
 - [ ] verifing repeated data name (backend)
 - [ ] optimizing UI
 
