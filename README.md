@@ -18,6 +18,8 @@ A data-verification flowchart application
 - [ ] define data usage (data shape hasn't finished)
 - [ ] zoom in / out
 - [ ] groups
+- [ ] undo
+- [ ] redo
 - [ ] verifing repeated data name (backend)
 - [ ] optimizing UI
 
