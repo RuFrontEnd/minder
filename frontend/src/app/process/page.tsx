@@ -1,4 +1,4 @@
-// TODO: curve control point 被蓋住時要跳離 shape 範圍 / terminal 為 end type 禁止 send / terminal 為 start type 禁止 receive / 以 terminal 為群組功能 / 雙擊 cp1 || cp2 可自動對位 / zoom 功能 / 處理 data shape SelectFrame 開關(點擊 frame 以外要關閉) / 尋找左側列 icons / 後端判斷新增的 data 是否資料重名 / 對齊功能
+// TODO: terminator traversal 改為 shape by shape 給予 options / curve control point 被蓋住時要跳離 shape 範圍 / terminal 取消 start & end type / 以 terminal 為群組功能 / 雙擊 cp1 || cp2 可自動對位 / zoom 功能 / 處理 data shape SelectFrame 開關(點擊 frame 以外要關閉) / 尋找左側列 icons / 後端判斷新增的 data 是否資料重名 / 對齊功能
 "use client";
 import Core from "@/shapes/core";
 import Terminal from "@/shapes/terminal";

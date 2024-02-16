@@ -11,7 +11,6 @@ import {
 } from "@/types/shapes/common";
 import { ConnectTarget } from "@/types/shapes/core";
 
-
 export default class Process extends Core {
   constructor(id: Id, w: W, h: H, p: Vec, c: C) {
     super(id, w, h, p, c);
@@ -27,8 +26,8 @@ export default class Process extends Core {
       l: { x: -10, y: 0 },
       t: { x: 0, y: -10 },
       r: { x: 10, y: 0 },
-      b: { x: 0, y: 10 }
-    })
+      b: { x: 0, y: 10 },
+    });
   }
 
   draw(ctx: CanvasRenderingContext2D) {
@@ -39,11 +38,19 @@ export default class Process extends Core {
     const edge = this.getEdge();
 
     ctx.beginPath();
-    ctx.fillRect(edge.l - this.getOffsetP().x, edge.t - this.getOffsetP().y, this.w, this.h);
+    ctx.fillRect(
+      edge.l - this.getOffsetP().x,
+      edge.t - this.getOffsetP().y,
+      this.w,
+      this.h
+    );
     ctx.closePath();
 
     ctx.restore();
 
-    super.draw(ctx);
+    super.draw(
+      ctx,
+      !this.curves.l && !this.curves.t && !this.curves.r && !this.curves.b
+    );
   }
 }

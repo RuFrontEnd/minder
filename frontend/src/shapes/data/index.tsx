@@ -63,6 +63,6 @@ export default class Data extends Core {
 
     ctx.restore();
 
-    super.draw(ctx);
+    super.draw(ctx, !this.curves.l && !this.curves.t && !this.curves.r && !this.curves.b);
   }
 }

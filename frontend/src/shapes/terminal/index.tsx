@@ -40,6 +40,56 @@ export default class Terminal extends Core {
     });
   }
 
+  //TODO: decide DFS or not
+  // onTraversal() {
+  //   if (!this.isStart) return;
+
+  //   const stack: (Core | Process | Data | Decision)[] = [this],
+  //     path: { [path: string]: boolean } = {},
+  //     ds = [Direction.l, Direction.t, Direction.r, Direction.b];
+
+  //   while (stack.length !== 0) {
+  //     const shape = stack[stack.length - 1];
+  //     console.log('stack',stack)
+
+  //     // const newOptions: DataType = [];
+
+  //     // if (shape instanceof Data) {
+  //     //   shape.data.forEach((dataItem) => {
+  //     //     newOptions.push(dataItem);
+  //     //   });
+  //     // }
+
+  //     let found = false;
+
+  //     for (let d of ds) {
+  //       let sendShape = shape.sendTo[d]?.shape;
+
+  //       if (sendShape) {
+  //         // sendShape.options = newOptions;
+
+  //         stack.push(sendShape);
+
+  //         // let currentPath = "";
+
+  //         // stack.forEach((shape) => {
+  //         //   currentPath += shape.id;
+  //         // });
+
+  //         // path[currentPath] = true;
+
+  //         found = true;
+
+  //         break;
+  //       }
+  //     }
+
+  //     if (!found) {
+  //       stack.pop();
+  //     }
+  //   }
+  // }
+
   onTraversal() {
     if (!this.isStart) return;
     // traversal all relational steps
@@ -48,6 +98,8 @@ export default class Terminal extends Core {
       options: DataType = [];
 
     let ds = [Direction.l, Direction.t, Direction.r, Direction.b];
+
+    // [1,2,3,2]
 
     while (queue.length !== 0) {
       const shape = queue[0];
@@ -114,6 +166,9 @@ export default class Terminal extends Core {
 
     ctx.restore();
 
-    super.draw(ctx);
+    super.draw(
+      ctx,
+      !this.curves.l && !this.curves.t && !this.curves.r && !this.curves.b
+    );
   }
 }
