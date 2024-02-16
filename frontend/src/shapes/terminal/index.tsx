@@ -40,76 +40,21 @@ export default class Terminal extends Core {
     });
   }
 
-  //TODO: decide DFS or not
-  // onTraversal() {
-  //   if (!this.isStart) return;
-
-  //   const stack: (Core | Process | Data | Decision)[] = [this],
-  //     path: { [path: string]: boolean } = {},
-  //     ds = [Direction.l, Direction.t, Direction.r, Direction.b];
-
-  //   while (stack.length !== 0) {
-  //     const shape = stack[stack.length - 1];
-  //     console.log('stack',stack)
-
-  //     // const newOptions: DataType = [];
-
-  //     // if (shape instanceof Data) {
-  //     //   shape.data.forEach((dataItem) => {
-  //     //     newOptions.push(dataItem);
-  //     //   });
-  //     // }
-
-  //     let found = false;
-
-  //     for (let d of ds) {
-  //       let sendShape = shape.sendTo[d]?.shape;
-
-  //       if (sendShape) {
-  //         // sendShape.options = newOptions;
-
-  //         stack.push(sendShape);
-
-  //         // let currentPath = "";
-
-  //         // stack.forEach((shape) => {
-  //         //   currentPath += shape.id;
-  //         // });
-
-  //         // path[currentPath] = true;
-
-  //         found = true;
-
-  //         break;
-  //       }
-  //     }
-
-  //     if (!found) {
-  //       stack.pop();
-  //     }
-  //   }
-  // }
-
   onTraversal() {
     if (!this.isStart) return;
     // traversal all relational steps
     const queue: (Core | Process | Data | Decision)[] = [this],
       locks = { [this.id]: { l: false, t: false, r: false, b: false } }, // prevent from graph cycle
-      options: DataType = [];
-
-    let ds = [Direction.l, Direction.t, Direction.r, Direction.b];
-
-    // [1,2,3,2]
+      ds = [Direction.l, Direction.t, Direction.r, Direction.b];
 
     while (queue.length !== 0) {
       const shape = queue[0];
-      console.log("shape", shape);
 
-      shape.options = cloneDeep(options); // give options to the shape
+      const newOptions: DataType = cloneDeep(shape.options);
 
       if (shape instanceof Data) {
         shape.data.forEach((dataItem) => {
-          options.push(dataItem);
+          newOptions.push(dataItem);
         });
       }
 
@@ -117,6 +62,7 @@ export default class Terminal extends Core {
         const connectTarget: ConnectTarget = shape.sendTo[d];
 
         if (!connectTarget) return;
+        connectTarget.shape.options = newOptions;
 
         const hasLock = locks[connectTarget.shape.id];
 
