@@ -811,8 +811,8 @@ export default class Core {
       const edge = this.getEdge();
 
       if (this.pressing.target === PressingTarget.m) {
-        this.p.x += xOffset;
-        this.p.y += yOffset;
+        this.p.x += xOffset / this.scale;
+        this.p.y += yOffset / this.scale;
         this.p1 = { x: this.p.x - this.w / 2, y: this.p.y - this.h / 2 };
         this.p2 = { x: this.p.x + this.w / 2, y: this.p.y + this.h / 2 };
 
