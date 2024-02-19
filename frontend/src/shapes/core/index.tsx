@@ -27,20 +27,20 @@ export default class Core {
     cpline: Line;
     curve: Line;
   } = {
-    d: 100, // 30
-    size: {
-      fill: 4,
-      stroke: 2,
-    },
-    cpline: {
-      w: 1,
-      c: "#c00",
-    },
-    curve: {
-      w: 2,
-      c: "#333",
-    },
-  };
+      d: 100, // 30
+      size: {
+        fill: 4,
+        stroke: 2,
+      },
+      cpline: {
+        w: 1,
+        c: "#c00",
+      },
+      curve: {
+        w: 2,
+        c: "#333",
+      },
+    };
   private strokeSize = 2;
   private initPressing = {
     activate: false,
@@ -57,8 +57,6 @@ export default class Core {
   minH: number;
   title: Title;
   p: Vec;
-  p1: Vec;
-  p2: Vec;
   curves: {
     l: null | Curve;
     t: null | Curve;
@@ -91,9 +89,9 @@ export default class Core {
   dragP:
     | Vec
     | {
-        x: null;
-        y: null;
-      };
+      x: null;
+      y: null;
+    };
   options: DataType;
   selectedData: DataType;
   redundancies: DataType;
@@ -109,8 +107,6 @@ export default class Core {
     this.minH = 100;
     this.title = "";
     this.p = p;
-    this.p1 = { x: this.p.x - this.w / 2, y: this.p.y - this.h / 2 };
-    this.p2 = { x: this.p.x + this.w / 2, y: this.p.y + this.h / 2 };
     this.curves = {
       l: null,
       t: null,
@@ -249,10 +245,12 @@ export default class Core {
   }
 
   checkVertexesBoundry = (p: Vec) => {
+    const edge = this.getEdge();
+
     let dx, dy;
 
-    dx = this.p1.x - p.x;
-    dy = this.p1.y - p.y;
+    dx = edge.l - p.x;
+    dy = edge.t - p.y;
 
     if (dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill) {
       return {
@@ -261,8 +259,8 @@ export default class Core {
       };
     }
 
-    dx = this.p2.x - p.x;
-    dy = this.p1.y - p.y;
+    dx = edge.r - p.x;
+    dy = edge.t - p.y;
 
     if (dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill) {
       return {
@@ -271,8 +269,8 @@ export default class Core {
       };
     }
 
-    dx = this.p2.x - p.x;
-    dy = this.p2.y - p.y;
+    dx = edge.r - p.x;
+    dy = edge.b - p.y;
 
     if (dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill) {
       return {
@@ -281,8 +279,8 @@ export default class Core {
       };
     }
 
-    dx = this.p1.x - p.x;
-    dy = this.p2.y - p.y;
+    dx = edge.l - p.x;
+    dy = edge.b - p.y;
 
     if (dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill) {
       return {
@@ -368,28 +366,28 @@ export default class Core {
     if (
       // l curve trigger
       (p.x - center.curveTrigger.l.x) * (p.x - center.curveTrigger.l.x) +
-        (p.y - center.curveTrigger.l.y) * (p.y - center.curveTrigger.l.y) <
+      (p.y - center.curveTrigger.l.y) * (p.y - center.curveTrigger.l.y) <
       this.curveTrigger.size.fill * this.curveTrigger.size.fill
     ) {
       return Direction.l;
     } else if (
       // t curve trigger
       (p.x - center.curveTrigger.t.x) * (p.x - center.curveTrigger.t.x) +
-        (p.y - center.curveTrigger.t.y) * (p.y - center.curveTrigger.t.y) <
+      (p.y - center.curveTrigger.t.y) * (p.y - center.curveTrigger.t.y) <
       this.curveTrigger.size.fill * this.curveTrigger.size.fill
     ) {
       return Direction.t;
     } else if (
       // r curve trigger
       (p.x - center.curveTrigger.r.x) * (p.x - center.curveTrigger.r.x) +
-        (p.y - center.curveTrigger.r.y) * (p.y - center.curveTrigger.r.y) <
+      (p.y - center.curveTrigger.r.y) * (p.y - center.curveTrigger.r.y) <
       this.curveTrigger.size.fill * this.curveTrigger.size.fill
     ) {
       return Direction.r;
     } else if (
       // b curve trigger
       (p.x - center.curveTrigger.b.x) * (p.x - center.curveTrigger.b.x) +
-        (p.y - center.curveTrigger.b.y) * (p.y - center.curveTrigger.b.y) <
+      (p.y - center.curveTrigger.b.y) * (p.y - center.curveTrigger.b.y) <
       this.curveTrigger.size.fill * this.curveTrigger.size.fill
     ) {
       return Direction.b;
@@ -414,15 +412,6 @@ export default class Core {
         this.receiveFrom[direction] = null;
       }
     }
-  };
-
-  recalculate = () => {
-    this.p = {
-      x: (this.p1.x + this.p2.x) / 2,
-      y: (this.p1.y + this.p2.y) / 2,
-    };
-    this.w = Math.abs(this.p1.x - this.p2.x);
-    this.h = Math.abs(this.p1.y - this.p2.y);
   };
 
   senderHoldCurveP2Cp2Position = (
@@ -515,7 +504,7 @@ export default class Core {
       if (
         // lt anchors
         (p.x - center.lt.x) * (p.x - center.lt.x) +
-          (p.y - center.lt.y) * (p.y - center.lt.y) <
+        (p.y - center.lt.y) * (p.y - center.lt.y) <
         this.anchor.size.fill * this.anchor.size.fill
       ) {
         this.pressing = {
@@ -525,7 +514,7 @@ export default class Core {
       } else if (
         // rt anchors
         (p.x - center.rt.x) * (p.x - center.rt.x) +
-          (p.y - center.rt.y) * (p.y - center.rt.y) <
+        (p.y - center.rt.y) * (p.y - center.rt.y) <
         this.anchor.size.fill * this.anchor.size.fill
       ) {
         this.pressing = {
@@ -535,7 +524,7 @@ export default class Core {
       } else if (
         // rb anchors
         (p.x - center.rb.x) * (p.x - center.rb.x) +
-          (p.y - center.rb.y) * (p.y - center.rb.y) <
+        (p.y - center.rb.y) * (p.y - center.rb.y) <
         this.anchor.size.fill * this.anchor.size.fill
       ) {
         this.pressing = {
@@ -545,7 +534,7 @@ export default class Core {
       } else if (
         // lb anchors
         (p.x - center.lb.x) * (p.x - center.lb.x) +
-          (p.y - center.lb.y) * (p.y - center.lb.y) <
+        (p.y - center.lb.y) * (p.y - center.lb.y) <
         this.anchor.size.fill * this.anchor.size.fill
       ) {
         this.pressing = {
@@ -791,8 +780,8 @@ export default class Core {
 
       // sender curves follows
       const receiveFromCurve_l = this.receiveFrom.l?.shape.curves[
-          this.receiveFrom.l.direction
-        ],
+        this.receiveFrom.l.direction
+      ],
         receiveFromCurve_t = this.receiveFrom.t?.shape.curves[
           this.receiveFrom.t.direction
         ],
@@ -813,8 +802,8 @@ export default class Core {
       if (this.pressing.target === PressingTarget.m) {
         this.p.x += xOffset / this.scale;
         this.p.y += yOffset / this.scale;
-        this.p1 = { x: this.p.x - this.w / 2, y: this.p.y - this.h / 2 };
-        this.p2 = { x: this.p.x + this.w / 2, y: this.p.y + this.h / 2 };
+        // this.p1 = { x: this.p.x - this.w / 2, y: this.p.y - this.h / 2 };
+        // this.p2 = { x: this.p.x + this.w / 2, y: this.p.y + this.h / 2 };
 
         if (receiveFromCurve_l?.p2 && receiveFromCurve_l?.cp2) {
           // left
@@ -889,23 +878,23 @@ export default class Core {
         }
       } else if (this.pressing.target === PressingTarget.lt) {
         const canResizeX =
-            (xOffset > 0 &&
-              p.x > edge.l &&
-              this.getScaleSize().w >= this.getScaleSize().minW) ||
-            (xOffset < 0 && p.x < edge.l),
+          (xOffset > 0 &&
+            p.x > edge.l &&
+            this.getScaleSize().w >= this.getScaleSize().minW) ||
+          (xOffset < 0 && p.x < edge.l),
           canResizeY =
             (yOffset > 0 && p.y > edge.t && this.getScaleSize().h >= this.getScaleSize().minH) ||
             (yOffset < 0 && p.y < edge.t);
 
         if (canResizeX) {
-          this.p1.x += xOffset;
+          this.p.x += xOffset / 2;
+          this.w -= xOffset
         }
 
         if (canResizeY) {
-          this.p1.y += yOffset;
+          this.p.y += yOffset / 2;
+          this.h -= yOffset
         }
-
-        this.recalculate();
 
         if (
           this.curves.l?.p1 &&
@@ -1088,20 +1077,21 @@ export default class Core {
         }
       } else if (this.pressing.target === PressingTarget.rt) {
         const canResizeX =
-            (xOffset > 0 && p.x > edge.r) ||
-            (xOffset < 0 && p.x < edge.r && this.getScaleSize().w >= this.getScaleSize().minW),
+          (xOffset > 0 && p.x > edge.r) ||
+          (xOffset < 0 && p.x < edge.r && this.getScaleSize().w >= this.getScaleSize().minW),
           canResizeY =
-            (yOffset > 0 && p.y > edge.t && this.getScaleSize().h >=this.getScaleSize().minH) ||
+            (yOffset > 0 && p.y > edge.t && this.getScaleSize().h >= this.getScaleSize().minH) ||
             (yOffset < 0 && p.y < edge.t);
 
         if (canResizeX) {
-          this.p2.x += xOffset;
+          this.p.x += xOffset / 2;
+          this.w += xOffset
         }
         if (canResizeY) {
-          this.p1.y += yOffset;
-        }
+          this.p.y += yOffset / 2;
+          this.h -= yOffset
 
-        this.recalculate();
+        }
 
         if (
           this.curves.l?.p1 &&
@@ -1282,20 +1272,20 @@ export default class Core {
         }
       } else if (this.pressing.target === PressingTarget.rb) {
         const canResizeX =
-            (xOffset > 0 && p.x > edge.r) ||
-            (xOffset < 0 && p.x < edge.r && this.getScaleSize().w >= this.getScaleSize().minW),
+          (xOffset > 0 && p.x > edge.r) ||
+          (xOffset < 0 && p.x < edge.r && this.getScaleSize().w >= this.getScaleSize().minW),
           canResizeY =
             (yOffset > 0 && p.y > edge.b) ||
             (yOffset < 0 && p.y < edge.b && this.getScaleSize().h >= this.getScaleSize().minH);
 
         if (canResizeX) {
-          this.p2.x += xOffset;
+          this.p.x += xOffset / 2;
+          this.w += xOffset
         }
         if (canResizeY) {
-          this.p2.y += yOffset;
+          this.p.y += yOffset / 2;
+          this.h += yOffset
         }
-
-        this.recalculate();
 
         if (
           this.curves.l?.p1 &&
@@ -1473,21 +1463,20 @@ export default class Core {
         }
       } else if (this.pressing.target === PressingTarget.lb) {
         const canResizeX =
-            (xOffset > 0 && p.x > edge.l && this.getScaleSize().w >= this.getScaleSize().minW) ||
-            (xOffset < 0 && p.x < edge.l),
+          (xOffset > 0 && p.x > edge.l && this.getScaleSize().w >= this.getScaleSize().minW) ||
+          (xOffset < 0 && p.x < edge.l),
           canResizeY =
             (yOffset > 0 && p.y > edge.b) ||
             (yOffset < 0 && p.y < edge.b && this.getScaleSize().h >= this.getScaleSize().minH);
 
         if (canResizeX) {
-          this.p1.x += xOffset;
+          this.p.x += xOffset / 2;
+          this.w -= xOffset
         }
-
         if (canResizeY) {
-          this.p2.y += yOffset;
+          this.p.y += yOffset / 2;
+          this.h += yOffset
         }
-
-        this.recalculate();
 
         if (
           this.curves.l?.p1 &&
@@ -1742,6 +1731,7 @@ export default class Core {
         senderCurve = sender.shape.curves[sender.direction];
 
       if (pressingReceivingPoint.activate && senderCurve) {
+        const edge = this.getEdge()
         if (
           this.receiving.l &&
           pressingReceivingPoint.direction === Direction.l
@@ -1759,7 +1749,7 @@ export default class Core {
             curveOffsetY = curveOffset?.l.y ? curveOffset.l.y : 0;
 
           senderCurve.p2 = {
-            x: this.p1.x - sender.shape.p.x + curveOffsetX,
+            x: edge.l - sender.shape.p.x + curveOffsetX,
             y: this.p.y - sender.shape.p.y + curveOffsetY,
           };
         } else if (
@@ -1780,7 +1770,7 @@ export default class Core {
 
           senderCurve.p2 = {
             x: this.p.x - sender.shape.p.x + curveOffsetX,
-            y: this.p1.y - sender.shape.p.y + curveOffsetY,
+            y: edge.t - sender.shape.p.y + curveOffsetY,
           };
         } else if (
           this.receiving.r &&
@@ -1799,7 +1789,7 @@ export default class Core {
             curveOffsetY = curveOffset?.r.y ? curveOffset.r.y : 0;
 
           senderCurve.p2 = {
-            x: this.p2.x - sender.shape.p.x + curveOffsetX,
+            x: edge.r - sender.shape.p.x + curveOffsetX,
             y: this.p.y - sender.shape.p.y + curveOffsetY,
           };
         } else if (
@@ -1820,7 +1810,7 @@ export default class Core {
 
           senderCurve.p2 = {
             x: this.p.x - sender.shape.p.x + curveOffsetX,
-            y: this.p2.y - sender.shape.p.y + curveOffsetY,
+            y: edge.b - sender.shape.p.y + curveOffsetY,
           };
         }
       }
