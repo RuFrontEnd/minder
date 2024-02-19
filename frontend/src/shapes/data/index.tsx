@@ -25,9 +25,10 @@ export default class Data extends Core {
     this.frameOffset = 20;
   }
 
-  onDataChange = (title: Title, data: DataType) => {
+  onDataChange = (title: Title, data: DataType, selectedData: DataType) => {
     this.title = title;
     this.data = data;
+    this.selectedData = selectedData
   };
 
   onMouseUp(p: Vec, sender?: ConnectTarget) {

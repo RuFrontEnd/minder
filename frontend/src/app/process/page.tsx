@@ -1,16 +1,15 @@
-// TODO: curve control point 被蓋住時要跳離 shape 範圍 / terminal 取消 start & end type / 以 terminal 為群組功能 / 雙擊 cp1 || cp2 可自動對位 / zoom 功能 / 處理 data shape SelectFrame 開關(點擊 frame 以外要關閉) / 尋找左側列 icons / 後端判斷新增的 data 是否資料重名 / 對齊功能
+// TODO: curve control point 被蓋住時要跳離 shape 範圍 / 以 terminal 為群組功能 / 雙擊 cp1 || cp2 可自動對位 / focus 功能 / zoom 功能 / 處理 data shape SelectFrame 開關(點擊 frame 以外要關閉) / 尋找左側列 icons / 後端判斷新增的 data 是否資料重名 / 對齊功能
 "use client";
 import Core from "@/shapes/core";
 import Terminal from "@/shapes/terminal";
 import Process from "@/shapes/process";
 import Data from "@/shapes/data";
 import Desicion from "@/shapes/decision";
-import StatusFrame from "@/components/statusFrame";
-import ImportFrame from "@/components/importFrame";
-import SelectDataFrame from "@/components/selectDataFrame";
+import DataFrame from "@/components/dataFrame";
 import { useState, useRef, useEffect, useCallback, use } from "react";
 import { PressingTarget, ConnectTarget } from "@/types/shapes/core";
-import { Vec, Direction, Data as DataType } from "@/types/shapes/common";
+import { Vec, Direction} from "@/types/shapes/common";
+import { Props as DataFrameProps } from "@/types/components/dataFrame";
 
 let useEffected = false,
   ctx: CanvasRenderingContext2D | null | undefined = null,
@@ -31,11 +30,8 @@ const getFramePosition = (shape: Core) => {
 export default function ProcessPage() {
   let { current: $canvas } = useRef<HTMLCanvasElement | null>(null);
 
-  const [statusFrame, setStatusFrame] = useState<{ p: Vec } | undefined>(
-      undefined
-    ),
-    [importFrame, setImportFrame] = useState<{ p: Vec } | undefined>(undefined),
-    [selectFrame, setSelectFrame] = useState<{ p: Vec } | undefined>(undefined),
+  const
+    [dataFrame, setDataFrame] = useState<{ p: Vec } | undefined>(undefined),
     [dbClickedShape, setDbClickedShape] = useState<
       Terminal | Data | Process | Desicion | null
     >(null),
@@ -47,9 +43,7 @@ export default function ProcessPage() {
       shape.options = [];
     });
 
-    // let tmp = false
     shapes.forEach((shape) => {
-      // if(tmp) return
       if (
         shape instanceof Terminal &&
         shape.receiveFrom.l === null &&
@@ -57,7 +51,6 @@ export default function ProcessPage() {
         shape.receiveFrom.r === null &&
         shape.receiveFrom.b === null
       ) {
-        // tmp = true
         shape.onTraversal(); // shape is Terminator
       }
     });
@@ -148,9 +141,7 @@ export default function ProcessPage() {
       const movingCanvas = space && leftMouseBtn;
 
       if (movingCanvas) {
-        setStatusFrame(undefined);
-        setSelectFrame(undefined);
-        setImportFrame(undefined);
+        setDataFrame(undefined);
         offset.x += (p.x - dragP.x) * (1 / scale);
         offset.y += (p.y - dragP.y) * (1 / scale);
         dragP = p;
@@ -167,27 +158,11 @@ export default function ProcessPage() {
         }
 
         if (shape.checkBoundry(p) && dbClickedShape?.id === shape.id) {
-          if (shape instanceof Terminal) {
-            const $StatusFrame = document.getElementById(dbClickedShape?.id);
-            if ($StatusFrame) {
-              const framePosition = getFramePosition(shape);
-              $StatusFrame.style.left = `${framePosition.x}px`;
-              $StatusFrame.style.top = `${framePosition.y}px`;
-            }
-          } else if (shape instanceof Data) {
-            const $importFrame = document.getElementById(dbClickedShape?.id);
-            if ($importFrame) {
-              const framePosition = getFramePosition(shape);
-              $importFrame.style.left = `${framePosition.x}px`;
-              $importFrame.style.top = `${framePosition.y}px`;
-            }
-          } else if (shape instanceof Process || shape instanceof Desicion) {
-            const $selectFrame = document.getElementById(dbClickedShape?.id);
-            if ($selectFrame) {
-              const framePosition = getFramePosition(shape);
-              $selectFrame.style.left = `${framePosition.x}px`;
-              $selectFrame.style.top = `${framePosition.y}px`;
-            }
+          const $dataFrame = document.getElementById(dbClickedShape?.id);
+          if ($dataFrame) {
+            const framePosition = getFramePosition(shape);
+            $dataFrame.style.left = `${framePosition.x}px`;
+            $dataFrame.style.top = `${framePosition.y}px`;
           }
         }
       });
@@ -255,25 +230,9 @@ export default function ProcessPage() {
         if (shape.checkBoundry(p)) {
           setDbClickedShape(shape);
 
-          if (shape instanceof Terminal) {
-            setStatusFrame({
-              p: getFramePosition(shape),
-            });
-            setImportFrame(undefined);
-            setSelectFrame(undefined);
-          } else if (shape instanceof Data) {
-            setStatusFrame(undefined);
-            setImportFrame({
-              p: getFramePosition(shape),
-            });
-            setSelectFrame(undefined);
-          } else if (shape instanceof Process || shape instanceof Desicion) {
-            setStatusFrame(undefined);
-            setImportFrame(undefined);
-            setSelectFrame({
-              p: getFramePosition(shape),
-            });
-          }
+          setDataFrame({
+            p: getFramePosition(shape),
+          });
         }
       });
     },
@@ -284,8 +243,7 @@ export default function ProcessPage() {
     // delete
     if (
       e.key === "Backspace" &&
-      !importFrame &&
-      !selectFrame &&
+      !dataFrame &&
       !dbClickedShape
     ) {
       let removeShape: null | Terminal | Process | Data | Desicion = null,
@@ -342,8 +300,7 @@ export default function ProcessPage() {
       200,
       100,
       { x: -offset.x + 200, y: -offset.y + 200 },
-      "orange",
-      true
+      "orange"
     );
     terminal.offset = offset;
     terminal.scale = scale;
@@ -393,30 +350,20 @@ export default function ProcessPage() {
     shapes.push(decision_new);
   };
 
-  const onConfirmStatusFrame = (title: string, selection: string) => {
-    if (!(dbClickedShape instanceof Terminal)) return;
-    dbClickedShape?.onDataChange(title, selection === "start");
-    setStatusFrame(undefined);
-    setDbClickedShape(null);
-    checkData();
-  };
 
-  const onConfirmImportFrame = (title: string, data: DataType) => {
-    if (!(dbClickedShape instanceof Data)) return;
-    dbClickedShape?.onDataChange(title, data);
-    setImportFrame(undefined);
-    setDbClickedShape(null);
-    checkData();
-  };
-
-  const onConfirmSelectDataFrame = (title: string, data: DataType) => {
+  const onConfirmDataFrame: DataFrameProps['onConfirm'] = (title, data, selectedData) => {
     if (
-      !(dbClickedShape instanceof Process) &&
-      !(dbClickedShape instanceof Desicion)
-    )
-      return;
-    dbClickedShape?.onDataChange(title, data);
-    setSelectFrame(undefined);
+      dbClickedShape instanceof Process ||
+      dbClickedShape instanceof Desicion
+    ) {
+      dbClickedShape?.onDataChange(title, selectedData);
+    } else if (dbClickedShape instanceof Data) {
+      dbClickedShape?.onDataChange(title, data, selectedData);
+    } else if (dbClickedShape instanceof Terminal) {
+      dbClickedShape?.onDataChange(title);
+    }
+
+    setDataFrame(undefined);
     setDbClickedShape(null);
     checkData();
   };
@@ -498,7 +445,7 @@ export default function ProcessPage() {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, [statusFrame, importFrame, selectFrame, dbClickedShape, space]);
+  }, [dataFrame, dbClickedShape, space]);
 
   return (
     <>
@@ -544,43 +491,18 @@ export default function ProcessPage() {
         onDoubleClick={onDoubleClick}
       />
 
-      {statusFrame && dbClickedShape instanceof Terminal && (
-        <StatusFrame
-          id={dbClickedShape.id}
-          key={dbClickedShape.id}
-          coordinate={statusFrame.p}
-          onConfirm={onConfirmStatusFrame}
-          status={"Type"}
-          options={["start", "end"]}
-          init={{
-            title: dbClickedShape?.title ? dbClickedShape?.title : "",
-            selection: dbClickedShape.isStart ? "start" : "end",
+      {dataFrame && dbClickedShape &&
+        <DataFrame
+          shape={dbClickedShape}
+          coordinate={dataFrame.p}
+          onConfirm={onConfirmDataFrame}
+          feature={{
+            import: dbClickedShape instanceof Data,
+            usage: dbClickedShape instanceof Process || dbClickedShape instanceof Data || dbClickedShape instanceof Desicion,
+            redundancy: dbClickedShape instanceof Process || dbClickedShape instanceof Data || dbClickedShape instanceof Desicion
           }}
         />
-      )}
-
-      {importFrame && dbClickedShape instanceof Data && (
-        <ImportFrame
-          id={dbClickedShape.id}
-          key={dbClickedShape.id}
-          coordinate={importFrame.p}
-          onConfirm={onConfirmImportFrame}
-          init={{
-            title: dbClickedShape?.title ? dbClickedShape?.title : "",
-            data: dbClickedShape?.data ? dbClickedShape?.data : [],
-          }}
-        />
-      )}
-
-      {selectFrame &&
-        (dbClickedShape instanceof Process ||
-          dbClickedShape instanceof Desicion) && (
-          <SelectDataFrame
-            shape={dbClickedShape}
-            coordinate={selectFrame.p}
-            onConfirm={onConfirmSelectDataFrame}
-          />
-        )}
+      }
     </>
   );
 }
