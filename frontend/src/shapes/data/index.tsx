@@ -35,8 +35,8 @@ export default class Data extends Core {
       l: { x: 0, y: 0 },
       t: { x: 0, y: -10 },
       r: { x: 0, y: 0 },
-      b: { x: 0, y: 10 }
-    })
+      b: { x: 0, y: 10 },
+    });
   }
 
   draw(ctx: CanvasRenderingContext2D) {
@@ -44,14 +44,14 @@ export default class Data extends Core {
     ctx.translate(this.getOffsetP().x, this.getOffsetP().y);
     ctx.fillStyle = this.c;
 
-    const x1 = -this.w / 2 + this.frameOffset,
-      y1 = -this.h / 2,
-      x2 = this.w / 2,
-      y2 = -this.h / 2,
-      x3 = this.w / 2 - this.frameOffset,
-      y3 = this.h / 2,
-      x4 = -this.w / 2,
-      y4 = this.h / 2;
+    const x1 = -this.getScaleSize().w / 2 + this.frameOffset,
+      y1 = -this.getScaleSize().h / 2,
+      x2 = this.getScaleSize().w / 2,
+      y2 = -this.getScaleSize().h / 2,
+      x3 = this.getScaleSize().w / 2 - this.frameOffset,
+      y3 = this.getScaleSize().h / 2,
+      x4 = -this.getScaleSize().w / 2,
+      y4 = this.getScaleSize().h / 2;
 
     ctx.beginPath();
     ctx.moveTo(x1, y1);
@@ -63,6 +63,9 @@ export default class Data extends Core {
 
     ctx.restore();
 
-    super.draw(ctx, !this.curves.l && !this.curves.t && !this.curves.r && !this.curves.b);
+    super.draw(
+      ctx,
+      !this.curves.l && !this.curves.t && !this.curves.r && !this.curves.b
+    );
   }
 }

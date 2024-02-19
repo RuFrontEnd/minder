@@ -50,6 +50,7 @@ export default class Core {
     x: 0,
     y: 0,
   };
+  private initScale = 1;
   w: number;
   h: number;
   minW: number;
@@ -97,6 +98,7 @@ export default class Core {
   selectedData: DataType;
   redundancies: DataType;
   offset: Vec = this.initOffset;
+  scale: number = 1;
 
   constructor(id: string, w: number, h: number, p: Vec, c: string) {
     this.id = id;
@@ -143,21 +145,31 @@ export default class Core {
     this.selectedData = [];
     this.redundancies = [];
     this.offset = this.initOffset;
+    this.scale = this.initScale;
   }
 
   getOffsetP = () => {
     return {
-      x: this.p.x + this.offset.x,
-      y: this.p.y + this.offset.y,
+      x: (this.p.x + this.offset.x) * this.scale,
+      y: (this.p.y + this.offset.y) * this.scale,
+    };
+  };
+
+  getScaleSize = () => {
+    return {
+      w: this.w * this.scale,
+      h: this.h * this.scale,
+      minW: this.minW * this.scale,
+      minH: this.minH * this.scale,
     };
   };
 
   getEdge = () => {
     return {
-      l: this.getOffsetP().x - this.w / 2,
-      t: this.getOffsetP().y - this.h / 2,
-      r: this.getOffsetP().x + this.w / 2,
-      b: this.getOffsetP().y + this.h / 2,
+      l: this.getOffsetP().x - this.getScaleSize().w / 2,
+      t: this.getOffsetP().y - this.getScaleSize().h / 2,
+      r: this.getOffsetP().x + this.getScaleSize().w / 2,
+      b: this.getOffsetP().y + this.getScaleSize().h / 2,
     };
   };
 
@@ -206,20 +218,20 @@ export default class Core {
       },
       receivingPoints: {
         l: {
-          x: pivot.x - this.w / 2,
+          x: pivot.x - this.getScaleSize().w / 2,
           y: pivot.y,
         },
         t: {
           x: pivot.x,
-          y: pivot.y - this.h / 2,
+          y: pivot.y - this.getScaleSize().h / 2,
         },
         r: {
-          x: pivot.x + this.w / 2,
+          x: pivot.x + this.getScaleSize().w / 2,
           y: pivot.y,
         },
         b: {
           x: pivot.x,
-          y: pivot.y + this.h / 2,
+          y: pivot.y + this.getScaleSize().h / 2,
         },
       },
     };
@@ -555,18 +567,18 @@ export default class Core {
 
         this.curves.l.init(
           {
-            x: -this.w / 2,
+            x: -this.getScaleSize().w / 2,
             y: 0,
           },
           {
-            x: -this.w / 2 + (-this.curveTrigger.d * 1) / 3,
+            x: -this.getScaleSize().w / 2 + (-this.curveTrigger.d * 1) / 3,
             y: 0,
           },
           {
-            x: -this.w / 2 + (-this.curveTrigger.d * 2) / 3,
+            x: -this.getScaleSize().w / 2 + (-this.curveTrigger.d * 2) / 3,
             y: 0,
           },
-          { x: -this.w / 2 - this.curveTrigger.d, y: 0 }
+          { x: -this.getScaleSize().w / 2 - this.curveTrigger.d, y: 0 }
         );
 
         this.selecting = false;
@@ -586,17 +598,17 @@ export default class Core {
         this.curves.t.init(
           {
             x: 0,
-            y: -this.h / 2,
+            y: -this.getScaleSize().h / 2,
           },
           {
             x: 0,
-            y: -this.h / 2 + (-this.curveTrigger.d * 1) / 3,
+            y: -this.getScaleSize().h / 2 + (-this.curveTrigger.d * 1) / 3,
           },
           {
             x: 0,
-            y: -this.h / 2 + (-this.curveTrigger.d * 2) / 3,
+            y: -this.getScaleSize().h / 2 + (-this.curveTrigger.d * 2) / 3,
           },
-          { x: 0, y: -this.h / 2 - this.curveTrigger.d }
+          { x: 0, y: -this.getScaleSize().h / 2 - this.curveTrigger.d }
         );
 
         this.selecting = false;
@@ -615,18 +627,18 @@ export default class Core {
 
         this.curves.r.init(
           {
-            x: this.w / 2,
+            x: this.getScaleSize().w / 2,
             y: 0,
           },
           {
-            x: this.w / 2 + (this.curveTrigger.d * 1) / 3,
+            x: this.getScaleSize().w / 2 + (this.curveTrigger.d * 1) / 3,
             y: 0,
           },
           {
-            x: this.w / 2 + (this.curveTrigger.d * 2) / 3,
+            x: this.getScaleSize().w / 2 + (this.curveTrigger.d * 2) / 3,
             y: 0,
           },
-          { x: this.w / 2 + this.curveTrigger.d, y: 0 }
+          { x: this.getScaleSize().w / 2 + this.curveTrigger.d, y: 0 }
         );
 
         this.selecting = false;
@@ -646,17 +658,17 @@ export default class Core {
         this.curves.b.init(
           {
             x: 0,
-            y: this.h / 2,
+            y: this.getScaleSize().h / 2,
           },
           {
             x: 0,
-            y: this.h / 2 + (this.curveTrigger.d * 1) / 3,
+            y: this.getScaleSize().h / 2 + (this.curveTrigger.d * 1) / 3,
           },
           {
             x: 0,
-            y: this.h / 2 + (this.curveTrigger.d * 2) / 3,
+            y: this.getScaleSize().h / 2 + (this.curveTrigger.d * 2) / 3,
           },
-          { x: 0, y: this.h / 2 + this.curveTrigger.d }
+          { x: 0, y: this.getScaleSize().h / 2 + this.curveTrigger.d }
         );
 
         this.selecting = false;
@@ -877,10 +889,12 @@ export default class Core {
         }
       } else if (this.pressing.target === PressingTarget.lt) {
         const canResizeX =
-            (xOffset > 0 && p.x > edge.l && this.w >= this.minW) ||
+            (xOffset > 0 &&
+              p.x > edge.l &&
+              this.getScaleSize().w >= this.getScaleSize().minW) ||
             (xOffset < 0 && p.x < edge.l),
           canResizeY =
-            (yOffset > 0 && p.y > edge.t && this.h >= this.minH) ||
+            (yOffset > 0 && p.y > edge.t && this.getScaleSize().h >= this.getScaleSize().minH) ||
             (yOffset < 0 && p.y < edge.t);
 
         if (canResizeX) {
@@ -1075,9 +1089,9 @@ export default class Core {
       } else if (this.pressing.target === PressingTarget.rt) {
         const canResizeX =
             (xOffset > 0 && p.x > edge.r) ||
-            (xOffset < 0 && p.x < edge.r && this.w >= this.minW),
+            (xOffset < 0 && p.x < edge.r && this.getScaleSize().w >= this.getScaleSize().minW),
           canResizeY =
-            (yOffset > 0 && p.y > edge.t && this.h >= this.minH) ||
+            (yOffset > 0 && p.y > edge.t && this.getScaleSize().h >=this.getScaleSize().minH) ||
             (yOffset < 0 && p.y < edge.t);
 
         if (canResizeX) {
@@ -1269,10 +1283,10 @@ export default class Core {
       } else if (this.pressing.target === PressingTarget.rb) {
         const canResizeX =
             (xOffset > 0 && p.x > edge.r) ||
-            (xOffset < 0 && p.x < edge.r && this.w >= this.minW),
+            (xOffset < 0 && p.x < edge.r && this.getScaleSize().w >= this.getScaleSize().minW),
           canResizeY =
             (yOffset > 0 && p.y > edge.b) ||
-            (yOffset < 0 && p.y < edge.b && this.h >= this.minH);
+            (yOffset < 0 && p.y < edge.b && this.getScaleSize().h >= this.getScaleSize().minH);
 
         if (canResizeX) {
           this.p2.x += xOffset;
@@ -1459,11 +1473,11 @@ export default class Core {
         }
       } else if (this.pressing.target === PressingTarget.lb) {
         const canResizeX =
-            (xOffset > 0 && p.x > edge.l && this.w >= this.minW) ||
+            (xOffset > 0 && p.x > edge.l && this.getScaleSize().w >= this.getScaleSize().minW) ||
             (xOffset < 0 && p.x < edge.l),
           canResizeY =
             (yOffset > 0 && p.y > edge.b) ||
-            (yOffset < 0 && p.y < edge.b && this.h >= this.minH);
+            (yOffset < 0 && p.y < edge.b && this.getScaleSize().h >= this.getScaleSize().minH);
 
         if (canResizeX) {
           this.p1.x += xOffset;
@@ -1836,8 +1850,8 @@ export default class Core {
       fillRectParams = {
         x: edge.l - this.getOffsetP().x,
         y: edge.t - this.getOffsetP().y,
-        w: this.w,
-        h: this.h,
+        w: this.getScaleSize().w,
+        h: this.getScaleSize().h,
       };
 
     ctx.save();
@@ -1920,7 +1934,7 @@ export default class Core {
           // left
           ctx.beginPath();
           ctx.arc(
-            -this.w / 2 - this.curveTrigger.d,
+            -this.getScaleSize().w / 2 - this.curveTrigger.d,
             0,
             this.anchor.size.fill,
             0,
@@ -1937,7 +1951,7 @@ export default class Core {
           ctx.beginPath();
           ctx.arc(
             0,
-            -this.h / 2 - this.curveTrigger.d,
+            -this.getScaleSize().h / 2 - this.curveTrigger.d,
             this.anchor.size.fill,
             0,
             2 * Math.PI,
@@ -1952,7 +1966,7 @@ export default class Core {
           // right
           ctx.beginPath();
           ctx.arc(
-            this.w / 2 + this.curveTrigger.d,
+            this.getScaleSize().w / 2 + this.curveTrigger.d,
             0,
             this.anchor.size.fill,
             0,
@@ -1968,7 +1982,7 @@ export default class Core {
           ctx.beginPath();
           ctx.arc(
             0,
-            this.h / 2 + this.curveTrigger.d,
+            this.getScaleSize().h / 2 + this.curveTrigger.d,
             this.curveTrigger.size.fill,
             0,
             2 * Math.PI,
@@ -1988,7 +2002,14 @@ export default class Core {
       // left
       if (this.receiving.l) {
         ctx.beginPath();
-        ctx.arc(-this.w / 2, 0, this.anchor.size.fill, 0, 2 * Math.PI, false);
+        ctx.arc(
+          -this.getScaleSize().w / 2,
+          0,
+          this.anchor.size.fill,
+          0,
+          2 * Math.PI,
+          false
+        );
         ctx.stroke();
         ctx.fill();
         ctx.closePath();
@@ -1997,7 +2018,14 @@ export default class Core {
       // top
       if (this.receiving.t) {
         ctx.beginPath();
-        ctx.arc(0, -this.h / 2, this.anchor.size.fill, 0, 2 * Math.PI, false);
+        ctx.arc(
+          0,
+          -this.getScaleSize().h / 2,
+          this.anchor.size.fill,
+          0,
+          2 * Math.PI,
+          false
+        );
         ctx.stroke();
         ctx.fill();
         ctx.closePath();
@@ -2006,7 +2034,14 @@ export default class Core {
       // right
       if (this.receiving.r) {
         ctx.beginPath();
-        ctx.arc(this.w / 2, 0, this.anchor.size.fill, 0, 2 * Math.PI, false);
+        ctx.arc(
+          this.getScaleSize().w / 2,
+          0,
+          this.anchor.size.fill,
+          0,
+          2 * Math.PI,
+          false
+        );
         ctx.stroke();
         ctx.fill();
         ctx.closePath();
@@ -2015,7 +2050,14 @@ export default class Core {
       // bottom
       if (this.receiving.b) {
         ctx.beginPath();
-        ctx.arc(0, this.h / 2, this.anchor.size.fill, 0, 2 * Math.PI, false);
+        ctx.arc(
+          0,
+          this.getScaleSize().h / 2,
+          this.anchor.size.fill,
+          0,
+          2 * Math.PI,
+          false
+        );
         ctx.stroke();
         ctx.fill();
         ctx.closePath();
@@ -2047,13 +2089,21 @@ export default class Core {
 
     // draw id text
     ctx.textAlign = "start";
-    ctx.fillText(this.id, -this.w / 2, -this.h / 2 - 10);
+    ctx.fillText(
+      this.id,
+      -this.getScaleSize().w / 2,
+      -this.getScaleSize().h / 2 - 10
+    );
 
     if (this.redundancies.length > 0) {
       // draw error message
       ctx.textAlign = "end";
       ctx.fillStyle = "red";
-      ctx.fillText("error!", this.w / 2, -this.h / 2 - 10);
+      ctx.fillText(
+        "error!",
+        this.getScaleSize().w / 2,
+        -this.getScaleSize().h / 2 - 10
+      );
     }
 
     ctx.restore();

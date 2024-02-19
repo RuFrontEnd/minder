@@ -17,6 +17,7 @@ let useEffected = false,
   shapes: (Terminal | Process | Data | Desicion)[] = [],
   sender: null | ConnectTarget = null,
   offset: Vec = { x: 0, y: 0 },
+  scale: number = 1,
   dragP: Vec = { x: 0, y: 0 };
 
 const getFramePosition = (shape: Core) => {
@@ -73,6 +74,7 @@ export default function ProcessPage() {
       setLeftMouseBtn(true);
 
       let $canvas = document.querySelector("canvas");
+
       const p = {
         x: e.nativeEvent.offsetX,
         y: e.nativeEvent.offsetY,
@@ -149,8 +151,8 @@ export default function ProcessPage() {
         setStatusFrame(undefined);
         setSelectFrame(undefined);
         setImportFrame(undefined);
-        offset.x += p.x - dragP.x;
-        offset.y += p.y - dragP.y;
+        offset.x += (p.x - dragP.x) * (1 / scale);
+        offset.y += (p.y - dragP.y) * (1 / scale);
         dragP = p;
       }
 
@@ -229,6 +231,16 @@ export default function ProcessPage() {
     },
     [dbClickedShape, setLeftMouseBtn]
   );
+
+  const onMouseWeel = (e: React.WheelEvent<HTMLCanvasElement>) => {
+    const deltaY = e.deltaY;
+    const scaleAmount = -deltaY / 500;
+    scale = scale * (1 + scaleAmount);
+
+    shapes.forEach((shape) => {
+      shape.scale = scale;
+    });
+  };
 
   const onDoubleClick = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -334,6 +346,7 @@ export default function ProcessPage() {
       true
     );
     terminal.offset = offset;
+    terminal.scale = scale;
 
     shapes.push(terminal);
   };
@@ -347,6 +360,7 @@ export default function ProcessPage() {
       "red"
     );
     process_new.offset = offset;
+    process_new.scale = scale;
 
     shapes.push(process_new);
   };
@@ -359,22 +373,24 @@ export default function ProcessPage() {
       { x: -offset.x + 200, y: -offset.y + 200 },
       "green"
     );
+    data_new.scale = scale;
     data_new.offset = offset;
 
     shapes.push(data_new);
   };
 
   const onClickDecision = () => {
-    let data_new = new Desicion(
+    let decision_new = new Desicion(
       `data_${Date.now()}`,
       200,
       100,
       { x: -offset.x + 200, y: -offset.y + 200 },
       "#3498db"
     );
-    data_new.offset = offset;
+    decision_new.offset = offset;
+    decision_new.scale = scale;
 
-    shapes.push(data_new);
+    shapes.push(decision_new);
   };
 
   const onConfirmStatusFrame = (title: string, selection: string) => {
@@ -524,6 +540,7 @@ export default function ProcessPage() {
         onMouseDown={onMouseDown}
         onMouseUp={onMouseUp}
         onMouseMove={onMouseMove}
+        onWheel={onMouseWeel}
         onDoubleClick={onDoubleClick}
       />
 

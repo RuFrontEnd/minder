@@ -41,8 +41,8 @@ export default class Process extends Core {
     ctx.fillRect(
       edge.l - this.getOffsetP().x,
       edge.t - this.getOffsetP().y,
-      this.w,
-      this.h
+      this.getScaleSize().w,
+      this.getScaleSize().h
     );
     ctx.closePath();
 

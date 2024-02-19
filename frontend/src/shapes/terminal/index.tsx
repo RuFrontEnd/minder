@@ -92,22 +92,32 @@ export default class Terminal extends Core {
     ctx.translate(this.getOffsetP().x, this.getOffsetP().y);
     ctx.fillStyle = this.c;
 
-    if (this.w >= this.h) {
-      let r = this.h / 2;
+    if (this.getScaleSize().w >= this.getScaleSize().h) {
+      let r = this.getScaleSize().h / 2;
       ctx.beginPath();
       ctx.fillStyle = this.c;
-      ctx.arc(-this.w / 2 + r, 0, r, 0, 2 * Math.PI);
-      ctx.arc(this.w / 2 - r, 0, r, 0, 2 * Math.PI);
+      ctx.arc(-this.getScaleSize().w / 2 + r, 0, r, 0, 2 * Math.PI);
+      ctx.arc(this.getScaleSize().w / 2 - r, 0, r, 0, 2 * Math.PI);
       ctx.fill();
-      ctx.fillRect(-this.w / 2 + r, -r, this.w - 2 * r, this.h);
-    } else if (this.w < this.h) {
-      let r = this.w / 2;
+      ctx.fillRect(
+        -this.getScaleSize().w / 2 + r,
+        -r,
+        this.getScaleSize().w - 2 * r,
+        this.getScaleSize().h
+      );
+    } else if (this.getScaleSize().w < this.getScaleSize().h) {
+      let r = this.getScaleSize().w / 2;
       ctx.beginPath();
       ctx.fillStyle = this.c;
-      ctx.arc(0, -this.h / 2 + r, r, 0, 2 * Math.PI);
-      ctx.arc(0, this.h / 2 - r, r, 0, 2 * Math.PI);
+      ctx.arc(0, -this.getScaleSize().h / 2 + r, r, 0, 2 * Math.PI);
+      ctx.arc(0, this.getScaleSize().h / 2 - r, r, 0, 2 * Math.PI);
       ctx.fill();
-      ctx.fillRect(-r, -this.h / 2 + r, this.w, this.h - 2 * r);
+      ctx.fillRect(
+        -r,
+        -this.getScaleSize().h / 2 + r,
+        this.w,
+        this.getScaleSize().h - 2 * r
+      );
     }
 
     ctx.restore();

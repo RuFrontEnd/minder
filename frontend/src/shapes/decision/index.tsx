@@ -85,14 +85,14 @@ export default class Desicion extends Core {
     ctx.save();
     ctx.translate(this.getOffsetP().x, this.getOffsetP().y);
     ctx.fillStyle = this.c;
-    const x1 = -this.w / 2,
+    const x1 = -this.getScaleSize().w / 2,
       y1 = 0;
     const x2 = 0,
-      y2 = this.h / 2;
-    const x3 = this.w / 2,
+      y2 = this.getScaleSize().h / 2;
+    const x3 = this.getScaleSize().w / 2,
       y3 = 0;
     const x4 = 0,
-      y4 = -this.h / 2;
+      y4 = -this.getScaleSize().h / 2;
 
     ctx.beginPath();
     ctx.moveTo(x1, y1);
