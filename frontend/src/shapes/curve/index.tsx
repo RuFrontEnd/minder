@@ -71,7 +71,7 @@ export default class Curve {
   set p2(value: Vec) {
     this.__p2__ = value;
     if (this.arrow && value && this.cp2) {
-      this.arrow.p = { x: value.x, y: value.y };
+      this.arrow.p = { x: this.getScreenP().p2.x, y: this.getScreenP().p2.y };
       this.arrow.deg =
         Math.atan2(value.y - this.cp2.y, value.x - this.cp2.x) +
         90 * (Math.PI / 180);
