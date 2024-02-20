@@ -176,22 +176,24 @@ export default class Core {
     const curve_r = this.curves.r;
 
     if (curve_r?.p1 && curve_r?.cp1 && curve_r?.cp2 && curve_r?.p2) {
-      curve_r.p1 = {
-        ...curve_r.p1,
-        x: curve_r.p1.x + offsetW,
-      };
-      curve_r.cp1 = {
-        ...curve_r.cp1,
-        x: curve_r.cp1.x + offsetW,
-      };
-      curve_r.cp2 = {
-        ...curve_r.cp2,
-        x: curve_r.cp2.x + offsetW,
-      };
-      curve_r.p2 = {
-        ...curve_r.p2,
-        x: curve_r.p2.x + offsetW,
-      };
+      curve_r.scale = value;
+      //TODO: still need to correct the position?
+      // curve_r.p1 = {
+      //   ...curve_r.p1,
+      //   x: curve_r.p1.x + offsetW,
+      // };
+      // curve_r.cp1 = {
+      //   ...curve_r.cp1,
+      //   x: curve_r.cp1.x + offsetW,
+      // };
+      // curve_r.cp2 = {
+      //   ...curve_r.cp2,
+      //   x: curve_r.cp2.x + offsetW,
+      // };
+      // curve_r.p2 = {
+      //   ...curve_r.p2,
+      //   x: curve_r.p2.x + offsetW,
+      // };
     }
   }
 
