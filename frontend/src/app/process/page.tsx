@@ -409,21 +409,21 @@ export default function ProcessPage() {
       //     "#3498db"
       //   );
 
-      let curve: any = new Curve(
-        { w: 1, c: "#c00" },
-        { w: 2, c: "#333" },
-        { x: 100, y: 200 },
-        { x: 200, y: 200 },
-        { x: 300, y: 200 },
-        { x: 400, y: 200 }
-      );
+      // let curve: any = new Curve(
+      //   { w: 1, c: "#c00" },
+      //   { w: 2, c: "#333" },
+      //   { x: 100, y: 200 },
+      //   { x: 200, y: 200 },
+      //   { x: 300, y: 200 },
+      //   { x: 400, y: 200 }
+      // );
 
       // shapes.push(terminal);
       // shapes.push(process);
       // shapes.push(process_2);
       // shapes.push(data_1);
       // shapes.push(desicion_1);
-      shapes.push(curve);
+      // shapes.push(curve);
 
       requestAnimationFrame(draw);
     }

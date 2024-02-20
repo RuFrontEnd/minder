@@ -27,20 +27,20 @@ export default class Core {
     cpline: Line;
     curve: Line;
   } = {
-    d: 100, // 30
-    size: {
-      fill: 4,
-      stroke: 2,
-    },
-    cpline: {
-      w: 1,
-      c: "#c00",
-    },
-    curve: {
-      w: 2,
-      c: "#333",
-    },
-  };
+      d: 100, // 30
+      size: {
+        fill: 4,
+        stroke: 2,
+      },
+      cpline: {
+        w: 1,
+        c: "#c00",
+      },
+      curve: {
+        w: 2,
+        c: "#333",
+      },
+    };
   private strokeSize = 2;
   private initPressing = {
     activate: false,
@@ -89,9 +89,9 @@ export default class Core {
   dragP:
     | Vec
     | {
-        x: null;
-        y: null;
-      };
+      x: null;
+      y: null;
+    };
   options: DataType;
   selectedData: DataType;
   redundancies: DataType;
@@ -146,59 +146,28 @@ export default class Core {
 
   set offset(value: Vec) {
     this.__offset__ = value;
-
-    // if(this.curves.l){
-    //   this.curves.l.offset = value
-    // }
-
-    // if(this.curves.t){
-    //   this.curves.t.offset = value
-    // }
-
-    // if(this.curves.r){
-    //   this.curves.r.offset = value
-    // }
-
-    // if(this.curves.b){
-    //   this.curves.b.offset = value
-    // }
   }
 
   set scale(value: number) {
-    const lastW = this.w * this.__scale__;
-
     this.__scale__ = value;
 
-    const currentW = this.w * this.__scale__;
+    const curve = this.curves;
 
-    const offsetW = (currentW - lastW) / 2;
-
-    const curve_r = this.curves.r;
-
-    if (curve_r?.p1 && curve_r?.cp1 && curve_r?.cp2 && curve_r?.p2) {
-      curve_r.scale = value;
-      //TODO: still need to correct the position?
-      // curve_r.p1 = {
-      //   ...curve_r.p1,
-      //   x: curve_r.p1.x + offsetW,
-      // };
-      // curve_r.cp1 = {
-      //   ...curve_r.cp1,
-      //   x: curve_r.cp1.x + offsetW,
-      // };
-      // curve_r.cp2 = {
-      //   ...curve_r.cp2,
-      //   x: curve_r.cp2.x + offsetW,
-      // };
-      // curve_r.p2 = {
-      //   ...curve_r.p2,
-      //   x: curve_r.p2.x + offsetW,
-      // };
+    if (curve?.l) {
+      curve.l.scale = value;
+    }
+    if (curve?.t) {
+      curve.t.scale = value;
+    }
+    if (curve?.r) {
+      curve.r.scale = value;
+    }
+    if (curve?.b) {
+      curve.b.scale = value;
     }
   }
 
   getScreenP = () => {
-    // console.log("this.__scale__", this.__scale__);
     return {
       x: (this.p.x + this.__offset__.x) * this.__scale__,
       y: (this.p.y + this.__offset__.y) * this.__scale__,
@@ -424,28 +393,28 @@ export default class Core {
     if (
       // l curve trigger
       (p.x - center.curveTrigger.l.x) * (p.x - center.curveTrigger.l.x) +
-        (p.y - center.curveTrigger.l.y) * (p.y - center.curveTrigger.l.y) <
+      (p.y - center.curveTrigger.l.y) * (p.y - center.curveTrigger.l.y) <
       this.curveTrigger.size.fill * this.curveTrigger.size.fill
     ) {
       return Direction.l;
     } else if (
       // t curve trigger
       (p.x - center.curveTrigger.t.x) * (p.x - center.curveTrigger.t.x) +
-        (p.y - center.curveTrigger.t.y) * (p.y - center.curveTrigger.t.y) <
+      (p.y - center.curveTrigger.t.y) * (p.y - center.curveTrigger.t.y) <
       this.curveTrigger.size.fill * this.curveTrigger.size.fill
     ) {
       return Direction.t;
     } else if (
       // r curve trigger
       (p.x - center.curveTrigger.r.x) * (p.x - center.curveTrigger.r.x) +
-        (p.y - center.curveTrigger.r.y) * (p.y - center.curveTrigger.r.y) <
+      (p.y - center.curveTrigger.r.y) * (p.y - center.curveTrigger.r.y) <
       this.curveTrigger.size.fill * this.curveTrigger.size.fill
     ) {
       return Direction.r;
     } else if (
       // b curve trigger
       (p.x - center.curveTrigger.b.x) * (p.x - center.curveTrigger.b.x) +
-        (p.y - center.curveTrigger.b.y) * (p.y - center.curveTrigger.b.y) <
+      (p.y - center.curveTrigger.b.y) * (p.y - center.curveTrigger.b.y) <
       this.curveTrigger.size.fill * this.curveTrigger.size.fill
     ) {
       return Direction.b;
@@ -562,7 +531,7 @@ export default class Core {
       if (
         // lt anchors
         (p.x - center.lt.x) * (p.x - center.lt.x) +
-          (p.y - center.lt.y) * (p.y - center.lt.y) <
+        (p.y - center.lt.y) * (p.y - center.lt.y) <
         this.anchor.size.fill * this.anchor.size.fill
       ) {
         this.pressing = {
@@ -572,7 +541,7 @@ export default class Core {
       } else if (
         // rt anchors
         (p.x - center.rt.x) * (p.x - center.rt.x) +
-          (p.y - center.rt.y) * (p.y - center.rt.y) <
+        (p.y - center.rt.y) * (p.y - center.rt.y) <
         this.anchor.size.fill * this.anchor.size.fill
       ) {
         this.pressing = {
@@ -582,7 +551,7 @@ export default class Core {
       } else if (
         // rb anchors
         (p.x - center.rb.x) * (p.x - center.rb.x) +
-          (p.y - center.rb.y) * (p.y - center.rb.y) <
+        (p.y - center.rb.y) * (p.y - center.rb.y) <
         this.anchor.size.fill * this.anchor.size.fill
       ) {
         this.pressing = {
@@ -592,7 +561,7 @@ export default class Core {
       } else if (
         // lb anchors
         (p.x - center.lb.x) * (p.x - center.lb.x) +
-          (p.y - center.lb.y) * (p.y - center.lb.y) <
+        (p.y - center.lb.y) * (p.y - center.lb.y) <
         this.anchor.size.fill * this.anchor.size.fill
       ) {
         this.pressing = {
@@ -607,27 +576,28 @@ export default class Core {
           this.curveTrigger.cpline,
           this.curveTrigger.curve,
           {
-            x: -this.getScaleSize().w / 2,
+            x: -this.w / 2,
             y: 0,
           },
           {
             x:
-              -this.getScaleSize().w / 2 +
-              (-this.getScaleCurveTriggerDistance() * 1) / 3,
+              -this.w / 2 +
+              (-this.curveTrigger.d * 1) / 3,
             y: 0,
           },
           {
             x:
-              -this.getScaleSize().w / 2 +
-              (-this.getScaleCurveTriggerDistance() * 2) / 3,
+              -this.w / 2 +
+              (-this.curveTrigger.d * 2) / 3,
             y: 0,
           },
           {
-            x: -this.getScaleSize().w / 2 - this.getScaleCurveTriggerDistance(),
+            x: -this.w / 2 - this.curveTrigger.d,
             y: 0,
           }
         );
 
+        this.curves.l.scale = this.__scale__
         this.curves.l.pressing = {
           activate: true,
           p: CurvePressingP.p2,
@@ -648,26 +618,27 @@ export default class Core {
           this.curveTrigger.curve,
           {
             x: 0,
-            y: -this.getScaleSize().h / 2,
+            y: -this.h / 2,
           },
           {
             x: 0,
             y:
-              -this.getScaleSize().h / 2 +
-              (-this.getScaleCurveTriggerDistance() * 1) / 3,
+              -this.h / 2 +
+              (-this.curveTrigger.d * 1) / 3,
           },
           {
             x: 0,
             y:
-              -this.getScaleSize().h / 2 +
-              (-this.getScaleCurveTriggerDistance() * 2) / 3,
+              -this.h / 2 +
+              (-this.curveTrigger.d * 2) / 3,
           },
           {
             x: 0,
-            y: -this.getScaleSize().h / 2 - this.getScaleCurveTriggerDistance(),
+            y: -this.h / 2 - this.curveTrigger.d,
           }
         );
 
+        this.curves.t.scale = this.__scale__
         this.curves.t.pressing = {
           activate: true,
           p: CurvePressingP.p2,
@@ -687,27 +658,28 @@ export default class Core {
           this.curveTrigger.cpline,
           this.curveTrigger.curve,
           {
-            x: this.getScaleSize().w / 2,
+            x: this.w / 2,
             y: 0,
           },
           {
             x:
-              this.getScaleSize().w / 2 +
-              (this.getScaleCurveTriggerDistance() * 1) / 3,
+              this.w / 2 +
+              (this.curveTrigger.d * 1) / 3,
             y: 0,
           },
           {
             x:
-              this.getScaleSize().w / 2 +
-              (this.getScaleCurveTriggerDistance() * 2) / 3,
+              this.w / 2 +
+              (this.curveTrigger.d * 2) / 3,
             y: 0,
           },
           {
-            x: this.getScaleSize().w / 2 + this.getScaleCurveTriggerDistance(),
+            x: this.w / 2 + this.curveTrigger.d,
             y: 0,
           }
         );
 
+        this.curves.r.scale = this.__scale__
         this.curves.r.pressing = {
           activate: true,
           p: CurvePressingP.p2,
@@ -728,26 +700,27 @@ export default class Core {
           this.curveTrigger.curve,
           {
             x: 0,
-            y: this.getScaleSize().h / 2,
+            y: this.h / 2,
           },
           {
             x: 0,
             y:
-              this.getScaleSize().h / 2 +
-              (this.getScaleCurveTriggerDistance() * 1) / 3,
+              this.h / 2 +
+              (this.curveTrigger.d * 1) / 3,
           },
           {
             x: 0,
             y:
-              this.getScaleSize().h / 2 +
-              (this.getScaleCurveTriggerDistance() * 2) / 3,
+              this.h / 2 +
+              (this.curveTrigger.d * 2) / 3,
           },
           {
             x: 0,
-            y: this.getScaleSize().h / 2 + this.getScaleCurveTriggerDistance(),
+            y: this.h / 2 + this.curveTrigger.d,
           }
         );
 
+        this.curves.b.scale = this.__scale__
         this.curves.b.pressing = {
           activate: true,
           p: CurvePressingP.p2,
@@ -878,8 +851,8 @@ export default class Core {
 
       // sender curves follows
       const receiveFromCurve_l = this.receiveFrom.l?.shape.curves[
-          this.receiveFrom.l.direction
-        ],
+        this.receiveFrom.l.direction
+      ],
         receiveFromCurve_t = this.receiveFrom.t?.shape.curves[
           this.receiveFrom.t.direction
         ],
@@ -974,10 +947,10 @@ export default class Core {
         }
       } else if (this.pressing.target === PressingTarget.lt) {
         const canResizeX =
-            (xOffset > 0 &&
-              p.x > edge.l &&
-              this.getScaleSize().w >= this.getScaleSize().minW) ||
-            (xOffset < 0 && p.x < edge.l),
+          (xOffset > 0 &&
+            p.x > edge.l &&
+            this.getScaleSize().w >= this.getScaleSize().minW) ||
+          (xOffset < 0 && p.x < edge.l),
           canResizeY =
             (yOffset > 0 &&
               p.y > edge.t &&
@@ -1175,10 +1148,10 @@ export default class Core {
         }
       } else if (this.pressing.target === PressingTarget.rt) {
         const canResizeX =
-            (xOffset > 0 && p.x > edge.r) ||
-            (xOffset < 0 &&
-              p.x < edge.r &&
-              this.getScaleSize().w >= this.getScaleSize().minW),
+          (xOffset > 0 && p.x > edge.r) ||
+          (xOffset < 0 &&
+            p.x < edge.r &&
+            this.getScaleSize().w >= this.getScaleSize().minW),
           canResizeY =
             (yOffset > 0 &&
               p.y > edge.t &&
@@ -1373,10 +1346,10 @@ export default class Core {
         }
       } else if (this.pressing.target === PressingTarget.rb) {
         const canResizeX =
-            (xOffset > 0 && p.x > edge.r) ||
-            (xOffset < 0 &&
-              p.x < edge.r &&
-              this.getScaleSize().w >= this.getScaleSize().minW),
+          (xOffset > 0 && p.x > edge.r) ||
+          (xOffset < 0 &&
+            p.x < edge.r &&
+            this.getScaleSize().w >= this.getScaleSize().minW),
           canResizeY =
             (yOffset > 0 && p.y > edge.b) ||
             (yOffset < 0 &&
@@ -1568,10 +1541,10 @@ export default class Core {
         }
       } else if (this.pressing.target === PressingTarget.lb) {
         const canResizeX =
-            (xOffset > 0 &&
-              p.x > edge.l &&
-              this.getScaleSize().w >= this.getScaleSize().minW) ||
-            (xOffset < 0 && p.x < edge.l),
+          (xOffset > 0 &&
+            p.x > edge.l &&
+            this.getScaleSize().w >= this.getScaleSize().minW) ||
+          (xOffset < 0 && p.x < edge.l),
           canResizeY =
             (yOffset > 0 && p.y > edge.b) ||
             (yOffset < 0 &&
