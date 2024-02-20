@@ -56,7 +56,7 @@ export default class Curve {
       "black",
       { x: this.__p2__.x, y: this.__p2__.y },
       Math.atan2(this.__p2__.y - this.cp2.y, this.__p2__.x - this.cp2.x) +
-        90 * (Math.PI / 180)
+      90 * (Math.PI / 180)
     );
     this.dragP = null;
     this.selecting = false;
@@ -87,10 +87,13 @@ export default class Curve {
   }
 
   set scale(value: number) {
+    const magnification = value / this.__scale__
     this.__scale__ = value;
 
     if (this.arrow && value && this.cp2) {
       this.arrow.p = { x: this.getScreenP().p2.x, y: this.getScreenP().p2.y };
+      this.arrow.w = this.arrow.w * magnification
+      this.arrow.h = this.arrow.h * magnification
     }
   }
 
@@ -117,18 +120,6 @@ export default class Curve {
 
   getScaleCurveW = () => {
     return this.curve.w * this.__scale__;
-  };
-
-  getScaleCplineW = () => {
-    return this.cpline.w * this.__scale__;
-  };
-
-  getScaleRadius = () => {
-    return this.radius * this.__scale__;
-  };
-
-  getScaleControlPointR = () => {
-    return this.controlPoint.r * this.__scale__;
   };
 
   getBezierPoint(t: number, controlPoints: Vec[]) {
@@ -184,7 +175,9 @@ export default class Curve {
     dx = this.getScreenP().p2.x - p.x;
     dy = this.getScreenP().p2.y - p.y;
 
-    if (dx * dx + dy * dy < this.getScaleRadius() * this.getScaleRadius()) {
+    const scope = this.controlPoint.r * this.controlPoint.r
+
+    if (dx * dx + dy * dy < scope) {
       // this.pressing = {
       //   activate: true,
       //   p: PressingP.p2,
@@ -198,7 +191,7 @@ export default class Curve {
     dx = this.getScreenP().cp2.x - p.x;
     dy = this.getScreenP().cp2.y - p.y;
 
-    if (dx * dx + dy * dy < this.getScaleRadius() * this.getScaleRadius()) {
+    if (dx * dx + dy * dy < scope) {
       // this.pressing = {
       //   activate: true,
       //   p: PressingP.cp2,
@@ -212,7 +205,7 @@ export default class Curve {
     dx = this.getScreenP().cp1.x - p.x;
     dy = this.getScreenP().cp1.y - p.y;
 
-    if (dx * dx + dy * dy < this.getScaleRadius() * this.getScaleRadius()) {
+    if (dx * dx + dy * dy < scope) {
       // this.pressing = {
       //   activate: true,
       //   p: PressingP.cp1,
@@ -227,7 +220,7 @@ export default class Curve {
     // dx = this.p1.x - p.x;
     // dy = this.p1.y - p.y;
 
-    // if (dx * dx + dy * dy < this.getScaleRadius() * this.getScaleRadius()) {
+    // if (dx * dx + dy * dy < scope) {
     //   // this.pressing = {
     //   //   activate: true,
     //   //   p: PressingP.p1,
@@ -256,8 +249,8 @@ export default class Curve {
     if (this.arrow) {
       this.selecting = this.selecting
         ? this.checkBoundry(p) ||
-          pressingControlPoint.activate ||
-          this.arrow?.checkBoundry(p)
+        pressingControlPoint.activate ||
+        this.arrow?.checkBoundry(p)
         : this.checkBoundry(p) || this.arrow?.checkBoundry(p);
     }
 
@@ -279,8 +272,8 @@ export default class Curve {
         };
 
         this.p1 = {
-          x: p.x - this.__offset__.x,
-          y: p.y - this.__offset__.y,
+          x: (p.x / this.__scale__ - this.__offset__.x) - this.p1.x,
+          y: (p.y / this.__scale__ - this.__offset__.y) - this.p1.y,
         };
 
         this.cp1.x += offset.x;
@@ -291,8 +284,17 @@ export default class Curve {
         this.cp1?.y !== null
       ) {
         this.cp1 = {
-          x: p.x - this.__offset__.x,
-          y: p.y - this.__offset__.y,
+          x: p.x / this.__scale__ - this.__offset__.x,
+          y: p.y / this.__scale__ - this.__offset__.y,
+        };
+      } else if (
+        this.pressing.p === PressingP.cp2 &&
+        this.cp2?.x !== null &&
+        this.cp2?.y !== null
+      ) {
+        this.cp2 = {
+          x: p.x / this.__scale__ - this.__offset__.x,
+          y: p.y / this.__scale__ - this.__offset__.y,
         };
       } else if (
         this.pressing.p === PressingP.p2 &&
@@ -300,26 +302,17 @@ export default class Curve {
         this.cp2 !== null
       ) {
         const offset = {
-          x: p.x - this.getScreenP().p2.x,
-          y: p.y - this.getScreenP().p2.y,
+          x: (p.x / this.__scale__ - this.__offset__.x) - this.p2.x,
+          y: (p.y / this.__scale__ - this.__offset__.y) - this.p2.y,
         };
 
         this.p2 = {
-          x: p.x - this.__offset__.x,
-          y: p.y - this.__offset__.y,
+          x: p.x / this.__scale__ - this.__offset__.x,
+          y: p.y / this.__scale__ - this.__offset__.y,
         };
 
         this.cp2.x += offset.x;
         this.cp2.y += offset.y;
-      } else if (
-        this.pressing.p === PressingP.cp2 &&
-        this.cp2?.x !== null &&
-        this.cp2?.y !== null
-      ) {
-        this.cp2 = {
-          x: p.x - this.__offset__.x,
-          y: p.y - this.__offset__.y,
-        };
       }
 
       if (this.arrow && this.p2 && this.cp2) {
@@ -380,7 +373,7 @@ export default class Curve {
 
     if (this.selecting) {
       // control lines
-      ctx.lineWidth = this.getScaleCplineW();
+      ctx.lineWidth = this.cpline.w;
       ctx.strokeStyle = this.cpline.c;
       ctx.fillStyle = this.cpline.c;
 
@@ -425,7 +418,7 @@ export default class Curve {
 
       // TODO: keep p1 rendering but not using.
       // ctx.beginPath();
-      // ctx.arc(this.getScreenP().p1.x, this.getScreenP().p1.y, this.getScaleControlPointR(), 0, 2 * Math.PI, true); // p1 control point
+      // ctx.arc(this.getScreenP().p1.x, this.getScreenP().p1.y, this.this.controlPoint.r(), 0, 2 * Math.PI, true); // p1 control point
       // ctx.fill();
       // ctx.stroke();
       // ctx.closePath();
@@ -434,7 +427,7 @@ export default class Curve {
       ctx.arc(
         this.getScreenP().cp1.x,
         this.getScreenP().cp1.y,
-        this.getScaleControlPointR(),
+        this.controlPoint.r,
         0,
         2 * Math.PI,
         true
@@ -447,7 +440,7 @@ export default class Curve {
       ctx.arc(
         this.getScreenP().p2.x,
         this.getScreenP().p2.y,
-        this.getScaleControlPointR(),
+        this.controlPoint.r,
         0,
         2 * Math.PI,
         true
@@ -460,7 +453,7 @@ export default class Curve {
       ctx.arc(
         this.getScreenP().cp2.x,
         this.getScreenP().cp2.y,
-        this.getScaleControlPointR(),
+        this.controlPoint.r,
         0,
         2 * Math.PI,
         true
