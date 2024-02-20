@@ -70,6 +70,10 @@ export default class Curve {
 
   set offset(value: Vec) {
     this.__offset__ = value;
+
+    if (this.arrow && value && this.cp2) {
+      this.arrow.p = { x: this.getScreenP().p2.x, y: this.getScreenP().p2.y };
+    }
   }
 
   getScreenP() {
