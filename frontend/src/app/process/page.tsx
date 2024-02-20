@@ -4,11 +4,12 @@ import Core from "@/shapes/core";
 import Terminal from "@/shapes/terminal";
 import Process from "@/shapes/process";
 import Data from "@/shapes/data";
+import Curve from "@/shapes/curve";
 import Desicion from "@/shapes/decision";
 import DataFrame from "@/components/dataFrame";
 import { useState, useRef, useEffect, useCallback, use } from "react";
 import { PressingTarget, ConnectTarget } from "@/types/shapes/core";
-import { Vec, Direction} from "@/types/shapes/common";
+import { Vec, Direction } from "@/types/shapes/common";
 import { Props as DataFrameProps } from "@/types/components/dataFrame";
 
 let useEffected = false,
@@ -22,16 +23,15 @@ let useEffected = false,
 const getFramePosition = (shape: Core) => {
   const frameOffset = 12;
   return {
-    x: shape.getOffsetP().x + shape.w / 2 + frameOffset,
-    y: shape.getOffsetP().y,
+    x: shape.getScreenP().x + shape.w / 2 + frameOffset,
+    y: shape.getScreenP().y,
   };
 };
 
 export default function ProcessPage() {
   let { current: $canvas } = useRef<HTMLCanvasElement | null>(null);
 
-  const
-    [dataFrame, setDataFrame] = useState<{ p: Vec } | undefined>(undefined),
+  const [dataFrame, setDataFrame] = useState<{ p: Vec } | undefined>(undefined),
     [dbClickedShape, setDbClickedShape] = useState<
       Terminal | Data | Process | Desicion | null
     >(null),
@@ -241,11 +241,7 @@ export default function ProcessPage() {
 
   function handleKeyDown(this: Window, e: KeyboardEvent) {
     // delete
-    if (
-      e.key === "Backspace" &&
-      !dataFrame &&
-      !dbClickedShape
-    ) {
+    if (e.key === "Backspace" && !dataFrame && !dbClickedShape) {
       let removeShape: null | Terminal | Process | Data | Desicion = null,
         removeCurve: null | {
           shape: Terminal | Process | Data | Desicion;
@@ -350,8 +346,11 @@ export default function ProcessPage() {
     shapes.push(decision_new);
   };
 
-
-  const onConfirmDataFrame: DataFrameProps['onConfirm'] = (title, data, selectedData) => {
+  const onConfirmDataFrame: DataFrameProps["onConfirm"] = (
+    title,
+    data,
+    selectedData
+  ) => {
     if (
       dbClickedShape instanceof Process ||
       dbClickedShape instanceof Desicion
@@ -410,11 +409,21 @@ export default function ProcessPage() {
       //     "#3498db"
       //   );
 
+      let curve: any = new Curve(
+        { w: 1, c: "#c00" },
+        { w: 2, c: "#333" },
+        { x: 100, y: 200 },
+        { x: 200, y: 200 },
+        { x: 300, y: 200 },
+        { x: 400, y: 200 }
+      );
+
       // shapes.push(terminal);
       // shapes.push(process);
       // shapes.push(process_2);
       // shapes.push(data_1);
       // shapes.push(desicion_1);
+      shapes.push(curve);
 
       requestAnimationFrame(draw);
     }
@@ -491,18 +500,24 @@ export default function ProcessPage() {
         onDoubleClick={onDoubleClick}
       />
 
-      {dataFrame && dbClickedShape &&
+      {dataFrame && dbClickedShape && (
         <DataFrame
           shape={dbClickedShape}
           coordinate={dataFrame.p}
           onConfirm={onConfirmDataFrame}
           feature={{
             import: dbClickedShape instanceof Data,
-            usage: dbClickedShape instanceof Process || dbClickedShape instanceof Data || dbClickedShape instanceof Desicion,
-            redundancy: dbClickedShape instanceof Process || dbClickedShape instanceof Data || dbClickedShape instanceof Desicion
+            usage:
+              dbClickedShape instanceof Process ||
+              dbClickedShape instanceof Data ||
+              dbClickedShape instanceof Desicion,
+            redundancy:
+              dbClickedShape instanceof Process ||
+              dbClickedShape instanceof Data ||
+              dbClickedShape instanceof Desicion,
           }}
         />
-      }
+      )}
     </>
   );
 }

@@ -95,8 +95,8 @@ export default class Core {
   options: DataType;
   selectedData: DataType;
   redundancies: DataType;
-  offset: Vec = this.initOffset;
-  scale: number = 1;
+  __offset__: Vec;
+  __scale__: number;
 
   constructor(id: string, w: number, h: number, p: Vec, c: string) {
     this.id = id;
@@ -140,44 +140,96 @@ export default class Core {
     this.options = [];
     this.selectedData = [];
     this.redundancies = [];
-    this.offset = this.initOffset;
-    this.scale = this.initScale;
+    this.__offset__ = this.initOffset;
+    this.__scale__ = this.initScale;
   }
 
-  getOffsetP = () => {
+  set offset(value: Vec) {
+    this.__offset__ = value;
+
+    // if(this.curves.l){
+    //   this.curves.l.offset = value
+    // }
+
+    // if(this.curves.t){
+    //   this.curves.t.offset = value
+    // }
+
+    // if(this.curves.r){
+    //   this.curves.r.offset = value
+    // }
+
+    // if(this.curves.b){
+    //   this.curves.b.offset = value
+    // }
+  }
+
+  set scale(value: number) {
+    const lastW = this.w * this.__scale__;
+
+    this.__scale__ = value;
+
+    const currentW = this.w * this.__scale__;
+
+    const offsetW = (currentW - lastW) / 2;
+
+    const curve_r = this.curves.r;
+
+    if (curve_r?.p1 && curve_r?.cp1 && curve_r?.cp2 && curve_r?.p2) {
+      curve_r.p1 = {
+        ...curve_r.p1,
+        x: curve_r.p1.x + offsetW,
+      };
+      curve_r.cp1 = {
+        ...curve_r.cp1,
+        x: curve_r.cp1.x + offsetW,
+      };
+      curve_r.cp2 = {
+        ...curve_r.cp2,
+        x: curve_r.cp2.x + offsetW,
+      };
+      curve_r.p2 = {
+        ...curve_r.p2,
+        x: curve_r.p2.x + offsetW,
+      };
+    }
+  }
+
+  getScreenP = () => {
+    // console.log("this.__scale__", this.__scale__);
     return {
-      x: (this.p.x + this.offset.x) * this.scale,
-      y: (this.p.y + this.offset.y) * this.scale,
+      x: (this.p.x + this.__offset__.x) * this.__scale__,
+      y: (this.p.y + this.__offset__.y) * this.__scale__,
     };
   };
 
   getScaleSize = () => {
     return {
-      w: this.w * this.scale,
-      h: this.h * this.scale,
-      minW: this.minW * this.scale,
-      minH: this.minH * this.scale,
+      w: this.w * this.__scale__,
+      h: this.h * this.__scale__,
+      minW: this.minW * this.__scale__,
+      minH: this.minH * this.__scale__,
     };
   };
 
   getScaleCurveTriggerDistance = () => {
-    return this.curveTrigger.d * this.scale;
+    return this.curveTrigger.d * this.__scale__;
   };
 
   getEdge = () => {
     return {
-      l: this.getOffsetP().x - this.getScaleSize().w / 2,
-      t: this.getOffsetP().y - this.getScaleSize().h / 2,
-      r: this.getOffsetP().x + this.getScaleSize().w / 2,
-      b: this.getOffsetP().y + this.getScaleSize().h / 2,
+      l: this.getScreenP().x - this.getScaleSize().w / 2,
+      t: this.getScreenP().y - this.getScaleSize().h / 2,
+      r: this.getScreenP().x + this.getScaleSize().w / 2,
+      b: this.getScreenP().y + this.getScaleSize().h / 2,
     };
   };
 
   getCenter = () => {
     const edge = this.getEdge();
     const pivot = {
-      x: this.getOffsetP().x,
-      y: this.getOffsetP().y,
+      x: this.getScreenP().x,
+      y: this.getScreenP().y,
     };
 
     return {
@@ -487,8 +539,8 @@ export default class Core {
 
   onMouseDown(canvas: HTMLCanvasElement, p: Vec) {
     let shapeP = {
-      x: p.x - this.getOffsetP().x,
-      y: p.y - this.getOffsetP().y,
+      x: p.x - this.getScreenP().x,
+      y: p.y - this.getScreenP().y,
     };
     let curveBoundry = {
       l: this.curves.l?.checkControlPointsBoundry(shapeP),
@@ -623,7 +675,6 @@ export default class Core {
           activate: true,
           target: PressingTarget.ctp2,
         };
-
 
         this.selecting = false;
       } else if (
@@ -845,10 +896,8 @@ export default class Core {
       const edge = this.getEdge();
 
       if (this.pressing.target === PressingTarget.m) {
-        this.p.x += xOffset / this.scale;
-        this.p.y += yOffset / this.scale;
-        // this.p1 = { x: this.p.x - this.w / 2, y: this.p.y - this.h / 2 };
-        // this.p2 = { x: this.p.x + this.w / 2, y: this.p.y + this.h / 2 };
+        this.p.x += xOffset / this.__scale__;
+        this.p.y += yOffset / this.__scale__;
 
         if (receiveFromCurve_l?.p2 && receiveFromCurve_l?.cp2) {
           // left
@@ -934,13 +983,13 @@ export default class Core {
             (yOffset < 0 && p.y < edge.t);
 
         if (canResizeX) {
-          this.p.x += xOffset / 2 / this.scale;
-          this.w -= xOffset / this.scale;
+          this.p.x += xOffset / 2 / this.__scale__;
+          this.w -= xOffset / this.__scale__;
         }
 
         if (canResizeY) {
-          this.p.y += yOffset / 2 / this.scale;
-          this.h -= yOffset / this.scale;
+          this.p.y += yOffset / 2 / this.__scale__;
+          this.h -= yOffset / this.__scale__;
         }
 
         if (
@@ -1135,12 +1184,12 @@ export default class Core {
             (yOffset < 0 && p.y < edge.t);
 
         if (canResizeX) {
-          this.p.x += xOffset / 2 / this.scale;
-          this.w += xOffset / this.scale;
+          this.p.x += xOffset / 2 / this.__scale__;
+          this.w += xOffset / this.__scale__;
         }
         if (canResizeY) {
-          this.p.y += yOffset / 2 / this.scale;
-          this.h -= yOffset / this.scale;
+          this.p.y += yOffset / 2 / this.__scale__;
+          this.h -= yOffset / this.__scale__;
         }
 
         if (
@@ -1333,12 +1382,12 @@ export default class Core {
               this.getScaleSize().h >= this.getScaleSize().minH);
 
         if (canResizeX) {
-          this.p.x += xOffset / 2 / this.scale;
-          this.w += xOffset / this.scale;
+          this.p.x += xOffset / 2 / this.__scale__;
+          this.w += xOffset / this.__scale__;
         }
         if (canResizeY) {
-          this.p.y += yOffset / 2 / this.scale;
-          this.h += yOffset / this.scale;
+          this.p.y += yOffset / 2 / this.__scale__;
+          this.h += yOffset / this.__scale__;
         }
 
         if (
@@ -1408,8 +1457,8 @@ export default class Core {
           this.curves.r?.p2
         ) {
           if (canResizeX) {
-            this.curves.r.p1.x += xOffset / 2 / this.scale;
-            this.curves.r.cp1.x += xOffset / 2 / this.scale;
+            this.curves.r.p1.x += xOffset / 2 / this.__scale__;
+            this.curves.r.cp1.x += xOffset / 2 / this.__scale__;
           }
 
           if (sendToCurve_r) {
@@ -1528,12 +1577,12 @@ export default class Core {
               this.getScaleSize().h >= this.getScaleSize().minH);
 
         if (canResizeX) {
-          this.p.x += xOffset / 2 / this.scale;
-          this.w -= xOffset / this.scale;
+          this.p.x += xOffset / 2 / this.__scale__;
+          this.w -= xOffset / this.__scale__;
         }
         if (canResizeY) {
-          this.p.y += yOffset / 2 / this.scale;
-          this.h += yOffset / this.scale;
+          this.p.y += yOffset / 2 / this.__scale__;
+          this.h += yOffset / this.__scale__;
         }
 
         if (
@@ -1717,8 +1766,8 @@ export default class Core {
     }
 
     const shapeP = {
-      x: p.x - this.getOffsetP().x,
-      y: p.y - this.getOffsetP().y,
+      x: p.x - this.getScreenP().x,
+      y: p.y - this.getScreenP().y,
     };
 
     // reset shape connections when moving curve
@@ -1896,14 +1945,14 @@ export default class Core {
   draw(ctx: CanvasRenderingContext2D, sendable: boolean = true) {
     const edge = this.getEdge(),
       fillRectParams = {
-        x: edge.l - this.getOffsetP().x,
-        y: edge.t - this.getOffsetP().y,
+        x: edge.l - this.getScreenP().x,
+        y: edge.t - this.getScreenP().y,
         w: this.getScaleSize().w,
         h: this.getScaleSize().h,
       };
 
     ctx.save();
-    ctx.translate(this.getOffsetP().x, this.getOffsetP().y);
+    ctx.translate(this.getScreenP().x, this.getScreenP().y);
     ctx.fillStyle = this.c;
 
     if (this.getIsReceiving()) {
@@ -1925,8 +1974,8 @@ export default class Core {
         ctx.lineWidth = this.anchor.size.stroke;
         ctx.beginPath();
         ctx.arc(
-          edge.l - this.getOffsetP().x,
-          edge.t - this.getOffsetP().y,
+          edge.l - this.getScreenP().x,
+          edge.t - this.getScreenP().y,
           this.anchor.size.fill,
           0,
           2 * Math.PI,
@@ -1938,8 +1987,8 @@ export default class Core {
 
         ctx.beginPath();
         ctx.arc(
-          edge.r - this.getOffsetP().x,
-          edge.t - this.getOffsetP().y,
+          edge.r - this.getScreenP().x,
+          edge.t - this.getScreenP().y,
           this.anchor.size.fill,
           0,
           2 * Math.PI,
@@ -1951,8 +2000,8 @@ export default class Core {
 
         ctx.beginPath();
         ctx.arc(
-          edge.l - this.getOffsetP().x,
-          edge.b - this.getOffsetP().y,
+          edge.l - this.getScreenP().x,
+          edge.b - this.getScreenP().y,
           this.anchor.size.fill,
           0,
           2 * Math.PI,
@@ -1964,8 +2013,8 @@ export default class Core {
 
         ctx.beginPath();
         ctx.arc(
-          edge.r - this.getOffsetP().x,
-          edge.b - this.getOffsetP().y,
+          edge.r - this.getScreenP().x,
+          edge.b - this.getScreenP().y,
           this.anchor.size.fill,
           0,
           2 * Math.PI,

@@ -9,13 +9,18 @@ export default class Curve {
     activate: false,
     p: null,
   };
+  private initOffset = {
+    x: 0,
+    y: 0,
+  };
+  private initScale = 1;
   cpline: Line;
   curve: Line;
   radius: number;
-  p1: Vec | null;
-  __p2__: Vec | null;
-  cp1: Vec | null;
-  cp2: Vec | null;
+  p1: Vec;
+  __p2__: Vec;
+  cp1: Vec;
+  cp2: Vec;
   pressing: {
     activate: boolean;
     p: PressingP | null;
@@ -23,6 +28,8 @@ export default class Curve {
   arrow: null | Arrow;
   dragP: Vec | null;
   selecting: boolean;
+  __offset__: Vec;
+  scale: number;
 
   constructor(cpline: Line, curve: Line, p1: Vec, cp1: Vec, cp2: Vec, p2: Vec) {
     this.cpline = cpline;
@@ -43,13 +50,15 @@ export default class Curve {
     );
     this.dragP = null;
     this.selecting = false;
+    this.__offset__ = this.initOffset;
+    this.scale = this.initScale;
   }
 
   get p2() {
     return this.__p2__;
   }
 
-  set p2(value: Vec | null) {
+  set p2(value: Vec) {
     this.__p2__ = value;
     if (this.arrow && value && this.cp2) {
       this.arrow.p = { x: value.x, y: value.y };
@@ -57,6 +66,31 @@ export default class Curve {
         Math.atan2(value.y - this.cp2.y, value.x - this.cp2.x) +
         90 * (Math.PI / 180);
     }
+  }
+
+  set offset(value: Vec) {
+    this.__offset__ = value;
+  }
+
+  getScreenP() {
+    return {
+      p1: {
+        x: this.p1.x + this.__offset__.x,
+        y: this.p1.y + this.__offset__.y,
+      },
+      cp1: {
+        x: this.cp1.x + this.__offset__.x,
+        y: this.cp1.y + this.__offset__.y,
+      },
+      cp2: {
+        x: this.cp2.x + this.__offset__.x,
+        y: this.cp2.y + this.__offset__.y,
+      },
+      p2: {
+        x: this.__p2__.x + this.__offset__.x,
+        y: this.__p2__.y + this.__offset__.y,
+      },
+    };
   }
 
   getBezierPoint(t: number, controlPoints: Vec[]) {
@@ -87,10 +121,10 @@ export default class Curve {
     for (let t = 0; t <= 1; t += 0.01) {
       if (!this.p1 || !this.cp1 || !this.cp2 || !this.p2) return false;
       const bezierPoint = this.getBezierPoint(t, [
-        this.p1,
-        this.cp1,
-        this.cp2,
-        this.p2,
+        this.getScreenP().p1,
+        this.getScreenP().cp1,
+        this.getScreenP().cp2,
+        this.getScreenP().p2,
       ]);
       const distance = this.getDistance(point, bezierPoint);
 
@@ -109,8 +143,8 @@ export default class Curve {
 
     let dx, dy;
 
-    dx = this.p2.x - p.x;
-    dy = this.p2.y - p.y;
+    dx = this.getScreenP().p2.x - p.x;
+    dy = this.getScreenP().p2.y - p.y;
 
     if (dx * dx + dy * dy < this.radius * this.radius) {
       // this.pressing = {
@@ -123,8 +157,8 @@ export default class Curve {
       };
     }
 
-    dx = this.cp2.x - p.x;
-    dy = this.cp2.y - p.y;
+    dx = this.getScreenP().cp2.x - p.x;
+    dy = this.getScreenP().cp2.y - p.y;
 
     if (dx * dx + dy * dy < this.radius * this.radius) {
       // this.pressing = {
@@ -137,8 +171,8 @@ export default class Curve {
       };
     }
 
-    dx = this.cp1.x - p.x;
-    dy = this.cp1.y - p.y;
+    dx = this.getScreenP().cp1.x - p.x;
+    dy = this.getScreenP().cp1.y - p.y;
 
     if (dx * dx + dy * dy < this.radius * this.radius) {
       // this.pressing = {
@@ -202,13 +236,13 @@ export default class Curve {
         this.cp1 !== null
       ) {
         const offset = {
-          x: p.x - this.p1.x,
-          y: p.y - this.p1.y,
+          x: p.x - this.getScreenP().p1.x,
+          y: p.y - this.getScreenP().p1.y,
         };
 
         this.p1 = {
-          x: p.x,
-          y: p.y,
+          x: p.x - this.__offset__.x,
+          y: p.y - this.__offset__.y,
         };
 
         this.cp1.x += offset.x;
@@ -219,8 +253,8 @@ export default class Curve {
         this.cp1?.y !== null
       ) {
         this.cp1 = {
-          x: p.x,
-          y: p.y,
+          x: p.x - this.__offset__.x,
+          y: p.y - this.__offset__.y,
         };
       } else if (
         this.pressing.p === PressingP.p2 &&
@@ -228,13 +262,13 @@ export default class Curve {
         this.cp2 !== null
       ) {
         const offset = {
-          x: p.x - this.p2.x,
-          y: p.y - this.p2.y,
+          x: p.x - this.getScreenP().p2.x,
+          y: p.y - this.getScreenP().p2.y,
         };
 
         this.p2 = {
-          x: p.x,
-          y: p.y,
+          x: p.x - this.__offset__.x,
+          y: p.y - this.__offset__.y,
         };
 
         this.cp2.x += offset.x;
@@ -245,15 +279,18 @@ export default class Curve {
         this.cp2?.y !== null
       ) {
         this.cp2 = {
-          x: p.x,
-          y: p.y,
+          x: p.x - this.__offset__.x,
+          y: p.y - this.__offset__.y,
         };
       }
 
       if (this.arrow && this.p2 && this.cp2) {
-        this.arrow.p = { x: this.p2.x, y: this.p2.y };
+        this.arrow.p = { x: this.getScreenP().p2.x, y: this.getScreenP().p2.y };
         this.arrow.deg =
-          Math.atan2(this.p2.y - this.cp2.y, this.p2.x - this.cp2.x) +
+          Math.atan2(
+            this.getScreenP().p2.y - this.getScreenP().cp2.y,
+            this.getScreenP().p2.x - this.getScreenP().cp2.x
+          ) +
           90 * (Math.PI / 180);
       }
     }
@@ -271,23 +308,30 @@ export default class Curve {
   draw(ctx: CanvasRenderingContext2D) {
     if (!this.p1 || !this.p2 || !this.cp1 || !this.cp2) return;
 
+    // console.log('this.p1', this.p1)
+
     // curve
     ctx.lineWidth = this.curve.w;
     ctx.strokeStyle = this.curve.c;
 
     ctx.beginPath();
-    ctx.moveTo(this.p1.x, this.p1.y);
+    ctx.moveTo(this.getScreenP().p1.x, this.getScreenP().p1.y);
     if (this.cp2) {
       ctx.bezierCurveTo(
-        this.cp1.x,
-        this.cp1.y,
-        this.cp2.x,
-        this.cp2.y,
-        this.p2.x,
-        this.p2.y
+        this.getScreenP().cp1.x,
+        this.getScreenP().cp1.y,
+        this.getScreenP().cp2.x,
+        this.getScreenP().cp2.y,
+        this.getScreenP().p2.x,
+        this.getScreenP().p2.y
       );
     } else {
-      ctx.quadraticCurveTo(this.cp1.x, this.cp1.y, this.p2.x, this.p2.y);
+      ctx.quadraticCurveTo(
+        this.getScreenP().cp1.x,
+        this.getScreenP().cp1.y,
+        this.getScreenP().p2.x,
+        this.getScreenP().p2.y
+      );
     }
     ctx.stroke();
     ctx.closePath();
@@ -302,37 +346,37 @@ export default class Curve {
       ctx.strokeStyle = this.cpline.c;
       ctx.fillStyle = this.cpline.c;
 
-      ctx.moveTo(this.p1.x, this.p1.y);
-      // ctx.fillText(`p1`, this.p1.x + 14, this.p1.y);
+      ctx.moveTo(this.getScreenP().p1.x, this.getScreenP().p1.y);
+      // ctx.fillText(`p1`, this.getScreenP().p1.x + 14, this.getScreenP().p1.y);
       // ctx.fillText(
-      //   `(this.p1.x:${this.p1.x}, this.p1.y:${this.p1.y})`,
-      //   this.p1.x + 14,
-      //   this.p1.y
+      //   `(this.getScreenP().p1.x:${this.getScreenP().p1.x}, this.getScreenP().p1.y:${this.getScreenP().p1.y})`,
+      //   this.getScreenP().p1.x + 14,
+      //   this.getScreenP().p1.y
       // );
-      ctx.lineTo(this.cp1.x, this.cp1.y);
-      // ctx.fillText(`cp1`, this.cp1.x + 14, this.cp1.y);
+      ctx.lineTo(this.getScreenP().cp1.x, this.getScreenP().cp1.y);
+      // ctx.fillText(`cp1`, this.getScreenP().cp1.x + 14, this.getScreenP().cp1.y);
       // ctx.fillText(
-      //   `(this.cp1.x:${this.cp1.x}, this.cp1.y:${this.cp1.y})`,
-      //   this.cp1.x + 14,
-      //   this.cp1.y
+      //   `(this.getScreenP().cp1.x:${this.getScreenP().cp1.x}, this.getScreenP().cp1.y:${this.getScreenP().cp1.y})`,
+      //   this.getScreenP().cp1.x + 14,
+      //   this.getScreenP().cp1.y
       // );
       if (this.cp2) {
-        ctx.moveTo(this.p2.x, this.p2.y);
-        // ctx.fillText(`p2`, this.p2.x + 14, this.p2.y);
+        ctx.moveTo(this.getScreenP().p2.x, this.getScreenP().p2.y);
+        // ctx.fillText(`p2`, this.getScreenP().p2.x + 14, this.getScreenP().p2.y);
         // ctx.fillText(
-        //   `(this.p2.x:${this.p2.x}, this.p2.y:${this.p2.y})`,
-        //   this.p2.x + 14,
-        //   this.p2.y
+        //   `(this.getScreenP().p2.x:${this.getScreenP().p2.x}, this.getScreenP().p2.y:${this.getScreenP().p2.y})`,
+        //   this.getScreenP().p2.x + 14,
+        //   this.getScreenP().p2.y
         // );
-        ctx.lineTo(this.cp2.x, this.cp2.y);
-        // ctx.fillText(`cp2`, this.cp2.x + 14, this.cp2.y);
+        ctx.lineTo(this.getScreenP().cp2.x, this.getScreenP().cp2.y);
+        // ctx.fillText(`cp2`, this.getScreenP().cp2.x + 14, this.getScreenP().cp2.y);
         // ctx.fillText(
-        //   `(this.cp2.x:${this.cp2.x}, this.cp2.y:${this.cp2.y})`,
-        //   this.cp2.x + 14,
-        //   this.cp2.y
+        //   `(this.getScreenP().cp2.x:${this.getScreenP().cp2.x}, this.getScreenP().cp2.y:${this.getScreenP().cp2.y})`,
+        //   this.getScreenP().cp2.x + 14,
+        //   this.getScreenP().cp2.y
         // );
       } else {
-        ctx.lineTo(this.p2.x, this.p2.y);
+        ctx.lineTo(this.getScreenP().p2.x, this.getScreenP().p2.y);
       }
       ctx.stroke();
       ctx.closePath();
@@ -344,25 +388,46 @@ export default class Curve {
 
       // TODO: keep p1 rendering but not using.
       // ctx.beginPath();
-      // ctx.arc(this.p1.x, this.p1.y, 10, 0, 2 * Math.PI, true); // p1 control point
+      // ctx.arc(this.getScreenP().p1.x, this.getScreenP().p1.y, 10, 0, 2 * Math.PI, true); // p1 control point
       // ctx.fill();
       // ctx.stroke();
       // ctx.closePath();
 
       ctx.beginPath();
-      ctx.arc(this.cp1.x, this.cp1.y, 10, 0, 2 * Math.PI, true); // cp1 control point
+      ctx.arc(
+        this.getScreenP().cp1.x,
+        this.getScreenP().cp1.y,
+        10,
+        0,
+        2 * Math.PI,
+        true
+      ); // cp1 control point
       ctx.fill();
       ctx.stroke();
       ctx.closePath();
 
       ctx.beginPath();
-      ctx.arc(this.p2.x, this.p2.y, 10, 0, 2 * Math.PI, true); // p2 control point
+      ctx.arc(
+        this.getScreenP().p2.x,
+        this.getScreenP().p2.y,
+        10,
+        0,
+        2 * Math.PI,
+        true
+      ); // p2 control point
       ctx.fill();
       ctx.stroke();
       ctx.closePath();
 
       ctx.beginPath();
-      ctx.arc(this.cp2.x, this.cp2.y, 10, 0, 2 * Math.PI, true); // cp2 control point
+      ctx.arc(
+        this.getScreenP().cp2.x,
+        this.getScreenP().cp2.y,
+        10,
+        0,
+        2 * Math.PI,
+        true
+      ); // cp2 control point
       ctx.fill();
       ctx.stroke();
       ctx.closePath();

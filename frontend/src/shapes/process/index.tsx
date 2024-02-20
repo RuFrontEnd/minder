@@ -32,15 +32,15 @@ export default class Process extends Core {
 
   draw(ctx: CanvasRenderingContext2D) {
     ctx.save();
-    ctx.translate(this.getOffsetP().x, this.getOffsetP().y);
+    ctx.translate(this.getScreenP().x, this.getScreenP().y);
     ctx.fillStyle = this.c;
 
     const edge = this.getEdge();
 
     ctx.beginPath();
     ctx.fillRect(
-      edge.l - this.getOffsetP().x,
-      edge.t - this.getOffsetP().y,
+      edge.l - this.getScreenP().x,
+      edge.t - this.getScreenP().y,
       this.getScaleSize().w,
       this.getScaleSize().h
     );

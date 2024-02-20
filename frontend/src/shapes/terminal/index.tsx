@@ -85,7 +85,7 @@ export default class Terminal extends Core {
 
   draw(ctx: CanvasRenderingContext2D) {
     ctx.save();
-    ctx.translate(this.getOffsetP().x, this.getOffsetP().y);
+    ctx.translate(this.getScreenP().x, this.getScreenP().y);
     ctx.fillStyle = this.c;
 
     if (this.getScaleSize().w >= this.getScaleSize().h) {

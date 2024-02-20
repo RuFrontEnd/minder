@@ -83,7 +83,7 @@ export default class Desicion extends Core {
 
   draw(ctx: CanvasRenderingContext2D) {
     ctx.save();
-    ctx.translate(this.getOffsetP().x, this.getOffsetP().y);
+    ctx.translate(this.getScreenP().x, this.getScreenP().y);
     ctx.fillStyle = this.c;
     const x1 = -this.getScaleSize().w / 2,
       y1 = 0;
@@ -106,7 +106,7 @@ export default class Desicion extends Core {
     super.draw(ctx, this.getNumberOfCurves() < 2);
 
     ctx.save();
-    ctx.translate(this.getOffsetP().x, this.getOffsetP().y);
+    ctx.translate(this.getScreenP().x, this.getScreenP().y);
 
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";

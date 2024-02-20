@@ -42,7 +42,7 @@ export default class Data extends Core {
 
   draw(ctx: CanvasRenderingContext2D) {
     ctx.save();
-    ctx.translate(this.getOffsetP().x, this.getOffsetP().y);
+    ctx.translate(this.getScreenP().x, this.getScreenP().y);
     ctx.fillStyle = this.c;
 
     const x1 = -this.getScaleSize().w / 2 + this.frameOffset,
