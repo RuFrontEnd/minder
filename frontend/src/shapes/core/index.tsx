@@ -200,20 +200,20 @@ export default class Core {
       },
       curveTrigger: {
         l: {
-          x: edge.l - this.curveTrigger.d,
+          x: edge.l - this.getScaleCurveTriggerDistance(),
           y: pivot.y,
         },
         t: {
           x: pivot.x,
-          y: edge.t - this.curveTrigger.d,
+          y: edge.t - this.getScaleCurveTriggerDistance(),
         },
         r: {
-          x: edge.r + this.curveTrigger.d,
+          x: edge.r + this.getScaleCurveTriggerDistance(),
           y: pivot.y,
         },
         b: {
           x: pivot.x,
-          y: edge.b + this.curveTrigger.d,
+          y: edge.b + this.getScaleCurveTriggerDistance(),
         },
       },
       receivingPoints: {
@@ -551,28 +551,38 @@ export default class Core {
       ) {
         this.curves.l = new Curve(
           this.curveTrigger.cpline,
-          this.curveTrigger.curve
-        );
-        this.pressing = {
-          activate: true,
-          target: PressingTarget.clp2,
-        };
-
-        this.curves.l.init(
+          this.curveTrigger.curve,
           {
             x: -this.getScaleSize().w / 2,
             y: 0,
           },
           {
-            x: -this.getScaleSize().w / 2 + (-this.curveTrigger.d * 1) / 3,
+            x:
+              -this.getScaleSize().w / 2 +
+              (-this.getScaleCurveTriggerDistance() * 1) / 3,
             y: 0,
           },
           {
-            x: -this.getScaleSize().w / 2 + (-this.curveTrigger.d * 2) / 3,
+            x:
+              -this.getScaleSize().w / 2 +
+              (-this.getScaleCurveTriggerDistance() * 2) / 3,
             y: 0,
           },
-          { x: -this.getScaleSize().w / 2 - this.curveTrigger.d, y: 0 }
+          {
+            x: -this.getScaleSize().w / 2 - this.getScaleCurveTriggerDistance(),
+            y: 0,
+          }
         );
+
+        this.curves.l.pressing = {
+          activate: true,
+          p: CurvePressingP.p2,
+        };
+
+        this.pressing = {
+          activate: true,
+          target: PressingTarget.clp2,
+        };
 
         this.selecting = false;
       } else if (
@@ -581,28 +591,39 @@ export default class Core {
       ) {
         this.curves.t = new Curve(
           this.curveTrigger.cpline,
-          this.curveTrigger.curve
-        );
-        this.pressing = {
-          activate: true,
-          target: PressingTarget.ctp2,
-        };
-
-        this.curves.t.init(
+          this.curveTrigger.curve,
           {
             x: 0,
             y: -this.getScaleSize().h / 2,
           },
           {
             x: 0,
-            y: -this.getScaleSize().h / 2 + (-this.curveTrigger.d * 1) / 3,
+            y:
+              -this.getScaleSize().h / 2 +
+              (-this.getScaleCurveTriggerDistance() * 1) / 3,
           },
           {
             x: 0,
-            y: -this.getScaleSize().h / 2 + (-this.curveTrigger.d * 2) / 3,
+            y:
+              -this.getScaleSize().h / 2 +
+              (-this.getScaleCurveTriggerDistance() * 2) / 3,
           },
-          { x: 0, y: -this.getScaleSize().h / 2 - this.curveTrigger.d }
+          {
+            x: 0,
+            y: -this.getScaleSize().h / 2 - this.getScaleCurveTriggerDistance(),
+          }
         );
+
+        this.curves.t.pressing = {
+          activate: true,
+          p: CurvePressingP.p2,
+        };
+
+        this.pressing = {
+          activate: true,
+          target: PressingTarget.ctp2,
+        };
+
 
         this.selecting = false;
       } else if (
@@ -611,28 +632,38 @@ export default class Core {
       ) {
         this.curves.r = new Curve(
           this.curveTrigger.cpline,
-          this.curveTrigger.curve
-        );
-        this.pressing = {
-          activate: true,
-          target: PressingTarget.crp2,
-        };
-
-        this.curves.r.init(
+          this.curveTrigger.curve,
           {
             x: this.getScaleSize().w / 2,
             y: 0,
           },
           {
-            x: this.getScaleSize().w / 2 + (this.curveTrigger.d * 1) / 3,
+            x:
+              this.getScaleSize().w / 2 +
+              (this.getScaleCurveTriggerDistance() * 1) / 3,
             y: 0,
           },
           {
-            x: this.getScaleSize().w / 2 + (this.curveTrigger.d * 2) / 3,
+            x:
+              this.getScaleSize().w / 2 +
+              (this.getScaleCurveTriggerDistance() * 2) / 3,
             y: 0,
           },
-          { x: this.getScaleSize().w / 2 + this.curveTrigger.d, y: 0 }
+          {
+            x: this.getScaleSize().w / 2 + this.getScaleCurveTriggerDistance(),
+            y: 0,
+          }
         );
+
+        this.curves.r.pressing = {
+          activate: true,
+          p: CurvePressingP.p2,
+        };
+
+        this.pressing = {
+          activate: true,
+          target: PressingTarget.crp2,
+        };
 
         this.selecting = false;
       } else if (
@@ -641,28 +672,38 @@ export default class Core {
       ) {
         this.curves.b = new Curve(
           this.curveTrigger.cpline,
-          this.curveTrigger.curve
-        );
-        this.pressing = {
-          activate: true,
-          target: PressingTarget.cbp2,
-        };
-
-        this.curves.b.init(
+          this.curveTrigger.curve,
           {
             x: 0,
             y: this.getScaleSize().h / 2,
           },
           {
             x: 0,
-            y: this.getScaleSize().h / 2 + (this.curveTrigger.d * 1) / 3,
+            y:
+              this.getScaleSize().h / 2 +
+              (this.getScaleCurveTriggerDistance() * 1) / 3,
           },
           {
             x: 0,
-            y: this.getScaleSize().h / 2 + (this.curveTrigger.d * 2) / 3,
+            y:
+              this.getScaleSize().h / 2 +
+              (this.getScaleCurveTriggerDistance() * 2) / 3,
           },
-          { x: 0, y: this.getScaleSize().h / 2 + this.curveTrigger.d }
+          {
+            x: 0,
+            y: this.getScaleSize().h / 2 + this.getScaleCurveTriggerDistance(),
+          }
         );
+
+        this.curves.b.pressing = {
+          activate: true,
+          p: CurvePressingP.p2,
+        };
+
+        this.pressing = {
+          activate: true,
+          target: PressingTarget.cbp2,
+        };
 
         this.selecting = false;
       } else if (p.x > edge.l && p.y > edge.t && p.x < edge.r && p.y < edge.b) {

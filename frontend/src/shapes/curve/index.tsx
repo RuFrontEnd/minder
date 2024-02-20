@@ -24,16 +24,23 @@ export default class Curve {
   dragP: Vec | null;
   selecting: boolean;
 
-  constructor(cpline: Line, curve: Line) {
+  constructor(cpline: Line, curve: Line, p1: Vec, cp1: Vec, cp2: Vec, p2: Vec) {
     this.cpline = cpline;
     this.curve = curve;
     this.radius = 10;
-    this.p1 = null;
-    this.__p2__ = null;
-    this.cp1 = null;
-    this.cp2 = null;
+    this.p1 = p1;
+    this.cp1 = cp1;
+    this.cp2 = cp2;
+    this.__p2__ = p2;
     this.pressing = this.initPressing;
-    this.arrow = null;
+    this.arrow = new Arrow(
+      20,
+      20,
+      "black",
+      { x: this.__p2__.x, y: this.__p2__.y },
+      Math.atan2(this.__p2__.y - this.cp2.y, this.__p2__.x - this.cp2.x) +
+        90 * (Math.PI / 180)
+    );
     this.dragP = null;
     this.selecting = false;
   }
@@ -165,26 +172,6 @@ export default class Curve {
 
   checkBoundry(p: Vec) {
     return this.getIsPointNearBezierCurve(p, threshold);
-  }
-
-  init(initP1: Vec, initCP1: Vec, initCP2: Vec, initP2: Vec) {
-    this.p1 = initP1;
-    this.cp1 = initCP1;
-    this.cp2 = initCP2;
-    this.p2 = initP2;
-    this.pressing = {
-      activate: true,
-      p: PressingP.p2,
-    };
-
-    this.arrow = new Arrow(
-      20,
-      20,
-      "black",
-      { x: this.p2.x, y: this.p2.y },
-      Math.atan2(this.p2.y - this.cp2.y, this.p2.x - this.cp2.x) +
-        90 * (Math.PI / 180)
-    );
   }
 
   onMouseDown($canvas: HTMLCanvasElement, p: Vec) {
