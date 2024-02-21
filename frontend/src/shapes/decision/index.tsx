@@ -48,8 +48,8 @@ export default class Desicion extends Core {
       l: { x: -10, y: 0 },
       t: { x: 0, y: -10 },
       r: { x: 10, y: 0 },
-      b: { x: 0, y: 10 }
-    })
+      b: { x: 0, y: 10 },
+    });
   }
 
   onMouseDown(canvas: HTMLCanvasElement, p: Vec) {
@@ -57,21 +57,13 @@ export default class Desicion extends Core {
 
     // define curve text
     const currentText = this.getNumberOfCurves() < 2 ? "Y" : "N";
-    if (
-      this.checkCurveTriggerBoundry(p) === Direction.l
-    ) {
+    if (this.checkCurveTriggerBoundry(p) === Direction.l) {
       this.text.l = currentText;
-    } else if (
-      this.checkCurveTriggerBoundry(p) === Direction.t
-    ) {
+    } else if (this.checkCurveTriggerBoundry(p) === Direction.t) {
       this.text.t = currentText;
-    } else if (
-      this.checkCurveTriggerBoundry(p) === Direction.r
-    ) {
+    } else if (this.checkCurveTriggerBoundry(p) === Direction.r) {
       this.text.r = currentText;
-    } else if (
-      this.checkCurveTriggerBoundry(p) === Direction.b
-    ) {
+    } else if (this.checkCurveTriggerBoundry(p) === Direction.b) {
       this.text.b = currentText;
     }
   }
@@ -110,7 +102,7 @@ export default class Desicion extends Core {
 
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.font = "14px Arial";
+    ctx.font = `${14 * this.__scale__}px Arial`;
 
     if (
       this.curves.l &&
@@ -128,12 +120,23 @@ export default class Desicion extends Core {
       ]);
       ctx.fillStyle = "white";
       ctx.beginPath();
-      ctx.arc(bezierPoint.x, bezierPoint.y, 10, 0, 2 * Math.PI, false);
+      ctx.arc(
+        bezierPoint.x * this.__scale__,
+        bezierPoint.y * this.__scale__,
+        10 * this.__scale__,
+        0,
+        2 * Math.PI,
+        false
+      );
       ctx.fill();
       ctx.closePath();
 
       ctx.fillStyle = "black";
-      ctx.fillText(this.text.l, bezierPoint.x, bezierPoint.y + 2);
+      ctx.fillText(
+        this.text.l,
+        bezierPoint.x * this.__scale__,
+        bezierPoint.y * this.__scale__ + 2
+      );
     }
     if (
       this.curves.t &&
