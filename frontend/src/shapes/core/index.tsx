@@ -455,19 +455,19 @@ export default class Core {
     if (canResizeX) {
       curve.p2 = {
         ...curve.p2,
-        x: curve.p2.x - xOffset / 2,
+        x: curve.p2.x - xOffset / 2 / this.__scale__,
       };
 
-      curve.cp2.x -= xOffset / 2;
+      curve.cp2.x -= xOffset / 2 / this.__scale__;
     }
 
     if (canResizeY) {
       curve.p2 = {
         ...curve.p2,
-        y: curve.p2.y - yOffset / 2,
+        y: curve.p2.y - yOffset / 2 / this.__scale__,
       };
 
-      curve.cp2.y -= yOffset / 2;
+      curve.cp2.y -= yOffset / 2 / this.__scale__;
     }
   };
 
@@ -1075,9 +1075,9 @@ export default class Core {
           if (canResizeX) {
             receiveFromCurve_l.p2 = {
               ...receiveFromCurve_l.p2,
-              x: receiveFromCurve_l.p2.x + xOffset,
+              x: receiveFromCurve_l.p2.x + xOffset/ this.__scale__,
             };
-            receiveFromCurve_l.cp2.x += xOffset;
+            receiveFromCurve_l.cp2.x += xOffset / this.__scale__;
           }
 
           if (canResizeY) {
@@ -1094,18 +1094,18 @@ export default class Core {
           if (canResizeX) {
             receiveFromCurve_t.p2 = {
               ...receiveFromCurve_t.p2,
-              x: receiveFromCurve_t.p2.x + xOffset / 2,
+              x: receiveFromCurve_t.p2.x + xOffset / 2 / this.__scale__,
             };
-            receiveFromCurve_t.cp2.x += xOffset / 2;
+            receiveFromCurve_t.cp2.x += xOffset / 2 / this.__scale__;
           }
 
           if (canResizeY) {
             receiveFromCurve_t.p2 = {
               ...receiveFromCurve_t.p2,
-              y: receiveFromCurve_t.p2.y + yOffset,
+              y: receiveFromCurve_t.p2.y + yOffset / this.__scale__,
             };
 
-            receiveFromCurve_t.cp2.y += yOffset;
+            receiveFromCurve_t.cp2.y += yOffset / this.__scale__;
           }
         }
 
@@ -1113,10 +1113,10 @@ export default class Core {
           if (canResizeY) {
             receiveFromCurve_r.p2 = {
               ...receiveFromCurve_r.p2,
-              y: receiveFromCurve_r.p2.y + yOffset / 2,
+              y: receiveFromCurve_r.p2.y + yOffset / 2 / this.__scale__,
             };
 
-            receiveFromCurve_r.cp2.y += yOffset / 2;
+            receiveFromCurve_r.cp2.y += yOffset / 2 / this.__scale__;
           }
         }
 
@@ -1124,10 +1124,10 @@ export default class Core {
           if (canResizeX) {
             receiveFromCurve_b.p2 = {
               ...receiveFromCurve_b.p2,
-              x: receiveFromCurve_b.p2.x + xOffset / 2,
+              x: receiveFromCurve_b.p2.x + xOffset / 2 / this.__scale__,
             };
 
-            receiveFromCurve_b.cp2.x += xOffset / 2;
+            receiveFromCurve_b.cp2.x += xOffset / 2 / this.__scale__;
           }
         }
       } else if (this.pressing.target === PressingTarget.rt) {
@@ -1275,10 +1275,10 @@ export default class Core {
           if (canResizeY) {
             receiveFromCurve_l.p2 = {
               ...receiveFromCurve_l.p2,
-              y: receiveFromCurve_l.p2.y + yOffset / 2,
+              y: receiveFromCurve_l.p2.y + yOffset / 2 / this.__scale__,
             };
 
-            receiveFromCurve_l.cp2.y += yOffset / 2;
+            receiveFromCurve_l.cp2.y += yOffset / 2 / this.__scale__;
           }
         }
 
@@ -1286,17 +1286,17 @@ export default class Core {
           if (canResizeX) {
             receiveFromCurve_t.p2 = {
               ...receiveFromCurve_t.p2,
-              x: receiveFromCurve_t.p2.x + xOffset / 2,
+              x: receiveFromCurve_t.p2.x + xOffset / 2 / this.__scale__,
             };
-            receiveFromCurve_t.cp2.x += xOffset / 2;
+            receiveFromCurve_t.cp2.x += xOffset / 2 / this.__scale__;
           }
 
           if (canResizeY) {
             receiveFromCurve_t.p2 = {
               ...receiveFromCurve_t.p2,
-              y: receiveFromCurve_t.p2.y + yOffset,
+              y: receiveFromCurve_t.p2.y + yOffset / this.__scale__,
             };
-            receiveFromCurve_t.cp2.y += yOffset;
+            receiveFromCurve_t.cp2.y += yOffset / this.__scale__;
           }
         }
 
@@ -1304,17 +1304,17 @@ export default class Core {
           if (canResizeX) {
             receiveFromCurve_r.p2 = {
               ...receiveFromCurve_r.p2,
-              x: receiveFromCurve_r.p2.x + xOffset,
+              x: receiveFromCurve_r.p2.x + xOffset / this.__scale__,
             };
-            receiveFromCurve_r.cp2.x += xOffset;
+            receiveFromCurve_r.cp2.x += xOffset / this.__scale__;
           }
 
           if (canResizeY) {
             receiveFromCurve_r.p2 = {
               ...receiveFromCurve_r.p2,
-              y: receiveFromCurve_r.p2.y + yOffset / 2,
+              y: receiveFromCurve_r.p2.y + yOffset / 2 / this.__scale__,
             };
-            receiveFromCurve_r.cp2.y += yOffset / 2;
+            receiveFromCurve_r.cp2.y += yOffset / 2 / this.__scale__;
           }
         }
 
@@ -1322,10 +1322,10 @@ export default class Core {
           if (canResizeX) {
             receiveFromCurve_b.p2 = {
               ...receiveFromCurve_b.p2,
-              x: receiveFromCurve_b.p2.x + xOffset / 2,
+              x: receiveFromCurve_b.p2.x + xOffset / 2 / this.__scale__,
             };
 
-            receiveFromCurve_b.cp2.x += xOffset / 2;
+            receiveFromCurve_b.cp2.x += xOffset / 2 / this.__scale__;
           }
         }
       } else if (this.pressing.target === PressingTarget.rb) {
@@ -1473,9 +1473,9 @@ export default class Core {
           if (canResizeY) {
             receiveFromCurve_l.p2 = {
               ...receiveFromCurve_l.p2,
-              y: receiveFromCurve_l.p2.y + yOffset / 2,
+              y: receiveFromCurve_l.p2.y + yOffset / 2 / this.__scale__,
             };
-            receiveFromCurve_l.cp2.y += yOffset / 2;
+            receiveFromCurve_l.cp2.y += yOffset / 2 / this.__scale__;
           }
         }
 
@@ -1483,9 +1483,9 @@ export default class Core {
           if (canResizeX) {
             receiveFromCurve_t.p2 = {
               ...receiveFromCurve_t.p2,
-              x: receiveFromCurve_t.p2.x + xOffset / 2,
+              x: receiveFromCurve_t.p2.x + xOffset / 2 / this.__scale__,
             };
-            receiveFromCurve_t.cp2.x += xOffset / 2;
+            receiveFromCurve_t.cp2.x += xOffset / 2 / this.__scale__;
           }
         }
 
@@ -1493,16 +1493,16 @@ export default class Core {
           if (canResizeX) {
             receiveFromCurve_r.p2 = {
               ...receiveFromCurve_r.p2,
-              x: receiveFromCurve_r.p2.x + xOffset,
+              x: receiveFromCurve_r.p2.x + xOffset / this.__scale__,
             };
-            receiveFromCurve_r.cp2.x += xOffset;
+            receiveFromCurve_r.cp2.x += xOffset / this.__scale__;
           }
           if (canResizeY) {
             receiveFromCurve_r.p2 = {
               ...receiveFromCurve_r.p2,
-              y: receiveFromCurve_r.p2.y + yOffset / 2,
+              y: receiveFromCurve_r.p2.y + yOffset / 2 / this.__scale__,
             };
-            receiveFromCurve_r.cp2.y += yOffset / 2;
+            receiveFromCurve_r.cp2.y += yOffset / 2 / this.__scale__;
           }
         }
 
@@ -1510,17 +1510,17 @@ export default class Core {
           if (canResizeX) {
             receiveFromCurve_b.p2 = {
               ...receiveFromCurve_b.p2,
-              x: receiveFromCurve_b.p2.x + xOffset / 2,
+              x: receiveFromCurve_b.p2.x + xOffset / 2 / this.__scale__,
             };
-            receiveFromCurve_b.cp2.x += xOffset / 2;
+            receiveFromCurve_b.cp2.x += xOffset / 2 / this.__scale__;
           }
 
           if (canResizeY) {
             receiveFromCurve_b.p2 = {
               ...receiveFromCurve_b.p2,
-              y: receiveFromCurve_b.p2.y + yOffset,
+              y: receiveFromCurve_b.p2.y + yOffset / this.__scale__,
             };
-            receiveFromCurve_b.cp2.y += yOffset;
+            receiveFromCurve_b.cp2.y += yOffset / this.__scale__;
           }
         }
       } else if (this.pressing.target === PressingTarget.lb) {
@@ -1669,18 +1669,18 @@ export default class Core {
           if (canResizeX) {
             receiveFromCurve_l.p2 = {
               ...receiveFromCurve_l.p2,
-              x: receiveFromCurve_l.p2.x + xOffset,
+              x: receiveFromCurve_l.p2.x + xOffset / this.__scale__,
             };
 
-            receiveFromCurve_l.cp2.x += xOffset;
+            receiveFromCurve_l.cp2.x += xOffset / this.__scale__;
           }
 
           if (canResizeY) {
             receiveFromCurve_l.p2 = {
               ...receiveFromCurve_l.p2,
-              y: receiveFromCurve_l.p2.y + yOffset / 2,
+              y: receiveFromCurve_l.p2.y + yOffset / 2 / this.__scale__,
             };
-            receiveFromCurve_l.cp2.y += yOffset / 2;
+            receiveFromCurve_l.cp2.y += yOffset / 2 / this.__scale__;
           }
         }
 
@@ -1688,9 +1688,9 @@ export default class Core {
           if (canResizeX) {
             receiveFromCurve_t.p2 = {
               ...receiveFromCurve_t.p2,
-              x: receiveFromCurve_t.p2.x + xOffset / 2,
+              x: receiveFromCurve_t.p2.x + xOffset / 2 / this.__scale__,
             };
-            receiveFromCurve_t.cp2.x += xOffset / 2;
+            receiveFromCurve_t.cp2.x += xOffset / 2 / this.__scale__;
           }
         }
 
@@ -1698,9 +1698,9 @@ export default class Core {
           if (canResizeY) {
             receiveFromCurve_r.p2 = {
               ...receiveFromCurve_r.p2,
-              y: receiveFromCurve_r.p2.y + yOffset / 2,
+              y: receiveFromCurve_r.p2.y + yOffset / 2 / this.__scale__,
             };
-            receiveFromCurve_r.cp2.y += yOffset / 2;
+            receiveFromCurve_r.cp2.y += yOffset / 2 / this.__scale__;
           }
         }
 
@@ -1708,17 +1708,17 @@ export default class Core {
           if (canResizeX) {
             receiveFromCurve_b.p2 = {
               ...receiveFromCurve_b.p2,
-              x: receiveFromCurve_b.p2.x + xOffset / 2,
+              x: receiveFromCurve_b.p2.x + xOffset / 2 / this.__scale__,
             };
-            receiveFromCurve_b.cp2.x += xOffset / 2;
+            receiveFromCurve_b.cp2.x += xOffset / 2 / this.__scale__;
           }
           if (canResizeY) {
             receiveFromCurve_b.p2 = {
               ...receiveFromCurve_b.p2,
-              y: receiveFromCurve_b.p2.y + yOffset,
+              y: receiveFromCurve_b.p2.y + yOffset / this.__scale__,
             };
 
-            receiveFromCurve_b.cp2.y += yOffset;
+            receiveFromCurve_b.cp2.y += yOffset / this.__scale__;
           }
         }
       }
