@@ -154,12 +154,23 @@ export default class Desicion extends Core {
       ]);
       ctx.fillStyle = "white";
       ctx.beginPath();
-      ctx.arc(bezierPoint.x, bezierPoint.y, 10, 0, 2 * Math.PI, false);
+      ctx.arc(
+        bezierPoint.x * this.__scale__,
+        bezierPoint.y * this.__scale__,
+        10 * this.__scale__,
+        0,
+        2 * Math.PI,
+        false
+      );
       ctx.fill();
       ctx.closePath();
 
       ctx.fillStyle = "black";
-      ctx.fillText(this.text.t, bezierPoint.x, bezierPoint.y + 2);
+      ctx.fillText(
+        this.text.t,
+        bezierPoint.x * this.__scale__,
+        bezierPoint.y * this.__scale__ + 2
+      );
     }
     if (
       this.curves.r &&
@@ -177,12 +188,23 @@ export default class Desicion extends Core {
       ]);
       ctx.fillStyle = "white";
       ctx.beginPath();
-      ctx.arc(bezierPoint.x, bezierPoint.y, 10, 0, 2 * Math.PI, false);
+      ctx.arc(
+        bezierPoint.x * this.__scale__,
+        bezierPoint.y * this.__scale__,
+        10 * this.__scale__,
+        0,
+        2 * Math.PI,
+        false
+      );
       ctx.fill();
       ctx.closePath();
 
       ctx.fillStyle = "black";
-      ctx.fillText(this.text.r, bezierPoint.x, bezierPoint.y + 2);
+      ctx.fillText(
+        this.text.r,
+        bezierPoint.x * this.__scale__,
+        bezierPoint.y * this.__scale__ + 2
+      );
     }
     if (
       this.curves.b &&
@@ -200,12 +222,23 @@ export default class Desicion extends Core {
       ]);
       ctx.fillStyle = "white";
       ctx.beginPath();
-      ctx.arc(bezierPoint.x, bezierPoint.y, 10, 0, 2 * Math.PI, false);
+      ctx.arc(
+        bezierPoint.x * this.__scale__,
+        bezierPoint.y * this.__scale__,
+        10 * this.__scale__,
+        0,
+        2 * Math.PI,
+        false
+      );
       ctx.fill();
       ctx.closePath();
 
       ctx.fillStyle = "black";
-      ctx.fillText(this.text.b, bezierPoint.x, bezierPoint.y + 2);
+      ctx.fillText(
+        this.text.b,
+        bezierPoint.x * this.__scale__,
+        bezierPoint.y * this.__scale__ + 2
+      );
     }
 
     ctx.restore();
