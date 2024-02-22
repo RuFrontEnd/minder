@@ -1083,10 +1083,10 @@ export default class Core {
           if (canResizeY) {
             receiveFromCurve_l.p2 = {
               ...receiveFromCurve_l.p2,
-              y: receiveFromCurve_l.p2.y + yOffset / 2,
+              y: receiveFromCurve_l.p2.y + yOffset / 2 / this.__scale__,
             };
 
-            receiveFromCurve_l.cp2.y += yOffset / 2;
+            receiveFromCurve_l.cp2.y += yOffset / 2 / this.__scale__;
           }
         }
 
