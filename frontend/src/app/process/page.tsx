@@ -1,4 +1,4 @@
-// TODO: shape 在有 recieve curve 情況下還會有 recieve point / curve control point 被蓋住時要跳離 shape 範圍 / 以 terminal 為群組功能 / 雙擊 cp1 || cp2 可自動對位 / focus 功能 / zoom 功能 / 處理 data shape SelectFrame 開關(點擊 frame 以外要關閉) / 尋找左側列 icons / 後端判斷新增的 data 是否資料重名 / 對齊功能
+// TODO: core shape onMouseMove 邏輯拆小 => move 和 resize 邏輯 拆開 / shape 在有 recieve curve 情況下還會有 recieve point / curve control point 被蓋住時要跳離 shape 範圍 / 以 terminal 為群組功能 / 雙擊 cp1 || cp2 可自動對位 / focus 功能 / zoom 功能 / 處理 data shape SelectFrame 開關(點擊 frame 以外要關閉) / 尋找左側列 icons / 後端判斷新增的 data 是否資料重名 / 對齊功能
 "use client";
 import Core from "@/shapes/core";
 import Terminal from "@/shapes/terminal";
@@ -16,9 +16,21 @@ let useEffected = false,
   ctx: CanvasRenderingContext2D | null | undefined = null,
   shapes: (Terminal | Process | Data | Desicion)[] = [],
   sender: null | ConnectTarget = null,
+  pressing: null | {
+    shape: Terminal | Process | Data | Desicion,
+    dx: number, // distance between event px & pressing shape px
+    dy: number // distance between event py & pressing shape py
+  } = null,
   offset: Vec = { x: 0, y: 0 },
   scale: number = 1,
-  dragP: Vec = { x: 0, y: 0 };
+  dragP: Vec = { x: 0, y: 0 },
+  alignment: {
+    offset: number,
+    p: null | Vec
+  } = {
+    offset: 5,
+    p: null
+  }
 
 const getFramePosition = (shape: Core) => {
   const frameOffset = 12;
@@ -81,6 +93,7 @@ export default function ProcessPage() {
             (shapes[shapeI] as Process) ||
             (shapes[shapeI] as Data) ||
             (shapes[shapeI] as Desicion);
+
           currentShape.onMouseDown($canvas, p);
 
           if (
@@ -120,6 +133,14 @@ export default function ProcessPage() {
               direction: Direction.b,
             };
           }
+
+          if (currentShape.pressing.activate && currentShape.pressing.target) {
+            pressing = {
+              shape: currentShape,
+              dx: (p.x - dragP.x) * (1 / scale) - currentShape?.getScreenP().x,
+              dy: (p.y - dragP.y) * (1 / scale) - currentShape?.getScreenP().y,
+            }
+          }
         }
       });
 
@@ -130,28 +151,40 @@ export default function ProcessPage() {
     [space, setLeftMouseBtn]
   );
 
-  const onMouseMove = useCallback(
+  const onMouseMove =
     (e: React.MouseEvent<HTMLCanvasElement>) => {
       e.preventDefault();
       const p = {
         x: e.nativeEvent.offsetX,
         y: e.nativeEvent.offsetY,
-      };
+      },
+        screenP = {
+          x: (p.x - dragP.x) * (1 / scale),
+          y: (p.y - dragP.y) * (1 / scale),
+        }
 
       const movingCanvas = space && leftMouseBtn;
 
       if (movingCanvas) {
         setDataFrame(undefined);
-        offset.x += (p.x - dragP.x) * (1 / scale);
-        offset.y += (p.y - dragP.y) * (1 / scale);
+        offset.x += screenP.x;
+        offset.y += screenP.y;
         dragP = p;
       }
 
+      const shapesInView: (Terminal | Process | Data | Desicion)[] = []
+
       shapes.forEach((shape) => {
-        shape.onMouseMove(
-          p,
-          sender && sender.shape.id !== shape.id ? true : false
-        );
+        if (!$canvas) return
+
+        const sticking = (alignment.p && shape.id === pressing?.shape.id)
+
+        if (!sticking) {
+          shape.onMouseMove(
+            p,
+            sender && sender.shape.id !== shape.id ? true : false
+          );
+        }
 
         if (movingCanvas) {
           shape.offset = offset;
@@ -165,10 +198,42 @@ export default function ProcessPage() {
             $dataFrame.style.top = `${framePosition.y}px`;
           }
         }
+
+        const shapeEdge = shape.getEdge(),
+          isShapeInView = ((shapeEdge.l >= 0 && shapeEdge.l <= $canvas.width) ||
+            (shapeEdge.r >= 0 && shapeEdge.r <= $canvas.width)) &&
+            ((shapeEdge.t >= 0 && shapeEdge.t <= $canvas.height) ||
+              (shapeEdge.b >= 0 && shapeEdge.b <= $canvas.height))
+
+        if (isShapeInView) {
+          shapesInView.push(shape)
+        }
       });
-    },
-    [dbClickedShape, space, leftMouseBtn]
-  );
+
+      // align feature
+      const thePressing = pressing,
+        stickyOffset = 5
+
+      if (thePressing) {
+        shapesInView.forEach(shapeInView => {
+          if (shapeInView.id === thePressing.shape.id) return
+
+          if (thePressing.shape.pressing.activate && thePressing.shape.pressing.target === PressingTarget.m) {
+            const shouldAlignX = screenP.x - thePressing.dx >= shapeInView.getScreenP().x - stickyOffset &&
+              screenP.x - thePressing.dx <= shapeInView.getScreenP().x + stickyOffset
+            if (shouldAlignX) {
+              alignment.p = {
+                x: screenP.x,
+                y: 0
+              }
+              thePressing.shape.p.x = shapeInView.p.x
+            } else {
+              alignment.p = null
+            }
+          }
+        })
+      }
+    }
 
   const onMouseUp = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -183,6 +248,7 @@ export default function ProcessPage() {
       // create relationships between shapes and shapes
       if (sender) {
         shapes.forEach((shape) => {
+
           shape.options = [];
 
           if (shape.id === sender?.shape?.id) {
@@ -202,6 +268,10 @@ export default function ProcessPage() {
         checkData();
       }
 
+      if (pressing) {
+        pressing = null
+      }
+
       sender = null;
     },
     [dbClickedShape, setLeftMouseBtn]
@@ -217,7 +287,7 @@ export default function ProcessPage() {
     // zoom the page based on where the cursor is
     var distX = e.clientX / $canvas.width;
     var distY = e.clientY / $canvas.height;
-    
+
     // calculate how much we need to zoom
     const unitsZoomedX = $canvas.width / scale * scaleAmount;
     const unitsZoomedY = $canvas.height / scale * scaleAmount;
@@ -385,7 +455,15 @@ export default function ProcessPage() {
   };
 
   const draw = useCallback(() => {
+    if (!ctx) return
     ctx?.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+    ctx?.beginPath();
+    ctx.fillStyle = '#F6F7FA';
+    ctx?.fillRect(0, 0, window.innerWidth, window.innerHeight)
+    ctx?.closePath();
+
+
     shapes.forEach((shape) => {
       if (!ctx) return;
       shape.draw(ctx);
@@ -504,7 +582,7 @@ export default function ProcessPage() {
         </div>
       </div>
       <canvas
-        className={space ? "cursor-grab" : ""}
+        className={`${space ? "cursor-grab" : ""} overflow-hidden`}
         tabIndex={1}
         ref={(el) => {
           $canvas = el;
