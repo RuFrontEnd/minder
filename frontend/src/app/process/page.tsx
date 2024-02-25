@@ -208,12 +208,29 @@ export default function ProcessPage() {
   );
 
   const onMouseWeel = (e: React.WheelEvent<HTMLCanvasElement>) => {
+    if (!$canvas) return;
+
     const deltaY = e.deltaY;
     const scaleAmount = -deltaY / 500;
     scale = scale * (1 + scaleAmount);
 
+    // zoom the page based on where the cursor is
+    var distX = e.clientX / $canvas.width;
+    var distY = e.clientY / $canvas.height;
+    
+    // calculate how much we need to zoom
+    const unitsZoomedX = $canvas.width / scale * scaleAmount;
+    const unitsZoomedY = $canvas.height / scale * scaleAmount;
+
+    const unitsAddLeft = unitsZoomedX * distX;
+    const unitsAddTop = unitsZoomedY * distY;
+
+    offset.x -= unitsAddLeft;
+    offset.y -= unitsAddTop;
+
     shapes.forEach((shape) => {
       shape.scale = scale;
+      shape.offset = offset
     });
   };
 
