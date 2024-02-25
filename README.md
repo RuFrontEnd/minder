@@ -15,13 +15,14 @@ A data-verification flowchart application
 - [x] importing data in each data shape
 - [x] verifing data
 - [x] infinite whiteboard
+- [x] zoom in / out
 - [ ] define data usage (data shape hasn't finished)
-- [ ] zoom in / out
 - [ ] groups
 - [ ] undo
-- [ ] redo
 - [ ] verifing repeated data name (backend)
+- [ ] member system (backend)
 - [ ] optimizing UI
+- [ ] redo
 
 ## Tech Stack
 - react 18.2.14
