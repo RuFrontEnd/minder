@@ -80,6 +80,7 @@ export default class Core {
     r: ConnectTarget;
     b: ConnectTarget;
   };
+  // TODO: replace it with curves sendTo
   sendTo: {
     l: ConnectTarget;
     t: ConnectTarget;
