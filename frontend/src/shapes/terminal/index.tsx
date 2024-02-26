@@ -55,7 +55,7 @@ export default class Terminal extends Core {
       }
 
       ds.forEach((d) => {
-        const connectTarget: ConnectTarget = shape.sendTo[d];
+        const connectTarget: ConnectTarget = shape.curves[d].sendTo;
 
         if (!connectTarget) return;
         connectTarget.shape.options = newOptions;

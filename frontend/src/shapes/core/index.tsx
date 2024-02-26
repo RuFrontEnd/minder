@@ -80,13 +80,6 @@ export default class Core {
     r: ConnectTarget;
     b: ConnectTarget;
   };
-  // TODO: replace it with curves sendTo
-  sendTo: {
-    l: ConnectTarget;
-    t: ConnectTarget;
-    r: ConnectTarget;
-    b: ConnectTarget;
-  };
   dragP:
     | Vec
     | {
@@ -123,12 +116,6 @@ export default class Core {
     };
     this.pressing = this.initPressing;
     this.receiveFrom = {
-      l: null,
-      t: null,
-      r: null,
-      b: null,
-    };
-    this.sendTo = {
       l: null,
       t: null,
       r: null,
@@ -424,19 +411,19 @@ export default class Core {
 
   resetConnection = (direction: Direction, fromSender: boolean) => {
     if (fromSender) {
-      const receiverShape = this.sendTo[direction]?.shape,
-        receiverDirection = this.sendTo[direction]?.direction;
+      const receiverShape = this.curves[direction]?.sendTo?.shape,
+        receiverDirection = this.curves[direction]?.sendTo?.direction;
 
       if (receiverShape && receiverDirection) {
         receiverShape.receiveFrom[receiverDirection] = null;
-        this.sendTo[direction] = null;
+        this.curves[direction].sendTo = null;
       }
     } else {
       const senderShape = this.receiveFrom[direction]?.shape,
         senderDirection = this.receiveFrom[direction]?.direction;
 
       if (senderShape && senderDirection) {
-        senderShape.sendTo[senderDirection] = null;
+        senderShape.curves[senderDirection].sendTo = null;
         this.receiveFrom[direction] = null;
       }
     }
@@ -500,12 +487,12 @@ export default class Core {
   removeCurve = (d: Direction) => {
     this.curves[d].shape = null;
 
-    const sendShape = this.sendTo[d]?.shape,
-      recieveShapeDirection = this.sendTo[d]?.direction;
+    const sendShape = this.curves[d]?.sendTo?.shape,
+      recieveShapeDirection = this.curves[d]?.sendTo?.direction;
 
     if (sendShape && recieveShapeDirection) {
       sendShape.receiveFrom[recieveShapeDirection] = null;
-      this.sendTo[d] = null;
+      this.curves[d].sendTo = null;
     }
   };
 
@@ -848,10 +835,10 @@ export default class Core {
           this.receiveFrom.b.direction
         ],
         // reciever curves follows
-        sendToCurve_l = this.sendTo.l,
-        sendToCurve_t = this.sendTo.t,
-        sendToCurve_r = this.sendTo.r,
-        sendToCurve_b = this.sendTo.b;
+        sendToCurve_l = this.curves.l.sendTo,
+        sendToCurve_t = this.curves.t.sendTo,
+        sendToCurve_r = this.curves.r.sendTo,
+        sendToCurve_b = this.curves.b.sendTo;
 
       const edge = this.getEdge();
 
@@ -1822,7 +1809,7 @@ export default class Core {
           // receiver
           this.receiveFrom.l = sender;
           // sender
-          sender.shape.sendTo[sender.direction] = {
+          sender.shape.curves[sender.direction].sendTo = {
             shape: this,
             direction: pressingReceivingPoint.direction, // l
           };
@@ -1842,7 +1829,7 @@ export default class Core {
           // receiver
           this.receiveFrom.t = sender;
           // sender
-          sender.shape.sendTo[sender.direction] = {
+          sender.shape.curves[sender.direction].sendTo = {
             shape: this,
             direction: pressingReceivingPoint.direction, // t
           };
@@ -1862,7 +1849,7 @@ export default class Core {
           // receiver
           this.receiveFrom.r = sender;
           // sender
-          sender.shape.sendTo[sender.direction] = {
+          sender.shape.curves[sender.direction].sendTo = {
             shape: this,
             direction: pressingReceivingPoint.direction, // r
           };
@@ -1882,7 +1869,7 @@ export default class Core {
           // receiver
           this.receiveFrom.b = sender;
           // sender
-          sender.shape.sendTo[sender.direction] = {
+          sender.shape.curves[sender.direction].sendTo = {
             shape: this,
             direction: pressingReceivingPoint.direction, // b
           };
@@ -2002,10 +1989,6 @@ export default class Core {
 
         // draw curve triggers
         ctx.lineWidth = this.curveTrigger.size.stroke;
-
-        console.log('this.curves.l.shape',this.curves.l.shape)
-        console.log('this.receiveFrom.l',this.receiveFrom.l)
-        console.log('sendable',sendable)
 
         if (!this.curves.l.shape && !this.receiveFrom.l && sendable) {
           // left
