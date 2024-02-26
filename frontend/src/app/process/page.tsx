@@ -345,7 +345,7 @@ export default function ProcessPage() {
           break;
         } else {
           for (const d of ds) {
-            if (currentShape.curves[d]?.selecting) {
+            if (currentShape.curves[d]?.shape?.selecting) {
               removeCurve = { shape: currentShape, direction: d };
             }
           }

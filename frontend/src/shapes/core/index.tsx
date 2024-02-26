@@ -58,10 +58,10 @@ export default class Core {
   title: Title;
   p: Vec;
   curves: {
-    l: null | Curve;
-    t: null | Curve;
-    r: null | Curve;
-    b: null | Curve;
+    l: { shape: null | Curve; sendTo: null | ConnectTarget };
+    t: { shape: null | Curve; sendTo: null | ConnectTarget };
+    r: { shape: null | Curve; sendTo: null | ConnectTarget };
+    b: { shape: null | Curve; sendTo: null | ConnectTarget };
   };
   selecting: boolean;
   receiving: {
@@ -108,10 +108,10 @@ export default class Core {
     this.title = "";
     this.p = p;
     this.curves = {
-      l: null,
-      t: null,
-      r: null,
-      b: null,
+      l: { shape: null, sendTo: null },
+      t: { shape: null, sendTo: null },
+      r: { shape: null, sendTo: null },
+      b: { shape: null, sendTo: null },
     };
     this.selecting = false;
     this.receiving = {
@@ -153,17 +153,17 @@ export default class Core {
 
     const curve = this.curves;
 
-    if (curve?.l) {
-      curve.l.scale = value;
+    if (curve?.l.shape) {
+      curve.l.shape.scale = value;
     }
-    if (curve?.t) {
-      curve.t.scale = value;
+    if (curve?.t.shape) {
+      curve.t.shape.scale = value;
     }
-    if (curve?.r) {
-      curve.r.scale = value;
+    if (curve?.r.shape) {
+      curve.r.shape.scale = value;
     }
-    if (curve?.b) {
-      curve.b.scale = value;
+    if (curve?.b.shape) {
+      curve.b.shape.scale = value;
     }
   }
 
@@ -450,24 +450,24 @@ export default class Core {
   ) => {
     const curve = this.curves[direction];
 
-    if (!curve?.p2 || !curve.cp2) return;
+    if (!curve?.shape?.p2 || !curve.shape?.cp2) return;
 
     if (canResizeX) {
-      curve.p2 = {
-        ...curve.p2,
-        x: curve.p2.x - xOffset / 2 / this.__scale__,
+      curve.shape.p2 = {
+        ...curve.shape.p2,
+        x: curve.shape.p2.x - xOffset / 2 / this.__scale__,
       };
 
-      curve.cp2.x -= xOffset / 2 / this.__scale__;
+      curve.shape.cp2.x -= xOffset / 2 / this.__scale__;
     }
 
     if (canResizeY) {
-      curve.p2 = {
-        ...curve.p2,
-        y: curve.p2.y - yOffset / 2 / this.__scale__,
+      curve.shape.p2 = {
+        ...curve.shape.p2,
+        y: curve.shape.p2.y - yOffset / 2 / this.__scale__,
       };
 
-      curve.cp2.y -= yOffset / 2 / this.__scale__;
+      curve.shape.cp2.y -= yOffset / 2 / this.__scale__;
     }
   };
 
@@ -497,7 +497,7 @@ export default class Core {
   };
 
   removeCurve = (d: Direction) => {
-    this.curves[d] = null;
+    this.curves[d].shape = null;
 
     const sendShape = this.sendTo[d]?.shape,
       recieveShapeDirection = this.sendTo[d]?.direction;
@@ -514,10 +514,10 @@ export default class Core {
       y: p.y - this.getScreenP().y,
     };
     let curveBoundry = {
-      l: this.curves.l?.checkControlPointsBoundry(shapeP),
-      t: this.curves.t?.checkControlPointsBoundry(shapeP),
-      r: this.curves.r?.checkControlPointsBoundry(shapeP),
-      b: this.curves.b?.checkControlPointsBoundry(shapeP),
+      l: this.curves.l?.shape?.checkControlPointsBoundry(shapeP),
+      t: this.curves.t?.shape?.checkControlPointsBoundry(shapeP),
+      r: this.curves.r?.shape?.checkControlPointsBoundry(shapeP),
+      b: this.curves.b?.shape?.checkControlPointsBoundry(shapeP),
     };
 
     if (this.checkBoundry(p)) {
@@ -572,7 +572,7 @@ export default class Core {
         // l curve trigger
         this.checkCurveTriggerBoundry(p) === Direction.l
       ) {
-        this.curves.l = new Curve(
+        this.curves.l.shape = new Curve(
           this.curveTrigger.cpline,
           this.curveTrigger.curve,
           {
@@ -593,8 +593,8 @@ export default class Core {
           }
         );
 
-        this.curves.l.scale = this.__scale__;
-        this.curves.l.pressing = {
+        this.curves.l.shape.scale = this.__scale__;
+        this.curves.l.shape.pressing = {
           activate: true,
           p: CurvePressingP.p2,
         };
@@ -609,7 +609,7 @@ export default class Core {
         // t curve trigger
         this.checkCurveTriggerBoundry(p) === Direction.t
       ) {
-        this.curves.t = new Curve(
+        this.curves.t.shape = new Curve(
           this.curveTrigger.cpline,
           this.curveTrigger.curve,
           {
@@ -630,8 +630,8 @@ export default class Core {
           }
         );
 
-        this.curves.t.scale = this.__scale__;
-        this.curves.t.pressing = {
+        this.curves.t.shape.scale = this.__scale__;
+        this.curves.t.shape.pressing = {
           activate: true,
           p: CurvePressingP.p2,
         };
@@ -646,7 +646,7 @@ export default class Core {
         // r curve trigger
         this.checkCurveTriggerBoundry(p) === Direction.r
       ) {
-        this.curves.r = new Curve(
+        this.curves.r.shape = new Curve(
           this.curveTrigger.cpline,
           this.curveTrigger.curve,
           {
@@ -667,8 +667,8 @@ export default class Core {
           }
         );
 
-        this.curves.r.scale = this.__scale__;
-        this.curves.r.pressing = {
+        this.curves.r.shape.scale = this.__scale__;
+        this.curves.r.shape.pressing = {
           activate: true,
           p: CurvePressingP.p2,
         };
@@ -683,7 +683,7 @@ export default class Core {
         // b curve trigger
         this.checkCurveTriggerBoundry(p) === Direction.b
       ) {
-        this.curves.b = new Curve(
+        this.curves.b.shape = new Curve(
           this.curveTrigger.cpline,
           this.curveTrigger.curve,
           {
@@ -704,8 +704,8 @@ export default class Core {
           }
         );
 
-        this.curves.b.scale = this.__scale__;
-        this.curves.b.pressing = {
+        this.curves.b.shape.scale = this.__scale__;
+        this.curves.b.shape.pressing = {
           activate: true,
           p: CurvePressingP.p2,
         };
@@ -805,17 +805,17 @@ export default class Core {
       };
     }
 
-    if (this.curves.l) {
-      this.curves.l.onMouseDown(canvas, shapeP);
+    if (this.curves.l.shape) {
+      this.curves.l.shape.onMouseDown(canvas, shapeP);
     }
-    if (this.curves.t) {
-      this.curves.t.onMouseDown(canvas, shapeP);
+    if (this.curves.t.shape) {
+      this.curves.t.shape.onMouseDown(canvas, shapeP);
     }
-    if (this.curves.r) {
-      this.curves.r.onMouseDown(canvas, shapeP);
+    if (this.curves.r.shape) {
+      this.curves.r.shape.onMouseDown(canvas, shapeP);
     }
-    if (this.curves.b) {
-      this.curves.b.onMouseDown(canvas, shapeP);
+    if (this.curves.b.shape) {
+      this.curves.b.shape.onMouseDown(canvas, shapeP);
     }
   }
 
@@ -858,76 +858,92 @@ export default class Core {
         this.p.x += xOffset / this.__scale__;
         this.p.y += yOffset / this.__scale__;
 
-        if (receiveFromCurve_l?.p2 && receiveFromCurve_l?.cp2) {
+        if (receiveFromCurve_l?.shape?.p2 && receiveFromCurve_l?.shape?.cp2) {
           // left
-          receiveFromCurve_l.p2 = {
-            x: receiveFromCurve_l.p2.x + xOffset / this.__scale__,
-            y: receiveFromCurve_l.p2.y + yOffset / this.__scale__,
+          receiveFromCurve_l.shape.p2 = {
+            x: receiveFromCurve_l.shape.p2.x + xOffset / this.__scale__,
+            y: receiveFromCurve_l.shape.p2.y + yOffset / this.__scale__,
           };
-          receiveFromCurve_l.cp2.x += xOffset / this.__scale__;
-          receiveFromCurve_l.cp2.y += yOffset / this.__scale__;
+          receiveFromCurve_l.shape.cp2.x += xOffset / this.__scale__;
+          receiveFromCurve_l.shape.cp2.y += yOffset / this.__scale__;
         }
-        if (receiveFromCurve_t?.p2 && receiveFromCurve_t?.cp2) {
+        if (receiveFromCurve_t?.shape?.p2 && receiveFromCurve_t?.shape?.cp2) {
           // top
-          receiveFromCurve_t.p2 = {
-            x: receiveFromCurve_t.p2.x + xOffset / this.__scale__,
-            y: receiveFromCurve_t.p2.y + yOffset / this.__scale__,
+          receiveFromCurve_t.shape.p2 = {
+            x: receiveFromCurve_t.shape.p2.x + xOffset / this.__scale__,
+            y: receiveFromCurve_t.shape.p2.y + yOffset / this.__scale__,
           };
-          receiveFromCurve_t.cp2.x += xOffset / this.__scale__;
-          receiveFromCurve_t.cp2.y += yOffset / this.__scale__;
+          receiveFromCurve_t.shape.cp2.x += xOffset / this.__scale__;
+          receiveFromCurve_t.shape.cp2.y += yOffset / this.__scale__;
         }
-        if (receiveFromCurve_r?.p2 && receiveFromCurve_r?.cp2) {
+        if (receiveFromCurve_r?.shape?.p2 && receiveFromCurve_r?.shape?.cp2) {
           // right
-          receiveFromCurve_r.p2 = {
-            x: receiveFromCurve_r.p2.x + xOffset / this.__scale__,
-            y: receiveFromCurve_r.p2.y + yOffset / this.__scale__,
+          receiveFromCurve_r.shape.p2 = {
+            x: receiveFromCurve_r.shape.p2.x + xOffset / this.__scale__,
+            y: receiveFromCurve_r.shape.p2.y + yOffset / this.__scale__,
           };
-          receiveFromCurve_r.cp2.x += xOffset / this.__scale__;
-          receiveFromCurve_r.cp2.y += yOffset / this.__scale__;
+          receiveFromCurve_r.shape.cp2.x += xOffset / this.__scale__;
+          receiveFromCurve_r.shape.cp2.y += yOffset / this.__scale__;
         }
-        if (receiveFromCurve_b?.p2 && receiveFromCurve_b?.cp2) {
+        if (receiveFromCurve_b?.shape?.p2 && receiveFromCurve_b?.shape?.cp2) {
           // bottom
-          receiveFromCurve_b.p2 = {
-            x: receiveFromCurve_b.p2.x + xOffset / this.__scale__,
-            y: receiveFromCurve_b.p2.y + yOffset / this.__scale__,
+          receiveFromCurve_b.shape.p2 = {
+            x: receiveFromCurve_b.shape.p2.x + xOffset / this.__scale__,
+            y: receiveFromCurve_b.shape.p2.y + yOffset / this.__scale__,
           };
-          receiveFromCurve_b.cp2.x += xOffset / this.__scale__;
-          receiveFromCurve_b.cp2.y += yOffset / this.__scale__;
+          receiveFromCurve_b.shape.cp2.x += xOffset / this.__scale__;
+          receiveFromCurve_b.shape.cp2.y += yOffset / this.__scale__;
         }
 
-        if (sendToCurve_l && this.curves.l?.p2 && this.curves.l?.cp2) {
-          this.curves.l.p2 = {
-            x: this.curves.l.p2.x - xOffset / this.__scale__,
-            y: this.curves.l.p2.y - yOffset / this.__scale__,
+        if (
+          sendToCurve_l &&
+          this.curves.l?.shape?.p2 &&
+          this.curves.l?.shape?.cp2
+        ) {
+          this.curves.l.shape.p2 = {
+            x: this.curves.l.shape.p2.x - xOffset / this.__scale__,
+            y: this.curves.l.shape.p2.y - yOffset / this.__scale__,
           };
-          this.curves.l.cp2.x -= xOffset / this.__scale__;
-          this.curves.l.cp2.y -= yOffset / this.__scale__;
+          this.curves.l.shape.cp2.x -= xOffset / this.__scale__;
+          this.curves.l.shape.cp2.y -= yOffset / this.__scale__;
         }
-        if (sendToCurve_t && this.curves.t?.p2 && this.curves.t?.cp2) {
-          this.curves.t.p2 = {
-            x: this.curves.t.p2.x - xOffset / this.__scale__,
-            y: this.curves.t.p2.y - yOffset / this.__scale__,
+        if (
+          sendToCurve_t &&
+          this.curves.t?.shape?.p2 &&
+          this.curves.t?.shape?.cp2
+        ) {
+          this.curves.t.shape.p2 = {
+            x: this.curves.t.shape.p2.x - xOffset / this.__scale__,
+            y: this.curves.t.shape.p2.y - yOffset / this.__scale__,
           };
 
-          this.curves.t.cp2.x -= xOffset / this.__scale__;
-          this.curves.t.cp2.y -= yOffset / this.__scale__;
+          this.curves.t.shape.cp2.x -= xOffset / this.__scale__;
+          this.curves.t.shape.cp2.y -= yOffset / this.__scale__;
         }
-        if (sendToCurve_r && this.curves.r?.p2 && this.curves.r?.cp2) {
-          this.curves.r.p2 = {
-            x: this.curves.r.p2.x - xOffset / this.__scale__,
-            y: this.curves.r.p2.y - yOffset / this.__scale__,
+        if (
+          sendToCurve_r &&
+          this.curves.r?.shape?.p2 &&
+          this.curves.r?.shape?.cp2
+        ) {
+          this.curves.r.shape.p2 = {
+            x: this.curves.r.shape.p2.x - xOffset / this.__scale__,
+            y: this.curves.r.shape.p2.y - yOffset / this.__scale__,
           };
-          this.curves.r.cp2.x -= xOffset / this.__scale__;
-          this.curves.r.cp2.y -= yOffset / this.__scale__;
+          this.curves.r.shape.cp2.x -= xOffset / this.__scale__;
+          this.curves.r.shape.cp2.y -= yOffset / this.__scale__;
         }
-        if (sendToCurve_b && this.curves.b?.p2 && this.curves.b?.cp2) {
-          this.curves.b.p2 = {
-            x: this.curves.b.p2.x - xOffset / this.__scale__,
-            y: this.curves.b.p2.y - yOffset / this.__scale__,
+        if (
+          sendToCurve_b &&
+          this.curves.b?.shape?.p2 &&
+          this.curves.b?.shape?.cp2
+        ) {
+          this.curves.b.shape.p2 = {
+            x: this.curves.b.shape.p2.x - xOffset / this.__scale__,
+            y: this.curves.b.shape.p2.y - yOffset / this.__scale__,
           };
 
-          this.curves.b.cp2.x -= xOffset / this.__scale__;
-          this.curves.b.cp2.y -= yOffset / this.__scale__;
+          this.curves.b.shape.cp2.x -= xOffset / this.__scale__;
+          this.curves.b.shape.cp2.y -= yOffset / this.__scale__;
         }
       } else if (this.pressing.target === PressingTarget.lt) {
         const canResizeX =
@@ -952,14 +968,14 @@ export default class Core {
         }
 
         if (
-          this.curves.l?.p1 &&
-          this.curves.l?.cp1 &&
-          this.curves.l?.cp2 &&
-          this.curves.l?.p2
+          this.curves.l?.shape?.p1 &&
+          this.curves.l?.shape?.cp1 &&
+          this.curves.l?.shape?.cp2 &&
+          this.curves.l?.shape?.p2
         ) {
           if (canResizeX) {
-            this.curves.l.p1.x += xOffset / 2 / this.__scale__;
-            this.curves.l.cp1.x += xOffset / 2 / this.__scale__;
+            this.curves.l.shape.p1.x += xOffset / 2 / this.__scale__;
+            this.curves.l.shape.cp1.x += xOffset / 2 / this.__scale__;
           }
 
           if (sendToCurve_l) {
@@ -972,25 +988,25 @@ export default class Core {
             );
           } else {
             if (canResizeX) {
-              this.curves.l.p2 = {
-                ...this.curves.l.p2,
-                x: this.curves.l.p2.x + xOffset / 2 / this.__scale__,
+              this.curves.l.shape.p2 = {
+                ...this.curves.l.shape.p2,
+                x: this.curves.l.shape.p2.x + xOffset / 2 / this.__scale__,
               };
 
-              this.curves.l.cp2.x += xOffset / 2 / this.__scale__;
+              this.curves.l.shape.cp2.x += xOffset / 2 / this.__scale__;
             }
           }
         }
 
         if (
-          this.curves.t?.p1 &&
-          this.curves.t?.cp1 &&
-          this.curves.t?.cp2 &&
-          this.curves.t?.p2
+          this.curves.t?.shape?.p1 &&
+          this.curves.t?.shape?.cp1 &&
+          this.curves.t?.shape?.cp2 &&
+          this.curves.t?.shape?.p2
         ) {
           if (canResizeY) {
-            this.curves.t.p1.y += yOffset / 2 / this.__scale__;
-            this.curves.t.cp1.y += yOffset / 2 / this.__scale__;
+            this.curves.t.shape.p1.y += yOffset / 2 / this.__scale__;
+            this.curves.t.shape.cp1.y += yOffset / 2 / this.__scale__;
           }
 
           if (sendToCurve_t) {
@@ -1003,24 +1019,24 @@ export default class Core {
             );
           } else {
             if (canResizeY) {
-              this.curves.t.cp2.y += yOffset / 2 / this.__scale__;
-              this.curves.t.p2 = {
-                ...this.curves.t.p2,
-                y: this.curves.t.p2.y + yOffset / 2 / this.__scale__,
+              this.curves.t.shape.cp2.y += yOffset / 2 / this.__scale__;
+              this.curves.t.shape.p2 = {
+                ...this.curves.t.shape.p2,
+                y: this.curves.t.shape.p2.y + yOffset / 2 / this.__scale__,
               };
             }
           }
         }
 
         if (
-          this.curves.r?.p1 &&
-          this.curves.r?.cp1 &&
-          this.curves.r?.cp2 &&
-          this.curves.r?.p2
+          this.curves.r?.shape?.p1 &&
+          this.curves.r?.shape?.cp1 &&
+          this.curves.r?.shape?.cp2 &&
+          this.curves.r?.shape?.p2
         ) {
           if (canResizeX) {
-            this.curves.r.p1.x -= xOffset / 2 / this.__scale__;
-            this.curves.r.cp1.x -= xOffset / 2 / this.__scale__;
+            this.curves.r.shape.p1.x -= xOffset / 2 / this.__scale__;
+            this.curves.r.shape.cp1.x -= xOffset / 2 / this.__scale__;
           }
           if (sendToCurve_r) {
             this.senderHoldCurveP2Cp2Position(
@@ -1032,24 +1048,24 @@ export default class Core {
             );
           } else {
             if (canResizeX) {
-              this.curves.r.p2 = {
-                ...this.curves.r.p2,
-                x: this.curves.r.p2.x - xOffset / 2 / this.__scale__,
+              this.curves.r.shape.p2 = {
+                ...this.curves.r.shape.p2,
+                x: this.curves.r.shape.p2.x - xOffset / 2 / this.__scale__,
               };
-              this.curves.r.cp2.x -= xOffset / 2 / this.__scale__;
+              this.curves.r.shape.cp2.x -= xOffset / 2 / this.__scale__;
             }
           }
         }
 
         if (
-          this.curves.b?.p1 &&
-          this.curves.b?.cp1 &&
-          this.curves.b?.cp2 &&
-          this.curves.b?.p2
+          this.curves.b?.shape?.p1 &&
+          this.curves.b?.shape?.cp1 &&
+          this.curves.b?.shape?.cp2 &&
+          this.curves.b?.shape?.p2
         ) {
           if (canResizeY) {
-            this.curves.b.p1.y -= yOffset / 2 / this.__scale__;
-            this.curves.b.cp1.y -= yOffset / 2 / this.__scale__;
+            this.curves.b.shape.p1.y -= yOffset / 2 / this.__scale__;
+            this.curves.b.shape.cp1.y -= yOffset / 2 / this.__scale__;
           }
           if (sendToCurve_b) {
             this.senderHoldCurveP2Cp2Position(
@@ -1061,73 +1077,73 @@ export default class Core {
             );
           } else {
             if (canResizeY) {
-              this.curves.b.cp2.y -= yOffset / 2 / this.__scale__;
-              this.curves.b.p2 = {
-                ...this.curves.b.p2,
-                y: this.curves.b.p2.y - yOffset / 2 / this.__scale__,
+              this.curves.b.shape.cp2.y -= yOffset / 2 / this.__scale__;
+              this.curves.b.shape.p2 = {
+                ...this.curves.b.shape.p2,
+                y: this.curves.b.shape.p2.y - yOffset / 2 / this.__scale__,
               };
             }
           }
         }
 
         // resizing by reciever lt point and change sender curve p1 p2 position
-        if (receiveFromCurve_l?.p2 && receiveFromCurve_l?.cp2) {
+        if (receiveFromCurve_l?.shape?.p2 && receiveFromCurve_l?.shape?.cp2) {
           if (canResizeX) {
-            receiveFromCurve_l.p2 = {
-              ...receiveFromCurve_l.p2,
-              x: receiveFromCurve_l.p2.x + xOffset/ this.__scale__,
+            receiveFromCurve_l.shape.p2 = {
+              ...receiveFromCurve_l.shape.p2,
+              x: receiveFromCurve_l.shape.p2.x + xOffset / this.__scale__,
             };
-            receiveFromCurve_l.cp2.x += xOffset / this.__scale__;
+            receiveFromCurve_l.shape.cp2.x += xOffset / this.__scale__;
           }
 
           if (canResizeY) {
-            receiveFromCurve_l.p2 = {
-              ...receiveFromCurve_l.p2,
-              y: receiveFromCurve_l.p2.y + yOffset / 2 / this.__scale__,
+            receiveFromCurve_l.shape.p2 = {
+              ...receiveFromCurve_l.shape.p2,
+              y: receiveFromCurve_l.shape.p2.y + yOffset / 2 / this.__scale__,
             };
 
-            receiveFromCurve_l.cp2.y += yOffset / 2 / this.__scale__;
+            receiveFromCurve_l.shape.cp2.y += yOffset / 2 / this.__scale__;
           }
         }
 
-        if (receiveFromCurve_t?.p2 && receiveFromCurve_t?.cp2) {
+        if (receiveFromCurve_t?.shape?.p2 && receiveFromCurve_t?.shape?.cp2) {
           if (canResizeX) {
-            receiveFromCurve_t.p2 = {
-              ...receiveFromCurve_t.p2,
-              x: receiveFromCurve_t.p2.x + xOffset / 2 / this.__scale__,
+            receiveFromCurve_t.shape.p2 = {
+              ...receiveFromCurve_t.shape.p2,
+              x: receiveFromCurve_t.shape.p2.x + xOffset / 2 / this.__scale__,
             };
-            receiveFromCurve_t.cp2.x += xOffset / 2 / this.__scale__;
+            receiveFromCurve_t.shape.cp2.x += xOffset / 2 / this.__scale__;
           }
 
           if (canResizeY) {
-            receiveFromCurve_t.p2 = {
-              ...receiveFromCurve_t.p2,
-              y: receiveFromCurve_t.p2.y + yOffset / this.__scale__,
+            receiveFromCurve_t.shape.p2 = {
+              ...receiveFromCurve_t.shape.p2,
+              y: receiveFromCurve_t.shape.p2.y + yOffset / this.__scale__,
             };
 
-            receiveFromCurve_t.cp2.y += yOffset / this.__scale__;
+            receiveFromCurve_t.shape.cp2.y += yOffset / this.__scale__;
           }
         }
 
-        if (receiveFromCurve_r?.p2 && receiveFromCurve_r?.cp2) {
+        if (receiveFromCurve_r?.shape?.p2 && receiveFromCurve_r?.shape?.cp2) {
           if (canResizeY) {
-            receiveFromCurve_r.p2 = {
-              ...receiveFromCurve_r.p2,
-              y: receiveFromCurve_r.p2.y + yOffset / 2 / this.__scale__,
+            receiveFromCurve_r.shape.p2 = {
+              ...receiveFromCurve_r.shape.p2,
+              y: receiveFromCurve_r.shape.p2.y + yOffset / 2 / this.__scale__,
             };
 
-            receiveFromCurve_r.cp2.y += yOffset / 2 / this.__scale__;
+            receiveFromCurve_r.shape.cp2.y += yOffset / 2 / this.__scale__;
           }
         }
 
-        if (receiveFromCurve_b?.p2 && receiveFromCurve_b?.cp2) {
+        if (receiveFromCurve_b?.shape?.p2 && receiveFromCurve_b?.shape?.cp2) {
           if (canResizeX) {
-            receiveFromCurve_b.p2 = {
-              ...receiveFromCurve_b.p2,
-              x: receiveFromCurve_b.p2.x + xOffset / 2 / this.__scale__,
+            receiveFromCurve_b.shape.p2 = {
+              ...receiveFromCurve_b.shape.p2,
+              x: receiveFromCurve_b.shape.p2.x + xOffset / 2 / this.__scale__,
             };
 
-            receiveFromCurve_b.cp2.x += xOffset / 2 / this.__scale__;
+            receiveFromCurve_b.shape.cp2.x += xOffset / 2 / this.__scale__;
           }
         }
       } else if (this.pressing.target === PressingTarget.rt) {
@@ -1152,17 +1168,17 @@ export default class Core {
         }
 
         if (
-          this.curves.l?.p1 &&
-          this.curves.l?.cp1 &&
-          this.curves.l?.cp2 &&
-          this.curves.l?.p2
+          this.curves.l?.shape?.p1 &&
+          this.curves.l?.shape?.cp1 &&
+          this.curves.l?.shape?.cp2 &&
+          this.curves.l?.shape?.p2
         ) {
           if (canResizeX) {
-            this.curves.l.p1.x -= xOffset / 2 / this.__scale__;
+            this.curves.l.shape.p1.x -= xOffset / 2 / this.__scale__;
           }
 
           if (canResizeY) {
-            this.curves.l.cp1.x -= xOffset / 2 / this.__scale__;
+            this.curves.l.shape.cp1.x -= xOffset / 2 / this.__scale__;
           }
 
           if (sendToCurve_l) {
@@ -1175,24 +1191,24 @@ export default class Core {
             );
           } else {
             if (canResizeX) {
-              this.curves.l.cp2.x -= xOffset / 2 / this.__scale__;
-              this.curves.l.p2 = {
-                ...this.curves.l.p2,
-                x: this.curves.l.p2.x - xOffset / 2 / this.__scale__,
+              this.curves.l.shape.cp2.x -= xOffset / 2 / this.__scale__;
+              this.curves.l.shape.p2 = {
+                ...this.curves.l.shape.p2,
+                x: this.curves.l.shape.p2.x - xOffset / 2 / this.__scale__,
               };
             }
           }
         }
 
         if (
-          this.curves.t?.p1 &&
-          this.curves.t?.cp1 &&
-          this.curves.t?.cp2 &&
-          this.curves.t?.p2
+          this.curves.t?.shape?.p1 &&
+          this.curves.t?.shape?.cp1 &&
+          this.curves.t?.shape?.cp2 &&
+          this.curves.t?.shape?.p2
         ) {
           if (canResizeY) {
-            this.curves.t.p1.y += yOffset / 2 / this.__scale__;
-            this.curves.t.cp1.y += yOffset / 2 / this.__scale__;
+            this.curves.t.shape.p1.y += yOffset / 2 / this.__scale__;
+            this.curves.t.shape.cp1.y += yOffset / 2 / this.__scale__;
           }
           if (sendToCurve_t) {
             this.senderHoldCurveP2Cp2Position(
@@ -1204,23 +1220,23 @@ export default class Core {
             );
           } else {
             if (canResizeY) {
-              this.curves.t.cp2.y += yOffset / 2 / this.__scale__;
-              this.curves.t.p2 = {
-                ...this.curves.t.p2,
-                y: this.curves.t.p2.y + yOffset / 2 / this.__scale__,
+              this.curves.t.shape.cp2.y += yOffset / 2 / this.__scale__;
+              this.curves.t.shape.p2 = {
+                ...this.curves.t.shape.p2,
+                y: this.curves.t.shape.p2.y + yOffset / 2 / this.__scale__,
               };
             }
           }
         }
         if (
-          this.curves.r?.p1 &&
-          this.curves.r?.cp1 &&
-          this.curves.r?.cp2 &&
-          this.curves.r?.p2
+          this.curves.r?.shape?.p1 &&
+          this.curves.r?.shape?.cp1 &&
+          this.curves.r?.shape?.cp2 &&
+          this.curves.r?.shape?.p2
         ) {
           if (canResizeX) {
-            this.curves.r.p1.x += xOffset / 2 / this.__scale__;
-            this.curves.r.cp1.x += xOffset / 2 / this.__scale__;
+            this.curves.r.shape.p1.x += xOffset / 2 / this.__scale__;
+            this.curves.r.shape.cp1.x += xOffset / 2 / this.__scale__;
           }
           if (sendToCurve_r) {
             this.senderHoldCurveP2Cp2Position(
@@ -1232,24 +1248,24 @@ export default class Core {
             );
           } else {
             if (canResizeX) {
-              this.curves.r.cp2.x += xOffset / 2 / this.__scale__;
-              this.curves.r.p2 = {
-                ...this.curves.r.p2,
-                x: this.curves.r.p2.x + xOffset / 2 / this.__scale__,
+              this.curves.r.shape.cp2.x += xOffset / 2 / this.__scale__;
+              this.curves.r.shape.p2 = {
+                ...this.curves.r.shape.p2,
+                x: this.curves.r.shape.p2.x + xOffset / 2 / this.__scale__,
               };
             }
           }
         }
 
         if (
-          this.curves.b?.p1 &&
-          this.curves.b?.cp1 &&
-          this.curves.b?.cp2 &&
-          this.curves.b?.p2
+          this.curves.b?.shape?.p1 &&
+          this.curves.b?.shape?.cp1 &&
+          this.curves.b?.shape?.cp2 &&
+          this.curves.b?.shape?.p2
         ) {
           if (canResizeY) {
-            this.curves.b.p1.y -= yOffset / 2 / this.__scale__;
-            this.curves.b.cp1.y -= yOffset / 2 / this.__scale__;
+            this.curves.b.shape.p1.y -= yOffset / 2 / this.__scale__;
+            this.curves.b.shape.cp1.y -= yOffset / 2 / this.__scale__;
           }
           if (sendToCurve_b) {
             this.senderHoldCurveP2Cp2Position(
@@ -1261,71 +1277,71 @@ export default class Core {
             );
           } else {
             if (canResizeY) {
-              this.curves.b.cp2.y -= yOffset / 2 / this.__scale__;
-              this.curves.b.p2 = {
-                ...this.curves.b.p2,
-                y: this.curves.b.p2.y - yOffset / 2 / this.__scale__,
+              this.curves.b.shape.cp2.y -= yOffset / 2 / this.__scale__;
+              this.curves.b.shape.p2 = {
+                ...this.curves.b.shape.p2,
+                y: this.curves.b.shape.p2.y - yOffset / 2 / this.__scale__,
               };
             }
           }
         }
 
         // resizing by reciever rt point and change sender curve p1 p2 position
-        if (receiveFromCurve_l?.p2 && receiveFromCurve_l?.cp2) {
+        if (receiveFromCurve_l?.shape?.p2 && receiveFromCurve_l?.shape?.cp2) {
           if (canResizeY) {
-            receiveFromCurve_l.p2 = {
-              ...receiveFromCurve_l.p2,
-              y: receiveFromCurve_l.p2.y + yOffset / 2 / this.__scale__,
+            receiveFromCurve_l.shape.p2 = {
+              ...receiveFromCurve_l.shape.p2,
+              y: receiveFromCurve_l.shape.p2.y + yOffset / 2 / this.__scale__,
             };
 
-            receiveFromCurve_l.cp2.y += yOffset / 2 / this.__scale__;
+            receiveFromCurve_l.shape.cp2.y += yOffset / 2 / this.__scale__;
           }
         }
 
-        if (receiveFromCurve_t?.p2 && receiveFromCurve_t?.cp2) {
+        if (receiveFromCurve_t?.shape?.p2 && receiveFromCurve_t?.shape?.cp2) {
           if (canResizeX) {
-            receiveFromCurve_t.p2 = {
-              ...receiveFromCurve_t.p2,
-              x: receiveFromCurve_t.p2.x + xOffset / 2 / this.__scale__,
+            receiveFromCurve_t.shape.p2 = {
+              ...receiveFromCurve_t.shape.p2,
+              x: receiveFromCurve_t.shape.p2.x + xOffset / 2 / this.__scale__,
             };
-            receiveFromCurve_t.cp2.x += xOffset / 2 / this.__scale__;
+            receiveFromCurve_t.shape.cp2.x += xOffset / 2 / this.__scale__;
           }
 
           if (canResizeY) {
-            receiveFromCurve_t.p2 = {
-              ...receiveFromCurve_t.p2,
-              y: receiveFromCurve_t.p2.y + yOffset / this.__scale__,
+            receiveFromCurve_t.shape.p2 = {
+              ...receiveFromCurve_t.shape.p2,
+              y: receiveFromCurve_t.shape.p2.y + yOffset / this.__scale__,
             };
-            receiveFromCurve_t.cp2.y += yOffset / this.__scale__;
+            receiveFromCurve_t.shape.cp2.y += yOffset / this.__scale__;
           }
         }
 
-        if (receiveFromCurve_r?.p2 && receiveFromCurve_r?.cp2) {
+        if (receiveFromCurve_r?.shape?.p2 && receiveFromCurve_r?.shape?.cp2) {
           if (canResizeX) {
-            receiveFromCurve_r.p2 = {
-              ...receiveFromCurve_r.p2,
-              x: receiveFromCurve_r.p2.x + xOffset / this.__scale__,
+            receiveFromCurve_r.shape.p2 = {
+              ...receiveFromCurve_r.shape.p2,
+              x: receiveFromCurve_r.shape.p2.x + xOffset / this.__scale__,
             };
-            receiveFromCurve_r.cp2.x += xOffset / this.__scale__;
+            receiveFromCurve_r.shape.cp2.x += xOffset / this.__scale__;
           }
 
           if (canResizeY) {
-            receiveFromCurve_r.p2 = {
-              ...receiveFromCurve_r.p2,
-              y: receiveFromCurve_r.p2.y + yOffset / 2 / this.__scale__,
+            receiveFromCurve_r.shape.p2 = {
+              ...receiveFromCurve_r.shape.p2,
+              y: receiveFromCurve_r.shape.p2.y + yOffset / 2 / this.__scale__,
             };
-            receiveFromCurve_r.cp2.y += yOffset / 2 / this.__scale__;
+            receiveFromCurve_r.shape.cp2.y += yOffset / 2 / this.__scale__;
           }
         }
 
-        if (receiveFromCurve_b?.p2 && receiveFromCurve_b?.cp2) {
+        if (receiveFromCurve_b?.shape?.p2 && receiveFromCurve_b?.shape?.cp2) {
           if (canResizeX) {
-            receiveFromCurve_b.p2 = {
-              ...receiveFromCurve_b.p2,
-              x: receiveFromCurve_b.p2.x + xOffset / 2 / this.__scale__,
+            receiveFromCurve_b.shape.p2 = {
+              ...receiveFromCurve_b.shape.p2,
+              x: receiveFromCurve_b.shape.p2.x + xOffset / 2 / this.__scale__,
             };
 
-            receiveFromCurve_b.cp2.x += xOffset / 2 / this.__scale__;
+            receiveFromCurve_b.shape.cp2.x += xOffset / 2 / this.__scale__;
           }
         }
       } else if (this.pressing.target === PressingTarget.rb) {
@@ -1350,14 +1366,14 @@ export default class Core {
         }
 
         if (
-          this.curves.l?.p1 &&
-          this.curves.l?.cp1 &&
-          this.curves.l?.cp2 &&
-          this.curves.l?.p2
+          this.curves.l?.shape?.p1 &&
+          this.curves.l?.shape?.cp1 &&
+          this.curves.l?.shape?.cp2 &&
+          this.curves.l?.shape?.p2
         ) {
           if (canResizeX) {
-            this.curves.l.p1.x -= xOffset / 2 / this.__scale__;
-            this.curves.l.cp1.x -= xOffset / 2 / this.__scale__;
+            this.curves.l.shape.p1.x -= xOffset / 2 / this.__scale__;
+            this.curves.l.shape.cp1.x -= xOffset / 2 / this.__scale__;
           }
 
           if (sendToCurve_l) {
@@ -1370,24 +1386,24 @@ export default class Core {
             );
           } else {
             if (canResizeX) {
-              this.curves.l.cp2.x -= xOffset / 2 / this.__scale__;
-              this.curves.l.p2 = {
-                ...this.curves.l.p2,
-                x: this.curves.l.p2.x - xOffset / 2 / this.__scale__,
+              this.curves.l.shape.cp2.x -= xOffset / 2 / this.__scale__;
+              this.curves.l.shape.p2 = {
+                ...this.curves.l.shape.p2,
+                x: this.curves.l.shape.p2.x - xOffset / 2 / this.__scale__,
               };
             }
           }
         }
 
         if (
-          this.curves.t?.p1 &&
-          this.curves.t?.cp1 &&
-          this.curves.t?.cp2 &&
-          this.curves.t?.p2
+          this.curves.t?.shape?.p1 &&
+          this.curves.t?.shape?.cp1 &&
+          this.curves.t?.shape?.cp2 &&
+          this.curves.t?.shape?.p2
         ) {
           if (canResizeY) {
-            this.curves.t.p1.y -= yOffset / 2 / this.__scale__;
-            this.curves.t.cp1.y -= yOffset / 2 / this.__scale__;
+            this.curves.t.shape.p1.y -= yOffset / 2 / this.__scale__;
+            this.curves.t.shape.cp1.y -= yOffset / 2 / this.__scale__;
           }
 
           if (sendToCurve_t) {
@@ -1400,24 +1416,24 @@ export default class Core {
             );
           } else {
             if (canResizeY) {
-              this.curves.t.cp2.y -= yOffset / 2 / this.__scale__;
-              this.curves.t.p2 = {
-                ...this.curves.t.p2,
-                y: this.curves.t.p2.y - yOffset / 2 / this.__scale__,
+              this.curves.t.shape.cp2.y -= yOffset / 2 / this.__scale__;
+              this.curves.t.shape.p2 = {
+                ...this.curves.t.shape.p2,
+                y: this.curves.t.shape.p2.y - yOffset / 2 / this.__scale__,
               };
             }
           }
         }
 
         if (
-          this.curves.r?.p1 &&
-          this.curves.r?.cp1 &&
-          this.curves.r?.cp2 &&
-          this.curves.r?.p2
+          this.curves.r?.shape?.p1 &&
+          this.curves.r?.shape?.cp1 &&
+          this.curves.r?.shape?.cp2 &&
+          this.curves.r?.shape?.p2
         ) {
           if (canResizeX) {
-            this.curves.r.p1.x += xOffset / 2 / this.__scale__;
-            this.curves.r.cp1.x += xOffset / 2 / this.__scale__;
+            this.curves.r.shape.p1.x += xOffset / 2 / this.__scale__;
+            this.curves.r.shape.cp1.x += xOffset / 2 / this.__scale__;
           }
 
           if (sendToCurve_r) {
@@ -1430,24 +1446,24 @@ export default class Core {
             );
           } else {
             if (canResizeX) {
-              this.curves.r.cp2.x += xOffset / 2 / this.__scale__;
-              this.curves.r.p2 = {
-                ...this.curves.r.p2,
-                x: this.curves.r.p2.x + xOffset / 2 / this.__scale__,
+              this.curves.r.shape.cp2.x += xOffset / 2 / this.__scale__;
+              this.curves.r.shape.p2 = {
+                ...this.curves.r.shape.p2,
+                x: this.curves.r.shape.p2.x + xOffset / 2 / this.__scale__,
               };
             }
           }
         }
 
         if (
-          this.curves.b?.p1 &&
-          this.curves.b?.cp1 &&
-          this.curves.b?.cp2 &&
-          this.curves.b?.p2
+          this.curves.b?.shape?.p1 &&
+          this.curves.b?.shape?.cp1 &&
+          this.curves.b?.shape?.cp2 &&
+          this.curves.b?.shape?.p2
         ) {
           if (canResizeY) {
-            this.curves.b.p1.y += yOffset / 2 / this.__scale__;
-            this.curves.b.cp1.y += yOffset / 2 / this.__scale__;
+            this.curves.b.shape.p1.y += yOffset / 2 / this.__scale__;
+            this.curves.b.shape.cp1.y += yOffset / 2 / this.__scale__;
           }
           if (sendToCurve_b) {
             this.senderHoldCurveP2Cp2Position(
@@ -1459,68 +1475,68 @@ export default class Core {
             );
           } else {
             if (canResizeY) {
-              this.curves.b.cp2.y += yOffset / 2 / this.__scale__;
-              this.curves.b.p2 = {
-                ...this.curves.b.p2,
-                y: this.curves.b.p2.y + yOffset / 2 / this.__scale__,
+              this.curves.b.shape.cp2.y += yOffset / 2 / this.__scale__;
+              this.curves.b.shape.p2 = {
+                ...this.curves.b.shape.p2,
+                y: this.curves.b.shape.p2.y + yOffset / 2 / this.__scale__,
               };
             }
           }
         }
 
         // resizing by reciever rb point and change sender curve p1 p2 position
-        if (receiveFromCurve_l?.p2 && receiveFromCurve_l?.cp2) {
+        if (receiveFromCurve_l?.shape?.p2 && receiveFromCurve_l?.shape?.cp2) {
           if (canResizeY) {
-            receiveFromCurve_l.p2 = {
-              ...receiveFromCurve_l.p2,
-              y: receiveFromCurve_l.p2.y + yOffset / 2 / this.__scale__,
+            receiveFromCurve_l.shape.p2 = {
+              ...receiveFromCurve_l.shape.p2,
+              y: receiveFromCurve_l.shape.p2.y + yOffset / 2 / this.__scale__,
             };
-            receiveFromCurve_l.cp2.y += yOffset / 2 / this.__scale__;
+            receiveFromCurve_l.shape.cp2.y += yOffset / 2 / this.__scale__;
           }
         }
 
-        if (receiveFromCurve_t?.p2 && receiveFromCurve_t?.cp2) {
+        if (receiveFromCurve_t?.shape?.p2 && receiveFromCurve_t?.shape?.cp2) {
           if (canResizeX) {
-            receiveFromCurve_t.p2 = {
-              ...receiveFromCurve_t.p2,
-              x: receiveFromCurve_t.p2.x + xOffset / 2 / this.__scale__,
+            receiveFromCurve_t.shape.p2 = {
+              ...receiveFromCurve_t.shape.p2,
+              x: receiveFromCurve_t.shape.p2.x + xOffset / 2 / this.__scale__,
             };
-            receiveFromCurve_t.cp2.x += xOffset / 2 / this.__scale__;
+            receiveFromCurve_t.shape.cp2.x += xOffset / 2 / this.__scale__;
           }
         }
 
-        if (receiveFromCurve_r?.p2 && receiveFromCurve_r?.cp2) {
+        if (receiveFromCurve_r?.shape?.p2 && receiveFromCurve_r?.shape?.cp2) {
           if (canResizeX) {
-            receiveFromCurve_r.p2 = {
-              ...receiveFromCurve_r.p2,
-              x: receiveFromCurve_r.p2.x + xOffset / this.__scale__,
+            receiveFromCurve_r.shape.p2 = {
+              ...receiveFromCurve_r.shape.p2,
+              x: receiveFromCurve_r.shape.p2.x + xOffset / this.__scale__,
             };
-            receiveFromCurve_r.cp2.x += xOffset / this.__scale__;
+            receiveFromCurve_r.shape.cp2.x += xOffset / this.__scale__;
           }
           if (canResizeY) {
-            receiveFromCurve_r.p2 = {
-              ...receiveFromCurve_r.p2,
-              y: receiveFromCurve_r.p2.y + yOffset / 2 / this.__scale__,
+            receiveFromCurve_r.shape.p2 = {
+              ...receiveFromCurve_r.shape.p2,
+              y: receiveFromCurve_r.shape.p2.y + yOffset / 2 / this.__scale__,
             };
-            receiveFromCurve_r.cp2.y += yOffset / 2 / this.__scale__;
+            receiveFromCurve_r.shape.cp2.y += yOffset / 2 / this.__scale__;
           }
         }
 
-        if (receiveFromCurve_b?.p2 && receiveFromCurve_b?.cp2) {
+        if (receiveFromCurve_b?.shape?.p2 && receiveFromCurve_b?.shape?.cp2) {
           if (canResizeX) {
-            receiveFromCurve_b.p2 = {
-              ...receiveFromCurve_b.p2,
-              x: receiveFromCurve_b.p2.x + xOffset / 2 / this.__scale__,
+            receiveFromCurve_b.shape.p2 = {
+              ...receiveFromCurve_b.shape.p2,
+              x: receiveFromCurve_b.shape.p2.x + xOffset / 2 / this.__scale__,
             };
-            receiveFromCurve_b.cp2.x += xOffset / 2 / this.__scale__;
+            receiveFromCurve_b.shape.cp2.x += xOffset / 2 / this.__scale__;
           }
 
           if (canResizeY) {
-            receiveFromCurve_b.p2 = {
-              ...receiveFromCurve_b.p2,
-              y: receiveFromCurve_b.p2.y + yOffset / this.__scale__,
+            receiveFromCurve_b.shape.p2 = {
+              ...receiveFromCurve_b.shape.p2,
+              y: receiveFromCurve_b.shape.p2.y + yOffset / this.__scale__,
             };
-            receiveFromCurve_b.cp2.y += yOffset / this.__scale__;
+            receiveFromCurve_b.shape.cp2.y += yOffset / this.__scale__;
           }
         }
       } else if (this.pressing.target === PressingTarget.lb) {
@@ -1545,14 +1561,14 @@ export default class Core {
         }
 
         if (
-          this.curves.l?.p1 &&
-          this.curves.l?.cp1 &&
-          this.curves.l?.cp2 &&
-          this.curves.l?.p2
+          this.curves.l?.shape?.p1 &&
+          this.curves.l?.shape?.cp1 &&
+          this.curves.l?.shape?.cp2 &&
+          this.curves.l?.shape?.p2
         ) {
           if (canResizeX) {
-            this.curves.l.p1.x += xOffset / 2 / this.__scale__;
-            this.curves.l.cp1.x += xOffset / 2 / this.__scale__;
+            this.curves.l.shape.p1.x += xOffset / 2 / this.__scale__;
+            this.curves.l.shape.cp1.x += xOffset / 2 / this.__scale__;
           }
 
           if (sendToCurve_l) {
@@ -1565,24 +1581,24 @@ export default class Core {
             );
           } else {
             if (canResizeX) {
-              this.curves.l.cp2.x += xOffset / 2 / this.__scale__;
-              this.curves.l.p2 = {
-                ...this.curves.l.p2,
-                x: this.curves.l.p2.x + xOffset / 2 / this.__scale__,
+              this.curves.l.shape.cp2.x += xOffset / 2 / this.__scale__;
+              this.curves.l.shape.p2 = {
+                ...this.curves.l.shape.p2,
+                x: this.curves.l.shape.p2.x + xOffset / 2 / this.__scale__,
               };
             }
           }
         }
 
         if (
-          this.curves.t?.p1 &&
-          this.curves.t?.cp1 &&
-          this.curves.t?.cp2 &&
-          this.curves.t?.p2
+          this.curves.t?.shape?.p1 &&
+          this.curves.t?.shape?.cp1 &&
+          this.curves.t?.shape?.cp2 &&
+          this.curves.t?.shape?.p2
         ) {
           if (canResizeY) {
-            this.curves.t.p1.y -= yOffset / 2 / this.__scale__;
-            this.curves.t.cp1.y -= yOffset / 2 / this.__scale__;
+            this.curves.t.shape.p1.y -= yOffset / 2 / this.__scale__;
+            this.curves.t.shape.cp1.y -= yOffset / 2 / this.__scale__;
           }
 
           if (sendToCurve_t) {
@@ -1595,24 +1611,24 @@ export default class Core {
             );
           } else {
             if (canResizeY) {
-              this.curves.t.cp2.y -= yOffset / 2 / this.__scale__;
-              this.curves.t.p2 = {
-                ...this.curves.t.p2,
-                y: this.curves.t.p2.y - yOffset / 2 / this.__scale__,
+              this.curves.t.shape.cp2.y -= yOffset / 2 / this.__scale__;
+              this.curves.t.shape.p2 = {
+                ...this.curves.t.shape.p2,
+                y: this.curves.t.shape.p2.y - yOffset / 2 / this.__scale__,
               };
             }
           }
         }
 
         if (
-          this.curves.r?.p1 &&
-          this.curves.r?.cp1 &&
-          this.curves.r?.cp2 &&
-          this.curves.r?.p2
+          this.curves.r?.shape?.p1 &&
+          this.curves.r?.shape?.cp1 &&
+          this.curves.r?.shape?.cp2 &&
+          this.curves.r?.shape?.p2
         ) {
           if (canResizeX) {
-            this.curves.r.p1.x -= xOffset / 2 / this.__scale__;
-            this.curves.r.cp1.x -= xOffset / 2 / this.__scale__;
+            this.curves.r.shape.p1.x -= xOffset / 2 / this.__scale__;
+            this.curves.r.shape.cp1.x -= xOffset / 2 / this.__scale__;
           }
 
           if (sendToCurve_r) {
@@ -1625,24 +1641,24 @@ export default class Core {
             );
           } else {
             if (canResizeX) {
-              this.curves.r.cp2.x -= xOffset / 2 / this.__scale__;
-              this.curves.r.p2 = {
-                ...this.curves.r.p2,
-                x: this.curves.r.p2.x - xOffset / 2 / this.__scale__,
+              this.curves.r.shape.cp2.x -= xOffset / 2 / this.__scale__;
+              this.curves.r.shape.p2 = {
+                ...this.curves.r.shape.p2,
+                x: this.curves.r.shape.p2.x - xOffset / 2 / this.__scale__,
               };
             }
           }
         }
 
         if (
-          this.curves.b?.p1 &&
-          this.curves.b?.cp1 &&
-          this.curves.b?.cp2 &&
-          this.curves.b?.p2
+          this.curves.b?.shape?.p1 &&
+          this.curves.b?.shape?.cp1 &&
+          this.curves.b?.shape?.cp2 &&
+          this.curves.b?.shape?.p2
         ) {
           if (canResizeY) {
-            this.curves.b.p1.y += yOffset / 2 / this.__scale__;
-            this.curves.b.cp1.y += yOffset / 2 / this.__scale__;
+            this.curves.b.shape.p1.y += yOffset / 2 / this.__scale__;
+            this.curves.b.shape.cp1.y += yOffset / 2 / this.__scale__;
           }
 
           if (sendToCurve_b) {
@@ -1655,70 +1671,70 @@ export default class Core {
             );
           } else {
             if (canResizeY) {
-              this.curves.b.cp2.y += yOffset / 2 / this.__scale__;
-              this.curves.b.p2 = {
-                ...this.curves.b.p2,
-                y: this.curves.b.p2.y + yOffset / 2 / this.__scale__,
+              this.curves.b.shape.cp2.y += yOffset / 2 / this.__scale__;
+              this.curves.b.shape.p2 = {
+                ...this.curves.b.shape.p2,
+                y: this.curves.b.shape.p2.y + yOffset / 2 / this.__scale__,
               };
             }
           }
         }
 
         // resizing by reciever lb point and change sender curve p1 p2 position
-        if (receiveFromCurve_l?.p2 && receiveFromCurve_l?.cp2) {
+        if (receiveFromCurve_l?.shape?.p2 && receiveFromCurve_l?.shape?.cp2) {
           if (canResizeX) {
-            receiveFromCurve_l.p2 = {
-              ...receiveFromCurve_l.p2,
-              x: receiveFromCurve_l.p2.x + xOffset / this.__scale__,
+            receiveFromCurve_l.shape.p2 = {
+              ...receiveFromCurve_l.shape.p2,
+              x: receiveFromCurve_l.shape.p2.x + xOffset / this.__scale__,
             };
 
-            receiveFromCurve_l.cp2.x += xOffset / this.__scale__;
+            receiveFromCurve_l.shape.cp2.x += xOffset / this.__scale__;
           }
 
           if (canResizeY) {
-            receiveFromCurve_l.p2 = {
-              ...receiveFromCurve_l.p2,
-              y: receiveFromCurve_l.p2.y + yOffset / 2 / this.__scale__,
+            receiveFromCurve_l.shape.p2 = {
+              ...receiveFromCurve_l.shape.p2,
+              y: receiveFromCurve_l.shape.p2.y + yOffset / 2 / this.__scale__,
             };
-            receiveFromCurve_l.cp2.y += yOffset / 2 / this.__scale__;
+            receiveFromCurve_l.shape.cp2.y += yOffset / 2 / this.__scale__;
           }
         }
 
-        if (receiveFromCurve_t?.p2 && receiveFromCurve_t?.cp2) {
+        if (receiveFromCurve_t?.shape?.p2 && receiveFromCurve_t?.shape?.cp2) {
           if (canResizeX) {
-            receiveFromCurve_t.p2 = {
-              ...receiveFromCurve_t.p2,
-              x: receiveFromCurve_t.p2.x + xOffset / 2 / this.__scale__,
+            receiveFromCurve_t.shape.p2 = {
+              ...receiveFromCurve_t.shape.p2,
+              x: receiveFromCurve_t.shape.p2.x + xOffset / 2 / this.__scale__,
             };
-            receiveFromCurve_t.cp2.x += xOffset / 2 / this.__scale__;
+            receiveFromCurve_t.shape.cp2.x += xOffset / 2 / this.__scale__;
           }
         }
 
-        if (receiveFromCurve_r?.p2 && receiveFromCurve_r?.cp2) {
+        if (receiveFromCurve_r?.shape?.p2 && receiveFromCurve_r?.shape?.cp2) {
           if (canResizeY) {
-            receiveFromCurve_r.p2 = {
-              ...receiveFromCurve_r.p2,
-              y: receiveFromCurve_r.p2.y + yOffset / 2 / this.__scale__,
+            receiveFromCurve_r.shape.p2 = {
+              ...receiveFromCurve_r.shape.p2,
+              y: receiveFromCurve_r.shape.p2.y + yOffset / 2 / this.__scale__,
             };
-            receiveFromCurve_r.cp2.y += yOffset / 2 / this.__scale__;
+            receiveFromCurve_r.shape.cp2.y += yOffset / 2 / this.__scale__;
           }
         }
 
-        if (receiveFromCurve_b?.p2 && receiveFromCurve_b?.cp2) {
+        if (receiveFromCurve_b?.shape?.p2 && receiveFromCurve_b?.shape?.cp2) {
           if (canResizeX) {
-            receiveFromCurve_b.p2 = {
-              ...receiveFromCurve_b.p2,
-              x: receiveFromCurve_b.p2.x + xOffset / 2 / this.__scale__,
+            receiveFromCurve_b.shape.p2 = {
+              ...receiveFromCurve_b.shape.p2,
+              x: receiveFromCurve_b.shape.p2.x + xOffset / 2 / this.__scale__,
             };
-            receiveFromCurve_b.cp2.x += xOffset / 2 / this.__scale__;
+            receiveFromCurve_b.shape.cp2.x += xOffset / 2 / this.__scale__;
           }
           if (canResizeY) {
-            receiveFromCurve_b.p2 = {
-              ...receiveFromCurve_b.p2,
-              y: receiveFromCurve_b.p2.y + yOffset / this.__scale__,
+            receiveFromCurve_b.shape.p2 = {
+              ...receiveFromCurve_b.shape.p2,
+              y: receiveFromCurve_b.shape.p2.y + yOffset / this.__scale__,
             };
 
-            receiveFromCurve_b.cp2.y += yOffset / this.__scale__;
+            receiveFromCurve_b.shape.cp2.y += yOffset / this.__scale__;
           }
         }
       }
@@ -1732,22 +1748,22 @@ export default class Core {
     // reset shape connections when moving curve
     if (this.pressing.activate) {
       if (
-        this.curves.l?.selecting &&
+        this.curves.l?.shape?.selecting &&
         this.pressing.target === PressingTarget.clp2
       ) {
         this.resetConnection(Direction.l, true);
       } else if (
-        this.curves.t?.selecting &&
+        this.curves.t?.shape?.selecting &&
         this.pressing.target === PressingTarget.ctp2
       ) {
         this.resetConnection(Direction.t, true);
       } else if (
-        this.curves.r?.selecting &&
+        this.curves.r?.shape?.selecting &&
         this.pressing.target === PressingTarget.crp2
       ) {
         this.resetConnection(Direction.r, true);
       } else if (
-        this.curves.b?.selecting &&
+        this.curves.b?.shape?.selecting &&
         this.pressing.target === PressingTarget.cbp2
       ) {
         this.resetConnection(Direction.b, true);
@@ -1756,34 +1772,34 @@ export default class Core {
 
     if (
       // l curve
-      this.curves.l
+      this.curves.l?.shape
     ) {
-      this.curves.l?.onMouseMove(shapeP);
+      this.curves.l.shape.onMouseMove(shapeP);
     }
     if (
       // t curve
-      this.curves.t
+      this.curves.t?.shape
     ) {
-      this.curves.t?.onMouseMove(shapeP);
+      this.curves.t.shape.onMouseMove(shapeP);
     }
     if (
       // r curve
-      this.curves.r
+      this.curves.r?.shape
     ) {
-      this.curves.r?.onMouseMove(shapeP);
+      this.curves.r.shape.onMouseMove(shapeP);
     }
     if (
       // b curve
-      this.curves.b
+      this.curves.b?.shape
     ) {
-      this.curves.b?.onMouseMove(shapeP);
+      this.curves.b.shape.onMouseMove(shapeP);
     }
 
     if (receivable) {
-      this.receiving.l = !this.curves.l && this.checkReceivingBoundry(p);
-      this.receiving.t = !this.curves.t && this.checkReceivingBoundry(p);
-      this.receiving.r = !this.curves.r && this.checkReceivingBoundry(p);
-      this.receiving.b = !this.curves.b && this.checkReceivingBoundry(p);
+      this.receiving.l = !this.curves.l.shape && this.checkReceivingBoundry(p);
+      this.receiving.t = !this.curves.t.shape && this.checkReceivingBoundry(p);
+      this.receiving.r = !this.curves.r.shape && this.checkReceivingBoundry(p);
+      this.receiving.b = !this.curves.b.shape && this.checkReceivingBoundry(p);
     }
   }
 
@@ -1794,7 +1810,7 @@ export default class Core {
 
     if (sender) {
       const pressingReceivingPoint = this.checkReceivingPointsBoundry(p),
-        senderCurve = sender.shape.curves[sender.direction];
+        senderCurve = sender.shape.curves[sender.direction].shape;
 
       if (pressingReceivingPoint.activate && senderCurve) {
         const edge = this.getEdge();
@@ -1888,16 +1904,16 @@ export default class Core {
     this.receiving.b = false;
 
     if (this.curves.l) {
-      this.curves.l?.onMouseUp();
+      this.curves.l?.shape?.onMouseUp();
     }
     if (this.curves.t) {
-      this.curves.t?.onMouseUp();
+      this.curves.t?.shape?.onMouseUp();
     }
     if (this.curves.r) {
-      this.curves.r?.onMouseUp();
+      this.curves.r?.shape?.onMouseUp();
     }
     if (this.curves.b) {
-      this.curves.b?.onMouseUp();
+      this.curves.b?.shape?.onMouseUp();
     }
   }
 
@@ -1986,7 +2002,11 @@ export default class Core {
         // draw curve triggers
         ctx.lineWidth = this.curveTrigger.size.stroke;
 
-        if (!this.curves.l && !this.receiveFrom.l && sendable) {
+        console.log('this.curves.l.shape',this.curves.l.shape)
+        console.log('this.receiveFrom.l',this.receiveFrom.l)
+        console.log('sendable',sendable)
+
+        if (!this.curves.l.shape && !this.receiveFrom.l && sendable) {
           // left
           ctx.beginPath();
           ctx.arc(
@@ -2002,7 +2022,7 @@ export default class Core {
           ctx.closePath();
         }
 
-        if (!this.curves.t && !this.receiveFrom.t && sendable) {
+        if (!this.curves.t.shape && !this.receiveFrom.t && sendable) {
           // top
           ctx.beginPath();
           ctx.arc(
@@ -2018,7 +2038,7 @@ export default class Core {
           ctx.closePath();
         }
 
-        if (!this.curves.r && !this.receiveFrom.r && sendable) {
+        if (!this.curves.r.shape && !this.receiveFrom.r && sendable) {
           // right
           ctx.beginPath();
           ctx.arc(
@@ -2034,7 +2054,7 @@ export default class Core {
           ctx.closePath();
         }
 
-        if (!this.curves.b && !this.receiveFrom.b && sendable) {
+        if (!this.curves.b.shape && !this.receiveFrom.b && sendable) {
           ctx.beginPath();
           ctx.arc(
             0,
@@ -2120,20 +2140,20 @@ export default class Core {
       }
     }
 
-    if (this.curves.l) {
-      this.curves.l.draw(ctx);
+    if (this.curves.l.shape) {
+      this.curves.l.shape.draw(ctx);
     }
 
-    if (this.curves.t) {
-      this.curves.t.draw(ctx);
+    if (this.curves.t.shape) {
+      this.curves.t.shape.draw(ctx);
     }
 
-    if (this.curves.r) {
-      this.curves.r.draw(ctx);
+    if (this.curves.r.shape) {
+      this.curves.r.shape.draw(ctx);
     }
 
-    if (this.curves.b) {
-      this.curves.b.draw(ctx);
+    if (this.curves.b.shape) {
+      this.curves.b.shape.draw(ctx);
     }
 
     // render center text

@@ -120,7 +120,7 @@ export default class Terminal extends Core {
 
     super.draw(
       ctx,
-      !this.curves.l && !this.curves.t && !this.curves.r && !this.curves.b
+      !this.curves.l.shape && !this.curves.t.shape && !this.curves.r.shape && !this.curves.b.shape
     );
   }
 }
