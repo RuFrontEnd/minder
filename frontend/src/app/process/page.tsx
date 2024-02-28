@@ -178,13 +178,14 @@ export default function ProcessPage() {
         if (!$canvas) return
 
         const sticking = (alignment.p && shape.id === pressing?.shape.id)
-
-        if (!sticking) {
+        
+        // if (!sticking) {
+          // TODO: seperate move and resize feature in Core
           shape.onMouseMove(
             p,
             sender && sender.shape.id !== shape.id ? true : false
           );
-        }
+        // }
 
         if (movingCanvas) {
           shape.offset = offset;
@@ -226,7 +227,14 @@ export default function ProcessPage() {
                 x: screenP.x,
                 y: 0
               }
-              thePressing.shape.p.x = shapeInView.p.x
+
+              thePressing.shape.move({
+                x: shapeInView.p.x - thePressing.shape.p.x,
+                y: 0,
+              }, {
+                ...thePressing.shape.p,
+                x: shapeInView.p.x
+              })
             } else {
               alignment.p = null
             }
