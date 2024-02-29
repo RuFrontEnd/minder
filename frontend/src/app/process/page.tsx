@@ -644,18 +644,18 @@ export default function ProcessPage() {
       )}
 
       <div className="fixed m-4 bottom-0 right-0">
-        <div className="flex">
+        <div className="flex items-center">
           <div
-            className="mb-2 w-6 h-6 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
+            className="w-6 h-6 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
             onClick={onClickScalePlusIcon}
           >
             +
           </div>
-          <div className="mx-2 cursor-pointer" onClick={onClickScaleNumber}>
+          <div className="flex mx-2 items-center justify-center cursor-pointer w-[48px]" onClick={onClickScaleNumber}>
             {Math.ceil(scale * 100)}%
           </div>
           <div
-            className="mb-2 w-6 h-6 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
+            className="w-6 h-6 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
             onClick={onClickScaleMinusIcon}
           >
             -
