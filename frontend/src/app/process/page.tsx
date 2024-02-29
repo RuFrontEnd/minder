@@ -22,7 +22,6 @@ let useEffected = false,
     dy: number // distance between event py & pressing shape py
   } = null,
   offset: Vec = { x: 0, y: 0 },
-  scale: number = 1,
   dragP: Vec = { x: 0, y: 0 },
   alignment: {
     offset: number,
@@ -48,6 +47,7 @@ export default function ProcessPage() {
       Terminal | Data | Process | Desicion | null
     >(null),
     [space, setSpace] = useState(false),
+    [scale, setScale] = useState(1),
     [leftMouseBtn, setLeftMouseBtn] = useState(false);
 
   const checkData = () => {
@@ -72,6 +72,35 @@ export default function ProcessPage() {
       shape.getRedundancies();
     });
   };
+
+  const zoom = (delta: number, client: {
+    x: number,
+    y: number
+  }) => {
+    if (!$canvas) return
+    const scaleAmount = -delta / 500;
+    const _scale = scale * (1 + scaleAmount)
+    setScale(_scale);
+
+    // zoom the page based on where the cursor is
+    var distX = client.x / $canvas.width;
+    var distY = client.y / $canvas.height;
+
+    // calculate how much we need to zoom
+    const unitsZoomedX = $canvas.width / _scale * scaleAmount;
+    const unitsZoomedY = $canvas.height / _scale * scaleAmount;
+
+    const unitsAddLeft = unitsZoomedX * distX;
+    const unitsAddTop = unitsZoomedY * distY;
+
+    offset.x -= unitsAddLeft;
+    offset.y -= unitsAddTop;
+
+    shapes.forEach((shape) => {
+      shape.scale = _scale;
+      shape.offset = offset
+    });
+  }
 
   const onMouseDown = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -148,7 +177,7 @@ export default function ProcessPage() {
         dragP = p;
       }
     },
-    [space, setLeftMouseBtn]
+    [space, scale, setLeftMouseBtn]
   );
 
   const onMouseMove =
@@ -178,13 +207,13 @@ export default function ProcessPage() {
         if (!$canvas) return
 
         const sticking = (alignment.p && shape.id === pressing?.shape.id)
-        
+
         // if (!sticking) {
-          // TODO: seperate move and resize feature in Core
-          shape.onMouseMove(
-            p,
-            sender && sender.shape.id !== shape.id ? true : false
-          );
+        // TODO: seperate move and resize feature in Core
+        shape.onMouseMove(
+          p,
+          sender && sender.shape.id !== shape.id ? true : false
+        );
         // }
 
         if (movingCanvas) {
@@ -286,30 +315,7 @@ export default function ProcessPage() {
   );
 
   const onMouseWeel = (e: React.WheelEvent<HTMLCanvasElement>) => {
-    if (!$canvas) return;
-
-    const deltaY = e.deltaY;
-    const scaleAmount = -deltaY / 500;
-    scale = scale * (1 + scaleAmount);
-
-    // zoom the page based on where the cursor is
-    var distX = e.clientX / $canvas.width;
-    var distY = e.clientY / $canvas.height;
-
-    // calculate how much we need to zoom
-    const unitsZoomedX = $canvas.width / scale * scaleAmount;
-    const unitsZoomedY = $canvas.height / scale * scaleAmount;
-
-    const unitsAddLeft = unitsZoomedX * distX;
-    const unitsAddTop = unitsZoomedY * distY;
-
-    offset.x -= unitsAddLeft;
-    offset.y -= unitsAddTop;
-
-    shapes.forEach((shape) => {
-      shape.scale = scale;
-      shape.offset = offset
-    });
+    zoom(e.deltaY, { x: e.clientX, y: e.clientY })
   };
 
   const onDoubleClick = useCallback(
@@ -461,6 +467,21 @@ export default function ProcessPage() {
     setDbClickedShape(null);
     checkData();
   };
+
+  const onClickScalePlusIcon = () => {
+    if (!$canvas) return
+    zoom(100, { x: $canvas?.width / 2, y: $canvas?.height / 2 })
+  }
+
+  const onClickScaleMinusIcon = () => {
+    if (!$canvas) return
+    zoom(-100, { x: $canvas?.width / 2, y: $canvas?.height / 2 })
+  }
+
+  const onClickScaleNumber = () => {
+    if (!$canvas) return
+    zoom(-((1 / scale - 1) * 500), { x: $canvas?.width / 2, y: $canvas?.height / 2 })
+  }
 
   const draw = useCallback(() => {
     if (!ctx) return
@@ -621,6 +642,26 @@ export default function ProcessPage() {
           }}
         />
       )}
+
+      <div className="fixed m-4 bottom-0 right-0">
+        <div className="flex">
+          <div
+            className="mb-2 w-6 h-6 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
+            onClick={onClickScalePlusIcon}
+          >
+            +
+          </div>
+          <div className="mx-2 cursor-pointer" onClick={onClickScaleNumber}>
+            {Math.ceil(scale * 100)}%
+          </div>
+          <div
+            className="mb-2 w-6 h-6 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
+            onClick={onClickScaleMinusIcon}
+          >
+            -
+          </div>
+        </div>
+      </div>
     </>
   );
 }
