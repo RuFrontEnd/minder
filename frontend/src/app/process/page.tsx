@@ -23,6 +23,12 @@ let useEffected = false,
   } = null,
   offset: Vec = { x: 0, y: 0 },
   dragP: Vec = { x: 0, y: 0 },
+  moveP: null | {
+    originalX: number,
+    originalY: number,
+    x: number,
+    y: number
+  } = null,
   alignment: {
     offset: number,
     p: null | Vec
@@ -206,15 +212,15 @@ export default function ProcessPage() {
       shapes.forEach((shape) => {
         if (!$canvas) return
 
-        const sticking = (alignment.p && shape.id === pressing?.shape.id)
+        const sticking = (moveP && shape.id === pressing?.shape.id)
 
-        // if (!sticking) {
-        // TODO: seperate move and resize feature in Core
-        shape.onMouseMove(
-          p,
-          sender && sender.shape.id !== shape.id ? true : false
-        );
-        // }
+        if (!sticking) {
+          // TODO: seperate move and resize feature in Core
+          shape.onMouseMove(
+            p,
+            sender && sender.shape.id !== shape.id ? true : false
+          );
+        }
 
         if (movingCanvas) {
           shape.offset = offset;
@@ -248,25 +254,22 @@ export default function ProcessPage() {
         shapesInView.forEach(shapeInView => {
           if (shapeInView.id === thePressing.shape.id) return
 
-          if (thePressing.shape.pressing.activate && thePressing.shape.pressing.target === PressingTarget.m) {
-            const shouldAlignX = screenP.x - thePressing.dx >= shapeInView.getScreenP().x - stickyOffset &&
-              screenP.x - thePressing.dx <= shapeInView.getScreenP().x + stickyOffset
-            if (shouldAlignX) {
-              alignment.p = {
-                x: screenP.x,
-                y: 0
-              }
-
-              thePressing.shape.move({
-                x: shapeInView.p.x - thePressing.shape.p.x,
-                y: 0,
-              }, {
-                ...thePressing.shape.p,
-                x: shapeInView.p.x
-              })
-            } else {
-              alignment.p = null
+          if (thePressing.shape.p.x === shapeInView.p.x && !moveP) {
+            moveP = {
+              originalX: p.x,
+              originalY: p.y,
+              x: p.x,
+              y: p.y
             }
+          } else if (moveP) {
+            moveP.x = p.x
+            moveP.y = p.y
+          }
+
+          console.log('moveP', moveP)
+
+          if (moveP && moveP.x && moveP.originalX && Math.abs(moveP.x - moveP?.originalX) > 10) {
+            moveP = null
           }
         })
       }
@@ -310,6 +313,7 @@ export default function ProcessPage() {
       }
 
       sender = null;
+      moveP = null;
     },
     [dbClickedShape, setLeftMouseBtn]
   );
