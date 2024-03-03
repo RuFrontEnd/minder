@@ -17,7 +17,8 @@ let useEffected = false,
   shapes: (Terminal | Process | Data | Desicion)[] = [],
   sender: null | ConnectTarget = null,
   pressing: null | {
-    shape: Terminal | Process | Data | Desicion,
+    shape: null | Terminal | Process | Data | Desicion | Curve,
+    target: PressingTarget,
     dx: number, // distance between event px & pressing shape px
     dy: number // distance between event py & pressing shape py
   } = null,
@@ -36,6 +37,9 @@ let useEffected = false,
     offset: 5,
     p: null
   }
+
+const ds = [Direction.l, Direction.t, Direction.r, Direction.b],
+  vs: (PressingTarget.lt | PressingTarget.rt | PressingTarget.rb | PressingTarget.lb)[] = [PressingTarget.lt, PressingTarget.rt, PressingTarget.rb, PressingTarget.lb]
 
 const getFramePosition = (shape: Core) => {
   const frameOffset = 12;
@@ -120,63 +124,137 @@ export default function ProcessPage() {
         y: e.nativeEvent.offsetY,
       };
 
-      shapes.forEach((shape, shapeI) => {
+      shapes.forEach((shape) => {
         if (!$canvas) return;
 
-        if (shape instanceof Process || Data || Desicion) {
-          let currentShape =
-            (shapes[shapeI] as Process) ||
-            (shapes[shapeI] as Data) ||
-            (shapes[shapeI] as Desicion);
+        // const thePress = shape.getPressTarget(p)
 
-          currentShape.onMouseDown($canvas, p);
-
-          if (
-            currentShape.pressing.activate &&
-            currentShape.pressing.target === PressingTarget.clp2
-          ) {
-            if (!shape.curves.l) return;
-            sender = {
-              shape: shape,
-              direction: Direction.l,
-            };
-          } else if (
-            currentShape.pressing.activate &&
-            currentShape.pressing.target === PressingTarget.ctp2
-          ) {
-            if (!shape.curves.t) return;
-            sender = {
-              shape: shape,
-              direction: Direction.t,
-            };
-          } else if (
-            currentShape.pressing.activate &&
-            currentShape.pressing.target === PressingTarget.crp2
-          ) {
-            if (!shape.curves.r) return;
-            sender = {
-              shape: shape,
-              direction: Direction.r,
-            };
-          } else if (
-            currentShape.pressing.activate &&
-            currentShape.pressing.target === PressingTarget.cbp2
-          ) {
-            if (!shape.curves.b) return;
-            sender = {
-              shape: shape,
-              direction: Direction.b,
-            };
-          }
-
-          if (currentShape.pressing.activate && currentShape.pressing.target) {
-            pressing = {
-              shape: currentShape,
-              dx: (p.x - dragP.x) * (1 / scale) - currentShape?.getScreenP().x,
-              dy: (p.y - dragP.y) * (1 / scale) - currentShape?.getScreenP().y,
-            }
+        const theCheckVertexesBoundry = shape.checkVertexesBoundry(p)
+        if (theCheckVertexesBoundry) {
+          shape.selecting = true
+          pressing = {
+            shape: shape,
+            target: PressingTarget.m,
+            dx: (p.x - dragP.x) * (1 / scale) - shape?.getEdge()[theCheckVertexesBoundry[0] as Direction],
+            dy: (p.y - dragP.y) * (1 / scale) - shape?.getEdge()[theCheckVertexesBoundry[1] as Direction],
           }
         }
+
+
+        if (shape.checkBoundry(p)) {
+          shape.selecting = true
+          pressing = {
+            shape: shape,
+            target: PressingTarget.m,
+            dx: (p.x - dragP.x) * (1 / scale) - shape?.getScreenP().x,
+            dy: (p.y - dragP.y) * (1 / scale) - shape?.getScreenP().y,
+          }
+        }
+
+
+        const theCheckCurveTriggerBoundry = shape.checkCurveTriggerBoundry(p)
+        if (theCheckCurveTriggerBoundry) {
+          shape.selecting = false
+
+          if (!shape.curves[theCheckCurveTriggerBoundry].shape) {
+            shape.createCurve(`curve_${Date.now()}`, Direction[theCheckCurveTriggerBoundry])
+          }
+
+          const theCurve = shape.curves[theCheckCurveTriggerBoundry].shape
+
+          if (theCurve) {
+            theCurve.selecting = true
+          }
+
+          pressing = {
+            shape: shape,
+            target: PressingTarget[`c${theCheckCurveTriggerBoundry}p2`],
+            dx: 0,
+            dy: 0,
+          }
+        }
+
+
+
+
+        // TOOD: select curve
+        // for (const d of ds) {
+        //   const theCurve = shape.curves[d].shape
+
+        //   if (!theCurve) continue
+        //   theCurve.selecting = true
+        //   pressing = {
+        //     shape: theCurve,
+        //     target: PressingTarget[d],
+        //     dx: 0,
+        //     dy: 0,
+        //   }
+        // }
+
+        if (!pressing || (!(pressing?.shape instanceof Terminal) &&
+          !(pressing?.shape instanceof Process) &&
+          !(pressing?.shape instanceof Data) &&
+          !(pressing?.shape instanceof Desicion))) {
+          shape.selecting = false
+        }
+
+        if (!pressing || !(pressing?.shape instanceof Curve)) {
+          for (const d of ds) {
+            const theCurve = shape.curves[d].shape
+            if (!theCurve) continue
+            theCurve.selecting = false
+          }
+        }
+
+
+
+
+        // if (
+        //   currentShape.pressing.activate &&
+        //   currentShape.pressing.target === PressingTarget.clp2
+        // ) {
+        //   if (!shape.curves.l) return;
+        //   sender = {
+        //     shape: shape,
+        //     direction: Direction.l,
+        //   };
+        // } else if (
+        //   currentShape.pressing.activate &&
+        //   currentShape.pressing.target === PressingTarget.ctp2
+        // ) {
+        //   if (!shape.curves.t) return;
+        //   sender = {
+        //     shape: shape,
+        //     direction: Direction.t,
+        //   };
+        // } else if (
+        //   currentShape.pressing.activate &&
+        //   currentShape.pressing.target === PressingTarget.crp2
+        // ) {
+        //   if (!shape.curves.r) return;
+        //   sender = {
+        //     shape: shape,
+        //     direction: Direction.r,
+        //   };
+        // } else if (
+        //   currentShape.pressing.activate &&
+        //   currentShape.pressing.target === PressingTarget.cbp2
+        // ) {
+        //   if (!shape.curves.b) return;
+        //   sender = {
+        //     shape: shape,
+        //     direction: Direction.b,
+        //   };
+        // }
+
+        // if (currentShape.pressing.activate && currentShape.pressing.target) {
+        //   pressing = {
+        //     shape: currentShape,
+        //     dx: (p.x - dragP.x) * (1 / scale) - currentShape?.getScreenP().x,
+        //     dy: (p.y - dragP.y) * (1 / scale) - currentShape?.getScreenP().y,
+        //   }
+        // }
+
       });
 
       if (space) {
@@ -193,7 +271,11 @@ export default function ProcessPage() {
         x: e.nativeEvent.offsetX,
         y: e.nativeEvent.offsetY,
       },
-        screenP = {
+        offsetP = {
+          x: (p.x - dragP.x),
+          y: (p.y - dragP.y),
+        },
+        screenOffsetP = {
           x: (p.x - dragP.x) * (1 / scale),
           y: (p.y - dragP.y) * (1 / scale),
         }
@@ -202,17 +284,40 @@ export default function ProcessPage() {
 
       if (movingCanvas) {
         setDataFrame(undefined);
-        offset.x += screenP.x;
-        offset.y += screenP.y;
-        dragP = p;
+        offset.x += screenOffsetP.x;
+        offset.y += screenOffsetP.y;
       }
+
+      if (pressing?.target && pressing?.shape) {
+        if (pressing.shape instanceof Terminal ||
+          pressing.shape instanceof Process ||
+          pressing.shape instanceof Data ||
+          pressing.shape instanceof Desicion) {
+          if (pressing?.target === PressingTarget.lt) {
+            pressing.shape.resize(offsetP, PressingTarget.lt)
+          } else if (pressing?.target === PressingTarget.rt) {
+            pressing.shape.resize(offsetP, PressingTarget.rt)
+          } else if (pressing?.target === PressingTarget.rb) {
+            pressing.shape.resize(offsetP, PressingTarget.rb)
+          } else if (pressing?.target === PressingTarget.lb) {
+            pressing.shape.resize(offsetP, PressingTarget.lb)
+          } else if (pressing?.target === PressingTarget.m) {
+            pressing.shape.move(p, dragP)
+          }
+        }
+
+        if (pressing.shape instanceof Curve) {
+
+        }
+      }
+
 
       const shapesInView: (Terminal | Process | Data | Desicion)[] = []
 
       shapes.forEach((shape) => {
         if (!$canvas) return
 
-        const sticking = (moveP && shape.id === pressing?.shape.id)
+        const sticking = (moveP && shape.id === pressing?.shape?.id)
 
         if (!sticking) {
           // TODO: seperate move and resize feature in Core
@@ -252,9 +357,13 @@ export default function ProcessPage() {
 
       if (thePressing) {
         shapesInView.forEach(shapeInView => {
-          if (shapeInView.id === thePressing.shape.id) return
+          if (shapeInView.id === thePressing?.shape?.id) return
+          if (!(thePressing.shape instanceof Terminal) &&
+            !(thePressing.shape instanceof Process) &&
+            !(thePressing.shape instanceof Desicion) &&
+            !(thePressing.shape instanceof Data)) return
 
-          if (thePressing.shape.p.x === shapeInView.p.x && !moveP) {
+          if (thePressing?.shape?.p.x === shapeInView.p.x && !moveP) {
             moveP = {
               originalX: p.x,
               originalY: p.y,
@@ -266,13 +375,13 @@ export default function ProcessPage() {
             moveP.y = p.y
           }
 
-          console.log('moveP', moveP)
-
           if (moveP && moveP.x && moveP.originalX && Math.abs(moveP.x - moveP?.originalX) > 10) {
             moveP = null
           }
         })
       }
+
+      dragP = p;
     }
 
   const onMouseUp = useCallback(

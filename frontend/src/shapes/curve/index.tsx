@@ -14,6 +14,7 @@ export default class Curve {
     y: 0,
   };
   private initScale = 1;
+  id: string;
   cpline: Line;
   curve: Line;
   controlPoint: {
@@ -36,7 +37,8 @@ export default class Curve {
   __offset__: Vec;
   __scale__: number;
 
-  constructor(cpline: Line, curve: Line, p1: Vec, cp1: Vec, cp2: Vec, p2: Vec) {
+  constructor(id: string, cpline: Line, curve: Line, p1: Vec, cp1: Vec, cp2: Vec, p2: Vec) {
+    this.id = id;
     this.cpline = cpline;
     this.curve = curve;
     this.controlPoint = {
@@ -405,9 +407,6 @@ export default class Curve {
 
   draw(ctx: CanvasRenderingContext2D) {
     if (!this.p1 || !this.p2 || !this.cp1 || !this.cp2) return;
-
-    // console.log('this.p1', this.p1)
-
     // curve
     ctx.lineWidth = this.getScaleCurveW();
     ctx.strokeStyle = this.curve.c;

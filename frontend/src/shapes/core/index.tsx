@@ -171,7 +171,7 @@ export default class Core {
   }
 
   set selecting(_selecting: boolean) {
-    this.selecting = _selecting
+    this.__selecting__ = _selecting
   };
 
   get selecting() {
@@ -299,46 +299,31 @@ export default class Core {
     dy = edge.t - p.y;
 
     if (dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill) {
-      return {
-        activate: true,
-        direction: "lt",
-      };
+      return PressingTarget.lt
     }
 
     dx = edge.r - p.x;
     dy = edge.t - p.y;
 
     if (dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill) {
-      return {
-        activate: true,
-        direction: "rt",
-      };
+      return PressingTarget.rt
     }
 
     dx = edge.r - p.x;
     dy = edge.b - p.y;
 
     if (dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill) {
-      return {
-        activate: true,
-        direction: "rb",
-      };
+      return PressingTarget.rb
     }
 
     dx = edge.l - p.x;
     dy = edge.b - p.y;
 
     if (dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill) {
-      return {
-        activate: true,
-        direction: "lb",
-      };
+      return PressingTarget.lb
     }
 
-    return {
-      activate: false,
-      direction: null,
-    };
+    return null
   };
 
   checkReceivingBoundry = (p: Vec) => {
@@ -407,10 +392,12 @@ export default class Core {
   };
 
   checkCurveTriggerBoundry = (p: Vec) => {
+    if (!this.selecting) return
     const center = this.getCenter();
 
     if (
       // l curve trigger
+      !this.curves.l.shape &&
       (p.x - center.curveTrigger.l.x) * (p.x - center.curveTrigger.l.x) +
       (p.y - center.curveTrigger.l.y) * (p.y - center.curveTrigger.l.y) <
       this.curveTrigger.size.fill * this.curveTrigger.size.fill
@@ -418,6 +405,7 @@ export default class Core {
       return Direction.l;
     } else if (
       // t curve trigger
+      !this.curves.t.shape &&
       (p.x - center.curveTrigger.t.x) * (p.x - center.curveTrigger.t.x) +
       (p.y - center.curveTrigger.t.y) * (p.y - center.curveTrigger.t.y) <
       this.curveTrigger.size.fill * this.curveTrigger.size.fill
@@ -425,6 +413,7 @@ export default class Core {
       return Direction.t;
     } else if (
       // r curve trigger
+      !this.curves.r.shape &&
       (p.x - center.curveTrigger.r.x) * (p.x - center.curveTrigger.r.x) +
       (p.y - center.curveTrigger.r.y) * (p.y - center.curveTrigger.r.y) <
       this.curveTrigger.size.fill * this.curveTrigger.size.fill
@@ -432,6 +421,7 @@ export default class Core {
       return Direction.r;
     } else if (
       // b curve trigger
+      !this.curves.b.shape &&
       (p.x - center.curveTrigger.b.x) * (p.x - center.curveTrigger.b.x) +
       (p.y - center.curveTrigger.b.y) * (p.y - center.curveTrigger.b.y) <
       this.curveTrigger.size.fill * this.curveTrigger.size.fill
@@ -541,52 +531,48 @@ export default class Core {
   };
 
   move(p: Vec, dragP: Vec) {
-    let xOffset = p.x - dragP.x,
-      yOffset = p.y - dragP.y;
+    let xOffset = (p.x - dragP.x) / this.scale,
+      yOffset = (p.y - dragP.y) / this.scale;
 
-    if (this.pressing.target === PressingTarget.m) {
-      this.p = {
-        x: this.p.x + xOffset,
-        y: this.p.y + yOffset
+    this.p = {
+      x: this.p.x + xOffset,
+      y: this.p.y + yOffset
+    }
+
+    for (const d of ds) {
+      // when receiver shape move, sender curve follows the receiver shape
+      const receiverShape = this.receiveFrom[d],
+        receiverCurve = receiverShape?.shape.curves[
+          receiverShape.direction
+        ].shape;
+
+      if (receiverCurve) {
+        receiverCurve.p2 = {
+          x: receiverCurve.p2.x + xOffset / this.scale,
+          y: receiverCurve.p2.y + yOffset / this.scale,
+        };
+        receiverCurve.cp2.x += xOffset / this.scale;
+        receiverCurve.cp2.y += yOffset / this.scale;
       }
 
-      for (const d of ds) {
-        // when receiver shape move, sender curve follows the receiver shape
-        const receiverShape = this.receiveFrom[d],
-          receiverCurve = receiverShape?.shape.curves[
-            receiverShape.direction
-          ].shape;
+      // when sender shape move, receiver curve follows the sender shape
+      const senderCurve = this.curves[d].shape,
+        sendToShape = this.curves[d].sendTo?.shape
 
-        if (receiverCurve) {
-          receiverCurve.p2 = {
-            x: receiverCurve.p2.x + xOffset / this.scale,
-            y: receiverCurve.p2.y + yOffset / this.scale,
-          };
-          receiverCurve.cp2.x += xOffset / this.scale;
-          receiverCurve.cp2.y += yOffset / this.scale;
-        }
-
-        // when sender shape move, receiver curve follows the sender shape
-        const senderCurve = this.curves[d].shape,
-          sendToShape = this.curves[d].sendTo?.shape
-
-        if (
-          senderCurve && sendToShape
-        ) {
-          senderCurve.p2 = {
-            x: senderCurve.p2.x - xOffset / this.scale,
-            y: senderCurve.p2.y - yOffset / this.scale,
-          };
-          senderCurve.cp2.x -= xOffset / this.scale;
-          senderCurve.cp2.y -= yOffset / this.scale;
-        }
+      if (
+        senderCurve && sendToShape
+      ) {
+        senderCurve.p2 = {
+          x: senderCurve.p2.x - xOffset / this.scale,
+          y: senderCurve.p2.y - yOffset / this.scale,
+        };
+        senderCurve.cp2.x -= xOffset / this.scale;
+        senderCurve.cp2.y -= yOffset / this.scale;
       }
     }
   }
 
   resize(offset: Vec, pressingTarget: PressingTarget) {
-    const edge = this.getEdge();
-
     // sender curves follows
     const curve_l = this.curves.l.shape,
       curve_t = this.curves.t.shape,
@@ -729,7 +715,7 @@ export default class Core {
         };
         receiveFromCurve_b.cp2.x += offset.x / 2 / this.scale;
       }
-    } else if (this.pressing.target === PressingTarget.rt) {
+    } else if (pressingTarget === PressingTarget.rt) {
       this.p = {
         x: this.p.x + offset.x / 2 / this.scale,
         y: this.p.y + offset.y / 2 / this.scale,
@@ -849,7 +835,7 @@ export default class Core {
 
         receiveFromCurve_b.cp2.x += offset.x / 2 / this.scale;
       }
-    } else if (this.pressing.target === PressingTarget.rb) {
+    } else if (pressingTarget === PressingTarget.rb) {
       this.p = {
         x: this.p.x + offset.x / 2 / this.scale,
         y: this.p.y + offset.y / 2 / this.scale,
@@ -978,7 +964,7 @@ export default class Core {
         };
         receiveFromCurve_b.cp2.y += offset.y / this.scale;
       }
-    } else if (this.pressing.target === PressingTarget.lb) {
+    } else if (pressingTarget === PressingTarget.lb) {
       this.p = {
         ...this.p,
         x: this.p.x + offset.x / 2 / this.scale,
@@ -1096,205 +1082,292 @@ export default class Core {
     }
   }
 
-  getPressTarget = (p: Vec) => {
-    const edge = this.getEdge(),
-      center = this.getCenter(),
-      shapeP = {
-        x: p.x - this.getScreenP().x,
-        y: p.y - this.getScreenP().y,
-      },
-      curveBoundry = {
-        l: this.curves.l?.shape?.checkControlPointsBoundry(shapeP),
-        t: this.curves.t?.shape?.checkControlPointsBoundry(shapeP),
-        r: this.curves.r?.shape?.checkControlPointsBoundry(shapeP),
-        b: this.curves.b?.shape?.checkControlPointsBoundry(shapeP),
-      };
+  // getPressTarget = (p: Vec) => {
+  //   const edge = this.getEdge(),
+  //     center = this.getCenter(),
+  //     shapeP = {
+  //       x: p.x - this.getScreenP().x,
+  //       y: p.y - this.getScreenP().y,
+  //     }, // for next level shape
+  //     curveBoundry = {
+  //       l: this.curves.l?.shape?.checkControlPointsBoundry(shapeP),
+  //       t: this.curves.t?.shape?.checkControlPointsBoundry(shapeP),
+  //       r: this.curves.r?.shape?.checkControlPointsBoundry(shapeP),
+  //       b: this.curves.b?.shape?.checkControlPointsBoundry(shapeP),
+  //     };
 
-    if (p.x > edge.l && p.y > edge.t && p.x < edge.r && p.y < edge.b) {
-      return {
-        shape: this,
-        target: PressingTarget.m,
-      };
-    } else if (
-      // lt anchors
-      (p.x - center.lt.x) * (p.x - center.lt.x) +
-      (p.y - center.lt.y) * (p.y - center.lt.y) <
-      this.anchor.size.fill * this.anchor.size.fill
-    ) {
-      return {
-        shape: this,
-        target: PressingTarget.lt,
-      };
-    } else if (
-      // rt anchors
-      (p.x - center.rt.x) * (p.x - center.rt.x) +
-      (p.y - center.rt.y) * (p.y - center.rt.y) <
-      this.anchor.size.fill * this.anchor.size.fill
-    ) {
-      return {
-        shape: this,
-        target: PressingTarget.rt,
-      };
-    } else if (
-      // rb anchors
-      (p.x - center.rb.x) * (p.x - center.rb.x) +
-      (p.y - center.rb.y) * (p.y - center.rb.y) <
-      this.anchor.size.fill * this.anchor.size.fill
-    ) {
-      return {
-        shape: this,
-        target: PressingTarget.rb,
-      };
-    } else if (
-      // lb anchors
-      (p.x - center.lb.x) * (p.x - center.lb.x) +
-      (p.y - center.lb.y) * (p.y - center.lb.y) <
-      this.anchor.size.fill * this.anchor.size.fill
-    ) {
-      return {
-        shape: this,
-        target: PressingTarget.lb,
-      };
-    } else if (
-      // l curve trigger
-      this.checkCurveTriggerBoundry(p) === Direction.l
-    ) {
-      return {
-        shape: this,
-        target: PressingTarget.clp2,
-      };
-    } else if (
-      // t curve trigger
-      this.checkCurveTriggerBoundry(p) === Direction.t
-    ) {
-      return {
-        shape: this,
-        target: PressingTarget.ctp2,
-      };
-    } else if (
-      // r curve trigger
-      this.checkCurveTriggerBoundry(p) === Direction.r
-    ) {
-      return {
-        shape: this,
-        target: PressingTarget.crp2,
-      };
-    } else if (
-      // b curve trigger
-      this.checkCurveTriggerBoundry(p) === Direction.b
-    ) {
-      return {
-        shape: this,
-        target: PressingTarget.cbp2,
-      };
-    } else if (curveBoundry.l?.p === CurvePressingP.cp1) {
-      // l curve cp1
-      return {
-        shape: this,
-        target: PressingTarget.clcp1,
-      };
-    } else if (curveBoundry.l?.p === CurvePressingP.cp2) {
-      // l curve cp2
-      return {
-        shape: this,
-        target: PressingTarget.clcp2,
-      };
-    } else if (curveBoundry.l?.p === CurvePressingP.p2) {
-      // l curve p2
-      return {
-        shape: this,
-        target: PressingTarget.clp2,
-      };
-    } else if (curveBoundry.t?.p === CurvePressingP.cp1) {
-      // t curve cp1
-      return {
-        shape: this,
-        target: PressingTarget.ctcp1,
-      };
-    } else if (curveBoundry.t?.p === CurvePressingP.cp2) {
-      // t curve cp2
-      return {
-        shape: this,
-        target: PressingTarget.ctcp2,
-      };
-    } else if (curveBoundry.t?.p === CurvePressingP.p2) {
-      // t curve p2
-      return {
-        shape: this,
-        target: PressingTarget.ctp2,
-      };
-    } else if (curveBoundry.r?.p === CurvePressingP.cp1) {
-      // r curve cp1
-      return {
-        shape: this,
-        target: PressingTarget.crcp1,
-      };
-    } else if (curveBoundry.r?.p === CurvePressingP.cp2) {
-      // r curve cp2
-      return {
-        shape: this,
-        target: PressingTarget.crcp2,
-      };
-    } else if (curveBoundry.r?.p === CurvePressingP.p2) {
-      // r curve p2
-      return {
-        shape: this,
-        target: PressingTarget.crp2,
-      };
-    } else if (curveBoundry.b?.p === CurvePressingP.cp1) {
-      // b curve cp1
-      return {
-        shape: this,
-        target: PressingTarget.cbcp1,
-      };
-    } else if (curveBoundry.b?.p === CurvePressingP.cp2) {
-      // b curve cp2
-      return {
-        shape: this,
-        target: PressingTarget.cbcp2,
-      };
-    } else if (curveBoundry.b?.p === CurvePressingP.p2) {
-      // b curve p2
-      return {
-        shape: this,
-        target: PressingTarget.cbp2,
-      };
-    }
-  }
+  //   if (p.x > edge.l && p.y > edge.t && p.x < edge.r && p.y < edge.b) {
+  //     return {
+  //       shape: this,
+  //       target: PressingTarget.m,
+  //     };
+  //   } else if (
+  //     // lt anchors
+  //     (p.x - center.lt.x) * (p.x - center.lt.x) +
+  //     (p.y - center.lt.y) * (p.y - center.lt.y) <
+  //     this.anchor.size.fill * this.anchor.size.fill
+  //   ) {
+  //     return {
+  //       shape: this,
+  //       target: PressingTarget.lt,
+  //     };
+  //   } else if (
+  //     // rt anchors
+  //     (p.x - center.rt.x) * (p.x - center.rt.x) +
+  //     (p.y - center.rt.y) * (p.y - center.rt.y) <
+  //     this.anchor.size.fill * this.anchor.size.fill
+  //   ) {
+  //     return {
+  //       shape: this,
+  //       target: PressingTarget.rt,
+  //     };
+  //   } else if (
+  //     // rb anchors
+  //     (p.x - center.rb.x) * (p.x - center.rb.x) +
+  //     (p.y - center.rb.y) * (p.y - center.rb.y) <
+  //     this.anchor.size.fill * this.anchor.size.fill
+  //   ) {
+  //     return {
+  //       shape: this,
+  //       target: PressingTarget.rb,
+  //     };
+  //   } else if (
+  //     // lb anchors
+  //     (p.x - center.lb.x) * (p.x - center.lb.x) +
+  //     (p.y - center.lb.y) * (p.y - center.lb.y) <
+  //     this.anchor.size.fill * this.anchor.size.fill
+  //   ) {
+  //     return {
+  //       shape: this,
+  //       target: PressingTarget.lb,
+  //     };
+  //   } else if (this.curves.l.shape?.checkBoundry(shapeP)) {
+  //     return {
+  //       shape: this.curves.l.shape,
+  //       target: null,
+  //     }
+  //   } else if (this.curves.t.shape?.checkBoundry(shapeP)) {
+  //     return {
+  //       shape: this.curves.t.shape,
+  //       target: null,
+  //     }
+  //   } else if (this.curves.r.shape?.checkBoundry(shapeP)) {
+  //     return {
+  //       shape: this.curves.r.shape,
+  //       target: null,
+  //     }
+  //   } else if (this.curves.b.shape?.checkBoundry(shapeP)) {
+  //     return {
+  //       shape: this.curves.b.shape,
+  //       target: null,
+  //     }
+  //   } else if (
+  //     this.checkCurveTriggerBoundry(p) === Direction.l
+  //   ) {
+  //     return {
+  //       shape: null,
+  //       target: null,
+  //     };
+  //   } else if (
+  //     this.checkCurveTriggerBoundry(p) === Direction.t
+  //   ) {
+  //     return {
+  //       shape: null,
+  //       target: null,
+  //     };
+  //   } else if (
+  //     this.checkCurveTriggerBoundry(p) === Direction.r
+  //   ) {
+  //     return {
+  //       shape: null,
+  //       target: null,
+  //     };
+  //   } else if (
+  //     this.checkCurveTriggerBoundry(p) === Direction.b
+  //   ) {
+  //     return {
+  //       shape: null,
+  //       target: null,
+  //     };
+  //   } else if (curveBoundry.l?.p === CurvePressingP.cp1) {
+  //     // l curve cp1
+  //     return {
+  //       shape: this,
+  //       target: PressingTarget.clcp1,
+  //     };
+  //   } else if (curveBoundry.l?.p === CurvePressingP.cp2) {
+  //     // l curve cp2
+  //     return {
+  //       shape: this,
+  //       target: PressingTarget.clcp2,
+  //     };
+  //   } else if (curveBoundry.l?.p === CurvePressingP.p2) {
+  //     // l curve p2
+  //     return {
+  //       shape: this,
+  //       target: PressingTarget.clp2,
+  //     };
+  //   } else if (curveBoundry.t?.p === CurvePressingP.cp1) {
+  //     // t curve cp1
+  //     return {
+  //       shape: this,
+  //       target: PressingTarget.ctcp1,
+  //     };
+  //   } else if (curveBoundry.t?.p === CurvePressingP.cp2) {
+  //     // t curve cp2
+  //     return {
+  //       shape: this,
+  //       target: PressingTarget.ctcp2,
+  //     };
+  //   } else if (curveBoundry.t?.p === CurvePressingP.p2) {
+  //     // t curve p2
+  //     return {
+  //       shape: this,
+  //       target: PressingTarget.ctp2,
+  //     };
+  //   } else if (curveBoundry.r?.p === CurvePressingP.cp1) {
+  //     // r curve cp1
+  //     return {
+  //       shape: this,
+  //       target: PressingTarget.crcp1,
+  //     };
+  //   } else if (curveBoundry.r?.p === CurvePressingP.cp2) {
+  //     // r curve cp2
+  //     return {
+  //       shape: this,
+  //       target: PressingTarget.crcp2,
+  //     };
+  //   } else if (curveBoundry.r?.p === CurvePressingP.p2) {
+  //     // r curve p2
+  //     return {
+  //       shape: this,
+  //       target: PressingTarget.crp2,
+  //     };
+  //   } else if (curveBoundry.b?.p === CurvePressingP.cp1) {
+  //     // b curve cp1
+  //     return {
+  //       shape: this,
+  //       target: PressingTarget.cbcp1,
+  //     };
+  //   } else if (curveBoundry.b?.p === CurvePressingP.cp2) {
+  //     // b curve cp2
+  //     return {
+  //       shape: this,
+  //       target: PressingTarget.cbcp2,
+  //     };
+  //   } else if (curveBoundry.b?.p === CurvePressingP.p2) {
+  //     // b curve p2
+  //     return {
+  //       shape: this,
+  //       target: PressingTarget.cbp2,
+  //     };
+  //   }
+  // }
 
-  createCurve(d: Direction) {
+  createCurve(id: string, d: Direction) {
     const theCurve = this.curves[d]
-    theCurve.shape = new Curve(
-      this.curveTrigger.cpline,
-      this.curveTrigger.curve,
-      {
-        x: -this.w / 2,
-        y: 0,
-      },
-      {
-        x: -this.w / 2 + (-this.curveTrigger.d * 1) / 3,
-        y: 0,
-      },
-      {
-        x: -this.w / 2 + (-this.curveTrigger.d * 2) / 3,
-        y: 0,
-      },
-      {
-        x: -this.w / 2 - this.curveTrigger.d,
-        y: 0,
-      }
-    );
 
+    if (d === Direction.l) {
+      theCurve.shape = new Curve(
+        id,
+        this.curveTrigger.cpline,
+        this.curveTrigger.curve,
+        {
+          x: -this.w / 2,
+          y: 0,
+        },
+        {
+          x: -this.w / 2 + (-this.curveTrigger.d * 1) / 3,
+          y: 0,
+        },
+        {
+          x: -this.w / 2 + (-this.curveTrigger.d * 2) / 3,
+          y: 0,
+        },
+        {
+          x: -this.w / 2 - this.curveTrigger.d,
+          y: 0,
+        }
+      );
+    } else if (d === Direction.t) {
+      theCurve.shape = new Curve(
+        id,
+        this.curveTrigger.cpline,
+        this.curveTrigger.curve,
+        {
+          x: 0,
+          y: -this.h / 2,
+        },
+        {
+          x: 0,
+          y: -this.h / 2 + (-this.curveTrigger.d * 1) / 3,
+        },
+        {
+          x: 0,
+          y: -this.h / 2 + (-this.curveTrigger.d * 2) / 3,
+        },
+        {
+          x: 0,
+          y: -this.h / 2 - this.curveTrigger.d,
+        }
+      );
+    } else if (d === Direction.r) {
+      theCurve.shape = new Curve(
+        id,
+        this.curveTrigger.cpline,
+        this.curveTrigger.curve,
+        {
+          x: this.w / 2,
+          y: 0,
+        },
+        {
+          x: this.w / 2 + (this.curveTrigger.d * 1) / 3,
+          y: 0,
+        },
+        {
+          x: this.w / 2 + (this.curveTrigger.d * 2) / 3,
+          y: 0,
+        },
+        {
+          x: this.w / 2 + this.curveTrigger.d,
+          y: 0,
+        }
+      );
+    } else if (d === Direction.b) {
+      theCurve.shape = new Curve(
+        id,
+        this.curveTrigger.cpline,
+        this.curveTrigger.curve,
+        {
+          x: 0,
+          y: this.h / 2,
+        },
+        {
+          x: 0,
+          y: this.h / 2 + (this.curveTrigger.d * 1) / 3,
+        },
+        {
+          x: 0,
+          y: this.h / 2 + (this.curveTrigger.d * 2) / 3,
+        },
+        {
+          x: 0,
+          y: this.h / 2 + this.curveTrigger.d,
+        }
+      );
+    }
+
+    if (!theCurve.shape) return
     theCurve.shape.scale = this.scale;
   }
 
 
 
   onMouseDown(canvas: HTMLCanvasElement, p: Vec) {
-    let shapeP = {
-      x: p.x - this.getScreenP().x,
-      y: p.y - this.getScreenP().y,
-    };
+    // let shapeP = {
+    //   x: p.x - this.getScreenP().x,
+    //   y: p.y - this.getScreenP().y,
+    // };
     // let curveBoundry = {
     //   l: this.curves.l?.shape?.checkControlPointsBoundry(shapeP),
     //   t: this.curves.t?.shape?.checkControlPointsBoundry(shapeP),
@@ -1587,18 +1660,18 @@ export default class Core {
     //   };
     // }
 
-    if (this.curves.l.shape) {
-      this.curves.l.shape.onMouseDown(canvas, shapeP);
-    }
-    if (this.curves.t.shape) {
-      this.curves.t.shape.onMouseDown(canvas, shapeP);
-    }
-    if (this.curves.r.shape) {
-      this.curves.r.shape.onMouseDown(canvas, shapeP);
-    }
-    if (this.curves.b.shape) {
-      this.curves.b.shape.onMouseDown(canvas, shapeP);
-    }
+    // if (this.curves.l.shape) {
+    //   this.curves.l.shape.onMouseDown(canvas, shapeP);
+    // }
+    // if (this.curves.t.shape) {
+    //   this.curves.t.shape.onMouseDown(canvas, shapeP);
+    // }
+    // if (this.curves.r.shape) {
+    //   this.curves.r.shape.onMouseDown(canvas, shapeP);
+    // }
+    // if (this.curves.b.shape) {
+    //   this.curves.b.shape.onMouseDown(canvas, shapeP);
+    // }
   }
 
   onMouseMove(p: Vec, receivable?: boolean) {
@@ -2864,10 +2937,10 @@ export default class Core {
     // }
     // }
 
-    const shapeP = {
-      x: p.x - this.getScreenP().x,
-      y: p.y - this.getScreenP().y,
-    };
+    // const shapeP = {
+    //   x: p.x - this.getScreenP().x,
+    //   y: p.y - this.getScreenP().y,
+    // };
 
     // reset shape connections when moving curve
     // if (this.pressing.activate) {
@@ -2894,30 +2967,30 @@ export default class Core {
     //   }
     // }
 
-    if (
-      // l curve
-      this.curves.l?.shape
-    ) {
-      this.curves.l.shape.onMouseMove(shapeP);
-    }
-    if (
-      // t curve
-      this.curves.t?.shape
-    ) {
-      this.curves.t.shape.onMouseMove(shapeP);
-    }
-    if (
-      // r curve
-      this.curves.r?.shape
-    ) {
-      this.curves.r.shape.onMouseMove(shapeP);
-    }
-    if (
-      // b curve
-      this.curves.b?.shape
-    ) {
-      this.curves.b.shape.onMouseMove(shapeP);
-    }
+    // if (
+    //   // l curve
+    //   this.curves.l?.shape
+    // ) {
+    //   this.curves.l.shape.onMouseMove(shapeP);
+    // }
+    // if (
+    //   // t curve
+    //   this.curves.t?.shape
+    // ) {
+    //   this.curves.t.shape.onMouseMove(shapeP);
+    // }
+    // if (
+    //   // r curve
+    //   this.curves.r?.shape
+    // ) {
+    //   this.curves.r.shape.onMouseMove(shapeP);
+    // }
+    // if (
+    //   // b curve
+    //   this.curves.b?.shape
+    // ) {
+    //   this.curves.b.shape.onMouseMove(shapeP);
+    // }
 
     // if (receivable) {
     //   this.receiving.l = !this.curves.l.shape && this.checkReceivingBoundry(p);
@@ -3027,18 +3100,18 @@ export default class Core {
     // this.receiving.r = false;
     // this.receiving.b = false;
 
-    if (this.curves.l) {
-      this.curves.l?.shape?.onMouseUp();
-    }
-    if (this.curves.t) {
-      this.curves.t?.shape?.onMouseUp();
-    }
-    if (this.curves.r) {
-      this.curves.r?.shape?.onMouseUp();
-    }
-    if (this.curves.b) {
-      this.curves.b?.shape?.onMouseUp();
-    }
+    // if (this.curves.l) {
+    //   this.curves.l?.shape?.onMouseUp();
+    // }
+    // if (this.curves.t) {
+    //   this.curves.t?.shape?.onMouseUp();
+    // }
+    // if (this.curves.r) {
+    //   this.curves.r?.shape?.onMouseUp();
+    // }
+    // if (this.curves.b) {
+    //   this.curves.b?.shape?.onMouseUp();
+    // }
   }
 
   draw(ctx: CanvasRenderingContext2D, sendable: boolean = true) {
