@@ -1262,6 +1262,32 @@ export default class Core {
     }
   }
 
+  createCurve(d: Direction) {
+    const theCurve = this.curves[d]
+    theCurve.shape = new Curve(
+      this.curveTrigger.cpline,
+      this.curveTrigger.curve,
+      {
+        x: -this.w / 2,
+        y: 0,
+      },
+      {
+        x: -this.w / 2 + (-this.curveTrigger.d * 1) / 3,
+        y: 0,
+      },
+      {
+        x: -this.w / 2 + (-this.curveTrigger.d * 2) / 3,
+        y: 0,
+      },
+      {
+        x: -this.w / 2 - this.curveTrigger.d,
+        y: 0,
+      }
+    );
+
+    theCurve.shape.scale = this.scale;
+  }
+
 
 
   onMouseDown(canvas: HTMLCanvasElement, p: Vec) {
@@ -1584,1258 +1610,1258 @@ export default class Core {
     //   this.getIsReceiving()
     // ) {
 
-      // let xOffset = p.x - this.dragP.x,
-      //   yOffset = p.y - this.dragP.y;
-
-      // this.dragP.x = p.x;
-      // this.dragP.y = p.y;
-
-
-      // const edge = this.getEdge();
-
-      // // sender curves follows
-      // const receiveFromCurve_l = this.receiveFrom.l?.shape.curves[
-      //   this.receiveFrom.l.direction
-      // ],
-      //   receiveFromCurve_t = this.receiveFrom.t?.shape.curves[
-      //     this.receiveFrom.t.direction
-      //   ],
-      //   receiveFromCurve_r = this.receiveFrom.r?.shape.curves[
-      //     this.receiveFrom.r.direction
-      //   ],
-      //   receiveFromCurve_b = this.receiveFrom.b?.shape.curves[
-      //     this.receiveFrom.b.direction
-      //   ],
-      //   // reciever curves follows
-      //   sendToCurve_l = this.curves.l.sendTo,
-      //   sendToCurve_t = this.curves.t.sendTo,
-      //   sendToCurve_r = this.curves.r.sendTo,
-      //   sendToCurve_b = this.curves.b.sendTo;
-
-      // if (this.pressing.target === PressingTarget.m) {
-      //   // this.p = {
-      //   //   x: this.p.x + xOffset,
-      //   //   y: this.p.y + yOffset
-      //   // }
-
-      //   // for (const d of ds) {
-      //   //   // when receiver shape move, sender curve follows the receiver shape
-      //   //   const receiverShape = this.receiveFrom[d],
-      //   //     receiverCurve = receiverShape?.shape.curves[
-      //   //       receiverShape.direction
-      //   //     ].shape;
-
-      //   //   if (receiverCurve) {
-      //   //     receiverCurve.p2 = {
-      //   //       x: receiverCurve.p2.x + xOffset / this.scale,
-      //   //       y: receiverCurve.p2.y + yOffset / this.scale,
-      //   //     };
-      //   //     receiverCurve.cp2.x += xOffset / this.scale;
-      //   //     receiverCurve.cp2.y += yOffset / this.scale;
-      //   //   }
-
-      //   //   // when sender shape move, receiver curve follows the sender shape
-      //   //   const senderCurve = this.curves[d].shape,
-      //   //     sendToShape = this.curves[d].sendTo?.shape
-
-      //   //   if (
-      //   //     senderCurve && sendToShape
-      //   //   ) {
-      //   //     senderCurve.p2 = {
-      //   //       x: senderCurve.p2.x - xOffset / this.scale,
-      //   //       y: senderCurve.p2.y - yOffset / this.scale,
-      //   //     };
-      //   //     senderCurve.cp2.x -= xOffset / this.scale;
-      //   //     senderCurve.cp2.y -= yOffset / this.scale;
-      //   //   }
-      //   // }
-      // } else if (this.pressing.target === PressingTarget.lt) {
-      //   // const canResizeX =
-      //   //   (xOffset > 0 &&
-      //   //     p.x > edge.l &&
-      //   //     this.getScaleSize().w >= this.getScaleSize().minW) ||
-      //   //   (xOffset < 0 && p.x < edge.l),
-      //   //   canResizeY =
-      //   //     (yOffset > 0 &&
-      //   //       p.y > edge.t &&
-      //   //       this.getScaleSize().h >= this.getScaleSize().minH) ||
-      //   //     (yOffset < 0 && p.y < edge.t);
-
-      //   // if (canResizeX) {
-      //   //   this.p = {
-      //   //     ...this.p,
-      //   //     x: this.p.x + xOffset / 2 / this.scale,
-      //   //   };
-
-      //   //   this.w -= xOffset / this.scale;
-      //   // }
-
-      //   // if (canResizeY) {
-      //   //   this.p = {
-      //   //     ...this.p,
-      //   //     y: this.p.y + yOffset / 2 / this.scale,
-      //   //   };
-
-      //   //   this.h -= yOffset / this.scale;
-      //   // }
-
-      //   // if (
-      //   //   this.curves.l?.shape?.p1 &&
-      //   //   this.curves.l?.shape?.cp1 &&
-      //   //   this.curves.l?.shape?.cp2 &&
-      //   //   this.curves.l?.shape?.p2
-      //   // ) {
-      //   //   if (canResizeX) {
-      //   //     this.curves.l.shape.p1.x += xOffset / 2 / this.scale;
-      //   //     this.curves.l.shape.cp1.x += xOffset / 2 / this.scale;
-      //   //   }
-
-      //   //   if (sendToCurve_l) {
-      //   //     this.senderHoldCurveP2Cp2Position(
-      //   //       Direction.l,
-      //   //       xOffset,
-      //   //       yOffset,
-      //   //       canResizeX,
-      //   //       canResizeY
-      //   //     );
-      //   //   } else {
-      //   //     if (canResizeX) {
-      //   //       this.curves.l.shape.p2 = {
-      //   //         ...this.curves.l.shape.p2,
-      //   //         x: this.curves.l.shape.p2.x + xOffset / 2 / this.scale,
-      //   //       };
-
-      //   //       this.curves.l.shape.cp2.x += xOffset / 2 / this.scale;
-      //   //     }
-      //   //   }
-      //   // }
-
-      //   // if (
-      //   //   this.curves.t?.shape?.p1 &&
-      //   //   this.curves.t?.shape?.cp1 &&
-      //   //   this.curves.t?.shape?.cp2 &&
-      //   //   this.curves.t?.shape?.p2
-      //   // ) {
-      //   //   if (canResizeY) {
-      //   //     this.curves.t.shape.p1.y += yOffset / 2 / this.scale;
-      //   //     this.curves.t.shape.cp1.y += yOffset / 2 / this.scale;
-      //   //   }
-
-      //   //   if (sendToCurve_t) {
-      //   //     this.senderHoldCurveP2Cp2Position(
-      //   //       Direction.t,
-      //   //       xOffset,
-      //   //       yOffset,
-      //   //       canResizeX,
-      //   //       canResizeY
-      //   //     );
-      //   //   } else {
-      //   //     if (canResizeY) {
-      //   //       this.curves.t.shape.cp2.y += yOffset / 2 / this.scale;
-      //   //       this.curves.t.shape.p2 = {
-      //   //         ...this.curves.t.shape.p2,
-      //   //         y: this.curves.t.shape.p2.y + yOffset / 2 / this.scale,
-      //   //       };
-      //   //     }
-      //   //   }
-      //   // }
-
-      //   // if (
-      //   //   this.curves.r?.shape?.p1 &&
-      //   //   this.curves.r?.shape?.cp1 &&
-      //   //   this.curves.r?.shape?.cp2 &&
-      //   //   this.curves.r?.shape?.p2
-      //   // ) {
-      //   //   if (canResizeX) {
-      //   //     this.curves.r.shape.p1.x -= xOffset / 2 / this.scale;
-      //   //     this.curves.r.shape.cp1.x -= xOffset / 2 / this.scale;
-      //   //   }
-      //   //   if (sendToCurve_r) {
-      //   //     this.senderHoldCurveP2Cp2Position(
-      //   //       Direction.r,
-      //   //       xOffset,
-      //   //       yOffset,
-      //   //       canResizeX,
-      //   //       canResizeY
-      //   //     );
-      //   //   } else {
-      //   //     if (canResizeX) {
-      //   //       this.curves.r.shape.p2 = {
-      //   //         ...this.curves.r.shape.p2,
-      //   //         x: this.curves.r.shape.p2.x - xOffset / 2 / this.scale,
-      //   //       };
-      //   //       this.curves.r.shape.cp2.x -= xOffset / 2 / this.scale;
-      //   //     }
-      //   //   }
-      //   // }
-
-      //   // if (
-      //   //   this.curves.b?.shape?.p1 &&
-      //   //   this.curves.b?.shape?.cp1 &&
-      //   //   this.curves.b?.shape?.cp2 &&
-      //   //   this.curves.b?.shape?.p2
-      //   // ) {
-      //   //   if (canResizeY) {
-      //   //     this.curves.b.shape.p1.y -= yOffset / 2 / this.scale;
-      //   //     this.curves.b.shape.cp1.y -= yOffset / 2 / this.scale;
-      //   //   }
-      //   //   if (sendToCurve_b) {
-      //   //     this.senderHoldCurveP2Cp2Position(
-      //   //       Direction.b,
-      //   //       xOffset,
-      //   //       yOffset,
-      //   //       canResizeX,
-      //   //       canResizeY
-      //   //     );
-      //   //   } else {
-      //   //     if (canResizeY) {
-      //   //       this.curves.b.shape.cp2.y -= yOffset / 2 / this.scale;
-      //   //       this.curves.b.shape.p2 = {
-      //   //         ...this.curves.b.shape.p2,
-      //   //         y: this.curves.b.shape.p2.y - yOffset / 2 / this.scale,
-      //   //       };
-      //   //     }
-      //   //   }
-      //   // }
-
-      //   // // resizing by reciever lt point and change sender curve p1 p2 position
-      //   // if (receiveFromCurve_l?.shape?.p2 && receiveFromCurve_l?.shape?.cp2) {
-      //   //   if (canResizeX) {
-      //   //     receiveFromCurve_l.shape.p2 = {
-      //   //       ...receiveFromCurve_l.shape.p2,
-      //   //       x: receiveFromCurve_l.shape.p2.x + xOffset / this.scale,
-      //   //     };
-      //   //     receiveFromCurve_l.shape.cp2.x += xOffset / this.scale;
-      //   //   }
-
-      //   //   if (canResizeY) {
-      //   //     receiveFromCurve_l.shape.p2 = {
-      //   //       ...receiveFromCurve_l.shape.p2,
-      //   //       y: receiveFromCurve_l.shape.p2.y + yOffset / 2 / this.scale,
-      //   //     };
-
-      //   //     receiveFromCurve_l.shape.cp2.y += yOffset / 2 / this.scale;
-      //   //   }
-      //   // }
-
-      //   // if (receiveFromCurve_t?.shape?.p2 && receiveFromCurve_t?.shape?.cp2) {
-      //   //   if (canResizeX) {
-      //   //     receiveFromCurve_t.shape.p2 = {
-      //   //       ...receiveFromCurve_t.shape.p2,
-      //   //       x: receiveFromCurve_t.shape.p2.x + xOffset / 2 / this.scale,
-      //   //     };
-      //   //     receiveFromCurve_t.shape.cp2.x += xOffset / 2 / this.scale;
-      //   //   }
-
-      //   //   if (canResizeY) {
-      //   //     receiveFromCurve_t.shape.p2 = {
-      //   //       ...receiveFromCurve_t.shape.p2,
-      //   //       y: receiveFromCurve_t.shape.p2.y + yOffset / this.scale,
-      //   //     };
-
-      //   //     receiveFromCurve_t.shape.cp2.y += yOffset / this.scale;
-      //   //   }
-      //   // }
-
-      //   // if (receiveFromCurve_r?.shape?.p2 && receiveFromCurve_r?.shape?.cp2) {
-      //   //   if (canResizeY) {
-      //   //     receiveFromCurve_r.shape.p2 = {
-      //   //       ...receiveFromCurve_r.shape.p2,
-      //   //       y: receiveFromCurve_r.shape.p2.y + yOffset / 2 / this.scale,
-      //   //     };
-
-      //   //     receiveFromCurve_r.shape.cp2.y += yOffset / 2 / this.scale;
-      //   //   }
-      //   // }
-
-      //   // if (receiveFromCurve_b?.shape?.p2 && receiveFromCurve_b?.shape?.cp2) {
-      //   //   if (canResizeX) {
-      //   //     receiveFromCurve_b.shape.p2 = {
-      //   //       ...receiveFromCurve_b.shape.p2,
-      //   //       x: receiveFromCurve_b.shape.p2.x + xOffset / 2 / this.scale,
-      //   //     };
-
-      //   //     receiveFromCurve_b.shape.cp2.x += xOffset / 2 / this.scale;
-      //   //   }
-      //   // }
-      // } else if (this.pressing.target === PressingTarget.rt) {
-      //   //   const canResizeX =
-      //   //     (xOffset > 0 && p.x > edge.r) ||
-      //   //     (xOffset < 0 &&
-      //   //       p.x < edge.r &&
-      //   //       this.getScaleSize().w >= this.getScaleSize().minW),
-      //   //     canResizeY =
-      //   //       (yOffset > 0 &&
-      //   //         p.y > edge.t &&
-      //   //         this.getScaleSize().h >= this.getScaleSize().minH) ||
-      //   //       (yOffset < 0 && p.y < edge.t);
-
-      //   //   if (canResizeX) {
-      //   //     this.p = {
-      //   //       ...this.p,
-      //   //       x: this.p.x + xOffset / 2 / this.scale,
-      //   //     };
-
-      //   //     this.w += xOffset / this.scale;
-      //   //   }
-      //   //   if (canResizeY) {
-      //   //     this.p = {
-      //   //       ...this.p,
-      //   //       y: this.p.y + yOffset / 2 / this.scale,
-      //   //     };
-      //   //     this.h -= yOffset / this.scale;
-      //   //   }
-
-      //   //   if (
-      //   //     this.curves.l?.shape?.p1 &&
-      //   //     this.curves.l?.shape?.cp1 &&
-      //   //     this.curves.l?.shape?.cp2 &&
-      //   //     this.curves.l?.shape?.p2
-      //   //   ) {
-      //   //     if (canResizeX) {
-      //   //       this.curves.l.shape.p1.x -= xOffset / 2 / this.scale;
-      //   //     }
-
-      //   //     if (canResizeY) {
-      //   //       this.curves.l.shape.cp1.x -= xOffset / 2 / this.scale;
-      //   //     }
-
-      //   //     if (sendToCurve_l) {
-      //   //       this.senderHoldCurveP2Cp2Position(
-      //   //         Direction.l,
-      //   //         xOffset,
-      //   //         yOffset,
-      //   //       );
-      //   //     } else {
-      //   //       if (canResizeX) {
-      //   //         this.curves.l.shape.cp2.x -= xOffset / 2 / this.scale;
-      //   //         this.curves.l.shape.p2 = {
-      //   //           ...this.curves.l.shape.p2,
-      //   //           x: this.curves.l.shape.p2.x - xOffset / 2 / this.scale,
-      //   //         };
-      //   //       }
-      //   //     }
-      //   //   }
-
-      //   //   if (
-      //   //     this.curves.t?.shape?.p1 &&
-      //   //     this.curves.t?.shape?.cp1 &&
-      //   //     this.curves.t?.shape?.cp2 &&
-      //   //     this.curves.t?.shape?.p2
-      //   //   ) {
-      //   //     if (canResizeY) {
-      //   //       this.curves.t.shape.p1.y += yOffset / 2 / this.scale;
-      //   //       this.curves.t.shape.cp1.y += yOffset / 2 / this.scale;
-      //   //     }
-      //   //     if (sendToCurve_t) {
-      //   //       this.senderHoldCurveP2Cp2Position(
-      //   //         Direction.t,
-      //   //         xOffset,
-      //   //         yOffset,
-      //   //       );
-      //   //     } else {
-      //   //       if (canResizeY) {
-      //   //         this.curves.t.shape.cp2.y += yOffset / 2 / this.scale;
-      //   //         this.curves.t.shape.p2 = {
-      //   //           ...this.curves.t.shape.p2,
-      //   //           y: this.curves.t.shape.p2.y + yOffset / 2 / this.scale,
-      //   //         };
-      //   //       }
-      //   //     }
-      //   //   }
-      //   //   if (
-      //   //     this.curves.r?.shape?.p1 &&
-      //   //     this.curves.r?.shape?.cp1 &&
-      //   //     this.curves.r?.shape?.cp2 &&
-      //   //     this.curves.r?.shape?.p2
-      //   //   ) {
-      //   //     if (canResizeX) {
-      //   //       this.curves.r.shape.p1.x += xOffset / 2 / this.scale;
-      //   //       this.curves.r.shape.cp1.x += xOffset / 2 / this.scale;
-      //   //     }
-      //   //     if (sendToCurve_r) {
-      //   //       this.senderHoldCurveP2Cp2Position(
-      //   //         Direction.r,
-      //   //         xOffset,
-      //   //         yOffset,
-      //   //       );
-      //   //     } else {
-      //   //       if (canResizeX) {
-      //   //         this.curves.r.shape.cp2.x += xOffset / 2 / this.scale;
-      //   //         this.curves.r.shape.p2 = {
-      //   //           ...this.curves.r.shape.p2,
-      //   //           x: this.curves.r.shape.p2.x + xOffset / 2 / this.scale,
-      //   //         };
-      //   //       }
-      //   //     }
-      //   //   }
-
-      //   //   if (
-      //   //     this.curves.b?.shape?.p1 &&
-      //   //     this.curves.b?.shape?.cp1 &&
-      //   //     this.curves.b?.shape?.cp2 &&
-      //   //     this.curves.b?.shape?.p2
-      //   //   ) {
-      //   //     if (canResizeY) {
-      //   //       this.curves.b.shape.p1.y -= yOffset / 2 / this.scale;
-      //   //       this.curves.b.shape.cp1.y -= yOffset / 2 / this.scale;
-      //   //     }
-      //   //     if (sendToCurve_b) {
-      //   //       this.senderHoldCurveP2Cp2Position(
-      //   //         Direction.b,
-      //   //         xOffset,
-      //   //         yOffset,
-      //   //       );
-      //   //     } else {
-      //   //       if (canResizeY) {
-      //   //         this.curves.b.shape.cp2.y -= yOffset / 2 / this.scale;
-      //   //         this.curves.b.shape.p2 = {
-      //   //           ...this.curves.b.shape.p2,
-      //   //           y: this.curves.b.shape.p2.y - yOffset / 2 / this.scale,
-      //   //         };
-      //   //       }
-      //   //     }
-      //   //   }
-
-      //   //   // resizing by reciever rt point and change sender curve p1 p2 position
-      //   //   if (receiveFromCurve_l?.shape?.p2 && receiveFromCurve_l?.shape?.cp2) {
-      //   //     if (canResizeY) {
-      //   //       receiveFromCurve_l.shape.p2 = {
-      //   //         ...receiveFromCurve_l.shape.p2,
-      //   //         y: receiveFromCurve_l.shape.p2.y + yOffset / 2 / this.scale,
-      //   //       };
-
-      //   //       receiveFromCurve_l.shape.cp2.y += yOffset / 2 / this.scale;
-      //   //     }
-      //   //   }
-
-      //   //   if (receiveFromCurve_t?.shape?.p2 && receiveFromCurve_t?.shape?.cp2) {
-      //   //     if (canResizeX) {
-      //   //       receiveFromCurve_t.shape.p2 = {
-      //   //         ...receiveFromCurve_t.shape.p2,
-      //   //         x: receiveFromCurve_t.shape.p2.x + xOffset / 2 / this.scale,
-      //   //       };
-      //   //       receiveFromCurve_t.shape.cp2.x += xOffset / 2 / this.scale;
-      //   //     }
-
-      //   //     if (canResizeY) {
-      //   //       receiveFromCurve_t.shape.p2 = {
-      //   //         ...receiveFromCurve_t.shape.p2,
-      //   //         y: receiveFromCurve_t.shape.p2.y + yOffset / this.scale,
-      //   //       };
-      //   //       receiveFromCurve_t.shape.cp2.y += yOffset / this.scale;
-      //   //     }
-      //   //   }
-
-      //   //   if (receiveFromCurve_r?.shape?.p2 && receiveFromCurve_r?.shape?.cp2) {
-      //   //     if (canResizeX) {
-      //   //       receiveFromCurve_r.shape.p2 = {
-      //   //         ...receiveFromCurve_r.shape.p2,
-      //   //         x: receiveFromCurve_r.shape.p2.x + xOffset / this.scale,
-      //   //       };
-      //   //       receiveFromCurve_r.shape.cp2.x += xOffset / this.scale;
-      //   //     }
-
-      //   //     if (canResizeY) {
-      //   //       receiveFromCurve_r.shape.p2 = {
-      //   //         ...receiveFromCurve_r.shape.p2,
-      //   //         y: receiveFromCurve_r.shape.p2.y + yOffset / 2 / this.scale,
-      //   //       };
-      //   //       receiveFromCurve_r.shape.cp2.y += yOffset / 2 / this.scale;
-      //   //     }
-      //   //   }
-
-      //   //   if (receiveFromCurve_b?.shape?.p2 && receiveFromCurve_b?.shape?.cp2) {
-      //   //     if (canResizeX) {
-      //   //       receiveFromCurve_b.shape.p2 = {
-      //   //         ...receiveFromCurve_b.shape.p2,
-      //   //         x: receiveFromCurve_b.shape.p2.x + xOffset / 2 / this.scale,
-      //   //       };
-
-      //   //       receiveFromCurve_b.shape.cp2.x += xOffset / 2 / this.scale;
-      //   //     }
-      //   //   }
-      //   // } else if (this.pressing.target === PressingTarget.rb) {
-      //   //   const canResizeX =
-      //   //     (xOffset > 0 && p.x > edge.r) ||
-      //   //     (xOffset < 0 &&
-      //   //       p.x < edge.r &&
-      //   //       this.getScaleSize().w >= this.getScaleSize().minW),
-      //   //     canResizeY =
-      //   //       (yOffset > 0 && p.y > edge.b) ||
-      //   //       (yOffset < 0 &&
-      //   //         p.y < edge.b &&
-      //   //         this.getScaleSize().h >= this.getScaleSize().minH);
-
-      //   //   if (canResizeX) {
-      //   //     this.p = {
-      //   //       ...this.p,
-      //   //       x: this.p.x + xOffset / 2 / this.scale,
-      //   //     };
-      //   //     this.w += xOffset / this.scale;
-      //   //   }
-      //   //   if (canResizeY) {
-      //   //     this.p = {
-      //   //       ...this.p,
-      //   //       y: this.p.y + yOffset / 2 / this.scale,
-      //   //     };
-      //   //     this.h += yOffset / this.scale;
-      //   //   }
-
-      //   //   if (
-      //   //     this.curves.l?.shape?.p1 &&
-      //   //     this.curves.l?.shape?.cp1 &&
-      //   //     this.curves.l?.shape?.cp2 &&
-      //   //     this.curves.l?.shape?.p2
-      //   //   ) {
-      //   //     if (canResizeX) {
-      //   //       this.curves.l.shape.p1.x -= xOffset / 2 / this.scale;
-      //   //       this.curves.l.shape.cp1.x -= xOffset / 2 / this.scale;
-      //   //     }
-
-      //   //     if (sendToCurve_l) {
-      //   //       this.senderHoldCurveP2Cp2Position(
-      //   //         Direction.l,
-      //   //         xOffset,
-      //   //         yOffset,
-      //   //       );
-      //   //     } else {
-      //   //       if (canResizeX) {
-      //   //         this.curves.l.shape.cp2.x -= xOffset / 2 / this.scale;
-      //   //         this.curves.l.shape.p2 = {
-      //   //           ...this.curves.l.shape.p2,
-      //   //           x: this.curves.l.shape.p2.x - xOffset / 2 / this.scale,
-      //   //         };
-      //   //       }
-      //   //     }
-      //   //   }
-
-      //   //   if (
-      //   //     this.curves.t?.shape?.p1 &&
-      //   //     this.curves.t?.shape?.cp1 &&
-      //   //     this.curves.t?.shape?.cp2 &&
-      //   //     this.curves.t?.shape?.p2
-      //   //   ) {
-      //   //     if (canResizeY) {
-      //   //       this.curves.t.shape.p1.y -= yOffset / 2 / this.scale;
-      //   //       this.curves.t.shape.cp1.y -= yOffset / 2 / this.scale;
-      //   //     }
-
-      //   //     if (sendToCurve_t) {
-      //   //       this.senderHoldCurveP2Cp2Position(
-      //   //         Direction.t,
-      //   //         xOffset,
-      //   //         yOffset,
-      //   //       );
-      //   //     } else {
-      //   //       if (canResizeY) {
-      //   //         this.curves.t.shape.cp2.y -= yOffset / 2 / this.scale;
-      //   //         this.curves.t.shape.p2 = {
-      //   //           ...this.curves.t.shape.p2,
-      //   //           y: this.curves.t.shape.p2.y - yOffset / 2 / this.scale,
-      //   //         };
-      //   //       }
-      //   //     }
-      //   //   }
-
-      //   //   if (
-      //   //     this.curves.r?.shape?.p1 &&
-      //   //     this.curves.r?.shape?.cp1 &&
-      //   //     this.curves.r?.shape?.cp2 &&
-      //   //     this.curves.r?.shape?.p2
-      //   //   ) {
-      //   //     if (canResizeX) {
-      //   //       this.curves.r.shape.p1.x += xOffset / 2 / this.scale;
-      //   //       this.curves.r.shape.cp1.x += xOffset / 2 / this.scale;
-      //   //     }
-
-      //   //     if (sendToCurve_r) {
-      //   //       this.senderHoldCurveP2Cp2Position(
-      //   //         Direction.r,
-      //   //         xOffset,
-      //   //         yOffset,
-      //   //       );
-      //   //     } else {
-      //   //       if (canResizeX) {
-      //   //         this.curves.r.shape.cp2.x += xOffset / 2 / this.scale;
-      //   //         this.curves.r.shape.p2 = {
-      //   //           ...this.curves.r.shape.p2,
-      //   //           x: this.curves.r.shape.p2.x + xOffset / 2 / this.scale,
-      //   //         };
-      //   //       }
-      //   //     }
-      //   //   }
-
-      //   //   if (
-      //   //     this.curves.b?.shape?.p1 &&
-      //   //     this.curves.b?.shape?.cp1 &&
-      //   //     this.curves.b?.shape?.cp2 &&
-      //   //     this.curves.b?.shape?.p2
-      //   //   ) {
-      //   //     if (canResizeY) {
-      //   //       this.curves.b.shape.p1.y += yOffset / 2 / this.scale;
-      //   //       this.curves.b.shape.cp1.y += yOffset / 2 / this.scale;
-      //   //     }
-      //   //     if (sendToCurve_b) {
-      //   //       this.senderHoldCurveP2Cp2Position(
-      //   //         Direction.b,
-      //   //         xOffset,
-      //   //         yOffset,
-      //   //       );
-      //   //     } else {
-      //   //       if (canResizeY) {
-      //   //         this.curves.b.shape.cp2.y += yOffset / 2 / this.scale;
-      //   //         this.curves.b.shape.p2 = {
-      //   //           ...this.curves.b.shape.p2,
-      //   //           y: this.curves.b.shape.p2.y + yOffset / 2 / this.scale,
-      //   //         };
-      //   //       }
-      //   //     }
-      //   //   }
-
-      //   //   // resizing by reciever rb point and change sender curve p1 p2 position
-      //   //   if (receiveFromCurve_l?.shape?.p2 && receiveFromCurve_l?.shape?.cp2) {
-      //   //     if (canResizeY) {
-      //   //       receiveFromCurve_l.shape.p2 = {
-      //   //         ...receiveFromCurve_l.shape.p2,
-      //   //         y: receiveFromCurve_l.shape.p2.y + yOffset / 2 / this.scale,
-      //   //       };
-      //   //       receiveFromCurve_l.shape.cp2.y += yOffset / 2 / this.scale;
-      //   //     }
-      //   //   }
-
-      //   //   if (receiveFromCurve_t?.shape?.p2 && receiveFromCurve_t?.shape?.cp2) {
-      //   //     if (canResizeX) {
-      //   //       receiveFromCurve_t.shape.p2 = {
-      //   //         ...receiveFromCurve_t.shape.p2,
-      //   //         x: receiveFromCurve_t.shape.p2.x + xOffset / 2 / this.scale,
-      //   //       };
-      //   //       receiveFromCurve_t.shape.cp2.x += xOffset / 2 / this.scale;
-      //   //     }
-      //   //   }
-
-      //   //   if (receiveFromCurve_r?.shape?.p2 && receiveFromCurve_r?.shape?.cp2) {
-      //   //     if (canResizeX) {
-      //   //       receiveFromCurve_r.shape.p2 = {
-      //   //         ...receiveFromCurve_r.shape.p2,
-      //   //         x: receiveFromCurve_r.shape.p2.x + xOffset / this.scale,
-      //   //       };
-      //   //       receiveFromCurve_r.shape.cp2.x += xOffset / this.scale;
-      //   //     }
-      //   //     if (canResizeY) {
-      //   //       receiveFromCurve_r.shape.p2 = {
-      //   //         ...receiveFromCurve_r.shape.p2,
-      //   //         y: receiveFromCurve_r.shape.p2.y + yOffset / 2 / this.scale,
-      //   //       };
-      //   //       receiveFromCurve_r.shape.cp2.y += yOffset / 2 / this.scale;
-      //   //     }
-      //   //   }
-
-      //   //   if (receiveFromCurve_b?.shape?.p2 && receiveFromCurve_b?.shape?.cp2) {
-      //   //     if (canResizeX) {
-      //   //       receiveFromCurve_b.shape.p2 = {
-      //   //         ...receiveFromCurve_b.shape.p2,
-      //   //         x: receiveFromCurve_b.shape.p2.x + xOffset / 2 / this.scale,
-      //   //       };
-      //   //       receiveFromCurve_b.shape.cp2.x += xOffset / 2 / this.scale;
-      //   //     }
-
-      //   //     if (canResizeY) {
-      //   //       receiveFromCurve_b.shape.p2 = {
-      //   //         ...receiveFromCurve_b.shape.p2,
-      //   //         y: receiveFromCurve_b.shape.p2.y + yOffset / this.scale,
-      //   //       };
-      //   //       receiveFromCurve_b.shape.cp2.y += yOffset / this.scale;
-      //   //     }
-      //   //   }
-      // } else if (this.pressing.target === PressingTarget.rb) {
-      //   //   const canResizeX =
-      //   //     (xOffset > 0 && p.x > edge.r) ||
-      //   //     (xOffset < 0 &&
-      //   //       p.x < edge.r &&
-      //   //       this.getScaleSize().w >= this.getScaleSize().minW),
-      //   //     canResizeY =
-      //   //       (yOffset > 0 && p.y > edge.b) ||
-      //   //       (yOffset < 0 &&
-      //   //         p.y < edge.b &&
-      //   //         this.getScaleSize().h >= this.getScaleSize().minH);
-
-      //   //   if (canResizeX) {
-      //   //     this.p = {
-      //   //       ...this.p,
-      //   //       x: this.p.x + xOffset / 2 / this.scale,
-      //   //     };
-      //   //     this.w += xOffset / this.scale;
-      //   //   }
-      //   //   if (canResizeY) {
-      //   //     this.p = {
-      //   //       ...this.p,
-      //   //       y: this.p.y + yOffset / 2 / this.scale,
-      //   //     };
-      //   //     this.h += yOffset / this.scale;
-      //   //   }
-
-      //   //   if (
-      //   //     this.curves.l?.shape?.p1 &&
-      //   //     this.curves.l?.shape?.cp1 &&
-      //   //     this.curves.l?.shape?.cp2 &&
-      //   //     this.curves.l?.shape?.p2
-      //   //   ) {
-      //   //     if (canResizeX) {
-      //   //       this.curves.l.shape.p1.x -= xOffset / 2 / this.scale;
-      //   //       this.curves.l.shape.cp1.x -= xOffset / 2 / this.scale;
-      //   //     }
-
-      //   //     if (sendToCurve_l) {
-      //   //       this.senderHoldCurveP2Cp2Position(
-      //   //         Direction.l,
-      //   //         xOffset,
-      //   //         yOffset,
-      //   //       );
-      //   //     } else {
-      //   //       if (canResizeX) {
-      //   //         this.curves.l.shape.cp2.x -= xOffset / 2 / this.scale;
-      //   //         this.curves.l.shape.p2 = {
-      //   //           ...this.curves.l.shape.p2,
-      //   //           x: this.curves.l.shape.p2.x - xOffset / 2 / this.scale,
-      //   //         };
-      //   //       }
-      //   //     }
-      //   //   }
-
-      //   //   if (
-      //   //     this.curves.t?.shape?.p1 &&
-      //   //     this.curves.t?.shape?.cp1 &&
-      //   //     this.curves.t?.shape?.cp2 &&
-      //   //     this.curves.t?.shape?.p2
-      //   //   ) {
-      //   //     if (canResizeY) {
-      //   //       this.curves.t.shape.p1.y -= yOffset / 2 / this.scale;
-      //   //       this.curves.t.shape.cp1.y -= yOffset / 2 / this.scale;
-      //   //     }
-
-      //   //     if (sendToCurve_t) {
-      //   //       this.senderHoldCurveP2Cp2Position(
-      //   //         Direction.t,
-      //   //         xOffset,
-      //   //         yOffset,
-      //   //       );
-      //   //     } else {
-      //   //       if (canResizeY) {
-      //   //         this.curves.t.shape.cp2.y -= yOffset / 2 / this.scale;
-      //   //         this.curves.t.shape.p2 = {
-      //   //           ...this.curves.t.shape.p2,
-      //   //           y: this.curves.t.shape.p2.y - yOffset / 2 / this.scale,
-      //   //         };
-      //   //       }
-      //   //     }
-      //   //   }
-
-      //   //   if (
-      //   //     this.curves.r?.shape?.p1 &&
-      //   //     this.curves.r?.shape?.cp1 &&
-      //   //     this.curves.r?.shape?.cp2 &&
-      //   //     this.curves.r?.shape?.p2
-      //   //   ) {
-      //   //     if (canResizeX) {
-      //   //       this.curves.r.shape.p1.x += xOffset / 2 / this.scale;
-      //   //       this.curves.r.shape.cp1.x += xOffset / 2 / this.scale;
-      //   //     }
-
-      //   //     if (sendToCurve_r) {
-      //   //       this.senderHoldCurveP2Cp2Position(
-      //   //         Direction.r,
-      //   //         xOffset,
-      //   //         yOffset,
-      //   //       );
-      //   //     } else {
-      //   //       if (canResizeX) {
-      //   //         this.curves.r.shape.cp2.x += xOffset / 2 / this.scale;
-      //   //         this.curves.r.shape.p2 = {
-      //   //           ...this.curves.r.shape.p2,
-      //   //           x: this.curves.r.shape.p2.x + xOffset / 2 / this.scale,
-      //   //         };
-      //   //       }
-      //   //     }
-      //   //   }
-
-      //   //   if (
-      //   //     this.curves.b?.shape?.p1 &&
-      //   //     this.curves.b?.shape?.cp1 &&
-      //   //     this.curves.b?.shape?.cp2 &&
-      //   //     this.curves.b?.shape?.p2
-      //   //   ) {
-      //   //     if (canResizeY) {
-      //   //       this.curves.b.shape.p1.y += yOffset / 2 / this.scale;
-      //   //       this.curves.b.shape.cp1.y += yOffset / 2 / this.scale;
-      //   //     }
-      //   //     if (sendToCurve_b) {
-      //   //       this.senderHoldCurveP2Cp2Position(
-      //   //         Direction.b,
-      //   //         xOffset,
-      //   //         yOffset,
-      //   //       );
-      //   //     } else {
-      //   //       if (canResizeY) {
-      //   //         this.curves.b.shape.cp2.y += yOffset / 2 / this.scale;
-      //   //         this.curves.b.shape.p2 = {
-      //   //           ...this.curves.b.shape.p2,
-      //   //           y: this.curves.b.shape.p2.y + yOffset / 2 / this.scale,
-      //   //         };
-      //   //       }
-      //   //     }
-      //   //   }
-
-      //   //   // resizing by reciever rb point and change sender curve p1 p2 position
-      //   //   if (receiveFromCurve_l?.shape?.p2 && receiveFromCurve_l?.shape?.cp2) {
-      //   //     if (canResizeY) {
-      //   //       receiveFromCurve_l.shape.p2 = {
-      //   //         ...receiveFromCurve_l.shape.p2,
-      //   //         y: receiveFromCurve_l.shape.p2.y + yOffset / 2 / this.scale,
-      //   //       };
-      //   //       receiveFromCurve_l.shape.cp2.y += yOffset / 2 / this.scale;
-      //   //     }
-      //   //   }
-
-      //   //   if (receiveFromCurve_t?.shape?.p2 && receiveFromCurve_t?.shape?.cp2) {
-      //   //     if (canResizeX) {
-      //   //       receiveFromCurve_t.shape.p2 = {
-      //   //         ...receiveFromCurve_t.shape.p2,
-      //   //         x: receiveFromCurve_t.shape.p2.x + xOffset / 2 / this.scale,
-      //   //       };
-      //   //       receiveFromCurve_t.shape.cp2.x += xOffset / 2 / this.scale;
-      //   //     }
-      //   //   }
-
-      //   //   if (receiveFromCurve_r?.shape?.p2 && receiveFromCurve_r?.shape?.cp2) {
-      //   //     if (canResizeX) {
-      //   //       receiveFromCurve_r.shape.p2 = {
-      //   //         ...receiveFromCurve_r.shape.p2,
-      //   //         x: receiveFromCurve_r.shape.p2.x + xOffset / this.scale,
-      //   //       };
-      //   //       receiveFromCurve_r.shape.cp2.x += xOffset / this.scale;
-      //   //     }
-      //   //     if (canResizeY) {
-      //   //       receiveFromCurve_r.shape.p2 = {
-      //   //         ...receiveFromCurve_r.shape.p2,
-      //   //         y: receiveFromCurve_r.shape.p2.y + yOffset / 2 / this.scale,
-      //   //       };
-      //   //       receiveFromCurve_r.shape.cp2.y += yOffset / 2 / this.scale;
-      //   //     }
-      //   //   }
-
-      //   //   if (receiveFromCurve_b?.shape?.p2 && receiveFromCurve_b?.shape?.cp2) {
-      //   //     if (canResizeX) {
-      //   //       receiveFromCurve_b.shape.p2 = {
-      //   //         ...receiveFromCurve_b.shape.p2,
-      //   //         x: receiveFromCurve_b.shape.p2.x + xOffset / 2 / this.scale,
-      //   //       };
-      //   //       receiveFromCurve_b.shape.cp2.x += xOffset / 2 / this.scale;
-      //   //     }
-
-      //   //     if (canResizeY) {
-      //   //       receiveFromCurve_b.shape.p2 = {
-      //   //         ...receiveFromCurve_b.shape.p2,
-      //   //         y: receiveFromCurve_b.shape.p2.y + yOffset / this.scale,
-      //   //       };
-      //   //       receiveFromCurve_b.shape.cp2.y += yOffset / this.scale;
-      //   //     }
-      //   //   }
-      //   // } else if (this.pressing.target === PressingTarget.lb) {
-      //   //   const canResizeX =
-      //   //     (xOffset > 0 &&
-      //   //       p.x > edge.l &&
-      //   //       this.getScaleSize().w >= this.getScaleSize().minW) ||
-      //   //     (xOffset < 0 && p.x < edge.l),
-      //   //     canResizeY =
-      //   //       (yOffset > 0 && p.y > edge.b) ||
-      //   //       (yOffset < 0 &&
-      //   //         p.y < edge.b &&
-      //   //         this.getScaleSize().h >= this.getScaleSize().minH);
-
-      //   //   if (canResizeX) {
-      //   //     this.p = {
-      //   //       ...this.p,
-      //   //       x: this.p.x + xOffset / 2 / this.scale,
-      //   //     };
-      //   //     this.w -= xOffset / this.scale;
-      //   //   }
-      //   //   if (canResizeY) {
-      //   //     this.p = {
-      //   //       ...this.p,
-      //   //       y: this.p.y + yOffset / 2 / this.scale,
-      //   //     };
-      //   //     this.h += yOffset / this.scale;
-      //   //   }
-
-      //   //   if (
-      //   //     this.curves.l?.shape?.p1 &&
-      //   //     this.curves.l?.shape?.cp1 &&
-      //   //     this.curves.l?.shape?.cp2 &&
-      //   //     this.curves.l?.shape?.p2
-      //   //   ) {
-      //   //     if (canResizeX) {
-      //   //       this.curves.l.shape.p1.x += xOffset / 2 / this.scale;
-      //   //       this.curves.l.shape.cp1.x += xOffset / 2 / this.scale;
-      //   //     }
-
-      //   //     if (sendToCurve_l) {
-      //   //       this.senderHoldCurveP2Cp2Position(
-      //   //         Direction.l,
-      //   //         xOffset,
-      //   //         yOffset,
-
-      //   //       );
-      //   //     } else {
-      //   //       if (canResizeX) {
-      //   //         this.curves.l.shape.cp2.x += xOffset / 2 / this.scale;
-      //   //         this.curves.l.shape.p2 = {
-      //   //           ...this.curves.l.shape.p2,
-      //   //           x: this.curves.l.shape.p2.x + xOffset / 2 / this.scale,
-      //   //         };
-      //   //       }
-      //   //     }
-      //   //   }
-
-      //   //   if (
-      //   //     this.curves.t?.shape?.p1 &&
-      //   //     this.curves.t?.shape?.cp1 &&
-      //   //     this.curves.t?.shape?.cp2 &&
-      //   //     this.curves.t?.shape?.p2
-      //   //   ) {
-      //   //     if (canResizeY) {
-      //   //       this.curves.t.shape.p1.y -= yOffset / 2 / this.scale;
-      //   //       this.curves.t.shape.cp1.y -= yOffset / 2 / this.scale;
-      //   //     }
-
-      //   //     if (sendToCurve_t) {
-      //   //       this.senderHoldCurveP2Cp2Position(
-      //   //         Direction.t,
-      //   //         xOffset,
-      //   //         yOffset,
-      //   //       );
-      //   //     } else {
-      //   //       if (canResizeY) {
-      //   //         this.curves.t.shape.cp2.y -= yOffset / 2 / this.scale;
-      //   //         this.curves.t.shape.p2 = {
-      //   //           ...this.curves.t.shape.p2,
-      //   //           y: this.curves.t.shape.p2.y - yOffset / 2 / this.scale,
-      //   //         };
-      //   //       }
-      //   //     }
-      //   //   }
-
-      //   //   if (
-      //   //     this.curves.r?.shape?.p1 &&
-      //   //     this.curves.r?.shape?.cp1 &&
-      //   //     this.curves.r?.shape?.cp2 &&
-      //   //     this.curves.r?.shape?.p2
-      //   //   ) {
-      //   //     if (canResizeX) {
-      //   //       this.curves.r.shape.p1.x -= xOffset / 2 / this.scale;
-      //   //       this.curves.r.shape.cp1.x -= xOffset / 2 / this.scale;
-      //   //     }
-
-      //   //     if (sendToCurve_r) {
-      //   //       this.senderHoldCurveP2Cp2Position(
-      //   //         Direction.r,
-      //   //         xOffset,
-      //   //         yOffset,
-      //   //       );
-      //   //     } else {
-      //   //       if (canResizeX) {
-      //   //         this.curves.r.shape.cp2.x -= xOffset / 2 / this.scale;
-      //   //         this.curves.r.shape.p2 = {
-      //   //           ...this.curves.r.shape.p2,
-      //   //           x: this.curves.r.shape.p2.x - xOffset / 2 / this.scale,
-      //   //         };
-      //   //       }
-      //   //     }
-      //   //   }
-
-      //   //   if (
-      //   //     this.curves.b?.shape?.p1 &&
-      //   //     this.curves.b?.shape?.cp1 &&
-      //   //     this.curves.b?.shape?.cp2 &&
-      //   //     this.curves.b?.shape?.p2
-      //   //   ) {
-      //   //     if (canResizeY) {
-      //   //       this.curves.b.shape.p1.y += yOffset / 2 / this.scale;
-      //   //       this.curves.b.shape.cp1.y += yOffset / 2 / this.scale;
-      //   //     }
-
-      //   //     if (sendToCurve_b) {
-      //   //       this.senderHoldCurveP2Cp2Position(
-      //   //         Direction.b,
-      //   //         xOffset,
-      //   //         yOffset,
-      //   //       );
-      //   //     } else {
-      //   //       if (canResizeY) {
-      //   //         this.curves.b.shape.cp2.y += yOffset / 2 / this.scale;
-      //   //         this.curves.b.shape.p2 = {
-      //   //           ...this.curves.b.shape.p2,
-      //   //           y: this.curves.b.shape.p2.y + yOffset / 2 / this.scale,
-      //   //         };
-      //   //       }
-      //   //     }
-      //   //   }
-
-      //   //   // resizing by reciever lb point and change sender curve p1 p2 position
-      //   //   if (receiveFromCurve_l?.shape?.p2 && receiveFromCurve_l?.shape?.cp2) {
-      //   //     if (canResizeX) {
-      //   //       receiveFromCurve_l.shape.p2 = {
-      //   //         ...receiveFromCurve_l.shape.p2,
-      //   //         x: receiveFromCurve_l.shape.p2.x + xOffset / this.scale,
-      //   //       };
-
-      //   //       receiveFromCurve_l.shape.cp2.x += xOffset / this.scale;
-      //   //     }
-
-      //   //     if (canResizeY) {
-      //   //       receiveFromCurve_l.shape.p2 = {
-      //   //         ...receiveFromCurve_l.shape.p2,
-      //   //         y: receiveFromCurve_l.shape.p2.y + yOffset / 2 / this.scale,
-      //   //       };
-      //   //       receiveFromCurve_l.shape.cp2.y += yOffset / 2 / this.scale;
-      //   //     }
-      //   //   }
-
-      //   //   if (receiveFromCurve_t?.shape?.p2 && receiveFromCurve_t?.shape?.cp2) {
-      //   //     if (canResizeX) {
-      //   //       receiveFromCurve_t.shape.p2 = {
-      //   //         ...receiveFromCurve_t.shape.p2,
-      //   //         x: receiveFromCurve_t.shape.p2.x + xOffset / 2 / this.scale,
-      //   //       };
-      //   //       receiveFromCurve_t.shape.cp2.x += xOffset / 2 / this.scale;
-      //   //     }
-      //   //   }
-
-      //   //   if (receiveFromCurve_r?.shape?.p2 && receiveFromCurve_r?.shape?.cp2) {
-      //   //     if (canResizeY) {
-      //   //       receiveFromCurve_r.shape.p2 = {
-      //   //         ...receiveFromCurve_r.shape.p2,
-      //   //         y: receiveFromCurve_r.shape.p2.y + yOffset / 2 / this.scale,
-      //   //       };
-      //   //       receiveFromCurve_r.shape.cp2.y += yOffset / 2 / this.scale;
-      //   //     }
-      //   //   }
-
-      //   //   if (receiveFromCurve_b?.shape?.p2 && receiveFromCurve_b?.shape?.cp2) {
-      //   //     if (canResizeX) {
-      //   //       receiveFromCurve_b.shape.p2 = {
-      //   //         ...receiveFromCurve_b.shape.p2,
-      //   //         x: receiveFromCurve_b.shape.p2.x + xOffset / 2 / this.scale,
-      //   //       };
-      //   //       receiveFromCurve_b.shape.cp2.x += xOffset / 2 / this.scale;
-      //   //     }
-      //   //     if (canResizeY) {
-      //   //       receiveFromCurve_b.shape.p2 = {
-      //   //         ...receiveFromCurve_b.shape.p2,
-      //   //         y: receiveFromCurve_b.shape.p2.y + yOffset / this.scale,
-      //   //       };
-
-      //   //       receiveFromCurve_b.shape.cp2.y += yOffset / this.scale;
-      //   //     }
-      //   //   }
-      // } else if (this.pressing.target === PressingTarget.lb) {
-      //   // const canResizeX =
-      //   //   (xOffset > 0 &&
-      //   //     p.x > edge.l &&
-      //   //     this.getScaleSize().w >= this.getScaleSize().minW) ||
-      //   //   (xOffset < 0 && p.x < edge.l),
-      //   //   canResizeY =
-      //   //     (yOffset > 0 && p.y > edge.b) ||
-      //   //     (yOffset < 0 &&
-      //   //       p.y < edge.b &&
-      //   //       this.getScaleSize().h >= this.getScaleSize().minH);
-
-      //   // if (canResizeX) {
-      //   //   this.p = {
-      //   //     ...this.p,
-      //   //     x: this.p.x + xOffset / 2 / this.scale,
-      //   //   };
-      //   //   this.w -= xOffset / this.scale;
-      //   // }
-      //   // if (canResizeY) {
-      //   //   this.p = {
-      //   //     ...this.p,
-      //   //     y: this.p.y + yOffset / 2 / this.scale,
-      //   //   };
-      //   //   this.h += yOffset / this.scale;
-      //   // }
-
-      //   // if (
-      //   //   this.curves.l?.shape?.p1 &&
-      //   //   this.curves.l?.shape?.cp1 &&
-      //   //   this.curves.l?.shape?.cp2 &&
-      //   //   this.curves.l?.shape?.p2
-      //   // ) {
-      //   //   if (canResizeX) {
-      //   //     this.curves.l.shape.p1.x += xOffset / 2 / this.scale;
-      //   //     this.curves.l.shape.cp1.x += xOffset / 2 / this.scale;
-      //   //   }
-
-      //   //   if (sendToCurve_l) {
-      //   //     this.senderHoldCurveP2Cp2Position(
-      //   //       Direction.l,
-      //   //       xOffset,
-      //   //       yOffset,
-
-      //   //     );
-      //   //   } else {
-      //   //     if (canResizeX) {
-      //   //       this.curves.l.shape.cp2.x += xOffset / 2 / this.scale;
-      //   //       this.curves.l.shape.p2 = {
-      //   //         ...this.curves.l.shape.p2,
-      //   //         x: this.curves.l.shape.p2.x + xOffset / 2 / this.scale,
-      //   //       };
-      //   //     }
-      //   //   }
-      //   // }
-
-      //   // if (
-      //   //   this.curves.t?.shape?.p1 &&
-      //   //   this.curves.t?.shape?.cp1 &&
-      //   //   this.curves.t?.shape?.cp2 &&
-      //   //   this.curves.t?.shape?.p2
-      //   // ) {
-      //   //   if (canResizeY) {
-      //   //     this.curves.t.shape.p1.y -= yOffset / 2 / this.scale;
-      //   //     this.curves.t.shape.cp1.y -= yOffset / 2 / this.scale;
-      //   //   }
-
-      //   //   if (sendToCurve_t) {
-      //   //     this.senderHoldCurveP2Cp2Position(
-      //   //       Direction.t,
-      //   //       xOffset,
-      //   //       yOffset,
-      //   //     );
-      //   //   } else {
-      //   //     if (canResizeY) {
-      //   //       this.curves.t.shape.cp2.y -= yOffset / 2 / this.scale;
-      //   //       this.curves.t.shape.p2 = {
-      //   //         ...this.curves.t.shape.p2,
-      //   //         y: this.curves.t.shape.p2.y - yOffset / 2 / this.scale,
-      //   //       };
-      //   //     }
-      //   //   }
-      //   // }
-
-      //   // if (
-      //   //   this.curves.r?.shape?.p1 &&
-      //   //   this.curves.r?.shape?.cp1 &&
-      //   //   this.curves.r?.shape?.cp2 &&
-      //   //   this.curves.r?.shape?.p2
-      //   // ) {
-      //   //   if (canResizeX) {
-      //   //     this.curves.r.shape.p1.x -= xOffset / 2 / this.scale;
-      //   //     this.curves.r.shape.cp1.x -= xOffset / 2 / this.scale;
-      //   //   }
-
-      //   //   if (sendToCurve_r) {
-      //   //     this.senderHoldCurveP2Cp2Position(
-      //   //       Direction.r,
-      //   //       xOffset,
-      //   //       yOffset,
-      //   //     );
-      //   //   } else {
-      //   //     if (canResizeX) {
-      //   //       this.curves.r.shape.cp2.x -= xOffset / 2 / this.scale;
-      //   //       this.curves.r.shape.p2 = {
-      //   //         ...this.curves.r.shape.p2,
-      //   //         x: this.curves.r.shape.p2.x - xOffset / 2 / this.scale,
-      //   //       };
-      //   //     }
-      //   //   }
-      //   // }
-
-      //   // if (
-      //   //   this.curves.b?.shape?.p1 &&
-      //   //   this.curves.b?.shape?.cp1 &&
-      //   //   this.curves.b?.shape?.cp2 &&
-      //   //   this.curves.b?.shape?.p2
-      //   // ) {
-      //   //   if (canResizeY) {
-      //   //     this.curves.b.shape.p1.y += yOffset / 2 / this.scale;
-      //   //     this.curves.b.shape.cp1.y += yOffset / 2 / this.scale;
-      //   //   }
-
-      //   //   if (sendToCurve_b) {
-      //   //     this.senderHoldCurveP2Cp2Position(
-      //   //       Direction.b,
-      //   //       xOffset,
-      //   //       yOffset,
-      //   //     );
-      //   //   } else {
-      //   //     if (canResizeY) {
-      //   //       this.curves.b.shape.cp2.y += yOffset / 2 / this.scale;
-      //   //       this.curves.b.shape.p2 = {
-      //   //         ...this.curves.b.shape.p2,
-      //   //         y: this.curves.b.shape.p2.y + yOffset / 2 / this.scale,
-      //   //       };
-      //   //     }
-      //   //   }
-      //   // }
-
-      //   // // resizing by reciever lb point and change sender curve p1 p2 position
-      //   // if (receiveFromCurve_l?.shape?.p2 && receiveFromCurve_l?.shape?.cp2) {
-      //   //   if (canResizeX) {
-      //   //     receiveFromCurve_l.shape.p2 = {
-      //   //       ...receiveFromCurve_l.shape.p2,
-      //   //       x: receiveFromCurve_l.shape.p2.x + xOffset / this.scale,
-      //   //     };
-
-      //   //     receiveFromCurve_l.shape.cp2.x += xOffset / this.scale;
-      //   //   }
-
-      //   //   if (canResizeY) {
-      //   //     receiveFromCurve_l.shape.p2 = {
-      //   //       ...receiveFromCurve_l.shape.p2,
-      //   //       y: receiveFromCurve_l.shape.p2.y + yOffset / 2 / this.scale,
-      //   //     };
-      //   //     receiveFromCurve_l.shape.cp2.y += yOffset / 2 / this.scale;
-      //   //   }
-      //   // }
-
-      //   // if (receiveFromCurve_t?.shape?.p2 && receiveFromCurve_t?.shape?.cp2) {
-      //   //   if (canResizeX) {
-      //   //     receiveFromCurve_t.shape.p2 = {
-      //   //       ...receiveFromCurve_t.shape.p2,
-      //   //       x: receiveFromCurve_t.shape.p2.x + xOffset / 2 / this.scale,
-      //   //     };
-      //   //     receiveFromCurve_t.shape.cp2.x += xOffset / 2 / this.scale;
-      //   //   }
-      //   // }
-
-      //   // if (receiveFromCurve_r?.shape?.p2 && receiveFromCurve_r?.shape?.cp2) {
-      //   //   if (canResizeY) {
-      //   //     receiveFromCurve_r.shape.p2 = {
-      //   //       ...receiveFromCurve_r.shape.p2,
-      //   //       y: receiveFromCurve_r.shape.p2.y + yOffset / 2 / this.scale,
-      //   //     };
-      //   //     receiveFromCurve_r.shape.cp2.y += yOffset / 2 / this.scale;
-      //   //   }
-      //   // }
-
-      //   // if (receiveFromCurve_b?.shape?.p2 && receiveFromCurve_b?.shape?.cp2) {
-      //   //   if (canResizeX) {
-      //   //     receiveFromCurve_b.shape.p2 = {
-      //   //       ...receiveFromCurve_b.shape.p2,
-      //   //       x: receiveFromCurve_b.shape.p2.x + xOffset / 2 / this.scale,
-      //   //     };
-      //   //     receiveFromCurve_b.shape.cp2.x += xOffset / 2 / this.scale;
-      //   //   }
-      //   //   if (canResizeY) {
-      //   //     receiveFromCurve_b.shape.p2 = {
-      //   //       ...receiveFromCurve_b.shape.p2,
-      //   //       y: receiveFromCurve_b.shape.p2.y + yOffset / this.scale,
-      //   //     };
-
-      //   //     receiveFromCurve_b.shape.cp2.y += yOffset / this.scale;
-      //   //   }
-      //   // }
-      // }
+    // let xOffset = p.x - this.dragP.x,
+    //   yOffset = p.y - this.dragP.y;
+
+    // this.dragP.x = p.x;
+    // this.dragP.y = p.y;
+
+
+    // const edge = this.getEdge();
+
+    // // sender curves follows
+    // const receiveFromCurve_l = this.receiveFrom.l?.shape.curves[
+    //   this.receiveFrom.l.direction
+    // ],
+    //   receiveFromCurve_t = this.receiveFrom.t?.shape.curves[
+    //     this.receiveFrom.t.direction
+    //   ],
+    //   receiveFromCurve_r = this.receiveFrom.r?.shape.curves[
+    //     this.receiveFrom.r.direction
+    //   ],
+    //   receiveFromCurve_b = this.receiveFrom.b?.shape.curves[
+    //     this.receiveFrom.b.direction
+    //   ],
+    //   // reciever curves follows
+    //   sendToCurve_l = this.curves.l.sendTo,
+    //   sendToCurve_t = this.curves.t.sendTo,
+    //   sendToCurve_r = this.curves.r.sendTo,
+    //   sendToCurve_b = this.curves.b.sendTo;
+
+    // if (this.pressing.target === PressingTarget.m) {
+    //   // this.p = {
+    //   //   x: this.p.x + xOffset,
+    //   //   y: this.p.y + yOffset
+    //   // }
+
+    //   // for (const d of ds) {
+    //   //   // when receiver shape move, sender curve follows the receiver shape
+    //   //   const receiverShape = this.receiveFrom[d],
+    //   //     receiverCurve = receiverShape?.shape.curves[
+    //   //       receiverShape.direction
+    //   //     ].shape;
+
+    //   //   if (receiverCurve) {
+    //   //     receiverCurve.p2 = {
+    //   //       x: receiverCurve.p2.x + xOffset / this.scale,
+    //   //       y: receiverCurve.p2.y + yOffset / this.scale,
+    //   //     };
+    //   //     receiverCurve.cp2.x += xOffset / this.scale;
+    //   //     receiverCurve.cp2.y += yOffset / this.scale;
+    //   //   }
+
+    //   //   // when sender shape move, receiver curve follows the sender shape
+    //   //   const senderCurve = this.curves[d].shape,
+    //   //     sendToShape = this.curves[d].sendTo?.shape
+
+    //   //   if (
+    //   //     senderCurve && sendToShape
+    //   //   ) {
+    //   //     senderCurve.p2 = {
+    //   //       x: senderCurve.p2.x - xOffset / this.scale,
+    //   //       y: senderCurve.p2.y - yOffset / this.scale,
+    //   //     };
+    //   //     senderCurve.cp2.x -= xOffset / this.scale;
+    //   //     senderCurve.cp2.y -= yOffset / this.scale;
+    //   //   }
+    //   // }
+    // } else if (this.pressing.target === PressingTarget.lt) {
+    //   // const canResizeX =
+    //   //   (xOffset > 0 &&
+    //   //     p.x > edge.l &&
+    //   //     this.getScaleSize().w >= this.getScaleSize().minW) ||
+    //   //   (xOffset < 0 && p.x < edge.l),
+    //   //   canResizeY =
+    //   //     (yOffset > 0 &&
+    //   //       p.y > edge.t &&
+    //   //       this.getScaleSize().h >= this.getScaleSize().minH) ||
+    //   //     (yOffset < 0 && p.y < edge.t);
+
+    //   // if (canResizeX) {
+    //   //   this.p = {
+    //   //     ...this.p,
+    //   //     x: this.p.x + xOffset / 2 / this.scale,
+    //   //   };
+
+    //   //   this.w -= xOffset / this.scale;
+    //   // }
+
+    //   // if (canResizeY) {
+    //   //   this.p = {
+    //   //     ...this.p,
+    //   //     y: this.p.y + yOffset / 2 / this.scale,
+    //   //   };
+
+    //   //   this.h -= yOffset / this.scale;
+    //   // }
+
+    //   // if (
+    //   //   this.curves.l?.shape?.p1 &&
+    //   //   this.curves.l?.shape?.cp1 &&
+    //   //   this.curves.l?.shape?.cp2 &&
+    //   //   this.curves.l?.shape?.p2
+    //   // ) {
+    //   //   if (canResizeX) {
+    //   //     this.curves.l.shape.p1.x += xOffset / 2 / this.scale;
+    //   //     this.curves.l.shape.cp1.x += xOffset / 2 / this.scale;
+    //   //   }
+
+    //   //   if (sendToCurve_l) {
+    //   //     this.senderHoldCurveP2Cp2Position(
+    //   //       Direction.l,
+    //   //       xOffset,
+    //   //       yOffset,
+    //   //       canResizeX,
+    //   //       canResizeY
+    //   //     );
+    //   //   } else {
+    //   //     if (canResizeX) {
+    //   //       this.curves.l.shape.p2 = {
+    //   //         ...this.curves.l.shape.p2,
+    //   //         x: this.curves.l.shape.p2.x + xOffset / 2 / this.scale,
+    //   //       };
+
+    //   //       this.curves.l.shape.cp2.x += xOffset / 2 / this.scale;
+    //   //     }
+    //   //   }
+    //   // }
+
+    //   // if (
+    //   //   this.curves.t?.shape?.p1 &&
+    //   //   this.curves.t?.shape?.cp1 &&
+    //   //   this.curves.t?.shape?.cp2 &&
+    //   //   this.curves.t?.shape?.p2
+    //   // ) {
+    //   //   if (canResizeY) {
+    //   //     this.curves.t.shape.p1.y += yOffset / 2 / this.scale;
+    //   //     this.curves.t.shape.cp1.y += yOffset / 2 / this.scale;
+    //   //   }
+
+    //   //   if (sendToCurve_t) {
+    //   //     this.senderHoldCurveP2Cp2Position(
+    //   //       Direction.t,
+    //   //       xOffset,
+    //   //       yOffset,
+    //   //       canResizeX,
+    //   //       canResizeY
+    //   //     );
+    //   //   } else {
+    //   //     if (canResizeY) {
+    //   //       this.curves.t.shape.cp2.y += yOffset / 2 / this.scale;
+    //   //       this.curves.t.shape.p2 = {
+    //   //         ...this.curves.t.shape.p2,
+    //   //         y: this.curves.t.shape.p2.y + yOffset / 2 / this.scale,
+    //   //       };
+    //   //     }
+    //   //   }
+    //   // }
+
+    //   // if (
+    //   //   this.curves.r?.shape?.p1 &&
+    //   //   this.curves.r?.shape?.cp1 &&
+    //   //   this.curves.r?.shape?.cp2 &&
+    //   //   this.curves.r?.shape?.p2
+    //   // ) {
+    //   //   if (canResizeX) {
+    //   //     this.curves.r.shape.p1.x -= xOffset / 2 / this.scale;
+    //   //     this.curves.r.shape.cp1.x -= xOffset / 2 / this.scale;
+    //   //   }
+    //   //   if (sendToCurve_r) {
+    //   //     this.senderHoldCurveP2Cp2Position(
+    //   //       Direction.r,
+    //   //       xOffset,
+    //   //       yOffset,
+    //   //       canResizeX,
+    //   //       canResizeY
+    //   //     );
+    //   //   } else {
+    //   //     if (canResizeX) {
+    //   //       this.curves.r.shape.p2 = {
+    //   //         ...this.curves.r.shape.p2,
+    //   //         x: this.curves.r.shape.p2.x - xOffset / 2 / this.scale,
+    //   //       };
+    //   //       this.curves.r.shape.cp2.x -= xOffset / 2 / this.scale;
+    //   //     }
+    //   //   }
+    //   // }
+
+    //   // if (
+    //   //   this.curves.b?.shape?.p1 &&
+    //   //   this.curves.b?.shape?.cp1 &&
+    //   //   this.curves.b?.shape?.cp2 &&
+    //   //   this.curves.b?.shape?.p2
+    //   // ) {
+    //   //   if (canResizeY) {
+    //   //     this.curves.b.shape.p1.y -= yOffset / 2 / this.scale;
+    //   //     this.curves.b.shape.cp1.y -= yOffset / 2 / this.scale;
+    //   //   }
+    //   //   if (sendToCurve_b) {
+    //   //     this.senderHoldCurveP2Cp2Position(
+    //   //       Direction.b,
+    //   //       xOffset,
+    //   //       yOffset,
+    //   //       canResizeX,
+    //   //       canResizeY
+    //   //     );
+    //   //   } else {
+    //   //     if (canResizeY) {
+    //   //       this.curves.b.shape.cp2.y -= yOffset / 2 / this.scale;
+    //   //       this.curves.b.shape.p2 = {
+    //   //         ...this.curves.b.shape.p2,
+    //   //         y: this.curves.b.shape.p2.y - yOffset / 2 / this.scale,
+    //   //       };
+    //   //     }
+    //   //   }
+    //   // }
+
+    //   // // resizing by reciever lt point and change sender curve p1 p2 position
+    //   // if (receiveFromCurve_l?.shape?.p2 && receiveFromCurve_l?.shape?.cp2) {
+    //   //   if (canResizeX) {
+    //   //     receiveFromCurve_l.shape.p2 = {
+    //   //       ...receiveFromCurve_l.shape.p2,
+    //   //       x: receiveFromCurve_l.shape.p2.x + xOffset / this.scale,
+    //   //     };
+    //   //     receiveFromCurve_l.shape.cp2.x += xOffset / this.scale;
+    //   //   }
+
+    //   //   if (canResizeY) {
+    //   //     receiveFromCurve_l.shape.p2 = {
+    //   //       ...receiveFromCurve_l.shape.p2,
+    //   //       y: receiveFromCurve_l.shape.p2.y + yOffset / 2 / this.scale,
+    //   //     };
+
+    //   //     receiveFromCurve_l.shape.cp2.y += yOffset / 2 / this.scale;
+    //   //   }
+    //   // }
+
+    //   // if (receiveFromCurve_t?.shape?.p2 && receiveFromCurve_t?.shape?.cp2) {
+    //   //   if (canResizeX) {
+    //   //     receiveFromCurve_t.shape.p2 = {
+    //   //       ...receiveFromCurve_t.shape.p2,
+    //   //       x: receiveFromCurve_t.shape.p2.x + xOffset / 2 / this.scale,
+    //   //     };
+    //   //     receiveFromCurve_t.shape.cp2.x += xOffset / 2 / this.scale;
+    //   //   }
+
+    //   //   if (canResizeY) {
+    //   //     receiveFromCurve_t.shape.p2 = {
+    //   //       ...receiveFromCurve_t.shape.p2,
+    //   //       y: receiveFromCurve_t.shape.p2.y + yOffset / this.scale,
+    //   //     };
+
+    //   //     receiveFromCurve_t.shape.cp2.y += yOffset / this.scale;
+    //   //   }
+    //   // }
+
+    //   // if (receiveFromCurve_r?.shape?.p2 && receiveFromCurve_r?.shape?.cp2) {
+    //   //   if (canResizeY) {
+    //   //     receiveFromCurve_r.shape.p2 = {
+    //   //       ...receiveFromCurve_r.shape.p2,
+    //   //       y: receiveFromCurve_r.shape.p2.y + yOffset / 2 / this.scale,
+    //   //     };
+
+    //   //     receiveFromCurve_r.shape.cp2.y += yOffset / 2 / this.scale;
+    //   //   }
+    //   // }
+
+    //   // if (receiveFromCurve_b?.shape?.p2 && receiveFromCurve_b?.shape?.cp2) {
+    //   //   if (canResizeX) {
+    //   //     receiveFromCurve_b.shape.p2 = {
+    //   //       ...receiveFromCurve_b.shape.p2,
+    //   //       x: receiveFromCurve_b.shape.p2.x + xOffset / 2 / this.scale,
+    //   //     };
+
+    //   //     receiveFromCurve_b.shape.cp2.x += xOffset / 2 / this.scale;
+    //   //   }
+    //   // }
+    // } else if (this.pressing.target === PressingTarget.rt) {
+    //   //   const canResizeX =
+    //   //     (xOffset > 0 && p.x > edge.r) ||
+    //   //     (xOffset < 0 &&
+    //   //       p.x < edge.r &&
+    //   //       this.getScaleSize().w >= this.getScaleSize().minW),
+    //   //     canResizeY =
+    //   //       (yOffset > 0 &&
+    //   //         p.y > edge.t &&
+    //   //         this.getScaleSize().h >= this.getScaleSize().minH) ||
+    //   //       (yOffset < 0 && p.y < edge.t);
+
+    //   //   if (canResizeX) {
+    //   //     this.p = {
+    //   //       ...this.p,
+    //   //       x: this.p.x + xOffset / 2 / this.scale,
+    //   //     };
+
+    //   //     this.w += xOffset / this.scale;
+    //   //   }
+    //   //   if (canResizeY) {
+    //   //     this.p = {
+    //   //       ...this.p,
+    //   //       y: this.p.y + yOffset / 2 / this.scale,
+    //   //     };
+    //   //     this.h -= yOffset / this.scale;
+    //   //   }
+
+    //   //   if (
+    //   //     this.curves.l?.shape?.p1 &&
+    //   //     this.curves.l?.shape?.cp1 &&
+    //   //     this.curves.l?.shape?.cp2 &&
+    //   //     this.curves.l?.shape?.p2
+    //   //   ) {
+    //   //     if (canResizeX) {
+    //   //       this.curves.l.shape.p1.x -= xOffset / 2 / this.scale;
+    //   //     }
+
+    //   //     if (canResizeY) {
+    //   //       this.curves.l.shape.cp1.x -= xOffset / 2 / this.scale;
+    //   //     }
+
+    //   //     if (sendToCurve_l) {
+    //   //       this.senderHoldCurveP2Cp2Position(
+    //   //         Direction.l,
+    //   //         xOffset,
+    //   //         yOffset,
+    //   //       );
+    //   //     } else {
+    //   //       if (canResizeX) {
+    //   //         this.curves.l.shape.cp2.x -= xOffset / 2 / this.scale;
+    //   //         this.curves.l.shape.p2 = {
+    //   //           ...this.curves.l.shape.p2,
+    //   //           x: this.curves.l.shape.p2.x - xOffset / 2 / this.scale,
+    //   //         };
+    //   //       }
+    //   //     }
+    //   //   }
+
+    //   //   if (
+    //   //     this.curves.t?.shape?.p1 &&
+    //   //     this.curves.t?.shape?.cp1 &&
+    //   //     this.curves.t?.shape?.cp2 &&
+    //   //     this.curves.t?.shape?.p2
+    //   //   ) {
+    //   //     if (canResizeY) {
+    //   //       this.curves.t.shape.p1.y += yOffset / 2 / this.scale;
+    //   //       this.curves.t.shape.cp1.y += yOffset / 2 / this.scale;
+    //   //     }
+    //   //     if (sendToCurve_t) {
+    //   //       this.senderHoldCurveP2Cp2Position(
+    //   //         Direction.t,
+    //   //         xOffset,
+    //   //         yOffset,
+    //   //       );
+    //   //     } else {
+    //   //       if (canResizeY) {
+    //   //         this.curves.t.shape.cp2.y += yOffset / 2 / this.scale;
+    //   //         this.curves.t.shape.p2 = {
+    //   //           ...this.curves.t.shape.p2,
+    //   //           y: this.curves.t.shape.p2.y + yOffset / 2 / this.scale,
+    //   //         };
+    //   //       }
+    //   //     }
+    //   //   }
+    //   //   if (
+    //   //     this.curves.r?.shape?.p1 &&
+    //   //     this.curves.r?.shape?.cp1 &&
+    //   //     this.curves.r?.shape?.cp2 &&
+    //   //     this.curves.r?.shape?.p2
+    //   //   ) {
+    //   //     if (canResizeX) {
+    //   //       this.curves.r.shape.p1.x += xOffset / 2 / this.scale;
+    //   //       this.curves.r.shape.cp1.x += xOffset / 2 / this.scale;
+    //   //     }
+    //   //     if (sendToCurve_r) {
+    //   //       this.senderHoldCurveP2Cp2Position(
+    //   //         Direction.r,
+    //   //         xOffset,
+    //   //         yOffset,
+    //   //       );
+    //   //     } else {
+    //   //       if (canResizeX) {
+    //   //         this.curves.r.shape.cp2.x += xOffset / 2 / this.scale;
+    //   //         this.curves.r.shape.p2 = {
+    //   //           ...this.curves.r.shape.p2,
+    //   //           x: this.curves.r.shape.p2.x + xOffset / 2 / this.scale,
+    //   //         };
+    //   //       }
+    //   //     }
+    //   //   }
+
+    //   //   if (
+    //   //     this.curves.b?.shape?.p1 &&
+    //   //     this.curves.b?.shape?.cp1 &&
+    //   //     this.curves.b?.shape?.cp2 &&
+    //   //     this.curves.b?.shape?.p2
+    //   //   ) {
+    //   //     if (canResizeY) {
+    //   //       this.curves.b.shape.p1.y -= yOffset / 2 / this.scale;
+    //   //       this.curves.b.shape.cp1.y -= yOffset / 2 / this.scale;
+    //   //     }
+    //   //     if (sendToCurve_b) {
+    //   //       this.senderHoldCurveP2Cp2Position(
+    //   //         Direction.b,
+    //   //         xOffset,
+    //   //         yOffset,
+    //   //       );
+    //   //     } else {
+    //   //       if (canResizeY) {
+    //   //         this.curves.b.shape.cp2.y -= yOffset / 2 / this.scale;
+    //   //         this.curves.b.shape.p2 = {
+    //   //           ...this.curves.b.shape.p2,
+    //   //           y: this.curves.b.shape.p2.y - yOffset / 2 / this.scale,
+    //   //         };
+    //   //       }
+    //   //     }
+    //   //   }
+
+    //   //   // resizing by reciever rt point and change sender curve p1 p2 position
+    //   //   if (receiveFromCurve_l?.shape?.p2 && receiveFromCurve_l?.shape?.cp2) {
+    //   //     if (canResizeY) {
+    //   //       receiveFromCurve_l.shape.p2 = {
+    //   //         ...receiveFromCurve_l.shape.p2,
+    //   //         y: receiveFromCurve_l.shape.p2.y + yOffset / 2 / this.scale,
+    //   //       };
+
+    //   //       receiveFromCurve_l.shape.cp2.y += yOffset / 2 / this.scale;
+    //   //     }
+    //   //   }
+
+    //   //   if (receiveFromCurve_t?.shape?.p2 && receiveFromCurve_t?.shape?.cp2) {
+    //   //     if (canResizeX) {
+    //   //       receiveFromCurve_t.shape.p2 = {
+    //   //         ...receiveFromCurve_t.shape.p2,
+    //   //         x: receiveFromCurve_t.shape.p2.x + xOffset / 2 / this.scale,
+    //   //       };
+    //   //       receiveFromCurve_t.shape.cp2.x += xOffset / 2 / this.scale;
+    //   //     }
+
+    //   //     if (canResizeY) {
+    //   //       receiveFromCurve_t.shape.p2 = {
+    //   //         ...receiveFromCurve_t.shape.p2,
+    //   //         y: receiveFromCurve_t.shape.p2.y + yOffset / this.scale,
+    //   //       };
+    //   //       receiveFromCurve_t.shape.cp2.y += yOffset / this.scale;
+    //   //     }
+    //   //   }
+
+    //   //   if (receiveFromCurve_r?.shape?.p2 && receiveFromCurve_r?.shape?.cp2) {
+    //   //     if (canResizeX) {
+    //   //       receiveFromCurve_r.shape.p2 = {
+    //   //         ...receiveFromCurve_r.shape.p2,
+    //   //         x: receiveFromCurve_r.shape.p2.x + xOffset / this.scale,
+    //   //       };
+    //   //       receiveFromCurve_r.shape.cp2.x += xOffset / this.scale;
+    //   //     }
+
+    //   //     if (canResizeY) {
+    //   //       receiveFromCurve_r.shape.p2 = {
+    //   //         ...receiveFromCurve_r.shape.p2,
+    //   //         y: receiveFromCurve_r.shape.p2.y + yOffset / 2 / this.scale,
+    //   //       };
+    //   //       receiveFromCurve_r.shape.cp2.y += yOffset / 2 / this.scale;
+    //   //     }
+    //   //   }
+
+    //   //   if (receiveFromCurve_b?.shape?.p2 && receiveFromCurve_b?.shape?.cp2) {
+    //   //     if (canResizeX) {
+    //   //       receiveFromCurve_b.shape.p2 = {
+    //   //         ...receiveFromCurve_b.shape.p2,
+    //   //         x: receiveFromCurve_b.shape.p2.x + xOffset / 2 / this.scale,
+    //   //       };
+
+    //   //       receiveFromCurve_b.shape.cp2.x += xOffset / 2 / this.scale;
+    //   //     }
+    //   //   }
+    //   // } else if (this.pressing.target === PressingTarget.rb) {
+    //   //   const canResizeX =
+    //   //     (xOffset > 0 && p.x > edge.r) ||
+    //   //     (xOffset < 0 &&
+    //   //       p.x < edge.r &&
+    //   //       this.getScaleSize().w >= this.getScaleSize().minW),
+    //   //     canResizeY =
+    //   //       (yOffset > 0 && p.y > edge.b) ||
+    //   //       (yOffset < 0 &&
+    //   //         p.y < edge.b &&
+    //   //         this.getScaleSize().h >= this.getScaleSize().minH);
+
+    //   //   if (canResizeX) {
+    //   //     this.p = {
+    //   //       ...this.p,
+    //   //       x: this.p.x + xOffset / 2 / this.scale,
+    //   //     };
+    //   //     this.w += xOffset / this.scale;
+    //   //   }
+    //   //   if (canResizeY) {
+    //   //     this.p = {
+    //   //       ...this.p,
+    //   //       y: this.p.y + yOffset / 2 / this.scale,
+    //   //     };
+    //   //     this.h += yOffset / this.scale;
+    //   //   }
+
+    //   //   if (
+    //   //     this.curves.l?.shape?.p1 &&
+    //   //     this.curves.l?.shape?.cp1 &&
+    //   //     this.curves.l?.shape?.cp2 &&
+    //   //     this.curves.l?.shape?.p2
+    //   //   ) {
+    //   //     if (canResizeX) {
+    //   //       this.curves.l.shape.p1.x -= xOffset / 2 / this.scale;
+    //   //       this.curves.l.shape.cp1.x -= xOffset / 2 / this.scale;
+    //   //     }
+
+    //   //     if (sendToCurve_l) {
+    //   //       this.senderHoldCurveP2Cp2Position(
+    //   //         Direction.l,
+    //   //         xOffset,
+    //   //         yOffset,
+    //   //       );
+    //   //     } else {
+    //   //       if (canResizeX) {
+    //   //         this.curves.l.shape.cp2.x -= xOffset / 2 / this.scale;
+    //   //         this.curves.l.shape.p2 = {
+    //   //           ...this.curves.l.shape.p2,
+    //   //           x: this.curves.l.shape.p2.x - xOffset / 2 / this.scale,
+    //   //         };
+    //   //       }
+    //   //     }
+    //   //   }
+
+    //   //   if (
+    //   //     this.curves.t?.shape?.p1 &&
+    //   //     this.curves.t?.shape?.cp1 &&
+    //   //     this.curves.t?.shape?.cp2 &&
+    //   //     this.curves.t?.shape?.p2
+    //   //   ) {
+    //   //     if (canResizeY) {
+    //   //       this.curves.t.shape.p1.y -= yOffset / 2 / this.scale;
+    //   //       this.curves.t.shape.cp1.y -= yOffset / 2 / this.scale;
+    //   //     }
+
+    //   //     if (sendToCurve_t) {
+    //   //       this.senderHoldCurveP2Cp2Position(
+    //   //         Direction.t,
+    //   //         xOffset,
+    //   //         yOffset,
+    //   //       );
+    //   //     } else {
+    //   //       if (canResizeY) {
+    //   //         this.curves.t.shape.cp2.y -= yOffset / 2 / this.scale;
+    //   //         this.curves.t.shape.p2 = {
+    //   //           ...this.curves.t.shape.p2,
+    //   //           y: this.curves.t.shape.p2.y - yOffset / 2 / this.scale,
+    //   //         };
+    //   //       }
+    //   //     }
+    //   //   }
+
+    //   //   if (
+    //   //     this.curves.r?.shape?.p1 &&
+    //   //     this.curves.r?.shape?.cp1 &&
+    //   //     this.curves.r?.shape?.cp2 &&
+    //   //     this.curves.r?.shape?.p2
+    //   //   ) {
+    //   //     if (canResizeX) {
+    //   //       this.curves.r.shape.p1.x += xOffset / 2 / this.scale;
+    //   //       this.curves.r.shape.cp1.x += xOffset / 2 / this.scale;
+    //   //     }
+
+    //   //     if (sendToCurve_r) {
+    //   //       this.senderHoldCurveP2Cp2Position(
+    //   //         Direction.r,
+    //   //         xOffset,
+    //   //         yOffset,
+    //   //       );
+    //   //     } else {
+    //   //       if (canResizeX) {
+    //   //         this.curves.r.shape.cp2.x += xOffset / 2 / this.scale;
+    //   //         this.curves.r.shape.p2 = {
+    //   //           ...this.curves.r.shape.p2,
+    //   //           x: this.curves.r.shape.p2.x + xOffset / 2 / this.scale,
+    //   //         };
+    //   //       }
+    //   //     }
+    //   //   }
+
+    //   //   if (
+    //   //     this.curves.b?.shape?.p1 &&
+    //   //     this.curves.b?.shape?.cp1 &&
+    //   //     this.curves.b?.shape?.cp2 &&
+    //   //     this.curves.b?.shape?.p2
+    //   //   ) {
+    //   //     if (canResizeY) {
+    //   //       this.curves.b.shape.p1.y += yOffset / 2 / this.scale;
+    //   //       this.curves.b.shape.cp1.y += yOffset / 2 / this.scale;
+    //   //     }
+    //   //     if (sendToCurve_b) {
+    //   //       this.senderHoldCurveP2Cp2Position(
+    //   //         Direction.b,
+    //   //         xOffset,
+    //   //         yOffset,
+    //   //       );
+    //   //     } else {
+    //   //       if (canResizeY) {
+    //   //         this.curves.b.shape.cp2.y += yOffset / 2 / this.scale;
+    //   //         this.curves.b.shape.p2 = {
+    //   //           ...this.curves.b.shape.p2,
+    //   //           y: this.curves.b.shape.p2.y + yOffset / 2 / this.scale,
+    //   //         };
+    //   //       }
+    //   //     }
+    //   //   }
+
+    //   //   // resizing by reciever rb point and change sender curve p1 p2 position
+    //   //   if (receiveFromCurve_l?.shape?.p2 && receiveFromCurve_l?.shape?.cp2) {
+    //   //     if (canResizeY) {
+    //   //       receiveFromCurve_l.shape.p2 = {
+    //   //         ...receiveFromCurve_l.shape.p2,
+    //   //         y: receiveFromCurve_l.shape.p2.y + yOffset / 2 / this.scale,
+    //   //       };
+    //   //       receiveFromCurve_l.shape.cp2.y += yOffset / 2 / this.scale;
+    //   //     }
+    //   //   }
+
+    //   //   if (receiveFromCurve_t?.shape?.p2 && receiveFromCurve_t?.shape?.cp2) {
+    //   //     if (canResizeX) {
+    //   //       receiveFromCurve_t.shape.p2 = {
+    //   //         ...receiveFromCurve_t.shape.p2,
+    //   //         x: receiveFromCurve_t.shape.p2.x + xOffset / 2 / this.scale,
+    //   //       };
+    //   //       receiveFromCurve_t.shape.cp2.x += xOffset / 2 / this.scale;
+    //   //     }
+    //   //   }
+
+    //   //   if (receiveFromCurve_r?.shape?.p2 && receiveFromCurve_r?.shape?.cp2) {
+    //   //     if (canResizeX) {
+    //   //       receiveFromCurve_r.shape.p2 = {
+    //   //         ...receiveFromCurve_r.shape.p2,
+    //   //         x: receiveFromCurve_r.shape.p2.x + xOffset / this.scale,
+    //   //       };
+    //   //       receiveFromCurve_r.shape.cp2.x += xOffset / this.scale;
+    //   //     }
+    //   //     if (canResizeY) {
+    //   //       receiveFromCurve_r.shape.p2 = {
+    //   //         ...receiveFromCurve_r.shape.p2,
+    //   //         y: receiveFromCurve_r.shape.p2.y + yOffset / 2 / this.scale,
+    //   //       };
+    //   //       receiveFromCurve_r.shape.cp2.y += yOffset / 2 / this.scale;
+    //   //     }
+    //   //   }
+
+    //   //   if (receiveFromCurve_b?.shape?.p2 && receiveFromCurve_b?.shape?.cp2) {
+    //   //     if (canResizeX) {
+    //   //       receiveFromCurve_b.shape.p2 = {
+    //   //         ...receiveFromCurve_b.shape.p2,
+    //   //         x: receiveFromCurve_b.shape.p2.x + xOffset / 2 / this.scale,
+    //   //       };
+    //   //       receiveFromCurve_b.shape.cp2.x += xOffset / 2 / this.scale;
+    //   //     }
+
+    //   //     if (canResizeY) {
+    //   //       receiveFromCurve_b.shape.p2 = {
+    //   //         ...receiveFromCurve_b.shape.p2,
+    //   //         y: receiveFromCurve_b.shape.p2.y + yOffset / this.scale,
+    //   //       };
+    //   //       receiveFromCurve_b.shape.cp2.y += yOffset / this.scale;
+    //   //     }
+    //   //   }
+    // } else if (this.pressing.target === PressingTarget.rb) {
+    //   //   const canResizeX =
+    //   //     (xOffset > 0 && p.x > edge.r) ||
+    //   //     (xOffset < 0 &&
+    //   //       p.x < edge.r &&
+    //   //       this.getScaleSize().w >= this.getScaleSize().minW),
+    //   //     canResizeY =
+    //   //       (yOffset > 0 && p.y > edge.b) ||
+    //   //       (yOffset < 0 &&
+    //   //         p.y < edge.b &&
+    //   //         this.getScaleSize().h >= this.getScaleSize().minH);
+
+    //   //   if (canResizeX) {
+    //   //     this.p = {
+    //   //       ...this.p,
+    //   //       x: this.p.x + xOffset / 2 / this.scale,
+    //   //     };
+    //   //     this.w += xOffset / this.scale;
+    //   //   }
+    //   //   if (canResizeY) {
+    //   //     this.p = {
+    //   //       ...this.p,
+    //   //       y: this.p.y + yOffset / 2 / this.scale,
+    //   //     };
+    //   //     this.h += yOffset / this.scale;
+    //   //   }
+
+    //   //   if (
+    //   //     this.curves.l?.shape?.p1 &&
+    //   //     this.curves.l?.shape?.cp1 &&
+    //   //     this.curves.l?.shape?.cp2 &&
+    //   //     this.curves.l?.shape?.p2
+    //   //   ) {
+    //   //     if (canResizeX) {
+    //   //       this.curves.l.shape.p1.x -= xOffset / 2 / this.scale;
+    //   //       this.curves.l.shape.cp1.x -= xOffset / 2 / this.scale;
+    //   //     }
+
+    //   //     if (sendToCurve_l) {
+    //   //       this.senderHoldCurveP2Cp2Position(
+    //   //         Direction.l,
+    //   //         xOffset,
+    //   //         yOffset,
+    //   //       );
+    //   //     } else {
+    //   //       if (canResizeX) {
+    //   //         this.curves.l.shape.cp2.x -= xOffset / 2 / this.scale;
+    //   //         this.curves.l.shape.p2 = {
+    //   //           ...this.curves.l.shape.p2,
+    //   //           x: this.curves.l.shape.p2.x - xOffset / 2 / this.scale,
+    //   //         };
+    //   //       }
+    //   //     }
+    //   //   }
+
+    //   //   if (
+    //   //     this.curves.t?.shape?.p1 &&
+    //   //     this.curves.t?.shape?.cp1 &&
+    //   //     this.curves.t?.shape?.cp2 &&
+    //   //     this.curves.t?.shape?.p2
+    //   //   ) {
+    //   //     if (canResizeY) {
+    //   //       this.curves.t.shape.p1.y -= yOffset / 2 / this.scale;
+    //   //       this.curves.t.shape.cp1.y -= yOffset / 2 / this.scale;
+    //   //     }
+
+    //   //     if (sendToCurve_t) {
+    //   //       this.senderHoldCurveP2Cp2Position(
+    //   //         Direction.t,
+    //   //         xOffset,
+    //   //         yOffset,
+    //   //       );
+    //   //     } else {
+    //   //       if (canResizeY) {
+    //   //         this.curves.t.shape.cp2.y -= yOffset / 2 / this.scale;
+    //   //         this.curves.t.shape.p2 = {
+    //   //           ...this.curves.t.shape.p2,
+    //   //           y: this.curves.t.shape.p2.y - yOffset / 2 / this.scale,
+    //   //         };
+    //   //       }
+    //   //     }
+    //   //   }
+
+    //   //   if (
+    //   //     this.curves.r?.shape?.p1 &&
+    //   //     this.curves.r?.shape?.cp1 &&
+    //   //     this.curves.r?.shape?.cp2 &&
+    //   //     this.curves.r?.shape?.p2
+    //   //   ) {
+    //   //     if (canResizeX) {
+    //   //       this.curves.r.shape.p1.x += xOffset / 2 / this.scale;
+    //   //       this.curves.r.shape.cp1.x += xOffset / 2 / this.scale;
+    //   //     }
+
+    //   //     if (sendToCurve_r) {
+    //   //       this.senderHoldCurveP2Cp2Position(
+    //   //         Direction.r,
+    //   //         xOffset,
+    //   //         yOffset,
+    //   //       );
+    //   //     } else {
+    //   //       if (canResizeX) {
+    //   //         this.curves.r.shape.cp2.x += xOffset / 2 / this.scale;
+    //   //         this.curves.r.shape.p2 = {
+    //   //           ...this.curves.r.shape.p2,
+    //   //           x: this.curves.r.shape.p2.x + xOffset / 2 / this.scale,
+    //   //         };
+    //   //       }
+    //   //     }
+    //   //   }
+
+    //   //   if (
+    //   //     this.curves.b?.shape?.p1 &&
+    //   //     this.curves.b?.shape?.cp1 &&
+    //   //     this.curves.b?.shape?.cp2 &&
+    //   //     this.curves.b?.shape?.p2
+    //   //   ) {
+    //   //     if (canResizeY) {
+    //   //       this.curves.b.shape.p1.y += yOffset / 2 / this.scale;
+    //   //       this.curves.b.shape.cp1.y += yOffset / 2 / this.scale;
+    //   //     }
+    //   //     if (sendToCurve_b) {
+    //   //       this.senderHoldCurveP2Cp2Position(
+    //   //         Direction.b,
+    //   //         xOffset,
+    //   //         yOffset,
+    //   //       );
+    //   //     } else {
+    //   //       if (canResizeY) {
+    //   //         this.curves.b.shape.cp2.y += yOffset / 2 / this.scale;
+    //   //         this.curves.b.shape.p2 = {
+    //   //           ...this.curves.b.shape.p2,
+    //   //           y: this.curves.b.shape.p2.y + yOffset / 2 / this.scale,
+    //   //         };
+    //   //       }
+    //   //     }
+    //   //   }
+
+    //   //   // resizing by reciever rb point and change sender curve p1 p2 position
+    //   //   if (receiveFromCurve_l?.shape?.p2 && receiveFromCurve_l?.shape?.cp2) {
+    //   //     if (canResizeY) {
+    //   //       receiveFromCurve_l.shape.p2 = {
+    //   //         ...receiveFromCurve_l.shape.p2,
+    //   //         y: receiveFromCurve_l.shape.p2.y + yOffset / 2 / this.scale,
+    //   //       };
+    //   //       receiveFromCurve_l.shape.cp2.y += yOffset / 2 / this.scale;
+    //   //     }
+    //   //   }
+
+    //   //   if (receiveFromCurve_t?.shape?.p2 && receiveFromCurve_t?.shape?.cp2) {
+    //   //     if (canResizeX) {
+    //   //       receiveFromCurve_t.shape.p2 = {
+    //   //         ...receiveFromCurve_t.shape.p2,
+    //   //         x: receiveFromCurve_t.shape.p2.x + xOffset / 2 / this.scale,
+    //   //       };
+    //   //       receiveFromCurve_t.shape.cp2.x += xOffset / 2 / this.scale;
+    //   //     }
+    //   //   }
+
+    //   //   if (receiveFromCurve_r?.shape?.p2 && receiveFromCurve_r?.shape?.cp2) {
+    //   //     if (canResizeX) {
+    //   //       receiveFromCurve_r.shape.p2 = {
+    //   //         ...receiveFromCurve_r.shape.p2,
+    //   //         x: receiveFromCurve_r.shape.p2.x + xOffset / this.scale,
+    //   //       };
+    //   //       receiveFromCurve_r.shape.cp2.x += xOffset / this.scale;
+    //   //     }
+    //   //     if (canResizeY) {
+    //   //       receiveFromCurve_r.shape.p2 = {
+    //   //         ...receiveFromCurve_r.shape.p2,
+    //   //         y: receiveFromCurve_r.shape.p2.y + yOffset / 2 / this.scale,
+    //   //       };
+    //   //       receiveFromCurve_r.shape.cp2.y += yOffset / 2 / this.scale;
+    //   //     }
+    //   //   }
+
+    //   //   if (receiveFromCurve_b?.shape?.p2 && receiveFromCurve_b?.shape?.cp2) {
+    //   //     if (canResizeX) {
+    //   //       receiveFromCurve_b.shape.p2 = {
+    //   //         ...receiveFromCurve_b.shape.p2,
+    //   //         x: receiveFromCurve_b.shape.p2.x + xOffset / 2 / this.scale,
+    //   //       };
+    //   //       receiveFromCurve_b.shape.cp2.x += xOffset / 2 / this.scale;
+    //   //     }
+
+    //   //     if (canResizeY) {
+    //   //       receiveFromCurve_b.shape.p2 = {
+    //   //         ...receiveFromCurve_b.shape.p2,
+    //   //         y: receiveFromCurve_b.shape.p2.y + yOffset / this.scale,
+    //   //       };
+    //   //       receiveFromCurve_b.shape.cp2.y += yOffset / this.scale;
+    //   //     }
+    //   //   }
+    //   // } else if (this.pressing.target === PressingTarget.lb) {
+    //   //   const canResizeX =
+    //   //     (xOffset > 0 &&
+    //   //       p.x > edge.l &&
+    //   //       this.getScaleSize().w >= this.getScaleSize().minW) ||
+    //   //     (xOffset < 0 && p.x < edge.l),
+    //   //     canResizeY =
+    //   //       (yOffset > 0 && p.y > edge.b) ||
+    //   //       (yOffset < 0 &&
+    //   //         p.y < edge.b &&
+    //   //         this.getScaleSize().h >= this.getScaleSize().minH);
+
+    //   //   if (canResizeX) {
+    //   //     this.p = {
+    //   //       ...this.p,
+    //   //       x: this.p.x + xOffset / 2 / this.scale,
+    //   //     };
+    //   //     this.w -= xOffset / this.scale;
+    //   //   }
+    //   //   if (canResizeY) {
+    //   //     this.p = {
+    //   //       ...this.p,
+    //   //       y: this.p.y + yOffset / 2 / this.scale,
+    //   //     };
+    //   //     this.h += yOffset / this.scale;
+    //   //   }
+
+    //   //   if (
+    //   //     this.curves.l?.shape?.p1 &&
+    //   //     this.curves.l?.shape?.cp1 &&
+    //   //     this.curves.l?.shape?.cp2 &&
+    //   //     this.curves.l?.shape?.p2
+    //   //   ) {
+    //   //     if (canResizeX) {
+    //   //       this.curves.l.shape.p1.x += xOffset / 2 / this.scale;
+    //   //       this.curves.l.shape.cp1.x += xOffset / 2 / this.scale;
+    //   //     }
+
+    //   //     if (sendToCurve_l) {
+    //   //       this.senderHoldCurveP2Cp2Position(
+    //   //         Direction.l,
+    //   //         xOffset,
+    //   //         yOffset,
+
+    //   //       );
+    //   //     } else {
+    //   //       if (canResizeX) {
+    //   //         this.curves.l.shape.cp2.x += xOffset / 2 / this.scale;
+    //   //         this.curves.l.shape.p2 = {
+    //   //           ...this.curves.l.shape.p2,
+    //   //           x: this.curves.l.shape.p2.x + xOffset / 2 / this.scale,
+    //   //         };
+    //   //       }
+    //   //     }
+    //   //   }
+
+    //   //   if (
+    //   //     this.curves.t?.shape?.p1 &&
+    //   //     this.curves.t?.shape?.cp1 &&
+    //   //     this.curves.t?.shape?.cp2 &&
+    //   //     this.curves.t?.shape?.p2
+    //   //   ) {
+    //   //     if (canResizeY) {
+    //   //       this.curves.t.shape.p1.y -= yOffset / 2 / this.scale;
+    //   //       this.curves.t.shape.cp1.y -= yOffset / 2 / this.scale;
+    //   //     }
+
+    //   //     if (sendToCurve_t) {
+    //   //       this.senderHoldCurveP2Cp2Position(
+    //   //         Direction.t,
+    //   //         xOffset,
+    //   //         yOffset,
+    //   //       );
+    //   //     } else {
+    //   //       if (canResizeY) {
+    //   //         this.curves.t.shape.cp2.y -= yOffset / 2 / this.scale;
+    //   //         this.curves.t.shape.p2 = {
+    //   //           ...this.curves.t.shape.p2,
+    //   //           y: this.curves.t.shape.p2.y - yOffset / 2 / this.scale,
+    //   //         };
+    //   //       }
+    //   //     }
+    //   //   }
+
+    //   //   if (
+    //   //     this.curves.r?.shape?.p1 &&
+    //   //     this.curves.r?.shape?.cp1 &&
+    //   //     this.curves.r?.shape?.cp2 &&
+    //   //     this.curves.r?.shape?.p2
+    //   //   ) {
+    //   //     if (canResizeX) {
+    //   //       this.curves.r.shape.p1.x -= xOffset / 2 / this.scale;
+    //   //       this.curves.r.shape.cp1.x -= xOffset / 2 / this.scale;
+    //   //     }
+
+    //   //     if (sendToCurve_r) {
+    //   //       this.senderHoldCurveP2Cp2Position(
+    //   //         Direction.r,
+    //   //         xOffset,
+    //   //         yOffset,
+    //   //       );
+    //   //     } else {
+    //   //       if (canResizeX) {
+    //   //         this.curves.r.shape.cp2.x -= xOffset / 2 / this.scale;
+    //   //         this.curves.r.shape.p2 = {
+    //   //           ...this.curves.r.shape.p2,
+    //   //           x: this.curves.r.shape.p2.x - xOffset / 2 / this.scale,
+    //   //         };
+    //   //       }
+    //   //     }
+    //   //   }
+
+    //   //   if (
+    //   //     this.curves.b?.shape?.p1 &&
+    //   //     this.curves.b?.shape?.cp1 &&
+    //   //     this.curves.b?.shape?.cp2 &&
+    //   //     this.curves.b?.shape?.p2
+    //   //   ) {
+    //   //     if (canResizeY) {
+    //   //       this.curves.b.shape.p1.y += yOffset / 2 / this.scale;
+    //   //       this.curves.b.shape.cp1.y += yOffset / 2 / this.scale;
+    //   //     }
+
+    //   //     if (sendToCurve_b) {
+    //   //       this.senderHoldCurveP2Cp2Position(
+    //   //         Direction.b,
+    //   //         xOffset,
+    //   //         yOffset,
+    //   //       );
+    //   //     } else {
+    //   //       if (canResizeY) {
+    //   //         this.curves.b.shape.cp2.y += yOffset / 2 / this.scale;
+    //   //         this.curves.b.shape.p2 = {
+    //   //           ...this.curves.b.shape.p2,
+    //   //           y: this.curves.b.shape.p2.y + yOffset / 2 / this.scale,
+    //   //         };
+    //   //       }
+    //   //     }
+    //   //   }
+
+    //   //   // resizing by reciever lb point and change sender curve p1 p2 position
+    //   //   if (receiveFromCurve_l?.shape?.p2 && receiveFromCurve_l?.shape?.cp2) {
+    //   //     if (canResizeX) {
+    //   //       receiveFromCurve_l.shape.p2 = {
+    //   //         ...receiveFromCurve_l.shape.p2,
+    //   //         x: receiveFromCurve_l.shape.p2.x + xOffset / this.scale,
+    //   //       };
+
+    //   //       receiveFromCurve_l.shape.cp2.x += xOffset / this.scale;
+    //   //     }
+
+    //   //     if (canResizeY) {
+    //   //       receiveFromCurve_l.shape.p2 = {
+    //   //         ...receiveFromCurve_l.shape.p2,
+    //   //         y: receiveFromCurve_l.shape.p2.y + yOffset / 2 / this.scale,
+    //   //       };
+    //   //       receiveFromCurve_l.shape.cp2.y += yOffset / 2 / this.scale;
+    //   //     }
+    //   //   }
+
+    //   //   if (receiveFromCurve_t?.shape?.p2 && receiveFromCurve_t?.shape?.cp2) {
+    //   //     if (canResizeX) {
+    //   //       receiveFromCurve_t.shape.p2 = {
+    //   //         ...receiveFromCurve_t.shape.p2,
+    //   //         x: receiveFromCurve_t.shape.p2.x + xOffset / 2 / this.scale,
+    //   //       };
+    //   //       receiveFromCurve_t.shape.cp2.x += xOffset / 2 / this.scale;
+    //   //     }
+    //   //   }
+
+    //   //   if (receiveFromCurve_r?.shape?.p2 && receiveFromCurve_r?.shape?.cp2) {
+    //   //     if (canResizeY) {
+    //   //       receiveFromCurve_r.shape.p2 = {
+    //   //         ...receiveFromCurve_r.shape.p2,
+    //   //         y: receiveFromCurve_r.shape.p2.y + yOffset / 2 / this.scale,
+    //   //       };
+    //   //       receiveFromCurve_r.shape.cp2.y += yOffset / 2 / this.scale;
+    //   //     }
+    //   //   }
+
+    //   //   if (receiveFromCurve_b?.shape?.p2 && receiveFromCurve_b?.shape?.cp2) {
+    //   //     if (canResizeX) {
+    //   //       receiveFromCurve_b.shape.p2 = {
+    //   //         ...receiveFromCurve_b.shape.p2,
+    //   //         x: receiveFromCurve_b.shape.p2.x + xOffset / 2 / this.scale,
+    //   //       };
+    //   //       receiveFromCurve_b.shape.cp2.x += xOffset / 2 / this.scale;
+    //   //     }
+    //   //     if (canResizeY) {
+    //   //       receiveFromCurve_b.shape.p2 = {
+    //   //         ...receiveFromCurve_b.shape.p2,
+    //   //         y: receiveFromCurve_b.shape.p2.y + yOffset / this.scale,
+    //   //       };
+
+    //   //       receiveFromCurve_b.shape.cp2.y += yOffset / this.scale;
+    //   //     }
+    //   //   }
+    // } else if (this.pressing.target === PressingTarget.lb) {
+    //   // const canResizeX =
+    //   //   (xOffset > 0 &&
+    //   //     p.x > edge.l &&
+    //   //     this.getScaleSize().w >= this.getScaleSize().minW) ||
+    //   //   (xOffset < 0 && p.x < edge.l),
+    //   //   canResizeY =
+    //   //     (yOffset > 0 && p.y > edge.b) ||
+    //   //     (yOffset < 0 &&
+    //   //       p.y < edge.b &&
+    //   //       this.getScaleSize().h >= this.getScaleSize().minH);
+
+    //   // if (canResizeX) {
+    //   //   this.p = {
+    //   //     ...this.p,
+    //   //     x: this.p.x + xOffset / 2 / this.scale,
+    //   //   };
+    //   //   this.w -= xOffset / this.scale;
+    //   // }
+    //   // if (canResizeY) {
+    //   //   this.p = {
+    //   //     ...this.p,
+    //   //     y: this.p.y + yOffset / 2 / this.scale,
+    //   //   };
+    //   //   this.h += yOffset / this.scale;
+    //   // }
+
+    //   // if (
+    //   //   this.curves.l?.shape?.p1 &&
+    //   //   this.curves.l?.shape?.cp1 &&
+    //   //   this.curves.l?.shape?.cp2 &&
+    //   //   this.curves.l?.shape?.p2
+    //   // ) {
+    //   //   if (canResizeX) {
+    //   //     this.curves.l.shape.p1.x += xOffset / 2 / this.scale;
+    //   //     this.curves.l.shape.cp1.x += xOffset / 2 / this.scale;
+    //   //   }
+
+    //   //   if (sendToCurve_l) {
+    //   //     this.senderHoldCurveP2Cp2Position(
+    //   //       Direction.l,
+    //   //       xOffset,
+    //   //       yOffset,
+
+    //   //     );
+    //   //   } else {
+    //   //     if (canResizeX) {
+    //   //       this.curves.l.shape.cp2.x += xOffset / 2 / this.scale;
+    //   //       this.curves.l.shape.p2 = {
+    //   //         ...this.curves.l.shape.p2,
+    //   //         x: this.curves.l.shape.p2.x + xOffset / 2 / this.scale,
+    //   //       };
+    //   //     }
+    //   //   }
+    //   // }
+
+    //   // if (
+    //   //   this.curves.t?.shape?.p1 &&
+    //   //   this.curves.t?.shape?.cp1 &&
+    //   //   this.curves.t?.shape?.cp2 &&
+    //   //   this.curves.t?.shape?.p2
+    //   // ) {
+    //   //   if (canResizeY) {
+    //   //     this.curves.t.shape.p1.y -= yOffset / 2 / this.scale;
+    //   //     this.curves.t.shape.cp1.y -= yOffset / 2 / this.scale;
+    //   //   }
+
+    //   //   if (sendToCurve_t) {
+    //   //     this.senderHoldCurveP2Cp2Position(
+    //   //       Direction.t,
+    //   //       xOffset,
+    //   //       yOffset,
+    //   //     );
+    //   //   } else {
+    //   //     if (canResizeY) {
+    //   //       this.curves.t.shape.cp2.y -= yOffset / 2 / this.scale;
+    //   //       this.curves.t.shape.p2 = {
+    //   //         ...this.curves.t.shape.p2,
+    //   //         y: this.curves.t.shape.p2.y - yOffset / 2 / this.scale,
+    //   //       };
+    //   //     }
+    //   //   }
+    //   // }
+
+    //   // if (
+    //   //   this.curves.r?.shape?.p1 &&
+    //   //   this.curves.r?.shape?.cp1 &&
+    //   //   this.curves.r?.shape?.cp2 &&
+    //   //   this.curves.r?.shape?.p2
+    //   // ) {
+    //   //   if (canResizeX) {
+    //   //     this.curves.r.shape.p1.x -= xOffset / 2 / this.scale;
+    //   //     this.curves.r.shape.cp1.x -= xOffset / 2 / this.scale;
+    //   //   }
+
+    //   //   if (sendToCurve_r) {
+    //   //     this.senderHoldCurveP2Cp2Position(
+    //   //       Direction.r,
+    //   //       xOffset,
+    //   //       yOffset,
+    //   //     );
+    //   //   } else {
+    //   //     if (canResizeX) {
+    //   //       this.curves.r.shape.cp2.x -= xOffset / 2 / this.scale;
+    //   //       this.curves.r.shape.p2 = {
+    //   //         ...this.curves.r.shape.p2,
+    //   //         x: this.curves.r.shape.p2.x - xOffset / 2 / this.scale,
+    //   //       };
+    //   //     }
+    //   //   }
+    //   // }
+
+    //   // if (
+    //   //   this.curves.b?.shape?.p1 &&
+    //   //   this.curves.b?.shape?.cp1 &&
+    //   //   this.curves.b?.shape?.cp2 &&
+    //   //   this.curves.b?.shape?.p2
+    //   // ) {
+    //   //   if (canResizeY) {
+    //   //     this.curves.b.shape.p1.y += yOffset / 2 / this.scale;
+    //   //     this.curves.b.shape.cp1.y += yOffset / 2 / this.scale;
+    //   //   }
+
+    //   //   if (sendToCurve_b) {
+    //   //     this.senderHoldCurveP2Cp2Position(
+    //   //       Direction.b,
+    //   //       xOffset,
+    //   //       yOffset,
+    //   //     );
+    //   //   } else {
+    //   //     if (canResizeY) {
+    //   //       this.curves.b.shape.cp2.y += yOffset / 2 / this.scale;
+    //   //       this.curves.b.shape.p2 = {
+    //   //         ...this.curves.b.shape.p2,
+    //   //         y: this.curves.b.shape.p2.y + yOffset / 2 / this.scale,
+    //   //       };
+    //   //     }
+    //   //   }
+    //   // }
+
+    //   // // resizing by reciever lb point and change sender curve p1 p2 position
+    //   // if (receiveFromCurve_l?.shape?.p2 && receiveFromCurve_l?.shape?.cp2) {
+    //   //   if (canResizeX) {
+    //   //     receiveFromCurve_l.shape.p2 = {
+    //   //       ...receiveFromCurve_l.shape.p2,
+    //   //       x: receiveFromCurve_l.shape.p2.x + xOffset / this.scale,
+    //   //     };
+
+    //   //     receiveFromCurve_l.shape.cp2.x += xOffset / this.scale;
+    //   //   }
+
+    //   //   if (canResizeY) {
+    //   //     receiveFromCurve_l.shape.p2 = {
+    //   //       ...receiveFromCurve_l.shape.p2,
+    //   //       y: receiveFromCurve_l.shape.p2.y + yOffset / 2 / this.scale,
+    //   //     };
+    //   //     receiveFromCurve_l.shape.cp2.y += yOffset / 2 / this.scale;
+    //   //   }
+    //   // }
+
+    //   // if (receiveFromCurve_t?.shape?.p2 && receiveFromCurve_t?.shape?.cp2) {
+    //   //   if (canResizeX) {
+    //   //     receiveFromCurve_t.shape.p2 = {
+    //   //       ...receiveFromCurve_t.shape.p2,
+    //   //       x: receiveFromCurve_t.shape.p2.x + xOffset / 2 / this.scale,
+    //   //     };
+    //   //     receiveFromCurve_t.shape.cp2.x += xOffset / 2 / this.scale;
+    //   //   }
+    //   // }
+
+    //   // if (receiveFromCurve_r?.shape?.p2 && receiveFromCurve_r?.shape?.cp2) {
+    //   //   if (canResizeY) {
+    //   //     receiveFromCurve_r.shape.p2 = {
+    //   //       ...receiveFromCurve_r.shape.p2,
+    //   //       y: receiveFromCurve_r.shape.p2.y + yOffset / 2 / this.scale,
+    //   //     };
+    //   //     receiveFromCurve_r.shape.cp2.y += yOffset / 2 / this.scale;
+    //   //   }
+    //   // }
+
+    //   // if (receiveFromCurve_b?.shape?.p2 && receiveFromCurve_b?.shape?.cp2) {
+    //   //   if (canResizeX) {
+    //   //     receiveFromCurve_b.shape.p2 = {
+    //   //       ...receiveFromCurve_b.shape.p2,
+    //   //       x: receiveFromCurve_b.shape.p2.x + xOffset / 2 / this.scale,
+    //   //     };
+    //   //     receiveFromCurve_b.shape.cp2.x += xOffset / 2 / this.scale;
+    //   //   }
+    //   //   if (canResizeY) {
+    //   //     receiveFromCurve_b.shape.p2 = {
+    //   //       ...receiveFromCurve_b.shape.p2,
+    //   //       y: receiveFromCurve_b.shape.p2.y + yOffset / this.scale,
+    //   //     };
+
+    //   //     receiveFromCurve_b.shape.cp2.y += yOffset / this.scale;
+    //   //   }
+    //   // }
+    // }
     // }
 
     const shapeP = {
