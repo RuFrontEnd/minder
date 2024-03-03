@@ -44,7 +44,7 @@ type ReceivingTarget = {
   };
 };
 
-type ConnectTarget = null | {
+type ConnectTarget = {
   shape: Core;
   direction: Direction;
 };
@@ -56,11 +56,19 @@ type CurveOffset = {
   b: Vec
 }
 
+type Receiving = {
+  l: boolean;
+  t: boolean;
+  r: boolean;
+  b: boolean;
+};
+
 export { PressingTarget };
 export type {
   ConncetionTarget,
   ReceivingTarget,
   ConnectTarget,
   Direction,
-  CurveOffset
+  CurveOffset,
+  Receiving
 };
