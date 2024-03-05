@@ -400,6 +400,8 @@ export default class Core {
   };
 
   connect = (receiveD: Direction, connectTarget: CoreTypes.ConnectTarget) => {
+    if (this.curves[receiveD].shape) return;
+
     const senderCurve =
       connectTarget.shape.curves[connectTarget.direction].shape;
     if (!senderCurve) return;
