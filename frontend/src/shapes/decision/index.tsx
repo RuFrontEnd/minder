@@ -104,7 +104,7 @@ export default class Desicion extends Core {
         this.curves.l.shape.cp2,
         this.curves.l.shape.p2,
       ]);
-      ctx.fillStyle = "white";
+      ctx.fillStyle = "#F6F7FA";
       ctx.beginPath();
       ctx.arc(
         bezierPoint.x * this.__scale__,
@@ -138,7 +138,7 @@ export default class Desicion extends Core {
         this.curves.t.shape.cp2,
         this.curves.t.shape.p2,
       ]);
-      ctx.fillStyle = "white";
+      ctx.fillStyle = "#F6F7FA";
       ctx.beginPath();
       ctx.arc(
         bezierPoint.x * this.__scale__,
@@ -172,7 +172,7 @@ export default class Desicion extends Core {
         this.curves.r.shape.cp2,
         this.curves.r.shape.p2,
       ]);
-      ctx.fillStyle = "white";
+      ctx.fillStyle = "#F6F7FA";
       ctx.beginPath();
       ctx.arc(
         bezierPoint.x * this.__scale__,
@@ -206,7 +206,7 @@ export default class Desicion extends Core {
         this.curves.b.shape.cp2,
         this.curves.b.shape.p2,
       ]);
-      ctx.fillStyle = "white";
+      ctx.fillStyle = "#F6F7FA";
       ctx.beginPath();
       ctx.arc(
         bezierPoint.x * this.__scale__,
