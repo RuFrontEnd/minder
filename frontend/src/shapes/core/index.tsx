@@ -2,12 +2,7 @@
 import Curve from "@/shapes/curve";
 import { Vec, Direction, Data as DataType } from "@/types/shapes/common";
 import { Line } from "@/types/shapes/curve";
-import {
-  PressingTarget,
-  ConnectTarget,
-  CurveOffset,
-  Receiving,
-} from "@/types/shapes/core";
+import * as CoreTypes from "@/types/shapes/core";
 import { Title } from "@/types/shapes/common";
 
 const ds = [Direction.l, Direction.t, Direction.r, Direction.b];
@@ -61,23 +56,23 @@ export default class Core {
   title: Title;
   __p__: Vec;
   curves: {
-    l: { shape: null | Curve; sendTo: null | ConnectTarget };
-    t: { shape: null | Curve; sendTo: null | ConnectTarget };
-    r: { shape: null | Curve; sendTo: null | ConnectTarget };
-    b: { shape: null | Curve; sendTo: null | ConnectTarget };
+    l: { shape: null | Curve; sendTo: null | CoreTypes.SendTo };
+    t: { shape: null | Curve; sendTo: null | CoreTypes.SendTo };
+    r: { shape: null | Curve; sendTo: null | CoreTypes.SendTo };
+    b: { shape: null | Curve; sendTo: null | CoreTypes.SendTo };
   };
 
   __selecting__: boolean;
-  __receiving__: Receiving;
+  __receiving__: CoreTypes.Receiving;
   pressing: {
     activate: boolean;
-    target: PressingTarget | null;
+    target: CoreTypes.PressingTarget | null;
   };
   receiveFrom: {
-    l: null | ConnectTarget;
-    t: null | ConnectTarget;
-    r: null | ConnectTarget;
-    b: null | ConnectTarget;
+    l: null | CoreTypes.ReceiveFrom;
+    t: null | CoreTypes.ReceiveFrom;
+    r: null | CoreTypes.ReceiveFrom;
+    b: null | CoreTypes.ReceiveFrom;
   };
   dragP:
     | Vec
@@ -178,7 +173,7 @@ export default class Core {
     return this.__selecting__;
   }
 
-  set receiving(_receiving: Receiving) {
+  set receiving(_receiving: CoreTypes.Receiving) {
     this.__receiving__ = _receiving;
   }
 
@@ -299,28 +294,28 @@ export default class Core {
     dy = edge.t - p.y;
 
     if (dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill) {
-      return PressingTarget.lt;
+      return CoreTypes.PressingTarget.lt;
     }
 
     dx = edge.r - p.x;
     dy = edge.t - p.y;
 
     if (dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill) {
-      return PressingTarget.rt;
+      return CoreTypes.PressingTarget.rt;
     }
 
     dx = edge.r - p.x;
     dy = edge.b - p.y;
 
     if (dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill) {
-      return PressingTarget.rb;
+      return CoreTypes.PressingTarget.rb;
     }
 
     dx = edge.l - p.x;
     dy = edge.b - p.y;
 
     if (dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill) {
-      return PressingTarget.lb;
+      return CoreTypes.PressingTarget.lb;
     }
 
     return null;
@@ -404,16 +399,19 @@ export default class Core {
     }
   };
 
-  connect = (receiveD: Direction, connectTarget: ConnectTarget) => {
+  connect = (receiveD: Direction, connectTarget: CoreTypes.ConnectTarget) => {
     const senderCurve =
       connectTarget.shape.curves[connectTarget.direction].shape;
     if (!senderCurve) return;
     // receiver
-    this.receiveFrom[receiveD] = connectTarget;
+    this.receiveFrom[receiveD] = {
+      shape: connectTarget.shape,
+      sendD: connectTarget.direction,
+    };
     // connectTarget
     connectTarget.shape.curves[connectTarget.direction].sendTo = {
       shape: this,
-      direction: connectTarget.direction,
+      receiveD: receiveD,
     };
 
     const thershold = 10;
@@ -442,10 +440,10 @@ export default class Core {
     }
   };
 
-  resetConnection = (d: Direction, fromSender: boolean) => {
+  disConnect = (d: Direction, fromSender: boolean) => {
     if (fromSender) {
       const receiverShape = this.curves[d]?.sendTo?.shape,
-        receiverDirection = this.curves[d]?.sendTo?.direction;
+        receiverDirection = this.curves[d]?.sendTo?.receiveD;
 
       if (receiverShape && receiverDirection) {
         receiverShape.receiveFrom[receiverDirection] = null;
@@ -453,7 +451,7 @@ export default class Core {
       }
     } else {
       const senderShape = this.receiveFrom[d]?.shape,
-        senderDirection = this.receiveFrom[d]?.direction;
+        senderDirection = this.receiveFrom[d]?.sendD;
 
       if (senderShape && senderDirection) {
         senderShape.curves[senderDirection].sendTo = null;
@@ -515,7 +513,7 @@ export default class Core {
     this.curves[d].shape = null;
 
     const sendShape = this.curves[d]?.sendTo?.shape,
-      recieveShapeDirection = this.curves[d]?.sendTo?.direction;
+      recieveShapeDirection = this.curves[d]?.sendTo?.receiveD;
 
     if (sendShape && recieveShapeDirection) {
       sendShape.receiveFrom[recieveShapeDirection] = null;
@@ -535,16 +533,15 @@ export default class Core {
     for (const d of ds) {
       // when receiver shape move, sender curve follows the receiver shape
       const receiverShape = this.receiveFrom[d],
-        receiverCurve =
-          receiverShape?.shape.curves[receiverShape.direction].shape;
+        receiverCurve = receiverShape?.shape.curves[receiverShape.sendD].shape;
 
       if (receiverCurve) {
         receiverCurve.p2 = {
-          x: receiverCurve.p2.x + xOffset / this.scale,
-          y: receiverCurve.p2.y + yOffset / this.scale,
+          x: receiverCurve.p2.x + xOffset,
+          y: receiverCurve.p2.y + yOffset,
         };
-        receiverCurve.cp2.x += xOffset / this.scale;
-        receiverCurve.cp2.y += yOffset / this.scale;
+        receiverCurve.cp2.x += xOffset;
+        receiverCurve.cp2.y += yOffset;
       }
 
       // when sender shape move, receiver curve follows the sender shape
@@ -553,16 +550,16 @@ export default class Core {
 
       if (senderCurve && sendToShape) {
         senderCurve.p2 = {
-          x: senderCurve.p2.x - xOffset / this.scale,
-          y: senderCurve.p2.y - yOffset / this.scale,
+          x: senderCurve.p2.x - xOffset,
+          y: senderCurve.p2.y - yOffset,
         };
-        senderCurve.cp2.x -= xOffset / this.scale;
-        senderCurve.cp2.y -= yOffset / this.scale;
+        senderCurve.cp2.x -= xOffset;
+        senderCurve.cp2.y -= yOffset;
       }
     }
   }
 
-  resize(offset: Vec, pressingTarget: PressingTarget) {
+  resize(offset: Vec, pressingTarget: CoreTypes.PressingTarget) {
     // sender curves follows
     const curve_l = this.curves.l.shape,
       curve_t = this.curves.t.shape,
@@ -573,19 +570,19 @@ export default class Core {
       sendTo_r = this.curves.r.sendTo,
       sendTo_b = this.curves.b.sendTo,
       receiveFromCurve_l = this.receiveFrom.l?.shape.curves[
-        this.receiveFrom.l.direction
+        this.receiveFrom.l.sendD
       ].shape,
       receiveFromCurve_t = this.receiveFrom.t?.shape.curves[
-        this.receiveFrom.t.direction
+        this.receiveFrom.t.sendD
       ].shape,
       receiveFromCurve_r = this.receiveFrom.r?.shape.curves[
-        this.receiveFrom.r.direction
+        this.receiveFrom.r.sendD
       ].shape,
       receiveFromCurve_b = this.receiveFrom.b?.shape.curves[
-        this.receiveFrom.b.direction
+        this.receiveFrom.b.sendD
       ].shape;
 
-    if (pressingTarget === PressingTarget.lt) {
+    if (pressingTarget === CoreTypes.PressingTarget.lt) {
       this.p = {
         x: this.p.x + offset.x / 2 / this.scale,
         y: this.p.y + offset.y / 2 / this.scale,
@@ -688,7 +685,7 @@ export default class Core {
         };
         receiveFromCurve_b.cp2.x += offset.x / 2 / this.scale;
       }
-    } else if (pressingTarget === PressingTarget.rt) {
+    } else if (pressingTarget === CoreTypes.PressingTarget.rt) {
       this.p = {
         x: this.p.x + offset.x / 2 / this.scale,
         y: this.p.y + offset.y / 2 / this.scale,
@@ -726,7 +723,7 @@ export default class Core {
         curve_r.p1.x += offset.x / 2 / this.scale;
         curve_r.cp1.x += offset.x / 2 / this.scale;
 
-        if (sendTo_t) {
+        if (sendTo_r) {
           this.senderHoldCurveP2Cp2Position(Direction.r, offset.x, offset.y);
         } else {
           curve_r.cp2.x += offset.x / 2 / this.scale;
@@ -788,7 +785,7 @@ export default class Core {
 
         receiveFromCurve_b.cp2.x += offset.x / 2 / this.scale;
       }
-    } else if (pressingTarget === PressingTarget.rb) {
+    } else if (pressingTarget === CoreTypes.PressingTarget.rb) {
       this.p = {
         x: this.p.x + offset.x / 2 / this.scale,
         y: this.p.y + offset.y / 2 / this.scale,
@@ -900,7 +897,7 @@ export default class Core {
         };
         receiveFromCurve_b.cp2.y += offset.y / this.scale;
       }
-    } else if (pressingTarget === PressingTarget.lb) {
+    } else if (pressingTarget === CoreTypes.PressingTarget.lb) {
       this.p = {
         ...this.p,
         x: this.p.x + offset.x / 2 / this.scale,
@@ -1019,7 +1016,7 @@ export default class Core {
   //   if (p.x > edge.l && p.y > edge.t && p.x < edge.r && p.y < edge.b) {
   //     return {
   //       shape: this,
-  //       target: PressingTarget.m,
+  //       target: CoreTypes.PressingTarget.m,
   //     };
   //   } else if (
   //     // lt anchors
@@ -1029,7 +1026,7 @@ export default class Core {
   //   ) {
   //     return {
   //       shape: this,
-  //       target: PressingTarget.lt,
+  //       target: CoreTypes.PressingTarget.lt,
   //     };
   //   } else if (
   //     // rt anchors
@@ -1039,7 +1036,7 @@ export default class Core {
   //   ) {
   //     return {
   //       shape: this,
-  //       target: PressingTarget.rt,
+  //       target: CoreTypes.PressingTarget.rt,
   //     };
   //   } else if (
   //     // rb anchors
@@ -1049,7 +1046,7 @@ export default class Core {
   //   ) {
   //     return {
   //       shape: this,
-  //       target: PressingTarget.rb,
+  //       target: CoreTypes.PressingTarget.rb,
   //     };
   //   } else if (
   //     // lb anchors
@@ -1059,7 +1056,7 @@ export default class Core {
   //   ) {
   //     return {
   //       shape: this,
-  //       target: PressingTarget.lb,
+  //       target: CoreTypes.PressingTarget.lb,
   //     };
   //   } else if (this.curves.l.shape?.checkBoundry(shapeP)) {
   //     return {
@@ -1113,73 +1110,73 @@ export default class Core {
   //     // l curve cp1
   //     return {
   //       shape: this,
-  //       target: PressingTarget.clcp1,
+  //       target: CoreTypes.PressingTarget.clcp1,
   //     };
   //   } else if (curveBoundry.l?.p === CurvePressingP.cp2) {
   //     // l curve cp2
   //     return {
   //       shape: this,
-  //       target: PressingTarget.clcp2,
+  //       target: CoreTypes.PressingTarget.clcp2,
   //     };
   //   } else if (curveBoundry.l?.p === CurvePressingP.p2) {
   //     // l curve p2
   //     return {
   //       shape: this,
-  //       target: PressingTarget.clp2,
+  //       target: CoreTypes.PressingTarget.clp2,
   //     };
   //   } else if (curveBoundry.t?.p === CurvePressingP.cp1) {
   //     // t curve cp1
   //     return {
   //       shape: this,
-  //       target: PressingTarget.ctcp1,
+  //       target: CoreTypes.PressingTarget.ctcp1,
   //     };
   //   } else if (curveBoundry.t?.p === CurvePressingP.cp2) {
   //     // t curve cp2
   //     return {
   //       shape: this,
-  //       target: PressingTarget.ctcp2,
+  //       target: CoreTypes.PressingTarget.ctcp2,
   //     };
   //   } else if (curveBoundry.t?.p === CurvePressingP.p2) {
   //     // t curve p2
   //     return {
   //       shape: this,
-  //       target: PressingTarget.ctp2,
+  //       target: CoreTypes.PressingTarget.ctp2,
   //     };
   //   } else if (curveBoundry.r?.p === CurvePressingP.cp1) {
   //     // r curve cp1
   //     return {
   //       shape: this,
-  //       target: PressingTarget.crcp1,
+  //       target: CoreTypes.PressingTarget.crcp1,
   //     };
   //   } else if (curveBoundry.r?.p === CurvePressingP.cp2) {
   //     // r curve cp2
   //     return {
   //       shape: this,
-  //       target: PressingTarget.crcp2,
+  //       target: CoreTypes.PressingTarget.crcp2,
   //     };
   //   } else if (curveBoundry.r?.p === CurvePressingP.p2) {
   //     // r curve p2
   //     return {
   //       shape: this,
-  //       target: PressingTarget.crp2,
+  //       target: CoreTypes.PressingTarget.crp2,
   //     };
   //   } else if (curveBoundry.b?.p === CurvePressingP.cp1) {
   //     // b curve cp1
   //     return {
   //       shape: this,
-  //       target: PressingTarget.cbcp1,
+  //       target: CoreTypes.PressingTarget.cbcp1,
   //     };
   //   } else if (curveBoundry.b?.p === CurvePressingP.cp2) {
   //     // b curve cp2
   //     return {
   //       shape: this,
-  //       target: PressingTarget.cbcp2,
+  //       target: CoreTypes.PressingTarget.cbcp2,
   //     };
   //   } else if (curveBoundry.b?.p === CurvePressingP.p2) {
   //     // b curve p2
   //     return {
   //       shape: this,
-  //       target: PressingTarget.cbp2,
+  //       target: CoreTypes.PressingTarget.cbp2,
   //     };
   //   }
   // }
@@ -1306,7 +1303,7 @@ export default class Core {
     //   // ) {
     //   //   this.pressing = {
     //   //     activate: true,
-    //   //     target: PressingTarget.lt,
+    //   //     target: CoreTypes.PressingTarget.lt,
     //   //   };
     //   // } else if (
     //   //   // rt anchors
@@ -1316,7 +1313,7 @@ export default class Core {
     //   // ) {
     //   //   this.pressing = {
     //   //     activate: true,
-    //   //     target: PressingTarget.rt,
+    //   //     target: CoreTypes.PressingTarget.rt,
     //   //   };
     //   // } else if (
     //   //   // rb anchors
@@ -1326,7 +1323,7 @@ export default class Core {
     //   // ) {
     //   //   this.pressing = {
     //   //     activate: true,
-    //   //     target: PressingTarget.rb,
+    //   //     target: CoreTypes.PressingTarget.rb,
     //   //   };
     //   // } else if (
     //   //   // lb anchors
@@ -1336,7 +1333,7 @@ export default class Core {
     //   // ) {
     //   //   this.pressing = {
     //   //     activate: true,
-    //   //     target: PressingTarget.lb,
+    //   //     target: CoreTypes.PressingTarget.lb,
     //   //   };
     //   // } else if (
     //   //   // l curve trigger
@@ -1369,7 +1366,7 @@ export default class Core {
     //   //   };
     //   //   this.pressing = {
     //   //     activate: true,
-    //   //     target: PressingTarget.clp2,
+    //   //     target: CoreTypes.PressingTarget.clp2,
     //   //   };
     //   //   this.selecting = false;
     //   // } else if (
@@ -1403,7 +1400,7 @@ export default class Core {
     //   //   };
     //   //   this.pressing = {
     //   //     activate: true,
-    //   //     target: PressingTarget.ctp2,
+    //   //     target: CoreTypes.PressingTarget.ctp2,
     //   //   };
     //   //   this.selecting = false;
     //   // } else if (
@@ -1437,7 +1434,7 @@ export default class Core {
     //   //   };
     //   //   this.pressing = {
     //   //     activate: true,
-    //   //     target: PressingTarget.crp2,
+    //   //     target: CoreTypes.PressingTarget.crp2,
     //   //   };
     //   //   this.selecting = false;
     //   // } else if (
@@ -1471,14 +1468,14 @@ export default class Core {
     //   //   };
     //   //   this.pressing = {
     //   //     activate: true,
-    //   //     target: PressingTarget.cbp2,
+    //   //     target: CoreTypes.PressingTarget.cbp2,
     //   //   };
     //   //   this.selecting = false;
     //   // } else if (p.x > edge.l && p.y > edge.t && p.x < edge.r && p.y < edge.b) {
     //   //   // inside the shape
     //   //   this.pressing = {
     //   //     activate: true,
-    //   //     target: PressingTarget.m,
+    //   //     target: CoreTypes.PressingTarget.m,
     //   //   };
     //   // } else {
     //   //   this.selecting = false;
@@ -1491,73 +1488,73 @@ export default class Core {
     //   // l curve cp1
     //   this.pressing = {
     //     activate: true,
-    //     target: PressingTarget.clcp1,
+    //     target: CoreTypes.PressingTarget.clcp1,
     //   };
     // } else if (curveBoundry.l?.p === CurvePressingP.cp2) {
     //   // l curve cp2
     //   this.pressing = {
     //     activate: true,
-    //     target: PressingTarget.clcp2,
+    //     target: CoreTypes.PressingTarget.clcp2,
     //   };
     // } else if (curveBoundry.l?.p === CurvePressingP.p2) {
     //   // l curve p2
     //   this.pressing = {
     //     activate: true,
-    //     target: PressingTarget.clp2,
+    //     target: CoreTypes.PressingTarget.clp2,
     //   };
     // } else if (curveBoundry.t?.p === CurvePressingP.cp1) {
     //   // t curve cp1
     //   this.pressing = {
     //     activate: true,
-    //     target: PressingTarget.ctcp1,
+    //     target: CoreTypes.PressingTarget.ctcp1,
     //   };
     // } else if (curveBoundry.t?.p === CurvePressingP.cp2) {
     //   // t curve cp2
     //   this.pressing = {
     //     activate: true,
-    //     target: PressingTarget.ctcp2,
+    //     target: CoreTypes.PressingTarget.ctcp2,
     //   };
     // } else if (curveBoundry.t?.p === CurvePressingP.p2) {
     //   // t curve p2
     //   this.pressing = {
     //     activate: true,
-    //     target: PressingTarget.ctp2,
+    //     target: CoreTypes.PressingTarget.ctp2,
     //   };
     // } else if (curveBoundry.r?.p === CurvePressingP.cp1) {
     //   // r curve cp1
     //   this.pressing = {
     //     activate: true,
-    //     target: PressingTarget.crcp1,
+    //     target: CoreTypes.PressingTarget.crcp1,
     //   };
     // } else if (curveBoundry.r?.p === CurvePressingP.cp2) {
     //   // r curve cp2
     //   this.pressing = {
     //     activate: true,
-    //     target: PressingTarget.crcp2,
+    //     target: CoreTypes.PressingTarget.crcp2,
     //   };
     // } else if (curveBoundry.r?.p === CurvePressingP.p2) {
     //   // r curve p2
     //   this.pressing = {
     //     activate: true,
-    //     target: PressingTarget.crp2,
+    //     target: CoreTypes.PressingTarget.crp2,
     //   };
     // } else if (curveBoundry.b?.p === CurvePressingP.cp1) {
     //   // b curve cp1
     //   this.pressing = {
     //     activate: true,
-    //     target: PressingTarget.cbcp1,
+    //     target: CoreTypes.PressingTarget.cbcp1,
     //   };
     // } else if (curveBoundry.b?.p === CurvePressingP.cp2) {
     //   // b curve cp2
     //   this.pressing = {
     //     activate: true,
-    //     target: PressingTarget.cbcp2,
+    //     target: CoreTypes.PressingTarget.cbcp2,
     //   };
     // } else if (curveBoundry.b?.p === CurvePressingP.p2) {
     //   // b curve p2
     //   this.pressing = {
     //     activate: true,
-    //     target: PressingTarget.cbp2,
+    //     target: CoreTypes.PressingTarget.cbp2,
     //   };
     // }
     // if (this.curves.l.shape) {
@@ -1605,7 +1602,7 @@ export default class Core {
     //   sendToCurve_t = this.curves.t.sendTo,
     //   sendToCurve_r = this.curves.r.sendTo,
     //   sendToCurve_b = this.curves.b.sendTo;
-    // if (this.pressing.target === PressingTarget.m) {
+    // if (this.pressing.target === CoreTypes.PressingTarget.m) {
     //   // this.p = {
     //   //   x: this.p.x + xOffset,
     //   //   y: this.p.y + yOffset
@@ -1638,7 +1635,7 @@ export default class Core {
     //   //     senderCurve.cp2.y -= yOffset / this.scale;
     //   //   }
     //   // }
-    // } else if (this.pressing.target === PressingTarget.lt) {
+    // } else if (this.pressing.target === CoreTypes.PressingTarget.lt) {
     //   // const canResizeX =
     //   //   (xOffset > 0 &&
     //   //     p.x > edge.l &&
@@ -1826,7 +1823,7 @@ export default class Core {
     //   //     receiveFromCurve_b.shape.cp2.x += xOffset / 2 / this.scale;
     //   //   }
     //   // }
-    // } else if (this.pressing.target === PressingTarget.rt) {
+    // } else if (this.pressing.target === CoreTypes.PressingTarget.rt) {
     //   //   const canResizeX =
     //   //     (xOffset > 0 && p.x > edge.r) ||
     //   //     (xOffset < 0 &&
@@ -2008,7 +2005,7 @@ export default class Core {
     //   //       receiveFromCurve_b.shape.cp2.x += xOffset / 2 / this.scale;
     //   //     }
     //   //   }
-    //   // } else if (this.pressing.target === PressingTarget.rb) {
+    //   // } else if (this.pressing.target === CoreTypes.PressingTarget.rb) {
     //   //   const canResizeX =
     //   //     (xOffset > 0 && p.x > edge.r) ||
     //   //     (xOffset < 0 &&
@@ -2188,7 +2185,7 @@ export default class Core {
     //   //       receiveFromCurve_b.shape.cp2.y += yOffset / this.scale;
     //   //     }
     //   //   }
-    // } else if (this.pressing.target === PressingTarget.rb) {
+    // } else if (this.pressing.target === CoreTypes.PressingTarget.rb) {
     //   //   const canResizeX =
     //   //     (xOffset > 0 && p.x > edge.r) ||
     //   //     (xOffset < 0 &&
@@ -2368,7 +2365,7 @@ export default class Core {
     //   //       receiveFromCurve_b.shape.cp2.y += yOffset / this.scale;
     //   //     }
     //   //   }
-    //   // } else if (this.pressing.target === PressingTarget.lb) {
+    //   // } else if (this.pressing.target === CoreTypes.PressingTarget.lb) {
     //   //   const canResizeX =
     //   //     (xOffset > 0 &&
     //   //       p.x > edge.l &&
@@ -2548,7 +2545,7 @@ export default class Core {
     //   //       receiveFromCurve_b.shape.cp2.y += yOffset / this.scale;
     //   //     }
     //   //   }
-    // } else if (this.pressing.target === PressingTarget.lb) {
+    // } else if (this.pressing.target === CoreTypes.PressingTarget.lb) {
     //   // const canResizeX =
     //   //   (xOffset > 0 &&
     //   //     p.x > edge.l &&
@@ -2738,22 +2735,22 @@ export default class Core {
     // if (this.pressing.activate) {
     //   if (
     //     this.curves.l?.shape?.selecting &&
-    //     this.pressing.target === PressingTarget.clp2
+    //     this.pressing.target === CoreTypes.PressingTarget.clp2
     //   ) {
     //     this.resetConnection(Direction.l, true);
     //   } else if (
     //     this.curves.t?.shape?.selecting &&
-    //     this.pressing.target === PressingTarget.ctp2
+    //     this.pressing.target === CoreTypes.PressingTarget.ctp2
     //   ) {
     //     this.resetConnection(Direction.t, true);
     //   } else if (
     //     this.curves.r?.shape?.selecting &&
-    //     this.pressing.target === PressingTarget.crp2
+    //     this.pressing.target === CoreTypes.PressingTarget.crp2
     //   ) {
     //     this.resetConnection(Direction.r, true);
     //   } else if (
     //     this.curves.b?.shape?.selecting &&
-    //     this.pressing.target === PressingTarget.cbp2
+    //     this.pressing.target === CoreTypes.PressingTarget.cbp2
     //   ) {
     //     this.resetConnection(Direction.b, true);
     //   }
@@ -2790,7 +2787,11 @@ export default class Core {
     // }
   }
 
-  onMouseUp(p: Vec, sender?: ConnectTarget, curveOffset?: CurveOffset) {
+  onMouseUp(
+    p: Vec,
+    sender?: CoreTypes.ConnectTarget,
+    curveOffset?: CoreTypes.CurveOffset
+  ) {
     // if (this.pressing.activate) {
     //   this.pressing = this.initPressing;
     // }

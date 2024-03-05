@@ -63,6 +63,16 @@ type Receiving = {
   b: boolean;
 };
 
+type SendTo = {
+  shape: Core;
+  receiveD: Direction;
+}
+
+type ReceiveFrom = {
+  shape: Core;
+  sendD: Direction;
+}
+
 export { PressingTarget };
 export type {
   ConncetionTarget,
@@ -70,5 +80,7 @@ export type {
   ConnectTarget,
   Direction,
   CurveOffset,
-  Receiving
+  Receiving,
+  SendTo,
+  ReceiveFrom
 };

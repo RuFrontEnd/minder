@@ -372,6 +372,13 @@ export default function ProcessPage() {
 
       if (pressing.shape instanceof Curve) {
         if (
+          pressing?.target === CurveTypes.PressingTarget.p2 &&
+          pressing?.parent &&
+          pressing?.direction
+        ) {
+          pressing.parent.disConnect(pressing?.direction, true);
+        }
+        if (
           (pressing.target !== CurveTypes.PressingTarget.cp1 &&
             pressing.target !== CurveTypes.PressingTarget.cp2 &&
             pressing.target !== CurveTypes.PressingTarget.p2) ||
@@ -506,10 +513,7 @@ export default function ProcessPage() {
             p
           );
 
-          console.log('theCheckReceivingPointsBoundry',theCheckReceivingPointsBoundry)
-
           if (theCheckReceivingPointsBoundry) {
-            console.log('shape', shape)
             shape.connect(theCheckReceivingPointsBoundry, {
               shape: pressing.parent,
               direction: pressing.direction,
@@ -616,8 +620,8 @@ export default function ProcessPage() {
 
       if (removeShape) {
         for (const d of ds) {
-          removeShape?.resetConnection(d, true);
-          removeShape?.resetConnection(d, false);
+          removeShape?.disConnect(d, true);
+          removeShape?.disConnect(d, false);
         }
         shapes = shapes.filter((shape) => shape.id !== removeShape?.id);
         checkData();
