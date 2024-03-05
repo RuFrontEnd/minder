@@ -179,7 +179,7 @@ export default class Core {
   }
 
   set receiving(_receiving: Receiving) {
-    this.receiving = _receiving;
+    this.__receiving__ = _receiving;
   }
 
   get receiving() {
@@ -3030,7 +3030,7 @@ export default class Core {
       ctx.lineWidth = this.anchor.size.stroke;
 
       // left
-      if (this.receiving.l) {
+      if (this.receiving.l && !this.curves.l.shape) {
         ctx.beginPath();
         ctx.arc(
           -this.getScaleSize().w / 2,
@@ -3046,7 +3046,7 @@ export default class Core {
       }
 
       // top
-      if (this.receiving.t) {
+      if (this.receiving.t && !this.curves.t.shape) {
         ctx.beginPath();
         ctx.arc(
           0,
@@ -3062,7 +3062,7 @@ export default class Core {
       }
 
       // right
-      if (this.receiving.r) {
+      if (this.receiving.r && !this.curves.r.shape) {
         ctx.beginPath();
         ctx.arc(
           this.getScaleSize().w / 2,
@@ -3078,7 +3078,7 @@ export default class Core {
       }
 
       // bottom
-      if (this.receiving.b) {
+      if (this.receiving.b && !this.curves.b.shape) {
         ctx.beginPath();
         ctx.arc(
           0,
@@ -3094,21 +3094,21 @@ export default class Core {
       }
     }
 
-    if (this.curves.l.shape) {
-      this.curves.l.shape.draw(ctx);
-    }
+    // if (this.curves.l.shape) {
+    //   this.curves.l.shape.draw(ctx);
+    // }
 
-    if (this.curves.t.shape) {
-      this.curves.t.shape.draw(ctx);
-    }
+    // if (this.curves.t.shape) {
+    //   this.curves.t.shape.draw(ctx);
+    // }
 
-    if (this.curves.r.shape) {
-      this.curves.r.shape.draw(ctx);
-    }
+    // if (this.curves.r.shape) {
+    //   this.curves.r.shape.draw(ctx);
+    // }
 
-    if (this.curves.b.shape) {
-      this.curves.b.shape.draw(ctx);
-    }
+    // if (this.curves.b.shape) {
+    //   this.curves.b.shape.draw(ctx);
+    // }
 
     // render center text
     ctx.textAlign = "center";
@@ -3135,6 +3135,29 @@ export default class Core {
         -this.getScaleSize().h / 2 - 10
       );
     }
+    ctx.restore();
+  }
+
+  drawCurve(ctx: CanvasRenderingContext2D) {
+    ctx.save();
+    ctx.translate(this.getScreenP().x, this.getScreenP().y);
+
+    if (this.curves.l.shape) {
+      this.curves.l.shape.draw(ctx);
+    }
+
+    if (this.curves.t.shape) {
+      this.curves.t.shape.draw(ctx);
+    }
+
+    if (this.curves.r.shape) {
+      this.curves.r.shape.draw(ctx);
+    }
+
+    if (this.curves.b.shape) {
+      this.curves.b.shape.draw(ctx);
+    }
+
     ctx.restore();
   }
 }

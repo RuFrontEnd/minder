@@ -380,6 +380,23 @@ export default function ProcessPage() {
           y: p.y - pressing.parent?.getScreenP().y,
         };
         pressing.shape.move(pressing.target, curveP);
+
+        shapes.forEach((shape) => {
+          const theEdge = shape.getEdge(),
+            threshold = 20,
+            isReceiving =
+              p.x >= theEdge.l - threshold &&
+              p.y >= theEdge.t - threshold &&
+              p.x <= theEdge.r + threshold &&
+              p.y <= theEdge.b + threshold;
+
+          shape.receiving = {
+            l: isReceiving,
+            t: isReceiving,
+            r: isReceiving,
+            b: isReceiving,
+          };
+        });
       }
     }
 
@@ -474,23 +491,32 @@ export default function ProcessPage() {
         y: e.nativeEvent.offsetY,
       };
 
-      // create relationships between shapes and shapes
-      if (sender) {
-        shapes.forEach((shape) => {
-          shape.options = [];
+      shapes.forEach((shape) => {
+        shape.receiving = {
+          l: false,
+          t: false,
+          r: false,
+          b: false,
+        };
+      });
 
-          if (shape.id === sender?.shape?.id) {
-            shape.onMouseUp(p);
-          } else {
-            if (!sender) return;
-            shape.onMouseUp(p, sender);
-          }
-        });
-      } else {
-        shapes.forEach((shape) => {
-          shape.onMouseUp(p);
-        });
-      }
+      // create relationships between shapes and shapes
+      // if (sender) {
+      //   shapes.forEach((shape) => {
+      //     shape.options = [];
+
+      //     if (shape.id === sender?.shape?.id) {
+      //       shape.onMouseUp(p);
+      //     } else {
+      //       if (!sender) return;
+      //       shape.onMouseUp(p, sender);
+      //     }
+      //   });
+      // } else {
+      //   shapes.forEach((shape) => {
+      //     shape.onMouseUp(p);
+      //   });
+      // }
 
       if (sender) {
         checkData();
@@ -695,6 +721,11 @@ export default function ProcessPage() {
     shapes.forEach((shape) => {
       if (!ctx) return;
       shape.draw(ctx);
+    });
+    shapes.forEach((shape) => {
+      if (!ctx) return;
+
+      shape.drawCurve(ctx);
     });
     requestAnimationFrame(draw);
   }, []);
