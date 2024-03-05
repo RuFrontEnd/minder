@@ -10,7 +10,6 @@ import {
   Direction,
   Data as DataType,
 } from "@/types/shapes/common";
-import { ConnectTarget } from "@/types/shapes/core";
 
 export default class Desicion extends Core {
   text: {
@@ -35,7 +34,7 @@ export default class Desicion extends Core {
       time = 0;
 
     ds.forEach((d) => {
-      if (this.curves[d]) {
+      if (this.curves[d].shape) {
         time++;
       }
     });
@@ -43,29 +42,13 @@ export default class Desicion extends Core {
     return time;
   };
 
-  onMouseUp(p: Vec, sender?: ConnectTarget) {
-    super.onMouseUp(p, sender, {
-      l: { x: -10, y: 0 },
-      t: { x: 0, y: -10 },
-      r: { x: 10, y: 0 },
-      b: { x: 0, y: 10 },
-    });
-  }
-
-  onMouseDown(canvas: HTMLCanvasElement, p: Vec) {
-    super.onMouseDown(canvas, p);
+  createCurve(id: string, d: Direction) {
+    super.createCurve(id, d);
 
     // define curve text
     const currentText = this.getNumberOfCurves() < 2 ? "Y" : "N";
-    if (this.checkCurveTriggerBoundry(p) === Direction.l) {
-      this.text.l = currentText;
-    } else if (this.checkCurveTriggerBoundry(p) === Direction.t) {
-      this.text.t = currentText;
-    } else if (this.checkCurveTriggerBoundry(p) === Direction.r) {
-      this.text.r = currentText;
-    } else if (this.checkCurveTriggerBoundry(p) === Direction.b) {
-      this.text.b = currentText;
-    }
+
+    this.text[d] = currentText;
   }
 
   onDataChange = (title: Title, data: DataType) => {
@@ -96,7 +79,10 @@ export default class Desicion extends Core {
     ctx.restore();
 
     super.draw(ctx, this.getNumberOfCurves() < 2);
+  }
 
+  drawCurve(ctx: CanvasRenderingContext2D): void {
+    super.drawCurve(ctx)
     ctx.save();
     ctx.translate(this.getScreenP().x, this.getScreenP().y);
 
