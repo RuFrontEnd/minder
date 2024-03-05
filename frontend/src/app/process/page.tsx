@@ -62,7 +62,7 @@ const ds = [
 const getFramePosition = (shape: Core) => {
   const frameOffset = 12;
   return {
-    x: shape.getScreenP().x + shape.w / 2 + frameOffset,
+    x: shape.getScreenP().x + shape.getScaleSize().w / 2 + frameOffset,
     y: shape.getScreenP().y,
   };
 };
@@ -272,52 +272,6 @@ export default function ProcessPage() {
             theCurve.selecting = false;
           }
         }
-
-        // if (
-        //   currentShape.pressing.activate &&
-        //   currentShape.pressing.target === CoreTypes.PressingTarget.clp2
-        // ) {
-        //   if (!shape.curves.l) return;
-        //   sender = {
-        //     shape: shape,
-        //     direction: CommonTypes.Direction.l,
-        //   };
-        // } else if (
-        //   currentShape.pressing.activate &&
-        //   currentShape.pressing.target === CoreTypes.PressingTarget.ctp2
-        // ) {
-        //   if (!shape.curves.t) return;
-        //   sender = {
-        //     shape: shape,
-        //     direction: CommonTypes.Direction.t,
-        //   };
-        // } else if (
-        //   currentShape.pressing.activate &&
-        //   currentShape.pressing.target === CoreTypes.PressingTarget.crp2
-        // ) {
-        //   if (!shape.curves.r) return;
-        //   sender = {
-        //     shape: shape,
-        //     direction: CommonTypes.Direction.r,
-        //   };
-        // } else if (
-        //   currentShape.pressing.activate &&
-        //   currentShape.pressing.target === CoreTypes.PressingTarget.cbp2
-        // ) {
-        //   if (!shape.curves.b) return;
-        //   sender = {
-        //     shape: shape,
-        //     direction: CommonTypes.Direction.b,
-        //   };
-        // }
-
-        // if (currentShape.pressing.activate && currentShape.pressing.target) {
-        //   pressing = {
-        //     shape: currentShape,
-        //     dx: (p.x - dragP.x) * (1 / scale) - currentShape?.getScreenP().x,
-        //     dy: (p.y - dragP.y) * (1 / scale) - currentShape?.getScreenP().y,
-        //   }
-        // }
       });
 
       if (space) {
@@ -415,15 +369,6 @@ export default function ProcessPage() {
     shapes.forEach((shape) => {
       if (!$canvas) return;
 
-      const sticking = moveP && shape.id === pressing?.shape?.id;
-
-      if (!sticking) {
-        // TODO: seperate move and resize feature in Core
-        shape.onMouseMove(
-          p,
-          sender && sender.shape.id !== shape.id ? true : false
-        );
-      }
 
       if (movingCanvas) {
         shape.offset = offset;
@@ -532,7 +477,6 @@ export default function ProcessPage() {
       checkData();
 
       pressing = null;
-      sender = null;
       moveP = null;
     },
     [dbClickedShape, setLeftMouseBtn]
