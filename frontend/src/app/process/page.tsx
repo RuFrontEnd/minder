@@ -150,8 +150,7 @@ export default function ProcessPage() {
       shapes.forEach((shape) => {
         if (!$canvas) return;
 
-        // const thePress = shape.getPressTarget(p)
-
+        // onMouseDown shape
         if (shape.checkBoundry(p)) {
           shape.selecting = true;
           pressing = {
@@ -164,6 +163,7 @@ export default function ProcessPage() {
           };
         }
 
+        // onMouseDown corner point and create curve
         const theCheckShapeVertexesBoundry = shape.checkVertexesBoundry(p);
         if (theCheckShapeVertexesBoundry) {
           shape.selecting = true;
@@ -185,7 +185,7 @@ export default function ProcessPage() {
           };
         }
 
-        // click curve trigger point and create curve
+        // onMouseDown curve trigger point and create curve
         const theCheckCurveTriggerBoundry = shape.checkCurveTriggerBoundry(p);
         if (theCheckCurveTriggerBoundry) {
           shape.selecting = false;
@@ -256,7 +256,7 @@ export default function ProcessPage() {
         console.log("pressing", pressing);
 
         if (
-          !pressing ||
+          pressing?.shape?.id !== shape.id ||
           (!(pressing?.shape instanceof Terminal) &&
             !(pressing?.shape instanceof Process) &&
             !(pressing?.shape instanceof Data) &&
@@ -529,32 +529,9 @@ export default function ProcessPage() {
         };
       });
 
-      // create relationships between shapes and shapes
-      // if (sender) {
-      //   shapes.forEach((shape) => {
-      //     shape.options = [];
+      checkData();
 
-      //     if (shape.id === sender?.shape?.id) {
-      //       shape.onMouseUp(p);
-      //     } else {
-      //       if (!sender) return;
-      //       shape.onMouseUp(p, sender);
-      //     }
-      //   });
-      // } else {
-      //   shapes.forEach((shape) => {
-      //     shape.onMouseUp(p);
-      //   });
-      // }
-
-      if (sender) {
-        checkData();
-      }
-
-      if (pressing) {
-        pressing = null;
-      }
-
+      pressing = null;
       sender = null;
       moveP = null;
     },
