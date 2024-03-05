@@ -20,10 +20,8 @@ let useEffected = false,
   pressing: null | {
     parent: null | Terminal | Process | Data | Desicion;
     shape: null | Terminal | Process | Data | Desicion | Curve;
-    target:
-      | CoreTypes.PressingTarget
-      | CurveTypes.PressingTarget
-      | CommonTypes.Direction;
+    direction: null | CommonTypes.Direction;
+    target: null | CoreTypes.PressingTarget | CurveTypes.PressingTarget;
     dx: number; // distance between event px & pressing shape px
     dy: number; // distance between event py & pressing shape py
   } = null,
@@ -160,6 +158,7 @@ export default function ProcessPage() {
             parent: null,
             shape: shape,
             target: CoreTypes.PressingTarget.m,
+            direction: null,
             dx: (p.x - dragP.x) * (1 / scale) - shape?.getScreenP().x,
             dy: (p.y - dragP.y) * (1 / scale) - shape?.getScreenP().y,
           };
@@ -172,6 +171,7 @@ export default function ProcessPage() {
             parent: null,
             shape: shape,
             target: theCheckShapeVertexesBoundry,
+            direction: null,
             dx:
               (p.x - dragP.x) * (1 / scale) -
               shape?.getEdge()[
@@ -208,6 +208,7 @@ export default function ProcessPage() {
             shape: shape,
             target:
               CoreTypes.PressingTarget[`c${theCheckCurveTriggerBoundry}p2`],
+            direction: null,
             dx: 0,
             dy: 0,
           };
@@ -228,7 +229,8 @@ export default function ProcessPage() {
             pressing = {
               parent: shape,
               shape: theCurve,
-              target: d,
+              target: null,
+              direction: d,
               dx: 0,
               dy: 0,
             };
@@ -243,6 +245,7 @@ export default function ProcessPage() {
                 parent: shape,
                 shape: theCurve,
                 target: theCurveCheckControlPointsBoundry,
+                direction: d,
                 dx: 0,
                 dy: 0,
               };
@@ -492,6 +495,28 @@ export default function ProcessPage() {
       };
 
       shapes.forEach((shape) => {
+        if (
+          pressing?.shape &&
+          pressing.shape instanceof Curve &&
+          pressing?.target &&
+          pressing?.parent &&
+          pressing?.direction
+        ) {
+          const theCheckReceivingPointsBoundry = shape.checkReceivingPointsBoundry(
+            p
+          );
+
+          console.log('theCheckReceivingPointsBoundry',theCheckReceivingPointsBoundry)
+
+          if (theCheckReceivingPointsBoundry) {
+            console.log('shape', shape)
+            shape.connect(theCheckReceivingPointsBoundry, {
+              shape: pressing.parent,
+              direction: pressing.direction,
+            });
+          }
+        }
+
         shape.receiving = {
           l: false,
           t: false,

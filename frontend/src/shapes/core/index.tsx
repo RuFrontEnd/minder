@@ -348,47 +348,44 @@ export default class Core {
     dx = edge.l - p.x;
     dy = center.m.y - p.y;
 
-    if (dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill) {
-      return {
-        activate: true,
-        direction: Direction.l,
-      };
+    if (
+      this.receiving.l &&
+      dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill
+    ) {
+      return Direction.l;
     }
 
     dx = center.m.x - p.x;
     dy = edge.t - p.y;
 
-    if (dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill) {
-      return {
-        activate: true,
-        direction: Direction.t,
-      };
+    if (
+      this.receiving.t &&
+      dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill
+    ) {
+      return Direction.t;
     }
 
     dx = p.x - edge.r;
     dy = center.m.y - p.y;
 
-    if (dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill) {
-      return {
-        activate: true,
-        direction: Direction.r,
-      };
+    if (
+      this.receiving.r &&
+      dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill
+    ) {
+      return Direction.r;
     }
 
     dx = center.m.x - p.x;
     dy = p.y - edge.b;
 
-    if (dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill) {
-      return {
-        activate: true,
-        direction: Direction.b,
-      };
+    if (
+      this.receiving.b &&
+      dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill
+    ) {
+      return Direction.b;
     }
 
-    return {
-      activate: false,
-      direction: null,
-    };
+    return null;
   };
 
   checkCurveTriggerBoundry = (p: Vec) => {
@@ -407,22 +404,42 @@ export default class Core {
     }
   };
 
-  connect = (receiveD: Direction, sendD: Direction, sender: ConnectTarget) => {
-    const senderCurve = sender.shape.curves[sender.direction].shape;
+  connect = (receiveD: Direction, connectTarget: ConnectTarget) => {
+    const senderCurve =
+      connectTarget.shape.curves[connectTarget.direction].shape;
     if (!senderCurve) return;
     // receiver
-    this.receiveFrom[receiveD] = sender;
-    // sender
-    sender.shape.curves[sender.direction].sendTo = {
+    this.receiveFrom[receiveD] = connectTarget;
+    // connectTarget
+    connectTarget.shape.curves[connectTarget.direction].sendTo = {
       shape: this,
-      direction: sendD,
+      direction: connectTarget.direction,
     };
 
+    const thershold = 10;
+
     // define receive curve P2 position
-    senderCurve.p2 = {
-      x: this.p.x - this.w / 2 - sender.shape.p.x,
-      y: this.p.y - sender.shape.p.y,
-    };
+    if (receiveD === Direction.l) {
+      senderCurve.p2 = {
+        x: this.p.x - connectTarget.shape.p.x - this.w / 2 - thershold,
+        y: this.p.y - connectTarget.shape.p.y,
+      };
+    } else if (receiveD === Direction.t) {
+      senderCurve.p2 = {
+        x: this.p.x - connectTarget.shape.p.x,
+        y: this.p.y - connectTarget.shape.p.y - this.h / 2 - thershold,
+      };
+    } else if (receiveD === Direction.r) {
+      senderCurve.p2 = {
+        x: this.p.x - connectTarget.shape.p.x + this.w / 2 + thershold,
+        y: this.p.y - connectTarget.shape.p.y,
+      };
+    } else if (receiveD === Direction.b) {
+      senderCurve.p2 = {
+        x: this.p.x - connectTarget.shape.p.x,
+        y: this.p.y - connectTarget.shape.p.y + this.h / 2 + thershold,
+      };
+    }
   };
 
   resetConnection = (d: Direction, fromSender: boolean) => {
