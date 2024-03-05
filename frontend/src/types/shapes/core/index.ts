@@ -5,10 +5,6 @@ import { Vec, Direction } from "@/types/shapes/common";
 enum PressingTarget {
   // anchor points
   m = "m",
-  l = Direction.l,
-  t = Direction.t,
-  r = Direction.r,
-  b = Direction.b,
   lt = "lt",
   rt = "rt",
   rb = "rb",

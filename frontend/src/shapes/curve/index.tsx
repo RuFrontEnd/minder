@@ -1,7 +1,7 @@
 "use client";
 import Arrow from "@/shapes/arrow";
 import { Vec } from "@/types/shapes/common";
-import { Line, PressingP } from "@/types/shapes/curve";
+import * as CurveTypes from "@/types/shapes/curve";
 
 const threshold = 5;
 export default class Curve {
@@ -15,8 +15,8 @@ export default class Curve {
   };
   private initScale = 1;
   id: string;
-  cpline: Line;
-  curve: Line;
+  cpline: CurveTypes.Line;
+  curve: CurveTypes.Line;
   controlPoint: {
     c: string;
     strokeC: string;
@@ -29,7 +29,7 @@ export default class Curve {
   cp2: Vec;
   pressing: {
     activate: boolean;
-    p: PressingP | null;
+    p: CurveTypes.PressingTarget | null;
   };
   arrow: null | Arrow;
   dragP: Vec | null;
@@ -37,7 +37,15 @@ export default class Curve {
   __offset__: Vec;
   __scale__: number;
 
-  constructor(id: string, cpline: Line, curve: Line, p1: Vec, cp1: Vec, cp2: Vec, p2: Vec) {
+  constructor(
+    id: string,
+    cpline: CurveTypes.Line,
+    curve: CurveTypes.Line,
+    p1: Vec,
+    cp1: Vec,
+    cp2: Vec,
+    p2: Vec
+  ) {
     this.id = id;
     this.cpline = cpline;
     this.curve = curve;
@@ -58,7 +66,7 @@ export default class Curve {
       "black",
       { x: this.__p2__.x, y: this.__p2__.y },
       Math.atan2(this.__p2__.y - this.cp2.y, this.__p2__.x - this.cp2.x) +
-      90 * (Math.PI / 180)
+        90 * (Math.PI / 180)
     );
     this.dragP = null;
     this.selecting = false;
@@ -89,13 +97,13 @@ export default class Curve {
   }
 
   set scale(value: number) {
-    const magnification = value / this.__scale__
+    const magnification = value / this.__scale__;
     this.__scale__ = value;
 
     if (this.arrow && value && this.cp2) {
       this.arrow.p = { x: this.getScreenP().p2.x, y: this.getScreenP().p2.y };
-      this.arrow.w = this.arrow.w * magnification
-      this.arrow.h = this.arrow.h * magnification
+      this.arrow.w = this.arrow.w * magnification;
+      this.arrow.h = this.arrow.h * magnification;
     }
   }
 
@@ -167,55 +175,31 @@ export default class Curve {
   }
 
   checkControlPointsBoundry(p: Vec) {
-    if (!this.p1 || !this.p2 || !this.cp1 || !this.cp2) {
-      this.pressing = this.initPressing;
-      return this.initPressing;
-    }
+    if (!this.p1 || !this.p2 || !this.cp1 || !this.cp2) return null;
 
     let dx, dy;
 
     dx = this.getScreenP().p2.x - p.x;
     dy = this.getScreenP().p2.y - p.y;
 
-    const scope = this.controlPoint.r * this.controlPoint.r
+    const scope = this.controlPoint.r * this.controlPoint.r;
 
     if (dx * dx + dy * dy < scope) {
-      // this.pressing = {
-      //   activate: true,
-      //   p: PressingP.p2,
-      // };
-      return {
-        activate: true,
-        p: PressingP.p2,
-      };
+      return CurveTypes.PressingTarget.p2;
     }
 
     dx = this.getScreenP().cp2.x - p.x;
     dy = this.getScreenP().cp2.y - p.y;
 
     if (dx * dx + dy * dy < scope) {
-      // this.pressing = {
-      //   activate: true,
-      //   p: PressingP.cp2,
-      // };
-      return {
-        activate: true,
-        p: PressingP.cp2,
-      };
+      return CurveTypes.PressingTarget.cp2;
     }
 
     dx = this.getScreenP().cp1.x - p.x;
     dy = this.getScreenP().cp1.y - p.y;
 
     if (dx * dx + dy * dy < scope) {
-      // this.pressing = {
-      //   activate: true,
-      //   p: PressingP.cp1,
-      // };
-      return {
-        activate: true,
-        p: PressingP.cp1,
-      };
+      return CurveTypes.PressingTarget.cp1;
     }
 
     // TODO: keep p1 checking but not using.
@@ -223,44 +207,37 @@ export default class Curve {
     // dy = this.p1.y - p.y;
 
     // if (dx * dx + dy * dy < scope) {
-    //   // this.pressing = {
-    //   //   activate: true,
-    //   //   p: PressingP.p1,
-    //   // };
-    //   return {
-    //     activate: true,
-    //     p: PressingP.p1,
-    //   };
+    //   return CurveTypes.PressingTarget.p1
     // }
 
-    // this.pressing = this.initPressing;
-    return this.initPressing;
+    return null;
   }
 
   checkBoundry(p: Vec) {
-    return this.getIsPointNearBezierCurve(p, threshold) || this.arrow?.checkBoundry(p);
+    return (
+      this.getIsPointNearBezierCurve(p, threshold) ||
+      this.arrow?.checkBoundry(p)
+    );
   }
 
-  move(pressingP: PressingP, p: Vec) {
+  move(pressingTarget: CurveTypes.PressingTarget, p: Vec) {
+    // TODO: temporary closed
+    // if (pressingTarget === CurveTypes.PressingTarget.p1 && this.p1 !== null && this.cp1 !== null) {
+    //   const offset = {
+    //     x: p.x - this.getScreenP().p1.x,
+    //     y: p.y - this.getScreenP().p1.y,
+    //   };
+
+    //   this.p1 = {
+    //     x: p.x / this.__scale__ - this.__offset__.x - this.p1.x,
+    //     y: p.y / this.__scale__ - this.__offset__.y - this.p1.y,
+    //   };
+
+    //   this.cp1.x += offset.x;
+    //   this.cp1.y += offset.y;
+    // } else 
     if (
-      pressingP === PressingP.p1 &&
-      this.p1 !== null &&
-      this.cp1 !== null
-    ) {
-      const offset = {
-        x: p.x - this.getScreenP().p1.x,
-        y: p.y - this.getScreenP().p1.y,
-      };
-
-      this.p1 = {
-        x: (p.x / this.__scale__ - this.__offset__.x) - this.p1.x,
-        y: (p.y / this.__scale__ - this.__offset__.y) - this.p1.y,
-      };
-
-      this.cp1.x += offset.x;
-      this.cp1.y += offset.y;
-    } else if (
-      pressingP === PressingP.cp1 &&
+      pressingTarget === CurveTypes.PressingTarget.cp1 &&
       this.cp1?.x !== null &&
       this.cp1?.y !== null
     ) {
@@ -269,7 +246,7 @@ export default class Curve {
         y: p.y / this.__scale__ - this.__offset__.y,
       };
     } else if (
-      pressingP === PressingP.cp2 &&
+      pressingTarget === CurveTypes.PressingTarget.cp2 &&
       this.cp2?.x !== null &&
       this.cp2?.y !== null
     ) {
@@ -278,13 +255,13 @@ export default class Curve {
         y: p.y / this.__scale__ - this.__offset__.y,
       };
     } else if (
-      pressingP === PressingP.p2 &&
+      pressingTarget === CurveTypes.PressingTarget.p2 &&
       this.p2 !== null &&
       this.cp2 !== null
     ) {
       const offset = {
-        x: (p.x / this.__scale__ - this.__offset__.x) - this.p2.x,
-        y: (p.y / this.__scale__ - this.__offset__.y) - this.p2.y,
+        x: p.x / this.__scale__ - this.__offset__.x - this.p2.x,
+        y: p.y / this.__scale__ - this.__offset__.y - this.p2.y,
       };
 
       this.p2 = {
@@ -311,9 +288,7 @@ export default class Curve {
     // if (this.pressing.activate) {
     //   $canvas.style.cursor = "move";
     // } // TODO: 待修改 cursor
-
     // const pressingControlPoint = this.checkControlPointsBoundry(p);
-
     // if (this.arrow) {
     //   this.selecting = this.selecting
     //     ? this.checkBoundry(p) ||
@@ -321,16 +296,14 @@ export default class Curve {
     //     this.arrow?.checkBoundry(p)
     //     : this.checkBoundry(p) || this.arrow?.checkBoundry(p);
     // }
-
     // if (!this.selecting) return;
-
     // this.pressing = pressingControlPoint;
   }
 
   onMouseMove(p: Vec) {
     // if (this.pressing.activate && this.selecting) {
     // if (
-    //   this.pressing.p === PressingP.p1 &&
+    //   this.pressing.p === CurveTypes.PressingTarget.p1 &&
     //   this.p1 !== null &&
     //   this.cp1 !== null
     // ) {
@@ -338,16 +311,14 @@ export default class Curve {
     //     x: p.x - this.getScreenP().p1.x,
     //     y: p.y - this.getScreenP().p1.y,
     //   };
-
     //   this.p1 = {
     //     x: (p.x / this.__scale__ - this.__offset__.x) - this.p1.x,
     //     y: (p.y / this.__scale__ - this.__offset__.y) - this.p1.y,
     //   };
-
     //   this.cp1.x += offset.x;
     //   this.cp1.y += offset.y;
     // } else if (
-    //   this.pressing.p === PressingP.cp1 &&
+    //   this.pressing.p === CurveTypes.PressingTarget.cp1 &&
     //   this.cp1?.x !== null &&
     //   this.cp1?.y !== null
     // ) {
@@ -356,7 +327,7 @@ export default class Curve {
     //     y: p.y / this.__scale__ - this.__offset__.y,
     //   };
     // } else if (
-    //   this.pressing.p === PressingP.cp2 &&
+    //   this.pressing.p === CurveTypes.PressingTarget.cp2 &&
     //   this.cp2?.x !== null &&
     //   this.cp2?.y !== null
     // ) {
@@ -365,7 +336,7 @@ export default class Curve {
     //     y: p.y / this.__scale__ - this.__offset__.y,
     //   };
     // } else if (
-    //   this.pressing.p === PressingP.p2 &&
+    //   this.pressing.p === CurveTypes.PressingTarget.p2 &&
     //   this.p2 !== null &&
     //   this.cp2 !== null
     // ) {
@@ -373,16 +344,13 @@ export default class Curve {
     //     x: (p.x / this.__scale__ - this.__offset__.x) - this.p2.x,
     //     y: (p.y / this.__scale__ - this.__offset__.y) - this.p2.y,
     //   };
-
     //   this.p2 = {
     //     x: p.x / this.__scale__ - this.__offset__.x,
     //     y: p.y / this.__scale__ - this.__offset__.y,
     //   };
-
     //   this.cp2.x += offset.x;
     //   this.cp2.y += offset.y;
     // }
-
     // if (this.arrow && this.p2 && this.cp2) {
     //   this.arrow.p = { x: this.getScreenP().p2.x, y: this.getScreenP().p2.y };
     //   this.arrow.deg =
@@ -394,7 +362,6 @@ export default class Curve {
     // }
     // }
   }
-
 
   onMouseUp() {
     // $canvas: HTMLCanvasElement
