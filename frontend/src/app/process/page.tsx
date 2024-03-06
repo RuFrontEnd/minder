@@ -8,6 +8,7 @@ import Curve from "@/shapes/curve";
 import Desicion from "@/shapes/decision";
 import DataFrame from "@/components/dataFrame";
 import { useState, useRef, useEffect, useCallback } from "react";
+import { cloneDeep } from "lodash";
 import * as CoreTypes from "@/types/shapes/core";
 import * as CurveTypes from "@/types/shapes/curve";
 import * as CommonTypes from "@/types/shapes/common";
@@ -43,7 +44,25 @@ let useEffected = false,
   selectAreaP: null | {
     start: CommonTypes.Vec;
     end: CommonTypes.Vec;
-  } = null;
+  } = null,
+  initMultiSelect = {
+    moving: false,
+    start: {
+      x: -1,
+      y: -1,
+    },
+    end: {
+      x: -1,
+      y: -1,
+    },
+    shapes: [],
+  },
+  multiSelect: {
+    moving: boolean;
+    start: CommonTypes.Vec;
+    end: CommonTypes.Vec;
+    shapes: Core[];
+  } = initMultiSelect;
 
 const ds = [
     CommonTypes.Direction.l,
@@ -147,9 +166,22 @@ export default function ProcessPage() {
       let $canvas = document.querySelector("canvas");
 
       const p = {
-        x: e.nativeEvent.offsetX,
-        y: e.nativeEvent.offsetY,
-      };
+          x: e.nativeEvent.offsetX,
+          y: e.nativeEvent.offsetY,
+        },
+        isPInMultiSelectArea =
+          p.x > multiSelect.start.x &&
+          p.y > multiSelect.start.y &&
+          p.x < multiSelect.end.x &&
+          p.y < multiSelect.end.y;
+
+      if (multiSelect.shapes.length > 0) {
+        if (isPInMultiSelectArea) {
+          multiSelect.moving = true;
+        } else {
+          multiSelect = cloneDeep(initMultiSelect);
+        }
+      }
 
       shapes.forEach((shape) => {
         if (!$canvas) return;
@@ -279,6 +311,7 @@ export default function ProcessPage() {
       });
 
       if (!pressing) {
+        if (multiSelect.shapes.length > 0 && isPInMultiSelectArea) return;
         selectAreaP = {
           start: p,
           end: p,
@@ -307,6 +340,17 @@ export default function ProcessPage() {
         y: (p.y - dragP.y) * (1 / scale),
       };
 
+    if (multiSelect.shapes.length > 0 && multiSelect.moving) {
+      multiSelect.shapes.forEach((shape) => {
+        shape.move(p, dragP);
+      });
+
+      multiSelect.start.x += offsetP.x;
+      multiSelect.start.y += offsetP.y;
+      multiSelect.end.x += offsetP.x;
+      multiSelect.end.y += offsetP.y;
+    }
+
     const movingCanvas = space && leftMouseBtn;
 
     if (movingCanvas) {
@@ -330,7 +374,11 @@ export default function ProcessPage() {
           pressing.shape.resize(offsetP, CoreTypes.PressingTarget.rb);
         } else if (pressing?.target === CoreTypes.PressingTarget.lb) {
           pressing.shape.resize(offsetP, CoreTypes.PressingTarget.lb);
-        } else if (pressing?.target === CoreTypes.PressingTarget.m) {
+        } else if (
+          pressing?.target === CoreTypes.PressingTarget.m &&
+          multiSelect.shapes.length === 0 &&
+          !multiSelect.moving
+        ) {
           pressing.shape.move(p, dragP);
         }
       }
@@ -443,7 +491,7 @@ export default function ProcessPage() {
       });
     }
 
-    if (selectAreaP) {
+    if (selectAreaP && !space) {
       selectAreaP = {
         ...selectAreaP,
         end: p,
@@ -462,6 +510,25 @@ export default function ProcessPage() {
         x: e.nativeEvent.offsetX,
         y: e.nativeEvent.offsetY,
       };
+
+      const selectedItemsNumber = (() => {
+        let num = 0;
+
+        shapes.forEach((shape) => {
+          if (!selectAreaP) return;
+          const theEdge = shape.getEdge();
+          if (
+            selectAreaP.start.x < theEdge.r ||
+            selectAreaP.start.y < theEdge.b ||
+            selectAreaP.end.x > theEdge.l ||
+            selectAreaP.end.y > theEdge.t
+          ) {
+            num++;
+          }
+        });
+
+        return num;
+      })();
 
       shapes.forEach((shape) => {
         if (
@@ -483,6 +550,39 @@ export default function ProcessPage() {
           }
         }
 
+        if (selectAreaP && selectedItemsNumber >= 2) {
+          const theEdge = shape.getEdge();
+          if (
+            selectAreaP.start.x < theEdge.r ||
+            selectAreaP.start.y < theEdge.b ||
+            selectAreaP.end.x > theEdge.l ||
+            selectAreaP.end.y > theEdge.t
+          ) {
+            if (
+              (multiSelect?.start.x === -1 && multiSelect?.start.y === -1) ||
+              (theEdge.l < multiSelect?.start.x &&
+                theEdge.t < multiSelect?.start.y)
+            ) {
+              multiSelect.start = {
+                x: theEdge.l,
+                y: theEdge.t,
+              };
+            } else if (
+              (multiSelect.end.x === -1 && multiSelect.end.y === -1) ||
+              (theEdge.r > multiSelect.end.x && theEdge.b > multiSelect.end.y)
+            ) {
+              multiSelect.end = {
+                x: theEdge.r,
+                y: theEdge.b,
+              };
+            }
+            multiSelect.shapes.push(shape);
+            shape.selecting = false;
+          }
+        }
+
+        console.log("multiSelect", multiSelect);
+
         shape.receiving = {
           l: false,
           t: false,
@@ -493,6 +593,7 @@ export default function ProcessPage() {
 
       checkData();
 
+      multiSelect.moving = false;
       selectAreaP = null;
       pressing = null;
       moveP = null;
@@ -718,6 +819,20 @@ export default function ProcessPage() {
         selectAreaP?.start.y,
         selectAreaP?.end.x - selectAreaP?.start.x,
         selectAreaP?.end.y - selectAreaP?.start.y
+      );
+
+      ctx?.closePath();
+    }
+
+    if (multiSelect.shapes.length > 0) {
+      ctx?.beginPath();
+
+      ctx.strokeStyle = "#2436b1";
+      ctx.strokeRect(
+        multiSelect.start.x,
+        multiSelect.start.y,
+        multiSelect.end.x - multiSelect.start.x,
+        multiSelect.end.y - multiSelect.start.y
       );
 
       ctx?.closePath();
