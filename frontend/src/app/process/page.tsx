@@ -39,7 +39,11 @@ let useEffected = false,
   } = {
     offset: 5,
     p: null,
-  };
+  },
+  selectAreaP: null | {
+    start: CommonTypes.Vec;
+    end: CommonTypes.Vec;
+  } = null;
 
 const ds = [
     CommonTypes.Direction.l,
@@ -274,6 +278,13 @@ export default function ProcessPage() {
         }
       });
 
+      if (!pressing) {
+        selectAreaP = {
+          start: p,
+          end: p,
+        };
+      }
+
       if (space) {
         dragP = p;
       }
@@ -369,7 +380,6 @@ export default function ProcessPage() {
     shapes.forEach((shape) => {
       if (!$canvas) return;
 
-
       if (movingCanvas) {
         shape.offset = offset;
       }
@@ -433,6 +443,13 @@ export default function ProcessPage() {
       });
     }
 
+    if (selectAreaP) {
+      selectAreaP = {
+        ...selectAreaP,
+        end: p,
+      };
+    }
+
     dragP = p;
   };
 
@@ -476,6 +493,7 @@ export default function ProcessPage() {
 
       checkData();
 
+      selectAreaP = null;
       pressing = null;
       moveP = null;
     },
@@ -663,20 +681,48 @@ export default function ProcessPage() {
     if (!ctx) return;
     ctx?.clearRect(0, 0, window.innerWidth, window.innerHeight);
 
+    // draw background
     ctx?.beginPath();
     ctx.fillStyle = "#F6F7FA";
     ctx?.fillRect(0, 0, window.innerWidth, window.innerHeight);
     ctx?.closePath();
 
+    // draw shapes
     shapes.forEach((shape) => {
       if (!ctx) return;
       shape.draw(ctx);
     });
+
+    // fraw curves in shapes
     shapes.forEach((shape) => {
       if (!ctx) return;
 
       shape.drawCurve(ctx);
     });
+
+    // draw selectArea
+    if (selectAreaP) {
+      ctx?.beginPath();
+
+      ctx.fillStyle = "#2436b155";
+      ctx.fillRect(
+        selectAreaP?.start.x,
+        selectAreaP?.start.y,
+        selectAreaP?.end.x - selectAreaP?.start.x,
+        selectAreaP?.end.y - selectAreaP?.start.y
+      );
+
+      ctx.strokeStyle = "#2436b1";
+      ctx.strokeRect(
+        selectAreaP?.start.x,
+        selectAreaP?.start.y,
+        selectAreaP?.end.x - selectAreaP?.start.x,
+        selectAreaP?.end.y - selectAreaP?.start.y
+      );
+
+      ctx?.closePath();
+    }
+
     requestAnimationFrame(draw);
   }, []);
 
