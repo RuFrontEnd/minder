@@ -522,20 +522,43 @@ export default function ProcessPage() {
       y: e.nativeEvent.offsetY,
     };
 
+    // define which shape in select area
     const selectedShapes = (() => {
       let shapesInSelectArea: (Terminal | Data | Process | Desicion)[] = [];
 
       shapes.forEach((shape) => {
         if (!selectAreaP) return;
         const theEdge = shape.getEdge();
-        //TODO: judgement has something wrong
-        if (
-          selectAreaP.start.x < theEdge.r ||
-          selectAreaP.start.y < theEdge.b ||
-          selectAreaP.end.x > theEdge.l ||
-          selectAreaP.end.y > theEdge.t
-        ) {
-          shapesInSelectArea.push(shape);
+
+        let vps = [
+          { x: theEdge.l, y: theEdge.t },
+          { x: theEdge.r, y: theEdge.t },
+          { x: theEdge.r, y: theEdge.b },
+          { x: theEdge.l, y: theEdge.b },
+        ];
+
+        const l =
+            selectAreaP.start.x < selectAreaP.end.x
+              ? selectAreaP.start.x
+              : selectAreaP.end.x,
+          t =
+            selectAreaP.start.y < selectAreaP.end.y
+              ? selectAreaP.start.y
+              : selectAreaP.end.y,
+          r =
+            selectAreaP.start.x > selectAreaP.end.x
+              ? selectAreaP.start.x
+              : selectAreaP.end.x,
+          b =
+            selectAreaP.start.y > selectAreaP.end.y
+              ? selectAreaP.start.y
+              : selectAreaP.end.y;
+
+        for (const vp of vps) {
+          if (vp.x > l && vp.y > t && vp.x < r && vp.y < b) {
+            shapesInSelectArea.push(shape);
+            break;
+          }
         }
       });
 
@@ -544,11 +567,10 @@ export default function ProcessPage() {
 
     console.log("selectedShapes", selectedShapes);
 
-    selectAreaP = null;
+    // define select value
     if (selectedShapes.length === 1) {
       selectedShapes[0].selecting = true;
     } else if (selectedShapes.length > 1) {
-      console.log("A");
       selectedShapes.forEach((selectedShape) => {
         const theEdge = selectedShape.getEdge();
         if (
@@ -603,6 +625,7 @@ export default function ProcessPage() {
 
     checkData();
 
+    selectAreaP = null;
     multiSelect.moving = false;
     pressing = null;
     moveP = null;
