@@ -57,7 +57,7 @@ let useEffected = false,
     },
     shapes: [],
   },
-  multiSelect: {
+  select: {
     moving: boolean;
     start: CommonTypes.Vec;
     end: CommonTypes.Vec;
@@ -169,19 +169,16 @@ export default function ProcessPage() {
         y: e.nativeEvent.offsetY,
       },
       isPInMultiSelectArea =
-        p.x > multiSelect.start.x &&
-        p.y > multiSelect.start.y &&
-        p.x < multiSelect.end.x &&
-        p.y < multiSelect.end.y;
+        p.x > select.start.x &&
+        p.y > select.start.y &&
+        p.x < select.end.x &&
+        p.y < select.end.y;
 
-    console.log("multiSelect.shapes.length", multiSelect.shapes.length);
-    console.log("isPInMultiSelectArea", isPInMultiSelectArea);
-
-    if (multiSelect.shapes.length > 0) {
+    if (select.shapes.length > 0) {
       if (isPInMultiSelectArea) {
-        multiSelect.moving = true;
+        select.moving = true;
       } else {
-        multiSelect = {
+        select = {
           moving: false,
           start: {
             x: -1,
@@ -196,13 +193,11 @@ export default function ProcessPage() {
       }
     }
 
-    console.log("multiSelect down", multiSelect);
-
     shapes.forEach((shape) => {
       if (!$canvas) return;
 
       // onMouseDown shape
-      if (shape.checkBoundry(p)) {
+      if (shape.checkBoundry(p) && !select.moving) {
         shape.selecting = true;
         pressing = {
           parent: null,
@@ -322,10 +317,8 @@ export default function ProcessPage() {
       }
     });
 
-    console.log("pressing", pressing);
-
     if (!pressing) {
-      if (multiSelect.shapes.length > 0 && isPInMultiSelectArea) return;
+      if (select.shapes.length > 0 && isPInMultiSelectArea) return;
       selectAreaP = {
         start: p,
         end: p,
@@ -352,15 +345,15 @@ export default function ProcessPage() {
         y: (p.y - dragP.y) * (1 / scale),
       };
 
-    if (multiSelect.shapes.length > 0 && multiSelect.moving) {
-      multiSelect.shapes.forEach((shape) => {
+    if (select.shapes.length > 0 && select.moving) {
+      select.shapes.forEach((shape) => {
         shape.move(p, dragP);
       });
 
-      multiSelect.start.x += offsetP.x;
-      multiSelect.start.y += offsetP.y;
-      multiSelect.end.x += offsetP.x;
-      multiSelect.end.y += offsetP.y;
+      select.start.x += offsetP.x;
+      select.start.y += offsetP.y;
+      select.end.x += offsetP.x;
+      select.end.y += offsetP.y;
     }
 
     const movingCanvas = space && leftMouseBtn;
@@ -388,8 +381,8 @@ export default function ProcessPage() {
           pressing.shape.resize(offsetP, CoreTypes.PressingTarget.lb);
         } else if (
           pressing?.target === CoreTypes.PressingTarget.m &&
-          multiSelect.shapes.length === 0 &&
-          !multiSelect.moving
+          select.shapes.length === 0 &&
+          !select.moving
         ) {
           pressing.shape.move(p, dragP);
         }
@@ -565,32 +558,25 @@ export default function ProcessPage() {
       return shapesInSelectArea;
     })();
 
-    console.log("selectedShapes", selectedShapes);
-
-    // define select value
+    // define select status
     if (selectedShapes.length === 1) {
       selectedShapes[0].selecting = true;
     } else if (selectedShapes.length > 1) {
       selectedShapes.forEach((selectedShape) => {
         const theEdge = selectedShape.getEdge();
-        if (
-          (multiSelect?.start.x === -1 && multiSelect?.start.y === -1) ||
-          (theEdge.l < multiSelect?.start.x && theEdge.t < multiSelect?.start.y)
-        ) {
-          multiSelect.start = {
-            x: theEdge.l,
-            y: theEdge.t,
-          };
-        } else if (
-          (multiSelect.end.x === -1 && multiSelect.end.y === -1) ||
-          (theEdge.r > multiSelect.end.x && theEdge.b > multiSelect.end.y)
-        ) {
-          multiSelect.end = {
-            x: theEdge.r,
-            y: theEdge.b,
-          };
+        if (select?.start.x === -1 || theEdge.l < select?.start.x) {
+          select.start.x = theEdge.l;
         }
-        multiSelect.shapes.push(selectedShape);
+        if (select?.start.y === -1 || theEdge.t < select?.start.y) {
+          select.start.y = theEdge.t;
+        }
+        if (select.end.x === -1 || theEdge.r > select.end.x) {
+          select.end.x = theEdge.r;
+        }
+        if (select.end.y === -1 || theEdge.b > select.end.y) {
+          select.end.y = theEdge.b;
+        }
+        select.shapes.push(selectedShape);
         selectedShape.selecting = false;
       });
     }
@@ -626,7 +612,7 @@ export default function ProcessPage() {
     checkData();
 
     selectAreaP = null;
-    multiSelect.moving = false;
+    select.moving = false;
     pressing = null;
     moveP = null;
   };
@@ -854,15 +840,15 @@ export default function ProcessPage() {
       ctx?.closePath();
     }
 
-    if (multiSelect.shapes.length > 0) {
+    if (select.shapes.length > 0) {
       ctx?.beginPath();
 
       ctx.strokeStyle = "#2436b1";
       ctx.strokeRect(
-        multiSelect.start.x,
-        multiSelect.start.y,
-        multiSelect.end.x - multiSelect.start.x,
-        multiSelect.end.y - multiSelect.start.y
+        select.start.x,
+        select.start.y,
+        select.end.x - select.start.x,
+        select.end.y - select.start.y
       );
 
       ctx?.closePath();
