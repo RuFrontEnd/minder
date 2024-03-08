@@ -158,172 +158,184 @@ export default function ProcessPage() {
     });
   };
 
-  const onMouseDown = useCallback(
-    (e: React.MouseEvent<HTMLCanvasElement>) => {
-      e.preventDefault();
-      setLeftMouseBtn(true);
+  const onMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    setLeftMouseBtn(true);
 
-      let $canvas = document.querySelector("canvas");
+    let $canvas = document.querySelector("canvas");
 
-      const p = {
-          x: e.nativeEvent.offsetX,
-          y: e.nativeEvent.offsetY,
-        },
-        isPInMultiSelectArea =
-          p.x > multiSelect.start.x &&
-          p.y > multiSelect.start.y &&
-          p.x < multiSelect.end.x &&
-          p.y < multiSelect.end.y;
+    const p = {
+        x: e.nativeEvent.offsetX,
+        y: e.nativeEvent.offsetY,
+      },
+      isPInMultiSelectArea =
+        p.x > multiSelect.start.x &&
+        p.y > multiSelect.start.y &&
+        p.x < multiSelect.end.x &&
+        p.y < multiSelect.end.y;
 
-      if (multiSelect.shapes.length > 0) {
-        if (isPInMultiSelectArea) {
-          multiSelect.moving = true;
-        } else {
-          multiSelect = cloneDeep(initMultiSelect);
-        }
+    console.log("multiSelect.shapes.length", multiSelect.shapes.length);
+    console.log("isPInMultiSelectArea", isPInMultiSelectArea);
+
+    if (multiSelect.shapes.length > 0) {
+      if (isPInMultiSelectArea) {
+        multiSelect.moving = true;
+      } else {
+        multiSelect = {
+          moving: false,
+          start: {
+            x: -1,
+            y: -1,
+          },
+          end: {
+            x: -1,
+            y: -1,
+          },
+          shapes: [],
+        };
+      }
+    }
+
+    console.log("multiSelect down", multiSelect);
+
+    shapes.forEach((shape) => {
+      if (!$canvas) return;
+
+      // onMouseDown shape
+      if (shape.checkBoundry(p)) {
+        shape.selecting = true;
+        pressing = {
+          parent: null,
+          shape: shape,
+          target: CoreTypes.PressingTarget.m,
+          direction: null,
+          dx: (p.x - dragP.x) * (1 / scale) - shape?.getScreenP().x,
+          dy: (p.y - dragP.y) * (1 / scale) - shape?.getScreenP().y,
+        };
       }
 
-      shapes.forEach((shape) => {
-        if (!$canvas) return;
+      // onMouseDown corner point and create curve
+      const theCheckShapeVertexesBoundry = shape.checkVertexesBoundry(p);
+      if (theCheckShapeVertexesBoundry) {
+        shape.selecting = true;
+        pressing = {
+          parent: null,
+          shape: shape,
+          target: theCheckShapeVertexesBoundry,
+          direction: null,
+          dx:
+            (p.x - dragP.x) * (1 / scale) -
+            shape?.getEdge()[
+              theCheckShapeVertexesBoundry[0] as CommonTypes.Direction
+            ],
+          dy:
+            (p.y - dragP.y) * (1 / scale) -
+            shape?.getEdge()[
+              theCheckShapeVertexesBoundry[1] as CommonTypes.Direction
+            ],
+        };
+      }
 
-        // onMouseDown shape
-        if (shape.checkBoundry(p)) {
-          shape.selecting = true;
-          pressing = {
-            parent: null,
-            shape: shape,
-            target: CoreTypes.PressingTarget.m,
-            direction: null,
-            dx: (p.x - dragP.x) * (1 / scale) - shape?.getScreenP().x,
-            dy: (p.y - dragP.y) * (1 / scale) - shape?.getScreenP().y,
-          };
+      // onMouseDown curve trigger point and create curve
+      const theCheckCurveTriggerBoundry = shape.checkCurveTriggerBoundry(p);
+      if (theCheckCurveTriggerBoundry) {
+        shape.selecting = false;
+
+        if (!shape.curves[theCheckCurveTriggerBoundry].shape) {
+          shape.createCurve(
+            `curve_${Date.now()}`,
+            CommonTypes.Direction[theCheckCurveTriggerBoundry]
+          );
         }
 
-        // onMouseDown corner point and create curve
-        const theCheckShapeVertexesBoundry = shape.checkVertexesBoundry(p);
-        if (theCheckShapeVertexesBoundry) {
-          shape.selecting = true;
-          pressing = {
-            parent: null,
-            shape: shape,
-            target: theCheckShapeVertexesBoundry,
-            direction: null,
-            dx:
-              (p.x - dragP.x) * (1 / scale) -
-              shape?.getEdge()[
-                theCheckShapeVertexesBoundry[0] as CommonTypes.Direction
-              ],
-            dy:
-              (p.y - dragP.y) * (1 / scale) -
-              shape?.getEdge()[
-                theCheckShapeVertexesBoundry[1] as CommonTypes.Direction
-              ],
-          };
+        const theCurve = shape.curves[theCheckCurveTriggerBoundry].shape;
+
+        if (theCurve) {
+          theCurve.selecting = true;
         }
 
-        // onMouseDown curve trigger point and create curve
-        const theCheckCurveTriggerBoundry = shape.checkCurveTriggerBoundry(p);
-        if (theCheckCurveTriggerBoundry) {
-          shape.selecting = false;
+        pressing = {
+          parent: null,
+          shape: shape,
+          target: CoreTypes.PressingTarget[`c${theCheckCurveTriggerBoundry}p2`],
+          direction: null,
+          dx: 0,
+          dy: 0,
+        };
+      }
 
-          if (!shape.curves[theCheckCurveTriggerBoundry].shape) {
-            shape.createCurve(
-              `curve_${Date.now()}`,
-              CommonTypes.Direction[theCheckCurveTriggerBoundry]
-            );
-          }
+      // TOOD: select curve
+      for (const d of ds) {
+        const theCurve = shape.curves[d].shape;
 
-          const theCurve = shape.curves[theCheckCurveTriggerBoundry].shape;
+        const curveP = {
+          x: p.x - shape?.getScreenP().x,
+          y: p.y - shape?.getScreenP().y,
+        };
 
-          if (theCurve) {
-            theCurve.selecting = true;
-          }
-
+        if (!theCurve) continue;
+        if (theCurve.checkBoundry(curveP)) {
+          theCurve.selecting = true;
           pressing = {
-            parent: null,
-            shape: shape,
-            target:
-              CoreTypes.PressingTarget[`c${theCheckCurveTriggerBoundry}p2`],
-            direction: null,
+            parent: shape,
+            shape: theCurve,
+            target: null,
+            direction: d,
             dx: 0,
             dy: 0,
           };
         }
 
-        // TOOD: select curve
-        for (const d of ds) {
-          const theCurve = shape.curves[d].shape;
-
-          const curveP = {
-            x: p.x - shape?.getScreenP().x,
-            y: p.y - shape?.getScreenP().y,
-          };
-
-          if (!theCurve) continue;
-          if (theCurve.checkBoundry(curveP)) {
-            theCurve.selecting = true;
+        if (theCurve.selecting) {
+          const theCurveCheckControlPointsBoundry = theCurve.checkControlPointsBoundry(
+            curveP
+          );
+          if (theCurveCheckControlPointsBoundry) {
             pressing = {
               parent: shape,
               shape: theCurve,
-              target: null,
+              target: theCurveCheckControlPointsBoundry,
               direction: d,
               dx: 0,
               dy: 0,
             };
           }
-
-          if (theCurve.selecting) {
-            const theCurveCheckControlPointsBoundry = theCurve.checkControlPointsBoundry(
-              curveP
-            );
-            if (theCurveCheckControlPointsBoundry) {
-              pressing = {
-                parent: shape,
-                shape: theCurve,
-                target: theCurveCheckControlPointsBoundry,
-                direction: d,
-                dx: 0,
-                dy: 0,
-              };
-            }
-          }
         }
-
-        console.log("pressing", pressing);
-
-        if (
-          pressing?.shape?.id !== shape.id ||
-          (!(pressing?.shape instanceof Terminal) &&
-            !(pressing?.shape instanceof Process) &&
-            !(pressing?.shape instanceof Data) &&
-            !(pressing?.shape instanceof Desicion))
-        ) {
-          shape.selecting = false;
-        }
-
-        if (!pressing || !(pressing?.shape instanceof Curve)) {
-          for (const d of ds) {
-            const theCurve = shape.curves[d].shape;
-            if (!theCurve) continue;
-            theCurve.selecting = false;
-          }
-        }
-      });
-
-      if (!pressing) {
-        if (multiSelect.shapes.length > 0 && isPInMultiSelectArea) return;
-        selectAreaP = {
-          start: p,
-          end: p,
-        };
       }
 
-      if (space) {
-        dragP = p;
+      if (
+        pressing?.shape?.id !== shape.id ||
+        (!(pressing?.shape instanceof Terminal) &&
+          !(pressing?.shape instanceof Process) &&
+          !(pressing?.shape instanceof Data) &&
+          !(pressing?.shape instanceof Desicion))
+      ) {
+        shape.selecting = false;
       }
-    },
-    [space, scale, setLeftMouseBtn]
-  );
+
+      if (!pressing || !(pressing?.shape instanceof Curve)) {
+        for (const d of ds) {
+          const theCurve = shape.curves[d].shape;
+          if (!theCurve) continue;
+          theCurve.selecting = false;
+        }
+      }
+    });
+
+    console.log("pressing", pressing);
+
+    if (!pressing) {
+      if (multiSelect.shapes.length > 0 && isPInMultiSelectArea) return;
+      selectAreaP = {
+        start: p,
+        end: p,
+      };
+    }
+
+    if (space) {
+      dragP = p;
+    }
+  };
 
   const onMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     e.preventDefault();
@@ -501,105 +513,100 @@ export default function ProcessPage() {
     dragP = p;
   };
 
-  const onMouseUp = useCallback(
-    (e: React.MouseEvent<HTMLCanvasElement>) => {
-      e.preventDefault();
-      setLeftMouseBtn(false);
+  const onMouseUp = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    setLeftMouseBtn(false);
 
-      const p = {
-        x: e.nativeEvent.offsetX,
-        y: e.nativeEvent.offsetY,
-      };
+    const p = {
+      x: e.nativeEvent.offsetX,
+      y: e.nativeEvent.offsetY,
+    };
 
-      const selectedItemsNumber = (() => {
-        let num = 0;
-
-        shapes.forEach((shape) => {
-          if (!selectAreaP) return;
-          const theEdge = shape.getEdge();
-          if (
-            selectAreaP.start.x < theEdge.r ||
-            selectAreaP.start.y < theEdge.b ||
-            selectAreaP.end.x > theEdge.l ||
-            selectAreaP.end.y > theEdge.t
-          ) {
-            num++;
-          }
-        });
-
-        return num;
-      })();
+    const selectedShapes = (() => {
+      let shapesInSelectArea: (Terminal | Data | Process | Desicion)[] = [];
 
       shapes.forEach((shape) => {
+        if (!selectAreaP) return;
+        const theEdge = shape.getEdge();
+        //TODO: judgement has something wrong
         if (
-          pressing?.shape &&
-          pressing.shape instanceof Curve &&
-          pressing?.target &&
-          pressing?.parent &&
-          pressing?.direction
+          selectAreaP.start.x < theEdge.r ||
+          selectAreaP.start.y < theEdge.b ||
+          selectAreaP.end.x > theEdge.l ||
+          selectAreaP.end.y > theEdge.t
         ) {
-          const theCheckReceivingPointsBoundry = shape.checkReceivingPointsBoundry(
-            p
-          );
-
-          if (theCheckReceivingPointsBoundry) {
-            shape.connect(theCheckReceivingPointsBoundry, {
-              shape: pressing.parent,
-              direction: pressing.direction,
-            });
-          }
+          shapesInSelectArea.push(shape);
         }
-
-        if (selectAreaP && selectedItemsNumber >= 2) {
-          const theEdge = shape.getEdge();
-          if (
-            selectAreaP.start.x < theEdge.r ||
-            selectAreaP.start.y < theEdge.b ||
-            selectAreaP.end.x > theEdge.l ||
-            selectAreaP.end.y > theEdge.t
-          ) {
-            if (
-              (multiSelect?.start.x === -1 && multiSelect?.start.y === -1) ||
-              (theEdge.l < multiSelect?.start.x &&
-                theEdge.t < multiSelect?.start.y)
-            ) {
-              multiSelect.start = {
-                x: theEdge.l,
-                y: theEdge.t,
-              };
-            } else if (
-              (multiSelect.end.x === -1 && multiSelect.end.y === -1) ||
-              (theEdge.r > multiSelect.end.x && theEdge.b > multiSelect.end.y)
-            ) {
-              multiSelect.end = {
-                x: theEdge.r,
-                y: theEdge.b,
-              };
-            }
-            multiSelect.shapes.push(shape);
-            shape.selecting = false;
-          }
-        }
-
-        console.log("multiSelect", multiSelect);
-
-        shape.receiving = {
-          l: false,
-          t: false,
-          r: false,
-          b: false,
-        };
       });
 
-      checkData();
+      return shapesInSelectArea;
+    })();
 
-      multiSelect.moving = false;
-      selectAreaP = null;
-      pressing = null;
-      moveP = null;
-    },
-    [dbClickedShape, setLeftMouseBtn]
-  );
+    console.log("selectedShapes", selectedShapes);
+
+    selectAreaP = null;
+    if (selectedShapes.length === 1) {
+      selectedShapes[0].selecting = true;
+    } else if (selectedShapes.length > 1) {
+      console.log("A");
+      selectedShapes.forEach((selectedShape) => {
+        const theEdge = selectedShape.getEdge();
+        if (
+          (multiSelect?.start.x === -1 && multiSelect?.start.y === -1) ||
+          (theEdge.l < multiSelect?.start.x && theEdge.t < multiSelect?.start.y)
+        ) {
+          multiSelect.start = {
+            x: theEdge.l,
+            y: theEdge.t,
+          };
+        } else if (
+          (multiSelect.end.x === -1 && multiSelect.end.y === -1) ||
+          (theEdge.r > multiSelect.end.x && theEdge.b > multiSelect.end.y)
+        ) {
+          multiSelect.end = {
+            x: theEdge.r,
+            y: theEdge.b,
+          };
+        }
+        multiSelect.shapes.push(selectedShape);
+        selectedShape.selecting = false;
+      });
+    }
+
+    shapes.forEach((shape) => {
+      if (
+        pressing?.shape &&
+        pressing.shape instanceof Curve &&
+        pressing?.target &&
+        pressing?.parent &&
+        pressing?.direction
+      ) {
+        const theCheckReceivingPointsBoundry = shape.checkReceivingPointsBoundry(
+          p
+        );
+
+        if (theCheckReceivingPointsBoundry) {
+          shape.connect(theCheckReceivingPointsBoundry, {
+            shape: pressing.parent,
+            direction: pressing.direction,
+          });
+        }
+      }
+
+      shape.receiving = {
+        l: false,
+        t: false,
+        r: false,
+        b: false,
+      };
+    });
+
+    checkData();
+
+    multiSelect.moving = false;
+    pressing = null;
+    moveP = null;
+  };
 
   const onMouseWeel = (e: React.WheelEvent<HTMLCanvasElement>) => {
     zoom(e.deltaY, { x: e.clientX, y: e.clientY });
