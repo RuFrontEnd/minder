@@ -171,34 +171,40 @@ export default function ProcessPage() {
       x: e.nativeEvent.offsetX,
       y: e.nativeEvent.offsetY,
     },
-      PinSelectArea = (p.x > select.start.x &&
+      pInSelectArea = (p.x > select.start.x &&
         p.y > select.start.y &&
         p.x < select.end.x &&
         p.y < select.end.y),
-      PinSelectArea_lt = (p.x > select.start.x - selectAnchor.size.fill &&
+      pInSelectArea_lt = (p.x > select.start.x - selectAnchor.size.fill &&
         p.y > select.start.y - selectAnchor.size.fill &&
         p.x < select.start.x + selectAnchor.size.fill &&
         p.y < select.start.y + selectAnchor.size.fill),
       isPInMultiSelectArea =
-        PinSelectArea || PinSelectArea_lt
+        pInSelectArea || pInSelectArea_lt
 
     if (select.shapes.length > 1) {
       // when multi select shapes
-      let hasGetShape = false
+      let _target: null | 'selectArea_m' | 'selectArea_lt' = null
 
       shapes.forEach((shape) => {
         if (!$canvas) return;
 
         if (shape.checkBoundry(p)) {
-          hasGetShape = true
+          _target = 'selectArea_m'
         }
       })
 
-      if (hasGetShape) {
+      if (pInSelectArea_lt) {
+        _target = 'selectArea_lt'
+      }
+
+      console.log('_target', _target)
+
+      if (_target) {
         pressing = {
           parent: null,
           shape: null,
-          target: 'selectArea_m',
+          target: _target,
           direction: null,
           dx: 0,
           dy: 0,
@@ -239,7 +245,7 @@ export default function ProcessPage() {
 
         // onMouseDown corner point and create curve
         const theCheckShapeVertexesBoundry = shape.checkVertexesBoundry(p);
-        if (theCheckShapeVertexesBoundry && select.shapes.length === 1) {
+        if (theCheckShapeVertexesBoundry && select.shapes.length <= 1) {
           shape.selecting = true;
           pressing = {
             parent: null,
@@ -374,17 +380,6 @@ export default function ProcessPage() {
         y: (p.y - dragP.y) * (1 / scale),
       };
 
-    if (select.shapes.length > 0 && pressing?.target === 'selectArea_m') {
-      select.shapes.forEach((shape) => {
-        shape.move(p, dragP);
-      });
-
-      select.start.x += offsetP.x;
-      select.start.y += offsetP.y;
-      select.end.x += offsetP.x;
-      select.end.y += offsetP.y;
-    }
-
     const movingCanvas = space && leftMouseBtn;
 
     if (movingCanvas) {
@@ -414,9 +409,7 @@ export default function ProcessPage() {
         ) {
           pressing.shape.move(p, dragP);
         }
-      }
-
-      if (pressing.shape instanceof Curve) {
+      } else if (pressing.shape instanceof Curve) {
         if (
           pressing?.target === CurveTypes.PressingTarget.p2 &&
           pressing?.parent &&
@@ -453,6 +446,37 @@ export default function ProcessPage() {
             b: isReceiving,
           };
         });
+      }
+    } else {
+      if (pressing?.target === 'selectArea_m') {
+        select.shapes.forEach((shape) => {
+          shape.move(p, dragP);
+        });
+
+        select.start.x += offsetP.x;
+        select.start.y += offsetP.y;
+        select.end.x += offsetP.x;
+        select.end.y += offsetP.y;
+      } else if (pressing?.target === 'selectArea_lt') {
+
+        let unitX = offsetP.x / select.start.x
+
+        select.shapes.forEach((shape) => {
+          const dx = Math.abs(shape.p.x - select.end.x),
+            ratioX = dx / Math.abs(select.end.x - select.start.x),
+            unitX = offsetP.x * ratioX
+
+          shape.p = {
+            x: shape.p.x + unitX,
+            y: shape.p.y,
+          }
+
+          const ratioW = Math.abs(shape.w / Math.abs(select.end.x - select.start.x)),
+            unitW = offsetP.x * ratioW
+          shape.w = shape.w - unitW
+        });
+        select.start.x += offsetP.x;
+        // select.start.y += offsetP.y;
       }
     }
 
