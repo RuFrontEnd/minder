@@ -22,7 +22,7 @@ let useEffected = false,
     parent: null | Terminal | Process | Data | Desicion;
     shape: null | Terminal | Process | Data | Desicion | Curve;
     direction: null | CommonTypes.Direction;
-    target: null | CoreTypes.PressingTarget | CurveTypes.PressingTarget;
+    target: null | CoreTypes.PressingTarget | CurveTypes.PressingTarget | 'selectArea_m' | 'selectArea_lt';
     dx: number; // distance between event px & pressing shape px
     dy: number; // distance between event py & pressing shape py
   } = null,
@@ -46,7 +46,6 @@ let useEffected = false,
     end: CommonTypes.Vec;
   } = null,
   initMultiSelect = {
-    moving: false,
     start: {
       x: -1,
       y: -1,
@@ -58,7 +57,6 @@ let useEffected = false,
     shapes: [],
   },
   select: {
-    moving: boolean;
     start: CommonTypes.Vec;
     end: CommonTypes.Vec;
     shapes: Core[];
@@ -173,18 +171,40 @@ export default function ProcessPage() {
       x: e.nativeEvent.offsetX,
       y: e.nativeEvent.offsetY,
     },
-      isPInMultiSelectArea =
-        p.x > select.start.x &&
+      PinSelectArea = (p.x > select.start.x &&
         p.y > select.start.y &&
         p.x < select.end.x &&
-        p.y < select.end.y;
+        p.y < select.end.y),
+      PinSelectArea_lt = (p.x > select.start.x - selectAnchor.size.fill &&
+        p.y > select.start.y - selectAnchor.size.fill &&
+        p.x < select.start.x + selectAnchor.size.fill &&
+        p.y < select.start.y + selectAnchor.size.fill),
+      isPInMultiSelectArea =
+        PinSelectArea || PinSelectArea_lt
 
-    if (select.shapes.length > 0) {
-      if (isPInMultiSelectArea) {
-        select.moving = true;
+    if (select.shapes.length > 1) {
+      // when multi select shapes
+      let hasGetShape = false
+
+      shapes.forEach((shape) => {
+        if (!$canvas) return;
+
+        if (shape.checkBoundry(p)) {
+          hasGetShape = true
+        }
+      })
+
+      if (hasGetShape) {
+        pressing = {
+          parent: null,
+          shape: null,
+          target: 'selectArea_m',
+          direction: null,
+          dx: 0,
+          dy: 0,
+        };
       } else {
         select = {
-          moving: false,
           start: {
             x: -1,
             y: -1,
@@ -198,129 +218,133 @@ export default function ProcessPage() {
       }
     }
 
-    shapes.forEach((shape) => {
-      if (!$canvas) return;
 
-      // onMouseDown shape
-      if (shape.checkBoundry(p) && !select.moving) {
-        shape.selecting = true;
-        pressing = {
-          parent: null,
-          shape: shape,
-          target: CoreTypes.PressingTarget.m,
-          direction: null,
-          dx: (p.x - dragP.x) * (1 / scale) - shape?.getScreenP().x,
-          dy: (p.y - dragP.y) * (1 / scale) - shape?.getScreenP().y,
-        };
-      }
 
-      // onMouseDown corner point and create curve
-      const theCheckShapeVertexesBoundry = shape.checkVertexesBoundry(p);
-      if (theCheckShapeVertexesBoundry) {
-        shape.selecting = true;
-        pressing = {
-          parent: null,
-          shape: shape,
-          target: theCheckShapeVertexesBoundry,
-          direction: null,
-          dx:
-            (p.x - dragP.x) * (1 / scale) -
-            shape?.getEdge()[
-            theCheckShapeVertexesBoundry[0] as CommonTypes.Direction
-            ],
-          dy:
-            (p.y - dragP.y) * (1 / scale) -
-            shape?.getEdge()[
-            theCheckShapeVertexesBoundry[1] as CommonTypes.Direction
-            ],
-        };
-      }
+    if (select.shapes.length <= 1) {
+      shapes.forEach((shape) => {
+        if (!$canvas) return;
 
-      // onMouseDown curve trigger point and create curve
-      const theCheckCurveTriggerBoundry = shape.checkCurveTriggerBoundry(p);
-      if (theCheckCurveTriggerBoundry) {
-        shape.selecting = false;
-
-        if (!shape.curves[theCheckCurveTriggerBoundry].shape) {
-          shape.createCurve(
-            `curve_${Date.now()}`,
-            CommonTypes.Direction[theCheckCurveTriggerBoundry]
-          );
-        }
-
-        const theCurve = shape.curves[theCheckCurveTriggerBoundry].shape;
-
-        if (theCurve) {
-          theCurve.selecting = true;
-        }
-
-        pressing = {
-          parent: null,
-          shape: shape,
-          target: CoreTypes.PressingTarget[`c${theCheckCurveTriggerBoundry}p2`],
-          direction: null,
-          dx: 0,
-          dy: 0,
-        };
-      }
-
-      // TOOD: select curve
-      for (const d of ds) {
-        const theCurve = shape.curves[d].shape;
-
-        const curveP = {
-          x: p.x - shape?.getScreenP().x,
-          y: p.y - shape?.getScreenP().y,
-        };
-
-        if (!theCurve) continue;
-        if (theCurve.checkBoundry(curveP)) {
-          theCurve.selecting = true;
+        // onMouseDown shape
+        if (shape.checkBoundry(p) && select.shapes.length === 0) {
+          shape.selecting = true;
           pressing = {
-            parent: shape,
-            shape: theCurve,
-            target: null,
-            direction: d,
+            parent: null,
+            shape: shape,
+            target: CoreTypes.PressingTarget.m,
+            direction: null,
+            dx: (p.x - dragP.x) * (1 / scale) - shape?.getScreenP().x,
+            dy: (p.y - dragP.y) * (1 / scale) - shape?.getScreenP().y,
+          };
+        }
+
+        // onMouseDown corner point and create curve
+        const theCheckShapeVertexesBoundry = shape.checkVertexesBoundry(p);
+        if (theCheckShapeVertexesBoundry && select.shapes.length === 1) {
+          shape.selecting = true;
+          pressing = {
+            parent: null,
+            shape: shape,
+            target: theCheckShapeVertexesBoundry,
+            direction: null,
+            dx:
+              (p.x - dragP.x) * (1 / scale) -
+              shape?.getEdge()[
+              theCheckShapeVertexesBoundry[0] as CommonTypes.Direction
+              ],
+            dy:
+              (p.y - dragP.y) * (1 / scale) -
+              shape?.getEdge()[
+              theCheckShapeVertexesBoundry[1] as CommonTypes.Direction
+              ],
+          };
+        }
+
+        // onMouseDown curve trigger point and create curve
+        const theCheckCurveTriggerBoundry = shape.checkCurveTriggerBoundry(p);
+        if (theCheckCurveTriggerBoundry) {
+          shape.selecting = false;
+
+          if (!shape.curves[theCheckCurveTriggerBoundry].shape) {
+            shape.createCurve(
+              `curve_${Date.now()}`,
+              CommonTypes.Direction[theCheckCurveTriggerBoundry]
+            );
+          }
+
+          const theCurve = shape.curves[theCheckCurveTriggerBoundry].shape;
+
+          if (theCurve) {
+            theCurve.selecting = true;
+          }
+
+          pressing = {
+            parent: null,
+            shape: shape,
+            target: CoreTypes.PressingTarget[`c${theCheckCurveTriggerBoundry}p2`],
+            direction: null,
             dx: 0,
             dy: 0,
           };
         }
 
-        if (theCurve.selecting) {
-          const theCurveCheckControlPointsBoundry = theCurve.checkControlPointsBoundry(
-            curveP
-          );
-          if (theCurveCheckControlPointsBoundry) {
+        // TOOD: select curve
+        for (const d of ds) {
+          const theCurve = shape.curves[d].shape;
+
+          const curveP = {
+            x: p.x - shape?.getScreenP().x,
+            y: p.y - shape?.getScreenP().y,
+          };
+
+          if (!theCurve) continue;
+          if (theCurve.checkBoundry(curveP)) {
+            theCurve.selecting = true;
             pressing = {
               parent: shape,
               shape: theCurve,
-              target: theCurveCheckControlPointsBoundry,
+              target: null,
               direction: d,
               dx: 0,
               dy: 0,
             };
           }
-        }
-      }
 
-      if (
-        pressing?.shape?.id !== shape.id ||
-        (!(pressing?.shape instanceof Terminal) &&
-          !(pressing?.shape instanceof Process) &&
-          !(pressing?.shape instanceof Data) &&
-          !(pressing?.shape instanceof Desicion))
-      ) {
-        shape.selecting = false;
-      }
-
-      if (!pressing || !(pressing?.shape instanceof Curve)) {
-        for (const d of ds) {
-          const theCurve = shape.curves[d].shape;
-          if (!theCurve) continue;
-          theCurve.selecting = false;
+          if (theCurve.selecting) {
+            const theCurveCheckControlPointsBoundry = theCurve.checkControlPointsBoundry(
+              curveP
+            );
+            if (theCurveCheckControlPointsBoundry) {
+              pressing = {
+                parent: shape,
+                shape: theCurve,
+                target: theCurveCheckControlPointsBoundry,
+                direction: d,
+                dx: 0,
+                dy: 0,
+              };
+            }
+          }
         }
-      }
-    });
+
+        if (
+          pressing?.shape?.id !== shape.id ||
+          (!(pressing?.shape instanceof Terminal) &&
+            !(pressing?.shape instanceof Process) &&
+            !(pressing?.shape instanceof Data) &&
+            !(pressing?.shape instanceof Desicion))
+        ) {
+          shape.selecting = false;
+        }
+
+        if (!pressing || !(pressing?.shape instanceof Curve)) {
+          for (const d of ds) {
+            const theCurve = shape.curves[d].shape;
+            if (!theCurve) continue;
+            theCurve.selecting = false;
+          }
+        }
+      });
+    }
 
     if (!pressing) {
       if (select.shapes.length > 0 && isPInMultiSelectArea) return;
@@ -350,7 +374,7 @@ export default function ProcessPage() {
         y: (p.y - dragP.y) * (1 / scale),
       };
 
-    if (select.shapes.length > 0 && select.moving) {
+    if (select.shapes.length > 0 && pressing?.target === 'selectArea_m') {
       select.shapes.forEach((shape) => {
         shape.move(p, dragP);
       });
@@ -386,8 +410,7 @@ export default function ProcessPage() {
           pressing.shape.resize(offsetP, CoreTypes.PressingTarget.lb);
         } else if (
           pressing?.target === CoreTypes.PressingTarget.m &&
-          select.shapes.length === 0 &&
-          !select.moving
+          select.shapes.length === 0
         ) {
           pressing.shape.move(p, dragP);
         }
@@ -433,73 +456,73 @@ export default function ProcessPage() {
       }
     }
 
-    const shapesInView: (Terminal | Process | Data | Desicion)[] = [];
+    // const shapesInView: (Terminal | Process | Data | Desicion)[] = [];
 
-    shapes.forEach((shape) => {
-      if (!$canvas) return;
+    // shapes.forEach((shape) => {
+    //   if (!$canvas) return;
 
-      if (movingCanvas) {
-        shape.offset = offset;
-      }
+    //   if (movingCanvas) {
+    //     shape.offset = offset;
+    //   }
 
-      if (shape.checkBoundry(p) && dbClickedShape?.id === shape.id) {
-        const $dataFrame = document.getElementById(dbClickedShape?.id);
-        if ($dataFrame) {
-          const framePosition = getFramePosition(shape);
-          $dataFrame.style.left = `${framePosition.x}px`;
-          $dataFrame.style.top = `${framePosition.y}px`;
-        }
-      }
+    //   if (shape.checkBoundry(p) && dbClickedShape?.id === shape.id) {
+    //     const $dataFrame = document.getElementById(dbClickedShape?.id);
+    //     if ($dataFrame) {
+    //       const framePosition = getFramePosition(shape);
+    //       $dataFrame.style.left = `${framePosition.x}px`;
+    //       $dataFrame.style.top = `${framePosition.y}px`;
+    //     }
+    //   }
 
-      const shapeEdge = shape.getEdge(),
-        isShapeInView =
-          ((shapeEdge.l >= 0 && shapeEdge.l <= $canvas.width) ||
-            (shapeEdge.r >= 0 && shapeEdge.r <= $canvas.width)) &&
-          ((shapeEdge.t >= 0 && shapeEdge.t <= $canvas.height) ||
-            (shapeEdge.b >= 0 && shapeEdge.b <= $canvas.height));
+    //   const shapeEdge = shape.getEdge(),
+    //     isShapeInView =
+    //       ((shapeEdge.l >= 0 && shapeEdge.l <= $canvas.width) ||
+    //         (shapeEdge.r >= 0 && shapeEdge.r <= $canvas.width)) &&
+    //       ((shapeEdge.t >= 0 && shapeEdge.t <= $canvas.height) ||
+    //         (shapeEdge.b >= 0 && shapeEdge.b <= $canvas.height));
 
-      if (isShapeInView) {
-        shapesInView.push(shape);
-      }
-    });
+    //   if (isShapeInView) {
+    //     shapesInView.push(shape);
+    //   }
+    // });
 
-    // align feature
-    const thePressing = pressing,
-      stickyOffset = 5;
+    // // align feature
+    // const thePressing = pressing,
+    //   stickyOffset = 5;
 
-    if (thePressing) {
-      shapesInView.forEach((shapeInView) => {
-        if (shapeInView.id === thePressing?.shape?.id) return;
-        if (
-          !(thePressing.shape instanceof Terminal) &&
-          !(thePressing.shape instanceof Process) &&
-          !(thePressing.shape instanceof Desicion) &&
-          !(thePressing.shape instanceof Data)
-        )
-          return;
+    // if (thePressing) {
+    //   shapesInView.forEach((shapeInView) => {
+    //     if (shapeInView.id === thePressing?.shape?.id) return;
+    //     if (
+    //       !(thePressing.shape instanceof Terminal) &&
+    //       !(thePressing.shape instanceof Process) &&
+    //       !(thePressing.shape instanceof Desicion) &&
+    //       !(thePressing.shape instanceof Data)
+    //     )
+    //       return;
 
-        if (thePressing?.shape?.p.x === shapeInView.p.x && !moveP) {
-          moveP = {
-            originalX: p.x,
-            originalY: p.y,
-            x: p.x,
-            y: p.y,
-          };
-        } else if (moveP) {
-          moveP.x = p.x;
-          moveP.y = p.y;
-        }
+    //     if (thePressing?.shape?.p.x === shapeInView.p.x && !moveP) {
+    //       moveP = {
+    //         originalX: p.x,
+    //         originalY: p.y,
+    //         x: p.x,
+    //         y: p.y,
+    //       };
+    //     } else if (moveP) {
+    //       moveP.x = p.x;
+    //       moveP.y = p.y;
+    //     }
 
-        if (
-          moveP &&
-          moveP.x &&
-          moveP.originalX &&
-          Math.abs(moveP.x - moveP?.originalX) > 10
-        ) {
-          moveP = null;
-        }
-      });
-    }
+    //     if (
+    //       moveP &&
+    //       moveP.x &&
+    //       moveP.originalX &&
+    //       Math.abs(moveP.x - moveP?.originalX) > 10
+    //     ) {
+    //       moveP = null;
+    //     }
+    //   });
+    // }
 
     if (selectAreaP && !space) {
       selectAreaP = {
@@ -617,7 +640,6 @@ export default function ProcessPage() {
     checkData();
 
     selectAreaP = null;
-    select.moving = false;
     pressing = null;
     moveP = null;
   };
