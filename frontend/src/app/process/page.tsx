@@ -62,25 +62,30 @@ let useEffected = false,
     start: CommonTypes.Vec;
     end: CommonTypes.Vec;
     shapes: Core[];
-  } = initMultiSelect;
+  } = initMultiSelect, selectAnchor = {
+    size: {
+      fill: 4,
+      stroke: 2,
+    },
+  }
 
 const ds = [
-    CommonTypes.Direction.l,
-    CommonTypes.Direction.t,
-    CommonTypes.Direction.r,
-    CommonTypes.Direction.b,
-  ],
+  CommonTypes.Direction.l,
+  CommonTypes.Direction.t,
+  CommonTypes.Direction.r,
+  CommonTypes.Direction.b,
+],
   vs: (
     | CoreTypes.PressingTarget.lt
     | CoreTypes.PressingTarget.rt
     | CoreTypes.PressingTarget.rb
     | CoreTypes.PressingTarget.lb
   )[] = [
-    CoreTypes.PressingTarget.lt,
-    CoreTypes.PressingTarget.rt,
-    CoreTypes.PressingTarget.rb,
-    CoreTypes.PressingTarget.lb,
-  ];
+      CoreTypes.PressingTarget.lt,
+      CoreTypes.PressingTarget.rt,
+      CoreTypes.PressingTarget.rb,
+      CoreTypes.PressingTarget.lb,
+    ];
 
 const getFramePosition = (shape: Core) => {
   const frameOffset = 12;
@@ -94,8 +99,8 @@ export default function ProcessPage() {
   let { current: $canvas } = useRef<HTMLCanvasElement | null>(null);
 
   const [dataFrame, setDataFrame] = useState<
-      { p: CommonTypes.Vec } | undefined
-    >(undefined),
+    { p: CommonTypes.Vec } | undefined
+  >(undefined),
     [dbClickedShape, setDbClickedShape] = useState<
       Terminal | Data | Process | Desicion | null
     >(null),
@@ -165,9 +170,9 @@ export default function ProcessPage() {
     let $canvas = document.querySelector("canvas");
 
     const p = {
-        x: e.nativeEvent.offsetX,
-        y: e.nativeEvent.offsetY,
-      },
+      x: e.nativeEvent.offsetX,
+      y: e.nativeEvent.offsetY,
+    },
       isPInMultiSelectArea =
         p.x > select.start.x &&
         p.y > select.start.y &&
@@ -221,12 +226,12 @@ export default function ProcessPage() {
           dx:
             (p.x - dragP.x) * (1 / scale) -
             shape?.getEdge()[
-              theCheckShapeVertexesBoundry[0] as CommonTypes.Direction
+            theCheckShapeVertexesBoundry[0] as CommonTypes.Direction
             ],
           dy:
             (p.y - dragP.y) * (1 / scale) -
             shape?.getEdge()[
-              theCheckShapeVertexesBoundry[1] as CommonTypes.Direction
+            theCheckShapeVertexesBoundry[1] as CommonTypes.Direction
             ],
         };
       }
@@ -333,9 +338,9 @@ export default function ProcessPage() {
   const onMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     e.preventDefault();
     const p = {
-        x: e.nativeEvent.offsetX,
-        y: e.nativeEvent.offsetY,
-      },
+      x: e.nativeEvent.offsetX,
+      y: e.nativeEvent.offsetY,
+    },
       offsetP = {
         x: p.x - dragP.x,
         y: p.y - dragP.y,
@@ -531,9 +536,9 @@ export default function ProcessPage() {
         ];
 
         const l =
-            selectAreaP.start.x < selectAreaP.end.x
-              ? selectAreaP.start.x
-              : selectAreaP.end.x,
+          selectAreaP.start.x < selectAreaP.end.x
+            ? selectAreaP.start.x
+            : selectAreaP.end.x,
           t =
             selectAreaP.start.y < selectAreaP.end.y
               ? selectAreaP.start.y
@@ -840,17 +845,73 @@ export default function ProcessPage() {
       ctx?.closePath();
     }
 
-    if (select.shapes.length > 0) {
+    if (select.shapes.length > 1) {
+      // draw select area
       ctx?.beginPath();
-
       ctx.strokeStyle = "#2436b1";
+      ctx.lineWidth = 1;
       ctx.strokeRect(
         select.start.x,
         select.start.y,
         select.end.x - select.start.x,
         select.end.y - select.start.y
       );
+      ctx?.closePath();
 
+      // draw select area anchors
+      ctx.fillStyle = "white";
+      ctx.lineWidth = selectAnchor.size.stroke;
+
+      ctx?.beginPath();
+      ctx.arc(
+        select.start.x,
+        select.start.y,
+        selectAnchor.size.fill,
+        0,
+        2 * Math.PI,
+        false
+      ); // left, top
+      ctx.stroke();
+      ctx.fill();
+      ctx?.closePath();
+
+      ctx?.beginPath();
+      ctx.arc(
+        select.end.x,
+        select.start.y,
+        selectAnchor.size.fill,
+        0,
+        2 * Math.PI,
+        false
+      ); // right, top
+      ctx.stroke();
+      ctx.fill();
+      ctx?.closePath();
+
+      ctx?.beginPath();
+      ctx.arc(
+        select.end.x,
+        select.end.y,
+        selectAnchor.size.fill,
+        0,
+        2 * Math.PI,
+        false
+      ); // right, bottom
+      ctx.stroke();
+      ctx.fill();
+      ctx?.closePath();
+
+      ctx?.beginPath();
+      ctx.arc(
+        select.start.x,
+        select.end.y,
+        selectAnchor.size.fill,
+        0,
+        2 * Math.PI,
+        false
+      ); // left, bottom
+      ctx.stroke();
+      ctx.fill();
       ctx?.closePath();
     }
 
