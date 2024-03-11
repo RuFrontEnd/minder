@@ -585,13 +585,22 @@ export default class Core {
       ].shape;
 
     if (pressingTarget === CoreTypes.PressingTarget.lt) {
-      this.p = {
-        x: this.p.x + offset.x / 2 / this.scale,
-        y: this.p.y + offset.y / 2 / this.scale,
-      };
+      if (this.w > 0 || offset.x < 0) {
+        this.w -= offset.x / this.scale;
+        this.w = Math.abs(this.w);
+      }
+      if (this.h > 0 || offset.y < 0) {
+        this.h -= offset.y / this.scale;
+        this.h = Math.abs(this.h);
+      }
 
-      this.w -= offset.x / this.scale;
-      this.h -= offset.y / this.scale;
+      console.log("this.w", this.w);
+      console.log("this.h", this.h);
+      console.log("this.p", this.p);
+      this.p = {
+        x: this.w ? this.p.x + offset.x / 2 / this.scale : this.p.x,
+        y: this.h ? this.p.y + offset.y / 2 / this.scale : this.p.y,
+      };
 
       if (curve_l) {
         curve_l.p1.x += offset.x / 2 / this.scale;
