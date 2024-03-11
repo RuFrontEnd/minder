@@ -22,7 +22,12 @@ let useEffected = false,
     parent: null | Terminal | Process | Data | Desicion;
     shape: null | Terminal | Process | Data | Desicion | Curve;
     direction: null | CommonTypes.Direction;
-    target: null | CoreTypes.PressingTarget | CurveTypes.PressingTarget | 'selectArea_m' | 'selectArea_lt';
+    target:
+      | null
+      | CoreTypes.PressingTarget
+      | CurveTypes.PressingTarget
+      | "selectArea_m"
+      | "selectArea_lt";
     dx: number; // distance between event px & pressing shape px
     dy: number; // distance between event py & pressing shape py
   } = null,
@@ -60,30 +65,31 @@ let useEffected = false,
     start: CommonTypes.Vec;
     end: CommonTypes.Vec;
     shapes: Core[];
-  } = initMultiSelect, selectAnchor = {
+  } = initMultiSelect,
+  selectAnchor = {
     size: {
       fill: 4,
       stroke: 2,
     },
-  }
+  };
 
 const ds = [
-  CommonTypes.Direction.l,
-  CommonTypes.Direction.t,
-  CommonTypes.Direction.r,
-  CommonTypes.Direction.b,
-],
+    CommonTypes.Direction.l,
+    CommonTypes.Direction.t,
+    CommonTypes.Direction.r,
+    CommonTypes.Direction.b,
+  ],
   vs: (
     | CoreTypes.PressingTarget.lt
     | CoreTypes.PressingTarget.rt
     | CoreTypes.PressingTarget.rb
     | CoreTypes.PressingTarget.lb
   )[] = [
-      CoreTypes.PressingTarget.lt,
-      CoreTypes.PressingTarget.rt,
-      CoreTypes.PressingTarget.rb,
-      CoreTypes.PressingTarget.lb,
-    ];
+    CoreTypes.PressingTarget.lt,
+    CoreTypes.PressingTarget.rt,
+    CoreTypes.PressingTarget.rb,
+    CoreTypes.PressingTarget.lb,
+  ];
 
 const getFramePosition = (shape: Core) => {
   const frameOffset = 12;
@@ -97,8 +103,8 @@ export default function ProcessPage() {
   let { current: $canvas } = useRef<HTMLCanvasElement | null>(null);
 
   const [dataFrame, setDataFrame] = useState<
-    { p: CommonTypes.Vec } | undefined
-  >(undefined),
+      { p: CommonTypes.Vec } | undefined
+    >(undefined),
     [dbClickedShape, setDbClickedShape] = useState<
       Terminal | Data | Process | Desicion | null
     >(null),
@@ -168,37 +174,38 @@ export default function ProcessPage() {
     let $canvas = document.querySelector("canvas");
 
     const p = {
-      x: e.nativeEvent.offsetX,
-      y: e.nativeEvent.offsetY,
-    },
-      pInSelectArea = (p.x > select.start.x &&
+        x: e.nativeEvent.offsetX,
+        y: e.nativeEvent.offsetY,
+      },
+      pInSelectArea =
+        p.x > select.start.x &&
         p.y > select.start.y &&
         p.x < select.end.x &&
-        p.y < select.end.y),
-      pInSelectArea_lt = (p.x > select.start.x - selectAnchor.size.fill &&
+        p.y < select.end.y,
+      pInSelectArea_lt =
+        p.x > select.start.x - selectAnchor.size.fill &&
         p.y > select.start.y - selectAnchor.size.fill &&
         p.x < select.start.x + selectAnchor.size.fill &&
-        p.y < select.start.y + selectAnchor.size.fill),
-      isPInMultiSelectArea =
-        pInSelectArea || pInSelectArea_lt
+        p.y < select.start.y + selectAnchor.size.fill,
+      isPInMultiSelectArea = pInSelectArea || pInSelectArea_lt;
 
     if (select.shapes.length > 1) {
       // when multi select shapes
-      let _target: null | 'selectArea_m' | 'selectArea_lt' = null
+      let _target: null | "selectArea_m" | "selectArea_lt" = null;
 
       shapes.forEach((shape) => {
         if (!$canvas) return;
 
         if (shape.checkBoundry(p)) {
-          _target = 'selectArea_m'
+          _target = "selectArea_m";
         }
-      })
+      });
 
       if (pInSelectArea_lt) {
-        _target = 'selectArea_lt'
+        _target = "selectArea_lt";
       }
 
-      console.log('_target', _target)
+      console.log("_target", _target);
 
       if (_target) {
         pressing = {
@@ -223,8 +230,6 @@ export default function ProcessPage() {
         };
       }
     }
-
-
 
     if (select.shapes.length <= 1) {
       shapes.forEach((shape) => {
@@ -255,12 +260,12 @@ export default function ProcessPage() {
             dx:
               (p.x - dragP.x) * (1 / scale) -
               shape?.getEdge()[
-              theCheckShapeVertexesBoundry[0] as CommonTypes.Direction
+                theCheckShapeVertexesBoundry[0] as CommonTypes.Direction
               ],
             dy:
               (p.y - dragP.y) * (1 / scale) -
               shape?.getEdge()[
-              theCheckShapeVertexesBoundry[1] as CommonTypes.Direction
+                theCheckShapeVertexesBoundry[1] as CommonTypes.Direction
               ],
           };
         }
@@ -286,7 +291,8 @@ export default function ProcessPage() {
           pressing = {
             parent: null,
             shape: shape,
-            target: CoreTypes.PressingTarget[`c${theCheckCurveTriggerBoundry}p2`],
+            target:
+              CoreTypes.PressingTarget[`c${theCheckCurveTriggerBoundry}p2`],
             direction: null,
             dx: 0,
             dy: 0,
@@ -368,9 +374,9 @@ export default function ProcessPage() {
   const onMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     e.preventDefault();
     const p = {
-      x: e.nativeEvent.offsetX,
-      y: e.nativeEvent.offsetY,
-    },
+        x: e.nativeEvent.offsetX,
+        y: e.nativeEvent.offsetY,
+      },
       offsetP = {
         x: p.x - dragP.x,
         y: p.y - dragP.y,
@@ -448,7 +454,7 @@ export default function ProcessPage() {
         });
       }
     } else {
-      if (pressing?.target === 'selectArea_m') {
+      if (pressing?.target === "selectArea_m") {
         select.shapes.forEach((shape) => {
           shape.move(p, dragP);
         });
@@ -457,26 +463,35 @@ export default function ProcessPage() {
         select.start.y += offsetP.y;
         select.end.x += offsetP.x;
         select.end.y += offsetP.y;
-      } else if (pressing?.target === 'selectArea_lt') {
-
-        let unitX = offsetP.x / select.start.x
-
+      } else if (pressing?.target === "selectArea_lt") {
         select.shapes.forEach((shape) => {
+          const theSelect = {
+            w: Math.abs(select.end.x - select.start.x),
+            h: Math.abs(select.end.y - select.start.y),
+          };
+
           const dx = Math.abs(shape.p.x - select.end.x),
-            ratioX = dx / Math.abs(select.end.x - select.start.x),
-            unitX = offsetP.x * ratioX
+            ratioX = dx / theSelect.w,
+            unitX = offsetP.x * ratioX,
+            dy = Math.abs(shape.p.y - select.end.y),
+            ratioY = dy / theSelect.h,
+            unitY = offsetP.y * ratioY;
 
           shape.p = {
             x: shape.p.x + unitX,
-            y: shape.p.y,
-          }
+            y: shape.p.y + unitY,
+          };
 
-          const ratioW = Math.abs(shape.w / Math.abs(select.end.x - select.start.x)),
-            unitW = offsetP.x * ratioW
-          shape.w = shape.w - unitW
+          const ratioW = shape.w / theSelect.w,
+            unitW = offsetP.x * ratioW,
+            ratioH = shape.h / theSelect.h,
+            unitH = offsetP.y * ratioH;
+
+          shape.w = shape.w - unitW;
+          shape.h = shape.h - unitH;
         });
         select.start.x += offsetP.x;
-        // select.start.y += offsetP.y;
+        select.start.y += offsetP.y;
       }
     }
 
@@ -583,9 +598,9 @@ export default function ProcessPage() {
         ];
 
         const l =
-          selectAreaP.start.x < selectAreaP.end.x
-            ? selectAreaP.start.x
-            : selectAreaP.end.x,
+            selectAreaP.start.x < selectAreaP.end.x
+              ? selectAreaP.start.x
+              : selectAreaP.end.x,
           t =
             selectAreaP.start.y < selectAreaP.end.y
               ? selectAreaP.start.y
