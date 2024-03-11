@@ -25,20 +25,20 @@ export default class Core {
     cpline: Line;
     curve: Line;
   } = {
-    d: 100, // 30
-    size: {
-      fill: 4,
-      stroke: 2,
-    },
-    cpline: {
-      w: 1,
-      c: "#c00",
-    },
-    curve: {
-      w: 2,
-      c: "#333",
-    },
-  };
+      d: 100, // 30
+      size: {
+        fill: 4,
+        stroke: 2,
+      },
+      cpline: {
+        w: 1,
+        c: "#c00",
+      },
+      curve: {
+        w: 2,
+        c: "#333",
+      },
+    };
   private strokeSize = 2;
   private initPressing = {
     activate: false,
@@ -77,9 +77,9 @@ export default class Core {
   dragP:
     | Vec
     | {
-        x: null;
-        y: null;
-      };
+      x: null;
+      y: null;
+    };
   options: DataType;
   selectedData: DataType;
   redundancies: DataType;
@@ -391,8 +391,8 @@ export default class Core {
       if (
         !this.curves[d].shape &&
         (p.x - center.curveTrigger[d].x) * (p.x - center.curveTrigger[d].x) +
-          (p.y - center.curveTrigger[d].y) * (p.y - center.curveTrigger[d].y) <
-          this.curveTrigger.size.fill * this.curveTrigger.size.fill
+        (p.y - center.curveTrigger[d].y) * (p.y - center.curveTrigger[d].y) <
+        this.curveTrigger.size.fill * this.curveTrigger.size.fill
       ) {
         return Direction[d];
       }
@@ -585,21 +585,19 @@ export default class Core {
       ].shape;
 
     if (pressingTarget === CoreTypes.PressingTarget.lt) {
-      if (this.w > 0 || offset.x < 0) {
-        this.w -= offset.x / this.scale;
-        this.w = Math.abs(this.w);
+      const _w = this.w - offset.x / this.scale <= 0 ? 0 : this.w - offset.x / this.scale,
+        _h = this.h - offset.y / this.scale <= 0 ? 0 : this.h - offset.y / this.scale;
+
+      if (_w > 0 || offset.x < 0) {
+        this.w = Math.abs(_w)
       }
       if (this.h > 0 || offset.y < 0) {
-        this.h -= offset.y / this.scale;
-        this.h = Math.abs(this.h);
+        this.h = Math.abs(_h)
       }
 
-      console.log("this.w", this.w);
-      console.log("this.h", this.h);
-      console.log("this.p", this.p);
       this.p = {
-        x: this.w ? this.p.x + offset.x / 2 / this.scale : this.p.x,
-        y: this.h ? this.p.y + offset.y / 2 / this.scale : this.p.y,
+        x: _w > 0 ? this.p.x + offset.x / 2 / this.scale : this.p.x,
+        y: _h > 0 ? this.p.y + offset.y / 2 / this.scale : this.p.y,
       };
 
       if (curve_l) {
