@@ -177,8 +177,35 @@ export default class Core {
       sendTo_l = this.curves.l.sendTo,
       sendTo_t = this.curves.t.sendTo,
       sendTo_r = this.curves.r.sendTo,
-      sendTo_b = this.curves.b.sendTo,
-      receiveFromCurve_l = this.receiveFrom.l?.shape.curves[
+      sendTo_b = this.curves.b.sendTo;
+
+    if (curve_l) {
+      curve_l.p1.x += offset / this.scale;
+      curve_l.cp1.x += offset / this.scale;
+
+      if (!sendTo_l) {
+        curve_l.p2 = {
+          ...curve_l.p2,
+          x: curve_l.p2.x + offset / this.scale,
+        };
+        curve_l.cp2.x += offset / this.scale;
+      }
+    }
+
+    if (curve_r) {
+      curve_r.p1.x -= offset / this.scale;
+      curve_r.cp1.x -= offset / this.scale;
+
+      if (!sendTo_r) {
+        curve_r.p2 = {
+          ...curve_r.p2,
+          x: curve_r.p2.x - offset / this.scale,
+        };
+        curve_r.cp2.x -= offset / this.scale;
+      }
+    }
+
+    const receiveFromCurve_l = this.receiveFrom.l?.shape.curves[
         this.receiveFrom.l.sendD
       ].shape,
       receiveFromCurve_t = this.receiveFrom.t?.shape.curves[
@@ -191,20 +218,20 @@ export default class Core {
         this.receiveFrom.b.sendD
       ].shape;
 
-    if (curve_l) {
-      curve_l.p1.x += offset / this.scale;
-      curve_l.cp1.x += offset / this.scale;
+    if (receiveFromCurve_l) {
+      receiveFromCurve_l.p2 = {
+        ...receiveFromCurve_l.p2,
+        x: receiveFromCurve_l.p2.x + offset / this.scale,
+      };
+      receiveFromCurve_l.cp2.x += offset / this.scale;
+    }
 
-      if (sendTo_l) {
-        // TODO: change to follow receiver
-        this.holdSenderCurveP2Cp2Position(Direction.l, "x", offset);
-      } else {
-        curve_l.p2 = {
-          ...curve_l.p2,
-          x: curve_l.p2.x + offset / this.scale,
-        };
-        curve_l.cp2.x += offset / this.scale;
-      }
+    if (receiveFromCurve_r) {
+      receiveFromCurve_r.p2 = {
+        ...receiveFromCurve_r.p2,
+        x: receiveFromCurve_r.p2.x - offset / this.scale,
+      };
+      receiveFromCurve_r.cp2.x -= offset / this.scale;
     }
   }
 
