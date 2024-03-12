@@ -422,6 +422,23 @@ export default function ProcessPage() {
           pressing?.direction
         ) {
           pressing.parent.disConnect(pressing?.direction, true);
+
+          shapes.forEach((shape) => {
+            const theEdge = shape.getEdge(),
+              threshold = 20,
+              isReceiving =
+                p.x >= theEdge.l - threshold &&
+                p.y >= theEdge.t - threshold &&
+                p.x <= theEdge.r + threshold &&
+                p.y <= theEdge.b + threshold;
+
+            shape.receiving = {
+              l: isReceiving,
+              t: isReceiving,
+              r: isReceiving,
+              b: isReceiving,
+            };
+          });
         }
         if (
           (pressing.target !== CurveTypes.PressingTarget.cp1 &&
@@ -435,23 +452,6 @@ export default function ProcessPage() {
           y: p.y - pressing.parent?.getScreenP().y,
         };
         pressing.shape.moveHandler(pressing.target, curveP);
-
-        shapes.forEach((shape) => {
-          const theEdge = shape.getEdge(),
-            threshold = 20,
-            isReceiving =
-              p.x >= theEdge.l - threshold &&
-              p.y >= theEdge.t - threshold &&
-              p.x <= theEdge.r + threshold &&
-              p.y <= theEdge.b + threshold;
-
-          shape.receiving = {
-            l: isReceiving,
-            t: isReceiving,
-            r: isReceiving,
-            b: isReceiving,
-          };
-        });
       }
     } else {
       if (pressing?.target === "selectArea_m") {
