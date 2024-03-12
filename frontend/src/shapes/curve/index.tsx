@@ -220,7 +220,26 @@ export default class Curve {
     );
   }
 
-  move(pressingTarget: CurveTypes.PressingTarget, p: Vec) {
+  move(offset: Vec) {
+    this.p1 = {
+      x: this.p1.x + offset.x,
+      y: this.p1.y + offset.y,
+    };
+    this.cp1 = {
+      x: this.cp1.x + offset.x,
+      y: this.cp1.y + offset.y,
+    };
+    this.cp2 = {
+      x: this.cp2.x + offset.x,
+      y: this.cp2.y + offset.y,
+    };
+    this.p2 = {
+      x: this.p2.x + offset.x,
+      y: this.p2.y + offset.y,
+    };
+  }
+
+  moveHandler(pressingTarget: CurveTypes.PressingTarget, p: Vec) {
     // TODO: temporary closed
     // if (pressingTarget === CurveTypes.PressingTarget.p1 && this.p1 !== null && this.cp1 !== null) {
     //   const offset = {
@@ -235,7 +254,7 @@ export default class Curve {
 
     //   this.cp1.x += offset.x;
     //   this.cp1.y += offset.y;
-    // } else 
+    // } else
     if (
       pressingTarget === CurveTypes.PressingTarget.cp1 &&
       this.cp1?.x !== null &&

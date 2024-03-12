@@ -434,7 +434,7 @@ export default function ProcessPage() {
           x: p.x - pressing.parent?.getScreenP().x,
           y: p.y - pressing.parent?.getScreenP().y,
         };
-        pressing.shape.move(pressing.target, curveP);
+        pressing.shape.moveHandler(pressing.target, curveP);
 
         shapes.forEach((shape) => {
           const theEdge = shape.getEdge(),
@@ -844,12 +844,12 @@ export default function ProcessPage() {
 
   const onClickScalePlusIcon = () => {
     if (!$canvas) return;
-    zoom(100, { x: $canvas?.width / 2, y: $canvas?.height / 2 });
+    zoom(-100, { x: $canvas?.width / 2, y: $canvas?.height / 2 });
   };
 
   const onClickScaleMinusIcon = () => {
     if (!$canvas) return;
-    zoom(-100, { x: $canvas?.width / 2, y: $canvas?.height / 2 });
+    zoom(100, { x: $canvas?.width / 2, y: $canvas?.height / 2 });
   };
 
   const onClickScaleNumber = () => {
@@ -1126,9 +1126,9 @@ export default function ProcessPage() {
         <div className="flex items-center">
           <div
             className="w-6 h-6 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
-            onClick={onClickScalePlusIcon}
+            onClick={onClickScaleMinusIcon}
           >
-            +
+            -
           </div>
           <div
             className="flex mx-2 items-center justify-center cursor-pointer w-[48px]"
@@ -1138,9 +1138,9 @@ export default function ProcessPage() {
           </div>
           <div
             className="w-6 h-6 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
-            onClick={onClickScaleMinusIcon}
+            onClick={onClickScalePlusIcon}
           >
-            -
+            +
           </div>
         </div>
       </div>
