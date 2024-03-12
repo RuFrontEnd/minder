@@ -50,7 +50,7 @@ export default class Core {
   };
   private initScale = 1;
   __w__: number;
-  h: number;
+  __h__: number;
   minW: number;
   minH: number;
   title: Title;
@@ -90,7 +90,7 @@ export default class Core {
     this.id = id;
     this.c = c;
     this.__w__ = w;
-    this.h = h;
+    this.__h__ = h;
     this.minW = 100;
     this.minH = 100;
     this.title = "";
@@ -171,13 +171,9 @@ export default class Core {
     this.__w__ = value;
 
     const curve_l = this.curves.l.shape,
-      curve_t = this.curves.t.shape,
       curve_r = this.curves.r.shape,
-      curve_b = this.curves.b.shape,
       sendTo_l = this.curves.l.sendTo,
-      sendTo_t = this.curves.t.sendTo,
-      sendTo_r = this.curves.r.sendTo,
-      sendTo_b = this.curves.b.sendTo;
+      sendTo_r = this.curves.r.sendTo;
 
     if (curve_l) {
       curve_l.p1.x += offset / this.scale;
@@ -208,14 +204,8 @@ export default class Core {
     const receiveFromCurve_l = this.receiveFrom.l?.shape.curves[
         this.receiveFrom.l.sendD
       ].shape,
-      receiveFromCurve_t = this.receiveFrom.t?.shape.curves[
-        this.receiveFrom.t.sendD
-      ].shape,
       receiveFromCurve_r = this.receiveFrom.r?.shape.curves[
         this.receiveFrom.r.sendD
-      ].shape,
-      receiveFromCurve_b = this.receiveFrom.b?.shape.curves[
-        this.receiveFrom.b.sendD
       ].shape;
 
     if (receiveFromCurve_l) {
@@ -237,6 +227,69 @@ export default class Core {
 
   get w() {
     return this.__w__;
+  }
+
+  set h(value: number) {
+    const offset = (this.h - value) / 2;
+    this.__h__ = value;
+
+    const curve_t = this.curves.t.shape,
+      curve_b = this.curves.b.shape,
+      sendTo_t = this.curves.t.sendTo,
+      sendTo_b = this.curves.b.sendTo;
+
+    if (curve_t) {
+      curve_t.p1.y += offset / this.scale;
+      curve_t.cp1.y += offset / this.scale;
+
+      if (!sendTo_t) {
+        curve_t.p2 = {
+          ...curve_t.p2,
+          y: curve_t.p2.y + offset / this.scale,
+        };
+        curve_t.cp2.y += offset / this.scale;
+      }
+    }
+
+    if (curve_b) {
+      curve_b.p1.y -= offset / this.scale;
+      curve_b.cp1.y -= offset / this.scale;
+
+      if (!sendTo_b) {
+        curve_b.p2 = {
+          ...curve_b.p2,
+          y: curve_b.p2.y - offset / this.scale,
+        };
+        curve_b.cp2.y -= offset / this.scale;
+      }
+    }
+
+    const receiveFromCurve_t = this.receiveFrom.t?.shape.curves[
+        this.receiveFrom.t.sendD
+      ].shape,
+      receiveFromCurve_b = this.receiveFrom.b?.shape.curves[
+        this.receiveFrom.b.sendD
+      ].shape;
+
+    if (receiveFromCurve_t) {
+      receiveFromCurve_t.p2 = {
+        ...receiveFromCurve_t.p2,
+        y: receiveFromCurve_t.p2.y + offset / this.scale,
+      };
+      receiveFromCurve_t.cp2.y += offset / this.scale;
+    }
+
+    if (receiveFromCurve_b) {
+      receiveFromCurve_b.p2 = {
+        ...receiveFromCurve_b.p2,
+        y: receiveFromCurve_b.p2.y - offset / this.scale,
+      };
+      receiveFromCurve_b.cp2.y -= offset / this.scale;
+    }
+  }
+
+  get h() {
+    return this.__h__;
   }
 
   set offset(value: Vec) {
