@@ -464,34 +464,62 @@ export default function ProcessPage() {
         select.end.x += offsetP.x;
         select.end.y += offsetP.y;
       } else if (pressing?.target === "selectArea_lt") {
-        select.shapes.forEach((shape) => {
-          const theSelect = {
+        const theSelect = {
+          current: {
             w: Math.abs(select.end.x - select.start.x),
             h: Math.abs(select.end.y - select.start.y),
-          };
+          },
+          next: {
+            w: Math.abs(select.end.x - select.start.x) - offsetP.x,
+            h: Math.abs(select.end.y - select.start.y) - offsetP.y,
+          },
+        };
 
-          const dx = Math.abs(shape.p.x - select.end.x),
-            ratioX = dx / theSelect.w,
-            unitX = offsetP.x * ratioX,
-            dy = Math.abs(shape.p.y - select.end.y),
-            ratioY = dy / theSelect.h,
-            unitY = offsetP.y * ratioY;
+        const canResize = {
+          x: theSelect.next.w > 0 || offsetP.x < 0,
+          y: theSelect.next.h > 0 || offsetP.y < 0,
+        };
 
-          shape.p = {
-            x: shape.p.x + unitX,
-            y: shape.p.y + unitY,
-          };
+        select.shapes.forEach((shape) => {
+          const ratioW = shape.w / theSelect.current.w,
+            unitW = offsetP.x * ratioW;
 
-          const ratioW = shape.w / theSelect.w,
-            unitW = offsetP.x * ratioW,
-            ratioH = shape.h / theSelect.h,
+          if (canResize.x) {
+            shape.w = shape.w - unitW;
+
+            const dx = Math.abs(shape.p.x - select.end.x),
+              ratioX = dx / theSelect.current.w,
+              unitX = offsetP.x * ratioX;
+
+            shape.p = {
+              ...shape.p,
+              x: shape.p.x + unitX,
+            };
+          }
+
+          const ratioH = shape.h / theSelect.current.h,
             unitH = offsetP.y * ratioH;
 
-          shape.w = shape.w - unitW;
-          shape.h = shape.h - unitH;
+          if (canResize.y) {
+            shape.h = shape.h - unitH;
+
+            const dy = Math.abs(shape.p.y - select.end.y),
+              ratioY = dy / theSelect.current.h,
+              unitY = offsetP.y * ratioY;
+
+            shape.p = {
+              ...shape.p,
+              y: shape.p.y + unitY,
+            };
+          }
         });
-        select.start.x += offsetP.x;
-        select.start.y += offsetP.y;
+        if (canResize.x) {
+          select.start.x += offsetP.x;
+        }
+
+        if (canResize.y) {
+          select.start.y += offsetP.y;
+        }
       }
     }
 
