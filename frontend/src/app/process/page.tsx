@@ -27,7 +27,10 @@ let useEffected = false,
       | CoreTypes.PressingTarget
       | CurveTypes.PressingTarget
       | "selectArea_m"
-      | "selectArea_lt";
+      | "selectArea_lt"
+      | "selectArea_rt"
+      | "selectArea_rb"
+      | "selectArea_lb";
     dx: number; // distance between event px & pressing shape px
     dy: number; // distance between event py & pressing shape py
   } = null,
@@ -187,11 +190,37 @@ export default function ProcessPage() {
         p.y > select.start.y - selectAnchor.size.fill &&
         p.x < select.start.x + selectAnchor.size.fill &&
         p.y < select.start.y + selectAnchor.size.fill,
-      isPInMultiSelectArea = pInSelectArea || pInSelectArea_lt;
+      pInSelectArea_rt =
+        p.x > select.end.x - selectAnchor.size.fill &&
+        p.y > select.start.y - selectAnchor.size.fill &&
+        p.x < select.end.x + selectAnchor.size.fill &&
+        p.y < select.start.y + selectAnchor.size.fill,
+      pInSelectArea_rb =
+        p.x > select.end.x - selectAnchor.size.fill &&
+        p.y > select.end.y - selectAnchor.size.fill &&
+        p.x < select.end.x + selectAnchor.size.fill &&
+        p.y < select.end.y + selectAnchor.size.fill,
+      pInSelectArea_lb =
+        p.x > select.start.x - selectAnchor.size.fill &&
+        p.y > select.end.y - selectAnchor.size.fill &&
+        p.x < select.start.x + selectAnchor.size.fill &&
+        p.y < select.end.y + selectAnchor.size.fill,
+      isPInMultiSelectArea =
+        pInSelectArea ||
+        pInSelectArea_lt ||
+        pInSelectArea_rt ||
+        pInSelectArea_rb ||
+        pInSelectArea_lb;
 
     if (select.shapes.length > 1) {
       // when multi select shapes
-      let _target: null | "selectArea_m" | "selectArea_lt" = null;
+      let _target:
+        | null
+        | "selectArea_m"
+        | "selectArea_lt"
+        | "selectArea_rt"
+        | "selectArea_rb"
+        | "selectArea_lb" = null;
 
       shapes.forEach((shape) => {
         if (!$canvas) return;
@@ -203,9 +232,13 @@ export default function ProcessPage() {
 
       if (pInSelectArea_lt) {
         _target = "selectArea_lt";
+      } else if (pInSelectArea_rt) {
+        _target = "selectArea_rt";
+      } else if (pInSelectArea_rb) {
+        _target = "selectArea_rb";
+      } else if (pInSelectArea_lb) {
+        _target = "selectArea_lb";
       }
-
-      console.log("_target", _target);
 
       if (_target) {
         pressing = {
@@ -454,6 +487,12 @@ export default function ProcessPage() {
         pressing.shape.moveHandler(pressing.target, curveP);
       }
     } else {
+      // multi select
+      const theSelect = {
+        w: Math.abs(select.end.x - select.start.x),
+        h: Math.abs(select.end.y - select.start.y),
+      };
+
       if (pressing?.target === "selectArea_m") {
         select.shapes.forEach((shape) => {
           shape.move(p, dragP);
@@ -464,31 +503,20 @@ export default function ProcessPage() {
         select.end.x += offsetP.x;
         select.end.y += offsetP.y;
       } else if (pressing?.target === "selectArea_lt") {
-        const theSelect = {
-          current: {
-            w: Math.abs(select.end.x - select.start.x),
-            h: Math.abs(select.end.y - select.start.y),
-          },
-          next: {
-            w: Math.abs(select.end.x - select.start.x) - offsetP.x,
-            h: Math.abs(select.end.y - select.start.y) - offsetP.y,
-          },
-        };
-
         const canResize = {
-          x: theSelect.next.w > 0 || offsetP.x < 0,
-          y: theSelect.next.h > 0 || offsetP.y < 0,
+          x: theSelect.w - offsetP.x > 0 || offsetP.x < 0,
+          y: theSelect.w - offsetP.y > 0 || offsetP.y < 0,
         };
 
         select.shapes.forEach((shape) => {
-          const ratioW = shape.w / theSelect.current.w,
+          const ratioW = shape.w / theSelect.w,
             unitW = offsetP.x * ratioW;
 
           if (canResize.x) {
             shape.w = shape.w - unitW;
 
             const dx = Math.abs(shape.p.x - select.end.x),
-              ratioX = dx / theSelect.current.w,
+              ratioX = dx / theSelect.w,
               unitX = offsetP.x * ratioX;
 
             shape.p = {
@@ -497,14 +525,14 @@ export default function ProcessPage() {
             };
           }
 
-          const ratioH = shape.h / theSelect.current.h,
+          const ratioH = shape.h / theSelect.h,
             unitH = offsetP.y * ratioH;
 
           if (canResize.y) {
             shape.h = shape.h - unitH;
 
             const dy = Math.abs(shape.p.y - select.end.y),
-              ratioY = dy / theSelect.current.h,
+              ratioY = dy / theSelect.h,
               unitY = offsetP.y * ratioY;
 
             shape.p = {
@@ -513,12 +541,154 @@ export default function ProcessPage() {
             };
           }
         });
+
         if (canResize.x) {
           select.start.x += offsetP.x;
         }
 
         if (canResize.y) {
           select.start.y += offsetP.y;
+        }
+      } else if (pressing?.target === "selectArea_rt") {
+        const canResize = {
+          x: theSelect.w + offsetP.x > 0 || offsetP.x > 0,
+          y: theSelect.h - offsetP.y > 0 || offsetP.y < 0,
+        };
+
+        select.shapes.forEach((shape) => {
+          const ratioW = shape.w / theSelect.w,
+            unitW = offsetP.x * ratioW;
+
+          if (canResize.x) {
+            shape.w = shape.w + unitW;
+
+            const dx = Math.abs(shape.p.x - select.start.x),
+              ratioX = dx / theSelect.w,
+              unitX = offsetP.x * ratioX;
+
+            shape.p = {
+              ...shape.p,
+              x: shape.p.x + unitX,
+            };
+          }
+
+          const ratioH = shape.h / theSelect.h,
+            unitH = offsetP.y * ratioH;
+
+          if (canResize.y) {
+            shape.h = shape.h - unitH;
+
+            const dy = Math.abs(shape.p.y - select.end.y),
+              ratioY = dy / theSelect.h,
+              unitY = offsetP.y * ratioY;
+
+            shape.p = {
+              ...shape.p,
+              y: shape.p.y + unitY,
+            };
+          }
+        });
+
+        if (canResize.x) {
+          select.end.x += offsetP.x;
+        }
+
+        if (canResize.y) {
+          select.start.y += offsetP.y;
+        }
+      } else if (pressing?.target === "selectArea_rb") {
+        const canResize = {
+          x: theSelect.w + offsetP.x > 0 || offsetP.x > 0,
+          y: theSelect.h + offsetP.y > 0 || offsetP.y > 0,
+        };
+
+        select.shapes.forEach((shape) => {
+          const ratioW = shape.w / theSelect.w,
+            unitW = offsetP.x * ratioW;
+
+          if (canResize.x) {
+            shape.w = shape.w + unitW;
+
+            const dx = Math.abs(shape.p.x - select.start.x),
+              ratioX = dx / theSelect.w,
+              unitX = offsetP.x * ratioX;
+
+            shape.p = {
+              ...shape.p,
+              x: shape.p.x + unitX,
+            };
+          }
+
+          const ratioH = shape.h / theSelect.h,
+            unitH = offsetP.y * ratioH;
+
+          if (canResize.y) {
+            shape.h = shape.h + unitH;
+
+            const dy = Math.abs(shape.p.y - select.start.y),
+              ratioY = dy / theSelect.h,
+              unitY = offsetP.y * ratioY;
+
+            shape.p = {
+              ...shape.p,
+              y: shape.p.y + unitY,
+            };
+          }
+        });
+
+        if (canResize.x) {
+          select.end.x += offsetP.x;
+        }
+
+        if (canResize.y) {
+          select.end.y += offsetP.y;
+        }
+      } else if (pressing?.target === "selectArea_lb") {
+        const canResize = {
+          x: theSelect.w - offsetP.x > 0 || offsetP.x < 0,
+          y: theSelect.h + offsetP.y > 0 || offsetP.y > 0,
+        };
+
+        select.shapes.forEach((shape) => {
+          const ratioW = shape.w / theSelect.w,
+            unitW = offsetP.x * ratioW;
+
+          if (canResize.x) {
+            shape.w = shape.w - unitW;
+
+            const dx = Math.abs(shape.p.x - select.end.x),
+              ratioX = dx / theSelect.w,
+              unitX = offsetP.x * ratioX;
+
+            shape.p = {
+              ...shape.p,
+              x: shape.p.x + unitX,
+            };
+          }
+
+          const ratioH = shape.h / theSelect.h,
+            unitH = offsetP.y * ratioH;
+
+          if (canResize.y) {
+            shape.h = shape.h + unitH;
+
+            const dy = Math.abs(shape.p.y - select.start.y),
+              ratioY = dy / theSelect.h,
+              unitY = offsetP.y * ratioY;
+
+            shape.p = {
+              ...shape.p,
+              y: shape.p.y + unitY,
+            };
+          }
+        });
+
+        if (canResize.x) {
+          select.start.x += offsetP.x;
+        }
+
+        if (canResize.y) {
+          select.end.y += offsetP.y;
         }
       }
     }
