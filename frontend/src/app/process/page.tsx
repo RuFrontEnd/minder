@@ -7,6 +7,7 @@ import Data from "@/shapes/data";
 import Curve from "@/shapes/curve";
 import Desicion from "@/shapes/decision";
 import DataFrame from "@/components/dataFrame";
+import SidePanel from "@/components/sidePanel";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { cloneDeep } from "lodash";
 import * as CoreTypes from "@/types/shapes/core";
@@ -1257,6 +1258,12 @@ export default function ProcessPage() {
     };
   }, [dataFrame, dbClickedShape, space]);
 
+  const [v, setV] = useState(false);
+
+  useEffect(() => {
+    console.log("v", v);
+  }, [v]);
+
   return (
     <>
       <div className="fixed m-4">
@@ -1287,6 +1294,20 @@ export default function ProcessPage() {
           </div>
         </div>
       </div>
+
+      <div className="fixed right-0 top-0 m-4">
+        <div
+          className="mb-2 w-12 h-12 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
+          onClick={() => {
+            setV((v) => !v);
+          }}
+        >
+          L
+        </div>
+      </div>
+
+      <SidePanel clasaName={"fixed"} visible={v} />
+
       <canvas
         className={`${space ? "cursor-grab" : ""} overflow-hidden`}
         tabIndex={1}
