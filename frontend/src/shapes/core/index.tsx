@@ -848,6 +848,33 @@ export default class Core {
     theCurve.shape.scale = this.scale;
   }
 
+  wrapText = (
+    ctx: CanvasRenderingContext2D,
+    text: string,
+    x: number,
+    y: number,
+    maxWidth: number,
+    lineHeight: number
+  ) => {
+    var words = text.split("");
+    var line = "";
+    var offsetY = 0;
+
+    for (var i = 0; i < words.length; i++) {
+      var testLine = line + words[i] + " ";
+      var metrics = ctx.measureText(testLine);
+      var testWidth = metrics.width;
+      if (testWidth > maxWidth && i > 0) {
+        ctx.fillText(line, x, y + offsetY);
+        line = words[i] + " ";
+        offsetY += lineHeight;
+      } else {
+        line = testLine;
+      }
+    }
+    ctx.fillText(line, x, y + offsetY);
+  };
+
   draw(ctx: CanvasRenderingContext2D, sendable: boolean = true) {
     const edge = this.getEdge(),
       fillRectParams = {
@@ -1067,28 +1094,14 @@ export default class Core {
       }
     }
 
-    // if (this.curves.l.shape) {
-    //   this.curves.l.shape.draw(ctx);
-    // }
-
-    // if (this.curves.t.shape) {
-    //   this.curves.t.shape.draw(ctx);
-    // }
-
-    // if (this.curves.r.shape) {
-    //   this.curves.r.shape.draw(ctx);
-    // }
-
-    // if (this.curves.b.shape) {
-    //   this.curves.b.shape.draw(ctx);
-    // }
-
     // render center text
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillStyle = "black";
     ctx.font = "14px Arial";
-    ctx.fillText(this.title, 0, 0);
+    // ctx.fillText(this.title, 0, 0);
+
+    this.wrapText(ctx, this.title, 0, 0, this.w, 16);
 
     // draw id text
     ctx.textAlign = "start";
