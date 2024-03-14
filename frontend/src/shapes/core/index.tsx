@@ -860,13 +860,13 @@ export default class Core {
       lines: string[] = [];
     let line = "";
 
-    for (let i = 0; i < words.length; i++) {
-      const testLine = line + words[i];
-      const metrics = ctx.measureText(testLine);
-      const testWidth = metrics.width;
-      if (testWidth > maxWidth && i > 0) {
+    for (const word of words) {
+      const testLine = line + word,
+        metrics = ctx.measureText(testLine),
+        testWidth = metrics.width;
+      if (testWidth > maxWidth) {
         lines.push(line)
-        line = words[i];
+        line = word;
       } else {
         line = testLine;
       }
