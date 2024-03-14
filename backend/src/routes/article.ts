@@ -1,7 +1,7 @@
 import { Article as ArticleController } from "../controllers";
 import Route from "./route";
 
-class ArticleRoute extends Route {
+export default class Article extends Route {
   private articalController = new ArticleController();
 
   constructor() {
@@ -14,5 +14,3 @@ class ArticleRoute extends Route {
     this.router.get("/", this.articalController.echo);
   }
 }
-
-export default ArticleRoute;
