@@ -506,7 +506,7 @@ export default function ProcessPage() {
       } else if (pressing?.target === "selectArea_lt") {
         const canResize = {
           x: theSelect.w - offsetP.x > 0 || offsetP.x < 0,
-          y: theSelect.w - offsetP.y > 0 || offsetP.y < 0,
+          y: theSelect.h - offsetP.y > 0 || offsetP.y < 0,
         };
 
         select.shapes.forEach((shape) => {
