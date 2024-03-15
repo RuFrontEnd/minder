@@ -18,7 +18,6 @@ import * as DataFrameTypes from "@/types/components/dataFrame";
 let useEffected = false,
   ctx: CanvasRenderingContext2D | null | undefined = null,
   shapes: (Terminal | Process | Data | Desicion)[] = [],
-  sender: null | CoreTypes.ConnectTarget = null,
   pressing: null | {
     parent: null | Terminal | Process | Data | Desicion;
     shape: null | Terminal | Process | Data | Desicion | Curve;
@@ -882,7 +881,8 @@ export default function ProcessPage() {
     moveP = null;
   };
 
-  const onMouseWeel = (e: React.WheelEvent<HTMLCanvasElement>) => {
+  const onMouseWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
+    setDataFrame(undefined)
     zoom(e.deltaY, { x: e.clientX, y: e.clientY });
   };
 
@@ -1319,7 +1319,7 @@ export default function ProcessPage() {
         onMouseDown={onMouseDown}
         onMouseUp={onMouseUp}
         onMouseMove={onMouseMove}
-        onWheel={onMouseWeel}
+        onWheel={onMouseWheel}
         onDoubleClick={onDoubleClick}
       />
 
