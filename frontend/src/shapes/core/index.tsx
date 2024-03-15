@@ -176,28 +176,28 @@ export default class Core {
       sendTo_r = this.curves.r.sendTo;
 
     if (curve_l) {
-      curve_l.p1.x += offset / this.scale;
-      curve_l.cp1.x += offset / this.scale;
+      curve_l.p1.x += offset;
+      curve_l.cp1.x += offset;
 
       if (!sendTo_l) {
         curve_l.p2 = {
           ...curve_l.p2,
-          x: curve_l.p2.x + offset / this.scale,
+          x: curve_l.p2.x + offset,
         };
-        curve_l.cp2.x += offset / this.scale;
+        curve_l.cp2.x += offset;
       }
     }
 
     if (curve_r) {
-      curve_r.p1.x -= offset / this.scale;
-      curve_r.cp1.x -= offset / this.scale;
+      curve_r.p1.x -= offset;
+      curve_r.cp1.x -= offset;
 
       if (!sendTo_r) {
         curve_r.p2 = {
           ...curve_r.p2,
-          x: curve_r.p2.x - offset / this.scale,
+          x: curve_r.p2.x - offset,
         };
-        curve_r.cp2.x -= offset / this.scale;
+        curve_r.cp2.x -= offset;
       }
     }
 
@@ -211,17 +211,17 @@ export default class Core {
     if (receiveFromCurve_l) {
       receiveFromCurve_l.p2 = {
         ...receiveFromCurve_l.p2,
-        x: receiveFromCurve_l.p2.x + offset / this.scale,
+        x: receiveFromCurve_l.p2.x + offset,
       };
-      receiveFromCurve_l.cp2.x += offset / this.scale;
+      receiveFromCurve_l.cp2.x += offset;
     }
 
     if (receiveFromCurve_r) {
       receiveFromCurve_r.p2 = {
         ...receiveFromCurve_r.p2,
-        x: receiveFromCurve_r.p2.x - offset / this.scale,
+        x: receiveFromCurve_r.p2.x - offset,
       };
-      receiveFromCurve_r.cp2.x -= offset / this.scale;
+      receiveFromCurve_r.cp2.x -= offset;
     }
   }
 
@@ -239,28 +239,28 @@ export default class Core {
       sendTo_b = this.curves.b.sendTo;
 
     if (curve_t) {
-      curve_t.p1.y += offset / this.scale;
-      curve_t.cp1.y += offset / this.scale;
+      curve_t.p1.y += offset;
+      curve_t.cp1.y += offset;
 
       if (!sendTo_t) {
         curve_t.p2 = {
           ...curve_t.p2,
-          y: curve_t.p2.y + offset / this.scale,
+          y: curve_t.p2.y + offset,
         };
-        curve_t.cp2.y += offset / this.scale;
+        curve_t.cp2.y += offset;
       }
     }
 
     if (curve_b) {
-      curve_b.p1.y -= offset / this.scale;
-      curve_b.cp1.y -= offset / this.scale;
+      curve_b.p1.y -= offset;
+      curve_b.cp1.y -= offset;
 
       if (!sendTo_b) {
         curve_b.p2 = {
           ...curve_b.p2,
-          y: curve_b.p2.y - offset / this.scale,
+          y: curve_b.p2.y - offset,
         };
-        curve_b.cp2.y -= offset / this.scale;
+        curve_b.cp2.y -= offset;
       }
     }
 
@@ -274,17 +274,17 @@ export default class Core {
     if (receiveFromCurve_t) {
       receiveFromCurve_t.p2 = {
         ...receiveFromCurve_t.p2,
-        y: receiveFromCurve_t.p2.y + offset / this.scale,
+        y: receiveFromCurve_t.p2.y + offset,
       };
-      receiveFromCurve_t.cp2.y += offset / this.scale;
+      receiveFromCurve_t.cp2.y += offset;
     }
 
     if (receiveFromCurve_b) {
       receiveFromCurve_b.p2 = {
         ...receiveFromCurve_b.p2,
-        y: receiveFromCurve_b.p2.y - offset / this.scale,
+        y: receiveFromCurve_b.p2.y - offset,
       };
-      receiveFromCurve_b.cp2.y -= offset / this.scale;
+      receiveFromCurve_b.cp2.y -= offset;
     }
   }
 
