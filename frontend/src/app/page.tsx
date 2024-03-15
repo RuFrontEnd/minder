@@ -531,35 +531,35 @@ export default function ProcessPage() {
         };
 
         select.shapes.forEach((shape) => {
-          const ratioW = shape.w / theSelect.w,
+          const ratioW = shape.getScaleSize().w / theSelect.w,
             unitW = offsetP.x * ratioW;
 
           if (canResize.x) {
-            shape.w = shape.w - unitW;
+            shape.w = shape.w - unitW / scale;
 
-            const dx = Math.abs(shape.p.x - select.end.x),
+            const dx = Math.abs(shape.getScreenP().x - select.end.x),
               ratioX = dx / theSelect.w,
               unitX = offsetP.x * ratioX;
 
             shape.p = {
               ...shape.p,
-              x: shape.p.x + unitX,
+              x: shape.p.x + unitX / scale,
             };
           }
 
-          const ratioH = shape.h / theSelect.h,
+          const ratioH = shape.getScaleSize().h / theSelect.h,
             unitH = offsetP.y * ratioH;
 
           if (canResize.y) {
-            shape.h = shape.h - unitH;
+            shape.h = shape.h - unitH / scale;
 
-            const dy = Math.abs(shape.p.y - select.end.y),
+            const dy = Math.abs(shape.getScreenP().y - select.end.y),
               ratioY = dy / theSelect.h,
               unitY = offsetP.y * ratioY;
 
             shape.p = {
               ...shape.p,
-              y: shape.p.y + unitY,
+              y: shape.p.y + unitY / scale,
             };
           }
         });
