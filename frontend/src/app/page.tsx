@@ -168,6 +168,28 @@ export default function ProcessPage() {
       shape.scale = _scale;
       shape.offset = offset;
     });
+
+    if (select.shapes.length > 1) {
+      select.start.x = -1;
+      select.end.x = -1;
+      select.start.y = -1;
+      select.end.y = -1;
+      select.shapes.forEach((shape) => {
+        const theEdge = shape.getEdge();
+        if (select?.start.x === -1 || theEdge.l < select?.start.x) {
+          select.start.x = theEdge.l;
+        }
+        if (select?.start.y === -1 || theEdge.t < select?.start.y) {
+          select.start.y = theEdge.t;
+        }
+        if (select.end.x === -1 || theEdge.r > select.end.x) {
+          select.end.x = theEdge.r;
+        }
+        if (select.end.y === -1 || theEdge.b > select.end.y) {
+          select.end.y = theEdge.b;
+        }
+      });
+    }
   };
 
   const onMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -882,7 +904,7 @@ export default function ProcessPage() {
   };
 
   const onMouseWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
-    setDataFrame(undefined)
+    setDataFrame(undefined);
     zoom(e.deltaY, { x: e.clientX, y: e.clientY });
   };
 
