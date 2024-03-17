@@ -991,7 +991,7 @@ export default function ProcessPage() {
       `terminator_${Date.now()}`,
       200,
       100,
-      { x: -offset.x + 200, y: -offset.y + 200 },
+      { x: -offset.x + window.innerWidth / 2, y: -offset.y + window.innerHeight / 2 },
       "orange"
     );
     terminal.offset = offset;
@@ -1288,41 +1288,15 @@ export default function ProcessPage() {
 
   return (
     <>
-      <div className="fixed m-4 top-[100px]">
-        <div className="flex flex-col">
-          <div
-            className="mb-2 w-12 h-12 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
-            onClick={onClickTerminator}
-          >
-            T
-          </div>
-          <div
-            className="mb-2 w-12 h-12 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
-            onClick={onClickProcess}
-          >
-            P
-          </div>
-          <div
-            className="mb-2 w-12 h-12 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
-            onClick={onClickData}
-          >
-            D
-          </div>
-          <div
-            className="mb-2 w-12 h-12 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
-            onClick={onClickDecision}
-          >
-            De
-          </div>
-        </div>
-      </div>
+
+
 
       {/* TODO: 後續使用 */}
 
       {/* <SidePanel clasaName={"fixed"} visible={v} /> */}
 
-      <header className="text-gray-600 body-font bg-indigo-100">
-        <div className="container mx-auto flex flex-wrap p-3 flex-col md:flex-row items-center">
+      <header className="w-full fixed z-50 shadow-md text-gray-600 body-font bg-indigo-100">
+        <div className="container mx-auto flex flex-wrap py-2 px-4 flex-col md:flex-row items-center">
           <a className="flex title-font font-medium items-center text-gray-900 mb-4 md:mb-0">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" className="w-10 h-10 text-white p-2 bg-indigo-500 rounded-full" viewBox="0 0 24 24">
               <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
@@ -1333,7 +1307,7 @@ export default function ProcessPage() {
             <a className="mr-5 hover:text-gray-900">Project_1</a>
           </nav>
           <div
-            className="mb-2 w-10 h-10 inline-flex items-center justify-center rounded-full bg-indigo-500 text-white flex-shrink-0 cursor-pointer"
+            className="w-10 h-10 inline-flex items-center justify-center rounded-full bg-indigo-500 text-white flex-shrink-0 cursor-pointer"
             onClick={() => {
               setV((v) => !v);
             }}
@@ -1344,7 +1318,7 @@ export default function ProcessPage() {
       </header>
 
       <div>
-        <SidePanel visible w={'360px'} h={'calc(100vh - 72px)'} d={['b']} />
+        <SidePanel visible w={'360px'} h={'calc(100vh - 56px)'} d={['b']} />
         <canvas
           className={`${space ? "cursor-grab" : ""} overflow-hidden`}
           tabIndex={1}
@@ -1379,28 +1353,65 @@ export default function ProcessPage() {
         )}
       </div>
 
-      <div className="fixed m-4 bottom-0 right-0">
-        <div className="flex items-center">
-          <div
-            className="w-6 h-6 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
-            onClick={onClickScaleMinusIcon}
-          >
-            -
+      <ul style={{ width: 'calc(100vw - 360px)' }} className="fixed grid grid-cols-3 items-center p-4 bottom-0 right-0 shadow-md">
+        <li >
+
+
+        </li>
+        <li className="justify-self-center">
+          <div className="flex">
+            <div
+              className="mx-2 w-12 h-12 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
+              onClick={onClickTerminator}
+            >
+              T
+            </div>
+            <div
+              className="mx-2 w-12 h-12 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
+              onClick={onClickProcess}
+            >
+              P
+            </div>
+            <div
+              className="mx-2 w-12 h-12 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
+              onClick={onClickData}
+            >
+              D
+            </div>
+            <div
+              className="mx-2 w-12 h-12 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
+              onClick={onClickDecision}
+            >
+              De
+            </div>
           </div>
-          <div
-            className="flex mx-2 items-center justify-center cursor-pointer w-[48px]"
-            onClick={onClickScaleNumber}
-          >
-            {Math.ceil(scale * 100)}%
+
+        </li>
+        <li className="justify-self-end">
+          <div className="flex items-center">
+            <div
+              className="w-6 h-6 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
+              onClick={onClickScaleMinusIcon}
+            >
+              -
+            </div>
+            <div
+              className="flex mx-2 items-center justify-center cursor-pointer w-[48px]"
+              onClick={onClickScaleNumber}
+            >
+              {Math.ceil(scale * 100)}%
+            </div>
+            <div
+              className="w-6 h-6 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
+              onClick={onClickScalePlusIcon}
+            >
+              +
+            </div>
           </div>
-          <div
-            className="w-6 h-6 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
-            onClick={onClickScalePlusIcon}
-          >
-            +
-          </div>
-        </div>
-      </div>
+
+        </li>
+
+      </ul>
     </>
   );
 }
