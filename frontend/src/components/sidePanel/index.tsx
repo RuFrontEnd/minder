@@ -28,6 +28,7 @@ const SidePanel = (props: any) => {
       animate={{ x: visible ? "0%" : `${d === 'r' ? '100%' : '-100%'}` }}
       transition={{ type: "easeInOut" }}
     >
+      {children}
     </motion.div>
   );
 };

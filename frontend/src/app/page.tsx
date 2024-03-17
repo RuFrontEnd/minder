@@ -1005,7 +1005,7 @@ export default function ProcessPage() {
       `process_${Date.now()}`,
       200,
       100,
-      { x: -offset.x + 200, y: -offset.y + 200 },
+      { x: -offset.x + window.innerWidth / 2, y: -offset.y + window.innerHeight / 2 },
       "red"
     );
     process_new.offset = offset;
@@ -1019,7 +1019,7 @@ export default function ProcessPage() {
       `data_${Date.now()}`,
       200,
       100,
-      { x: -offset.x + 200, y: -offset.y + 200 },
+      { x: -offset.x + window.innerWidth / 2, y: -offset.y + window.innerHeight / 2 },
       "green"
     );
     data_new.scale = scale;
@@ -1033,7 +1033,7 @@ export default function ProcessPage() {
       `data_${Date.now()}`,
       200,
       100,
-      { x: -offset.x + 200, y: -offset.y + 200 },
+      { x: -offset.x + window.innerWidth / 2, y: -offset.y + window.innerHeight / 2 },
       "#3498db"
     );
     decision_new.offset = offset;
@@ -1288,13 +1288,6 @@ export default function ProcessPage() {
 
   return (
     <>
-
-
-
-      {/* TODO: 後續使用 */}
-
-      {/* <SidePanel clasaName={"fixed"} visible={v} /> */}
-
       <header className="w-full fixed z-50 shadow-md text-gray-600 body-font bg-indigo-100">
         <div className="container mx-auto flex flex-wrap py-2 px-4 flex-col md:flex-row items-center">
           <a className="flex title-font font-medium items-center text-gray-900 mb-4 md:mb-0">
@@ -1318,7 +1311,64 @@ export default function ProcessPage() {
       </header>
 
       <div>
-        <SidePanel visible w={'360px'} h={'calc(100vh - 56px)'} d={['b']} />
+        <SidePanel visible w={'520px'} h={'calc(100vh - 56px)'} d={['b']}>
+          <ul>
+            <li className="flex cursor-pointer ps-2 pe-6 py-2">
+              <svg className="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m8 10 4 4 4-4" />
+              </svg>
+              Terminal
+            </li>
+            <li className="cursor-pointer ps-6 pe-6 py-2">
+              <div className="flex flex-col">
+                <div className="flex">
+                  <svg className="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m8 10 4 4 4-4" />
+                  </svg>
+                  {/* <svg className="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m10 16 4-4-4-4" />
+                  </svg> */}
+                  Process
+                </div>
+              </div>
+            </li>
+            <li className="ps-10 pe-6 py-2">
+              <div className="grid grid-cols-3 gap-2">
+                <div><input placeholder="prefix" type="text" id="hero-field" name="hero-field" className="w-full bg-gray-100 bg-opacity-50 rounded focus:ring-2 focus:ring-indigo-200 focus:bg-transparent border border-gray-300 focus:border-indigo-500 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" /></div>
+                <div><input placeholder="name" type="text" id="hero-field" name="hero-field" className="w-full bg-gray-100 bg-opacity-50 rounded focus:ring-2 focus:ring-indigo-200 focus:bg-transparent border border-gray-300 focus:border-indigo-500 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" /></div>
+                <div><input placeholder="suffix" type="text" id="hero-field" name="hero-field" className="w-full bg-gray-100 bg-opacity-50 rounded focus:ring-2 focus:ring-indigo-200 focus:bg-transparent border border-gray-300 focus:border-indigo-500 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" /></div>
+              </div>
+            </li>
+            <li className="cursor-pointer ps-6 pe-6 py-2">
+              <div className="flex flex-col">
+                <div className="flex">
+                  <svg className="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m8 10 4 4 4-4" />
+                  </svg>
+                  {/* <svg className="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m10 16 4-4-4-4" />
+                  </svg> */}
+                  Process
+                </div>
+              </div>
+            </li>
+            <li className="ps-10 pe-6 py-1">
+              <div className="grid grid-cols-3 gap-2">
+                <div><input placeholder="prefix" type="text" id="hero-field" name="hero-field" className="w-full bg-gray-100 bg-opacity-50 rounded focus:ring-2 focus:ring-indigo-200 focus:bg-transparent border border-gray-300 focus:border-indigo-500 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" /></div>
+                <div><input placeholder="name" type="text" id="hero-field" name="hero-field" className="w-full bg-gray-100 bg-opacity-50 rounded focus:ring-2 focus:ring-indigo-200 focus:bg-transparent border border-gray-300 focus:border-indigo-500 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" /></div>
+                <div><input placeholder="suffix" type="text" id="hero-field" name="hero-field" className="w-full bg-gray-100 bg-opacity-50 rounded focus:ring-2 focus:ring-indigo-200 focus:bg-transparent border border-gray-300 focus:border-indigo-500 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" /></div>
+              </div>
+            </li>
+            <li className="ps-10 pe-6 py-1">
+              <div className="grid grid-cols-3 gap-2">
+                <div><input placeholder="prefix" type="text" id="hero-field" name="hero-field" className="w-full bg-gray-100 bg-opacity-50 rounded focus:ring-2 focus:ring-indigo-200 focus:bg-transparent border border-gray-300 focus:border-indigo-500 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" /></div>
+                <div><input placeholder="name" type="text" id="hero-field" name="hero-field" className="w-full bg-gray-100 bg-opacity-50 rounded focus:ring-2 focus:ring-indigo-200 focus:bg-transparent border border-gray-300 focus:border-indigo-500 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" /></div>
+                <div><input placeholder="suffix" type="text" id="hero-field" name="hero-field" className="w-full bg-gray-100 bg-opacity-50 rounded focus:ring-2 focus:ring-indigo-200 focus:bg-transparent border border-gray-300 focus:border-indigo-500 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" /></div>
+              </div>
+            </li>
+          </ul>
+
+        </SidePanel >
         <canvas
           className={`${space ? "cursor-grab" : ""} overflow-hidden`}
           tabIndex={1}
@@ -1351,9 +1401,9 @@ export default function ProcessPage() {
             }}
           />
         )}
-      </div>
+      </div >
 
-      <ul style={{ width: 'calc(100vw - 360px)' }} className="fixed grid grid-cols-3 items-center p-4 bottom-0 right-0 shadow-md">
+      <ul style={{ width: 'calc(100vw - 520px)' }} className="fixed grid grid-cols-3 items-end p-4 bottom-0 right-0 shadow-md">
         <li >
 
 

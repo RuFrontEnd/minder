@@ -31,3 +31,7 @@ A data-verification flowchart application
 - typescript 5.2.2
 - node.js 20.11.0
 - express 4.18.3
+
+## Others
+- Icon: heroicons[https://heroicons.com/solid]
+        flowbite[https://flowbite.com/icons/]
