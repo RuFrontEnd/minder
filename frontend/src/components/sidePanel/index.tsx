@@ -6,11 +6,9 @@ const SidePanel = (props: any) => {
     id,
     className,
     visible,
-    title,
-    width,
-    height,
-    xDirection,
-    yDirection,
+    w,
+    h,
+    d = [],
     zIndex,
     children,
     footer,
@@ -21,13 +19,24 @@ const SidePanel = (props: any) => {
   return (
     <motion.div
       id={id}
-      className={`${
-        className && className
-      } fixed top-[80px] right-0 h-[500px] w-[300px] bg-slate-200`}
-      animate={{ x: visible ? "-20px" : "100%" }}
+      style={{
+        width: w,
+        height: h,
+      }}
+      className={`${className && className
+        } fixed ${d[0] === 'b' ? 'bottom-0' : 'top-0'} ${d[1] === 'r' ? 'right-0' : 'left-0'} bg-white shadow-lg`}
+      animate={{ x: visible ? "0%" : `${d === 'r' ? '100%' : '-100%'}` }}
       transition={{ type: "easeInOut" }}
     >
-      <div>{children}</div>
+      <div className="flex">
+        <div className="flex-1">{children}</div>
+        <div
+          className="w-[2px] bg-indigo-500 flex items-center"
+          style={{
+            height: h,
+          }}>
+        </div>
+      </div>
     </motion.div>
   );
 };

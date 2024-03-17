@@ -23,14 +23,14 @@ let useEffected = false,
     shape: null | Terminal | Process | Data | Desicion | Curve;
     direction: null | CommonTypes.Direction;
     target:
-      | null
-      | CoreTypes.PressingTarget
-      | CurveTypes.PressingTarget
-      | "selectArea_m"
-      | "selectArea_lt"
-      | "selectArea_rt"
-      | "selectArea_rb"
-      | "selectArea_lb";
+    | null
+    | CoreTypes.PressingTarget
+    | CurveTypes.PressingTarget
+    | "selectArea_m"
+    | "selectArea_lt"
+    | "selectArea_rt"
+    | "selectArea_rb"
+    | "selectArea_lb";
     dx: number; // distance between event px & pressing shape px
     dy: number; // distance between event py & pressing shape py
   } = null,
@@ -77,22 +77,22 @@ let useEffected = false,
   };
 
 const ds = [
-    CommonTypes.Direction.l,
-    CommonTypes.Direction.t,
-    CommonTypes.Direction.r,
-    CommonTypes.Direction.b,
-  ],
+  CommonTypes.Direction.l,
+  CommonTypes.Direction.t,
+  CommonTypes.Direction.r,
+  CommonTypes.Direction.b,
+],
   vs: (
     | CoreTypes.PressingTarget.lt
     | CoreTypes.PressingTarget.rt
     | CoreTypes.PressingTarget.rb
     | CoreTypes.PressingTarget.lb
   )[] = [
-    CoreTypes.PressingTarget.lt,
-    CoreTypes.PressingTarget.rt,
-    CoreTypes.PressingTarget.rb,
-    CoreTypes.PressingTarget.lb,
-  ];
+      CoreTypes.PressingTarget.lt,
+      CoreTypes.PressingTarget.rt,
+      CoreTypes.PressingTarget.rb,
+      CoreTypes.PressingTarget.lb,
+    ];
 
 const getFramePosition = (shape: Core) => {
   const frameOffset = 12;
@@ -106,8 +106,8 @@ export default function ProcessPage() {
   let { current: $canvas } = useRef<HTMLCanvasElement | null>(null);
 
   const [dataFrame, setDataFrame] = useState<
-      { p: CommonTypes.Vec } | undefined
-    >(undefined),
+    { p: CommonTypes.Vec } | undefined
+  >(undefined),
     [dbClickedShape, setDbClickedShape] = useState<
       Terminal | Data | Process | Desicion | null
     >(null),
@@ -199,9 +199,9 @@ export default function ProcessPage() {
     let $canvas = document.querySelector("canvas");
 
     const p = {
-        x: e.nativeEvent.offsetX,
-        y: e.nativeEvent.offsetY,
-      },
+      x: e.nativeEvent.offsetX,
+      y: e.nativeEvent.offsetY,
+    },
       pInSelectArea =
         p.x > select.start.x &&
         p.y > select.start.y &&
@@ -315,12 +315,12 @@ export default function ProcessPage() {
             dx:
               (p.x - dragP.x) * (1 / scale) -
               shape?.getEdge()[
-                theCheckShapeVertexesBoundry[0] as CommonTypes.Direction
+              theCheckShapeVertexesBoundry[0] as CommonTypes.Direction
               ],
             dy:
               (p.y - dragP.y) * (1 / scale) -
               shape?.getEdge()[
-                theCheckShapeVertexesBoundry[1] as CommonTypes.Direction
+              theCheckShapeVertexesBoundry[1] as CommonTypes.Direction
               ],
           };
         }
@@ -429,9 +429,9 @@ export default function ProcessPage() {
   const onMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     e.preventDefault();
     const p = {
-        x: e.nativeEvent.offsetX,
-        y: e.nativeEvent.offsetY,
-      },
+      x: e.nativeEvent.offsetX,
+      y: e.nativeEvent.offsetY,
+    },
       offsetP = {
         x: p.x - dragP.x,
         y: p.y - dragP.y,
@@ -818,9 +818,9 @@ export default function ProcessPage() {
         ];
 
         const l =
-            selectAreaP.start.x < selectAreaP.end.x
-              ? selectAreaP.start.x
-              : selectAreaP.end.x,
+          selectAreaP.start.x < selectAreaP.end.x
+            ? selectAreaP.start.x
+            : selectAreaP.end.x,
           t =
             selectAreaP.start.y < selectAreaP.end.y
               ? selectAreaP.start.y
@@ -1288,7 +1288,7 @@ export default function ProcessPage() {
 
   return (
     <>
-      <div className="fixed m-4">
+      <div className="fixed m-4 top-[100px]">
         <div className="flex flex-col">
           <div
             className="mb-2 w-12 h-12 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
@@ -1317,52 +1317,67 @@ export default function ProcessPage() {
         </div>
       </div>
 
-      <div className="fixed right-0 top-0 m-4">
-        <div
-          className="mb-2 w-12 h-12 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
-          onClick={() => {
-            setV((v) => !v);
-          }}
-        >
-          L
-        </div>
-      </div>
-
       {/* TODO: 後續使用 */}
+
       {/* <SidePanel clasaName={"fixed"} visible={v} /> */}
 
-      <canvas
-        className={`${space ? "cursor-grab" : ""} overflow-hidden`}
-        tabIndex={1}
-        ref={(el) => {
-          $canvas = el;
-          ctx = $canvas?.getContext("2d");
-        }}
-        onMouseDown={onMouseDown}
-        onMouseUp={onMouseUp}
-        onMouseMove={onMouseMove}
-        onWheel={onMouseWheel}
-        onDoubleClick={onDoubleClick}
-      />
+      <header className="text-gray-600 body-font bg-indigo-100">
+        <div className="container mx-auto flex flex-wrap p-3 flex-col md:flex-row items-center">
+          <a className="flex title-font font-medium items-center text-gray-900 mb-4 md:mb-0">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" className="w-10 h-10 text-white p-2 bg-indigo-500 rounded-full" viewBox="0 0 24 24">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+            </svg>
+            <span className="ml-3 text-xl">Minder</span>
+          </a>
+          <nav className="md:ml-auto md:mr-auto flex flex-wrap items-center text-base justify-center">
+            <a className="mr-5 hover:text-gray-900">Project_1</a>
+          </nav>
+          <div
+            className="mb-2 w-10 h-10 inline-flex items-center justify-center rounded-full bg-indigo-500 text-white flex-shrink-0 cursor-pointer"
+            onClick={() => {
+              setV((v) => !v);
+            }}
+          >
+            L
+          </div>
+        </div>
+      </header>
 
-      {dataFrame && dbClickedShape && (
-        <DataFrame
-          shape={dbClickedShape}
-          coordinate={dataFrame.p}
-          onConfirm={onConfirmDataFrame}
-          feature={{
-            import: dbClickedShape instanceof Data,
-            usage:
-              dbClickedShape instanceof Process ||
-              dbClickedShape instanceof Data ||
-              dbClickedShape instanceof Desicion,
-            redundancy:
-              dbClickedShape instanceof Process ||
-              dbClickedShape instanceof Data ||
-              dbClickedShape instanceof Desicion,
+      <div>
+        <SidePanel visible w={'360px'} h={'calc(100vh - 72px)'} d={['b']} />
+        <canvas
+          className={`${space ? "cursor-grab" : ""} overflow-hidden`}
+          tabIndex={1}
+          ref={(el) => {
+            $canvas = el;
+            ctx = $canvas?.getContext("2d");
           }}
+          onMouseDown={onMouseDown}
+          onMouseUp={onMouseUp}
+          onMouseMove={onMouseMove}
+          onWheel={onMouseWheel}
+          onDoubleClick={onDoubleClick}
         />
-      )}
+
+        {dataFrame && dbClickedShape && (
+          <DataFrame
+            shape={dbClickedShape}
+            coordinate={dataFrame.p}
+            onConfirm={onConfirmDataFrame}
+            feature={{
+              import: dbClickedShape instanceof Data,
+              usage:
+                dbClickedShape instanceof Process ||
+                dbClickedShape instanceof Data ||
+                dbClickedShape instanceof Desicion,
+              redundancy:
+                dbClickedShape instanceof Process ||
+                dbClickedShape instanceof Data ||
+                dbClickedShape instanceof Desicion,
+            }}
+          />
+        )}
+      </div>
 
       <div className="fixed m-4 bottom-0 right-0">
         <div className="flex items-center">
