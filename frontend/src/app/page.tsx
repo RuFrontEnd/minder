@@ -397,7 +397,7 @@ export default function ProcessPage() {
           }
         }
       } else {
-        // click shape or blank area 
+        // click shape or blank area
         for (const d of ds) {
           const theCurve = shape.curves[d].shape;
           if (theCurve) {
@@ -578,13 +578,13 @@ export default function ProcessPage() {
         };
 
         select.shapes.forEach((shape) => {
-          const ratioW = shape.w / theSelect.w,
+          const ratioW = shape.getScaleSize().w / theSelect.w,
             unitW = offsetP.x * ratioW;
 
           if (canResize.x) {
             shape.w = shape.w + unitW / scale;
 
-            const dx = Math.abs(shape.p.x - select.start.x),
+            const dx = Math.abs(shape.getScreenP().x - select.start.x),
               ratioX = dx / theSelect.w,
               unitX = offsetP.x * ratioX;
 
@@ -598,9 +598,9 @@ export default function ProcessPage() {
             unitH = offsetP.y * ratioH;
 
           if (canResize.y) {
-            shape.h = shape.h - unitH / scale;
+            shape.h = shape.getScaleSize().h - unitH / scale;
 
-            const dy = Math.abs(shape.p.y - select.end.y),
+            const dy = Math.abs(shape.getScreenP().y - select.end.y),
               ratioY = dy / theSelect.h,
               unitY = offsetP.y * ratioY;
 
@@ -625,13 +625,13 @@ export default function ProcessPage() {
         };
 
         select.shapes.forEach((shape) => {
-          const ratioW = shape.w / theSelect.w,
+          const ratioW = shape.getScaleSize().w / theSelect.w,
             unitW = offsetP.x * ratioW;
 
           if (canResize.x) {
             shape.w = shape.w + unitW / scale;
 
-            const dx = Math.abs(shape.p.x - select.start.x),
+            const dx = Math.abs(shape.getScreenP().x - select.start.x),
               ratioX = dx / theSelect.w,
               unitX = offsetP.x * ratioX;
 
@@ -641,13 +641,13 @@ export default function ProcessPage() {
             };
           }
 
-          const ratioH = shape.h / theSelect.h,
+          const ratioH = shape.getScaleSize().h / theSelect.h,
             unitH = offsetP.y * ratioH;
 
           if (canResize.y) {
             shape.h = shape.h + unitH / scale;
 
-            const dy = Math.abs(shape.p.y - select.start.y),
+            const dy = Math.abs(shape.getScreenP().y - select.start.y),
               ratioY = dy / theSelect.h,
               unitY = offsetP.y * ratioY;
 
@@ -672,13 +672,13 @@ export default function ProcessPage() {
         };
 
         select.shapes.forEach((shape) => {
-          const ratioW = shape.w / theSelect.w,
+          const ratioW = shape.getScaleSize().w / theSelect.w,
             unitW = offsetP.x * ratioW;
 
           if (canResize.x) {
             shape.w = shape.w - unitW / scale;
 
-            const dx = Math.abs(shape.p.x - select.end.x),
+            const dx = Math.abs(shape.getScreenP().x - select.end.x),
               ratioX = dx / theSelect.w,
               unitX = offsetP.x * ratioX;
 
@@ -688,13 +688,13 @@ export default function ProcessPage() {
             };
           }
 
-          const ratioH = shape.h / theSelect.h,
+          const ratioH = shape.getScaleSize().h / theSelect.h,
             unitH = offsetP.y * ratioH;
 
           if (canResize.y) {
             shape.h = shape.h + unitH / scale;
 
-            const dy = Math.abs(shape.p.y - select.start.y),
+            const dy = Math.abs(shape.getScreenP().y - select.start.y),
               ratioY = dy / theSelect.h,
               unitY = offsetP.y * ratioY;
 
