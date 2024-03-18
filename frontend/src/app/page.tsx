@@ -15,6 +15,7 @@ import * as CoreTypes from "@/types/shapes/core";
 import * as CurveTypes from "@/types/shapes/curve";
 import * as CommonTypes from "@/types/shapes/common";
 import * as DataFrameTypes from "@/types/components/dataFrame";
+import * as PageTypes from "@/types/app/page";
 
 let useEffected = false,
   ctx: CanvasRenderingContext2D | null | undefined = null,
@@ -115,12 +116,18 @@ export default function ProcessPage() {
     [space, setSpace] = useState(false),
     [scale, setScale] = useState(1),
     [leftMouseBtn, setLeftMouseBtn] = useState(false),
-    [isDataSidePanelOpen, setIsDataSidePanelOpen] = useState(true);
+    [isDataSidePanelOpen, setIsDataSidePanelOpen] = useState(true),
+    [groups, setGroups] = useState<PageTypes.Groups>([])
 
   const checkData = () => {
+    const goThroughShapeMapping: { [shapeId: string]: boolean } = {}
+
     shapes.forEach((shape) => {
       shape.options = [];
+      goThroughShapeMapping[shape.id] = true
     });
+
+    const _groups: PageTypes.Groups = []
 
     shapes.forEach((shape) => {
       if (
@@ -130,14 +137,35 @@ export default function ProcessPage() {
         shape.receiveFrom.r === null &&
         shape.receiveFrom.b === null
       ) {
-        shape.onTraversal(); // shape is Terminator
+        const _children: PageTypes.Children = []
+        // shape is Terminator
+        shape.onTraversal((goThroughShape, terminator) => {
+          if (goThroughShape.id === terminator.id) {
+            _groups.push({
+              head: terminator,
+              children: _children
+            })
+          } else {
+            _children.push(goThroughShape)
+          }
+          delete goThroughShapeMapping[goThroughShape.id]
+        });
+
       }
     });
 
     // check all correspondants of shapes' between options and selectedData
     shapes.forEach((shape) => {
+      if (goThroughShapeMapping[shape.id]) {
+        _groups.push({
+          head: shape,
+          children: []
+        })
+      }
       shape.getRedundancies();
     });
+
+    setGroups(_groups)
   };
 
   const zoom = (
@@ -1005,6 +1033,7 @@ export default function ProcessPage() {
     terminal.scale = scale;
 
     shapes.push(terminal);
+    checkData()
   };
 
   const onClickProcess = () => {
@@ -1022,6 +1051,7 @@ export default function ProcessPage() {
     process_new.scale = scale;
 
     shapes.push(process_new);
+    checkData()
   };
 
   const onClickData = () => {
@@ -1039,6 +1069,7 @@ export default function ProcessPage() {
     data_new.offset = offset;
 
     shapes.push(data_new);
+    checkData()
   };
 
   const onClickDecision = () => {
@@ -1056,6 +1087,7 @@ export default function ProcessPage() {
     decision_new.scale = scale;
 
     shapes.push(decision_new);
+    checkData()
   };
 
   const onConfirmDataFrame: DataFrameTypes.Props["onConfirm"] = (
@@ -1300,11 +1332,9 @@ export default function ProcessPage() {
     };
   }, [dataFrame, dbClickedShape, space]);
 
-  const [v, setV] = useState(false);
-
   useEffect(() => {
-    console.log("v", v);
-  }, [v]);
+    console.log('groups', groups)
+  }, [groups])
 
   return (
     <>
@@ -1330,59 +1360,38 @@ export default function ProcessPage() {
       <div>
         <SidePanel open={isDataSidePanelOpen} w={'520px'} h={'calc(100vh - 56px)'} d={['b']} onClickSwitch={onClickDataSidePanelSwitch}>
           <ul>
-            <li className="flex cursor-pointer ps-2 pe-6 py-2">
-              <svg className="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m8 10 4 4 4-4" />
-              </svg>
-              Terminal
-            </li>
-            <li className="cursor-pointer ps-6 pe-6 py-2">
-              <div className="flex flex-col">
-                <div className="flex">
-                  <svg className="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m8 10 4 4 4-4" />
-                  </svg>
-                  {/* <svg className="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+            {groups.map(group => <>
+              <li className="flex cursor-pointer ps-2 pe-6 py-2">
+                <svg className="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m8 10 4 4 4-4" />
+                </svg>
+                {group.head.title}
+              </li>
+              {group.children.map(child => (
+                <>
+                  <li className="cursor-pointer ps-6 pe-6 py-2">
+                    <div className="flex flex-col">
+                      <div className="flex">
+                        <svg className="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m8 10 4 4 4-4" />
+                        </svg>
+                        {/* <svg className="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m10 16 4-4-4-4" />
                   </svg> */}
-                  Process
-                </div>
-              </div>
-            </li>
-            <li className="ps-10 pe-6 py-2">
-              <div className="grid grid-cols-3 gap-2">
-                <div><input placeholder="prefix" type="text" id="hero-field" name="hero-field" className="w-full bg-gray-100 bg-opacity-50 rounded focus:ring-2 focus:ring-indigo-200 focus:bg-transparent border border-gray-300 focus:border-indigo-500 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" /></div>
-                <div><input placeholder="name" type="text" id="hero-field" name="hero-field" className="w-full bg-gray-100 bg-opacity-50 rounded focus:ring-2 focus:ring-indigo-200 focus:bg-transparent border border-gray-300 focus:border-indigo-500 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" /></div>
-                <div><input placeholder="suffix" type="text" id="hero-field" name="hero-field" className="w-full bg-gray-100 bg-opacity-50 rounded focus:ring-2 focus:ring-indigo-200 focus:bg-transparent border border-gray-300 focus:border-indigo-500 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" /></div>
-              </div>
-            </li>
-            <li className="cursor-pointer ps-6 pe-6 py-2">
-              <div className="flex flex-col">
-                <div className="flex">
-                  <svg className="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m8 10 4 4 4-4" />
-                  </svg>
-                  {/* <svg className="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m10 16 4-4-4-4" />
-                  </svg> */}
-                  Process
-                </div>
-              </div>
-            </li>
-            <li className="ps-10 pe-6 py-1">
-              <div className="grid grid-cols-3 gap-2">
-                <div><input placeholder="prefix" type="text" id="hero-field" name="hero-field" className="w-full bg-gray-100 bg-opacity-50 rounded focus:ring-2 focus:ring-indigo-200 focus:bg-transparent border border-gray-300 focus:border-indigo-500 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" /></div>
-                <div><input placeholder="name" type="text" id="hero-field" name="hero-field" className="w-full bg-gray-100 bg-opacity-50 rounded focus:ring-2 focus:ring-indigo-200 focus:bg-transparent border border-gray-300 focus:border-indigo-500 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" /></div>
-                <div><input placeholder="suffix" type="text" id="hero-field" name="hero-field" className="w-full bg-gray-100 bg-opacity-50 rounded focus:ring-2 focus:ring-indigo-200 focus:bg-transparent border border-gray-300 focus:border-indigo-500 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" /></div>
-              </div>
-            </li>
-            <li className="ps-10 pe-6 py-1">
-              <div className="grid grid-cols-3 gap-2">
-                <div><input placeholder="prefix" type="text" id="hero-field" name="hero-field" className="w-full bg-gray-100 bg-opacity-50 rounded focus:ring-2 focus:ring-indigo-200 focus:bg-transparent border border-gray-300 focus:border-indigo-500 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" /></div>
-                <div><input placeholder="name" type="text" id="hero-field" name="hero-field" className="w-full bg-gray-100 bg-opacity-50 rounded focus:ring-2 focus:ring-indigo-200 focus:bg-transparent border border-gray-300 focus:border-indigo-500 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" /></div>
-                <div><input placeholder="suffix" type="text" id="hero-field" name="hero-field" className="w-full bg-gray-100 bg-opacity-50 rounded focus:ring-2 focus:ring-indigo-200 focus:bg-transparent border border-gray-300 focus:border-indigo-500 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" /></div>
-              </div>
-            </li>
+                        {child.title}
+                      </div>
+                    </div>
+                  </li>
+                  <li className="ps-10 pe-6 py-2">
+                    <div className="grid grid-cols-3 gap-2">
+                      <div><input placeholder="prefix" type="text" id="hero-field" name="hero-field" className="w-full bg-gray-100 bg-opacity-50 rounded focus:ring-2 focus:ring-indigo-200 focus:bg-transparent border border-gray-300 focus:border-indigo-500 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" /></div>
+                      <div><input placeholder="name" type="text" id="hero-field" name="hero-field" className="w-full bg-gray-100 bg-opacity-50 rounded focus:ring-2 focus:ring-indigo-200 focus:bg-transparent border border-gray-300 focus:border-indigo-500 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" /></div>
+                      <div><input placeholder="suffix" type="text" id="hero-field" name="hero-field" className="w-full bg-gray-100 bg-opacity-50 rounded focus:ring-2 focus:ring-indigo-200 focus:bg-transparent border border-gray-300 focus:border-indigo-500 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" /></div>
+                    </div>
+                  </li>
+                </>
+              ))}
+            </>)}
           </ul>
         </SidePanel>
         <canvas

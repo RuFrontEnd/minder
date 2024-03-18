@@ -28,14 +28,17 @@ export default class Terminal extends Core {
     this.title = title;
   };
 
-  onTraversal() {
+  onTraversal(handleShape: (goThroughShape: Core, terminator: Terminal) => void) {
     // traversal all relational steps
-    const queue: (Core | Process | Data | Decision)[] = [this],
+    const queue: (Core)[] = [this],
       locks = { [this.id]: { l: false, t: false, r: false, b: false } }, // prevent from graph cycle
       ds = [Direction.l, Direction.t, Direction.r, Direction.b];
 
     while (queue.length !== 0) {
       const shape = queue[0];
+      if (handleShape) {
+        handleShape(shape, this)
+      }
 
       const newOptions: DataType = cloneDeep(shape.options);
 
@@ -112,9 +115,9 @@ export default class Terminal extends Core {
     super.draw(
       ctx,
       !this.curves.l.shape &&
-        !this.curves.t.shape &&
-        !this.curves.r.shape &&
-        !this.curves.b.shape
+      !this.curves.t.shape &&
+      !this.curves.r.shape &&
+      !this.curves.b.shape
     );
   }
 }

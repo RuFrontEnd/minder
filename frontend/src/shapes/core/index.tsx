@@ -603,8 +603,6 @@ export default class Core {
         y: this.p.y - connectTarget.shape.p.y + this.h / 2 + thershold,
       };
     }
-
-    console.log("this", this);
   }
 
   disConnect(d: Direction, fromSender: boolean) {
