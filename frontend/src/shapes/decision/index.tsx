@@ -10,13 +10,15 @@ import {
   Direction,
   Data as DataType,
 } from "@/types/shapes/common";
+import * as DecisionTypes from "@/types/shapes/decision";
 
+const ds = [Direction.l, Direction.t, Direction.r, Direction.b];
 export default class Desicion extends Core {
   text: {
-    l: null | "Y" | "N";
-    t: null | "Y" | "N";
-    r: null | "Y" | "N";
-    b: null | "Y" | "N";
+    l: DecisionTypes.Text;
+    t: DecisionTypes.Text;
+    r: DecisionTypes.Text;
+    b: DecisionTypes.Text;
   };
 
   constructor(id: Id, w: W, h: H, p: Vec, c: C) {
@@ -29,32 +31,54 @@ export default class Desicion extends Core {
     };
   }
 
-  getNumberOfCurves = () => {
-    let ds = [Direction.l, Direction.t, Direction.r, Direction.b],
-      time = 0;
+  getText() {
+    let numOfText = 0,
+      _y = false,
+      _n = false;
 
     ds.forEach((d) => {
-      if (this.curves[d].shape) {
-        time++;
+      if (numOfText === 2) return;
+      if (this.text[d] === "Y") {
+        _y = true;
+      } else if (this.text[d] === "N") {
+        _n = true;
       }
     });
 
-    return time;
-  };
+    const output: {
+      y: boolean;
+      n: boolean;
+      text: DecisionTypes.Text;
+    } = {
+      y: _y,
+      n: _n,
+      text: _y && _n ? null : _y ? "N" : "Y",
+    };
+
+    return output;
+  }
 
   createCurve(id: string, d: Direction) {
     super.createCurve(id, d);
 
     // define curve text
-    const currentText = this.getNumberOfCurves() < 2 ? "Y" : "N";
+    const currentText = this.getText().text;
+
+    if (!currentText) return;
 
     this.text[d] = currentText;
   }
 
-  onDataChange = (title: Title, data: DataType) => {
+  removeCurve(d: Direction) {
+    super.removeCurve(d);
+
+    this.text[d] = null;
+  }
+
+  onDataChange(title: Title, data: DataType) {
     this.title = title;
     this.selectedData = data;
-  };
+  }
 
   draw(ctx: CanvasRenderingContext2D) {
     ctx.save();
@@ -78,11 +102,11 @@ export default class Desicion extends Core {
     ctx.fill();
     ctx.restore();
 
-    super.draw(ctx, this.getNumberOfCurves() < 2);
+    super.draw(ctx, !(this.getText().y && this.getText().n));
   }
 
   drawCurve(ctx: CanvasRenderingContext2D): void {
-    super.drawCurve(ctx)
+    super.drawCurve(ctx);
     ctx.save();
     ctx.translate(this.getScreenP().x, this.getScreenP().y);
 

@@ -25,20 +25,20 @@ export default class Core {
     cpline: Line;
     curve: Line;
   } = {
-      d: 100, // 30
-      size: {
-        fill: 4,
-        stroke: 2,
-      },
-      cpline: {
-        w: 1,
-        c: "#c00",
-      },
-      curve: {
-        w: 2,
-        c: "#333",
-      },
-    };
+    d: 100, // 30
+    size: {
+      fill: 4,
+      stroke: 2,
+    },
+    cpline: {
+      w: 1,
+      c: "#c00",
+    },
+    curve: {
+      w: 2,
+      c: "#333",
+    },
+  };
   private strokeSize = 2;
   private initPressing = {
     activate: false,
@@ -77,9 +77,9 @@ export default class Core {
   dragP:
     | Vec
     | {
-      x: null;
-      y: null;
-    };
+        x: null;
+        y: null;
+      };
   options: DataType;
   selectedData: DataType;
   redundancies: DataType;
@@ -202,8 +202,8 @@ export default class Core {
     }
 
     const receiveFromCurve_l = this.receiveFrom.l?.shape.curves[
-      this.receiveFrom.l.sendD
-    ].shape,
+        this.receiveFrom.l.sendD
+      ].shape,
       receiveFromCurve_r = this.receiveFrom.r?.shape.curves[
         this.receiveFrom.r.sendD
       ].shape;
@@ -265,8 +265,8 @@ export default class Core {
     }
 
     const receiveFromCurve_t = this.receiveFrom.t?.shape.curves[
-      this.receiveFrom.t.sendD
-    ].shape,
+        this.receiveFrom.t.sendD
+      ].shape,
       receiveFromCurve_b = this.receiveFrom.b?.shape.curves[
         this.receiveFrom.b.sendD
       ].shape;
@@ -339,36 +339,36 @@ export default class Core {
     return this.__receiving__;
   }
 
-  getScreenP = () => {
+  getScreenP() {
     return {
       x: (this.p.x + this.offset.x) * this.scale,
       y: (this.p.y + this.offset.y) * this.scale,
     };
-  };
+  }
 
-  getScaleSize = () => {
+  getScaleSize() {
     return {
       w: this.w * this.scale,
       h: this.h * this.scale,
       minW: this.minW * this.scale,
       minH: this.minH * this.scale,
     };
-  };
+  }
 
-  getScaleCurveTriggerDistance = () => {
+  getScaleCurveTriggerDistance() {
     return this.curveTrigger.d * this.scale;
-  };
+  }
 
-  getEdge = () => {
+  getEdge() {
     return {
       l: this.getScreenP().x - this.getScaleSize().w / 2,
       t: this.getScreenP().y - this.getScaleSize().h / 2,
       r: this.getScreenP().x + this.getScaleSize().w / 2,
       b: this.getScreenP().y + this.getScaleSize().h / 2,
     };
-  };
+  }
 
-  getCenter = () => {
+  getCenter() {
     const edge = this.getEdge();
     const pivot = {
       x: this.getScreenP().x,
@@ -430,7 +430,7 @@ export default class Core {
         },
       },
     };
-  };
+  }
 
   checkBoundry(p: Vec) {
     const edge = this.getEdge();
@@ -443,7 +443,7 @@ export default class Core {
     );
   }
 
-  checkVertexesBoundry = (p: Vec) => {
+  checkVertexesBoundry(p: Vec) {
     const edge = this.getEdge();
 
     let dx, dy;
@@ -477,9 +477,9 @@ export default class Core {
     }
 
     return null;
-  };
+  }
 
-  checkReceivingBoundry = (p: Vec) => {
+  checkReceivingBoundry(p: Vec) {
     const edge = this.getEdge();
 
     const receivingBoundryOffset = 75;
@@ -490,9 +490,9 @@ export default class Core {
       p.x < edge.r + receivingBoundryOffset &&
       p.y < edge.b + receivingBoundryOffset
     );
-  };
+  }
 
-  checkReceivingPointsBoundry = (p: Vec) => {
+  checkReceivingPointsBoundry(p: Vec) {
     const edge = this.getEdge(),
       center = this.getCenter();
 
@@ -539,9 +539,9 @@ export default class Core {
     }
 
     return null;
-  };
+  }
 
-  checkCurveTriggerBoundry = (p: Vec) => {
+  checkCurveTriggerBoundry(p: Vec) {
     if (!this.selecting) return null;
     const center = this.getCenter();
 
@@ -549,15 +549,15 @@ export default class Core {
       if (
         !this.curves[d].shape &&
         (p.x - center.curveTrigger[d].x) * (p.x - center.curveTrigger[d].x) +
-        (p.y - center.curveTrigger[d].y) * (p.y - center.curveTrigger[d].y) <
-        this.curveTrigger.size.fill * this.curveTrigger.size.fill
+          (p.y - center.curveTrigger[d].y) * (p.y - center.curveTrigger[d].y) <
+          this.curveTrigger.size.fill * this.curveTrigger.size.fill
       ) {
         return Direction[d];
       }
     }
-  };
+  }
 
-  connect = (receiveD: Direction, connectTarget: CoreTypes.ConnectTarget) => {
+  connect(receiveD: Direction, connectTarget: CoreTypes.ConnectTarget) {
     if (this.curves[receiveD].shape) return;
 
     const senderCurve =
@@ -598,9 +598,9 @@ export default class Core {
         y: this.p.y - connectTarget.shape.p.y + this.h / 2 + thershold,
       };
     }
-  };
+  }
 
-  disConnect = (d: Direction, fromSender: boolean) => {
+  disConnect(d: Direction, fromSender: boolean) {
     if (fromSender) {
       const receiverShape = this.curves[d]?.sendTo?.shape,
         receiverDirection = this.curves[d]?.sendTo?.receiveD;
@@ -618,9 +618,9 @@ export default class Core {
         this.receiveFrom[d] = null;
       }
     }
-  };
+  }
 
-  getRedundancies = () => {
+  getRedundancies() {
     this.redundancies = [];
 
     let optionsHash: { [text: string]: boolean } = {};
@@ -634,18 +634,18 @@ export default class Core {
         this.redundancies.push(dataItem);
       }
     });
-  };
+  }
 
-  getIsReceiving = () => {
+  getIsReceiving() {
     return (
       !this.receiving.l &&
       !this.receiving.t &&
       !this.receiving.r &&
       !this.receiving.b
     );
-  };
+  }
 
-  removeCurve = (d: Direction) => {
+  removeCurve(d: Direction) {
     this.curves[d].shape = null;
 
     const sendShape = this.curves[d]?.sendTo?.shape,
@@ -655,7 +655,7 @@ export default class Core {
       sendShape.receiveFrom[recieveShapeDirection] = null;
       this.curves[d].sendTo = null;
     }
-  };
+  }
 
   move(p: Vec, dragP: Vec) {
     let xOffset = (p.x - dragP.x) / this.scale,
@@ -865,26 +865,29 @@ export default class Core {
         metrics = ctx.measureText(testLine),
         testWidth = metrics.width;
       if (testWidth > maxWidth) {
-        lines.push(line)
+        lines.push(line);
         line = word;
       } else {
         line = testLine;
       }
     }
 
-    lines.push(line)
+    lines.push(line);
 
     const offsetYs: number[] = [];
-    let offsetY = lines.length % 2 === 0 ? (lineHeight) * (1 / 2 + lines.length / 2 - 1) : (lineHeight) * (Math.floor(lines.length / 2))
+    let offsetY =
+      lines.length % 2 === 0
+        ? lineHeight * (1 / 2 + lines.length / 2 - 1)
+        : lineHeight * Math.floor(lines.length / 2);
 
-    lines.forEach(line => {
-      offsetYs.push(offsetY)
-      offsetY -= lineHeight
-    })
+    lines.forEach((line) => {
+      offsetYs.push(offsetY);
+      offsetY -= lineHeight;
+    });
 
     lines.forEach((line, lineI) => {
       ctx.fillText(line, x, y + offsetYs[lineI]);
-    })
+    });
   };
 
   draw(ctx: CanvasRenderingContext2D, sendable: boolean = true) {

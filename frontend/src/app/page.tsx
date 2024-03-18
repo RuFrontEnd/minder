@@ -1039,8 +1039,8 @@ export default function ProcessPage() {
 
   const onClickDecision = () => {
     let decision_new = new Desicion(
-      `data_${Date.now()}`,
-      200,
+      `decision_${Date.now()}`,
+      100,
       100,
       {
         x: -offset.x + window.innerWidth / 2,
