@@ -23,14 +23,14 @@ let useEffected = false,
     shape: null | Terminal | Process | Data | Desicion | Curve;
     direction: null | CommonTypes.Direction;
     target:
-    | null
-    | CoreTypes.PressingTarget
-    | CurveTypes.PressingTarget
-    | "selectArea_m"
-    | "selectArea_lt"
-    | "selectArea_rt"
-    | "selectArea_rb"
-    | "selectArea_lb";
+      | null
+      | CoreTypes.PressingTarget
+      | CurveTypes.PressingTarget
+      | "selectArea_m"
+      | "selectArea_lt"
+      | "selectArea_rt"
+      | "selectArea_rb"
+      | "selectArea_lb";
     dx: number; // distance between event px & pressing shape px
     dy: number; // distance between event py & pressing shape py
   } = null,
@@ -77,22 +77,22 @@ let useEffected = false,
   };
 
 const ds = [
-  CommonTypes.Direction.l,
-  CommonTypes.Direction.t,
-  CommonTypes.Direction.r,
-  CommonTypes.Direction.b,
-],
+    CommonTypes.Direction.l,
+    CommonTypes.Direction.t,
+    CommonTypes.Direction.r,
+    CommonTypes.Direction.b,
+  ],
   vs: (
     | CoreTypes.PressingTarget.lt
     | CoreTypes.PressingTarget.rt
     | CoreTypes.PressingTarget.rb
     | CoreTypes.PressingTarget.lb
   )[] = [
-      CoreTypes.PressingTarget.lt,
-      CoreTypes.PressingTarget.rt,
-      CoreTypes.PressingTarget.rb,
-      CoreTypes.PressingTarget.lb,
-    ];
+    CoreTypes.PressingTarget.lt,
+    CoreTypes.PressingTarget.rt,
+    CoreTypes.PressingTarget.rb,
+    CoreTypes.PressingTarget.lb,
+  ];
 
 const getFramePosition = (shape: Core) => {
   const frameOffset = 12;
@@ -106,8 +106,8 @@ export default function ProcessPage() {
   let { current: $canvas } = useRef<HTMLCanvasElement | null>(null);
 
   const [dataFrame, setDataFrame] = useState<
-    { p: CommonTypes.Vec } | undefined
-  >(undefined),
+      { p: CommonTypes.Vec } | undefined
+    >(undefined),
     [dbClickedShape, setDbClickedShape] = useState<
       Terminal | Data | Process | Desicion | null
     >(null),
@@ -199,9 +199,9 @@ export default function ProcessPage() {
     let $canvas = document.querySelector("canvas");
 
     const p = {
-      x: e.nativeEvent.offsetX,
-      y: e.nativeEvent.offsetY,
-    },
+        x: e.nativeEvent.offsetX,
+        y: e.nativeEvent.offsetY,
+      },
       pInSelectArea =
         p.x > select.start.x &&
         p.y > select.start.y &&
@@ -315,12 +315,12 @@ export default function ProcessPage() {
             dx:
               (p.x - dragP.x) * (1 / scale) -
               shape?.getEdge()[
-              theCheckShapeVertexesBoundry[0] as CommonTypes.Direction
+                theCheckShapeVertexesBoundry[0] as CommonTypes.Direction
               ],
             dy:
               (p.y - dragP.y) * (1 / scale) -
               shape?.getEdge()[
-              theCheckShapeVertexesBoundry[1] as CommonTypes.Direction
+                theCheckShapeVertexesBoundry[1] as CommonTypes.Direction
               ],
           };
         }
@@ -429,9 +429,9 @@ export default function ProcessPage() {
   const onMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     e.preventDefault();
     const p = {
-      x: e.nativeEvent.offsetX,
-      y: e.nativeEvent.offsetY,
-    },
+        x: e.nativeEvent.offsetX,
+        y: e.nativeEvent.offsetY,
+      },
       offsetP = {
         x: p.x - dragP.x,
         y: p.y - dragP.y,
@@ -582,7 +582,7 @@ export default function ProcessPage() {
             unitW = offsetP.x * ratioW;
 
           if (canResize.x) {
-            shape.w = shape.w + unitW;
+            shape.w = shape.w + unitW / scale;
 
             const dx = Math.abs(shape.p.x - select.start.x),
               ratioX = dx / theSelect.w,
@@ -590,7 +590,7 @@ export default function ProcessPage() {
 
             shape.p = {
               ...shape.p,
-              x: shape.p.x + unitX,
+              x: shape.p.x + unitX / scale,
             };
           }
 
@@ -598,7 +598,7 @@ export default function ProcessPage() {
             unitH = offsetP.y * ratioH;
 
           if (canResize.y) {
-            shape.h = shape.h - unitH;
+            shape.h = shape.h - unitH / scale;
 
             const dy = Math.abs(shape.p.y - select.end.y),
               ratioY = dy / theSelect.h,
@@ -606,7 +606,7 @@ export default function ProcessPage() {
 
             shape.p = {
               ...shape.p,
-              y: shape.p.y + unitY,
+              y: shape.p.y + unitY / scale,
             };
           }
         });
@@ -629,7 +629,7 @@ export default function ProcessPage() {
             unitW = offsetP.x * ratioW;
 
           if (canResize.x) {
-            shape.w = shape.w + unitW;
+            shape.w = shape.w + unitW / scale;
 
             const dx = Math.abs(shape.p.x - select.start.x),
               ratioX = dx / theSelect.w,
@@ -637,7 +637,7 @@ export default function ProcessPage() {
 
             shape.p = {
               ...shape.p,
-              x: shape.p.x + unitX,
+              x: shape.p.x + unitX / scale,
             };
           }
 
@@ -645,7 +645,7 @@ export default function ProcessPage() {
             unitH = offsetP.y * ratioH;
 
           if (canResize.y) {
-            shape.h = shape.h + unitH;
+            shape.h = shape.h + unitH / scale;
 
             const dy = Math.abs(shape.p.y - select.start.y),
               ratioY = dy / theSelect.h,
@@ -653,7 +653,7 @@ export default function ProcessPage() {
 
             shape.p = {
               ...shape.p,
-              y: shape.p.y + unitY,
+              y: shape.p.y + unitY / scale,
             };
           }
         });
@@ -676,7 +676,7 @@ export default function ProcessPage() {
             unitW = offsetP.x * ratioW;
 
           if (canResize.x) {
-            shape.w = shape.w - unitW;
+            shape.w = shape.w - unitW / scale;
 
             const dx = Math.abs(shape.p.x - select.end.x),
               ratioX = dx / theSelect.w,
@@ -684,7 +684,7 @@ export default function ProcessPage() {
 
             shape.p = {
               ...shape.p,
-              x: shape.p.x + unitX,
+              x: shape.p.x + unitX / scale,
             };
           }
 
@@ -692,7 +692,7 @@ export default function ProcessPage() {
             unitH = offsetP.y * ratioH;
 
           if (canResize.y) {
-            shape.h = shape.h + unitH;
+            shape.h = shape.h + unitH / scale;
 
             const dy = Math.abs(shape.p.y - select.start.y),
               ratioY = dy / theSelect.h,
@@ -700,7 +700,7 @@ export default function ProcessPage() {
 
             shape.p = {
               ...shape.p,
-              y: shape.p.y + unitY,
+              y: shape.p.y + unitY / scale,
             };
           }
         });
@@ -818,9 +818,9 @@ export default function ProcessPage() {
         ];
 
         const l =
-          selectAreaP.start.x < selectAreaP.end.x
-            ? selectAreaP.start.x
-            : selectAreaP.end.x,
+            selectAreaP.start.x < selectAreaP.end.x
+              ? selectAreaP.start.x
+              : selectAreaP.end.x,
           t =
             selectAreaP.start.y < selectAreaP.end.y
               ? selectAreaP.start.y
@@ -991,7 +991,10 @@ export default function ProcessPage() {
       `terminator_${Date.now()}`,
       200,
       100,
-      { x: -offset.x + window.innerWidth / 2, y: -offset.y + window.innerHeight / 2 },
+      {
+        x: -offset.x + window.innerWidth / 2,
+        y: -offset.y + window.innerHeight / 2,
+      },
       "orange"
     );
     terminal.offset = offset;
@@ -1005,7 +1008,10 @@ export default function ProcessPage() {
       `process_${Date.now()}`,
       200,
       100,
-      { x: -offset.x + window.innerWidth / 2, y: -offset.y + window.innerHeight / 2 },
+      {
+        x: -offset.x + window.innerWidth / 2,
+        y: -offset.y + window.innerHeight / 2,
+      },
       "red"
     );
     process_new.offset = offset;
@@ -1019,7 +1025,10 @@ export default function ProcessPage() {
       `data_${Date.now()}`,
       200,
       100,
-      { x: -offset.x + window.innerWidth / 2, y: -offset.y + window.innerHeight / 2 },
+      {
+        x: -offset.x + window.innerWidth / 2,
+        y: -offset.y + window.innerHeight / 2,
+      },
       "green"
     );
     data_new.scale = scale;
@@ -1033,7 +1042,10 @@ export default function ProcessPage() {
       `data_${Date.now()}`,
       200,
       100,
-      { x: -offset.x + window.innerWidth / 2, y: -offset.y + window.innerHeight / 2 },
+      {
+        x: -offset.x + window.innerWidth / 2,
+        y: -offset.y + window.innerHeight / 2,
+      },
       "#3498db"
     );
     decision_new.offset = offset;
@@ -1291,7 +1303,16 @@ export default function ProcessPage() {
       <header className="w-full fixed z-50 shadow-md text-gray-600 body-font bg-indigo-100">
         <div className="container mx-auto flex flex-wrap py-2 px-4 flex-col md:flex-row items-center">
           <a className="flex title-font font-medium items-center text-gray-900 mb-4 md:mb-0">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" className="w-10 h-10 text-white p-2 bg-indigo-500 rounded-full" viewBox="0 0 24 24">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              className="w-10 h-10 text-white p-2 bg-indigo-500 rounded-full"
+              viewBox="0 0 24 24"
+            >
               <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
             </svg>
             <span className="ml-3 text-xl">Minder</span>
@@ -1311,7 +1332,7 @@ export default function ProcessPage() {
       </header>
 
       <div>
-        <SidePanel visible w={'520px'} h={'calc(100vh - 56px)'} d={['b']}>
+        {/* <SidePanel visible w={'520px'} h={'calc(100vh - 56px)'} d={['b']}>
           <ul>
             <li className="flex cursor-pointer ps-2 pe-6 py-2">
               <svg className="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
@@ -1324,11 +1345,11 @@ export default function ProcessPage() {
                 <div className="flex">
                   <svg className="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m8 10 4 4 4-4" />
-                  </svg>
-                  {/* <svg className="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  </svg> */}
+        {/* <svg className="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m10 16 4-4-4-4" />
                   </svg> */}
-                  Process
+        {/* Process
                 </div>
               </div>
             </li>
@@ -1344,11 +1365,11 @@ export default function ProcessPage() {
                 <div className="flex">
                   <svg className="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m8 10 4 4 4-4" />
-                  </svg>
-                  {/* <svg className="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  </svg> */}
+        {/* <svg className="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m10 16 4-4-4-4" />
                   </svg> */}
-                  Process
+        {/* Process
                 </div>
               </div>
             </li>
@@ -1367,8 +1388,7 @@ export default function ProcessPage() {
               </div>
             </li>
           </ul>
-
-        </SidePanel >
+        </SidePanel > */}
         <canvas
           className={`${space ? "cursor-grab" : ""} overflow-hidden`}
           tabIndex={1}
@@ -1401,13 +1421,13 @@ export default function ProcessPage() {
             }}
           />
         )}
-      </div >
+      </div>
 
-      <ul style={{ width: 'calc(100vw - 520px)' }} className="fixed grid grid-cols-3 items-end p-4 bottom-0 right-0 shadow-md">
-        <li >
-
-
-        </li>
+      <ul
+        style={{ width: "calc(100vw - 520px)" }}
+        className="fixed grid grid-cols-3 items-end p-4 bottom-0 right-0 shadow-md"
+      >
+        <li></li>
         <li className="justify-self-center">
           <div className="flex">
             <div
@@ -1435,7 +1455,6 @@ export default function ProcessPage() {
               De
             </div>
           </div>
-
         </li>
         <li className="justify-self-end">
           <div className="flex items-center">
@@ -1458,9 +1477,7 @@ export default function ProcessPage() {
               +
             </div>
           </div>
-
         </li>
-
       </ul>
     </>
   );
