@@ -285,7 +285,7 @@ export default function ProcessPage() {
         };
       }
     } else {
-      // onMouseDown curve conditions
+      // when single select shape
       shapes.forEach((shape) => {
         if (!$canvas) return;
 
@@ -316,7 +316,6 @@ export default function ProcessPage() {
             theCurve.checkControlPointsBoundry(curveP)
           ) {
             if (theCurve.checkBoundry(curveP)) {
-              theCurve.selecting = true;
               pressing = {
                 parent: shape,
                 shape: theCurve,
@@ -327,10 +326,7 @@ export default function ProcessPage() {
               };
             }
 
-            if (
-              theCurve.selecting &&
-              theCurve.checkControlPointsBoundry(curveP)
-            ) {
+            if (theCurve.checkControlPointsBoundry(curveP)) {
               pressing = {
                 parent: shape,
                 shape: theCurve,
@@ -344,88 +340,80 @@ export default function ProcessPage() {
             theCurve.selecting = false;
           }
         }
-
-        if (
-          pressing?.shape?.id !== shape.id ||
-          (!(pressing?.shape instanceof Terminal) &&
-            !(pressing?.shape instanceof Process) &&
-            !(pressing?.shape instanceof Data) &&
-            !(pressing?.shape instanceof Desicion))
-        ) {
-          shape.selecting = false;
-        }
-
-        if (!pressing || !(pressing?.shape instanceof Curve)) {
-          for (const d of ds) {
-            const theCurve = shape.curves[d].shape;
-            if (!theCurve) continue;
-            theCurve.selecting = false;
-          }
-        }
       });
 
-      if (pressing?.shape instanceof Curve) return; // if has already selected curve, never select any shapes
+      // if has already selected curve, never select any other shapes
+      if (!(pressing?.shape instanceof Curve)) {
+        // onMouseDown shape conditions
+        shapes.forEach((shape) => {
+          if (!$canvas) return;
 
-      // onMouseDown shape conditions
-      shapes.forEach((shape) => {
-        if (!$canvas) return;
-
-        // onMouseDown shape
-        if (shape.checkBoundry(p) && select.shapes.length === 0) {
-          shape.selecting = true;
-          pressing = {
-            parent: null,
-            shape: shape,
-            target: CoreTypes.PressingTarget.m,
-            direction: null,
-            dx: (p.x - dragP.x) * (1 / scale) - shape?.getScreenP().x,
-            dy: (p.y - dragP.y) * (1 / scale) - shape?.getScreenP().y,
-          };
-        }
-
-        // onMouseDown corner point and create curve
-        const theCheckShapeVertexesBoundry = shape.checkVertexesBoundry(p);
-        if (theCheckShapeVertexesBoundry && select.shapes.length <= 1) {
-          shape.selecting = true;
-          pressing = {
-            parent: null,
-            shape: shape,
-            target: theCheckShapeVertexesBoundry,
-            direction: null,
-            dx:
-              (p.x - dragP.x) * (1 / scale) -
-              shape?.getEdge()[
-                theCheckShapeVertexesBoundry[0] as CommonTypes.Direction
-              ],
-            dy:
-              (p.y - dragP.y) * (1 / scale) -
-              shape?.getEdge()[
-                theCheckShapeVertexesBoundry[1] as CommonTypes.Direction
-              ],
-          };
-        }
-
-        if (
-          pressing?.shape?.id !== shape.id ||
-          (!(pressing?.shape instanceof Terminal) &&
-            !(pressing?.shape instanceof Process) &&
-            !(pressing?.shape instanceof Data) &&
-            !(pressing?.shape instanceof Desicion))
-        ) {
-          shape.selecting = false;
-        }
-
-        if (!pressing || !(pressing?.shape instanceof Curve)) {
-          for (const d of ds) {
-            const theCurve = shape.curves[d].shape;
-            if (!theCurve) continue;
-            theCurve.selecting = false;
+          // onMouseDown shape
+          if (shape.checkBoundry(p) && select.shapes.length === 0) {
+            pressing = {
+              parent: null,
+              shape: shape,
+              target: CoreTypes.PressingTarget.m,
+              direction: null,
+              dx: (p.x - dragP.x) * (1 / scale) - shape?.getScreenP().x,
+              dy: (p.y - dragP.y) * (1 / scale) - shape?.getScreenP().y,
+            };
           }
-        }
-      });
+
+          // onMouseDown corner point and create curve
+          const theCheckShapeVertexesBoundry = shape.checkVertexesBoundry(p);
+          if (theCheckShapeVertexesBoundry && select.shapes.length <= 1) {
+            pressing = {
+              parent: null,
+              shape: shape,
+              target: theCheckShapeVertexesBoundry,
+              direction: null,
+              dx:
+                (p.x - dragP.x) * (1 / scale) -
+                shape?.getEdge()[
+                  theCheckShapeVertexesBoundry[0] as CommonTypes.Direction
+                ],
+              dy:
+                (p.y - dragP.y) * (1 / scale) -
+                shape?.getEdge()[
+                  theCheckShapeVertexesBoundry[1] as CommonTypes.Direction
+                ],
+            };
+          }
+        });
+      }
     }
 
-    if (!pressing) {
+    // close unselected shapes or curves
+    shapes.forEach((shape) => {
+      if (pressing?.shape instanceof Curve) {
+        // click curve
+        shape.selecting = false;
+
+        for (const d of ds) {
+          const theCurve = shape.curves[d].shape;
+          if (theCurve && theCurve?.id !== pressing?.shape?.id) {
+            theCurve.selecting = false;
+          }
+        }
+      } else {
+        // click shape or blank area 
+        for (const d of ds) {
+          const theCurve = shape.curves[d].shape;
+          if (theCurve) {
+            theCurve.selecting = false;
+          }
+        }
+
+        if (shape.id !== pressing?.shape?.id) {
+          shape.selecting = false;
+        }
+      }
+    });
+
+    if (pressing?.shape) {
+      pressing.shape.selecting = true;
+    } else {
       if (select.shapes.length > 0 && isPInMultiSelectArea) return;
       selectAreaP = {
         start: p,
