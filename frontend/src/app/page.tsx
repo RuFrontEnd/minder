@@ -234,195 +234,195 @@ export default function ProcessPage() {
         pInSelectArea_rb ||
         pInSelectArea_lb;
 
-    if (select.shapes.length > 1) {
-      // when multi select shapes
-      let _target:
-        | null
-        | "selectArea_m"
-        | "selectArea_lt"
-        | "selectArea_rt"
-        | "selectArea_rb"
-        | "selectArea_lb" = null;
-
-      shapes.forEach((shape) => {
-        if (!$canvas) return;
-
-        if (shape.checkBoundry(p)) {
-          _target = "selectArea_m";
-        }
-      });
-
-      if (pInSelectArea_lt) {
-        _target = "selectArea_lt";
-      } else if (pInSelectArea_rt) {
-        _target = "selectArea_rt";
-      } else if (pInSelectArea_rb) {
-        _target = "selectArea_rb";
-      } else if (pInSelectArea_lb) {
-        _target = "selectArea_lb";
-      }
-
-      if (_target) {
-        pressing = {
-          parent: null,
-          shape: null,
-          target: _target,
-          direction: null,
-          dx: 0,
-          dy: 0,
-        };
-      } else {
-        select = {
-          start: {
-            x: -1,
-            y: -1,
-          },
-          end: {
-            x: -1,
-            y: -1,
-          },
-          shapes: [],
-        };
-      }
+    if (space) {
+      dragP = p;
     } else {
-      // when single select shape
-      shapes.forEach((shape) => {
-        if (!$canvas) return;
+      if (select.shapes.length > 1) {
+        // when multi select shapes
+        let _target:
+          | null
+          | "selectArea_m"
+          | "selectArea_lt"
+          | "selectArea_rt"
+          | "selectArea_rb"
+          | "selectArea_lb" = null;
 
-        // onMouseDown curve trigger point and create curve
-        const theCheckCurveTriggerBoundry = shape.checkCurveTriggerBoundry(p);
-        if (theCheckCurveTriggerBoundry) {
-          shape.selecting = false;
-
-          if (!shape.curves[theCheckCurveTriggerBoundry].shape) {
-            shape.createCurve(
-              `curve_${Date.now()}`,
-              CommonTypes.Direction[theCheckCurveTriggerBoundry]
-            );
-          }
-        }
-
-        for (const d of ds) {
-          const theCurve = shape.curves[d].shape;
-
-          const curveP = {
-            x: p.x - shape?.getScreenP().x,
-            y: p.y - shape?.getScreenP().y,
-          };
-
-          if (!theCurve) continue;
-          if (
-            theCurve.checkBoundry(curveP) ||
-            theCurve.checkControlPointsBoundry(curveP)
-          ) {
-            if (theCurve.checkBoundry(curveP)) {
-              pressing = {
-                parent: shape,
-                shape: theCurve,
-                target: null,
-                direction: d,
-                dx: 0,
-                dy: 0,
-              };
-            }
-
-            if (theCurve.checkControlPointsBoundry(curveP)) {
-              pressing = {
-                parent: shape,
-                shape: theCurve,
-                target: theCurve.checkControlPointsBoundry(curveP),
-                direction: d,
-                dx: 0,
-                dy: 0,
-              };
-            }
-          } else {
-            theCurve.selecting = false;
-          }
-        }
-      });
-
-      // if has already selected curve, never select any other shapes
-      if (!(pressing?.shape instanceof Curve)) {
-        // onMouseDown shape conditions
         shapes.forEach((shape) => {
           if (!$canvas) return;
 
-          // onMouseDown shape
-          if (shape.checkBoundry(p) && select.shapes.length === 0) {
-            pressing = {
-              parent: null,
-              shape: shape,
-              target: CoreTypes.PressingTarget.m,
-              direction: null,
-              dx: (p.x - dragP.x) * (1 / scale) - shape?.getScreenP().x,
-              dy: (p.y - dragP.y) * (1 / scale) - shape?.getScreenP().y,
-            };
-          }
-
-          // onMouseDown corner point and create curve
-          const theCheckShapeVertexesBoundry = shape.checkVertexesBoundry(p);
-          if (theCheckShapeVertexesBoundry && select.shapes.length <= 1) {
-            pressing = {
-              parent: null,
-              shape: shape,
-              target: theCheckShapeVertexesBoundry,
-              direction: null,
-              dx:
-                (p.x - dragP.x) * (1 / scale) -
-                shape?.getEdge()[
-                  theCheckShapeVertexesBoundry[0] as CommonTypes.Direction
-                ],
-              dy:
-                (p.y - dragP.y) * (1 / scale) -
-                shape?.getEdge()[
-                  theCheckShapeVertexesBoundry[1] as CommonTypes.Direction
-                ],
-            };
+          if (shape.checkBoundry(p)) {
+            _target = "selectArea_m";
           }
         });
-      }
-    }
 
-    // close unselected shapes or curves
-    shapes.forEach((shape) => {
-      if (pressing?.shape instanceof Curve) {
-        // click curve
-        shape.selecting = false;
+        if (pInSelectArea_lt) {
+          _target = "selectArea_lt";
+        } else if (pInSelectArea_rt) {
+          _target = "selectArea_rt";
+        } else if (pInSelectArea_rb) {
+          _target = "selectArea_rb";
+        } else if (pInSelectArea_lb) {
+          _target = "selectArea_lb";
+        }
 
-        for (const d of ds) {
-          const theCurve = shape.curves[d].shape;
-          if (theCurve && theCurve?.id !== pressing?.shape?.id) {
-            theCurve.selecting = false;
-          }
+        if (_target) {
+          pressing = {
+            parent: null,
+            shape: null,
+            target: _target,
+            direction: null,
+            dx: 0,
+            dy: 0,
+          };
+        } else {
+          select = {
+            start: {
+              x: -1,
+              y: -1,
+            },
+            end: {
+              x: -1,
+              y: -1,
+            },
+            shapes: [],
+          };
         }
       } else {
-        // click shape or blank area
-        for (const d of ds) {
-          const theCurve = shape.curves[d].shape;
-          if (theCurve) {
-            theCurve.selecting = false;
-          }
-        }
+        // when single select shape
+        shapes.forEach((shape) => {
+          if (!$canvas) return;
 
-        if (shape.id !== pressing?.shape?.id) {
-          shape.selecting = false;
+          // onMouseDown curve trigger point and create curve
+          const theCheckCurveTriggerBoundry = shape.checkCurveTriggerBoundry(p);
+          if (theCheckCurveTriggerBoundry) {
+            shape.selecting = false;
+
+            if (!shape.curves[theCheckCurveTriggerBoundry].shape) {
+              shape.createCurve(
+                `curve_${Date.now()}`,
+                CommonTypes.Direction[theCheckCurveTriggerBoundry]
+              );
+            }
+          }
+
+          for (const d of ds) {
+            const theCurve = shape.curves[d].shape;
+
+            const curveP = {
+              x: p.x - shape?.getScreenP().x,
+              y: p.y - shape?.getScreenP().y,
+            };
+
+            if (!theCurve) continue;
+            if (
+              theCurve.checkBoundry(curveP) ||
+              theCurve.checkControlPointsBoundry(curveP)
+            ) {
+              if (theCurve.checkBoundry(curveP)) {
+                pressing = {
+                  parent: shape,
+                  shape: theCurve,
+                  target: null,
+                  direction: d,
+                  dx: 0,
+                  dy: 0,
+                };
+              }
+
+              if (theCurve.checkControlPointsBoundry(curveP)) {
+                pressing = {
+                  parent: shape,
+                  shape: theCurve,
+                  target: theCurve.checkControlPointsBoundry(curveP),
+                  direction: d,
+                  dx: 0,
+                  dy: 0,
+                };
+              }
+            } else {
+              theCurve.selecting = false;
+            }
+          }
+        });
+
+        // if has already selected curve, never select any other shapes
+        if (!(pressing?.shape instanceof Curve)) {
+          // onMouseDown shape conditions
+          shapes.forEach((shape) => {
+            if (!$canvas) return;
+
+            // onMouseDown shape
+            if (shape.checkBoundry(p) && select.shapes.length === 0) {
+              pressing = {
+                parent: null,
+                shape: shape,
+                target: CoreTypes.PressingTarget.m,
+                direction: null,
+                dx: (p.x - dragP.x) * (1 / scale) - shape?.getScreenP().x,
+                dy: (p.y - dragP.y) * (1 / scale) - shape?.getScreenP().y,
+              };
+            }
+
+            // onMouseDown corner point and create curve
+            const theCheckShapeVertexesBoundry = shape.checkVertexesBoundry(p);
+            if (theCheckShapeVertexesBoundry && select.shapes.length <= 1) {
+              pressing = {
+                parent: null,
+                shape: shape,
+                target: theCheckShapeVertexesBoundry,
+                direction: null,
+                dx:
+                  (p.x - dragP.x) * (1 / scale) -
+                  shape?.getEdge()[
+                    theCheckShapeVertexesBoundry[0] as CommonTypes.Direction
+                  ],
+                dy:
+                  (p.y - dragP.y) * (1 / scale) -
+                  shape?.getEdge()[
+                    theCheckShapeVertexesBoundry[1] as CommonTypes.Direction
+                  ],
+              };
+            }
+          });
         }
       }
-    });
 
-    if (pressing?.shape) {
-      pressing.shape.selecting = true;
-    } else {
-      if (select.shapes.length > 0 && isPInMultiSelectArea) return;
-      selectAreaP = {
-        start: p,
-        end: p,
-      };
-    }
+      // close unselected shapes or curves
+      shapes.forEach((shape) => {
+        if (pressing?.shape instanceof Curve) {
+          // click curve
+          shape.selecting = false;
 
-    if (space) {
-      dragP = p;
+          for (const d of ds) {
+            const theCurve = shape.curves[d].shape;
+            if (theCurve && theCurve?.id !== pressing?.shape?.id) {
+              theCurve.selecting = false;
+            }
+          }
+        } else {
+          // click shape or blank area
+          for (const d of ds) {
+            const theCurve = shape.curves[d].shape;
+            if (theCurve) {
+              theCurve.selecting = false;
+            }
+          }
+
+          if (shape.id !== pressing?.shape?.id) {
+            shape.selecting = false;
+          }
+        }
+      });
+
+      if (pressing?.shape) {
+        pressing.shape.selecting = true;
+      } else {
+        if (select.shapes.length > 0 && isPInMultiSelectArea) return;
+        selectAreaP = {
+          start: p,
+          end: p,
+        };
+      }
     }
   };
 
@@ -508,209 +508,216 @@ export default function ProcessPage() {
         };
         pressing.shape.moveHandler(pressing.target, curveP);
       }
-    } else {
+    } else if (select.shapes.length > 0) {
       // multi select
-      const theSelect = {
-        w: Math.abs(select.end.x - select.start.x),
-        h: Math.abs(select.end.y - select.start.y),
-      };
-
-      if (pressing?.target === "selectArea_m") {
-        select.shapes.forEach((shape) => {
-          shape.move(p, dragP);
-        });
-
+      if (space && leftMouseBtn) {
         select.start.x += offsetP.x;
         select.start.y += offsetP.y;
         select.end.x += offsetP.x;
         select.end.y += offsetP.y;
-      } else if (pressing?.target === "selectArea_lt") {
-        const canResize = {
-          x: theSelect.w - offsetP.x > 0 || offsetP.x < 0,
-          y: theSelect.h - offsetP.y > 0 || offsetP.y < 0,
+      } else {
+        const theSelect = {
+          w: Math.abs(select.end.x - select.start.x),
+          h: Math.abs(select.end.y - select.start.y),
         };
 
-        select.shapes.forEach((shape) => {
-          const ratioW = shape.getScaleSize().w / theSelect.w,
-            unitW = offsetP.x * ratioW;
+        if (pressing?.target === "selectArea_m") {
+          select.shapes.forEach((shape) => {
+            shape.move(p, dragP);
+          });
 
-          if (canResize.x) {
-            shape.w = shape.w - unitW / scale;
-
-            const dx = Math.abs(shape.getScreenP().x - select.end.x),
-              ratioX = dx / theSelect.w,
-              unitX = offsetP.x * ratioX;
-
-            shape.p = {
-              ...shape.p,
-              x: shape.p.x + unitX / scale,
-            };
-          }
-
-          const ratioH = shape.getScaleSize().h / theSelect.h,
-            unitH = offsetP.y * ratioH;
-
-          if (canResize.y) {
-            shape.h = shape.h - unitH / scale;
-
-            const dy = Math.abs(shape.getScreenP().y - select.end.y),
-              ratioY = dy / theSelect.h,
-              unitY = offsetP.y * ratioY;
-
-            shape.p = {
-              ...shape.p,
-              y: shape.p.y + unitY / scale,
-            };
-          }
-        });
-
-        if (canResize.x) {
           select.start.x += offsetP.x;
-        }
-
-        if (canResize.y) {
           select.start.y += offsetP.y;
-        }
-      } else if (pressing?.target === "selectArea_rt") {
-        const canResize = {
-          x: theSelect.w + offsetP.x > 0 || offsetP.x > 0,
-          y: theSelect.h - offsetP.y > 0 || offsetP.y < 0,
-        };
-
-        select.shapes.forEach((shape) => {
-          const ratioW = shape.getScaleSize().w / theSelect.w,
-            unitW = offsetP.x * ratioW;
-
-          if (canResize.x) {
-            shape.w = shape.w + unitW / scale;
-
-            const dx = Math.abs(shape.getScreenP().x - select.start.x),
-              ratioX = dx / theSelect.w,
-              unitX = offsetP.x * ratioX;
-
-            shape.p = {
-              ...shape.p,
-              x: shape.p.x + unitX / scale,
-            };
-          }
-
-          const ratioH = shape.h / theSelect.h,
-            unitH = offsetP.y * ratioH;
-
-          if (canResize.y) {
-            shape.h = shape.getScaleSize().h - unitH / scale;
-
-            const dy = Math.abs(shape.getScreenP().y - select.end.y),
-              ratioY = dy / theSelect.h,
-              unitY = offsetP.y * ratioY;
-
-            shape.p = {
-              ...shape.p,
-              y: shape.p.y + unitY / scale,
-            };
-          }
-        });
-
-        if (canResize.x) {
           select.end.x += offsetP.x;
-        }
+          select.end.y += offsetP.y;
+        } else if (pressing?.target === "selectArea_lt") {
+          const canResize = {
+            x: theSelect.w - offsetP.x > 0 || offsetP.x < 0,
+            y: theSelect.h - offsetP.y > 0 || offsetP.y < 0,
+          };
 
-        if (canResize.y) {
-          select.start.y += offsetP.y;
-        }
-      } else if (pressing?.target === "selectArea_rb") {
-        const canResize = {
-          x: theSelect.w + offsetP.x > 0 || offsetP.x > 0,
-          y: theSelect.h + offsetP.y > 0 || offsetP.y > 0,
-        };
+          select.shapes.forEach((shape) => {
+            const ratioW = shape.getScaleSize().w / theSelect.w,
+              unitW = offsetP.x * ratioW;
 
-        select.shapes.forEach((shape) => {
-          const ratioW = shape.getScaleSize().w / theSelect.w,
-            unitW = offsetP.x * ratioW;
+            if (canResize.x) {
+              shape.w = shape.w - unitW / scale;
+
+              const dx = Math.abs(shape.getScreenP().x - select.end.x),
+                ratioX = dx / theSelect.w,
+                unitX = offsetP.x * ratioX;
+
+              shape.p = {
+                ...shape.p,
+                x: shape.p.x + unitX / scale,
+              };
+            }
+
+            const ratioH = shape.getScaleSize().h / theSelect.h,
+              unitH = offsetP.y * ratioH;
+
+            if (canResize.y) {
+              shape.h = shape.h - unitH / scale;
+
+              const dy = Math.abs(shape.getScreenP().y - select.end.y),
+                ratioY = dy / theSelect.h,
+                unitY = offsetP.y * ratioY;
+
+              shape.p = {
+                ...shape.p,
+                y: shape.p.y + unitY / scale,
+              };
+            }
+          });
 
           if (canResize.x) {
-            shape.w = shape.w + unitW / scale;
-
-            const dx = Math.abs(shape.getScreenP().x - select.start.x),
-              ratioX = dx / theSelect.w,
-              unitX = offsetP.x * ratioX;
-
-            shape.p = {
-              ...shape.p,
-              x: shape.p.x + unitX / scale,
-            };
+            select.start.x += offsetP.x;
           }
-
-          const ratioH = shape.getScaleSize().h / theSelect.h,
-            unitH = offsetP.y * ratioH;
 
           if (canResize.y) {
-            shape.h = shape.h + unitH / scale;
-
-            const dy = Math.abs(shape.getScreenP().y - select.start.y),
-              ratioY = dy / theSelect.h,
-              unitY = offsetP.y * ratioY;
-
-            shape.p = {
-              ...shape.p,
-              y: shape.p.y + unitY / scale,
-            };
+            select.start.y += offsetP.y;
           }
-        });
+        } else if (pressing?.target === "selectArea_rt") {
+          const canResize = {
+            x: theSelect.w + offsetP.x > 0 || offsetP.x > 0,
+            y: theSelect.h - offsetP.y > 0 || offsetP.y < 0,
+          };
 
-        if (canResize.x) {
-          select.end.x += offsetP.x;
-        }
+          select.shapes.forEach((shape) => {
+            const ratioW = shape.getScaleSize().w / theSelect.w,
+              unitW = offsetP.x * ratioW;
 
-        if (canResize.y) {
-          select.end.y += offsetP.y;
-        }
-      } else if (pressing?.target === "selectArea_lb") {
-        const canResize = {
-          x: theSelect.w - offsetP.x > 0 || offsetP.x < 0,
-          y: theSelect.h + offsetP.y > 0 || offsetP.y > 0,
-        };
+            if (canResize.x) {
+              shape.w = shape.w + unitW / scale;
 
-        select.shapes.forEach((shape) => {
-          const ratioW = shape.getScaleSize().w / theSelect.w,
-            unitW = offsetP.x * ratioW;
+              const dx = Math.abs(shape.getScreenP().x - select.start.x),
+                ratioX = dx / theSelect.w,
+                unitX = offsetP.x * ratioX;
+
+              shape.p = {
+                ...shape.p,
+                x: shape.p.x + unitX / scale,
+              };
+            }
+
+            const ratioH = shape.h / theSelect.h,
+              unitH = offsetP.y * ratioH;
+
+            if (canResize.y) {
+              shape.h = shape.getScaleSize().h - unitH / scale;
+
+              const dy = Math.abs(shape.getScreenP().y - select.end.y),
+                ratioY = dy / theSelect.h,
+                unitY = offsetP.y * ratioY;
+
+              shape.p = {
+                ...shape.p,
+                y: shape.p.y + unitY / scale,
+              };
+            }
+          });
 
           if (canResize.x) {
-            shape.w = shape.w - unitW / scale;
-
-            const dx = Math.abs(shape.getScreenP().x - select.end.x),
-              ratioX = dx / theSelect.w,
-              unitX = offsetP.x * ratioX;
-
-            shape.p = {
-              ...shape.p,
-              x: shape.p.x + unitX / scale,
-            };
+            select.end.x += offsetP.x;
           }
-
-          const ratioH = shape.getScaleSize().h / theSelect.h,
-            unitH = offsetP.y * ratioH;
 
           if (canResize.y) {
-            shape.h = shape.h + unitH / scale;
-
-            const dy = Math.abs(shape.getScreenP().y - select.start.y),
-              ratioY = dy / theSelect.h,
-              unitY = offsetP.y * ratioY;
-
-            shape.p = {
-              ...shape.p,
-              y: shape.p.y + unitY / scale,
-            };
+            select.start.y += offsetP.y;
           }
-        });
+        } else if (pressing?.target === "selectArea_rb") {
+          const canResize = {
+            x: theSelect.w + offsetP.x > 0 || offsetP.x > 0,
+            y: theSelect.h + offsetP.y > 0 || offsetP.y > 0,
+          };
 
-        if (canResize.x) {
-          select.start.x += offsetP.x;
-        }
+          select.shapes.forEach((shape) => {
+            const ratioW = shape.getScaleSize().w / theSelect.w,
+              unitW = offsetP.x * ratioW;
 
-        if (canResize.y) {
-          select.end.y += offsetP.y;
+            if (canResize.x) {
+              shape.w = shape.w + unitW / scale;
+
+              const dx = Math.abs(shape.getScreenP().x - select.start.x),
+                ratioX = dx / theSelect.w,
+                unitX = offsetP.x * ratioX;
+
+              shape.p = {
+                ...shape.p,
+                x: shape.p.x + unitX / scale,
+              };
+            }
+
+            const ratioH = shape.getScaleSize().h / theSelect.h,
+              unitH = offsetP.y * ratioH;
+
+            if (canResize.y) {
+              shape.h = shape.h + unitH / scale;
+
+              const dy = Math.abs(shape.getScreenP().y - select.start.y),
+                ratioY = dy / theSelect.h,
+                unitY = offsetP.y * ratioY;
+
+              shape.p = {
+                ...shape.p,
+                y: shape.p.y + unitY / scale,
+              };
+            }
+          });
+
+          if (canResize.x) {
+            select.end.x += offsetP.x;
+          }
+
+          if (canResize.y) {
+            select.end.y += offsetP.y;
+          }
+        } else if (pressing?.target === "selectArea_lb") {
+          const canResize = {
+            x: theSelect.w - offsetP.x > 0 || offsetP.x < 0,
+            y: theSelect.h + offsetP.y > 0 || offsetP.y > 0,
+          };
+
+          select.shapes.forEach((shape) => {
+            const ratioW = shape.getScaleSize().w / theSelect.w,
+              unitW = offsetP.x * ratioW;
+
+            if (canResize.x) {
+              shape.w = shape.w - unitW / scale;
+
+              const dx = Math.abs(shape.getScreenP().x - select.end.x),
+                ratioX = dx / theSelect.w,
+                unitX = offsetP.x * ratioX;
+
+              shape.p = {
+                ...shape.p,
+                x: shape.p.x + unitX / scale,
+              };
+            }
+
+            const ratioH = shape.getScaleSize().h / theSelect.h,
+              unitH = offsetP.y * ratioH;
+
+            if (canResize.y) {
+              shape.h = shape.h + unitH / scale;
+
+              const dy = Math.abs(shape.getScreenP().y - select.start.y),
+                ratioY = dy / theSelect.h,
+                unitY = offsetP.y * ratioY;
+
+              shape.p = {
+                ...shape.p,
+                y: shape.p.y + unitY / scale,
+              };
+            }
+          });
+
+          if (canResize.x) {
+            select.start.x += offsetP.x;
+          }
+
+          if (canResize.y) {
+            select.end.y += offsetP.y;
+          }
         }
       }
     }
@@ -810,13 +817,6 @@ export default function ProcessPage() {
         if (!selectAreaP) return;
         const theEdge = shape.getEdge();
 
-        let vps = [
-          { x: theEdge.l, y: theEdge.t },
-          { x: theEdge.r, y: theEdge.t },
-          { x: theEdge.r, y: theEdge.b },
-          { x: theEdge.l, y: theEdge.b },
-        ];
-
         const l =
             selectAreaP.start.x < selectAreaP.end.x
               ? selectAreaP.start.x
@@ -834,11 +834,13 @@ export default function ProcessPage() {
               ? selectAreaP.start.y
               : selectAreaP.end.y;
 
-        for (const vp of vps) {
-          if (vp.x > l && vp.y > t && vp.x < r && vp.y < b) {
-            shapesInSelectArea.push(shape);
-            break;
-          }
+        const x1 = Math.max(theEdge.l, l),
+          y1 = Math.max(theEdge.t, t),
+          x2 = Math.min(theEdge.r, r),
+          y2 = Math.min(theEdge.b, b);
+
+        if (x2 > x1 && y2 > y1) {
+          shapesInSelectArea.push(shape);
         }
       });
 
