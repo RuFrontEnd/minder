@@ -481,18 +481,18 @@ export default function ProcessPage() {
           shapes.forEach((shape) => {
             const theEdge = shape.getEdge(),
               threshold = 20,
-              isReceiving =
+              isNearShape =
                 p.x >= theEdge.l - threshold &&
                 p.y >= theEdge.t - threshold &&
                 p.x <= theEdge.r + threshold &&
                 p.y <= theEdge.b + threshold;
 
-            shape.receiving = {
-              l: isReceiving,
-              t: isReceiving,
-              r: isReceiving,
-              b: isReceiving,
-            };
+            for (const d of ds) {
+              shape.receiving[d] =
+                isNearShape &&
+                !shape.curves[d]?.shape &&
+                !shape.receiveFrom[d]?.shape;
+            }
           });
         }
         if (

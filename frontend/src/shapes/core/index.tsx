@@ -558,7 +558,12 @@ export default class Core {
   }
 
   connect(receiveD: Direction, connectTarget: CoreTypes.ConnectTarget) {
-    if (this.curves[receiveD].shape) return;
+    if (
+      !this.receiving[receiveD] ||
+      this.receiveFrom[receiveD]?.shape ||
+      this.curves[receiveD]?.shape
+    )
+      return;
 
     const senderCurve =
       connectTarget.shape.curves[connectTarget.direction].shape;
@@ -598,6 +603,8 @@ export default class Core {
         y: this.p.y - connectTarget.shape.p.y + this.h / 2 + thershold,
       };
     }
+
+    console.log("this", this);
   }
 
   disConnect(d: Direction, fromSender: boolean) {
@@ -1045,7 +1052,7 @@ export default class Core {
       ctx.lineWidth = this.anchor.size.stroke;
 
       // left
-      if (this.receiving.l && !this.curves.l.shape) {
+      if (this.receiving.l) {
         ctx.beginPath();
         ctx.arc(
           -this.getScaleSize().w / 2,
@@ -1061,7 +1068,7 @@ export default class Core {
       }
 
       // top
-      if (this.receiving.t && !this.curves.t.shape) {
+      if (this.receiving.t) {
         ctx.beginPath();
         ctx.arc(
           0,
@@ -1077,7 +1084,7 @@ export default class Core {
       }
 
       // right
-      if (this.receiving.r && !this.curves.r.shape) {
+      if (this.receiving.r) {
         ctx.beginPath();
         ctx.arc(
           this.getScaleSize().w / 2,
@@ -1093,7 +1100,7 @@ export default class Core {
       }
 
       // bottom
-      if (this.receiving.b && !this.curves.b.shape) {
+      if (this.receiving.b) {
         ctx.beginPath();
         ctx.arc(
           0,
