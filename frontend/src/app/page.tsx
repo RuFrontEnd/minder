@@ -284,46 +284,10 @@ export default function ProcessPage() {
           shapes: [],
         };
       }
-    }
-
-    if (select.shapes.length <= 1) {
+    } else {
+      // onMouseDown curve conditions
       shapes.forEach((shape) => {
         if (!$canvas) return;
-
-        // onMouseDown shape
-        if (shape.checkBoundry(p) && select.shapes.length === 0) {
-          shape.selecting = true;
-          pressing = {
-            parent: null,
-            shape: shape,
-            target: CoreTypes.PressingTarget.m,
-            direction: null,
-            dx: (p.x - dragP.x) * (1 / scale) - shape?.getScreenP().x,
-            dy: (p.y - dragP.y) * (1 / scale) - shape?.getScreenP().y,
-          };
-        }
-
-        // onMouseDown corner point and create curve
-        const theCheckShapeVertexesBoundry = shape.checkVertexesBoundry(p);
-        if (theCheckShapeVertexesBoundry && select.shapes.length <= 1) {
-          shape.selecting = true;
-          pressing = {
-            parent: null,
-            shape: shape,
-            target: theCheckShapeVertexesBoundry,
-            direction: null,
-            dx:
-              (p.x - dragP.x) * (1 / scale) -
-              shape?.getEdge()[
-                theCheckShapeVertexesBoundry[0] as CommonTypes.Direction
-              ],
-            dy:
-              (p.y - dragP.y) * (1 / scale) -
-              shape?.getEdge()[
-                theCheckShapeVertexesBoundry[1] as CommonTypes.Direction
-              ],
-          };
-        }
 
         // onMouseDown curve trigger point and create curve
         const theCheckCurveTriggerBoundry = shape.checkCurveTriggerBoundry(p);
@@ -336,25 +300,8 @@ export default function ProcessPage() {
               CommonTypes.Direction[theCheckCurveTriggerBoundry]
             );
           }
-
-          const theCurve = shape.curves[theCheckCurveTriggerBoundry].shape;
-
-          if (theCurve) {
-            theCurve.selecting = true;
-          }
-
-          pressing = {
-            parent: null,
-            shape: shape,
-            target:
-              CoreTypes.PressingTarget[`c${theCheckCurveTriggerBoundry}p2`],
-            direction: null,
-            dx: 0,
-            dy: 0,
-          };
         }
 
-        // TOOD: select curve
         for (const d of ds) {
           const theCurve = shape.curves[d].shape;
 
@@ -391,6 +338,66 @@ export default function ProcessPage() {
               };
             }
           }
+        }
+
+        if (
+          pressing?.shape?.id !== shape.id ||
+          (!(pressing?.shape instanceof Terminal) &&
+            !(pressing?.shape instanceof Process) &&
+            !(pressing?.shape instanceof Data) &&
+            !(pressing?.shape instanceof Desicion))
+        ) {
+          shape.selecting = false;
+        }
+
+        if (!pressing || !(pressing?.shape instanceof Curve)) {
+          for (const d of ds) {
+            const theCurve = shape.curves[d].shape;
+            if (!theCurve) continue;
+            theCurve.selecting = false;
+          }
+        }
+      });
+
+      if (pressing?.shape instanceof Curve) return; // if has already selected curve, never select any shapes
+
+      // onMouseDown shape conditions
+      shapes.forEach((shape) => {
+        if (!$canvas) return;
+
+        // onMouseDown shape
+        if (shape.checkBoundry(p) && select.shapes.length === 0) {
+          shape.selecting = true;
+          pressing = {
+            parent: null,
+            shape: shape,
+            target: CoreTypes.PressingTarget.m,
+            direction: null,
+            dx: (p.x - dragP.x) * (1 / scale) - shape?.getScreenP().x,
+            dy: (p.y - dragP.y) * (1 / scale) - shape?.getScreenP().y,
+          };
+        }
+
+        // onMouseDown corner point and create curve
+        const theCheckShapeVertexesBoundry = shape.checkVertexesBoundry(p);
+        if (theCheckShapeVertexesBoundry && select.shapes.length <= 1) {
+          shape.selecting = true;
+          pressing = {
+            parent: null,
+            shape: shape,
+            target: theCheckShapeVertexesBoundry,
+            direction: null,
+            dx:
+              (p.x - dragP.x) * (1 / scale) -
+              shape?.getEdge()[
+                theCheckShapeVertexesBoundry[0] as CommonTypes.Direction
+              ],
+            dy:
+              (p.y - dragP.y) * (1 / scale) -
+              shape?.getEdge()[
+                theCheckShapeVertexesBoundry[1] as CommonTypes.Direction
+              ],
+          };
         }
 
         if (
