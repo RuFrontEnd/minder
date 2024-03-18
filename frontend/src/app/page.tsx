@@ -311,32 +311,37 @@ export default function ProcessPage() {
           };
 
           if (!theCurve) continue;
-          if (theCurve.checkBoundry(curveP)) {
-            theCurve.selecting = true;
-            pressing = {
-              parent: shape,
-              shape: theCurve,
-              target: null,
-              direction: d,
-              dx: 0,
-              dy: 0,
-            };
-          }
-
-          if (theCurve.selecting) {
-            const theCurveCheckControlPointsBoundry = theCurve.checkControlPointsBoundry(
-              curveP
-            );
-            if (theCurveCheckControlPointsBoundry) {
+          if (
+            theCurve.checkBoundry(curveP) ||
+            theCurve.checkControlPointsBoundry(curveP)
+          ) {
+            if (theCurve.checkBoundry(curveP)) {
+              theCurve.selecting = true;
               pressing = {
                 parent: shape,
                 shape: theCurve,
-                target: theCurveCheckControlPointsBoundry,
+                target: null,
                 direction: d,
                 dx: 0,
                 dy: 0,
               };
             }
+
+            if (
+              theCurve.selecting &&
+              theCurve.checkControlPointsBoundry(curveP)
+            ) {
+              pressing = {
+                parent: shape,
+                shape: theCurve,
+                target: theCurve.checkControlPointsBoundry(curveP),
+                direction: d,
+                dx: 0,
+                dy: 0,
+              };
+            }
+          } else {
+            theCurve.selecting = false;
           }
         }
 
