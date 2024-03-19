@@ -1430,6 +1430,7 @@ export default function ProcessPage() {
               };
 
               const Editor = (props: { className: string; shape: Core }) => {
+                console.log("props.shape", props.shape);
                 return (
                   <>
                     {(props.shape instanceof Process ||
@@ -1437,18 +1438,37 @@ export default function ProcessPage() {
                       props.shape instanceof Desicion) && (
                       <div className={props.className && props.className}>
                         {props.shape instanceof Data && (
-                          <div className={"flex"}>
-                            Data{" "}
-                            <div
+                          <div>
+                            <div>Data</div>
+                            {/* <div
                               className="w-6 h-6 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
                               onClick={onClickScalePlusIcon}
                             >
                               +
-                            </div>
+                            </div> */}
+                            <ul>
+                              {props.shape.data.map((dataItem) => (
+                                <li>{dataItem.text}</li>
+                              ))}
+                            </ul>
                           </div>
                         )}
-                        <div>Data Usage</div>
-                        <div>Redundancies</div>
+                        <div>
+                          <div>Data Usage</div>
+                          <ul>
+                            {props.shape.options.map((option) => (
+                              <li>{option.text}</li>
+                            ))}
+                          </ul>
+                        </div>
+                        <div>
+                          Redundancies
+                          <ul>
+                            {props.shape.redundancies.map((redundancy) => (
+                              <li>{redundancy.text}</li>
+                            ))}
+                          </ul>
+                        </div>
                       </div>
                     )}
                   </>
@@ -1468,7 +1488,28 @@ export default function ProcessPage() {
                         <li key={child.shape.id}>
                           <Accordion
                             className={"ps-2"}
-                            title={child.shape.title}
+                            title={
+                              <div className="flex">
+                                <p className="mr-1">{child.shape.title}</p>
+                                <svg
+                                  className="w-6 h-6 text-gray-800 dark:text-white"
+                                  aria-hidden="true"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="24"
+                                  height="24"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    stroke="currentColor"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="m14.304 4.844 2.852 2.852M7 7H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-4.5m2.409-9.91a2.017 2.017 0 0 1 0 2.853l-6.844 6.844L8 14l.713-3.565 6.844-6.844a2.015 2.015 0 0 1 2.852 0Z"
+                                  />
+                                </svg>
+                              </div>
+                            }
                             // open={group.head.open}
                             open={true}
                             // onClickArrow={}

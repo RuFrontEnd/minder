@@ -194,17 +194,17 @@ export default function DataFrame({
             <label className="leading-7 text-sm text-gray-600">Redundancies</label>
           </div>
           <ul className="flex flex-col">
-            {shape.redundancies.map((option) => (
+            {shape.redundancies.map((redundancy) => (
               <li className="mb-2">
                 <div className="grid grid-cols-[auto,1fr] gap-2">
                   <div className="col-span-1">
                     <span
                       className="bg-red-100 text-red-500 w-4 h-4 rounded-full inline-flex items-center justify-center"
                       onClick={() => {
-                        onClickCheckedBox(option.text);
+                        onClickCheckedBox(redundancy.text);
                       }}
                     >
-                      {selections[option.text] && (
+                      {selections[redundancy.text] && (
                         <svg
                           fill="none"
                           stroke="currentColor"
@@ -220,7 +220,7 @@ export default function DataFrame({
                     </span>
                   </div>
                   <div className="text-red-500 col-span-1 [overflow-wrap:anywhere]">
-                    <span>{option.text}</span>
+                    <span>{redundancy.text}</span>
                   </div>
                 </div>
               </li>
