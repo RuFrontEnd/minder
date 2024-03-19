@@ -12,7 +12,7 @@ export default function Accordion(props: AccordionTypes.Props) {
 
   return (
     <div className={`${className && className}`}>
-      <div className="flex">
+      <div className="flex mb-1">
         <svg
           className={`${
             open ? "rotate-0" : "rotate-160"

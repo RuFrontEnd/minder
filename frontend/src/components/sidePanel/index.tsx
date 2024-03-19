@@ -20,7 +20,7 @@ const SidePanel = (props: any) => {
         height: h,
       }}
       className={`${className && className
-        } fixed ${d[0] === 'b' ? 'bottom-0' : 'top-0'} ${d[1] === 'r' ? 'right-0' : 'left-0'} bg-white shadow-lg`}
+        } fixed ${d[0] === 'b' ? 'bottom-0' : 'top-0'} ${d[1] === 'r' ? 'right-0' : 'left-0'} p-4 bg-white shadow-lg`}
       variants={{
         open: {
           x: '0%'
@@ -36,7 +36,7 @@ const SidePanel = (props: any) => {
       <div className="relative">
         {children}
         <div
-          className="absolute top-[32px] right-[-32px] w-8 h-8 inline-flex items-center justify-center rounded-r-lg bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
+          className="absolute top-[32px] right-[-48px] w-8 h-8 inline-flex items-center justify-center rounded-r-lg bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
           onClick={onClickSwitch}
         >
           <motion.div

@@ -26,14 +26,14 @@ let useEffected = false,
     shape: null | Terminal | Process | Data | Desicion | Curve;
     direction: null | CommonTypes.Direction;
     target:
-      | null
-      | CoreTypes.PressingTarget
-      | CurveTypes.PressingTarget
-      | "selectArea_m"
-      | "selectArea_lt"
-      | "selectArea_rt"
-      | "selectArea_rb"
-      | "selectArea_lb";
+    | null
+    | CoreTypes.PressingTarget
+    | CurveTypes.PressingTarget
+    | "selectArea_m"
+    | "selectArea_lt"
+    | "selectArea_rt"
+    | "selectArea_rb"
+    | "selectArea_lb";
     dx: number; // distance between event px & pressing shape px
     dy: number; // distance between event py & pressing shape py
   } = null,
@@ -80,22 +80,22 @@ let useEffected = false,
   };
 
 const ds = [
-    CommonTypes.Direction.l,
-    CommonTypes.Direction.t,
-    CommonTypes.Direction.r,
-    CommonTypes.Direction.b,
-  ],
+  CommonTypes.Direction.l,
+  CommonTypes.Direction.t,
+  CommonTypes.Direction.r,
+  CommonTypes.Direction.b,
+],
   vs: (
     | CoreTypes.PressingTarget.lt
     | CoreTypes.PressingTarget.rt
     | CoreTypes.PressingTarget.rb
     | CoreTypes.PressingTarget.lb
   )[] = [
-    CoreTypes.PressingTarget.lt,
-    CoreTypes.PressingTarget.rt,
-    CoreTypes.PressingTarget.rb,
-    CoreTypes.PressingTarget.lb,
-  ];
+      CoreTypes.PressingTarget.lt,
+      CoreTypes.PressingTarget.rt,
+      CoreTypes.PressingTarget.rb,
+      CoreTypes.PressingTarget.lb,
+    ];
 
 const getFramePosition = (shape: Core) => {
   const frameOffset = 12;
@@ -109,8 +109,8 @@ export default function ProcessPage() {
   let { current: $canvas } = useRef<HTMLCanvasElement | null>(null);
 
   const [dataFrame, setDataFrame] = useState<
-      { p: CommonTypes.Vec } | undefined
-    >(undefined),
+    { p: CommonTypes.Vec } | undefined
+  >(undefined),
     [dbClickedShape, setDbClickedShape] = useState<
       Terminal | Data | Process | Desicion | null
     >(null),
@@ -229,9 +229,9 @@ export default function ProcessPage() {
     let $canvas = document.querySelector("canvas");
 
     const p = {
-        x: e.nativeEvent.offsetX,
-        y: e.nativeEvent.offsetY,
-      },
+      x: e.nativeEvent.offsetX,
+      y: e.nativeEvent.offsetY,
+    },
       pInSelectArea =
         p.x > select.start.x &&
         p.y > select.start.y &&
@@ -404,12 +404,12 @@ export default function ProcessPage() {
                 dx:
                   (p.x - dragP.x) * (1 / scale) -
                   shape?.getEdge()[
-                    theCheckShapeVertexesBoundry[0] as CommonTypes.Direction
+                  theCheckShapeVertexesBoundry[0] as CommonTypes.Direction
                   ],
                 dy:
                   (p.y - dragP.y) * (1 / scale) -
                   shape?.getEdge()[
-                    theCheckShapeVertexesBoundry[1] as CommonTypes.Direction
+                  theCheckShapeVertexesBoundry[1] as CommonTypes.Direction
                   ],
               };
             }
@@ -459,9 +459,9 @@ export default function ProcessPage() {
   const onMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     e.preventDefault();
     const p = {
-        x: e.nativeEvent.offsetX,
-        y: e.nativeEvent.offsetY,
-      },
+      x: e.nativeEvent.offsetX,
+      y: e.nativeEvent.offsetY,
+    },
       offsetP = {
         x: p.x - dragP.x,
         y: p.y - dragP.y,
@@ -848,9 +848,9 @@ export default function ProcessPage() {
         const theEdge = shape.getEdge();
 
         const l =
-            selectAreaP.start.x < selectAreaP.end.x
-              ? selectAreaP.start.x
-              : selectAreaP.end.x,
+          selectAreaP.start.x < selectAreaP.end.x
+            ? selectAreaP.start.x
+            : selectAreaP.end.x,
           t =
             selectAreaP.start.y < selectAreaP.end.y
               ? selectAreaP.start.y
@@ -1322,23 +1322,23 @@ export default function ProcessPage() {
       data_new.scale = scale;
       data_new.title = "輸入資料_1";
 
-      let data_new_2 = new Data(
-        `data_2_${Date.now()}`,
+      let process = new Process(
+        `process_${Date.now()}`,
         200,
         100,
         {
           x: -offset.x + window.innerWidth / 2 + 200,
           y: -offset.y + window.innerHeight / 2 + 220,
         },
-        "green"
+        "red"
       );
-      data_new_2.offset = offset;
-      data_new_2.scale = scale;
-      data_new_2.title = "輸入資料_2";
+      process.offset = offset;
+      process.scale = scale;
+      process.title = "程序_1";
 
       shapes.push(terminal_new);
       shapes.push(data_new);
-      shapes.push(data_new_2);
+      shapes.push(process);
       // shapes.push(process_2);
       // shapes.push(data_1);
       // shapes.push(desicion_1);
@@ -1436,47 +1436,49 @@ export default function ProcessPage() {
                     {(props.shape instanceof Process ||
                       props.shape instanceof Data ||
                       props.shape instanceof Desicion) && (
-                      <div className={props.className && props.className}>
-                        {props.shape instanceof Data && (
-                          <div>
-                            <div>Data</div>
-                            {/* <div
+                        <div className={props.className && props.className}>
+                          {props.shape instanceof Data && (
+                            <div>
+                              <p className="mb-1">Data</p>
+                              {/* <div
                               className="w-6 h-6 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
                               onClick={onClickScalePlusIcon}
                             >
                               +
                             </div> */}
-                            <ul>
-                              {props.shape.data.map((dataItem) => (
-                                <li>{dataItem.text}</li>
+                              <ul className="ps-2">
+                                {props.shape.data.map((dataItem) => (
+                                  <li className="mb-1"> · {dataItem.text}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          <div>
+                            <p className="mb-1">Data Usage</p>
+                            <ul className="ps-2">
+                              {props.shape.options.map((option) => (
+                                <li className="mb-1"> · {option.text}</li>
                               ))}
                             </ul>
                           </div>
-                        )}
-                        <div>
-                          <div>Data Usage</div>
-                          <ul>
-                            {props.shape.options.map((option) => (
-                              <li>{option.text}</li>
-                            ))}
-                          </ul>
+                          <div>
+                            <div className="mb-1">
+                              Redundancies
+                            </div>
+                            <ul className="ps-2">
+                              {props.shape.redundancies.map((redundancy) => (
+                                <li className="mb-1"> · {redundancy.text}</li>
+                              ))}
+                            </ul>
+                          </div>
                         </div>
-                        <div>
-                          Redundancies
-                          <ul>
-                            {props.shape.redundancies.map((redundancy) => (
-                              <li>{redundancy.text}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      </div>
-                    )}
+                      )}
                   </>
                 );
               };
 
               return (
-                <li key={group.head.shape.id}>
+                <li key={group.head.shape.id} className="mb-1">
                   <Accordion
                     title={group.head.shape.title}
                     // open={group.head.open}
@@ -1512,14 +1514,14 @@ export default function ProcessPage() {
                             }
                             // open={group.head.open}
                             open={true}
-                            // onClickArrow={}
+                          // onClickArrow={}
                           >
                             <Editor className="ps-6" shape={child.shape} />
                           </Accordion>
                         </li>
                       ))}
                     </ul>
-                    <Editor className="ps-2" shape={group.head.shape} />
+                    <Editor className="ps-6" shape={group.head.shape} />
                   </Accordion>
                 </li>
               );
