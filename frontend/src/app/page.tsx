@@ -118,7 +118,9 @@ export default function ProcessPage() {
     [scale, setScale] = useState(1),
     [leftMouseBtn, setLeftMouseBtn] = useState(false),
     [isDataSidePanelOpen, setIsDataSidePanelOpen] = useState(true),
-    [groups, setGroups] = useState<PageTypes.Groups>([]);
+    [groups, setGroups] = useState<PageTypes.Groups>([]),
+    [procedures, setProcedures] = useState<any>({}),
+    [steps, setSteps] = useState<any>({})
 
   const checkData = () => {
     const goThroughShapeMapping: { [shapeId: string]: boolean } = {};
@@ -128,8 +130,6 @@ export default function ProcessPage() {
       goThroughShapeMapping[shape.id] = true;
     });
 
-    const _groups: PageTypes.Groups = [];
-
     shapes.forEach((shape) => {
       if (
         shape instanceof Terminal &&
@@ -138,34 +138,136 @@ export default function ProcessPage() {
         shape.receiveFrom.r === null &&
         shape.receiveFrom.b === null
       ) {
-        const _children: PageTypes.Children = [];
         // shape is Terminator
-        shape.onTraversal((goThroughShape, terminator) => {
-          if (goThroughShape.id === terminator.id) {
-            _groups.push({
-              head: { open: false, shape: terminator },
-              children: _children,
-            });
-          } else {
-            _children.push({ open: false, shape: goThroughShape });
-          }
-          delete goThroughShapeMapping[goThroughShape.id];
-        });
+        shape.onTraversal();
       }
     });
 
     // check all correspondants of shapes' between options and selectedData
     shapes.forEach((shape) => {
-      if (goThroughShapeMapping[shape.id]) {
-        _groups.push({
-          head: { open: false, shape: shape },
-          children: [],
-        });
-      }
       shape.getRedundancies();
     });
+  };
 
-    setGroups(_groups);
+
+  const checkGroups = () => {
+
+
+    const _procedures = cloneDeep(procedures),
+      _steps = cloneDeep(steps)
+
+
+    shapes.forEach((shape) => {
+      if (
+        shape instanceof Terminal &&
+        !shape.receiveFrom.l &&
+        !shape.receiveFrom.t &&
+        !shape.receiveFrom.r &&
+        !shape.receiveFrom.b
+      ) {
+        if (!_procedures[shape.id]) {
+          _procedures[shape.id] = {
+            shape: shape,
+            open: false,
+            steps: {}
+          }
+        }
+      } else {
+        _steps[shape.id] = {
+          shape: shape,
+          open: false,
+        }
+      }
+    })
+
+
+
+    shapes.forEach((shape) => {
+      if (
+        !(shape instanceof Terminal) ||
+        shape.receiveFrom.l ||
+        shape.receiveFrom.t ||
+        shape.receiveFrom.r ||
+        shape.receiveFrom.b
+      ) return
+
+      const head = shape,
+        queue: (Core)[] = [shape],
+        locks = { [shape.id]: { l: false, t: false, r: false, b: false } }; // prevent from graph cycle
+
+      while (queue.length !== 0) {
+        const shape = queue[0];
+
+        if (_steps[shape.id]) {
+          _procedures[head.id].steps[shape.id] = _steps[shape.id]
+          delete _steps[shape.id]
+        }
+
+
+        ds.forEach((d) => {
+          const theSendTo = shape.curves[d].sendTo;
+
+          if (!theSendTo) return;
+
+          const hasLock = locks[theSendTo.shape.id];
+
+          if (!hasLock) {
+            locks[theSendTo.shape.id] = {
+              l: false,
+              t: false,
+              r: false,
+              b: false,
+            };
+          }
+
+          const hasDirectLock = locks[theSendTo.shape.id][d];
+
+          if (!hasDirectLock) {
+            queue.push(theSendTo.shape);
+            locks[theSendTo.shape.id][d] = true;
+          }
+        });
+
+        queue.shift();
+      }
+
+      console.log('_procedures', _procedures)
+      console.log('_steps', _steps)
+    })
+
+
+
+    // shapes.forEach((shape) => {
+    //   shape.options = [];
+    // });
+
+    // const _groups: PageTypes.Groups = [];
+
+    // shapes.forEach((shape) => {
+    //   if (
+    //     shape instanceof Terminal &&
+    //     shape.receiveFrom.l === null &&
+    //     shape.receiveFrom.t === null &&
+    //     shape.receiveFrom.r === null &&
+    //     shape.receiveFrom.b === null
+    //   ) {
+    //     // shape is Terminator
+    //     shape.onTraversal();
+    //   }
+    // });
+
+    // check all correspondants of shapes' between options and selectedData
+    // shapes.forEach((shape) => {
+    //   if (goThroughShapeMapping[shape.id]) {
+    //     _groups.push({
+    //       head: { open: false, shape: shape },
+    //       children: [],
+    //     });
+    //   }
+    //   shape.getRedundancies();
+    // });
+
+    // setGroups(_groups);
   };
 
   const zoom = (
@@ -929,6 +1031,7 @@ export default function ProcessPage() {
     });
 
     checkData();
+    checkGroups()
 
     selectAreaP = null;
     pressing = null;
@@ -1000,9 +1103,11 @@ export default function ProcessPage() {
         }
         shapes = shapes.filter((shape) => shape.id !== removeShape?.id);
         checkData();
+        checkGroups()
       } else if (removeCurve) {
         removeCurve.shape.removeCurve(removeCurve.direction);
         checkData();
+        checkGroups()
       }
     }
 
