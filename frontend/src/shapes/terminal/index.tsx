@@ -28,23 +28,17 @@ export default class Terminal extends Core {
     this.title = title;
   };
 
-  onMouseUp(p: Vec, sender?: ConnectTarget) {
-    super.onMouseUp(p, sender, {
-      l: { x: -10, y: 0 },
-      t: { x: 0, y: -10 },
-      r: { x: 10, y: 0 },
-      b: { x: 0, y: 10 },
-    });
-  }
-
-  onTraversal() {
+  onTraversal(handleShape: (goThroughShape: Core, terminator: Terminal) => void) {
     // traversal all relational steps
-    const queue: (Core | Process | Data | Decision)[] = [this],
+    const queue: (Core)[] = [this],
       locks = { [this.id]: { l: false, t: false, r: false, b: false } }, // prevent from graph cycle
       ds = [Direction.l, Direction.t, Direction.r, Direction.b];
 
     while (queue.length !== 0) {
       const shape = queue[0];
+      if (handleShape) {
+        handleShape(shape, this)
+      }
 
       const newOptions: DataType = cloneDeep(shape.options);
 
@@ -55,15 +49,15 @@ export default class Terminal extends Core {
       }
 
       ds.forEach((d) => {
-        const connectTarget: ConnectTarget = shape.curves[d].sendTo;
+        const theSendTo = shape.curves[d].sendTo;
 
-        if (!connectTarget) return;
-        connectTarget.shape.options = newOptions;
+        if (!theSendTo) return;
+        theSendTo.shape.options = newOptions;
 
-        const hasLock = locks[connectTarget.shape.id];
+        const hasLock = locks[theSendTo.shape.id];
 
         if (!hasLock) {
-          locks[connectTarget.shape.id] = {
+          locks[theSendTo.shape.id] = {
             l: false,
             t: false,
             r: false,
@@ -71,11 +65,11 @@ export default class Terminal extends Core {
           };
         }
 
-        const hasDirectLock = locks[connectTarget.shape.id][d];
+        const hasDirectLock = locks[theSendTo.shape.id][d];
 
         if (!hasDirectLock) {
-          queue.push(connectTarget.shape);
-          locks[connectTarget.shape.id][d] = true;
+          queue.push(theSendTo.shape);
+          locks[theSendTo.shape.id][d] = true;
         }
       });
 
@@ -111,7 +105,7 @@ export default class Terminal extends Core {
       ctx.fillRect(
         -r,
         -this.getScaleSize().h / 2 + r,
-        this.w,
+        this.getScaleSize().w,
         this.getScaleSize().h - 2 * r
       );
     }
@@ -120,7 +114,10 @@ export default class Terminal extends Core {
 
     super.draw(
       ctx,
-      !this.curves.l.shape && !this.curves.t.shape && !this.curves.r.shape && !this.curves.b.shape
+      !this.curves.l.shape &&
+      !this.curves.t.shape &&
+      !this.curves.r.shape &&
+      !this.curves.b.shape
     );
   }
 }
