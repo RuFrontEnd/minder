@@ -1,11 +1,13 @@
 import Core from "@/shapes/core";
 
-type Child = Core
+type Node = { open: boolean; shape: Core };
 
-type Children = Child[]
+type Child = Node;
 
-type Group = { head: Core, children: Core[] }
+type Children = Child[];
 
-type Groups = Group[]
+type Group = { head: Node; children: Children };
+
+type Groups = Group[];
 
 export type { Child, Children, Group, Groups };

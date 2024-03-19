@@ -8,8 +8,9 @@ import Curve from "@/shapes/curve";
 import Desicion from "@/shapes/decision";
 import DataFrame from "@/components/dataFrame";
 import SidePanel from "@/components/sidePanel";
+import Accordion from "@/components/accordion";
 import { useState, useRef, useEffect, useCallback } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { cloneDeep } from "lodash";
 import * as CoreTypes from "@/types/shapes/core";
 import * as CurveTypes from "@/types/shapes/curve";
@@ -25,14 +26,14 @@ let useEffected = false,
     shape: null | Terminal | Process | Data | Desicion | Curve;
     direction: null | CommonTypes.Direction;
     target:
-    | null
-    | CoreTypes.PressingTarget
-    | CurveTypes.PressingTarget
-    | "selectArea_m"
-    | "selectArea_lt"
-    | "selectArea_rt"
-    | "selectArea_rb"
-    | "selectArea_lb";
+      | null
+      | CoreTypes.PressingTarget
+      | CurveTypes.PressingTarget
+      | "selectArea_m"
+      | "selectArea_lt"
+      | "selectArea_rt"
+      | "selectArea_rb"
+      | "selectArea_lb";
     dx: number; // distance between event px & pressing shape px
     dy: number; // distance between event py & pressing shape py
   } = null,
@@ -79,22 +80,22 @@ let useEffected = false,
   };
 
 const ds = [
-  CommonTypes.Direction.l,
-  CommonTypes.Direction.t,
-  CommonTypes.Direction.r,
-  CommonTypes.Direction.b,
-],
+    CommonTypes.Direction.l,
+    CommonTypes.Direction.t,
+    CommonTypes.Direction.r,
+    CommonTypes.Direction.b,
+  ],
   vs: (
     | CoreTypes.PressingTarget.lt
     | CoreTypes.PressingTarget.rt
     | CoreTypes.PressingTarget.rb
     | CoreTypes.PressingTarget.lb
   )[] = [
-      CoreTypes.PressingTarget.lt,
-      CoreTypes.PressingTarget.rt,
-      CoreTypes.PressingTarget.rb,
-      CoreTypes.PressingTarget.lb,
-    ];
+    CoreTypes.PressingTarget.lt,
+    CoreTypes.PressingTarget.rt,
+    CoreTypes.PressingTarget.rb,
+    CoreTypes.PressingTarget.lb,
+  ];
 
 const getFramePosition = (shape: Core) => {
   const frameOffset = 12;
@@ -108,8 +109,8 @@ export default function ProcessPage() {
   let { current: $canvas } = useRef<HTMLCanvasElement | null>(null);
 
   const [dataFrame, setDataFrame] = useState<
-    { p: CommonTypes.Vec } | undefined
-  >(undefined),
+      { p: CommonTypes.Vec } | undefined
+    >(undefined),
     [dbClickedShape, setDbClickedShape] = useState<
       Terminal | Data | Process | Desicion | null
     >(null),
@@ -117,17 +118,17 @@ export default function ProcessPage() {
     [scale, setScale] = useState(1),
     [leftMouseBtn, setLeftMouseBtn] = useState(false),
     [isDataSidePanelOpen, setIsDataSidePanelOpen] = useState(true),
-    [groups, setGroups] = useState<PageTypes.Groups>([])
+    [groups, setGroups] = useState<PageTypes.Groups>([]);
 
   const checkData = () => {
-    const goThroughShapeMapping: { [shapeId: string]: boolean } = {}
+    const goThroughShapeMapping: { [shapeId: string]: boolean } = {};
 
     shapes.forEach((shape) => {
       shape.options = [];
-      goThroughShapeMapping[shape.id] = true
+      goThroughShapeMapping[shape.id] = true;
     });
 
-    const _groups: PageTypes.Groups = []
+    const _groups: PageTypes.Groups = [];
 
     shapes.forEach((shape) => {
       if (
@@ -137,20 +138,19 @@ export default function ProcessPage() {
         shape.receiveFrom.r === null &&
         shape.receiveFrom.b === null
       ) {
-        const _children: PageTypes.Children = []
+        const _children: PageTypes.Children = [];
         // shape is Terminator
         shape.onTraversal((goThroughShape, terminator) => {
           if (goThroughShape.id === terminator.id) {
             _groups.push({
-              head: terminator,
-              children: _children
-            })
+              head: { open: false, shape: terminator },
+              children: _children,
+            });
           } else {
-            _children.push(goThroughShape)
+            _children.push({ open: false, shape: goThroughShape });
           }
-          delete goThroughShapeMapping[goThroughShape.id]
+          delete goThroughShapeMapping[goThroughShape.id];
         });
-
       }
     });
 
@@ -158,14 +158,14 @@ export default function ProcessPage() {
     shapes.forEach((shape) => {
       if (goThroughShapeMapping[shape.id]) {
         _groups.push({
-          head: shape,
-          children: []
-        })
+          head: { open: false, shape: shape },
+          children: [],
+        });
       }
       shape.getRedundancies();
     });
 
-    setGroups(_groups)
+    setGroups(_groups);
   };
 
   const zoom = (
@@ -229,9 +229,9 @@ export default function ProcessPage() {
     let $canvas = document.querySelector("canvas");
 
     const p = {
-      x: e.nativeEvent.offsetX,
-      y: e.nativeEvent.offsetY,
-    },
+        x: e.nativeEvent.offsetX,
+        y: e.nativeEvent.offsetY,
+      },
       pInSelectArea =
         p.x > select.start.x &&
         p.y > select.start.y &&
@@ -404,12 +404,12 @@ export default function ProcessPage() {
                 dx:
                   (p.x - dragP.x) * (1 / scale) -
                   shape?.getEdge()[
-                  theCheckShapeVertexesBoundry[0] as CommonTypes.Direction
+                    theCheckShapeVertexesBoundry[0] as CommonTypes.Direction
                   ],
                 dy:
                   (p.y - dragP.y) * (1 / scale) -
                   shape?.getEdge()[
-                  theCheckShapeVertexesBoundry[1] as CommonTypes.Direction
+                    theCheckShapeVertexesBoundry[1] as CommonTypes.Direction
                   ],
               };
             }
@@ -459,9 +459,9 @@ export default function ProcessPage() {
   const onMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     e.preventDefault();
     const p = {
-      x: e.nativeEvent.offsetX,
-      y: e.nativeEvent.offsetY,
-    },
+        x: e.nativeEvent.offsetX,
+        y: e.nativeEvent.offsetY,
+      },
       offsetP = {
         x: p.x - dragP.x,
         y: p.y - dragP.y,
@@ -848,9 +848,9 @@ export default function ProcessPage() {
         const theEdge = shape.getEdge();
 
         const l =
-          selectAreaP.start.x < selectAreaP.end.x
-            ? selectAreaP.start.x
-            : selectAreaP.end.x,
+            selectAreaP.start.x < selectAreaP.end.x
+              ? selectAreaP.start.x
+              : selectAreaP.end.x,
           t =
             selectAreaP.start.y < selectAreaP.end.y
               ? selectAreaP.start.y
@@ -1033,7 +1033,7 @@ export default function ProcessPage() {
     terminal.scale = scale;
 
     shapes.push(terminal);
-    checkData()
+    checkData();
   };
 
   const onClickProcess = () => {
@@ -1051,7 +1051,7 @@ export default function ProcessPage() {
     process_new.scale = scale;
 
     shapes.push(process_new);
-    checkData()
+    checkData();
   };
 
   const onClickData = () => {
@@ -1069,7 +1069,7 @@ export default function ProcessPage() {
     data_new.offset = offset;
 
     shapes.push(data_new);
-    checkData()
+    checkData();
   };
 
   const onClickDecision = () => {
@@ -1087,7 +1087,7 @@ export default function ProcessPage() {
     decision_new.scale = scale;
 
     shapes.push(decision_new);
-    checkData()
+    checkData();
   };
 
   const onConfirmDataFrame: DataFrameTypes.Props["onConfirm"] = (
@@ -1130,8 +1130,8 @@ export default function ProcessPage() {
   };
 
   const onClickDataSidePanelSwitch = () => {
-    setIsDataSidePanelOpen(open => !open)
-  }
+    setIsDataSidePanelOpen((open) => !open);
+  };
 
   const draw = useCallback(() => {
     if (!ctx) return;
@@ -1294,8 +1294,51 @@ export default function ProcessPage() {
       //   { x: 400, y: 200 }
       // );
 
-      // shapes.push(terminal);
-      // shapes.push(process);
+      let terminal_new = new Terminal(
+        `terminator_${Date.now()}`,
+        200,
+        100,
+        {
+          x: -offset.x + window.innerWidth / 2 + 300,
+          y: -offset.y + window.innerHeight / 2 - 200,
+        },
+        "orange"
+      );
+      terminal_new.offset = offset;
+      terminal_new.scale = scale;
+      terminal_new.title = "起點";
+
+      let data_new = new Data(
+        `data_${Date.now()}`,
+        200,
+        100,
+        {
+          x: -offset.x + window.innerWidth / 2 + 200,
+          y: -offset.y + window.innerHeight / 2,
+        },
+        "green"
+      );
+      data_new.offset = offset;
+      data_new.scale = scale;
+      data_new.title = "輸入資料_1";
+
+      let data_new_2 = new Data(
+        `data_2_${Date.now()}`,
+        200,
+        100,
+        {
+          x: -offset.x + window.innerWidth / 2 + 200,
+          y: -offset.y + window.innerHeight / 2 + 220,
+        },
+        "green"
+      );
+      data_new_2.offset = offset;
+      data_new_2.scale = scale;
+      data_new_2.title = "輸入資料_2";
+
+      shapes.push(terminal_new);
+      shapes.push(data_new);
+      shapes.push(data_new_2);
       // shapes.push(process_2);
       // shapes.push(data_1);
       // shapes.push(desicion_1);
@@ -1333,15 +1376,30 @@ export default function ProcessPage() {
   }, [dataFrame, dbClickedShape, space]);
 
   useEffect(() => {
-    console.log('groups', groups)
-  }, [groups])
+    console.log("groups", groups);
+  }, [groups]);
+
+  const [v, setV] = useState(false);
+
+  useEffect(() => {
+    console.log("v", v);
+  }, [v]);
 
   return (
     <>
       <header className="w-full fixed z-50 shadow-md text-gray-600 body-font bg-indigo-100">
         <div className="container mx-auto flex flex-wrap py-2 px-4 flex-col md:flex-row items-center">
           <a className="flex title-font font-medium items-center text-gray-900 mb-4 md:mb-0">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" className="w-10 h-10 text-white p-2 bg-indigo-500 rounded-full" viewBox="0 0 24 24">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              className="w-10 h-10 text-white p-2 bg-indigo-500 rounded-full"
+              viewBox="0 0 24 24"
+            >
               <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
             </svg>
             <span className="ml-3 text-xl">Minder</span>
@@ -1349,49 +1407,82 @@ export default function ProcessPage() {
           <nav className="md:ml-auto md:mr-auto flex flex-wrap items-center text-base justify-center">
             <a className="mr-5 hover:text-gray-900">Project_1</a>
           </nav>
-          <div
-            className="w-10 h-10 inline-flex items-center justify-center rounded-full bg-indigo-500 text-white flex-shrink-0 cursor-pointer"
-          >
+          <div className="w-10 h-10 inline-flex items-center justify-center rounded-full bg-indigo-500 text-white flex-shrink-0 cursor-pointer">
             L
           </div>
         </div>
       </header>
 
       <div>
-        <SidePanel open={isDataSidePanelOpen} w={'520px'} h={'calc(100vh - 56px)'} d={['b']} onClickSwitch={onClickDataSidePanelSwitch}>
+        <SidePanel
+          open={isDataSidePanelOpen}
+          w={"520px"}
+          h={"calc(100vh - 56px)"}
+          d={["b"]}
+          onClickSwitch={onClickDataSidePanelSwitch}
+        >
           <ul>
-            {groups.map(group => <>
-              <li className="flex cursor-pointer ps-2 pe-6 py-2">
-                <svg className="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m8 10 4 4 4-4" />
-                </svg>
-                {group.head.title}
-              </li>
-              {group.children.map(child => (
-                <>
-                  <li className="cursor-pointer ps-6 pe-6 py-2">
-                    <div className="flex flex-col">
-                      <div className="flex">
-                        <svg className="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m8 10 4 4 4-4" />
-                        </svg>
-                        {/* <svg className="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m10 16 4-4-4-4" />
-                  </svg> */}
-                        {child.title}
+            {groups.map((group, groupI) => {
+              const onClickHeadArrow = () => {
+                const _groups = cloneDeep(groups);
+                _groups[groupI].head.open = !_groups[groupI].head.open;
+                setGroups(_groups);
+              };
+
+              const Editor = (props: { className: string; shape: Core }) => {
+                return (
+                  <>
+                    {(props.shape instanceof Process ||
+                      props.shape instanceof Data ||
+                      props.shape instanceof Desicion) && (
+                      <div className={props.className && props.className}>
+                        {props.shape instanceof Data && (
+                          <div className={"flex"}>
+                            Data{" "}
+                            <div
+                              className="w-6 h-6 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
+                              onClick={onClickScalePlusIcon}
+                            >
+                              +
+                            </div>
+                          </div>
+                        )}
+                        <div>Data Usage</div>
+                        <div>Redundancies</div>
                       </div>
-                    </div>
-                  </li>
-                  <li className="ps-10 pe-6 py-2">
-                    <div className="grid grid-cols-3 gap-2">
-                      <div><input placeholder="prefix" type="text" id="hero-field" name="hero-field" className="w-full bg-gray-100 bg-opacity-50 rounded focus:ring-2 focus:ring-indigo-200 focus:bg-transparent border border-gray-300 focus:border-indigo-500 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" /></div>
-                      <div><input placeholder="name" type="text" id="hero-field" name="hero-field" className="w-full bg-gray-100 bg-opacity-50 rounded focus:ring-2 focus:ring-indigo-200 focus:bg-transparent border border-gray-300 focus:border-indigo-500 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" /></div>
-                      <div><input placeholder="suffix" type="text" id="hero-field" name="hero-field" className="w-full bg-gray-100 bg-opacity-50 rounded focus:ring-2 focus:ring-indigo-200 focus:bg-transparent border border-gray-300 focus:border-indigo-500 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" /></div>
-                    </div>
-                  </li>
-                </>
-              ))}
-            </>)}
+                    )}
+                  </>
+                );
+              };
+
+              return (
+                <li key={group.head.shape.id}>
+                  <Accordion
+                    title={group.head.shape.title}
+                    // open={group.head.open}
+                    open={true}
+                    onClickArrow={onClickHeadArrow}
+                  >
+                    <ul>
+                      {group.children.map((child) => (
+                        <li key={child.shape.id}>
+                          <Accordion
+                            className={"ps-2"}
+                            title={child.shape.title}
+                            // open={group.head.open}
+                            open={true}
+                            // onClickArrow={}
+                          >
+                            <Editor className="ps-6" shape={child.shape} />
+                          </Accordion>
+                        </li>
+                      ))}
+                    </ul>
+                    <Editor className="ps-2" shape={group.head.shape} />
+                  </Accordion>
+                </li>
+              );
+            })}
           </ul>
         </SidePanel>
         <canvas
@@ -1426,18 +1517,17 @@ export default function ProcessPage() {
             }}
           />
         )}
-      </div >
+      </div>
 
       <motion.ul
-        // style={{ width: `${v ? 'calc(100vw - 520px)' : 'calc(100vw)'}` }}
         className="fixed grid grid-cols-3 items-end p-4 bottom-0 right-0 shadow-md"
         variants={{
           open: {
-            width: 'calc(100vw - 520px)'
+            width: "calc(100vw - 520px)",
           },
           closed: {
-            width: 'calc(100vw - 0px)'
-          }
+            width: "calc(100vw - 0px)",
+          },
         }}
         initial={isDataSidePanelOpen ? "open" : "closed"}
         animate={isDataSidePanelOpen ? "open" : "closed"}
