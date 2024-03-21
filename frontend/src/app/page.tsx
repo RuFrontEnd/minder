@@ -186,7 +186,7 @@ const Editor = (props: { className: string; shape: Core }) => {
       setData(props.shape.data);
     }
   }, [props.shape]);
-  
+
   return (
     <>
       {(props.shape instanceof Process ||
@@ -297,7 +297,7 @@ export default function ProcessPage() {
 
     shapes.forEach((shape) => {
       _steps[shape.id] = {
-        shape: shape,
+        shape: cloneDeep(shape),
         open: steps[shape.id] ? steps[shape.id].open : false,
       };
     });
@@ -737,7 +737,6 @@ export default function ProcessPage() {
           pressing?.direction
         ) {
           pressing.parent.disConnect(pressing?.direction, true);
-          checkGroups();
 
           shapes.forEach((shape) => {
             const theEdge = shape.getEdge(),
@@ -1148,7 +1147,6 @@ export default function ProcessPage() {
             shape: pressing.parent,
             direction: pressing.direction,
           });
-          checkGroups();
         }
       }
 
@@ -1161,6 +1159,7 @@ export default function ProcessPage() {
     });
 
     checkData();
+    checkGroups();
 
     selectAreaP = null;
     pressing = null;
@@ -1670,7 +1669,7 @@ export default function ProcessPage() {
                     }}
                   >
                     <ul>
-                      {(procedure as any).map((child: any) => {
+                      {procedure.map((child) => {
                         return (
                           <>
                             <li key={steps[child].shape.id}>
@@ -1715,7 +1714,6 @@ export default function ProcessPage() {
                         );
                       })}
                     </ul>
-                    {/* <Editor className="ps-6" shape={procedure.shape} /> */}
                   </Accordion>
                 </li>
               );
