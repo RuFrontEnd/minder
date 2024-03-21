@@ -295,7 +295,11 @@ export default function ProcessPage() {
   const checkGroups = () => {
     const _steps: PageTypes.Steps = {};
 
+    console.log("steps", steps);
+
     shapes.forEach((shape) => {
+      console.log("shape.id", shape.id);
+      console.log("steps[shape.id]", steps[shape.id]);
       _steps[shape.id] = {
         shape: cloneDeep(shape),
         open: steps[shape.id] ? steps[shape.id].open : false,
@@ -389,14 +393,6 @@ export default function ProcessPage() {
     console.log("_procedures", _procedures);
     console.log("_otherSteps", _otherSteps);
   };
-
-  // useEffect(() => {
-  //   console.log("procedures", procedures);
-  // }, [procedures]);
-
-  // useEffect(() => {
-  //   console.log("steps", steps);
-  // }, [steps]);
 
   const zoom = (
     delta: number,
@@ -1620,7 +1616,7 @@ export default function ProcessPage() {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, [dataFrame, dbClickedShape, space]);
+  }, [dataFrame, dbClickedShape, space, steps, procedures, otherSteps]);
 
   return (
     <>
