@@ -131,8 +131,9 @@ const Editor = (props: { className: string; shape: Core }) => {
           <div>
             <p className="mb-1">Data Usage</p>
             <ul className="ps-2">
-              {props.shape.options.map((option) => (
-                <li className="mb-1"> · {option.text}</li>
+              {/* TODO: 改成和 data frame 同邏輯 */}
+              {props.shape.selectedData.map((selectedDataItem) => (
+                <li className="mb-1"> · {selectedDataItem.text}</li>
               ))}
             </ul>
           </div>
@@ -163,20 +164,9 @@ export default function ProcessPage() {
     [scale, setScale] = useState(1),
     [leftMouseBtn, setLeftMouseBtn] = useState(false),
     [isDataSidePanelOpen, setIsDataSidePanelOpen] = useState(true),
-    [groups, setGroups] = useState<PageTypes.Groups>([]),
-    [procedures, setProcedures] = useState<{
-      [shapeId: string]: {
-        shape: Core;
-        open: boolean;
-        steps: {
-          [shapeId: string]: {
-            shape: Core;
-            open: boolean;
-          };
-        };
-      };
-    }>({}),
-    [steps, setSteps] = useState<any>({});
+    [steps, setSteps] = useState<PageTypes.Steps>({}),
+    [procedures, setProcedures] = useState<PageTypes.Procedures>({}),
+    [otherSteps, setOtherSteps] = useState<PageTypes.OtherSteps>([]);
 
   const checkData = () => {
     const goThroughShapeMapping: { [shapeId: string]: boolean } = {};
@@ -206,16 +196,18 @@ export default function ProcessPage() {
   };
 
   const checkGroups = () => {
-    const _procedures = cloneDeep(procedures),
-      _steps = cloneDeep(steps);
+    const _steps: PageTypes.Steps = {};
 
-    const stepsInProcedures: any = {};
-
-    Object.values(_procedures).forEach((_procedure) => {
-      Object.values(_procedure.steps).forEach((step) => {
-        stepsInProcedures[step.shape.id] = true;
-      });
+    shapes.forEach((shape) => {
+      _steps[shape.id] = {
+        shape: shape,
+        open: steps[shape.id] ? steps[shape.id].open : false,
+      };
     });
+
+    setSteps(_steps);
+
+    const _procedures: PageTypes.Procedures = {};
 
     shapes.forEach((shape) => {
       if (
@@ -226,20 +218,12 @@ export default function ProcessPage() {
         !shape.receiveFrom.b
       ) {
         if (!_procedures[shape.id]) {
-          _procedures[shape.id] = {
-            shape: shape,
-            open: false,
-            steps: {},
-          };
+          _procedures[shape.id] = [];
         }
-      } else if (!_steps[shape.id] && !stepsInProcedures[shape.id]) {
-        console.log("AA");
-        _steps[shape.id] = {
-          shape: shape,
-          open: false,
-        };
       }
     });
+
+    const goThroughShapes: { [shapeId: string]: boolean } = {};
 
     shapes.forEach((shape) => {
       if (
@@ -258,10 +242,12 @@ export default function ProcessPage() {
       while (queue.length !== 0) {
         const shape = queue[0];
 
-        if (_steps[shape.id]) {
-          _procedures[head.id].steps[shape.id] = cloneDeep(_steps[shape.id]);
-          delete _steps[shape.id];
+        if (head.id === shape.id) {
+          _procedures[head.id] = [];
+        } else {
+          _procedures[head.id].push(shape.id);
         }
+        goThroughShapes[shape.id] = true;
 
         ds.forEach((d) => {
           const theSendTo = shape.curves[d].sendTo;
@@ -289,19 +275,31 @@ export default function ProcessPage() {
 
         queue.shift();
       }
-
-      setProcedures(_procedures);
-      setSteps(_steps);
     });
+
+    setProcedures(_procedures);
+
+    const _otherSteps: PageTypes.OtherSteps = [];
+
+    shapes.forEach((shape) => {
+      if (goThroughShapes[shape.id]) return;
+      _otherSteps.push(shape.id);
+    });
+
+    setOtherSteps(_otherSteps);
+
+    console.log("_steps", _steps);
+    console.log("_procedures", _procedures);
+    console.log("_otherSteps", _otherSteps);
   };
 
-  useEffect(() => {
-    console.log("procedures", procedures);
-  }, [procedures]);
+  // useEffect(() => {
+  //   console.log("procedures", procedures);
+  // }, [procedures]);
 
-  useEffect(() => {
-    console.log("steps", steps);
-  }, [steps]);
+  // useEffect(() => {
+  //   console.log("steps", steps);
+  // }, [steps]);
 
   const zoom = (
     delta: number,
@@ -642,6 +640,7 @@ export default function ProcessPage() {
           pressing?.direction
         ) {
           pressing.parent.disConnect(pressing?.direction, true);
+          checkGroups();
 
           shapes.forEach((shape) => {
             const theEdge = shape.getEdge(),
@@ -1172,6 +1171,7 @@ export default function ProcessPage() {
 
     shapes.push(terminal);
     checkData();
+    checkGroups();
   };
 
   const onClickProcess = () => {
@@ -1190,6 +1190,7 @@ export default function ProcessPage() {
 
     shapes.push(process_new);
     checkData();
+    checkGroups();
   };
 
   const onClickData = () => {
@@ -1208,6 +1209,7 @@ export default function ProcessPage() {
 
     shapes.push(data_new);
     checkData();
+    checkGroups();
   };
 
   const onClickDecision = () => {
@@ -1226,6 +1228,7 @@ export default function ProcessPage() {
 
     shapes.push(decision_new);
     checkData();
+    checkGroups();
   };
 
   const onConfirmDataFrame: DataFrameTypes.Props["onConfirm"] = (
@@ -1484,12 +1487,19 @@ export default function ProcessPage() {
       // shapes.push(curve);
 
       checkData();
+      checkGroups();
 
       requestAnimationFrame(draw);
     }
 
     useEffected = true;
   }, []);
+
+  const onClickaAccordionArrow = (shapeId: string) => {
+    const _steps = cloneDeep(steps);
+    _steps[shapeId].open = !_steps[shapeId].open;
+    setSteps(_steps);
+  };
 
   useEffect(() => {
     const resize = () => {
@@ -1543,103 +1553,97 @@ export default function ProcessPage() {
           </div>
         </div>
       </header>
-
+      <SidePanel
+        open={isDataSidePanelOpen}
+        w={"520px"}
+        h={"calc(100vh - 56px)"}
+        d={["b"]}
+        onClickSwitch={onClickDataSidePanelSwitch}
+      >
+        <ul>
+          {Object.entries(procedures).map(
+            ([procedureId, procedure], procedureI) => {
+              return (
+                <li key={procedureId} className="mb-1">
+                  <Accordion
+                    title={steps[procedureId].shape.title}
+                    open={steps[procedureId].open}
+                    onClickArrow={() => {
+                      onClickaAccordionArrow(procedureId);
+                    }}
+                  >
+                    <ul>
+                      {(procedure as any).map((child: any) => {
+                        return (
+                          <>
+                            <li key={steps[child].shape.id}>
+                              <Accordion
+                                className={"ps-2"}
+                                title={
+                                  <div className="flex">
+                                    <p className="mr-1">
+                                      {steps[child].shape.title}
+                                    </p>
+                                    {/* <svg
+                          className="w-6 h-6 text-gray-800 dark:text-white"
+                          aria-hidden="true"
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="24"
+                          height="24"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke="currentColor"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="m14.304 4.844 2.852 2.852M7 7H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-4.5m2.409-9.91a2.017 2.017 0 0 1 0 2.853l-6.844 6.844L8 14l.713-3.565 6.844-6.844a2.015 2.015 0 0 1 2.852 0Z"
+                          />
+                        </svg> */}
+                                  </div>
+                                }
+                                open={steps[child].open}
+                                onClickArrow={() => {
+                                  onClickaAccordionArrow(steps[child].shape.id);
+                                }}
+                              >
+                                <Editor
+                                  className="ps-6"
+                                  shape={steps[child].shape}
+                                />
+                              </Accordion>
+                            </li>
+                          </>
+                        );
+                      })}
+                    </ul>
+                    {/* <Editor className="ps-6" shape={procedure.shape} /> */}
+                  </Accordion>
+                </li>
+              );
+            }
+          )}
+        </ul>
+        <ul>
+          {otherSteps.map((stepId: string) => (
+            <>
+              <li key={stepId} className="mb-1">
+                <Accordion
+                  title={steps[stepId].shape.title}
+                  open={steps[stepId].open}
+                  onClickArrow={() => {
+                    onClickaAccordionArrow(stepId);
+                  }}
+                >
+                  <Editor className="ps-6" shape={steps[stepId].shape} />
+                </Accordion>
+              </li>
+            </>
+          ))}
+        </ul>
+      </SidePanel>
       <div>
-        <SidePanel
-          open={isDataSidePanelOpen}
-          w={"520px"}
-          h={"calc(100vh - 56px)"}
-          d={["b"]}
-          onClickSwitch={onClickDataSidePanelSwitch}
-        >
-          <ul>
-            {Object.entries(procedures).map(
-              ([procedureId, procedure], procedureI) => {
-                const onClickHeadArrow = (shapeId: string) => {
-                  const _procedures = cloneDeep(procedures);
-                  _procedures[shapeId].open = !_procedures[shapeId].open;
-                  setProcedures(_procedures);
-                };
-
-                return (
-                  <li key={procedureId} className="mb-1">
-                    <Accordion
-                      title={procedure.shape.title}
-                      open={procedure.open}
-                      onClickArrow={() => {
-                        onClickHeadArrow(procedureId);
-                      }}
-                    >
-                      <ul>
-                        {Object.entries(procedure.steps).map(
-                          ([stepId, step]) => {
-                            const onClickHeadArrow = (
-                              procedureId: string,
-                              stepId: string
-                            ) => {
-                              const _procedures = cloneDeep(procedures);
-
-                              _procedures[procedureId].steps[
-                                stepId
-                              ].open = !_procedures[procedureId].steps[stepId]
-                                .open;
-
-                              setProcedures(_procedures);
-                            };
-
-                            return (
-                              <>
-                                <li key={stepId}>
-                                  <Accordion
-                                    className={"ps-2"}
-                                    title={
-                                      <div className="flex">
-                                        <p className="mr-1">
-                                          {step.shape.title}
-                                        </p>
-                                        {/* <svg
-                                    className="w-6 h-6 text-gray-800 dark:text-white"
-                                    aria-hidden="true"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="24"
-                                    height="24"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      stroke="currentColor"
-                                      stroke-linecap="round"
-                                      stroke-linejoin="round"
-                                      stroke-width="2"
-                                      d="m14.304 4.844 2.852 2.852M7 7H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-4.5m2.409-9.91a2.017 2.017 0 0 1 0 2.853l-6.844 6.844L8 14l.713-3.565 6.844-6.844a2.015 2.015 0 0 1 2.852 0Z"
-                                    />
-                                  </svg> */}
-                                      </div>
-                                    }
-                                    open={step.open}
-                                    onClickArrow={() => {
-                                      onClickHeadArrow(procedureId, stepId);
-                                    }}
-                                  >
-                                    <Editor
-                                      className="ps-6"
-                                      shape={step.shape}
-                                    />
-                                  </Accordion>
-                                </li>
-                              </>
-                            );
-                          }
-                        )}
-                      </ul>
-                      {/* <Editor className="ps-6" shape={procedure.shape} /> */}
-                    </Accordion>
-                  </li>
-                );
-              }
-            )}
-          </ul>
-        </SidePanel>
         <canvas
           className={`${space ? "cursor-grab" : ""} overflow-hidden`}
           tabIndex={1}

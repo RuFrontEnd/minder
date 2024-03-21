@@ -1,13 +1,14 @@
 import Core from "@/shapes/core";
 
-type Node = { open: boolean; shape: Core };
+type Steps = {
+  [shapeId: string]: {
+    shape: Core;
+    open: boolean;
+  };
+};
 
-type Child = Node;
+type Procedures = { [shapeId: string]: string[] };
 
-type Children = Child[];
+type OtherSteps = string[];
 
-type Group = { head: Node; children: Children };
-
-type Groups = Group[];
-
-export type { Child, Children, Group, Groups };
+export type { Steps, Procedures, OtherSteps };
