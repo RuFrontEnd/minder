@@ -6,12 +6,14 @@ import Process from "@/shapes/process";
 import Data from "@/shapes/data";
 import Curve from "@/shapes/curve";
 import Desicion from "@/shapes/decision";
+uuidv4;
 import DataFrame from "@/components/dataFrame";
 import SidePanel from "@/components/sidePanel";
 import Accordion from "@/components/accordion";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cloneDeep } from "lodash";
+import { v4 as uuidv4 } from "uuid";
 import * as CoreTypes from "@/types/shapes/core";
 import * as CurveTypes from "@/types/shapes/curve";
 import * as CommonTypes from "@/types/shapes/common";
@@ -106,6 +108,85 @@ const getFramePosition = (shape: Core) => {
 };
 
 const Editor = (props: { className: string; shape: Core }) => {
+  const [title, setTitle] = useState<CommonTypes.Title>(""),
+    [selections, setSelections] = useState<DataFrameTypes.Selections>({}),
+    [data, setData] = useState<CommonTypes.Data>([]);
+
+  const onChangeTitle = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTitle(e.currentTarget.value);
+  };
+
+  const onClickCheckedBox = (DataText: CommonTypes.DataItem["text"]) => {
+    const _selections: DataFrameTypes.Selections = cloneDeep(selections);
+
+    _selections[DataText] = !_selections[DataText];
+
+    setSelections(_selections);
+  };
+
+  const onClickPlus = () => {
+    const _data = cloneDeep(data);
+    _data.push({ id: uuidv4(), text: "" });
+    setData(_data);
+  };
+
+  const onClickMinus = (id: string) => {
+    const _data = cloneDeep(data).filter((datdItem) => datdItem.id !== id);
+    setData(_data);
+  };
+
+  const onChangeData = (e: React.ChangeEvent<HTMLInputElement>, i: number) => {
+    const _data = cloneDeep(data);
+    _data[i].text = e.currentTarget.value;
+    setData(_data);
+  };
+
+  const onClickConfirm = () => {
+    const selectedData = (() => {
+      const data: CommonTypes.Data = [];
+
+      props.shape.options.forEach((option) => {
+        if (selections[option.text]) {
+          data.push(option);
+        }
+      });
+
+      props.shape.redundancies.forEach((option) => {
+        if (selections[option.text]) {
+          data.push(option);
+        }
+      });
+
+      return data;
+    })();
+
+    // onConfirm(title, data, selectedData);
+  };
+
+  useEffect(() => {
+    setTitle(props.shape.title);
+
+    const _selections: DataFrameTypes.Selections = (() => {
+      const output: DataFrameTypes.Selections = {};
+
+      props.shape.options.forEach((option) => {
+        output[option.text] = false;
+      });
+
+      props.shape.selectedData.forEach((selectedDataItem) => {
+        output[selectedDataItem.text] = true;
+      });
+
+      return output;
+    })();
+
+    setSelections(_selections);
+
+    if (props.shape instanceof Data) {
+      setData(props.shape.data);
+    }
+  }, [props.shape]);
+  
   return (
     <>
       {(props.shape instanceof Process ||
@@ -131,9 +212,25 @@ const Editor = (props: { className: string; shape: Core }) => {
           <div>
             <p className="mb-1">Data Usage</p>
             <ul className="ps-2">
-              {/* TODO: 改成和 data frame 同邏輯 */}
-              {props.shape.selectedData.map((selectedDataItem) => (
-                <li className="mb-1"> · {selectedDataItem.text}</li>
+              {props.shape.options.map((option) => (
+                <li className="mb-1">
+                  <span className="bg-indigo-100 text-indigo-500 w-4 h-4 rounded-full inline-flex items-center justify-center">
+                    {selections[option.text] && (
+                      <svg
+                        fill="none"
+                        stroke="currentColor"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="3"
+                        className="w-3 h-3"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M20 6L9 17l-5-5"></path>
+                      </svg>
+                    )}
+                  </span>
+                  {option.text}
+                </li>
               ))}
             </ul>
           </div>
@@ -1441,7 +1538,7 @@ export default function ProcessPage() {
         200,
         100,
         {
-          x: -offset.x + window.innerWidth / 2 + 300,
+          x: -offset.x + window.innerWidth / 2 + 200,
           y: -offset.y + window.innerHeight / 2 - 200,
         },
         "orange"
@@ -1455,7 +1552,7 @@ export default function ProcessPage() {
         200,
         100,
         {
-          x: -offset.x + window.innerWidth / 2 + 200,
+          x: -offset.x + window.innerWidth / 2 + 300,
           y: -offset.y + window.innerHeight / 2,
         },
         "green"
@@ -1464,23 +1561,23 @@ export default function ProcessPage() {
       data_new.scale = scale;
       data_new.title = "輸入資料_1";
 
-      // let process = new Process(
-      //   `process_${Date.now()}`,
-      //   200,
-      //   100,
-      //   {
-      //     x: -offset.x + window.innerWidth / 2 + 200,
-      //     y: -offset.y + window.innerHeight / 2 + 220,
-      //   },
-      //   "red"
-      // );
-      // process.offset = offset;
-      // process.scale = scale;
-      // process.title = "程序_1";
+      let process = new Process(
+        `process_${Date.now()}`,
+        200,
+        100,
+        {
+          x: -offset.x + window.innerWidth / 2 + 200,
+          y: -offset.y + window.innerHeight / 2 + 220,
+        },
+        "red"
+      );
+      process.offset = offset;
+      process.scale = scale;
+      process.title = "程序_1";
 
       shapes.push(terminal_new);
       shapes.push(data_new);
-      // shapes.push(process);
+      shapes.push(process);
       // shapes.push(process_2);
       // shapes.push(data_1);
       // shapes.push(desicion_1);
