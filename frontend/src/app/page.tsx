@@ -6,7 +6,6 @@ import Process from "@/shapes/process";
 import Data from "@/shapes/data";
 import Curve from "@/shapes/curve";
 import Desicion from "@/shapes/decision";
-uuidv4;
 import DataFrame from "@/components/dataFrame";
 import SidePanel from "@/components/sidePanel";
 import Accordion from "@/components/accordion";
@@ -261,6 +260,7 @@ export default function ProcessPage() {
     [scale, setScale] = useState(1),
     [leftMouseBtn, setLeftMouseBtn] = useState(false),
     [isDataSidePanelOpen, setIsDataSidePanelOpen] = useState(true),
+    [isUserSidePanelOpen, setIsUserSidePanelOpen] = useState(true),
     [steps, setSteps] = useState<PageTypes.Steps>({}),
     [procedures, setProcedures] = useState<PageTypes.Procedures>({}),
     [otherSteps, setOtherSteps] = useState<PageTypes.OtherSteps>([]);
@@ -1359,6 +1359,10 @@ export default function ProcessPage() {
     setIsDataSidePanelOpen((open) => !open);
   };
 
+  const onClickProfile = () => {
+    setIsUserSidePanelOpen((open) => !open);
+  };
+
   const draw = useCallback(() => {
     if (!ctx) return;
     ctx?.clearRect(0, 0, window.innerWidth, window.innerHeight);
@@ -1632,14 +1636,17 @@ export default function ProcessPage() {
           <nav className="md:ml-auto md:mr-auto flex flex-wrap items-center text-base justify-center">
             <a className="mr-5 hover:text-gray-900">Project_1</a>
           </nav>
-          <div className="w-10 h-10 inline-flex items-center justify-center rounded-full bg-indigo-500 text-white flex-shrink-0 cursor-pointer">
+          <div
+            className="w-10 h-10 inline-flex items-center justify-center rounded-full bg-indigo-500 text-white flex-shrink-0 cursor-pointer"
+            onClick={onClickProfile}
+          >
             L
           </div>
         </div>
       </header>
       <SidePanel
         open={isDataSidePanelOpen}
-        w={"520px"}
+        w={"360px"}
         h={"calc(100vh - 56px)"}
         d={["b"]}
         onClickSwitch={onClickDataSidePanelSwitch}
@@ -1725,6 +1732,46 @@ export default function ProcessPage() {
             </>
           ))}
         </ul>
+      </SidePanel>
+      <SidePanel
+        open={isUserSidePanelOpen}
+        w={"300px"}
+        h={"calc(100vh - 56px)"}
+        d={["b", "r"]}
+      >
+        <div className="flex flex-col h-full">
+          <ul className="flex-1">
+            <li className="mb-2">
+              <div className="h-full flex flex-col items-center text-center">
+                <img
+                  width={100}
+                  height={100}
+                  alt="team"
+                  className="w-100 h-[120px] flex-shrink-0 rounded-lg w-full h-56 object-cover object-center mb-2"
+                  src="https://dummyimage.com/200x200"
+                />
+                <div className="w-full">
+                  <p className="title-font text-gray-900">Project_1</p>
+                </div>
+              </div>
+            </li>
+            <li className="mb-2">
+              <div className="h-full flex flex-col items-center text-center">
+                <img
+                  width={100}
+                  height={100}
+                  alt="team"
+                  className="w-100 h-[120px] flex-shrink-0 rounded-lg w-full h-56 object-cover object-center mb-2"
+                  src="https://dummyimage.com/200x200"
+                />
+                <div className="w-full">
+                  <p className="title-font text-gray-900">Project_2</p>
+                </div>
+              </div>
+            </li>
+          </ul>
+          <div className="text-red-500">Sign Out</div>
+        </div>
       </SidePanel>
       <div>
         <canvas
