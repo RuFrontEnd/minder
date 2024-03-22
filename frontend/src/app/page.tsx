@@ -295,11 +295,7 @@ export default function ProcessPage() {
   const checkGroups = () => {
     const _steps: PageTypes.Steps = {};
 
-    console.log("steps", steps);
-
     shapes.forEach((shape) => {
-      console.log("shape.id", shape.id);
-      console.log("steps[shape.id]", steps[shape.id]);
       _steps[shape.id] = {
         shape: cloneDeep(shape),
         open: steps[shape.id] ? steps[shape.id].open : false,
@@ -388,10 +384,6 @@ export default function ProcessPage() {
     });
 
     setOtherSteps(_otherSteps);
-
-    console.log("_steps", _steps);
-    console.log("_procedures", _procedures);
-    console.log("_otherSteps", _otherSteps);
   };
 
   const zoom = (
