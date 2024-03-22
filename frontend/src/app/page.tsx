@@ -6,12 +6,14 @@ import Process from "@/shapes/process";
 import Data from "@/shapes/data";
 import Curve from "@/shapes/curve";
 import Desicion from "@/shapes/decision";
+uuidv4;
 import DataFrame from "@/components/dataFrame";
 import SidePanel from "@/components/sidePanel";
 import Accordion from "@/components/accordion";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cloneDeep } from "lodash";
+import { v4 as uuidv4 } from "uuid";
 import * as CoreTypes from "@/types/shapes/core";
 import * as CurveTypes from "@/types/shapes/curve";
 import * as CommonTypes from "@/types/shapes/common";
@@ -26,14 +28,14 @@ let useEffected = false,
     shape: null | Terminal | Process | Data | Desicion | Curve;
     direction: null | CommonTypes.Direction;
     target:
-    | null
-    | CoreTypes.PressingTarget
-    | CurveTypes.PressingTarget
-    | "selectArea_m"
-    | "selectArea_lt"
-    | "selectArea_rt"
-    | "selectArea_rb"
-    | "selectArea_lb";
+      | null
+      | CoreTypes.PressingTarget
+      | CurveTypes.PressingTarget
+      | "selectArea_m"
+      | "selectArea_lt"
+      | "selectArea_rt"
+      | "selectArea_rb"
+      | "selectArea_lb";
     dx: number; // distance between event px & pressing shape px
     dy: number; // distance between event py & pressing shape py
   } = null,
@@ -80,22 +82,22 @@ let useEffected = false,
   };
 
 const ds = [
-  CommonTypes.Direction.l,
-  CommonTypes.Direction.t,
-  CommonTypes.Direction.r,
-  CommonTypes.Direction.b,
-],
+    CommonTypes.Direction.l,
+    CommonTypes.Direction.t,
+    CommonTypes.Direction.r,
+    CommonTypes.Direction.b,
+  ],
   vs: (
     | CoreTypes.PressingTarget.lt
     | CoreTypes.PressingTarget.rt
     | CoreTypes.PressingTarget.rb
     | CoreTypes.PressingTarget.lb
   )[] = [
-      CoreTypes.PressingTarget.lt,
-      CoreTypes.PressingTarget.rt,
-      CoreTypes.PressingTarget.rb,
-      CoreTypes.PressingTarget.lb,
-    ];
+    CoreTypes.PressingTarget.lt,
+    CoreTypes.PressingTarget.rt,
+    CoreTypes.PressingTarget.rb,
+    CoreTypes.PressingTarget.lb,
+  ];
 
 const getFramePosition = (shape: Core) => {
   const frameOffset = 12;
@@ -105,12 +107,153 @@ const getFramePosition = (shape: Core) => {
   };
 };
 
+const Editor = (props: { className: string; shape: Core }) => {
+  const [title, setTitle] = useState<CommonTypes.Title>(""),
+    [selections, setSelections] = useState<DataFrameTypes.Selections>({}),
+    [data, setData] = useState<CommonTypes.Data>([]);
+
+  const onChangeTitle = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTitle(e.currentTarget.value);
+  };
+
+  const onClickCheckedBox = (DataText: CommonTypes.DataItem["text"]) => {
+    const _selections: DataFrameTypes.Selections = cloneDeep(selections);
+
+    _selections[DataText] = !_selections[DataText];
+
+    setSelections(_selections);
+  };
+
+  const onClickPlus = () => {
+    const _data = cloneDeep(data);
+    _data.push({ id: uuidv4(), text: "" });
+    setData(_data);
+  };
+
+  const onClickMinus = (id: string) => {
+    const _data = cloneDeep(data).filter((datdItem) => datdItem.id !== id);
+    setData(_data);
+  };
+
+  const onChangeData = (e: React.ChangeEvent<HTMLInputElement>, i: number) => {
+    const _data = cloneDeep(data);
+    _data[i].text = e.currentTarget.value;
+    setData(_data);
+  };
+
+  const onClickConfirm = () => {
+    const selectedData = (() => {
+      const data: CommonTypes.Data = [];
+
+      props.shape.options.forEach((option) => {
+        if (selections[option.text]) {
+          data.push(option);
+        }
+      });
+
+      props.shape.redundancies.forEach((option) => {
+        if (selections[option.text]) {
+          data.push(option);
+        }
+      });
+
+      return data;
+    })();
+
+    // onConfirm(title, data, selectedData);
+  };
+
+  useEffect(() => {
+    setTitle(props.shape.title);
+
+    const _selections: DataFrameTypes.Selections = (() => {
+      const output: DataFrameTypes.Selections = {};
+
+      props.shape.options.forEach((option) => {
+        output[option.text] = false;
+      });
+
+      props.shape.selectedData.forEach((selectedDataItem) => {
+        output[selectedDataItem.text] = true;
+      });
+
+      return output;
+    })();
+
+    setSelections(_selections);
+
+    if (props.shape instanceof Data) {
+      setData(props.shape.data);
+    }
+  }, [props.shape]);
+
+  return (
+    <>
+      {(props.shape instanceof Process ||
+        props.shape instanceof Data ||
+        props.shape instanceof Desicion) && (
+        <div className={props.className && props.className}>
+          {props.shape instanceof Data && (
+            <div>
+              <p className="mb-1">Data</p>
+              {/* <div
+              className="w-6 h-6 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
+              onClick={onClickScalePlusIcon}
+            >
+              +
+            </div> */}
+              <ul className="ps-2">
+                {props.shape.data.map((dataItem) => (
+                  <li className="mb-1"> · {dataItem.text}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          <div>
+            <p className="mb-1">Data Usage</p>
+            <ul className="ps-2">
+              {props.shape.options.map((option) => (
+                <li className="mb-1">
+                  <span className="bg-indigo-100 text-indigo-500 w-4 h-4 rounded-full inline-flex items-center justify-center">
+                    {selections[option.text] && (
+                      <svg
+                        fill="none"
+                        stroke="currentColor"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="3"
+                        className="w-3 h-3"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M20 6L9 17l-5-5"></path>
+                      </svg>
+                    )}
+                  </span>
+                  {option.text}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <div className="mb-1">Redundancies</div>
+            <ul className="ps-2">
+              {props.shape.redundancies.map((redundancy) => (
+                <li className="mb-1"> · {redundancy.text}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+    </>
+  );
+};
+
 export default function ProcessPage() {
   let { current: $canvas } = useRef<HTMLCanvasElement | null>(null);
 
   const [dataFrame, setDataFrame] = useState<
-    { p: CommonTypes.Vec } | undefined
-  >(undefined),
+      { p: CommonTypes.Vec } | undefined
+    >(undefined),
     [dbClickedShape, setDbClickedShape] = useState<
       Terminal | Data | Process | Desicion | null
     >(null),
@@ -118,7 +261,9 @@ export default function ProcessPage() {
     [scale, setScale] = useState(1),
     [leftMouseBtn, setLeftMouseBtn] = useState(false),
     [isDataSidePanelOpen, setIsDataSidePanelOpen] = useState(true),
-    [groups, setGroups] = useState<PageTypes.Groups>([]);
+    [steps, setSteps] = useState<PageTypes.Steps>({}),
+    [procedures, setProcedures] = useState<PageTypes.Procedures>({}),
+    [otherSteps, setOtherSteps] = useState<PageTypes.OtherSteps>([]);
 
   const checkData = () => {
     const goThroughShapeMapping: { [shapeId: string]: boolean } = {};
@@ -128,8 +273,6 @@ export default function ProcessPage() {
       goThroughShapeMapping[shape.id] = true;
     });
 
-    const _groups: PageTypes.Groups = [];
-
     shapes.forEach((shape) => {
       if (
         shape instanceof Terminal &&
@@ -138,34 +281,109 @@ export default function ProcessPage() {
         shape.receiveFrom.r === null &&
         shape.receiveFrom.b === null
       ) {
-        const _children: PageTypes.Children = [];
         // shape is Terminator
-        shape.onTraversal((goThroughShape, terminator) => {
-          if (goThroughShape.id === terminator.id) {
-            _groups.push({
-              head: { open: false, shape: terminator },
-              children: _children,
-            });
-          } else {
-            _children.push({ open: false, shape: goThroughShape });
-          }
-          delete goThroughShapeMapping[goThroughShape.id];
-        });
+        shape.onTraversal();
       }
     });
 
     // check all correspondants of shapes' between options and selectedData
     shapes.forEach((shape) => {
-      if (goThroughShapeMapping[shape.id]) {
-        _groups.push({
-          head: { open: false, shape: shape },
-          children: [],
-        });
-      }
       shape.getRedundancies();
     });
+  };
 
-    setGroups(_groups);
+  const checkGroups = () => {
+    const _steps: PageTypes.Steps = {};
+
+    shapes.forEach((shape) => {
+      _steps[shape.id] = {
+        shape: cloneDeep(shape),
+        open: steps[shape.id] ? steps[shape.id].open : false,
+      };
+    });
+
+    setSteps(_steps);
+
+    const _procedures: PageTypes.Procedures = {};
+
+    shapes.forEach((shape) => {
+      if (
+        shape instanceof Terminal &&
+        !shape.receiveFrom.l &&
+        !shape.receiveFrom.t &&
+        !shape.receiveFrom.r &&
+        !shape.receiveFrom.b
+      ) {
+        if (!_procedures[shape.id]) {
+          _procedures[shape.id] = [];
+        }
+      }
+    });
+
+    const goThroughShapes: { [shapeId: string]: boolean } = {};
+
+    shapes.forEach((shape) => {
+      if (
+        !(shape instanceof Terminal) ||
+        shape.receiveFrom.l ||
+        shape.receiveFrom.t ||
+        shape.receiveFrom.r ||
+        shape.receiveFrom.b
+      )
+        return;
+
+      const head = shape,
+        queue: Core[] = [shape],
+        locks = { [shape.id]: { l: false, t: false, r: false, b: false } }; // prevent from graph cycle
+
+      while (queue.length !== 0) {
+        const shape = queue[0];
+
+        if (head.id === shape.id) {
+          _procedures[head.id] = [];
+        } else {
+          _procedures[head.id].push(shape.id);
+        }
+        goThroughShapes[shape.id] = true;
+
+        ds.forEach((d) => {
+          const theSendTo = shape.curves[d].sendTo;
+
+          if (!theSendTo) return;
+
+          const hasLock = locks[theSendTo.shape.id];
+
+          if (!hasLock) {
+            locks[theSendTo.shape.id] = {
+              l: false,
+              t: false,
+              r: false,
+              b: false,
+            };
+          }
+
+          const hasDirectLock = locks[theSendTo.shape.id][d];
+
+          if (!hasDirectLock) {
+            queue.push(theSendTo.shape);
+            locks[theSendTo.shape.id][d] = true;
+          }
+        });
+
+        queue.shift();
+      }
+    });
+
+    setProcedures(_procedures);
+
+    const _otherSteps: PageTypes.OtherSteps = [];
+
+    shapes.forEach((shape) => {
+      if (goThroughShapes[shape.id]) return;
+      _otherSteps.push(shape.id);
+    });
+
+    setOtherSteps(_otherSteps);
   };
 
   const zoom = (
@@ -229,9 +447,9 @@ export default function ProcessPage() {
     let $canvas = document.querySelector("canvas");
 
     const p = {
-      x: e.nativeEvent.offsetX,
-      y: e.nativeEvent.offsetY,
-    },
+        x: e.nativeEvent.offsetX,
+        y: e.nativeEvent.offsetY,
+      },
       pInSelectArea =
         p.x > select.start.x &&
         p.y > select.start.y &&
@@ -404,12 +622,12 @@ export default function ProcessPage() {
                 dx:
                   (p.x - dragP.x) * (1 / scale) -
                   shape?.getEdge()[
-                  theCheckShapeVertexesBoundry[0] as CommonTypes.Direction
+                    theCheckShapeVertexesBoundry[0] as CommonTypes.Direction
                   ],
                 dy:
                   (p.y - dragP.y) * (1 / scale) -
                   shape?.getEdge()[
-                  theCheckShapeVertexesBoundry[1] as CommonTypes.Direction
+                    theCheckShapeVertexesBoundry[1] as CommonTypes.Direction
                   ],
               };
             }
@@ -459,9 +677,9 @@ export default function ProcessPage() {
   const onMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     e.preventDefault();
     const p = {
-      x: e.nativeEvent.offsetX,
-      y: e.nativeEvent.offsetY,
-    },
+        x: e.nativeEvent.offsetX,
+        y: e.nativeEvent.offsetY,
+      },
       offsetP = {
         x: p.x - dragP.x,
         y: p.y - dragP.y,
@@ -848,9 +1066,9 @@ export default function ProcessPage() {
         const theEdge = shape.getEdge();
 
         const l =
-          selectAreaP.start.x < selectAreaP.end.x
-            ? selectAreaP.start.x
-            : selectAreaP.end.x,
+            selectAreaP.start.x < selectAreaP.end.x
+              ? selectAreaP.start.x
+              : selectAreaP.end.x,
           t =
             selectAreaP.start.y < selectAreaP.end.y
               ? selectAreaP.start.y
@@ -929,6 +1147,7 @@ export default function ProcessPage() {
     });
 
     checkData();
+    checkGroups();
 
     selectAreaP = null;
     pressing = null;
@@ -1000,9 +1219,11 @@ export default function ProcessPage() {
         }
         shapes = shapes.filter((shape) => shape.id !== removeShape?.id);
         checkData();
+        checkGroups();
       } else if (removeCurve) {
         removeCurve.shape.removeCurve(removeCurve.direction);
         checkData();
+        checkGroups();
       }
     }
 
@@ -1034,6 +1255,7 @@ export default function ProcessPage() {
 
     shapes.push(terminal);
     checkData();
+    checkGroups();
   };
 
   const onClickProcess = () => {
@@ -1052,6 +1274,7 @@ export default function ProcessPage() {
 
     shapes.push(process_new);
     checkData();
+    checkGroups();
   };
 
   const onClickData = () => {
@@ -1070,6 +1293,7 @@ export default function ProcessPage() {
 
     shapes.push(data_new);
     checkData();
+    checkGroups();
   };
 
   const onClickDecision = () => {
@@ -1088,6 +1312,7 @@ export default function ProcessPage() {
 
     shapes.push(decision_new);
     checkData();
+    checkGroups();
   };
 
   const onConfirmDataFrame: DataFrameTypes.Props["onConfirm"] = (
@@ -1109,6 +1334,7 @@ export default function ProcessPage() {
     setDataFrame(undefined);
     setDbClickedShape(null);
     checkData();
+    checkGroups();
   };
 
   const onClickScalePlusIcon = () => {
@@ -1299,7 +1525,7 @@ export default function ProcessPage() {
         200,
         100,
         {
-          x: -offset.x + window.innerWidth / 2 + 300,
+          x: -offset.x + window.innerWidth / 2 + 200,
           y: -offset.y + window.innerHeight / 2 - 200,
         },
         "orange"
@@ -1313,7 +1539,7 @@ export default function ProcessPage() {
         200,
         100,
         {
-          x: -offset.x + window.innerWidth / 2 + 200,
+          x: -offset.x + window.innerWidth / 2 + 300,
           y: -offset.y + window.innerHeight / 2,
         },
         "green"
@@ -1344,13 +1570,20 @@ export default function ProcessPage() {
       // shapes.push(desicion_1);
       // shapes.push(curve);
 
-      checkData()
+      checkData();
+      checkGroups();
 
       requestAnimationFrame(draw);
     }
 
     useEffected = true;
   }, []);
+
+  const onClickaAccordionArrow = (shapeId: string) => {
+    const _steps = cloneDeep(steps);
+    _steps[shapeId].open = !_steps[shapeId].open;
+    setSteps(_steps);
+  };
 
   useEffect(() => {
     const resize = () => {
@@ -1375,17 +1608,7 @@ export default function ProcessPage() {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, [dataFrame, dbClickedShape, space]);
-
-  useEffect(() => {
-    console.log("groups", groups);
-  }, [groups]);
-
-  const [v, setV] = useState(false);
-
-  useEffect(() => {
-    console.log("v", v);
-  }, [v]);
+  }, [dataFrame, dbClickedShape, space, steps, procedures, otherSteps]);
 
   return (
     <>
@@ -1414,122 +1637,96 @@ export default function ProcessPage() {
           </div>
         </div>
       </header>
-
-      <div>
-        <SidePanel
-          open={isDataSidePanelOpen}
-          w={"520px"}
-          h={"calc(100vh - 56px)"}
-          d={["b"]}
-          onClickSwitch={onClickDataSidePanelSwitch}
-        >
-          <ul>
-            {groups.map((group, groupI) => {
-              const onClickHeadArrow = () => {
-                const _groups = cloneDeep(groups);
-                _groups[groupI].head.open = !_groups[groupI].head.open;
-                setGroups(_groups);
-              };
-
-              const Editor = (props: { className: string; shape: Core }) => {
-                console.log("props.shape", props.shape);
-                return (
-                  <>
-                    {(props.shape instanceof Process ||
-                      props.shape instanceof Data ||
-                      props.shape instanceof Desicion) && (
-                        <div className={props.className && props.className}>
-                          {props.shape instanceof Data && (
-                            <div>
-                              <p className="mb-1">Data</p>
-                              {/* <div
-                              className="w-6 h-6 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
-                              onClick={onClickScalePlusIcon}
-                            >
-                              +
-                            </div> */}
-                              <ul className="ps-2">
-                                {props.shape.data.map((dataItem) => (
-                                  <li className="mb-1"> · {dataItem.text}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-                          <div>
-                            <p className="mb-1">Data Usage</p>
-                            <ul className="ps-2">
-                              {props.shape.options.map((option) => (
-                                <li className="mb-1"> · {option.text}</li>
-                              ))}
-                            </ul>
-                          </div>
-                          <div>
-                            <div className="mb-1">
-                              Redundancies
-                            </div>
-                            <ul className="ps-2">
-                              {props.shape.redundancies.map((redundancy) => (
-                                <li className="mb-1"> · {redundancy.text}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        </div>
-                      )}
-                  </>
-                );
-              };
-
+      <SidePanel
+        open={isDataSidePanelOpen}
+        w={"520px"}
+        h={"calc(100vh - 56px)"}
+        d={["b"]}
+        onClickSwitch={onClickDataSidePanelSwitch}
+      >
+        <ul>
+          {Object.entries(procedures).map(
+            ([procedureId, procedure], procedureI) => {
               return (
-                <li key={group.head.shape.id} className="mb-1">
+                <li key={procedureId} className="mb-1">
                   <Accordion
-                    title={group.head.shape.title}
-                    // open={group.head.open}
-                    open={true}
-                    onClickArrow={onClickHeadArrow}
+                    title={steps[procedureId].shape.title}
+                    open={steps[procedureId].open}
+                    onClickArrow={() => {
+                      onClickaAccordionArrow(procedureId);
+                    }}
                   >
                     <ul>
-                      {group.children.map((child) => (
-                        <li key={child.shape.id}>
-                          <Accordion
-                            className={"ps-2"}
-                            title={
-                              <div className="flex">
-                                <p className="mr-1">{child.shape.title}</p>
-                                {/* <svg
-                                  className="w-6 h-6 text-gray-800 dark:text-white"
-                                  aria-hidden="true"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="24"
-                                  height="24"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    stroke="currentColor"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="m14.304 4.844 2.852 2.852M7 7H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-4.5m2.409-9.91a2.017 2.017 0 0 1 0 2.853l-6.844 6.844L8 14l.713-3.565 6.844-6.844a2.015 2.015 0 0 1 2.852 0Z"
-                                  />
-                                </svg> */}
-                              </div>
-                            }
-                            // open={group.head.open}
-                            open={true}
-                          // onClickArrow={}
-                          >
-                            <Editor className="ps-6" shape={child.shape} />
-                          </Accordion>
-                        </li>
-                      ))}
+                      {procedure.map((child) => {
+                        return (
+                          <>
+                            <li key={steps[child].shape.id}>
+                              <Accordion
+                                className={"ps-2"}
+                                title={
+                                  <div className="flex">
+                                    <p className="mr-1">
+                                      {steps[child].shape.title}
+                                    </p>
+                                    {/* <svg
+                          className="w-6 h-6 text-gray-800 dark:text-white"
+                          aria-hidden="true"
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="24"
+                          height="24"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke="currentColor"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="m14.304 4.844 2.852 2.852M7 7H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-4.5m2.409-9.91a2.017 2.017 0 0 1 0 2.853l-6.844 6.844L8 14l.713-3.565 6.844-6.844a2.015 2.015 0 0 1 2.852 0Z"
+                          />
+                        </svg> */}
+                                  </div>
+                                }
+                                open={steps[child].open}
+                                onClickArrow={() => {
+                                  onClickaAccordionArrow(steps[child].shape.id);
+                                }}
+                              >
+                                <Editor
+                                  className="ps-6"
+                                  shape={steps[child].shape}
+                                />
+                              </Accordion>
+                            </li>
+                          </>
+                        );
+                      })}
                     </ul>
-                    <Editor className="ps-6" shape={group.head.shape} />
                   </Accordion>
                 </li>
               );
-            })}
-          </ul>
-        </SidePanel>
+            }
+          )}
+        </ul>
+        <ul>
+          {otherSteps.map((stepId: string) => (
+            <>
+              <li key={stepId} className="mb-1">
+                <Accordion
+                  title={steps[stepId].shape.title}
+                  open={steps[stepId].open}
+                  onClickArrow={() => {
+                    onClickaAccordionArrow(stepId);
+                  }}
+                >
+                  <Editor className="ps-6" shape={steps[stepId].shape} />
+                </Accordion>
+              </li>
+            </>
+          ))}
+        </ul>
+      </SidePanel>
+      <div>
         <canvas
           className={`${space ? "cursor-grab" : ""} overflow-hidden`}
           tabIndex={1}

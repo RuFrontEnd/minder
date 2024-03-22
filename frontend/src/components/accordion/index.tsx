@@ -15,8 +15,8 @@ export default function Accordion(props: AccordionTypes.Props) {
       <div className="flex mb-1">
         <svg
           className={`${
-            open ? "rotate-0" : "rotate-160"
-          } w-6 h-6 text-gray-800 dark:text-white cursor-pointer`}
+            open ? "rotate-0" : "rotate-[-90deg]"
+          } w-6 h-6 text-gray-800 dark:text-white cursor-pointer duration-300`}
           aria-hidden="true"
           xmlns="http://www.w3.org/2000/svg"
           width="24"

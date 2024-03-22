@@ -28,7 +28,7 @@ export default class Terminal extends Core {
     this.title = title;
   };
 
-  onTraversal(handleShape: (goThroughShape: Core, terminator: Terminal) => void) {
+  onTraversal() {
     // traversal all relational steps
     const queue: (Core)[] = [this],
       locks = { [this.id]: { l: false, t: false, r: false, b: false } }, // prevent from graph cycle
@@ -36,9 +36,6 @@ export default class Terminal extends Core {
 
     while (queue.length !== 0) {
       const shape = queue[0];
-      if (handleShape) {
-        handleShape(shape, this)
-      }
 
       const newOptions: DataType = cloneDeep(shape.options);
 
