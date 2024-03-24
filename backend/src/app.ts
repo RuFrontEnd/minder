@@ -1,3 +1,4 @@
+// TODO: user table 新增 create_at 欄位 / JWT token
 import express, { Express, Request, Response, NextFunction } from "express";
 import colors from 'colors'
 import pool from './db';

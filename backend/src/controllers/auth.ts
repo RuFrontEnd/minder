@@ -12,7 +12,6 @@ export default class Auth {
 
   async register(req: Request, res: Response, next: NextFunction) {
     console.log('req.body', req.body)
-
     const { account, email, password } = req.body;
 
     try {

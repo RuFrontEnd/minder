@@ -12,7 +12,6 @@ export default class Auth {
 
   // 創建新會員
   async createUser(account: string, email: string, password: string) {
-    console.log('account', account)
     await pool.query('INSERT INTO user (account, email, password) VALUES (?, ?, ?)', [account, email, password]);
   }
 
