@@ -51,8 +51,6 @@ export default class Core {
   private initScale = 1;
   __w__: number;
   __h__: number;
-  minW: number;
-  minH: number;
   title: Title;
   __p__: Vec;
   curves: {
@@ -88,18 +86,16 @@ export default class Core {
 
   constructor(id: string, w: number, h: number, p: Vec, c: string) {
     this.id = id;
-    this.c = c;
+    this.title = "";
     this.__w__ = w;
     this.__h__ = h;
-    this.minW = 100;
-    this.minH = 100;
-    this.title = "";
     this.__p__ = p;
+    this.c = c;
     this.curves = {
       l: { shape: null, sendTo: null },
       t: { shape: null, sendTo: null },
       r: { shape: null, sendTo: null },
-      b: { shape: null, sendTo: null },
+      b: { shape: null, sendTo: null }, 
     };
     this.__selecting__ = false;
     this.__receiving__ = {
@@ -350,8 +346,6 @@ export default class Core {
     return {
       w: this.w * this.scale,
       h: this.h * this.scale,
-      minW: this.minW * this.scale,
-      minH: this.minH * this.scale,
     };
   }
 

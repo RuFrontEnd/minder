@@ -1,5 +1,8 @@
 import express, { Express, Request, Response, NextFunction } from "express";
+import connectDb from './db'
 import * as routes from "./routes";
+
+connectDb()
 
 const port = 5000;
 
