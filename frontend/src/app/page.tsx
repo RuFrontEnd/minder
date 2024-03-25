@@ -1689,7 +1689,8 @@ export default function ProcessPage() {
                 <li
                   key={procedureId}
                   className="mb-1"
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
                     onClickStep(steps[procedureId].shape.p);
                   }}
                 >
@@ -1774,7 +1775,8 @@ export default function ProcessPage() {
                 <Accordion
                   title={steps[stepId].shape.title}
                   open={steps[stepId].open}
-                  onClickArrow={() => {
+                  onClickArrow={(e) => {
+                    e.stopPropagation();
                     onClickaAccordionArrow(stepId);
                   }}
                 >
