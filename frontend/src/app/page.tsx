@@ -1428,7 +1428,7 @@ export default function ProcessPage() {
         ) {
           shape.drawRecievingPoint(ctx);
         }
-      })
+      });
 
       if (select.shapes.length > 1) {
         // draw select area
@@ -1508,6 +1508,23 @@ export default function ProcessPage() {
     []
   );
 
+  const onClickaAccordionArrow = (shapeId: string) => {
+    const _steps = cloneDeep(steps);
+    _steps[shapeId].open = !_steps[shapeId].open;
+    setSteps(_steps);
+  };
+
+  const onClickStep = (shapeP: CommonTypes.Vec) => {
+    offset = {
+      x: 0 + (window.innerWidth / 2 - shapeP.x),
+      y: 0 + (window.innerHeight / 2 - shapeP.y),
+    };
+
+    shapes.forEach((shape) => {
+      shape.offset = offset;
+    });
+  };
+
   useEffect(() => {
     if (useEffected) return;
 
@@ -1555,8 +1572,8 @@ export default function ProcessPage() {
         200,
         100,
         {
-          x: -offset.x + window.innerWidth / 2 + 200,
-          y: -offset.y + window.innerHeight / 2 - 200,
+          x: -offset.x + window.innerWidth / 2,
+          y: -offset.y + window.innerHeight / 2,
         },
         "orange"
       );
@@ -1611,36 +1628,6 @@ export default function ProcessPage() {
 
     useEffected = true;
   }, []);
-
-  const onClickaAccordionArrow = (shapeId: string) => {
-    const _steps = cloneDeep(steps);
-    _steps[shapeId].open = !_steps[shapeId].open;
-    setSteps(_steps);
-  };
-
-  // useEffect(() => {
-  //   console.log("$canvas", $canvas);
-  // }, []);
-
-  // useEffect(() => {
-  //   const resize = () => {
-  //     console.log("AAA");
-  //     console.log("$canvas", $canvas);
-  //     if (!$canvas) return;
-  //     console.log("window.innerWidth", window.innerWidth);
-  //     console.log("window.innerHeight", window.innerHeight);
-
-  //     $canvas.width = window.innerWidth;
-  //     $canvas.height = window.innerHeight;
-  //   };
-
-  //   window.addEventListener("resize", resize);
-
-  //   return () => {
-  //     // 移除事件監聽器或進行其他清理操作
-  //     window.removeEventListener("resize", resize);
-  //   };
-  // }, [leftMouseBtn,  $canvas]);
 
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
@@ -1699,11 +1686,18 @@ export default function ProcessPage() {
           {Object.entries(procedures).map(
             ([procedureId, procedure], procedureI) => {
               return (
-                <li key={procedureId} className="mb-1">
+                <li
+                  key={procedureId}
+                  className="mb-1"
+                  onClick={() => {
+                    onClickStep(steps[procedureId].shape.p);
+                  }}
+                >
                   <Accordion
                     title={steps[procedureId].shape.title}
                     open={steps[procedureId].open}
-                    onClickArrow={() => {
+                    onClickArrow={(e) => {
+                      e.stopPropagation();
                       onClickaAccordionArrow(procedureId);
                     }}
                   >
@@ -1711,7 +1705,13 @@ export default function ProcessPage() {
                       {procedure.map((child) => {
                         return (
                           <>
-                            <li key={steps[child].shape.id}>
+                            <li
+                              key={steps[child].shape.id}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onClickStep(steps[child].shape.p);
+                              }}
+                            >
                               <Accordion
                                 className={"ps-2"}
                                 title={
@@ -1739,7 +1739,8 @@ export default function ProcessPage() {
                                   </div>
                                 }
                                 open={steps[child].open}
-                                onClickArrow={() => {
+                                onClickArrow={(e) => {
+                                  e.stopPropagation();
                                   onClickaAccordionArrow(steps[child].shape.id);
                                 }}
                               >
@@ -1762,7 +1763,14 @@ export default function ProcessPage() {
         <ul>
           {otherSteps.map((stepId: string) => (
             <>
-              <li key={stepId} className="mb-1">
+              <li
+                key={stepId}
+                className="mb-1"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onClickStep(steps[stepId].shape.p);
+                }}
+              >
                 <Accordion
                   title={steps[stepId].shape.title}
                   open={steps[stepId].open}
