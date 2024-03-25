@@ -10,7 +10,7 @@ const ds = [Direction.l, Direction.t, Direction.r, Direction.b];
 export default class Core {
   id: string;
   c: string;
-  private anchor = {
+  anchor = {
     size: {
       fill: 4,
       stroke: 2,
@@ -95,7 +95,7 @@ export default class Core {
       l: { shape: null, sendTo: null },
       t: { shape: null, sendTo: null },
       r: { shape: null, sendTo: null },
-      b: { shape: null, sendTo: null }, 
+      b: { shape: null, sendTo: null },
     };
     this.__selecting__ = false;
     this.__receiving__ = {
@@ -1037,75 +1037,6 @@ export default class Core {
           ctx.closePath();
         }
       }
-    } else {
-      // draw receiving points
-      ctx.fillStyle = "white";
-      ctx.strokeStyle = "DeepSkyBlue";
-      ctx.lineWidth = this.anchor.size.stroke;
-
-      // left
-      if (this.receiving.l) {
-        ctx.beginPath();
-        ctx.arc(
-          -this.getScaleSize().w / 2,
-          0,
-          this.anchor.size.fill,
-          0,
-          2 * Math.PI,
-          false
-        );
-        ctx.stroke();
-        ctx.fill();
-        ctx.closePath();
-      }
-
-      // top
-      if (this.receiving.t) {
-        ctx.beginPath();
-        ctx.arc(
-          0,
-          -this.getScaleSize().h / 2,
-          this.anchor.size.fill,
-          0,
-          2 * Math.PI,
-          false
-        );
-        ctx.stroke();
-        ctx.fill();
-        ctx.closePath();
-      }
-
-      // right
-      if (this.receiving.r) {
-        ctx.beginPath();
-        ctx.arc(
-          this.getScaleSize().w / 2,
-          0,
-          this.anchor.size.fill,
-          0,
-          2 * Math.PI,
-          false
-        );
-        ctx.stroke();
-        ctx.fill();
-        ctx.closePath();
-      }
-
-      // bottom
-      if (this.receiving.b) {
-        ctx.beginPath();
-        ctx.arc(
-          0,
-          this.getScaleSize().h / 2,
-          this.anchor.size.fill,
-          0,
-          2 * Math.PI,
-          false
-        );
-        ctx.stroke();
-        ctx.fill();
-        ctx.closePath();
-      }
     }
 
     // render center text
@@ -1156,6 +1087,81 @@ export default class Core {
 
     if (this.curves.b.shape) {
       this.curves.b.shape.draw(ctx);
+    }
+
+    ctx.restore();
+  }
+
+  drawRecievingPoint(ctx: CanvasRenderingContext2D) {
+    ctx.save();
+    ctx.translate(this.getScreenP().x, this.getScreenP().y);
+    // draw receiving points
+    ctx.fillStyle = "white";
+    ctx.strokeStyle = "DeepSkyBlue";
+    ctx.lineWidth = this.anchor.size.stroke;
+
+    // left
+    if (this.receiving.l) {
+      ctx.beginPath();
+      ctx.arc(
+        -this.getScaleSize().w / 2,
+        0,
+        this.anchor.size.fill,
+        0,
+        2 * Math.PI,
+        false
+      );
+      ctx.stroke();
+      ctx.fill();
+      ctx.closePath();
+    }
+
+    // top
+    if (this.receiving.t) {
+      ctx.beginPath();
+      ctx.arc(
+        0,
+        -this.getScaleSize().h / 2,
+        this.anchor.size.fill,
+        0,
+        2 * Math.PI,
+        false
+      );
+      ctx.stroke();
+      ctx.fill();
+      ctx.closePath();
+    }
+
+    // right
+    if (this.receiving.r) {
+      ctx.beginPath();
+      ctx.arc(
+        this.getScaleSize().w / 2,
+        0,
+        this.anchor.size.fill,
+        0,
+        2 * Math.PI,
+        false
+      );
+      ctx.stroke();
+      ctx.fill();
+      ctx.closePath();
+    }
+
+    // bottom
+    if (this.receiving.b) {
+      ctx.beginPath();
+      ctx.arc(
+        0,
+        this.getScaleSize().h / 2,
+        this.anchor.size.fill,
+        0,
+        2 * Math.PI,
+        false
+      );
+      ctx.stroke();
+      ctx.fill();
+      ctx.closePath();
     }
 
     ctx.restore();

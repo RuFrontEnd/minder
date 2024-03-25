@@ -727,6 +727,7 @@ export default function ProcessPage() {
           pressing.parent.disConnect(pressing?.direction, true);
 
           shapes.forEach((shape) => {
+            if (!ctx) return;
             const theEdge = shape.getEdge(),
               threshold = 20,
               isNearShape =
@@ -1388,7 +1389,7 @@ export default function ProcessPage() {
         shape.draw(ctx);
       });
 
-      // fraw curves in shapes
+      // draw curves in shapes
       shapes.forEach((shape) => {
         if (!ctx) return;
 
@@ -1417,6 +1418,17 @@ export default function ProcessPage() {
 
         ctx?.closePath();
       }
+
+      shapes.forEach((shape) => {
+        if (
+          shape.receiving.l ||
+          shape.receiving.t ||
+          shape.receiving.r ||
+          shape.receiving.b
+        ) {
+          shape.drawRecievingPoint(ctx);
+        }
+      })
 
       if (select.shapes.length > 1) {
         // draw select area
