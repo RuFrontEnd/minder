@@ -1369,124 +1369,132 @@ export default function ProcessPage() {
     setIsUserSidePanelOpen((open) => !open);
   };
 
-  const draw = useCallback(() => {
-    if (!ctx) return;
-    ctx?.clearRect(0, 0, window.innerWidth, window.innerHeight);
+  const draw = useCallback(
+    ($canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => {
+      if (!ctx || !$canvas) return;
+      $canvas.width = window.innerWidth;
+      $canvas.height = window.innerHeight;
+      ctx?.clearRect(0, 0, window.innerWidth, window.innerHeight);
 
-    // draw background
-    ctx?.beginPath();
-    ctx.fillStyle = "#F6F7FA";
-    ctx?.fillRect(0, 0, window.innerWidth, window.innerHeight);
-    ctx?.closePath();
-
-    // draw shapes
-    shapes.forEach((shape) => {
-      if (!ctx) return;
-      shape.draw(ctx);
-    });
-
-    // fraw curves in shapes
-    shapes.forEach((shape) => {
-      if (!ctx) return;
-
-      shape.drawCurve(ctx);
-    });
-
-    // draw selectArea
-    if (selectAreaP) {
+      // draw background
       ctx?.beginPath();
-
-      ctx.fillStyle = "#2436b155";
-      ctx.fillRect(
-        selectAreaP?.start.x,
-        selectAreaP?.start.y,
-        selectAreaP?.end.x - selectAreaP?.start.x,
-        selectAreaP?.end.y - selectAreaP?.start.y
-      );
-
-      ctx.strokeStyle = "#2436b1";
-      ctx.strokeRect(
-        selectAreaP?.start.x,
-        selectAreaP?.start.y,
-        selectAreaP?.end.x - selectAreaP?.start.x,
-        selectAreaP?.end.y - selectAreaP?.start.y
-      );
-
-      ctx?.closePath();
-    }
-
-    if (select.shapes.length > 1) {
-      // draw select area
-      ctx?.beginPath();
-      ctx.strokeStyle = "#2436b1";
-      ctx.lineWidth = 1;
-      ctx.strokeRect(
-        select.start.x,
-        select.start.y,
-        select.end.x - select.start.x,
-        select.end.y - select.start.y
-      );
+      ctx.fillStyle = "#F6F7FA";
+      ctx?.fillRect(0, 0, window.innerWidth, window.innerHeight);
       ctx?.closePath();
 
-      // draw select area anchors
-      ctx.fillStyle = "white";
-      ctx.lineWidth = selectAnchor.size.stroke;
+      // draw shapes
+      shapes.forEach((shape) => {
+        if (!ctx) return;
+        shape.draw(ctx);
+      });
 
-      ctx?.beginPath();
-      ctx.arc(
-        select.start.x,
-        select.start.y,
-        selectAnchor.size.fill,
-        0,
-        2 * Math.PI,
-        false
-      ); // left, top
-      ctx.stroke();
-      ctx.fill();
-      ctx?.closePath();
+      // fraw curves in shapes
+      shapes.forEach((shape) => {
+        if (!ctx) return;
 
-      ctx?.beginPath();
-      ctx.arc(
-        select.end.x,
-        select.start.y,
-        selectAnchor.size.fill,
-        0,
-        2 * Math.PI,
-        false
-      ); // right, top
-      ctx.stroke();
-      ctx.fill();
-      ctx?.closePath();
+        shape.drawCurve(ctx);
+      });
 
-      ctx?.beginPath();
-      ctx.arc(
-        select.end.x,
-        select.end.y,
-        selectAnchor.size.fill,
-        0,
-        2 * Math.PI,
-        false
-      ); // right, bottom
-      ctx.stroke();
-      ctx.fill();
-      ctx?.closePath();
+      // draw selectArea
+      if (selectAreaP) {
+        ctx?.beginPath();
 
-      ctx?.beginPath();
-      ctx.arc(
-        select.start.x,
-        select.end.y,
-        selectAnchor.size.fill,
-        0,
-        2 * Math.PI,
-        false
-      ); // left, bottom
-      ctx.stroke();
-      ctx.fill();
-      ctx?.closePath();
-    }
+        ctx.fillStyle = "#2436b155";
+        ctx.fillRect(
+          selectAreaP?.start.x,
+          selectAreaP?.start.y,
+          selectAreaP?.end.x - selectAreaP?.start.x,
+          selectAreaP?.end.y - selectAreaP?.start.y
+        );
 
-    requestAnimationFrame(draw);
-  }, []);
+        ctx.strokeStyle = "#2436b1";
+        ctx.strokeRect(
+          selectAreaP?.start.x,
+          selectAreaP?.start.y,
+          selectAreaP?.end.x - selectAreaP?.start.x,
+          selectAreaP?.end.y - selectAreaP?.start.y
+        );
+
+        ctx?.closePath();
+      }
+
+      if (select.shapes.length > 1) {
+        // draw select area
+        ctx?.beginPath();
+        ctx.strokeStyle = "#2436b1";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(
+          select.start.x,
+          select.start.y,
+          select.end.x - select.start.x,
+          select.end.y - select.start.y
+        );
+        ctx?.closePath();
+
+        // draw select area anchors
+        ctx.fillStyle = "white";
+        ctx.lineWidth = selectAnchor.size.stroke;
+
+        ctx?.beginPath();
+        ctx.arc(
+          select.start.x,
+          select.start.y,
+          selectAnchor.size.fill,
+          0,
+          2 * Math.PI,
+          false
+        ); // left, top
+        ctx.stroke();
+        ctx.fill();
+        ctx?.closePath();
+
+        ctx?.beginPath();
+        ctx.arc(
+          select.end.x,
+          select.start.y,
+          selectAnchor.size.fill,
+          0,
+          2 * Math.PI,
+          false
+        ); // right, top
+        ctx.stroke();
+        ctx.fill();
+        ctx?.closePath();
+
+        ctx?.beginPath();
+        ctx.arc(
+          select.end.x,
+          select.end.y,
+          selectAnchor.size.fill,
+          0,
+          2 * Math.PI,
+          false
+        ); // right, bottom
+        ctx.stroke();
+        ctx.fill();
+        ctx?.closePath();
+
+        ctx?.beginPath();
+        ctx.arc(
+          select.start.x,
+          select.end.y,
+          selectAnchor.size.fill,
+          0,
+          2 * Math.PI,
+          false
+        ); // left, bottom
+        ctx.stroke();
+        ctx.fill();
+        ctx?.closePath();
+      }
+
+      requestAnimationFrame(() => {
+        if (!$canvas || !ctx) return;
+        draw($canvas, ctx);
+      });
+    },
+    []
+  );
 
   useEffect(() => {
     if (useEffected) return;
@@ -1583,7 +1591,10 @@ export default function ProcessPage() {
       checkData();
       checkGroups();
 
-      requestAnimationFrame(draw);
+      requestAnimationFrame(() => {
+        if (!$canvas || !ctx) return;
+        draw($canvas, ctx);
+      });
     }
 
     useEffected = true;
@@ -1595,20 +1606,29 @@ export default function ProcessPage() {
     setSteps(_steps);
   };
 
-  useEffect(() => {
-    const resize = () => {
-      if (!$canvas) return;
-      $canvas.width = window.innerWidth;
-      $canvas.height = window.innerHeight;
-    };
+  // useEffect(() => {
+  //   console.log("$canvas", $canvas);
+  // }, []);
 
-    window.addEventListener("resize", resize);
+  // useEffect(() => {
+  //   const resize = () => {
+  //     console.log("AAA");
+  //     console.log("$canvas", $canvas);
+  //     if (!$canvas) return;
+  //     console.log("window.innerWidth", window.innerWidth);
+  //     console.log("window.innerHeight", window.innerHeight);
 
-    return () => {
-      // 移除事件監聽器或進行其他清理操作
-      window.removeEventListener("resize", resize);
-    };
-  }, [leftMouseBtn]);
+  //     $canvas.width = window.innerWidth;
+  //     $canvas.height = window.innerHeight;
+  //   };
+
+  //   window.addEventListener("resize", resize);
+
+  //   return () => {
+  //     // 移除事件監聽器或進行其他清理操作
+  //     window.removeEventListener("resize", resize);
+  //   };
+  // }, [leftMouseBtn,  $canvas]);
 
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
