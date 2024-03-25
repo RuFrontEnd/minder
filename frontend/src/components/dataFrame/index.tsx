@@ -97,7 +97,7 @@ export default function DataFrame({
     <div
       key={shape.id}
       id={shape.id}
-      className={`w-[200px] bg-gray-100 rounded-lg p-4 flex flex-col md:ml-auto mt-10 md:mt-0 fixed -translate-y-1/2`}
+      className={`w-[200px] rounded-lg p-4 flex flex-col md:ml-auto mt-10 md:mt-0 fixed -translate-y-1/2 bg-white shadow-md`}
       style={{
         left: `${coordinate.x}px`,
         top: `${coordinate.y}px`,
