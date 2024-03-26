@@ -1,6 +1,10 @@
 import { Auth as AuthModel } from "../models";
 import validator from "validator";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+
+const env = dotenv.config().parsed;
 
 export default class Auth {
   private authModel = new AuthModel();
@@ -20,7 +24,7 @@ export default class Auth {
     });
   }
 
-   async login(account: string, password: string): Promise<void> {
+  async login(account: string, password: string): Promise<string> {
     const rows = await this.authModel.findByAccount(account);
 
     if (!rows || rows.length === 0) {
@@ -34,6 +38,16 @@ export default class Auth {
     if (!passwordMatch) {
       throw new Error("Invalid account or password.");
     }
+
+    if (!env?.JWTSIGN) {
+      throw new Error("None of jwt sign");
+    }
+
+    const token = jwt.sign({ userId: user.id }, env.JWTSIGN, {
+      expiresIn: "1m",
+    });
+
+    return token;
   }
 
   echo() {

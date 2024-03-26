@@ -26,8 +26,11 @@ export default class Auth {
     const { account, password } = req.body;
 
     try {
-      await this.authService.login(account, password);
-      res.status(201).send("User login successfully!");
+      const token = await this.authService.login(account, password);
+      res
+        .status(201)
+        .setHeader("Authorization", `Bearer ${token}`)
+        .send("User login successfully!");
     } catch (err) {
       res.status(400).send(getError(err));
     }

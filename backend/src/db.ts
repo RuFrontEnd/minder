@@ -1,6 +1,6 @@
 // DataBase
 import dotenv from 'dotenv'
-import mysql, { Pool } from 'mysql2/promise';
+import mysql from 'mysql2/promise';
 
 const env = dotenv.config().parsed
 
