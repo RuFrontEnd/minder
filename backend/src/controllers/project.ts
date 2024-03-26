@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from "express";
-import { Article as ArticleService } from "../services";
+import { Project as ProjectService } from "../services";
 
 export default class Article {
-  private authService = new ArticleService();
+  private projectService = new ProjectService();
 
   constructor() {
     this.echo = this.echo.bind(this);
@@ -11,6 +11,6 @@ export default class Article {
   echo(request: Request, response: Response, next: NextFunction) {
     response.type("text/plain");
     response.send("articles");
-    this.authService.echo();
+    this.projectService.echo();
   }
 }
