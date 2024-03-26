@@ -14,12 +14,18 @@ export default class Auth {
     return (rows as RowDataPacket[])[0].count > 0;
   }
 
-  // 創建新會員
   async createUser(account: string, email: string, hash: string) {
     await pool.query(
       "INSERT INTO user (account, email, password) VALUES (?, ?, ?)",
       [account, email, hash]
     );
+  }
+
+  async findByAccount(account: string): Promise<RowDataPacket[] | null> {
+    const [rows] = await pool.query("SELECT * FROM user WHERE account = ?", [
+      account,
+    ]);
+    return rows as RowDataPacket[];
   }
 
   echo() {
