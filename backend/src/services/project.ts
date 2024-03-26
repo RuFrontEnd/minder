@@ -4,7 +4,7 @@ export default class Project {
   private projectModel = new ProjectModel();
 
   echo() {
-    console.log("article service");
+    console.log("project service");
     this.projectModel.echo();
   }
 }

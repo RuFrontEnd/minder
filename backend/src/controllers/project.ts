@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { Project as ProjectService } from "../services";
 
-export default class Article {
+export default class Project {
   private projectService = new ProjectService();
 
   constructor() {
@@ -10,7 +10,7 @@ export default class Article {
 
   echo(request: Request, response: Response, next: NextFunction) {
     response.type("text/plain");
-    response.send("articles");
+    response.send("projects");
     this.projectService.echo();
   }
 }
