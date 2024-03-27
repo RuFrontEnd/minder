@@ -39,6 +39,7 @@ let useEffected = false,
     dy: number; // distance between event py & pressing shape py
   } = null,
   offset: CommonTypes.Vec = { x: 0, y: 0 },
+  offset_center: CommonTypes.Vec = { x: 0, y: 0 },
   dragP: CommonTypes.Vec = { x: 0, y: 0 },
   moveP: null | {
     originalX: number;
@@ -398,24 +399,40 @@ export default function ProcessPage() {
     const _scale = scale * (1 + scaleAmount);
     setScale(_scale);
 
+    // --- get offset value
     // zoom the page based on where the cursor is
-    var distX = client.x / $canvas.width;
-    var distY = client.y / $canvas.height;
+    const distX = client.x / $canvas.width;
+    const distY = client.y / $canvas.height;
 
     // calculate how much we need to zoom
     const unitsZoomedX = ($canvas.width / _scale) * scaleAmount;
     const unitsZoomedY = ($canvas.height / _scale) * scaleAmount;
-
     const unitsAddLeft = unitsZoomedX * distX;
     const unitsAddTop = unitsZoomedY * distY;
 
     offset.x -= unitsAddLeft;
     offset.y -= unitsAddTop;
+    // --
 
     shapes.forEach((shape) => {
       shape.scale = _scale;
       shape.offset = offset;
     });
+
+    // --- get center point offset value
+    const distX_center = 1 / 2;
+    const distY_center = 1 / 2;
+
+    // calculate how much we need to zoom
+    const unitsZoomedX_center = ($canvas.width / _scale) * scaleAmount;
+    const unitsZoomedY_center = ($canvas.height / _scale) * scaleAmount;
+
+    const unitsAddLeft_center = unitsZoomedX_center * distX_center;
+    const unitsAddTop_center = unitsZoomedY_center * distY_center;
+
+    offset_center.x -= unitsAddLeft_center;
+    offset_center.y -= unitsAddTop_center;
+    // ---
 
     if (select.shapes.length > 1) {
       select.start.x = -1;
@@ -1515,9 +1532,11 @@ export default function ProcessPage() {
   };
 
   const onClickStep = (shapeP: CommonTypes.Vec) => {
+    if (!$canvas) return;
+
     offset = {
-      x: 0 + (window.innerWidth / 2 - shapeP.x),
-      y: 0 + (window.innerHeight / 2 - shapeP.y),
+      x: offset_center.x + (window.innerWidth / 2 - shapeP.x),
+      y: offset_center.y + (window.innerHeight / 2 - shapeP.y),
     };
 
     shapes.forEach((shape) => {
@@ -1641,7 +1660,12 @@ export default function ProcessPage() {
 
   return (
     <>
-      <header className="w-full fixed z-50 shadow-md text-gray-600 body-font bg-indigo-100">
+      <header
+        className="w-full fixed z-50 shadow-md text-gray-600 body-font bg-indigo-100"
+        onClick={() => {
+          console.log("offset", offset);
+        }}
+      >
         <ul className="container mx-auto grid grid-cols-3 py-2 px-4">
           <li>
             <a className="flex title-font font-medium items-center text-gray-900 mb-4 md:mb-0">
