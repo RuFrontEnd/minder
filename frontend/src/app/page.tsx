@@ -1269,8 +1269,8 @@ export default function ProcessPage() {
       200,
       100,
       {
-        x: -offset.x + window.innerWidth / 2,
-        y: -offset.y + window.innerHeight / 2,
+        x: -offset.x + window.innerWidth / 2 + offset_center.x,
+        y: -offset.y + window.innerHeight / 2 + offset_center.y,
       },
       "orange"
     );
@@ -1288,8 +1288,8 @@ export default function ProcessPage() {
       200,
       100,
       {
-        x: -offset.x + window.innerWidth / 2,
-        y: -offset.y + window.innerHeight / 2,
+        x: -offset.x + window.innerWidth / 2 + offset_center.x,
+        y: -offset.y + window.innerHeight / 2 + offset_center.y,
       },
       "red"
     );
@@ -1307,8 +1307,8 @@ export default function ProcessPage() {
       200,
       100,
       {
-        x: -offset.x + window.innerWidth / 2,
-        y: -offset.y + window.innerHeight / 2,
+        x: -offset.x + window.innerWidth / 2 + offset_center.x,
+        y: -offset.y + window.innerHeight / 2 + offset_center.y,
       },
       "green"
     );
@@ -1326,8 +1326,8 @@ export default function ProcessPage() {
       100,
       100,
       {
-        x: -offset.x + window.innerWidth / 2,
-        y: -offset.y + window.innerHeight / 2,
+        x: -offset.x + window.innerWidth / 2 + offset_center.x,
+        y: -offset.y + window.innerHeight / 2 + offset_center.y,
       },
       "#3498db"
     );
@@ -1586,19 +1586,19 @@ export default function ProcessPage() {
       //   { x: 400, y: 200 }
       // );
 
-      let terminal_new = new Terminal(
-        `terminator_${Date.now()}`,
-        200,
-        100,
-        {
-          x: -offset.x + window.innerWidth / 2,
-          y: -offset.y + window.innerHeight / 2,
-        },
-        "orange"
-      );
-      terminal_new.offset = offset;
-      terminal_new.scale = scale;
-      terminal_new.title = "起點";
+      // let terminal_new = new Terminal(
+      //   `terminator_${Date.now()}`,
+      //   200,
+      //   100,
+      //   {
+      //     x: -offset.x + window.innerWidth / 2,
+      //     y: -offset.y + window.innerHeight / 2,
+      //   },
+      //   "orange"
+      // );
+      // terminal_new.offset = offset;
+      // terminal_new.scale = scale;
+      // terminal_new.title = "起點";
 
       let data_new = new Data(
         `data_${Date.now()}`,
@@ -1628,7 +1628,7 @@ export default function ProcessPage() {
       process.scale = scale;
       process.title = "程序_1";
 
-      shapes.push(terminal_new);
+      // shapes.push(terminal_new);
       shapes.push(data_new);
       shapes.push(process);
       // shapes.push(process_2);
