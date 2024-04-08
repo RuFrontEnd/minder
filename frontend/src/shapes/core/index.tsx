@@ -25,20 +25,20 @@ export default class Core {
     cpline: Line;
     curve: Line;
   } = {
-    d: 100, // 30
-    size: {
-      fill: 4,
-      stroke: 2,
-    },
-    cpline: {
-      w: 1,
-      c: "#c00",
-    },
-    curve: {
-      w: 2,
-      c: "#333",
-    },
-  };
+      d: 100, // 30
+      size: {
+        fill: 4,
+        stroke: 2,
+      },
+      cpline: {
+        w: 1,
+        c: "#c00",
+      },
+      curve: {
+        w: 2,
+        c: "#333",
+      },
+    };
   private strokeSize = 2;
   private initPressing = {
     activate: false,
@@ -75,9 +75,9 @@ export default class Core {
   dragP:
     | Vec
     | {
-        x: null;
-        y: null;
-      };
+      x: null;
+      y: null;
+    };
   options: DataType;
   selectedData: DataType;
   redundancies: DataType;
@@ -198,8 +198,8 @@ export default class Core {
     }
 
     const receiveFromCurve_l = this.receiveFrom.l?.shape.curves[
-        this.receiveFrom.l.sendD
-      ].shape,
+      this.receiveFrom.l.sendD
+    ].shape,
       receiveFromCurve_r = this.receiveFrom.r?.shape.curves[
         this.receiveFrom.r.sendD
       ].shape;
@@ -261,8 +261,8 @@ export default class Core {
     }
 
     const receiveFromCurve_t = this.receiveFrom.t?.shape.curves[
-        this.receiveFrom.t.sendD
-      ].shape,
+      this.receiveFrom.t.sendD
+    ].shape,
       receiveFromCurve_b = this.receiveFrom.b?.shape.curves[
         this.receiveFrom.b.sendD
       ].shape;
@@ -543,8 +543,8 @@ export default class Core {
       if (
         !this.curves[d].shape &&
         (p.x - center.curveTrigger[d].x) * (p.x - center.curveTrigger[d].x) +
-          (p.y - center.curveTrigger[d].y) * (p.y - center.curveTrigger[d].y) <
-          this.curveTrigger.size.fill * this.curveTrigger.size.fill
+        (p.y - center.curveTrigger[d].y) * (p.y - center.curveTrigger[d].y) <
+        this.curveTrigger.size.fill * this.curveTrigger.size.fill
       ) {
         return Direction[d];
       }
@@ -889,7 +889,7 @@ export default class Core {
     });
   };
 
-  draw(ctx: CanvasRenderingContext2D, sendable: boolean = true) {
+  draw(ctx: CanvasRenderingContext2D) {
     const edge = this.getEdge(),
       fillRectParams = {
         x: edge.l - this.getScreenP().x,
@@ -970,72 +970,6 @@ export default class Core {
         ctx.stroke();
         ctx.fill();
         ctx.closePath();
-
-        // draw curve triggers
-        ctx.lineWidth = this.curveTrigger.size.stroke;
-
-        if (!this.curves.l.shape && !this.receiveFrom.l && sendable) {
-          // left
-          ctx.beginPath();
-          ctx.arc(
-            -this.getScaleSize().w / 2 - this.getScaleCurveTriggerDistance(),
-            0,
-            this.anchor.size.fill,
-            0,
-            2 * Math.PI,
-            false
-          );
-          ctx.stroke();
-          ctx.fill();
-          ctx.closePath();
-        }
-
-        if (!this.curves.t.shape && !this.receiveFrom.t && sendable) {
-          // top
-          ctx.beginPath();
-          ctx.arc(
-            0,
-            -this.getScaleSize().h / 2 - this.getScaleCurveTriggerDistance(),
-            this.anchor.size.fill,
-            0,
-            2 * Math.PI,
-            false
-          );
-          ctx.stroke();
-          ctx.fill();
-          ctx.closePath();
-        }
-
-        if (!this.curves.r.shape && !this.receiveFrom.r && sendable) {
-          // right
-          ctx.beginPath();
-          ctx.arc(
-            this.getScaleSize().w / 2 + this.getScaleCurveTriggerDistance(),
-            0,
-            this.anchor.size.fill,
-            0,
-            2 * Math.PI,
-            false
-          );
-          ctx.stroke();
-          ctx.fill();
-          ctx.closePath();
-        }
-
-        if (!this.curves.b.shape && !this.receiveFrom.b && sendable) {
-          ctx.beginPath();
-          ctx.arc(
-            0,
-            this.getScaleSize().h / 2 + this.getScaleCurveTriggerDistance(),
-            this.curveTrigger.size.fill,
-            0,
-            2 * Math.PI,
-            false
-          ); // bottom
-          ctx.stroke();
-          ctx.fill();
-          ctx.closePath();
-        }
       }
     }
 
@@ -1087,6 +1021,82 @@ export default class Core {
 
     if (this.curves.b.shape) {
       this.curves.b.shape.draw(ctx);
+    }
+
+    ctx.restore();
+  }
+
+  drawSendingPoint(ctx: CanvasRenderingContext2D) {
+    if (!ctx) return
+    ctx.save();
+    ctx.translate(this.getScreenP().x, this.getScreenP().y);
+    // draw curve triggers
+    ctx.fillStyle = "white";
+    ctx.strokeStyle = "DeepSkyBlue";
+    ctx.lineWidth = this.strokeSize;
+
+    if (!this.curves.l.shape && !this.receiveFrom.l) {
+      // left
+      ctx.beginPath();
+      ctx.arc(
+        -this.getScaleSize().w / 2 - this.getScaleCurveTriggerDistance(),
+        0,
+        this.anchor.size.fill,
+        0,
+        2 * Math.PI,
+        false
+      );
+      ctx.stroke();
+      ctx.fill();
+      ctx.closePath();
+
+    }
+
+    if (!this.curves.t.shape && !this.receiveFrom.t) {
+      // top
+      ctx.beginPath();
+      ctx.arc(
+        0,
+        -this.getScaleSize().h / 2 - this.getScaleCurveTriggerDistance(),
+        this.anchor.size.fill,
+        0,
+        2 * Math.PI,
+        false
+      );
+      ctx.stroke();
+      ctx.fill();
+      ctx.closePath();
+    }
+
+    if (!this.curves.r.shape && !this.receiveFrom.r) {
+      // right
+      ctx.beginPath();
+      ctx.arc(
+        this.getScaleSize().w / 2 + this.getScaleCurveTriggerDistance(),
+        0,
+        this.anchor.size.fill,
+        0,
+        2 * Math.PI,
+        false
+      );
+      ctx.stroke();
+      ctx.fill();
+      ctx.closePath();
+    }
+
+    if (!this.curves.b.shape && !this.receiveFrom.b) {
+      ctx.beginPath();
+      ctx.arc(
+        0,
+        this.getScaleSize().h / 2 + this.getScaleCurveTriggerDistance(),
+        this.curveTrigger.size.fill,
+        0,
+        2 * Math.PI,
+        false
+      ); // bottom
+      ctx.stroke();
+      ctx.fill();
+      ctx.closePath();
     }
 
     ctx.restore();

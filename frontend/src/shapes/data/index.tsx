@@ -171,13 +171,7 @@ export default class Data extends Core {
 
     ctx.restore();
 
-    super.draw(
-      ctx,
-      !this.curves.l.shape &&
-        !this.curves.t.shape &&
-        !this.curves.r.shape &&
-        !this.curves.b.shape
-    );
+    super.draw(ctx);
   }
 
   drawRecievingPoint(ctx: CanvasRenderingContext2D) {

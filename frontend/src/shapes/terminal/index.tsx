@@ -3,7 +3,7 @@ import Core from "@/shapes/core";
 import Process from "@/shapes/process";
 import Data from "@/shapes/data";
 import Decision from "@/shapes/decision";
-import { ConnectTarget } from "@/types/shapes/core";
+import * as TerminatorTypes from "@/types/shapes/terminator";
 import {
   Vec,
   Id,
@@ -18,10 +18,12 @@ import { cloneDeep } from "lodash";
 
 export default class Terminal extends Core {
   title: Title;
+  isStart: TerminatorTypes.IsStart
 
-  constructor(id: Id, w: W, h: H, p: Vec, c: C) {
+  constructor(id: Id, w: W, h: H, p: Vec, c: C, _isStart: TerminatorTypes.IsStart) {
     super(id, w, h, p, c);
     this.title = "";
+    this.isStart = _isStart
   }
 
   onDataChange = (title: Title) => {
@@ -109,12 +111,6 @@ export default class Terminal extends Core {
 
     ctx.restore();
 
-    super.draw(
-      ctx,
-      !this.curves.l.shape &&
-      !this.curves.t.shape &&
-      !this.curves.r.shape &&
-      !this.curves.b.shape
-    );
+    super.draw(ctx);
   }
 }

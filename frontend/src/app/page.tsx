@@ -27,14 +27,14 @@ let useEffected = false,
     shape: null | Terminal | Process | Data | Desicion | Curve;
     direction: null | CommonTypes.Direction;
     target:
-      | null
-      | CoreTypes.PressingTarget
-      | CurveTypes.PressingTarget
-      | "selectArea_m"
-      | "selectArea_lt"
-      | "selectArea_rt"
-      | "selectArea_rb"
-      | "selectArea_lb";
+    | null
+    | CoreTypes.PressingTarget
+    | CurveTypes.PressingTarget
+    | "selectArea_m"
+    | "selectArea_lt"
+    | "selectArea_rt"
+    | "selectArea_rb"
+    | "selectArea_lb";
     dx: number; // distance between event px & pressing shape px
     dy: number; // distance between event py & pressing shape py
   } = null,
@@ -82,22 +82,22 @@ let useEffected = false,
   };
 
 const ds = [
-    CommonTypes.Direction.l,
-    CommonTypes.Direction.t,
-    CommonTypes.Direction.r,
-    CommonTypes.Direction.b,
-  ],
+  CommonTypes.Direction.l,
+  CommonTypes.Direction.t,
+  CommonTypes.Direction.r,
+  CommonTypes.Direction.b,
+],
   vs: (
     | CoreTypes.PressingTarget.lt
     | CoreTypes.PressingTarget.rt
     | CoreTypes.PressingTarget.rb
     | CoreTypes.PressingTarget.lb
   )[] = [
-    CoreTypes.PressingTarget.lt,
-    CoreTypes.PressingTarget.rt,
-    CoreTypes.PressingTarget.rb,
-    CoreTypes.PressingTarget.lb,
-  ];
+      CoreTypes.PressingTarget.lt,
+      CoreTypes.PressingTarget.rt,
+      CoreTypes.PressingTarget.rb,
+      CoreTypes.PressingTarget.lb,
+    ];
 
 const getFramePosition = (shape: Core) => {
   const frameOffset = 12;
@@ -192,58 +192,58 @@ const Editor = (props: { className: string; shape: Core }) => {
       {(props.shape instanceof Process ||
         props.shape instanceof Data ||
         props.shape instanceof Desicion) && (
-        <div className={props.className && props.className}>
-          {props.shape instanceof Data && (
-            <div>
-              <p className="mb-1">Data</p>
-              {/* <div
+          <div className={props.className && props.className}>
+            {props.shape instanceof Data && (
+              <div>
+                <p className="mb-1">Data</p>
+                {/* <div
               className="w-6 h-6 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
               onClick={onClickScalePlusIcon}
             >
               +
             </div> */}
+                <ul className="ps-2">
+                  {props.shape.data.map((dataItem) => (
+                    <li className="mb-1"> · {dataItem.text}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <div>
+              <p className="mb-1">Data Usage</p>
               <ul className="ps-2">
-                {props.shape.data.map((dataItem) => (
-                  <li className="mb-1"> · {dataItem.text}</li>
+                {props.shape.options.map((option) => (
+                  <li className="mb-1">
+                    <span className="bg-indigo-100 text-indigo-500 w-4 h-4 rounded-full inline-flex items-center justify-center">
+                      {selections[option.text] && (
+                        <svg
+                          fill="none"
+                          stroke="currentColor"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="3"
+                          className="w-3 h-3"
+                          viewBox="0 0 24 24"
+                        >
+                          <path d="M20 6L9 17l-5-5"></path>
+                        </svg>
+                      )}
+                    </span>
+                    {option.text}
+                  </li>
                 ))}
               </ul>
             </div>
-          )}
-          <div>
-            <p className="mb-1">Data Usage</p>
-            <ul className="ps-2">
-              {props.shape.options.map((option) => (
-                <li className="mb-1">
-                  <span className="bg-indigo-100 text-indigo-500 w-4 h-4 rounded-full inline-flex items-center justify-center">
-                    {selections[option.text] && (
-                      <svg
-                        fill="none"
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="3"
-                        className="w-3 h-3"
-                        viewBox="0 0 24 24"
-                      >
-                        <path d="M20 6L9 17l-5-5"></path>
-                      </svg>
-                    )}
-                  </span>
-                  {option.text}
-                </li>
-              ))}
-            </ul>
+            <div>
+              <div className="mb-1">Redundancies</div>
+              <ul className="ps-2">
+                {props.shape.redundancies.map((redundancy) => (
+                  <li className="mb-1"> · {redundancy.text}</li>
+                ))}
+              </ul>
+            </div>
           </div>
-          <div>
-            <div className="mb-1">Redundancies</div>
-            <ul className="ps-2">
-              {props.shape.redundancies.map((redundancy) => (
-                <li className="mb-1"> · {redundancy.text}</li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      )}
+        )}
     </>
   );
 };
@@ -252,8 +252,8 @@ export default function ProcessPage() {
   let { current: $canvas } = useRef<HTMLCanvasElement | null>(null);
 
   const [dataFrame, setDataFrame] = useState<
-      { p: CommonTypes.Vec } | undefined
-    >(undefined),
+    { p: CommonTypes.Vec } | undefined
+  >(undefined),
     [dbClickedShape, setDbClickedShape] = useState<
       Terminal | Data | Process | Desicion | null
     >(null),
@@ -310,10 +310,10 @@ export default function ProcessPage() {
     shapes.forEach((shape) => {
       if (
         shape instanceof Terminal &&
-        !shape.receiveFrom.l &&
-        !shape.receiveFrom.t &&
-        !shape.receiveFrom.r &&
-        !shape.receiveFrom.b
+        (!shape.receiveFrom.l &&
+          !shape.receiveFrom.t &&
+          !shape.receiveFrom.r &&
+          !shape.receiveFrom.b)
       ) {
         if (!_procedures[shape.id]) {
           _procedures[shape.id] = [];
@@ -464,9 +464,9 @@ export default function ProcessPage() {
     let $canvas = document.querySelector("canvas");
 
     const p = {
-        x: e.nativeEvent.offsetX,
-        y: e.nativeEvent.offsetY,
-      },
+      x: e.nativeEvent.offsetX,
+      y: e.nativeEvent.offsetY,
+    },
       pInSelectArea =
         p.x > select.start.x &&
         p.y > select.start.y &&
@@ -639,12 +639,12 @@ export default function ProcessPage() {
                 dx:
                   (p.x - dragP.x) * (1 / scale) -
                   shape?.getEdge()[
-                    theCheckShapeVertexesBoundry[0] as CommonTypes.Direction
+                  theCheckShapeVertexesBoundry[0] as CommonTypes.Direction
                   ],
                 dy:
                   (p.y - dragP.y) * (1 / scale) -
                   shape?.getEdge()[
-                    theCheckShapeVertexesBoundry[1] as CommonTypes.Direction
+                  theCheckShapeVertexesBoundry[1] as CommonTypes.Direction
                   ],
               };
             }
@@ -694,9 +694,9 @@ export default function ProcessPage() {
   const onMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     e.preventDefault();
     const p = {
-        x: e.nativeEvent.offsetX,
-        y: e.nativeEvent.offsetY,
-      },
+      x: e.nativeEvent.offsetX,
+      y: e.nativeEvent.offsetY,
+    },
       offsetP = {
         x: p.x - dragP.x,
         y: p.y - dragP.y,
@@ -1090,9 +1090,9 @@ export default function ProcessPage() {
         const theEdge = shape.getEdge();
 
         const l =
-            selectAreaP.start.x < selectAreaP.end.x
-              ? selectAreaP.start.x
-              : selectAreaP.end.x,
+          selectAreaP.start.x < selectAreaP.end.x
+            ? selectAreaP.start.x
+            : selectAreaP.end.x,
           t =
             selectAreaP.start.y < selectAreaP.end.y
               ? selectAreaP.start.y
@@ -1144,6 +1144,7 @@ export default function ProcessPage() {
 
     shapes.forEach((shape) => {
       if (
+        !(shape instanceof Terminal && shape.isStart) &&
         pressing?.shape &&
         pressing.shape instanceof Curve &&
         pressing?.target &&
@@ -1265,14 +1266,15 @@ export default function ProcessPage() {
 
   const onClickTerminator = () => {
     let terminal = new Terminal(
-      `terminator_${Date.now()}`,
+      `terminator_s_${Date.now()}`,
       200,
       100,
       {
         x: -offset.x + window.innerWidth / 2 + offset_center.x,
         y: -offset.y + window.innerHeight / 2 + offset_center.y,
       },
-      "orange"
+      "orange",
+      true
     );
     terminal.offset = offset;
     terminal.scale = scale;
@@ -1281,6 +1283,26 @@ export default function ProcessPage() {
     checkData();
     checkGroups();
   };
+
+  const onClickTerminatorEnd = () => {
+    let terminal = new Terminal(
+      `terminator_e_${Date.now()}`,
+      200,
+      100,
+      {
+        x: -offset.x + window.innerWidth / 2 + offset_center.x,
+        y: -offset.y + window.innerHeight / 2 + offset_center.y,
+      },
+      "rgb(189, 123, 0)",
+      false
+    );
+    terminal.offset = offset;
+    terminal.scale = scale;
+
+    shapes.push(terminal);
+    checkData();
+    checkGroups();
+  }
 
   const onClickProcess = () => {
     let process_new = new Process(
@@ -1406,6 +1428,44 @@ export default function ProcessPage() {
         shape.draw(ctx);
       });
 
+      // draw sending point
+      shapes.forEach((shape) => {
+        if (!ctx || !shape.selecting) return;
+        if (
+          (
+            shape instanceof Terminal &&
+            shape.isStart &&
+            !shape.curves.l.shape &&
+            !shape.curves.t.shape &&
+            !shape.curves.r.shape &&
+            !shape.curves.b.shape
+          )
+          ||
+          (
+            shape instanceof Process &&
+            !shape.curves.l.shape &&
+            !shape.curves.t.shape &&
+            !shape.curves.r.shape &&
+            !shape.curves.b.shape
+          )
+          ||
+          (
+            shape instanceof Data &&
+            !shape.curves.l.shape &&
+            !shape.curves.t.shape &&
+            !shape.curves.r.shape &&
+            !shape.curves.b.shape
+          )
+          ||
+          (
+            shape instanceof Desicion &&
+            !(shape.getText().y && shape.getText().n)
+          )
+        ) {
+          shape.drawSendingPoint(ctx);
+        }
+      });
+
       // draw curves in shapes
       shapes.forEach((shape) => {
         if (!ctx) return;
@@ -1438,10 +1498,10 @@ export default function ProcessPage() {
 
       shapes.forEach((shape) => {
         if (
-          shape.receiving.l ||
-          shape.receiving.t ||
-          shape.receiving.r ||
-          shape.receiving.b
+          ((shape.receiving.l ||
+            shape.receiving.t ||
+            shape.receiving.r ||
+            shape.receiving.b) && !(shape instanceof Terminal && shape.isStart))
         ) {
           shape.drawRecievingPoint(ctx);
         }
@@ -1931,6 +1991,12 @@ export default function ProcessPage() {
               onClick={onClickTerminator}
             >
               T
+            </div>
+            <div
+              className="mx-2 w-12 h-12 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
+              onClick={onClickTerminatorEnd}
+            >
+              TE
             </div>
             <div
               className="mx-2 w-12 h-12 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"

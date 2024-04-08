@@ -102,7 +102,7 @@ export default class Desicion extends Core {
     ctx.fill();
     ctx.restore();
 
-    super.draw(ctx, !(this.getText().y && this.getText().n));
+    super.draw(ctx);
   }
 
   drawCurve(ctx: CanvasRenderingContext2D): void {

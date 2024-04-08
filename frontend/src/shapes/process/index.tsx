@@ -21,15 +21,6 @@ export default class Process extends Core {
     this.selectedData = data;
   };
 
-  onMouseUp(p: Vec, sender?: ConnectTarget) {
-    super.onMouseUp(p, sender, {
-      l: { x: -10, y: 0 },
-      t: { x: 0, y: -10 },
-      r: { x: 10, y: 0 },
-      b: { x: 0, y: 10 },
-    });
-  }
-
   draw(ctx: CanvasRenderingContext2D) {
     ctx.save();
     ctx.translate(this.getScreenP().x, this.getScreenP().y);
@@ -48,9 +39,6 @@ export default class Process extends Core {
 
     ctx.restore();
 
-    super.draw(
-      ctx,
-      !this.curves.l.shape && !this.curves.t.shape && !this.curves.r.shape && !this.curves.b.shape
-    );
+    super.draw(ctx);
   }
 }
