@@ -1,4 +1,4 @@
-// TODO: core shape sendTo 搬遷至 curves sendTo / shape 在有 recieve curve 情況下還會有 recieve point / curve control point 被蓋住時要跳離 shape 範圍 / 以 terminal 為群組功能 / 雙擊 cp1 || cp2 可自動對位 / focus 功能 / zoom 功能 / 處理 data shape SelectFrame 開關(點擊 frame 以外要關閉) / 尋找左側列 icons / 後端判斷新增的 data 是否資料重名 / 對齊功能
+// TODO: 終點 terminator 要判斷是否沒有接收到其他 shape(要做錯誤題示) / core shape sendTo 搬遷至 curves sendTo / shape 在有 recieve curve 情況下還會有 recieve point / curve control point 被蓋住時要跳離 shape 範圍 / 以 terminal 為群組功能 / 雙擊 cp1 || cp2 可自動對位 / focus 功能 / zoom 功能 / 處理 data shape SelectFrame 開關(點擊 frame 以外要關閉) / 尋找左側列 icons / 後端判斷新增的 data 是否資料重名 / 對齊功能
 "use client";
 import Core from "@/shapes/core";
 import Terminal from "@/shapes/terminal";
@@ -303,33 +303,29 @@ export default function ProcessPage() {
       };
     });
 
+    console.log('_steps', _steps)
+
     setSteps(_steps);
+
+    console.log('shapes', shapes)
 
     const _procedures: PageTypes.Procedures = {};
 
     shapes.forEach((shape) => {
       if (
-        shape instanceof Terminal &&
-        (!shape.receiveFrom.l &&
-          !shape.receiveFrom.t &&
-          !shape.receiveFrom.r &&
-          !shape.receiveFrom.b)
+        (shape instanceof Terminal && shape.isStart) && !_procedures[shape.id]
       ) {
-        if (!_procedures[shape.id]) {
-          _procedures[shape.id] = [];
-        }
+        _procedures[shape.id] = [];
       }
     });
+
+    console.log('_procedures', _procedures)
 
     const goThroughShapes: { [shapeId: string]: boolean } = {};
 
     shapes.forEach((shape) => {
       if (
-        !(shape instanceof Terminal) ||
-        shape.receiveFrom.l ||
-        shape.receiveFrom.t ||
-        shape.receiveFrom.r ||
-        shape.receiveFrom.b
+        !(shape instanceof Terminal && shape.isStart)
       )
         return;
 
@@ -338,6 +334,7 @@ export default function ProcessPage() {
         locks = { [shape.id]: { l: false, t: false, r: false, b: false } }; // prevent from graph cycle
 
       while (queue.length !== 0) {
+        console.log('queue', queue)
         const shape = queue[0];
 
         if (head.id === shape.id) {
@@ -363,10 +360,14 @@ export default function ProcessPage() {
             };
           }
 
-          const hasDirectLock = locks[theSendTo.shape.id][d];
+          const hasDirectionLock = locks[theSendTo.shape.id][d];
 
-          if (!hasDirectLock) {
-            queue.push(theSendTo.shape);
+          if (!hasDirectionLock) {
+            console.log('theSendTo.shape', theSendTo.shape)
+            console.log('theSendTo.shape.id !== head.id && shape instanceof Terminal && shape.isStart', theSendTo.shape.id !== head.id && shape instanceof Terminal && shape.isStart)
+            if (!(theSendTo.shape.id !== head.id && theSendTo.shape instanceof Terminal && theSendTo.shape.isStart)) {
+              queue.push(theSendTo.shape);
+            }
             locks[theSendTo.shape.id][d] = true;
           }
         });
@@ -376,6 +377,8 @@ export default function ProcessPage() {
     });
 
     setProcedures(_procedures);
+
+    console.log('goThroughShapes', goThroughShapes)
 
     const _otherSteps: PageTypes.OtherSteps = [];
 
@@ -1432,6 +1435,7 @@ export default function ProcessPage() {
         if (!ctx || !shape.selecting) return;
         if (
           (
+            shape instanceof Terminal &&
             !shape.curves.l.shape &&
             !shape.curves.t.shape &&
             !shape.curves.r.shape &&
@@ -1498,7 +1502,7 @@ export default function ProcessPage() {
           ((shape.receiving.l ||
             shape.receiving.t ||
             shape.receiving.r ||
-            shape.receiving.b) && !(shape instanceof Terminal && shape.isStart))
+            shape.receiving.b))
         ) {
           shape.drawRecievingPoint(ctx);
         }
@@ -1643,27 +1647,28 @@ export default function ProcessPage() {
       //   { x: 400, y: 200 }
       // );
 
-      // let terminal_new = new Terminal(
-      //   `terminator_${Date.now()}`,
-      //   200,
-      //   100,
-      //   {
-      //     x: -offset.x + window.innerWidth / 2,
-      //     y: -offset.y + window.innerHeight / 2,
-      //   },
-      //   "orange"
-      // );
-      // terminal_new.offset = offset;
-      // terminal_new.scale = scale;
-      // terminal_new.title = "起點";
+      let terminal_s_new = new Terminal(
+        `terminator_s_${Date.now()}`,
+        200,
+        100,
+        {
+          x: -offset.x + window.innerWidth / 2,
+          y: -offset.y + window.innerHeight / 2 - 300,
+        },
+        "orange",
+        true
+      );
+      terminal_s_new.offset = offset;
+      terminal_s_new.scale = scale;
+      terminal_s_new.title = "起點";
 
       let data_new = new Data(
         `data_${Date.now()}`,
         200,
         100,
         {
-          x: -offset.x + window.innerWidth / 2 + 300,
-          y: -offset.y + window.innerHeight / 2,
+          x: -offset.x + window.innerWidth / 2,
+          y: -offset.y + window.innerHeight / 2 - 100,
         },
         "green"
       );
@@ -1671,24 +1676,55 @@ export default function ProcessPage() {
       data_new.scale = scale;
       data_new.title = "輸入資料_1";
 
-      let process = new Process(
-        `process_${Date.now()}`,
+      // let process = new Process(
+      //   `process_${Date.now()}`,
+      //   200,
+      //   100,
+      //   {
+      //     x: -offset.x + window.innerWidth / 2,
+      //     y: -offset.y + window.innerHeight / 2 + 100,
+      //   },
+      //   "red"
+      // );
+      // process.offset = offset;
+      // process.scale = scale;
+      // process.title = "程序_1";
+
+      let terminal_e_new = new Terminal(
+        `terminator_e_${Date.now()}`,
         200,
         100,
         {
-          x: -offset.x + window.innerWidth / 2 + 200,
-          y: -offset.y + window.innerHeight / 2 + 220,
+          x: -offset.x + window.innerWidth / 2,
+          y: -offset.y + window.innerHeight / 2 + 300,
         },
-        "red"
+        "rgb(189, 123, 0)",
+        false
       );
-      process.offset = offset;
-      process.scale = scale;
-      process.title = "程序_1";
+      terminal_e_new.offset = offset;
+      terminal_e_new.scale = scale;
+      terminal_e_new.title = "終點";
 
-      // shapes.push(terminal_new);
+      let terminal_s_2_new = new Terminal(
+        `terminator_s_2_${Date.now()}`,
+        200,
+        100,
+        {
+          x: -offset.x + window.innerWidth / 2,
+          y: -offset.y + window.innerHeight / 2 + 500,
+        },
+        "orange",
+        true
+      );
+      terminal_s_2_new.offset = offset;
+      terminal_s_2_new.scale = scale;
+      terminal_s_2_new.title = "起點_2";
+
+      shapes.push(terminal_s_new);
       shapes.push(data_new);
-      shapes.push(process);
-      // shapes.push(process_2);
+      // shapes.push(process);
+      shapes.push(terminal_e_new);
+      shapes.push(terminal_s_2_new);
       // shapes.push(data_1);
       // shapes.push(desicion_1);
       // shapes.push(curve);
@@ -1715,13 +1751,15 @@ export default function ProcessPage() {
     };
   }, [dataFrame, dbClickedShape, space, steps, procedures, otherSteps]);
 
+
+  useEffect(() => {
+    console.log('procedures', procedures)
+  }, [procedures])
+
   return (
     <>
       <header
         className="w-full fixed z-50 shadow-md text-gray-600 body-font bg-indigo-100"
-        onClick={() => {
-          console.log("offset", offset);
-        }}
       >
         <ul className="container mx-auto grid grid-cols-3 py-2 px-4">
           <li>
