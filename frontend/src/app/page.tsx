@@ -1144,7 +1144,6 @@ export default function ProcessPage() {
 
     shapes.forEach((shape) => {
       if (
-        !(shape instanceof Terminal && shape.isStart) &&
         pressing?.shape &&
         pressing.shape instanceof Curve &&
         pressing?.target &&
@@ -1433,8 +1432,6 @@ export default function ProcessPage() {
         if (!ctx || !shape.selecting) return;
         if (
           (
-            shape instanceof Terminal &&
-            shape.isStart &&
             !shape.curves.l.shape &&
             !shape.curves.t.shape &&
             !shape.curves.r.shape &&
