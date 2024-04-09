@@ -264,7 +264,7 @@ export default function ProcessPage() {
     [isUserSidePanelOpen, setIsUserSidePanelOpen] = useState(false),
     [steps, setSteps] = useState<PageTypes.Steps>({}),
     [procedures, setProcedures] = useState<PageTypes.Procedures>({}),
-    [otherSteps, setOtherSteps] = useState<PageTypes.OtherSteps>([]);
+    [otherStepIds, setOtherStepIds] = useState<PageTypes.OtherStepIds>([]);
 
   const checkData = () => {
     const goThroughShapeMapping: { [shapeId: string]: boolean } = {};
@@ -303,11 +303,7 @@ export default function ProcessPage() {
       };
     });
 
-    console.log('_steps', _steps)
-
     setSteps(_steps);
-
-    console.log('shapes', shapes)
 
     const _procedures: PageTypes.Procedures = {};
 
@@ -318,8 +314,6 @@ export default function ProcessPage() {
         _procedures[shape.id] = [];
       }
     });
-
-    console.log('_procedures', _procedures)
 
     const goThroughShapes: { [shapeId: string]: boolean } = {};
 
@@ -334,7 +328,6 @@ export default function ProcessPage() {
         locks = { [shape.id]: { l: false, t: false, r: false, b: false } }; // prevent from graph cycle
 
       while (queue.length !== 0) {
-        console.log('queue', queue)
         const shape = queue[0];
 
         if (head.id === shape.id) {
@@ -363,8 +356,6 @@ export default function ProcessPage() {
           const hasDirectionLock = locks[theSendTo.shape.id][d];
 
           if (!hasDirectionLock) {
-            console.log('theSendTo.shape', theSendTo.shape)
-            console.log('theSendTo.shape.id !== head.id && shape instanceof Terminal && shape.isStart', theSendTo.shape.id !== head.id && shape instanceof Terminal && shape.isStart)
             if (!(theSendTo.shape.id !== head.id && theSendTo.shape instanceof Terminal && theSendTo.shape.isStart)) {
               queue.push(theSendTo.shape);
             }
@@ -378,16 +369,14 @@ export default function ProcessPage() {
 
     setProcedures(_procedures);
 
-    console.log('goThroughShapes', goThroughShapes)
-
-    const _otherSteps: PageTypes.OtherSteps = [];
+    const _otherStepIds: PageTypes.OtherStepIds = [];
 
     shapes.forEach((shape) => {
       if (goThroughShapes[shape.id]) return;
-      _otherSteps.push(shape.id);
+      _otherStepIds.push(shape.id);
     });
 
-    setOtherSteps(_otherSteps);
+    setOtherStepIds(_otherStepIds);
   };
 
   const zoom = (
@@ -1151,7 +1140,8 @@ export default function ProcessPage() {
         pressing.shape instanceof Curve &&
         pressing?.target &&
         pressing?.parent &&
-        pressing?.direction
+        pressing?.direction &&
+        otherStepIds.findIndex(stepId => stepId === shape.id) > -1
       ) {
         const theCheckReceivingPointsBoundry = shape.checkReceivingPointsBoundry(
           p
@@ -1496,13 +1486,12 @@ export default function ProcessPage() {
 
         ctx?.closePath();
       }
-
       shapes.forEach((shape) => {
         if (
-          ((shape.receiving.l ||
+          (((shape.receiving.l ||
             shape.receiving.t ||
             shape.receiving.r ||
-            shape.receiving.b))
+            shape.receiving.b) && otherStepIds.findIndex(stepId => stepId === shape.id) > -1))
         ) {
           shape.drawRecievingPoint(ctx);
         }
@@ -1583,7 +1572,7 @@ export default function ProcessPage() {
         draw($canvas, ctx);
       });
     },
-    []
+    [otherStepIds]
   );
 
   const onClickaAccordionArrow = (shapeId: string) => {
@@ -1731,15 +1720,17 @@ export default function ProcessPage() {
 
       checkData();
       checkGroups();
-
-      requestAnimationFrame(() => {
-        if (!$canvas || !ctx) return;
-        draw($canvas, ctx);
-      });
     }
 
     useEffected = true;
   }, []);
+
+  useEffect(() => {
+    requestAnimationFrame(() => {
+      if (!$canvas || !ctx) return;
+      draw($canvas, ctx);
+    });
+  }, [otherStepIds])
 
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
@@ -1749,12 +1740,7 @@ export default function ProcessPage() {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, [dataFrame, dbClickedShape, space, steps, procedures, otherSteps]);
-
-
-  useEffect(() => {
-    console.log('procedures', procedures)
-  }, [procedures])
+  }, [dataFrame, dbClickedShape, space, steps, procedures, otherStepIds]);
 
   return (
     <>
@@ -1881,7 +1867,7 @@ export default function ProcessPage() {
           )}
         </ul>
         <ul>
-          {otherSteps.map((stepId: string) => (
+          {otherStepIds.map((stepId: string) => (
             <>
               <li
                 key={stepId}

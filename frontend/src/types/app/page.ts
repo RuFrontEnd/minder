@@ -9,6 +9,6 @@ type Steps = {
 
 type Procedures = { [shapeId: string]: string[] };
 
-type OtherSteps = string[];
+type OtherStepIds = string[];
 
-export type { Steps, Procedures, OtherSteps };
+export type { Steps, Procedures, OtherStepIds };
