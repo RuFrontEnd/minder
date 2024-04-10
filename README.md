@@ -18,6 +18,7 @@ FT
 - [x] verifing data
 - [x] infinite whiteboard
 - [x] zoom in / out
+- [x] validating required fields
 - [ ] groups
 - [ ] verifing repeated data name
 - [ ] undo
