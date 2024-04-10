@@ -17,7 +17,12 @@ type Props = {
     usage: boolean;
     redundancy: boolean;
   };
-  onConfirm: (title: Title, data: DataType, selectedData: DataType) => void;
+  onConfirm: (
+    title: Title,
+    data: DataType,
+    selectedData: DataType,
+    shape: any
+  ) => void;
   onClick?: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
   warning?: Warning;
 };

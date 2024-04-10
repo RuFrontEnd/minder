@@ -66,7 +66,7 @@ export default function DataFrame({
       return data;
     })();
 
-    onConfirm(title, data, selectedData);
+    onConfirm(title, data, selectedData, shape);
   };
 
   useEffect(() => {

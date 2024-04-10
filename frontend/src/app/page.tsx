@@ -9,7 +9,7 @@ import Desicion from "@/shapes/decision";
 import DataFrame from "@/components/dataFrame";
 import SidePanel from "@/components/sidePanel";
 import Accordion from "@/components/accordion";
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
 import { cloneDeep } from "lodash";
 import { v4 as uuidv4 } from "uuid";
@@ -268,7 +268,22 @@ export default function ProcessPage() {
     [dataFrameWarning, setDataFrameWarning] = useState<DataFrameTypes.Warning>({
       title: "",
       data: {},
+    }),
+    [globalData, setGlobalData] = useState<any>({});
+
+  const allData = useMemo(() => {
+    const _allData: any = [];
+
+    Object.values(globalData).forEach((datas: any) => {
+      datas.forEach((data: any) => {
+        _allData.push(data);
+      });
     });
+
+    return _allData;
+  }, [globalData]);
+
+  console.log('allData', allData)
 
   const checkData = () => {
     const goThroughShapeMapping: { [shapeId: string]: boolean } = {};
@@ -1365,7 +1380,8 @@ export default function ProcessPage() {
   const onConfirmDataFrame: DataFrameTypes.Props["onConfirm"] = (
     title,
     data,
-    selectedData
+    selectedData,
+    shape
   ) => {
     const titleWarning = title ? "" : "欄位不可為空";
 
@@ -1400,11 +1416,19 @@ export default function ProcessPage() {
       dbClickedShape?.onDataChange(title);
     }
 
+    console.log("data", data);
+
+    setGlobalData((globalData: any) => ({ ...globalData, [shape.id]: data }));
+
     setDataFrame(undefined);
     setDbClickedShape(null);
     checkData();
     checkGroups();
   };
+
+  useEffect(() => {
+    console.log("globalData", globalData);
+  }, [globalData]);
 
   const onClickScalePlusIcon = () => {
     if (!$canvas) return;
