@@ -12,11 +12,11 @@ export default function DataFrame({
   feature,
   onConfirm,
   onClick,
+  warning,
 }: Props) {
   const [title, setTitle] = useState<Title>(""),
     [selections, setSelections] = useState<Selections>({}),
     [data, setData] = useState<DataType>([]);
-
 
   const onChangeTitle = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTitle(e.currentTarget.value);
@@ -89,7 +89,7 @@ export default function DataFrame({
     setSelections(_selections);
 
     if (shape instanceof Data) {
-      setData(shape.data)
+      setData(shape.data);
     }
   }, [shape]);
 
@@ -105,17 +105,24 @@ export default function DataFrame({
       onClick={onClick}
     >
       <div className="relative mb-4">
-        <label className="leading-7 text-sm text-gray-600">Title</label>
+        <label className="leading-7 text-sm text-gray-600">
+          <span className="mr-1">Title</span>
+          {warning?.title && (
+            <span className="text-red-500">{warning?.title}</span>
+          )}
+        </label>
         <input
           type="text"
           id="full-name"
           name="full-name"
-          className="w-full h-[28px] bg-white rounded border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
+          className={`w-full h-[28px] bg-white rounded border ${
+            !!warning?.title ? "border-red-500" : "border-gray-300"
+          } focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out`}
           value={title}
           onChange={onChangeTitle}
         />
       </div>
-      {feature.import &&
+      {feature.import && (
         <div className="relative mb-4">
           <label className="leading-7 text-sm text-gray-600">Data</label>
           <div
@@ -125,33 +132,46 @@ export default function DataFrame({
             +
           </div>
           {data.map((dataItem, i) => (
-            <div className="flex">
-              <input
-                type="text"
-                id="full-name"
-                name="full-name"
-                className="w-full h-[28px] mb-2 bg-white rounded border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
-                value={dataItem.text}
-                onChange={(e) => {
-                  onChangeData(e, i);
-                }}
-              />
-              <div
-                className="w-6 h-6 ml-2 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
-                onClick={() => {
-                  onClickMinus(dataItem.id);
-                }}
-              >
-                -
+            <div className="flex flex-col">
+              {warning && warning.data[i] && (
+                <span className="text-red-500">{warning.data[i]}</span>
+              )}
+              <div className="flex">
+                <input
+                  type="text"
+                  id="full-name"
+                  name="full-name"
+                  className={`w-full h-[28px] mb-2 bg-white rounded border 
+                  ${
+                    warning && warning.data[i]
+                      ? "border-red-500"
+                      : "border-gray-300"
+                  }
+                  focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out`}
+                  value={dataItem.text}
+                  onChange={(e) => {
+                    onChangeData(e, i);
+                  }}
+                />
+                <div
+                  className="w-6 h-6 ml-2 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
+                  onClick={() => {
+                    onClickMinus(dataItem.id);
+                  }}
+                >
+                  -
+                </div>
               </div>
             </div>
           ))}
         </div>
-      }
-      {feature.usage &&
+      )}
+      {feature.usage && (
         <div className="relative mb-4">
           <div>
-            <label className="leading-7 text-sm text-gray-600">Data Usage</label>
+            <label className="leading-7 text-sm text-gray-600">
+              Data Usage
+            </label>
           </div>
           <ul className="flex flex-col">
             {shape.options.map((option, i) => (
@@ -187,11 +207,13 @@ export default function DataFrame({
             ))}
           </ul>
         </div>
-      }
-      {feature.redundancy &&
+      )}
+      {feature.redundancy && (
         <div className="relative mb-4">
           <div>
-            <label className="leading-7 text-sm text-gray-600">Redundancies</label>
+            <label className="leading-7 text-sm text-gray-600">
+              Redundancies
+            </label>
           </div>
           <ul className="flex flex-col">
             {shape.redundancies.map((redundancy) => (
@@ -226,9 +248,8 @@ export default function DataFrame({
               </li>
             ))}
           </ul>
-
         </div>
-      }
+      )}
 
       <button
         className="text-white bg-indigo-500 border-0 py-2 px-8 focus:outline-none hover:bg-indigo-600 rounded text-lg"
