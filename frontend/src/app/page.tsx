@@ -1,4 +1,4 @@
-// TODO: 給 shape 預設名稱 / 修正多選時移動範圍外 shape 仍會移動到範圍內 shape / 終點 terminator 要判斷是否沒有接收到其他 shape(要做錯誤題示) / core shape sendTo 搬遷至 curves sendTo / 雙擊 cp1 || cp2 可自動對位  / 處理 data shape SelectFrame 開關(點擊 frame 以外要關閉) / 尋找左側列 icons / 對齊功能
+// TODO: 給 shape 預設名稱 / 終點 terminator 要判斷是否沒有接收到其他 shape(要做錯誤題示) / core shape sendTo 搬遷至 curves sendTo / 雙擊 cp1 || cp2 可自動對位  / 處理 data shape SelectFrame 開關(點擊 frame 以外要關閉) / 尋找左側列 icons / 對齊功能
 "use client";
 import Core from "@/shapes/core";
 import Terminal from "@/shapes/terminal";
@@ -536,7 +536,7 @@ export default function ProcessPage() {
           | "selectArea_rb"
           | "selectArea_lb" = null;
 
-        shapes.forEach((shape) => {
+          select.shapes.forEach((shape) => {
           if (!$canvas) return;
 
           if (shape.checkBoundry(p)) {
