@@ -19,8 +19,9 @@ FT
 - [x] infinite whiteboard
 - [x] zoom in / out
 - [x] validating required fields
+- [X] verifing repeated data name
+- [ ] login
 - [ ] groups
-- [ ] verifing repeated data name
 - [ ] undo
 - [ ] redo
 - [ ] optimizing UI

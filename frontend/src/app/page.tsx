@@ -1,4 +1,4 @@
-// TODO: 終點 terminator 要判斷是否沒有接收到其他 shape(要做錯誤題示) / core shape sendTo 搬遷至 curves sendTo / shape 在有 recieve curve 情況下還會有 recieve point / curve control point 被蓋住時要跳離 shape 範圍 / 以 terminal 為群組功能 / 雙擊 cp1 || cp2 可自動對位 / focus 功能 / zoom 功能 / 處理 data shape SelectFrame 開關(點擊 frame 以外要關閉) / 尋找左側列 icons / 後端判斷新增的 data 是否資料重名 / 對齊功能
+// TODO: 修正多選時移動範圍外 shape 仍會移動到範圍內 shape / 終點 terminator 要判斷是否沒有接收到其他 shape(要做錯誤題示) / core shape sendTo 搬遷至 curves sendTo / 雙擊 cp1 || cp2 可自動對位  / 處理 data shape SelectFrame 開關(點擊 frame 以外要關閉) / 尋找左側列 icons / 對齊功能
 "use client";
 import Core from "@/shapes/core";
 import Terminal from "@/shapes/terminal";
@@ -269,21 +269,23 @@ export default function ProcessPage() {
       title: "",
       data: {},
     }),
-    [globalData, setGlobalData] = useState<any>({});
+    [globalData, setGlobalData] = useState<{
+      [dataShapeId: string]: CommonTypes.Data;
+    }>({});
 
   const allData = useMemo(() => {
-    const _allData: any = [];
+    const _items: CommonTypes.Data = [];
+    const _mapping: { [data: string]: boolean } = {};
 
-    Object.values(globalData).forEach((datas: any) => {
-      datas.forEach((data: any) => {
-        _allData.push(data);
+    Object.values(globalData).forEach((datas) => {
+      datas.forEach((data) => {
+        _items.push(data);
+        _mapping[data.text] = true;
       });
     });
 
-    return _allData;
+    return { items: _items, mapping: _mapping };
   }, [globalData]);
-
-  console.log("allData", allData);
 
   const checkData = () => {
     const goThroughShapeMapping: { [shapeId: string]: boolean } = {};
@@ -1386,6 +1388,7 @@ export default function ProcessPage() {
     selectedData,
     shape
   ) => {
+    // validate repeated title name
     const titleWarning = title ? "" : "欄位不可為空";
 
     setDataFrameWarning((dataFrameWarning) => ({
@@ -1395,7 +1398,22 @@ export default function ProcessPage() {
 
     const dataWarningMapping: DataFrameTypes.Warning["data"] = {};
 
+    data.forEach((shapeData, shapeDataItemI) => {
+      // validate repeated data name
+      const notToValid =
+        globalData[shape.id]?.findIndex(
+          (dataItem) => dataItem.text === shapeData.text
+        ) > -1;
+
+      if (notToValid) return;
+
+      if (shapeData.text in allData.mapping) {
+        dataWarningMapping[shapeDataItemI] = "欄位名稱重複";
+      }
+    });
+
     data.forEach((dataItem, dataItemI) => {
+      // validate required data
       if (!dataItem.text) {
         dataWarningMapping[dataItemI] = "欄位不可為空";
       }
@@ -1419,19 +1437,12 @@ export default function ProcessPage() {
       dbClickedShape?.onDataChange(title);
     }
 
-    console.log("data", data);
-
-    setGlobalData((globalData: any) => ({ ...globalData, [shape.id]: data }));
-
+    setGlobalData((globalData) => ({ ...globalData, [shape.id]: data }));
     setDataFrame(undefined);
     setDbClickedShape(null);
     checkData();
     checkGroups();
   };
-
-  useEffect(() => {
-    console.log("globalData", globalData);
-  }, [globalData]);
 
   const onClickScalePlusIcon = () => {
     if (!$canvas) return;
