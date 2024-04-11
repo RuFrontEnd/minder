@@ -27,14 +27,14 @@ let useEffected = false,
     shape: null | Terminal | Process | Data | Desicion | Curve;
     direction: null | CommonTypes.Direction;
     target:
-      | null
-      | CoreTypes.PressingTarget
-      | CurveTypes.PressingTarget
-      | "selectArea_m"
-      | "selectArea_lt"
-      | "selectArea_rt"
-      | "selectArea_rb"
-      | "selectArea_lb";
+    | null
+    | CoreTypes.PressingTarget
+    | CurveTypes.PressingTarget
+    | "selectArea_m"
+    | "selectArea_lt"
+    | "selectArea_rt"
+    | "selectArea_rb"
+    | "selectArea_lb";
     dx: number; // distance between event px & pressing shape px
     dy: number; // distance between event py & pressing shape py
   } = null,
@@ -82,22 +82,22 @@ let useEffected = false,
   };
 
 const ds = [
-    CommonTypes.Direction.l,
-    CommonTypes.Direction.t,
-    CommonTypes.Direction.r,
-    CommonTypes.Direction.b,
-  ],
+  CommonTypes.Direction.l,
+  CommonTypes.Direction.t,
+  CommonTypes.Direction.r,
+  CommonTypes.Direction.b,
+],
   vs: (
     | CoreTypes.PressingTarget.lt
     | CoreTypes.PressingTarget.rt
     | CoreTypes.PressingTarget.rb
     | CoreTypes.PressingTarget.lb
   )[] = [
-    CoreTypes.PressingTarget.lt,
-    CoreTypes.PressingTarget.rt,
-    CoreTypes.PressingTarget.rb,
-    CoreTypes.PressingTarget.lb,
-  ];
+      CoreTypes.PressingTarget.lt,
+      CoreTypes.PressingTarget.rt,
+      CoreTypes.PressingTarget.rb,
+      CoreTypes.PressingTarget.lb,
+    ];
 
 const getFramePosition = (shape: Core) => {
   const frameOffset = 12;
@@ -192,58 +192,58 @@ const Editor = (props: { className: string; shape: Core }) => {
       {(props.shape instanceof Process ||
         props.shape instanceof Data ||
         props.shape instanceof Desicion) && (
-        <div className={props.className && props.className}>
-          {props.shape instanceof Data && (
-            <div>
-              <p className="mb-1">Data</p>
-              {/* <div
+          <div className={props.className && props.className}>
+            {props.shape instanceof Data && (
+              <div>
+                <p className="mb-1">Data</p>
+                {/* <div
               className="w-6 h-6 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
               onClick={onClickScalePlusIcon}
             >
               +
             </div> */}
+                <ul className="ps-2">
+                  {props.shape.data.map((dataItem) => (
+                    <li className="mb-1"> · {dataItem.text}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <div>
+              <p className="mb-1">Data Usage</p>
               <ul className="ps-2">
-                {props.shape.data.map((dataItem) => (
-                  <li className="mb-1"> · {dataItem.text}</li>
+                {props.shape.options.map((option) => (
+                  <li className="mb-1">
+                    <span className="bg-indigo-100 text-indigo-500 w-4 h-4 rounded-full inline-flex items-center justify-center">
+                      {selections[option.text] && (
+                        <svg
+                          fill="none"
+                          stroke="currentColor"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="3"
+                          className="w-3 h-3"
+                          viewBox="0 0 24 24"
+                        >
+                          <path d="M20 6L9 17l-5-5"></path>
+                        </svg>
+                      )}
+                    </span>
+                    {option.text}
+                  </li>
                 ))}
               </ul>
             </div>
-          )}
-          <div>
-            <p className="mb-1">Data Usage</p>
-            <ul className="ps-2">
-              {props.shape.options.map((option) => (
-                <li className="mb-1">
-                  <span className="bg-indigo-100 text-indigo-500 w-4 h-4 rounded-full inline-flex items-center justify-center">
-                    {selections[option.text] && (
-                      <svg
-                        fill="none"
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="3"
-                        className="w-3 h-3"
-                        viewBox="0 0 24 24"
-                      >
-                        <path d="M20 6L9 17l-5-5"></path>
-                      </svg>
-                    )}
-                  </span>
-                  {option.text}
-                </li>
-              ))}
-            </ul>
+            <div>
+              <div className="mb-1">Redundancies</div>
+              <ul className="ps-2">
+                {props.shape.redundancies.map((redundancy) => (
+                  <li className="mb-1"> · {redundancy.text}</li>
+                ))}
+              </ul>
+            </div>
           </div>
-          <div>
-            <div className="mb-1">Redundancies</div>
-            <ul className="ps-2">
-              {props.shape.redundancies.map((redundancy) => (
-                <li className="mb-1"> · {redundancy.text}</li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      )}
+        )}
     </>
   );
 };
@@ -259,8 +259,8 @@ export default function ProcessPage() {
   let { current: $canvas } = useRef<HTMLCanvasElement | null>(null);
 
   const [dataFrame, setDataFrame] = useState<
-      { p: CommonTypes.Vec } | undefined
-    >(undefined),
+    { p: CommonTypes.Vec } | undefined
+  >(undefined),
     [dbClickedShape, setDbClickedShape] = useState<
       Terminal | Data | Process | Desicion | null
     >(null),
@@ -482,15 +482,15 @@ export default function ProcessPage() {
   };
 
   const onMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!$canvas || !ctx) return;
+
     e.preventDefault();
     setLeftMouseBtn(true);
 
-    let $canvas = document.querySelector("canvas");
-
     const p = {
-        x: e.nativeEvent.offsetX,
-        y: e.nativeEvent.offsetY,
-      },
+      x: e.nativeEvent.offsetX,
+      y: e.nativeEvent.offsetY,
+    },
       pInSelectArea =
         p.x > select.start.x &&
         p.y > select.start.y &&
@@ -663,12 +663,12 @@ export default function ProcessPage() {
                 dx:
                   (p.x - dragP.x) * (1 / scale) -
                   shape?.getEdge()[
-                    theCheckShapeVertexesBoundry[0] as CommonTypes.Direction
+                  theCheckShapeVertexesBoundry[0] as CommonTypes.Direction
                   ],
                 dy:
                   (p.y - dragP.y) * (1 / scale) -
                   shape?.getEdge()[
-                    theCheckShapeVertexesBoundry[1] as CommonTypes.Direction
+                  theCheckShapeVertexesBoundry[1] as CommonTypes.Direction
                   ],
               };
             }
@@ -713,14 +713,18 @@ export default function ProcessPage() {
         };
       }
     }
+
+    draw($canvas, ctx);
   };
 
   const onMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     e.preventDefault();
+    if (!$canvas || !ctx) return;
+
     const p = {
-        x: e.nativeEvent.offsetX,
-        y: e.nativeEvent.offsetY,
-      },
+      x: e.nativeEvent.offsetX,
+      y: e.nativeEvent.offsetY,
+    },
       offsetP = {
         x: p.x - dragP.x,
         y: p.y - dragP.y,
@@ -1094,10 +1098,14 @@ export default function ProcessPage() {
     }
 
     dragP = p;
+
+    draw($canvas, ctx);
   };
 
   const onMouseUp = (e: React.MouseEvent<HTMLCanvasElement>) => {
     e.preventDefault();
+    if (!$canvas || !ctx) return;
+
     setLeftMouseBtn(false);
 
     const p = {
@@ -1114,9 +1122,9 @@ export default function ProcessPage() {
         const theEdge = shape.getEdge();
 
         const l =
-            selectAreaP.start.x < selectAreaP.end.x
-              ? selectAreaP.start.x
-              : selectAreaP.end.x,
+          selectAreaP.start.x < selectAreaP.end.x
+            ? selectAreaP.start.x
+            : selectAreaP.end.x,
           t =
             selectAreaP.start.y < selectAreaP.end.y
               ? selectAreaP.start.y
@@ -1201,11 +1209,16 @@ export default function ProcessPage() {
     selectAreaP = null;
     pressing = null;
     moveP = null;
+
+    draw($canvas, ctx);
+
   };
 
   const onMouseWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
+    if (!$canvas || !ctx) return;
     setDataFrame(undefined);
     zoom(e.deltaY, { x: e.clientX, y: e.clientY });
+    draw($canvas, ctx);
   };
 
   const onDoubleClick = useCallback(
@@ -1231,6 +1244,8 @@ export default function ProcessPage() {
   );
 
   function handleKeyDown(this: Window, e: KeyboardEvent) {
+    if (!$canvas || !ctx) return;
+
     // delete
     if (e.key === "Backspace" && !dataFrame && !dbClickedShape) {
       let removeShape: null | Terminal | Process | Data | Desicion = null,
@@ -1283,6 +1298,8 @@ export default function ProcessPage() {
     if (e.key === " " && !space) {
       setSpace(true);
     }
+
+    draw($canvas, ctx);
   }
 
   function handleKeyUp(this: Window, e: KeyboardEvent) {
@@ -1292,6 +1309,8 @@ export default function ProcessPage() {
   }
 
   const onClickTerminator = () => {
+    if (!$canvas || !ctx) return;
+
     let terminal = new Terminal(
       `terminator_s_${Date.now()}`,
       200,
@@ -1310,9 +1329,12 @@ export default function ProcessPage() {
     shapes.push(terminal);
     checkData();
     checkGroups();
+    draw($canvas, ctx);
   };
 
   const onClickTerminatorEnd = () => {
+    if (!$canvas || !ctx) return;
+
     let terminal = new Terminal(
       `terminator_e_${Date.now()}`,
       200,
@@ -1331,9 +1353,12 @@ export default function ProcessPage() {
     shapes.push(terminal);
     checkData();
     checkGroups();
+    draw($canvas, ctx);
   };
 
   const onClickProcess = () => {
+    if (!$canvas || !ctx) return;
+
     let process_new = new Process(
       `process_${Date.now()}`,
       200,
@@ -1351,9 +1376,12 @@ export default function ProcessPage() {
     shapes.push(process_new);
     checkData();
     checkGroups();
+    draw($canvas, ctx);
   };
 
   const onClickData = () => {
+    if (!$canvas || !ctx) return;
+
     let data_new = new Data(
       `data_${Date.now()}`,
       200,
@@ -1371,9 +1399,12 @@ export default function ProcessPage() {
     shapes.push(data_new);
     checkData();
     checkGroups();
+    draw($canvas, ctx);
   };
 
   const onClickDecision = () => {
+    if (!$canvas || !ctx) return;
+
     let decision_new = new Desicion(
       `decision_${Date.now()}`,
       100,
@@ -1391,6 +1422,7 @@ export default function ProcessPage() {
     shapes.push(decision_new);
     checkData();
     checkGroups();
+    draw($canvas, ctx);
   };
 
   const onConfirmDataFrame: DataFrameTypes.Props["onConfirm"] = (
@@ -1463,21 +1495,24 @@ export default function ProcessPage() {
   };
 
   const onClickScalePlusIcon = () => {
-    if (!$canvas) return;
+    if (!$canvas || !ctx) return;
     zoom(-100, { x: $canvas?.width / 2, y: $canvas?.height / 2 });
+    draw($canvas, ctx);
   };
 
   const onClickScaleMinusIcon = () => {
-    if (!$canvas) return;
+    if (!$canvas || !ctx) return;
     zoom(100, { x: $canvas?.width / 2, y: $canvas?.height / 2 });
+    draw($canvas, ctx);
   };
 
   const onClickScaleNumber = () => {
-    if (!$canvas) return;
+    if (!$canvas || !ctx) return;
     zoom(-((1 / scale - 1) * 500), {
       x: $canvas?.width / 2,
       y: $canvas?.height / 2,
     });
+    draw($canvas, ctx);
   };
 
   const onClickDataSidePanelSwitch = () => {
@@ -1644,10 +1679,10 @@ export default function ProcessPage() {
         ctx?.closePath();
       }
 
-      requestAnimationFrame(() => {
-        if (!$canvas || !ctx) return;
-        draw($canvas, ctx);
-      });
+      // requestAnimationFrame(() => {
+      //   if (!$canvas || !ctx) return;
+      //   draw($canvas, ctx);
+      // });
     },
     [otherStepIds]
   );
@@ -1659,7 +1694,7 @@ export default function ProcessPage() {
   };
 
   const onClickStep = (shapeP: CommonTypes.Vec) => {
-    if (!$canvas) return;
+    if (!$canvas || !ctx) return;
 
     offset = {
       x: offset_center.x + (window.innerWidth / 2 - shapeP.x),
@@ -1669,6 +1704,8 @@ export default function ProcessPage() {
     shapes.forEach((shape) => {
       shape.offset = offset;
     });
+
+    draw($canvas, ctx);
   };
 
   useEffect(() => {
@@ -1678,40 +1715,6 @@ export default function ProcessPage() {
       $canvas.width = window.innerWidth;
       $canvas.height = window.innerHeight;
       if (!ctx) return;
-      // let terminal = new Terminal(
-      //   "terminal_1",
-      //   200,
-      //   100,
-      //   { x: 0, y: 0 },
-      //   "orange",
-      //   true
-      // );
-      // ,
-      //   process = new Process("process_1", 200, 100, { x: 300, y: 350 }, "red"),
-      //   process_2 = new Process(
-      //     "process_2",
-      //     200,
-      //     100,
-      //     { x: 1200, y: 300 },
-      //     "blue"
-      //   ),
-      //   data_1 = new Data("data_1", 200, 100, { x: 600, y: 600 }, "green"),
-      //   desicion_1 = new Desicion(
-      //     "desicion_1",
-      //     150,
-      //     100,
-      //     { x: 500, y: 100 },
-      //     "#3498db"
-      //   );
-
-      // let curve: any = new Curve(
-      //   { w: 1, c: "#c00" },
-      //   { w: 2, c: "#333" },
-      //   { x: 100, y: 200 },
-      //   { x: 200, y: 200 },
-      //   { x: 300, y: 200 },
-      //   { x: 400, y: 200 }
-      // );
 
       let terminal_s_new = new Terminal(
         `terminator_s_${Date.now()}`,
@@ -1742,19 +1745,23 @@ export default function ProcessPage() {
       data_new.offset = offset;
       data_new.scale = scale;
 
-      // let process = new Process(
-      //   `process_${Date.now()}`,
-      //   200,
-      //   100,
-      //   {
-      //     x: -offset.x + window.innerWidth / 2,
-      //     y: -offset.y + window.innerHeight / 2 + 100,
-      //   },
-      //   "red"
-      // );
-      // process.offset = offset;
-      // process.scale = scale;
-      // process.title = "程序_1";
+      for (let i = 0; i < 100; i++) {
+        let process = new Process(
+          `process_${Date.now()}_${i}`,
+          200,
+          100,
+          {
+            x: -offset.x + window.innerWidth / 2 + i * 2,
+            y: -offset.y + window.innerHeight / 2 + 100 + i * 2,
+          },
+          "red",
+          `程序_${i}`
+        );
+        process.offset = offset;
+        process.scale = scale;
+
+        shapes.push(process);
+      }
 
       let terminal_e_new = new Terminal(
         `terminator_e_${Date.now()}`,
@@ -1788,12 +1795,8 @@ export default function ProcessPage() {
 
       shapes.push(terminal_s_new);
       shapes.push(data_new);
-      // shapes.push(process);
       shapes.push(terminal_e_new);
       shapes.push(terminal_s_2_new);
-      // shapes.push(data_1);
-      // shapes.push(desicion_1);
-      // shapes.push(curve);
 
       checkData();
       checkGroups();
@@ -1803,11 +1806,9 @@ export default function ProcessPage() {
   }, []);
 
   useEffect(() => {
-    requestAnimationFrame(() => {
-      if (!$canvas || !ctx) return;
-      draw($canvas, ctx);
-    });
-  }, [otherStepIds]);
+    if (!$canvas || !ctx) return;
+    draw($canvas, ctx);
+  }, []);
 
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
@@ -1818,6 +1819,21 @@ export default function ProcessPage() {
       window.removeEventListener("keyup", handleKeyUp);
     };
   }, [dataFrame, dbClickedShape, space, steps, procedures, otherStepIds]);
+
+  useEffect(() => {
+    const resize = () => {
+      let $canvas = document.querySelector('canvas')
+      if (!$canvas || !ctx) return
+      $canvas.width = window.innerWidth;
+      $canvas.height = window.innerHeight;
+      draw($canvas, ctx);
+    }
+    window.addEventListener("resize", resize);
+
+    return () => {
+      window.removeEventListener("resize", resize);
+    };
+  }, [])
 
   return (
     <>
