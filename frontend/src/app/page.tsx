@@ -1802,7 +1802,20 @@ export default function ProcessPage() {
       checkGroups();
     }
 
+    const resize = () => {
+      let $canvas = document.querySelector('canvas')
+      if (!$canvas || !ctx) return
+      $canvas.width = window.innerWidth;
+      $canvas.height = window.innerHeight;
+      draw($canvas, ctx);
+    }
+    window.addEventListener("resize", resize);
+
     useEffected = true;
+
+    return () => {
+      window.removeEventListener("resize", resize);
+    };
   }, []);
 
   useEffect(() => {
@@ -1819,21 +1832,6 @@ export default function ProcessPage() {
       window.removeEventListener("keyup", handleKeyUp);
     };
   }, [dataFrame, dbClickedShape, space, steps, procedures, otherStepIds]);
-
-  useEffect(() => {
-    const resize = () => {
-      let $canvas = document.querySelector('canvas')
-      if (!$canvas || !ctx) return
-      $canvas.width = window.innerWidth;
-      $canvas.height = window.innerHeight;
-      draw($canvas, ctx);
-    }
-    window.addEventListener("resize", resize);
-
-    return () => {
-      window.removeEventListener("resize", resize);
-    };
-  }, [])
 
   return (
     <>
