@@ -1,4 +1,4 @@
-// TODO: 修正多選時移動範圍外 shape 仍會移動到範圍內 shape / 終點 terminator 要判斷是否沒有接收到其他 shape(要做錯誤題示) / core shape sendTo 搬遷至 curves sendTo / 雙擊 cp1 || cp2 可自動對位  / 處理 data shape SelectFrame 開關(點擊 frame 以外要關閉) / 尋找左側列 icons / 對齊功能
+// TODO: 給 shape 預設名稱 / 修正多選時移動範圍外 shape 仍會移動到範圍內 shape / 終點 terminator 要判斷是否沒有接收到其他 shape(要做錯誤題示) / core shape sendTo 搬遷至 curves sendTo / 雙擊 cp1 || cp2 可自動對位  / 處理 data shape SelectFrame 開關(點擊 frame 以外要關閉) / 尋找左側列 icons / 對齊功能
 "use client";
 import Core from "@/shapes/core";
 import Terminal from "@/shapes/terminal";
@@ -248,6 +248,13 @@ const Editor = (props: { className: string; shape: Core }) => {
   );
 };
 
+const init = {
+  dataFrameWarning: {
+    title: "",
+    data: {},
+  },
+};
+
 export default function ProcessPage() {
   let { current: $canvas } = useRef<HTMLCanvasElement | null>(null);
 
@@ -265,22 +272,21 @@ export default function ProcessPage() {
     [steps, setSteps] = useState<PageTypes.Steps>({}),
     [procedures, setProcedures] = useState<PageTypes.Procedures>({}),
     [otherStepIds, setOtherStepIds] = useState<PageTypes.OtherStepIds>([]),
-    [dataFrameWarning, setDataFrameWarning] = useState<DataFrameTypes.Warning>({
-      title: "",
-      data: {},
-    }),
+    [dataFrameWarning, setDataFrameWarning] = useState<DataFrameTypes.Warning>(
+      init.dataFrameWarning
+    ),
     [globalData, setGlobalData] = useState<{
       [dataShapeId: string]: CommonTypes.Data;
     }>({});
 
   const allData = useMemo(() => {
     const _items: CommonTypes.Data = [];
-    const _mapping: { [data: string]: boolean } = {};
+    const _mapping: { [data: string]: string } = {};
 
-    Object.values(globalData).forEach((datas) => {
+    Object.entries(globalData).forEach(([shapeId, datas]) => {
       datas.forEach((data) => {
         _items.push(data);
-        _mapping[data.text] = true;
+        _mapping[data.text] = shapeId;
       });
     });
 
@@ -1213,8 +1219,8 @@ export default function ProcessPage() {
 
       shapes.forEach((shape) => {
         if (shape.checkBoundry(p)) {
+          setDataFrameWarning(init.dataFrameWarning);
           setDbClickedShape(shape);
-
           setDataFrame({
             p: getFramePosition(shape),
           });
@@ -1398,16 +1404,23 @@ export default function ProcessPage() {
 
     const dataWarningMapping: DataFrameTypes.Warning["data"] = {};
 
+    const dataMapping: { [dataText: string]: number } = {};
+
+    data.forEach((shapeData, shapeDataI) => {
+      // validate repeated data name in data frame
+      if (!(shapeData.text in dataMapping)) {
+        dataMapping[shapeData.text] = shapeDataI;
+      } else {
+        dataWarningMapping[shapeDataI] = "欄位名稱重複";
+      }
+    });
+
     data.forEach((shapeData, shapeDataItemI) => {
-      // validate repeated data name
-      const notToValid =
-        globalData[shape.id]?.findIndex(
-          (dataItem) => dataItem.text === shapeData.text
-        ) > -1;
-
-      if (notToValid) return;
-
-      if (shapeData.text in allData.mapping) {
+      // validate repeated data name in global data
+      if (
+        shape.id !== allData.mapping[shapeData.text] &&
+        shapeData.text in allData.mapping
+      ) {
         dataWarningMapping[shapeDataItemI] = "欄位名稱重複";
       }
     });
