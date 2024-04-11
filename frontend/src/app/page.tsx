@@ -1745,23 +1745,23 @@ export default function ProcessPage() {
       data_new.offset = offset;
       data_new.scale = scale;
 
-      for (let i = 0; i < 100; i++) {
-        let process = new Process(
-          `process_${Date.now()}_${i}`,
-          200,
-          100,
-          {
-            x: -offset.x + window.innerWidth / 2 + i * 2,
-            y: -offset.y + window.innerHeight / 2 + 100 + i * 2,
-          },
-          "red",
-          `程序_${i}`
-        );
-        process.offset = offset;
-        process.scale = scale;
+      // for (let i = 0; i < 100; i++) {
+      //   let process = new Process(
+      //     `process_${Date.now()}_${i}`,
+      //     200,
+      //     100,
+      //     {
+      //       x: -offset.x + window.innerWidth / 2 + i * 2,
+      //       y: -offset.y + window.innerHeight / 2 + 100 + i * 2,
+      //     },
+      //     "red",
+      //     `程序_${i}`
+      //   );
+      //   process.offset = offset;
+      //   process.scale = scale;
 
-        shapes.push(process);
-      }
+      //   shapes.push(process);
+      // }
 
       let terminal_e_new = new Terminal(
         `terminator_e_${Date.now()}`,
@@ -1793,14 +1793,21 @@ export default function ProcessPage() {
       terminal_s_2_new.offset = offset;
       terminal_s_2_new.scale = scale;
 
-      shapes.push(terminal_s_new);
+      // shapes.push(terminal_s_new);
       shapes.push(data_new);
-      shapes.push(terminal_e_new);
-      shapes.push(terminal_s_2_new);
+      // shapes.push(terminal_e_new);
+      // shapes.push(terminal_s_2_new);
 
       checkData();
       checkGroups();
     }
+
+    useEffected = true;
+  }, []);
+
+  useEffect(() => {
+    if (!$canvas || !ctx) return;
+    draw($canvas, ctx);
 
     const resize = () => {
       let $canvas = document.querySelector('canvas')
@@ -1811,17 +1818,10 @@ export default function ProcessPage() {
     }
     window.addEventListener("resize", resize);
 
-    useEffected = true;
-
     return () => {
       window.removeEventListener("resize", resize);
     };
-  }, []);
-
-  useEffect(() => {
-    if (!$canvas || !ctx) return;
-    draw($canvas, ctx);
-  }, []);
+  }, [])
 
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);

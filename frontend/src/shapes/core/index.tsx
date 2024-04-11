@@ -25,20 +25,20 @@ export default class Core {
     cpline: Line;
     curve: Line;
   } = {
-    d: 100, // 30
-    size: {
-      fill: 4,
-      stroke: 2,
-    },
-    cpline: {
-      w: 1,
-      c: "#c00",
-    },
-    curve: {
-      w: 2,
-      c: "#333",
-    },
-  };
+      d: 100, // 30
+      size: {
+        fill: 4,
+        stroke: 2,
+      },
+      cpline: {
+        w: 1,
+        c: "#c00",
+      },
+      curve: {
+        w: 2,
+        c: "#333",
+      },
+    };
   private strokeSize = 2;
   private initPressing = {
     activate: false,
@@ -75,9 +75,9 @@ export default class Core {
   dragP:
     | Vec
     | {
-        x: null;
-        y: null;
-      };
+      x: null;
+      y: null;
+    };
   options: DataType;
   selectedData: DataType;
   redundancies: DataType;
@@ -205,8 +205,8 @@ export default class Core {
     }
 
     const receiveFromCurve_l = this.receiveFrom.l?.shape.curves[
-        this.receiveFrom.l.sendD
-      ].shape,
+      this.receiveFrom.l.sendD
+    ].shape,
       receiveFromCurve_r = this.receiveFrom.r?.shape.curves[
         this.receiveFrom.r.sendD
       ].shape;
@@ -268,8 +268,8 @@ export default class Core {
     }
 
     const receiveFromCurve_t = this.receiveFrom.t?.shape.curves[
-        this.receiveFrom.t.sendD
-      ].shape,
+      this.receiveFrom.t.sendD
+    ].shape,
       receiveFromCurve_b = this.receiveFrom.b?.shape.curves[
         this.receiveFrom.b.sendD
       ].shape;
@@ -550,8 +550,8 @@ export default class Core {
       if (
         !this.curves[d].shape &&
         (p.x - center.curveTrigger[d].x) * (p.x - center.curveTrigger[d].x) +
-          (p.y - center.curveTrigger[d].y) * (p.y - center.curveTrigger[d].y) <
-          this.curveTrigger.size.fill * this.curveTrigger.size.fill
+        (p.y - center.curveTrigger[d].y) * (p.y - center.curveTrigger[d].y) <
+        this.curveTrigger.size.fill * this.curveTrigger.size.fill
       ) {
         return Direction[d];
       }
@@ -869,8 +869,9 @@ export default class Core {
     for (const word of words) {
       const testLine = line + word,
         metrics = ctx.measureText(testLine),
-        testWidth = metrics.width;
-      if (testWidth > maxWidth) {
+        testWidth = metrics.width
+
+      if (testWidth > maxWidth - 32 * this.scale) {
         lines.push(line);
         line = word;
       } else {
@@ -891,8 +892,10 @@ export default class Core {
       offsetY -= lineHeight;
     });
 
+    // console.log('lines', lines)
+
     lines.forEach((line, lineI) => {
-      ctx.fillText(line, x, y + offsetYs[lineI]);
+      ctx.fillText(line, x, y - offsetYs[lineI]);
     });
   };
 
@@ -987,7 +990,7 @@ export default class Core {
     ctx.font = "14px Arial";
     // ctx.fillText(this.title, 0, 0);
 
-    this.renderText(ctx, this.title, 0, 0, this.w, 16);
+    this.renderText(ctx, this.title, 0, 0, this.getScaleSize().w, 16);
 
     // draw id text
     ctx.textAlign = "start";
