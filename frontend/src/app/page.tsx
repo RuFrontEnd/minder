@@ -1216,7 +1216,6 @@ export default function ProcessPage() {
 
   const onMouseWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
     if (!$canvas || !ctx) return;
-    setDataFrame(undefined);
     zoom(e.deltaY, { x: e.clientX, y: e.clientY });
     draw($canvas, ctx);
   };
