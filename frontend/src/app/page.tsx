@@ -283,7 +283,7 @@ export default function ProcessPage() {
     return _allData;
   }, [globalData]);
 
-  console.log('allData', allData)
+  console.log("allData", allData);
 
   const checkData = () => {
     const goThroughShapeMapping: { [shapeId: string]: boolean } = {};
@@ -1261,6 +1261,9 @@ export default function ProcessPage() {
         shapes = shapes.filter((shape) => shape.id !== removeShape?.id);
         checkData();
         checkGroups();
+        const _globalData = cloneDeep(globalData);
+        delete _globalData[removeShape.id];
+        setGlobalData(_globalData);
       } else if (removeCurve) {
         removeCurve.shape.removeCurve(removeCurve.direction);
         checkData();
