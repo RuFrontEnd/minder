@@ -1,22 +1,14 @@
 "use client";
 import Core from "@/shapes/core";
-import {
-  Vec,
-  Id,
-  W,
-  H,
-  C,
-  Title,
-  Data as DataType,
-} from "@/types/shapes/common";
-import { ConnectTarget } from "@/types/shapes/core";
+import * as CommonTypes from "@/types/shapes/common";
+
 
 export default class Process extends Core {
-  constructor(id: Id, w: W, h: H, p: Vec, c: C) {
-    super(id, w, h, p, c);
+  constructor(id: CommonTypes.Id, w: CommonTypes.W, h: CommonTypes.H, p: CommonTypes.Vec, c: CommonTypes.C, title: CommonTypes.Title) {
+    super(id, w, h, p, c, title);
   }
 
-  onDataChange = (title: Title, data: DataType) => {
+  onDataChange = (title: CommonTypes.Title, data: CommonTypes.Data) => {
     this.title = title;
     this.selectedData = data;
   };

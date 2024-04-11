@@ -3,43 +3,45 @@ import Core from "@/shapes/core";
 import Process from "@/shapes/process";
 import Data from "@/shapes/data";
 import Decision from "@/shapes/decision";
-import * as TerminatorTypes from "@/types/shapes/terminator";
-import {
-  Vec,
-  Id,
-  W,
-  H,
-  C,
-  Title,
-  Direction,
-  Data as DataType,
-} from "@/types/shapes/common";
 import { cloneDeep } from "lodash";
+import * as TerminatorTypes from "@/types/shapes/terminator";
+import * as CommonTypes from "@/types/shapes/common";
 
 export default class Terminal extends Core {
-  title: Title;
-  isStart: TerminatorTypes.IsStart
+  isStart: TerminatorTypes.IsStart;
 
-  constructor(id: Id, w: W, h: H, p: Vec, c: C, _isStart: TerminatorTypes.IsStart) {
-    super(id, w, h, p, c);
-    this.title = "";
-    this.isStart = _isStart
+  constructor(
+    id: CommonTypes.Id,
+    w: CommonTypes.W,
+    h: CommonTypes.H,
+    p: CommonTypes.Vec,
+    c: CommonTypes.C,
+    title: CommonTypes.Title,
+    _isStart: TerminatorTypes.IsStart
+  ) {
+    super(id, w, h, p, c, title);
+    this.isStart = _isStart;
   }
 
-  onDataChange = (title: Title) => {
+  onDataChange = (title: CommonTypes.Title) => {
     this.title = title;
   };
 
   onTraversal() {
     // traversal all relational steps
-    const queue: (Core)[] = [this],
+    const queue: Core[] = [this],
       locks = { [this.id]: { l: false, t: false, r: false, b: false } }, // prevent from graph cycle
-      ds = [Direction.l, Direction.t, Direction.r, Direction.b];
+      ds = [
+        CommonTypes.Direction.l,
+        CommonTypes.Direction.t,
+        CommonTypes.Direction.r,
+        CommonTypes.Direction.b,
+      ];
 
     while (queue.length !== 0) {
       const shape = queue[0];
 
-      const newOptions: DataType = cloneDeep(shape.options);
+      const newOptions: CommonTypes.Data = cloneDeep(shape.options);
 
       if (shape instanceof Data) {
         shape.data.forEach((dataItem) => {

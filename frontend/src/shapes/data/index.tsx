@@ -1,38 +1,27 @@
 "use client";
 import Core from "@/shapes/core";
-import {
-  Vec,
-  Id,
-  W,
-  H,
-  C,
-  Title,
-  Direction,
-  Data as DataType,
-} from "@/types/shapes/common";
 import * as CoreTypes from "@/types/shapes/core";
+import * as CommonTypes from "@/types/shapes/common";
 
 export default class Data extends Core {
   isFrameOpen: boolean;
-  title: Title;
-  data: DataType;
+  data: CommonTypes.Data;
   frameOffset: number;
 
-  constructor(id: Id, w: W, h: H, p: Vec, c: C) {
-    super(id, w, h, p, c);
+  constructor(id: CommonTypes.Id, w: CommonTypes.W, h: CommonTypes.H, p: CommonTypes.Vec, c: CommonTypes.C, title: CommonTypes.Title) {
+    super(id, w, h, p, c, title);
     this.isFrameOpen = false;
-    this.title = "";
     this.data = [];
     this.frameOffset = 20;
   }
 
-  onDataChange = (title: Title, data: DataType, selectedData: DataType) => {
+  onDataChange = (title: CommonTypes.Title, data: CommonTypes.Data, selectedData: CommonTypes.Data) => {
     this.title = title;
     this.data = data;
     this.selectedData = selectedData;
   };
 
-  checkReceivingPointsBoundry(p: Vec) {
+  checkReceivingPointsBoundry(p: CommonTypes.Vec) {
     const edge = this.getEdge(),
       center = this.getCenter(),
       x1 = -this.getScaleSize().w / 2 + this.frameOffset * this.scale,
@@ -53,7 +42,7 @@ export default class Data extends Core {
       this.receiving.l &&
       dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill
     ) {
-      return Direction.l;
+      return CommonTypes.Direction.l;
     }
 
     dx = this.getScreenP().x + Math.abs((x1 + x2) / 2) - p.x;
@@ -63,7 +52,7 @@ export default class Data extends Core {
       this.receiving.t &&
       dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill
     ) {
-      return Direction.t;
+      return CommonTypes.Direction.t;
     }
 
     dx = this.getScreenP().x + Math.abs((x2 + x3) / 2) - p.x;
@@ -73,7 +62,7 @@ export default class Data extends Core {
       this.receiving.r &&
       dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill
     ) {
-      return Direction.r;
+      return CommonTypes.Direction.r;
     }
 
     dx = this.getScreenP().x - Math.abs((x3 + x4) / 2) - p.x;
@@ -83,13 +72,13 @@ export default class Data extends Core {
       this.receiving.b &&
       dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill
     ) {
-      return Direction.b;
+      return CommonTypes.Direction.b;
     }
 
     return null;
   }
 
-  connect(receiveD: Direction, connectTarget: CoreTypes.ConnectTarget) {
+  connect(receiveD: CommonTypes.Direction, connectTarget: CoreTypes.ConnectTarget) {
     if (
       !this.receiving[receiveD] ||
       this.receiveFrom[receiveD]?.shape ||
@@ -114,7 +103,7 @@ export default class Data extends Core {
     const thershold = 10;
 
     // define receive curve P2 position
-    if (receiveD === Direction.l) {
+    if (receiveD === CommonTypes.Direction.l) {
       senderCurve.p2 = {
         x:
           this.p.x -
@@ -124,12 +113,12 @@ export default class Data extends Core {
           this.frameOffset / 2,
         y: this.p.y - connectTarget.shape.p.y,
       };
-    } else if (receiveD === Direction.t) {
+    } else if (receiveD === CommonTypes.Direction.t) {
       senderCurve.p2 = {
         x: this.p.x - connectTarget.shape.p.x + this.frameOffset / 2,
         y: this.p.y - connectTarget.shape.p.y - this.h / 2 - thershold,
       };
-    } else if (receiveD === Direction.r) {
+    } else if (receiveD === CommonTypes.Direction.r) {
       senderCurve.p2 = {
         x:
           this.p.x -
@@ -139,7 +128,7 @@ export default class Data extends Core {
           this.frameOffset / 2,
         y: this.p.y - connectTarget.shape.p.y,
       };
-    } else if (receiveD === Direction.b) {
+    } else if (receiveD === CommonTypes.Direction.b) {
       senderCurve.p2 = {
         x: this.p.x - connectTarget.shape.p.x - this.frameOffset / 2,
         y: this.p.y - connectTarget.shape.p.y + this.h / 2 + thershold,

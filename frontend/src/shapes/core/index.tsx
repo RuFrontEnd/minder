@@ -3,7 +3,7 @@ import Curve from "@/shapes/curve";
 import { Vec, Direction, Data as DataType } from "@/types/shapes/common";
 import { Line } from "@/types/shapes/curve";
 import * as CoreTypes from "@/types/shapes/core";
-import { Title } from "@/types/shapes/common";
+import * as CommonTypes from "@/types/shapes/common";
 
 const ds = [Direction.l, Direction.t, Direction.r, Direction.b];
 
@@ -25,20 +25,20 @@ export default class Core {
     cpline: Line;
     curve: Line;
   } = {
-      d: 100, // 30
-      size: {
-        fill: 4,
-        stroke: 2,
-      },
-      cpline: {
-        w: 1,
-        c: "#c00",
-      },
-      curve: {
-        w: 2,
-        c: "#333",
-      },
-    };
+    d: 100, // 30
+    size: {
+      fill: 4,
+      stroke: 2,
+    },
+    cpline: {
+      w: 1,
+      c: "#c00",
+    },
+    curve: {
+      w: 2,
+      c: "#333",
+    },
+  };
   private strokeSize = 2;
   private initPressing = {
     activate: false,
@@ -51,7 +51,7 @@ export default class Core {
   private initScale = 1;
   __w__: number;
   __h__: number;
-  title: Title;
+  title: CommonTypes.Title;
   __p__: Vec;
   curves: {
     l: { shape: null | Curve; sendTo: null | CoreTypes.SendTo };
@@ -75,18 +75,25 @@ export default class Core {
   dragP:
     | Vec
     | {
-      x: null;
-      y: null;
-    };
+        x: null;
+        y: null;
+      };
   options: DataType;
   selectedData: DataType;
   redundancies: DataType;
   __offset__: Vec;
   __scale__: number;
 
-  constructor(id: string, w: number, h: number, p: Vec, c: string) {
+  constructor(
+    id: string,
+    w: number,
+    h: number,
+    p: Vec,
+    c: string,
+    title: CommonTypes.Title
+  ) {
     this.id = id;
-    this.title = "";
+    this.title = title;
     this.__w__ = w;
     this.__h__ = h;
     this.__p__ = p;
@@ -198,8 +205,8 @@ export default class Core {
     }
 
     const receiveFromCurve_l = this.receiveFrom.l?.shape.curves[
-      this.receiveFrom.l.sendD
-    ].shape,
+        this.receiveFrom.l.sendD
+      ].shape,
       receiveFromCurve_r = this.receiveFrom.r?.shape.curves[
         this.receiveFrom.r.sendD
       ].shape;
@@ -261,8 +268,8 @@ export default class Core {
     }
 
     const receiveFromCurve_t = this.receiveFrom.t?.shape.curves[
-      this.receiveFrom.t.sendD
-    ].shape,
+        this.receiveFrom.t.sendD
+      ].shape,
       receiveFromCurve_b = this.receiveFrom.b?.shape.curves[
         this.receiveFrom.b.sendD
       ].shape;
@@ -543,8 +550,8 @@ export default class Core {
       if (
         !this.curves[d].shape &&
         (p.x - center.curveTrigger[d].x) * (p.x - center.curveTrigger[d].x) +
-        (p.y - center.curveTrigger[d].y) * (p.y - center.curveTrigger[d].y) <
-        this.curveTrigger.size.fill * this.curveTrigger.size.fill
+          (p.y - center.curveTrigger[d].y) * (p.y - center.curveTrigger[d].y) <
+          this.curveTrigger.size.fill * this.curveTrigger.size.fill
       ) {
         return Direction[d];
       }
@@ -1027,7 +1034,7 @@ export default class Core {
   }
 
   drawSendingPoint(ctx: CanvasRenderingContext2D) {
-    if (!ctx) return
+    if (!ctx) return;
     ctx.save();
     ctx.translate(this.getScreenP().x, this.getScreenP().y);
     // draw curve triggers
@@ -1049,7 +1056,6 @@ export default class Core {
       ctx.stroke();
       ctx.fill();
       ctx.closePath();
-
     }
 
     if (!this.curves.t.shape && !this.receiveFrom.t) {

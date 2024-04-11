@@ -536,7 +536,7 @@ export default function ProcessPage() {
           | "selectArea_rb"
           | "selectArea_lb" = null;
 
-          select.shapes.forEach((shape) => {
+        select.shapes.forEach((shape) => {
           if (!$canvas) return;
 
           if (shape.checkBoundry(p)) {
@@ -1301,6 +1301,7 @@ export default function ProcessPage() {
         y: -offset.y + window.innerHeight / 2 + offset_center.y,
       },
       "orange",
+      "terminator_start",
       true
     );
     terminal.offset = offset;
@@ -1321,6 +1322,7 @@ export default function ProcessPage() {
         y: -offset.y + window.innerHeight / 2 + offset_center.y,
       },
       "rgb(189, 123, 0)",
+      "terminator_end",
       false
     );
     terminal.offset = offset;
@@ -1340,7 +1342,8 @@ export default function ProcessPage() {
         x: -offset.x + window.innerWidth / 2 + offset_center.x,
         y: -offset.y + window.innerHeight / 2 + offset_center.y,
       },
-      "red"
+      "red",
+      "process",
     );
     process_new.offset = offset;
     process_new.scale = scale;
@@ -1359,7 +1362,8 @@ export default function ProcessPage() {
         x: -offset.x + window.innerWidth / 2 + offset_center.x,
         y: -offset.y + window.innerHeight / 2 + offset_center.y,
       },
-      "green"
+      "green",
+      "data",
     );
     data_new.scale = scale;
     data_new.offset = offset;
@@ -1378,7 +1382,8 @@ export default function ProcessPage() {
         x: -offset.x + window.innerWidth / 2 + offset_center.x,
         y: -offset.y + window.innerHeight / 2 + offset_center.y,
       },
-      "#3498db"
+      "#3498db",
+      "decision",
     );
     decision_new.offset = offset;
     decision_new.scale = scale;
@@ -1717,11 +1722,11 @@ export default function ProcessPage() {
           y: -offset.y + window.innerHeight / 2 - 300,
         },
         "orange",
+        "起點",
         true
       );
       terminal_s_new.offset = offset;
       terminal_s_new.scale = scale;
-      terminal_s_new.title = "起點";
 
       let data_new = new Data(
         `data_${Date.now()}`,
@@ -1731,11 +1736,11 @@ export default function ProcessPage() {
           x: -offset.x + window.innerWidth / 2,
           y: -offset.y + window.innerHeight / 2 - 100,
         },
-        "green"
+        "green",
+        "輸入資料_1"
       );
       data_new.offset = offset;
       data_new.scale = scale;
-      data_new.title = "輸入資料_1";
 
       // let process = new Process(
       //   `process_${Date.now()}`,
@@ -1760,11 +1765,11 @@ export default function ProcessPage() {
           y: -offset.y + window.innerHeight / 2 + 300,
         },
         "rgb(189, 123, 0)",
+        "終點",
         false
       );
       terminal_e_new.offset = offset;
       terminal_e_new.scale = scale;
-      terminal_e_new.title = "終點";
 
       let terminal_s_2_new = new Terminal(
         `terminator_s_2_${Date.now()}`,
@@ -1775,11 +1780,11 @@ export default function ProcessPage() {
           y: -offset.y + window.innerHeight / 2 + 500,
         },
         "orange",
+        "起點_2",
         true
       );
       terminal_s_2_new.offset = offset;
       terminal_s_2_new.scale = scale;
-      terminal_s_2_new.title = "起點_2";
 
       shapes.push(terminal_s_new);
       shapes.push(data_new);
