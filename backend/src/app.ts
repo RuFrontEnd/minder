@@ -3,7 +3,6 @@ import express, { Express, Request, Response, NextFunction } from "express";
 import colors from "colors";
 import pool from "./db";
 import * as routes from "./routes";
-import { authenticateToken } from "./utils/auth";
 
 pool
   .getConnection()
@@ -29,7 +28,7 @@ pool
     // load router
     for (const Route of Object.values(routes)) {
       const route = new Route();
-      app.use(route.getPrefix(), route.getRouter());
+      app.use(`${route.getglobalPrefix()}${route.getPrefix()}`, route.getRouter());
     }
 
     app.use((request: Request, response: Response) => {

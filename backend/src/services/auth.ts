@@ -20,7 +20,7 @@ export default class Auth {
     }
 
     bcrypt.hash(password, 10, async (err, hash) => {
-      await this.authModel.createUser(account, email, hash);
+      await this.authModel.create(account, email, hash);
     });
   }
 
@@ -56,7 +56,7 @@ export default class Auth {
     }
 
     const token = jwt.sign({ userId: user.id }, env.SECRETKEY, {
-      expiresIn: "1m",
+      expiresIn: "90d",
     });
 
     return token;

@@ -14,7 +14,7 @@ export default class Auth {
     return (rows as RowDataPacket[])[0].count > 0;
   }
 
-  async createUser(account: string, email: string, hash: string) {
+  async create(account: string, email: string, hash: string) {
     await pool.query(
       "INSERT INTO users (account, email, password) VALUES (?, ?, ?)",
       [account, email, hash]
