@@ -9,6 +9,7 @@ import Desicion from "@/shapes/decision";
 import DataFrame from "@/components/dataFrame";
 import SidePanel from "@/components/sidePanel";
 import Accordion from "@/components/accordion";
+import Button from "@/components/button"
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
 import { cloneDeep } from "lodash";
@@ -1051,7 +1052,6 @@ export default function ProcessPage() {
     //     shapesInView.push(shape);
     //   }
     // });
-
     // // align feature
     // const thePressing = pressing,
     //   stickyOffset = 5;
@@ -1859,6 +1859,7 @@ export default function ProcessPage() {
             </nav>
           </li>
           <li className="justify-self-end self-center text-base">
+            <Button className={'mr-4'} onClick={(e) => { }} text={"Save"} />
             <div
               className="w-10 h-10 inline-flex items-center justify-center rounded-full bg-indigo-500 text-white flex-shrink-0 cursor-pointer"
               onClick={onClickProfile}
