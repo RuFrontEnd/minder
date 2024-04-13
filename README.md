@@ -26,9 +26,11 @@ FT
 - [ ] redo
 - [ ] optimizing UI
 BK
-- [ ] register
-- [ ] login
-- [ ] auth token(JWT)
+- [X] register
+- [X] auth token(JWT)
+- [X] login
+- [X] login by token
+- [X] create project
 
 
 ## Tech Stack
