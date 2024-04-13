@@ -24,6 +24,18 @@ export default class Auth {
     });
   }
 
+  async jwtLogin(token: string): Promise<boolean> {
+    if (!token || !env?.SECRETKEY) {
+      return false
+    }
+
+    jwt.verify(token, env.SECRETKEY, (err, decoded) => {
+      return !!err
+    });
+
+    return false
+  }
+
   async login(account: string, password: string): Promise<string> {
     const rows = await this.authModel.findByAccount(account);
 
@@ -39,11 +51,11 @@ export default class Auth {
       throw new Error("Invalid account or password.");
     }
 
-    if (!env?.JWTSIGN) {
+    if (!env?.SECRETKEY) {
       throw new Error("None of jwt sign");
     }
 
-    const token = jwt.sign({ userId: user.id }, env.JWTSIGN, {
+    const token = jwt.sign({ userId: user.id }, env.SECRETKEY, {
       expiresIn: "1m",
     });
 

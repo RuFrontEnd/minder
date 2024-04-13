@@ -7,6 +7,7 @@ export default class Auth {
 
   constructor() {
     this.register = this.register.bind(this);
+    this.jwtLogin = this.jwtLogin.bind(this);
     this.login = this.login.bind(this);
     this.echo = this.echo.bind(this);
   }
@@ -31,6 +32,20 @@ export default class Auth {
         .status(201)
         .setHeader("Authorization", `Bearer ${token}`)
         .send("User login successfully!");
+    } catch (err) {
+      res.status(400).send(getError(err));
+    }
+  }
+
+  async jwtLogin(req: Request, res: Response, next: NextFunction) {
+    const { authorization: token } = req.headers;
+    console.log('req.headers', req.headers)
+
+    if (typeof token !== 'string') return res.status(400).send("User login failed.");
+
+    try {
+      await this.authService.jwtLogin(token);
+      res.status(201).send("User login successfully!");
     } catch (err) {
       res.status(400).send(getError(err));
     }
