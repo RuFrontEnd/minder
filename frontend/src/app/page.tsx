@@ -1816,6 +1816,11 @@ export default function ProcessPage() {
       draw($canvas, ctx);
     }
     window.addEventListener("resize", resize);
+    window.addEventListener('beforeunload', function (e) {
+      e.preventDefault();
+      e.returnValue = '';
+      return ''
+    });
 
     return () => {
       window.removeEventListener("resize", resize);
@@ -1859,7 +1864,15 @@ export default function ProcessPage() {
             </nav>
           </li>
           <li className="justify-self-end self-center text-base">
-            <Button className={'mr-4'} onClick={(e) => { }} text={"Save"} />
+            <Button className={'mr-4 pr-3'} onClick={(e) => { }} text={
+              <div className="d-flex items-center">
+                Save
+                <div
+                  className="mx-2 w-2 h-2 inline-flex items-center justify-center rounded-full bg-orange-600 text-indigo-500 flex-shrink-0 cursor-pointer"
+                  onClick={onClickTerminatorEnd}
+                />
+              </div>
+            } />
             <div
               className="w-10 h-10 inline-flex items-center justify-center rounded-full bg-indigo-500 text-white flex-shrink-0 cursor-pointer"
               onClick={onClickProfile}
