@@ -4,8 +4,8 @@ import * as CommonTypes from "@/types/shapes/common";
 
 
 export default class Process extends Core {
-  constructor(id: CommonTypes.Id, w: CommonTypes.W, h: CommonTypes.H, p: CommonTypes.Vec, c: CommonTypes.C, title: CommonTypes.Title) {
-    super(id, w, h, p, c, title);
+  constructor(id: CommonTypes.Id, w: CommonTypes.W, h: CommonTypes.H, p: CommonTypes.Vec, title: CommonTypes.Title) {
+    super(id, w, h, p, "#AB44F4", title);
   }
 
   onDataChange = (title: CommonTypes.Title, data: CommonTypes.Data) => {
@@ -16,7 +16,9 @@ export default class Process extends Core {
   draw(ctx: CanvasRenderingContext2D) {
     ctx.save();
     ctx.translate(this.getScreenP().x, this.getScreenP().y);
-    ctx.fillStyle = this.c;
+    const isAlert = this.redundancies.length > 0
+    let renderC = isAlert ? "#EC3333" : this.c
+    ctx.fillStyle = renderC;
 
     const edge = this.getEdge();
 

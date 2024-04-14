@@ -97,7 +97,7 @@ export default function DataFrame({
     <div
       key={shape.id}
       id={shape.id}
-      className={`w-[200px] rounded-lg p-4 flex flex-col md:ml-auto mt-10 md:mt-0 fixed -translate-y-1/2 bg-white shadow-md`}
+      className={`w-[200px] rounded-lg p-4 flex flex-col md:ml-auto mt-10 md:mt-0 fixed -translate-y-1/2 bg-white-500 shadow-md`}
       style={{
         left: `${coordinate.x}px`,
         top: `${coordinate.y}px`,
@@ -126,7 +126,7 @@ export default function DataFrame({
         <div className="relative mb-4">
           <label className="leading-7 text-sm text-gray-600">Data</label>
           <div
-            className="w-6 h-6 ml-2 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
+            className="w-6 h-6 ml-2 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
             onClick={onClickPlus}
           >
             +
@@ -252,7 +252,7 @@ export default function DataFrame({
       )}
 
       <button
-        className="text-white bg-indigo-500 border-0 py-2 px-8 focus:outline-none hover:bg-indigo-600 rounded text-lg"
+        className="text-white-500 bg-primary-500 border-0 py-2 px-8 focus:outline-none rounded text-lg"
         onClick={onClickConfirm}
       >
         Confirm

@@ -43,5 +43,5 @@ BK
 - mysql 8.3.0
 
 ## Others
-- Icon: heroicons[https://heroicons.com/solid]
+- Icon: heroicons[https://heroicons.com]
         flowbite[https://flowbite.com/icons/]

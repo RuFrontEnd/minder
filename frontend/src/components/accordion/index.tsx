@@ -14,9 +14,8 @@ export default function Accordion(props: AccordionTypes.Props) {
     <div className={`${className && className}`}>
       <div className="flex mb-1">
         <svg
-          className={`${
-            open ? "rotate-0" : "rotate-[-90deg]"
-          } w-6 h-6 text-gray-800 dark:text-white cursor-pointer duration-300`}
+          className={`${open ? "rotate-0" : "rotate-[-90deg]"
+            } w-6 h-6 text-primary-500 cursor-pointer duration-300`}
           aria-hidden="true"
           xmlns="http://www.w3.org/2000/svg"
           width="24"
@@ -40,9 +39,8 @@ export default function Accordion(props: AccordionTypes.Props) {
       </div>
       <div>
         <div
-          className={`grid overflow-hidden transition-all duration-300 ease-in-out text-slate-600 ${
-            open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
-          }`}
+          className={`grid overflow-hidden transition-all duration-300 ease-in-out text-slate-600 ${open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+            }`}
         >
           <div className="overflow-hidden">{children}</div>
         </div>

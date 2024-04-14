@@ -1,9 +1,14 @@
 "use client";
 import Curve from "@/shapes/curve";
+import { Inter } from 'next/font/google'
 import { Vec, Direction, Data as DataType } from "@/types/shapes/common";
 import { Line } from "@/types/shapes/curve";
 import * as CoreTypes from "@/types/shapes/core";
 import * as CommonTypes from "@/types/shapes/common";
+
+const inter = Inter({ subsets: ['latin'] })
+
+console.log('inter', inter)
 
 const ds = [Direction.l, Direction.t, Direction.r, Direction.b];
 
@@ -35,11 +40,11 @@ export default class Core {
         c: "#c00",
       },
       curve: {
-        w: 2,
-        c: "#333",
+        w: 1,
+        c: "#333333",
       },
     };
-  private strokeSize = 2;
+  private strokeSize = 1;
   private initPressing = {
     activate: false,
     target: null,
@@ -910,13 +915,27 @@ export default class Core {
 
     ctx.save();
     ctx.translate(this.getScreenP().x, this.getScreenP().y);
-    ctx.fillStyle = this.c;
+
+    const isAlert = this.redundancies.length > 0
+    let renderC = isAlert ? "#EB5757" : this.c
+
+    ctx.fillStyle = renderC
+
+    if (isAlert) {
+      // draw error message
+      ctx.textAlign = "end";
+      ctx.fillText(
+        "error!",
+        this.getScaleSize().w / 2,
+        -this.getScaleSize().h / 2 - 10
+      );
+    }
 
     if (this.getIsReceiving()) {
       if (this.__selecting__) {
         // draw frame
         ctx.fillStyle = "white";
-        ctx.strokeStyle = "DeepSkyBlue";
+        ctx.strokeStyle = "#00BFFF";
         ctx.lineWidth = this.strokeSize;
         ctx.beginPath();
         ctx.strokeRect(
@@ -986,30 +1005,19 @@ export default class Core {
     // render center text
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillStyle = "black";
-    ctx.font = "14px Arial";
-    // ctx.fillText(this.title, 0, 0);
+    ctx.fillStyle = "white";
+    ctx.font = `16px ${inter.style.fontFamily}`;
 
     this.renderText(ctx, this.title, 0, 0, this.getScaleSize().w, 16);
 
     // draw id text
-    ctx.textAlign = "start";
-    ctx.fillText(
-      this.id,
-      -this.getScaleSize().w / 2,
-      -this.getScaleSize().h / 2 - 10
-    );
+    // ctx.textAlign = "start";
+    // ctx.fillText(
+    //   this.id,
+    //   -this.getScaleSize().w / 2,
+    //   -this.getScaleSize().h / 2 - 10
+    // );
 
-    if (this.redundancies.length > 0) {
-      // draw error message
-      ctx.textAlign = "end";
-      ctx.fillStyle = "red";
-      ctx.fillText(
-        "error!",
-        this.getScaleSize().w / 2,
-        -this.getScaleSize().h / 2 - 10
-      );
-    }
     ctx.restore();
   }
 

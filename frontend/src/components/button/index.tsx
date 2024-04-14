@@ -6,7 +6,7 @@ const Button = (props: ButtonTypes.Props) => {
   return (
     <button
       id={id}
-      className={`${className && className} text-white bg-indigo-500 border-0 py-2 px-6 focus:outline-none hover:bg-indigo-600 rounded text-md`}
+      className={`${className && className} text-white bg-primary-500 border-0 py-2 px-6 focus:outline-none  rounded text-md`}
       onClick={onClick}
     >{text}</button>
   );

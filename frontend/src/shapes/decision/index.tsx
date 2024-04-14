@@ -22,10 +22,9 @@ export default class Desicion extends Core {
     w: CommonTypes.W,
     h: CommonTypes.H,
     p: CommonTypes.Vec,
-    c: CommonTypes.C,
     title: CommonTypes.Title
   ) {
-    super(id, w, h, p, c, title);
+    super(id, w, h, p, "#5468E9", title);
     this.text = {
       l: null,
       t: null,

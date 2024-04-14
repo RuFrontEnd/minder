@@ -15,11 +15,10 @@ export default class Terminal extends Core {
     w: CommonTypes.W,
     h: CommonTypes.H,
     p: CommonTypes.Vec,
-    c: CommonTypes.C,
     title: CommonTypes.Title,
     _isStart: TerminatorTypes.IsStart
   ) {
-    super(id, w, h, p, c, title);
+    super(id, w, h, p, "#FFB100", title);
     this.isStart = _isStart;
   }
 

@@ -254,6 +254,14 @@ const init = {
     title: "",
     data: {},
   },
+  shape: {
+    size: {
+      t: { w: 150, h: 75 },
+      p: { w: 150, h: 75 },
+      d: { w: 150, h: 75 },
+      dec: { w: 100, h: 100 }
+    }
+  }
 };
 
 export default function ProcessPage() {
@@ -1312,13 +1320,12 @@ export default function ProcessPage() {
 
     let terminal = new Terminal(
       `terminator_s_${Date.now()}`,
-      200,
-      100,
+      init.shape.size.t.w,
+      init.shape.size.t.h,
       {
         x: -offset.x + window.innerWidth / 2 + offset_center.x,
         y: -offset.y + window.innerHeight / 2 + offset_center.y,
       },
-      "orange",
       "terminator_start",
       true
     );
@@ -1336,13 +1343,12 @@ export default function ProcessPage() {
 
     let terminal = new Terminal(
       `terminator_e_${Date.now()}`,
-      200,
-      100,
+      init.shape.size.t.w,
+      init.shape.size.t.h,
       {
         x: -offset.x + window.innerWidth / 2 + offset_center.x,
         y: -offset.y + window.innerHeight / 2 + offset_center.y,
       },
-      "rgb(189, 123, 0)",
       "terminator_end",
       false
     );
@@ -1360,13 +1366,12 @@ export default function ProcessPage() {
 
     let process_new = new Process(
       `process_${Date.now()}`,
-      200,
-      100,
+      init.shape.size.p.w,
+      init.shape.size.p.h,
       {
         x: -offset.x + window.innerWidth / 2 + offset_center.x,
         y: -offset.y + window.innerHeight / 2 + offset_center.y,
       },
-      "red",
       "process",
     );
     process_new.offset = offset;
@@ -1383,13 +1388,12 @@ export default function ProcessPage() {
 
     let data_new = new Data(
       `data_${Date.now()}`,
-      200,
-      100,
+      init.shape.size.d.w,
+      init.shape.size.d.h,
       {
         x: -offset.x + window.innerWidth / 2 + offset_center.x,
         y: -offset.y + window.innerHeight / 2 + offset_center.y,
       },
-      "green",
       "data",
     );
     data_new.scale = scale;
@@ -1406,13 +1410,12 @@ export default function ProcessPage() {
 
     let decision_new = new Desicion(
       `decision_${Date.now()}`,
-      100,
-      100,
+      init.shape.size.dec.w,
+      init.shape.size.dec.h,
       {
         x: -offset.x + window.innerWidth / 2 + offset_center.x,
         y: -offset.y + window.innerHeight / 2 + offset_center.y,
       },
-      "#3498db",
       "decision",
     );
     decision_new.offset = offset;
@@ -1677,11 +1680,6 @@ export default function ProcessPage() {
         ctx.fill();
         ctx?.closePath();
       }
-
-      // requestAnimationFrame(() => {
-      //   if (!$canvas || !ctx) return;
-      //   draw($canvas, ctx);
-      // });
     },
     [otherStepIds]
   );
@@ -1717,28 +1715,39 @@ export default function ProcessPage() {
 
       let terminal_s_new = new Terminal(
         `terminator_s_${Date.now()}`,
-        200,
-        100,
+        init.shape.size.t.w,
+        init.shape.size.t.h,
         {
           x: -offset.x + window.innerWidth / 2,
           y: -offset.y + window.innerHeight / 2 - 300,
         },
-        "orange",
         "起點",
         true
       );
       terminal_s_new.offset = offset;
       terminal_s_new.scale = scale;
 
+      let process_new = new Process(
+        `process_${Date.now()}`,
+        init.shape.size.p.w,
+        init.shape.size.p.h,
+        {
+          x: -offset.x + window.innerWidth / 2 + 200,
+          y: -offset.y + window.innerHeight / 2,
+        },
+        `process`
+      );
+      process_new.offset = offset;
+      process_new.scale = scale;
+
       let data_new = new Data(
         `data_${Date.now()}`,
-        200,
-        100,
+        init.shape.size.d.w,
+        init.shape.size.d.h,
         {
           x: -offset.x + window.innerWidth / 2,
           y: -offset.y + window.innerHeight / 2 - 100,
         },
-        "green",
         "輸入資料_1"
       );
       data_new.offset = offset;
@@ -1762,40 +1771,55 @@ export default function ProcessPage() {
       //   shapes.push(process);
       // }
 
-      let terminal_e_new = new Terminal(
-        `terminator_e_${Date.now()}`,
-        200,
-        100,
+      // let terminal_e_new = new Terminal(
+      //   `terminator_e_${Date.now()}`,
+      //   200,
+      //   100,
+      //   {
+      //     x: -offset.x + window.innerWidth / 2,
+      //     y: -offset.y + window.innerHeight / 2 + 300,
+      //   },
+      //   "rgb(189, 123, 0)",
+      //   "終點",
+      //   false
+      // );
+      // terminal_e_new.offset = offset;
+      // terminal_e_new.scale = scale;
+
+      // let terminal_s_2_new = new Terminal(
+      //   `terminator_s_2_${Date.now()}`,
+      //   200,
+      //   100,
+      //   {
+      //     x: -offset.x + window.innerWidth / 2,
+      //     y: -offset.y + window.innerHeight / 2 + 500,
+      //   },
+      //   "orange",
+      //   "起點_2",
+      //   true
+      // );
+      // terminal_s_2_new.offset = offset;
+      // terminal_s_2_new.scale = scale;
+
+      let decision_new = new Desicion(
+        `decision_new_${Date.now()}`,
+        init.shape.size.dec.w,
+        init.shape.size.dec.h,
         {
           x: -offset.x + window.innerWidth / 2,
-          y: -offset.y + window.innerHeight / 2 + 300,
+          y: -offset.y + window.innerHeight / 2 + 100,
         },
-        "rgb(189, 123, 0)",
-        "終點",
-        false
+        "decision",
       );
-      terminal_e_new.offset = offset;
-      terminal_e_new.scale = scale;
+      decision_new.offset = offset;
+      decision_new.scale = scale;
 
-      let terminal_s_2_new = new Terminal(
-        `terminator_s_2_${Date.now()}`,
-        200,
-        100,
-        {
-          x: -offset.x + window.innerWidth / 2,
-          y: -offset.y + window.innerHeight / 2 + 500,
-        },
-        "orange",
-        "起點_2",
-        true
-      );
-      terminal_s_2_new.offset = offset;
-      terminal_s_2_new.scale = scale;
-
-      // shapes.push(terminal_s_new);
+      shapes.push(terminal_s_new);
       shapes.push(data_new);
       // shapes.push(terminal_e_new);
+      shapes.push(process_new);
       // shapes.push(terminal_s_2_new);
+      shapes.push(decision_new);
 
       checkData();
       checkGroups();
@@ -1839,8 +1863,8 @@ export default function ProcessPage() {
 
   return (
     <>
-      <header className="w-full fixed z-50 shadow-md text-gray-600 body-font bg-indigo-100">
-        <ul className="container mx-auto grid grid-cols-3 py-2 px-4">
+      <header className="w-full fixed z-50 text-gray-600 body-font bg-primary-500">
+        <ul className="container mx-auto grid grid-cols-3 py-3 px-4">
           <li>
             <a className="flex title-font font-medium items-center text-gray-900 mb-4 md:mb-0">
               <svg
@@ -1850,31 +1874,32 @@ export default function ProcessPage() {
                 stroke-linecap="round"
                 stroke-linejoin="round"
                 stroke-width="2"
-                className="w-10 h-10 text-white p-2 bg-indigo-500 rounded-full"
+                className="w-10 h-10 text-white p-2 bg-secondary-500 rounded-full"
                 viewBox="0 0 24 24"
               >
                 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
               </svg>
-              <span className="ml-3 text-xl">Minder</span>
+              <span className="ml-3 text-xl text-white-500">Minder</span>
             </a>
           </li>
           <li className="justify-self-center self-center text-base">
             <nav>
-              <a className="hover:text-gray-900">Project_1</a>
+              <a className="text-white-500">Project_1</a>
             </nav>
           </li>
           <li className="justify-self-end self-center text-base">
-            <Button className={'mr-4 pr-3'} onClick={(e) => { }} text={
+            <Button className={'mr-4 bg-secondary-500'} onClick={(e) => { }} text={
               <div className="d-flex items-center">
-                Save
-                <div
-                  className="mx-2 w-2 h-2 inline-flex items-center justify-center rounded-full bg-orange-600 text-indigo-500 flex-shrink-0 cursor-pointer"
-                  onClick={onClickTerminatorEnd}
-                />
+                <span className="text-white-500">
+                  Save
+                </span>
+                {/* <div
+                  className="mx-2 w-2 h-2 inline-flex items-center justify-center rounded-full bg-info-500 text-indigo-500 flex-shrink-0 cursor-pointer"
+                /> */}
               </div>
             } />
             <div
-              className="w-10 h-10 inline-flex items-center justify-center rounded-full bg-indigo-500 text-white flex-shrink-0 cursor-pointer"
+              className="w-10 h-10 inline-flex items-center justify-center rounded-full bg-secondary-500 text-white-500 flex-shrink-0 cursor-pointer"
               onClick={onClickProfile}
             >
               L
@@ -2036,14 +2061,50 @@ export default function ProcessPage() {
           </div>
         </div>
       </SidePanel>
+      <div className="fixed p-4 bottom-[16px] left-1/2 -translate-x-1/2 bg-white-500 shadow-md rounded-full">
+        <div className="justify-self-center">
+          <div className="flex">
+            <div
+              className="mx-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
+              onClick={onClickTerminator}
+            >
+              T
+            </div>
+            <div
+              className="mx-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
+              onClick={onClickTerminatorEnd}
+            >
+              TE
+            </div>
+            <div
+              className="mx-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
+              onClick={onClickProcess}
+            >
+              P
+            </div>
+            <div
+              className="mx-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
+              onClick={onClickData}
+            >
+              D
+            </div>
+            <div
+              className="mx-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
+              onClick={onClickDecision}
+            >
+              De
+            </div>
+          </div>
+        </div>
+      </div>
       <motion.ul
-        className="fixed p-4 bottom-0 right-0 shadow-md"
+        className="fixed p-4 bottom-[16px] rounded-full shadow-md bg-white-500"
         variants={{
           open: {
-            right: "300px",
+            right: "316px",
           },
           closed: {
-            right: "0px",
+            right: "16px",
           },
         }}
         initial={isUserSidePanelOpen ? "open" : "closed"}
@@ -2053,7 +2114,7 @@ export default function ProcessPage() {
         <li className="justify-self-end">
           <div className="flex items-center">
             <div
-              className="w-6 h-6 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
+              className="w-6 h-6 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
               onClick={onClickScaleMinusIcon}
             >
               -
@@ -2065,7 +2126,7 @@ export default function ProcessPage() {
               {Math.ceil(scale * 100)}%
             </div>
             <div
-              className="w-6 h-6 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
+              className="w-6 h-6 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
               onClick={onClickScalePlusIcon}
             >
               +
@@ -2106,43 +2167,6 @@ export default function ProcessPage() {
           warning={dataFrameWarning}
         />
       )}
-
-      <div className="fixed p-4 top-[80px] left-1/2 -translate-x-1/2 bg-white shadow-md">
-        <div className="justify-self-center">
-          <div className="flex">
-            <div
-              className="mx-2 w-12 h-12 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
-              onClick={onClickTerminator}
-            >
-              T
-            </div>
-            <div
-              className="mx-2 w-12 h-12 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
-              onClick={onClickTerminatorEnd}
-            >
-              TE
-            </div>
-            <div
-              className="mx-2 w-12 h-12 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
-              onClick={onClickProcess}
-            >
-              P
-            </div>
-            <div
-              className="mx-2 w-12 h-12 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
-              onClick={onClickData}
-            >
-              D
-            </div>
-            <div
-              className="mx-2 w-12 h-12 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
-              onClick={onClickDecision}
-            >
-              De
-            </div>
-          </div>
-        </div>
-      </div>
     </>
   );
 }

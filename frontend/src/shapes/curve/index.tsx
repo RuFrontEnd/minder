@@ -61,9 +61,9 @@ export default class Curve {
     this.__p2__ = p2;
     this.pressing = this.initPressing;
     this.arrow = new Arrow(
-      20,
-      20,
-      "black",
+      12,
+      12,
+      "#333333",
       { x: this.__p2__.x, y: this.__p2__.y },
       Math.atan2(this.__p2__.y - this.cp2.y, this.__p2__.x - this.cp2.x) +
       90 * (Math.PI / 180)
