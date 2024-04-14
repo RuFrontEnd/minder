@@ -25,6 +25,7 @@ FT
 - [ ] undo
 - [ ] redo
 - [ ] optimizing UI
+
 BK
 - [X] register
 - [X] auth token(JWT)
