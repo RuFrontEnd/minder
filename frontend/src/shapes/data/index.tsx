@@ -9,7 +9,7 @@ export default class Data extends Core {
   frameOffset: number;
 
   constructor(id: CommonTypes.Id, w: CommonTypes.W, h: CommonTypes.H, p: CommonTypes.Vec, title: CommonTypes.Title) {
-    super(id, w, h, p, "#18CE62", title);
+    super(id, w, h, p, "#1BC861", title);
     this.isFrameOpen = false;
     this.data = [];
     this.frameOffset = 20;

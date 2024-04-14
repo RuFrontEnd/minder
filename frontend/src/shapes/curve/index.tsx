@@ -1,6 +1,7 @@
 "use client";
 import Arrow from "@/shapes/arrow";
 import { Vec } from "@/types/shapes/common";
+import { tailwindColors } from '@/variables/colors'
 import * as CurveTypes from "@/types/shapes/curve";
 
 const threshold = 5;
@@ -50,9 +51,9 @@ export default class Curve {
     this.cpline = cpline;
     this.curve = curve;
     this.controlPoint = {
-      c: "rgba(200, 200, 200, .5)",
-      strokeC: "#900",
-      r: 10,
+      c: tailwindColors?.grey["4"] + "65",
+      strokeC: tailwindColors?.info["500"],
+      r: 8,
     };
     this.radius = 10;
     this.p1 = p1;

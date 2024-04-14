@@ -1,4 +1,4 @@
-// TODO: 給 shape 預設名稱 / 終點 terminator 要判斷是否沒有接收到其他 shape(要做錯誤題示) / core shape sendTo 搬遷至 curves sendTo / 雙擊 cp1 || cp2 可自動對位  / 處理 data shape SelectFrame 開關(點擊 frame 以外要關閉) / 尋找左側列 icons / 對齊功能
+// TODO: terminator dataframe 新增 start / end 選項 / side panel focus 功能改為 hover 後新增 shape icon 加入 hover 對應 shape 顏色效果 / 更換新增 shape icon / 取消 title 重名檢查 / 終點 terminator 要判斷是否沒有接收到其他 shape(要做錯誤題示) / core shape sendTo 搬遷至 curves sendTo / 雙擊 cp1 || cp2 可自動對位  / 處理 data shape SelectFrame 開關(點擊 frame 以外要關閉) / 尋找左側列 icons / 對齊功能
 "use client";
 import Core from "@/shapes/core";
 import Terminal from "@/shapes/terminal";
@@ -595,7 +595,7 @@ export default function ProcessPage() {
           if (theCheckCurveTriggerBoundry) {
             shape.selecting = false;
 
-            if (!shape.curves[theCheckCurveTriggerBoundry].shape) {
+            if (!shape.curves[theCheckCurveTriggerBoundry].shape && !shape.receiveFrom[CommonTypes.Direction[theCheckCurveTriggerBoundry]]?.shape) {
               shape.createCurve(
                 `curve_${Date.now()}`,
                 CommonTypes.Direction[theCheckCurveTriggerBoundry]

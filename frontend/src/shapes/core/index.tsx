@@ -1,14 +1,14 @@
 "use client";
 import Curve from "@/shapes/curve";
+import { tailwindColors } from '@/variables/colors'
 import { Inter } from 'next/font/google'
 import { Vec, Direction, Data as DataType } from "@/types/shapes/common";
 import { Line } from "@/types/shapes/curve";
 import * as CoreTypes from "@/types/shapes/core";
 import * as CommonTypes from "@/types/shapes/common";
 
-const inter = Inter({ subsets: ['latin'] })
 
-console.log('inter', inter)
+const inter = Inter({ subsets: ['latin'] })
 
 const ds = [Direction.l, Direction.t, Direction.r, Direction.b];
 
@@ -30,14 +30,14 @@ export default class Core {
     cpline: Line;
     curve: Line;
   } = {
-      d: 100, // 30
+      d: 50,
       size: {
         fill: 4,
         stroke: 2,
       },
       cpline: {
         w: 1,
-        c: "#c00",
+        c: tailwindColors?.info["500"] || "#000000",
       },
       curve: {
         w: 1,
