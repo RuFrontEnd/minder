@@ -2072,27 +2072,27 @@ export default function ProcessPage() {
             </div>
             <div
               className="mx-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
-              onClick={onClickTerminatorEnd}
-            >
-              TE
-            </div>
-            <div
-              className="mx-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
               onClick={onClickProcess}
             >
-              P
+              <svg width={16} height={16} xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" viewBox="0 0 100 100" xmlSpace="preserve">
+                <path fill="#FFFFFF" className="st0" d="M93.44,78.48H6.56V21.52h86.88V78.48z" />
+              </svg>
             </div>
             <div
               className="mx-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
               onClick={onClickData}
             >
-              D
+              <svg width={16} height={16} xmlns="http://www.w3.org/2000/svg" data-name="Layer 21" viewBox="0 0 32 32" x="0px" y="0px">
+                <path fill="#FFFFFF" d="M30.387,5.683A.5.5,0,0,0,30,5.5H6a.5.5,0,0,0-.49.4l-4,20a.5.5,0,0,0,.49.6H26a.5.5,0,0,0,.49-.4l4-20A.5.5,0,0,0,30.387,5.683Z" />
+              </svg>
             </div>
             <div
               className="mx-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
               onClick={onClickDecision}
             >
-              De
+              <svg width={16} height={16} xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" viewBox="0 0 64 64" xmlSpace="preserve">
+                <rect fill="#FFFFFF" x="12.5545645" y="12.5545635" transform="matrix(0.7071068 -0.7071068 0.7071068 0.7071068 -13.2548332 32)" width={"38.890873"} height={"38.890873"} />
+              </svg>
             </div>
           </div>
         </div>

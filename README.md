@@ -46,3 +46,4 @@ BK
 ## Others
 - Icon: heroicons[https://heroicons.com]
         flowbite[https://flowbite.com/icons/]
+        thenounproject[https://thenounproject.com/icons/]
