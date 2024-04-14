@@ -1877,7 +1877,8 @@ export default function ProcessPage() {
                 className="w-10 h-10 text-white p-2 bg-secondary-500 rounded-full"
                 viewBox="0 0 24 24"
               >
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                
+                <path stroke="#FFFFFF" d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
               </svg>
               <span className="ml-3 text-xl text-white-500">Minder</span>
             </a>
@@ -1899,7 +1900,7 @@ export default function ProcessPage() {
               </div>
             } />
             <div
-              className="w-10 h-10 inline-flex items-center justify-center rounded-full bg-secondary-500 text-white-500 flex-shrink-0 cursor-pointer"
+              className="w-10 h-10 inline-flex items-center justify-center rounded-full bg-info-500 text-white-500 flex-shrink-0 cursor-pointer"
               onClick={onClickProfile}
             >
               L

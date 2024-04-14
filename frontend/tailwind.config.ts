@@ -15,7 +15,7 @@ const config: Config = {
       },
       colors: {
         primary: { 500: '#233C53' },
-        secondary: { 500: '#F2994A' },
+        secondary: { 500: '#DF914C' },
         info: { 500: '#00BFFF' },
         success: { 500: '#27AE60' },
         warning: { 500: '#E2B93B' },
