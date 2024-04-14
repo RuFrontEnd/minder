@@ -6,23 +6,22 @@ export default function Accordion(props: AccordionTypes.Props) {
     title,
     open,
     children,
-    onClickArrow,
-    onClickTitle,
+    hoverRender,
+    onClick,
   } = props;
 
   return (
-    <div className={`${className && className}`}>
-      <div className="flex mb-1">
+    <div className={`${className && className}`} onClick={onClick}>
+      <div className="flex items-center mb-1 cursor-pointer hover:bg-grey-5 hover:bg-opacity-50">
         <svg
           className={`${open ? "rotate-0" : "rotate-[-90deg]"
-            } w-6 h-6 text-primary-500 cursor-pointer duration-300`}
+            } w-6 h-6 text-primary-500 duration-300`}
           aria-hidden="true"
           xmlns="http://www.w3.org/2000/svg"
           width="24"
           height="24"
           fill="none"
           viewBox="0 0 24 24"
-          onClick={onClickArrow}
         >
           <path
             stroke="currentColor"
@@ -33,16 +32,19 @@ export default function Accordion(props: AccordionTypes.Props) {
           />
         </svg>
 
-        <p className="cursor-pointer" onClick={onClickTitle}>
-          {title}
-        </p>
+        <div className="flex items-center flex-1 group">
+          <div className="text-primary-500">
+            {title}
+          </div>
+          <div className="flex-1 hidden group-hover:block">{hoverRender}</div>
+        </div>
       </div>
-      <div>
+      <div onClick={(e) => e.stopPropagation()}>
         <div
           className={`grid overflow-hidden transition-all duration-300 ease-in-out text-slate-600 ${open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
             }`}
         >
-          <div className="overflow-hidden">{children}</div>
+          <div className="overflow-hidden text-grey-3">{children}</div>
         </div>
       </div>
     </div>

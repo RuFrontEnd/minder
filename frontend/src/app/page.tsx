@@ -1,4 +1,4 @@
-// TODO: terminator dataframe 新增 start / end 選項 / side panel focus 功能改為 hover 後新增 shape icon 加入 hover 對應 shape 顏色效果 / 更換新增 shape icon / 取消 title 重名檢查 / 終點 terminator 要判斷是否沒有接收到其他 shape(要做錯誤題示) / core shape sendTo 搬遷至 curves sendTo / 雙擊 cp1 || cp2 可自動對位  / 處理 data shape SelectFrame 開關(點擊 frame 以外要關閉) / 尋找左側列 icons / 對齊功能
+// TODO: terminator dataframe 新增 start & end 選項 / 更換新增 shape icon / 取消 title 重名檢查 / 終點 terminator 要判斷是否沒有接收到其他 shape(要做錯誤題示) / core shape sendTo 搬遷至 curves sendTo / 雙擊 cp1 || cp2 可自動對位  / 處理 data shape SelectFrame 開關(點擊 frame 以外要關閉) / 尋找左側列 icons / 對齊功能
 "use client";
 import Core from "@/shapes/core";
 import Terminal from "@/shapes/terminal";
@@ -1910,7 +1910,7 @@ export default function ProcessPage() {
       <SidePanel
         open={isDataSidePanelOpen}
         w={"360px"}
-        h={"calc(100vh - 56px)"}
+        h={"calc(100vh - 64px)"}
         d={["b"]}
         onClickSwitch={onClickDataSidePanelSwitch}
       >
@@ -1921,15 +1921,26 @@ export default function ProcessPage() {
                 <li
                   key={procedureId}
                   className="mb-1"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onClickStep(steps[procedureId].shape.p);
-                  }}
                 >
                   <Accordion
                     title={steps[procedureId].shape.title}
+                    hoverRender={
+                      <div className="h-full flex justify-end items-center">
+                        <div
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onClickStep(steps[procedureId].shape.p);
+                          }}
+                        >
+                          <svg width={18} height={18} xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" viewBox="0 0 100 100" enable-background="new 0 0 100 100" xmlSpace="preserve">
+                            <path fill="#233C53" d="M84.6,45C82.4,29.7,70.3,17.5,55,15.3V5H45v10.3C29.7,17.5,17.6,29.7,15.4,45H5v10h10.4C17.6,70.3,29.7,82.4,45,84.6V95h10  V84.6C70.3,82.4,82.4,70.3,84.6,55H95V45H84.6z M50,75c-13.8,0-25-11.2-25-25s11.2-25,25-25s25,11.2,25,25S63.8,75,50,75z" />
+                            <circle cx="50" cy="50" r="10" />
+                          </svg>
+                        </div>
+                      </div>
+                    }
                     open={steps[procedureId].open}
-                    onClickArrow={(e) => {
+                    onClick={(e) => {
                       e.stopPropagation();
                       onClickaAccordionArrow(procedureId);
                     }}
@@ -1952,27 +1963,25 @@ export default function ProcessPage() {
                                     <p className="mr-1">
                                       {steps[child].shape.title}
                                     </p>
-                                    {/* <svg
-                          className="w-6 h-6 text-gray-800 dark:text-white"
-                          aria-hidden="true"
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="24"
-                          height="24"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            stroke="currentColor"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="m14.304 4.844 2.852 2.852M7 7H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-4.5m2.409-9.91a2.017 2.017 0 0 1 0 2.853l-6.844 6.844L8 14l.713-3.565 6.844-6.844a2.015 2.015 0 0 1 2.852 0Z"
-                          />
-                        </svg> */}
+                                  </div>
+                                }
+                                hoverRender={
+                                  <div className="h-full flex justify-end items-center">
+                                    <div
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        onClickStep(steps[child].shape.p);
+                                      }}
+                                    >
+                                      <svg width={18} height={18} xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" viewBox="0 0 100 100" enable-background="new 0 0 100 100" xmlSpace="preserve">
+                                        <path fill="#233C53" d="M84.6,45C82.4,29.7,70.3,17.5,55,15.3V5H45v10.3C29.7,17.5,17.6,29.7,15.4,45H5v10h10.4C17.6,70.3,29.7,82.4,45,84.6V95h10  V84.6C70.3,82.4,82.4,70.3,84.6,55H95V45H84.6z M50,75c-13.8,0-25-11.2-25-25s11.2-25,25-25s25,11.2,25,25S63.8,75,50,75z" />
+                                        <circle cx="50" cy="50" r="10" />
+                                      </svg>
+                                    </div>
                                   </div>
                                 }
                                 open={steps[child].open}
-                                onClickArrow={(e) => {
+                                onClick={(e) => {
                                   e.stopPropagation();
                                   onClickaAccordionArrow(steps[child].shape.id);
                                 }}
@@ -2005,9 +2014,26 @@ export default function ProcessPage() {
                 }}
               >
                 <Accordion
-                  title={steps[stepId].shape.title}
+                  title={
+                    steps[stepId].shape.title
+                  }
+                  hoverRender={
+                    <div className="h-full flex justify-end items-center">
+                      <div
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onClickStep(steps[stepId].shape.p);
+                        }}
+                      >
+                        <svg width={18} height={18} xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" viewBox="0 0 100 100" enable-background="new 0 0 100 100" xmlSpace="preserve">
+                          <path fill="#233C53" d="M84.6,45C82.4,29.7,70.3,17.5,55,15.3V5H45v10.3C29.7,17.5,17.6,29.7,15.4,45H5v10h10.4C17.6,70.3,29.7,82.4,45,84.6V95h10  V84.6C70.3,82.4,82.4,70.3,84.6,55H95V45H84.6z M50,75c-13.8,0-25-11.2-25-25s11.2-25,25-25s25,11.2,25,25S63.8,75,50,75z" />
+                          <circle cx="50" cy="50" r="10" />
+                        </svg>
+                      </div>
+                    </div>
+                  }
                   open={steps[stepId].open}
-                  onClickArrow={(e) => {
+                  onClick={(e) => {
                     e.stopPropagation();
                     onClickaAccordionArrow(stepId);
                   }}
