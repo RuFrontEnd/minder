@@ -1,4 +1,4 @@
 import Auth from "./auth";
-import Article from "./article";
+import Project from "./project";
 
-export { Auth, Article };
+export { Auth, Project };

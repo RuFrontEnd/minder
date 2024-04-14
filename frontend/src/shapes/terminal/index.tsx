@@ -3,44 +3,44 @@ import Core from "@/shapes/core";
 import Process from "@/shapes/process";
 import Data from "@/shapes/data";
 import Decision from "@/shapes/decision";
-import { ConnectTarget } from "@/types/shapes/core";
-import {
-  Vec,
-  Id,
-  W,
-  H,
-  C,
-  Title,
-  Direction,
-  Data as DataType,
-} from "@/types/shapes/common";
 import { cloneDeep } from "lodash";
+import * as TerminatorTypes from "@/types/shapes/terminator";
+import * as CommonTypes from "@/types/shapes/common";
 
 export default class Terminal extends Core {
-  title: Title;
+  isStart: TerminatorTypes.IsStart;
 
-  constructor(id: Id, w: W, h: H, p: Vec, c: C) {
-    super(id, w, h, p, c);
-    this.title = "";
+  constructor(
+    id: CommonTypes.Id,
+    w: CommonTypes.W,
+    h: CommonTypes.H,
+    p: CommonTypes.Vec,
+    title: CommonTypes.Title,
+    _isStart: TerminatorTypes.IsStart
+  ) {
+    super(id, w, h, p, "#FFB100", title);
+    this.isStart = _isStart;
   }
 
-  onDataChange = (title: Title) => {
+  onDataChange = (title: CommonTypes.Title) => {
     this.title = title;
   };
 
-  onTraversal(handleShape: (goThroughShape: Core, terminator: Terminal) => void) {
+  onTraversal() {
     // traversal all relational steps
-    const queue: (Core)[] = [this],
+    const queue: Core[] = [this],
       locks = { [this.id]: { l: false, t: false, r: false, b: false } }, // prevent from graph cycle
-      ds = [Direction.l, Direction.t, Direction.r, Direction.b];
+      ds = [
+        CommonTypes.Direction.l,
+        CommonTypes.Direction.t,
+        CommonTypes.Direction.r,
+        CommonTypes.Direction.b,
+      ];
 
     while (queue.length !== 0) {
       const shape = queue[0];
-      if (handleShape) {
-        handleShape(shape, this)
-      }
 
-      const newOptions: DataType = cloneDeep(shape.options);
+      const newOptions: CommonTypes.Data = cloneDeep(shape.options);
 
       if (shape instanceof Data) {
         shape.data.forEach((dataItem) => {
@@ -112,12 +112,6 @@ export default class Terminal extends Core {
 
     ctx.restore();
 
-    super.draw(
-      ctx,
-      !this.curves.l.shape &&
-      !this.curves.t.shape &&
-      !this.curves.r.shape &&
-      !this.curves.b.shape
-    );
+    super.draw(ctx);
   }
 }

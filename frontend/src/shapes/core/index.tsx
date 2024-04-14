@@ -1,16 +1,21 @@
 "use client";
 import Curve from "@/shapes/curve";
+import { Inter } from 'next/font/google'
 import { Vec, Direction, Data as DataType } from "@/types/shapes/common";
 import { Line } from "@/types/shapes/curve";
 import * as CoreTypes from "@/types/shapes/core";
-import { Title } from "@/types/shapes/common";
+import * as CommonTypes from "@/types/shapes/common";
+
+const inter = Inter({ subsets: ['latin'] })
+
+console.log('inter', inter)
 
 const ds = [Direction.l, Direction.t, Direction.r, Direction.b];
 
 export default class Core {
   id: string;
   c: string;
-  private anchor = {
+  anchor = {
     size: {
       fill: 4,
       stroke: 2,
@@ -25,21 +30,21 @@ export default class Core {
     cpline: Line;
     curve: Line;
   } = {
-    d: 100, // 30
-    size: {
-      fill: 4,
-      stroke: 2,
-    },
-    cpline: {
-      w: 1,
-      c: "#c00",
-    },
-    curve: {
-      w: 2,
-      c: "#333",
-    },
-  };
-  private strokeSize = 2;
+      d: 100, // 30
+      size: {
+        fill: 4,
+        stroke: 2,
+      },
+      cpline: {
+        w: 1,
+        c: "#c00",
+      },
+      curve: {
+        w: 1,
+        c: "#333333",
+      },
+    };
+  private strokeSize = 1;
   private initPressing = {
     activate: false,
     target: null,
@@ -51,9 +56,7 @@ export default class Core {
   private initScale = 1;
   __w__: number;
   __h__: number;
-  minW: number;
-  minH: number;
-  title: Title;
+  title: CommonTypes.Title;
   __p__: Vec;
   curves: {
     l: { shape: null | Curve; sendTo: null | CoreTypes.SendTo };
@@ -77,24 +80,29 @@ export default class Core {
   dragP:
     | Vec
     | {
-        x: null;
-        y: null;
-      };
+      x: null;
+      y: null;
+    };
   options: DataType;
   selectedData: DataType;
   redundancies: DataType;
   __offset__: Vec;
   __scale__: number;
 
-  constructor(id: string, w: number, h: number, p: Vec, c: string) {
+  constructor(
+    id: string,
+    w: number,
+    h: number,
+    p: Vec,
+    c: string,
+    title: CommonTypes.Title
+  ) {
     this.id = id;
-    this.c = c;
+    this.title = title;
     this.__w__ = w;
     this.__h__ = h;
-    this.minW = 100;
-    this.minH = 100;
-    this.title = "";
     this.__p__ = p;
+    this.c = c;
     this.curves = {
       l: { shape: null, sendTo: null },
       t: { shape: null, sendTo: null },
@@ -202,8 +210,8 @@ export default class Core {
     }
 
     const receiveFromCurve_l = this.receiveFrom.l?.shape.curves[
-        this.receiveFrom.l.sendD
-      ].shape,
+      this.receiveFrom.l.sendD
+    ].shape,
       receiveFromCurve_r = this.receiveFrom.r?.shape.curves[
         this.receiveFrom.r.sendD
       ].shape;
@@ -265,8 +273,8 @@ export default class Core {
     }
 
     const receiveFromCurve_t = this.receiveFrom.t?.shape.curves[
-        this.receiveFrom.t.sendD
-      ].shape,
+      this.receiveFrom.t.sendD
+    ].shape,
       receiveFromCurve_b = this.receiveFrom.b?.shape.curves[
         this.receiveFrom.b.sendD
       ].shape;
@@ -350,8 +358,6 @@ export default class Core {
     return {
       w: this.w * this.scale,
       h: this.h * this.scale,
-      minW: this.minW * this.scale,
-      minH: this.minH * this.scale,
     };
   }
 
@@ -549,8 +555,8 @@ export default class Core {
       if (
         !this.curves[d].shape &&
         (p.x - center.curveTrigger[d].x) * (p.x - center.curveTrigger[d].x) +
-          (p.y - center.curveTrigger[d].y) * (p.y - center.curveTrigger[d].y) <
-          this.curveTrigger.size.fill * this.curveTrigger.size.fill
+        (p.y - center.curveTrigger[d].y) * (p.y - center.curveTrigger[d].y) <
+        this.curveTrigger.size.fill * this.curveTrigger.size.fill
       ) {
         return Direction[d];
       }
@@ -868,8 +874,9 @@ export default class Core {
     for (const word of words) {
       const testLine = line + word,
         metrics = ctx.measureText(testLine),
-        testWidth = metrics.width;
-      if (testWidth > maxWidth) {
+        testWidth = metrics.width
+
+      if (testWidth > maxWidth - 32 * this.scale) {
         lines.push(line);
         line = word;
       } else {
@@ -890,12 +897,14 @@ export default class Core {
       offsetY -= lineHeight;
     });
 
+    // console.log('lines', lines)
+
     lines.forEach((line, lineI) => {
-      ctx.fillText(line, x, y + offsetYs[lineI]);
+      ctx.fillText(line, x, y - offsetYs[lineI]);
     });
   };
 
-  draw(ctx: CanvasRenderingContext2D, sendable: boolean = true) {
+  draw(ctx: CanvasRenderingContext2D) {
     const edge = this.getEdge(),
       fillRectParams = {
         x: edge.l - this.getScreenP().x,
@@ -906,13 +915,27 @@ export default class Core {
 
     ctx.save();
     ctx.translate(this.getScreenP().x, this.getScreenP().y);
-    ctx.fillStyle = this.c;
+
+    const isAlert = this.redundancies.length > 0
+    let renderC = isAlert ? "#EB5757" : this.c
+
+    ctx.fillStyle = renderC
+
+    if (isAlert) {
+      // draw error message
+      ctx.textAlign = "end";
+      ctx.fillText(
+        "error!",
+        this.getScaleSize().w / 2,
+        -this.getScaleSize().h / 2 - 10
+      );
+    }
 
     if (this.getIsReceiving()) {
       if (this.__selecting__) {
         // draw frame
         ctx.fillStyle = "white";
-        ctx.strokeStyle = "DeepSkyBlue";
+        ctx.strokeStyle = "#00BFFF";
         ctx.lineWidth = this.strokeSize;
         ctx.beginPath();
         ctx.strokeRect(
@@ -976,171 +999,25 @@ export default class Core {
         ctx.stroke();
         ctx.fill();
         ctx.closePath();
-
-        // draw curve triggers
-        ctx.lineWidth = this.curveTrigger.size.stroke;
-
-        if (!this.curves.l.shape && !this.receiveFrom.l && sendable) {
-          // left
-          ctx.beginPath();
-          ctx.arc(
-            -this.getScaleSize().w / 2 - this.getScaleCurveTriggerDistance(),
-            0,
-            this.anchor.size.fill,
-            0,
-            2 * Math.PI,
-            false
-          );
-          ctx.stroke();
-          ctx.fill();
-          ctx.closePath();
-        }
-
-        if (!this.curves.t.shape && !this.receiveFrom.t && sendable) {
-          // top
-          ctx.beginPath();
-          ctx.arc(
-            0,
-            -this.getScaleSize().h / 2 - this.getScaleCurveTriggerDistance(),
-            this.anchor.size.fill,
-            0,
-            2 * Math.PI,
-            false
-          );
-          ctx.stroke();
-          ctx.fill();
-          ctx.closePath();
-        }
-
-        if (!this.curves.r.shape && !this.receiveFrom.r && sendable) {
-          // right
-          ctx.beginPath();
-          ctx.arc(
-            this.getScaleSize().w / 2 + this.getScaleCurveTriggerDistance(),
-            0,
-            this.anchor.size.fill,
-            0,
-            2 * Math.PI,
-            false
-          );
-          ctx.stroke();
-          ctx.fill();
-          ctx.closePath();
-        }
-
-        if (!this.curves.b.shape && !this.receiveFrom.b && sendable) {
-          ctx.beginPath();
-          ctx.arc(
-            0,
-            this.getScaleSize().h / 2 + this.getScaleCurveTriggerDistance(),
-            this.curveTrigger.size.fill,
-            0,
-            2 * Math.PI,
-            false
-          ); // bottom
-          ctx.stroke();
-          ctx.fill();
-          ctx.closePath();
-        }
-      }
-    } else {
-      // draw receiving points
-      ctx.fillStyle = "white";
-      ctx.strokeStyle = "DeepSkyBlue";
-      ctx.lineWidth = this.anchor.size.stroke;
-
-      // left
-      if (this.receiving.l) {
-        ctx.beginPath();
-        ctx.arc(
-          -this.getScaleSize().w / 2,
-          0,
-          this.anchor.size.fill,
-          0,
-          2 * Math.PI,
-          false
-        );
-        ctx.stroke();
-        ctx.fill();
-        ctx.closePath();
-      }
-
-      // top
-      if (this.receiving.t) {
-        ctx.beginPath();
-        ctx.arc(
-          0,
-          -this.getScaleSize().h / 2,
-          this.anchor.size.fill,
-          0,
-          2 * Math.PI,
-          false
-        );
-        ctx.stroke();
-        ctx.fill();
-        ctx.closePath();
-      }
-
-      // right
-      if (this.receiving.r) {
-        ctx.beginPath();
-        ctx.arc(
-          this.getScaleSize().w / 2,
-          0,
-          this.anchor.size.fill,
-          0,
-          2 * Math.PI,
-          false
-        );
-        ctx.stroke();
-        ctx.fill();
-        ctx.closePath();
-      }
-
-      // bottom
-      if (this.receiving.b) {
-        ctx.beginPath();
-        ctx.arc(
-          0,
-          this.getScaleSize().h / 2,
-          this.anchor.size.fill,
-          0,
-          2 * Math.PI,
-          false
-        );
-        ctx.stroke();
-        ctx.fill();
-        ctx.closePath();
       }
     }
 
     // render center text
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillStyle = "black";
-    ctx.font = "14px Arial";
-    // ctx.fillText(this.title, 0, 0);
+    ctx.fillStyle = "white";
+    ctx.font = `16px ${inter.style.fontFamily}`;
 
-    this.renderText(ctx, this.title, 0, 0, this.w, 16);
+    this.renderText(ctx, this.title, 0, 0, this.getScaleSize().w, 16);
 
     // draw id text
-    ctx.textAlign = "start";
-    ctx.fillText(
-      this.id,
-      -this.getScaleSize().w / 2,
-      -this.getScaleSize().h / 2 - 10
-    );
+    // ctx.textAlign = "start";
+    // ctx.fillText(
+    //   this.id,
+    //   -this.getScaleSize().w / 2,
+    //   -this.getScaleSize().h / 2 - 10
+    // );
 
-    if (this.redundancies.length > 0) {
-      // draw error message
-      ctx.textAlign = "end";
-      ctx.fillStyle = "red";
-      ctx.fillText(
-        "error!",
-        this.getScaleSize().w / 2,
-        -this.getScaleSize().h / 2 - 10
-      );
-    }
     ctx.restore();
   }
 
@@ -1162,6 +1039,156 @@ export default class Core {
 
     if (this.curves.b.shape) {
       this.curves.b.shape.draw(ctx);
+    }
+
+    ctx.restore();
+  }
+
+  drawSendingPoint(ctx: CanvasRenderingContext2D) {
+    if (!ctx) return;
+    ctx.save();
+    ctx.translate(this.getScreenP().x, this.getScreenP().y);
+    // draw curve triggers
+    ctx.fillStyle = "white";
+    ctx.strokeStyle = "DeepSkyBlue";
+    ctx.lineWidth = this.strokeSize;
+
+    if (!this.curves.l.shape && !this.receiveFrom.l) {
+      // left
+      ctx.beginPath();
+      ctx.arc(
+        -this.getScaleSize().w / 2 - this.getScaleCurveTriggerDistance(),
+        0,
+        this.anchor.size.fill,
+        0,
+        2 * Math.PI,
+        false
+      );
+      ctx.stroke();
+      ctx.fill();
+      ctx.closePath();
+    }
+
+    if (!this.curves.t.shape && !this.receiveFrom.t) {
+      // top
+      ctx.beginPath();
+      ctx.arc(
+        0,
+        -this.getScaleSize().h / 2 - this.getScaleCurveTriggerDistance(),
+        this.anchor.size.fill,
+        0,
+        2 * Math.PI,
+        false
+      );
+      ctx.stroke();
+      ctx.fill();
+      ctx.closePath();
+    }
+
+    if (!this.curves.r.shape && !this.receiveFrom.r) {
+      // right
+      ctx.beginPath();
+      ctx.arc(
+        this.getScaleSize().w / 2 + this.getScaleCurveTriggerDistance(),
+        0,
+        this.anchor.size.fill,
+        0,
+        2 * Math.PI,
+        false
+      );
+      ctx.stroke();
+      ctx.fill();
+      ctx.closePath();
+    }
+
+    if (!this.curves.b.shape && !this.receiveFrom.b) {
+      ctx.beginPath();
+      ctx.arc(
+        0,
+        this.getScaleSize().h / 2 + this.getScaleCurveTriggerDistance(),
+        this.curveTrigger.size.fill,
+        0,
+        2 * Math.PI,
+        false
+      ); // bottom
+      ctx.stroke();
+      ctx.fill();
+      ctx.closePath();
+    }
+
+    ctx.restore();
+  }
+
+  drawRecievingPoint(ctx: CanvasRenderingContext2D) {
+    ctx.save();
+    ctx.translate(this.getScreenP().x, this.getScreenP().y);
+    // draw receiving points
+    ctx.fillStyle = "white";
+    ctx.strokeStyle = "DeepSkyBlue";
+    ctx.lineWidth = this.anchor.size.stroke;
+
+    // left
+    if (this.receiving.l) {
+      ctx.beginPath();
+      ctx.arc(
+        -this.getScaleSize().w / 2,
+        0,
+        this.anchor.size.fill,
+        0,
+        2 * Math.PI,
+        false
+      );
+      ctx.stroke();
+      ctx.fill();
+      ctx.closePath();
+    }
+
+    // top
+    if (this.receiving.t) {
+      ctx.beginPath();
+      ctx.arc(
+        0,
+        -this.getScaleSize().h / 2,
+        this.anchor.size.fill,
+        0,
+        2 * Math.PI,
+        false
+      );
+      ctx.stroke();
+      ctx.fill();
+      ctx.closePath();
+    }
+
+    // right
+    if (this.receiving.r) {
+      ctx.beginPath();
+      ctx.arc(
+        this.getScaleSize().w / 2,
+        0,
+        this.anchor.size.fill,
+        0,
+        2 * Math.PI,
+        false
+      );
+      ctx.stroke();
+      ctx.fill();
+      ctx.closePath();
+    }
+
+    // bottom
+    if (this.receiving.b) {
+      ctx.beginPath();
+      ctx.arc(
+        0,
+        this.getScaleSize().h / 2,
+        this.anchor.size.fill,
+        0,
+        2 * Math.PI,
+        false
+      );
+      ctx.stroke();
+      ctx.fill();
+      ctx.closePath();
     }
 
     ctx.restore();

@@ -1,39 +1,24 @@
 "use client";
 import Core from "@/shapes/core";
-import {
-  Vec,
-  Id,
-  W,
-  H,
-  C,
-  Title,
-  Data as DataType,
-} from "@/types/shapes/common";
-import { ConnectTarget } from "@/types/shapes/core";
+import * as CommonTypes from "@/types/shapes/common";
+
 
 export default class Process extends Core {
-  constructor(id: Id, w: W, h: H, p: Vec, c: C) {
-    super(id, w, h, p, c);
+  constructor(id: CommonTypes.Id, w: CommonTypes.W, h: CommonTypes.H, p: CommonTypes.Vec, title: CommonTypes.Title) {
+    super(id, w, h, p, "#AB44F4", title);
   }
 
-  onDataChange = (title: Title, data: DataType) => {
+  onDataChange = (title: CommonTypes.Title, data: CommonTypes.Data) => {
     this.title = title;
     this.selectedData = data;
   };
 
-  onMouseUp(p: Vec, sender?: ConnectTarget) {
-    super.onMouseUp(p, sender, {
-      l: { x: -10, y: 0 },
-      t: { x: 0, y: -10 },
-      r: { x: 10, y: 0 },
-      b: { x: 0, y: 10 },
-    });
-  }
-
   draw(ctx: CanvasRenderingContext2D) {
     ctx.save();
     ctx.translate(this.getScreenP().x, this.getScreenP().y);
-    ctx.fillStyle = this.c;
+    const isAlert = this.redundancies.length > 0
+    let renderC = isAlert ? "#EC3333" : this.c
+    ctx.fillStyle = renderC;
 
     const edge = this.getEdge();
 
@@ -48,9 +33,6 @@ export default class Process extends Core {
 
     ctx.restore();
 
-    super.draw(
-      ctx,
-      !this.curves.l.shape && !this.curves.t.shape && !this.curves.r.shape && !this.curves.b.shape
-    );
+    super.draw(ctx);
   }
 }

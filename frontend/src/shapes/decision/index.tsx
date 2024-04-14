@@ -1,18 +1,14 @@
 "use client";
 import Core from "@/shapes/core";
-import {
-  Vec,
-  Id,
-  W,
-  H,
-  C,
-  Title,
-  Direction,
-  Data as DataType,
-} from "@/types/shapes/common";
+import * as CommonTypes from "@/types/shapes/common";
 import * as DecisionTypes from "@/types/shapes/decision";
 
-const ds = [Direction.l, Direction.t, Direction.r, Direction.b];
+const ds = [
+  CommonTypes.Direction.l,
+  CommonTypes.Direction.t,
+  CommonTypes.Direction.r,
+  CommonTypes.Direction.b,
+];
 export default class Desicion extends Core {
   text: {
     l: DecisionTypes.Text;
@@ -21,8 +17,14 @@ export default class Desicion extends Core {
     b: DecisionTypes.Text;
   };
 
-  constructor(id: Id, w: W, h: H, p: Vec, c: C) {
-    super(id, w, h, p, c);
+  constructor(
+    id: CommonTypes.Id,
+    w: CommonTypes.W,
+    h: CommonTypes.H,
+    p: CommonTypes.Vec,
+    title: CommonTypes.Title
+  ) {
+    super(id, w, h, p, "#5468E9", title);
     this.text = {
       l: null,
       t: null,
@@ -58,7 +60,7 @@ export default class Desicion extends Core {
     return output;
   }
 
-  createCurve(id: string, d: Direction) {
+  createCurve(id: string, d: CommonTypes.Direction) {
     super.createCurve(id, d);
 
     // define curve text
@@ -69,13 +71,13 @@ export default class Desicion extends Core {
     this.text[d] = currentText;
   }
 
-  removeCurve(d: Direction) {
+  removeCurve(d: CommonTypes.Direction) {
     super.removeCurve(d);
 
     this.text[d] = null;
   }
 
-  onDataChange(title: Title, data: DataType) {
+  onDataChange(title: CommonTypes.Title, data: CommonTypes.Data) {
     this.title = title;
     this.selectedData = data;
   }
@@ -102,7 +104,7 @@ export default class Desicion extends Core {
     ctx.fill();
     ctx.restore();
 
-    super.draw(ctx, !(this.getText().y && this.getText().n));
+    super.draw(ctx);
   }
 
   drawCurve(ctx: CanvasRenderingContext2D): void {

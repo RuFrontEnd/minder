@@ -11,6 +11,8 @@ export default class Auth extends Route {
   }
 
   protected setRoutes() {
-    this.router.get("/login", this.authController.echo);
+    this.router.post("/register", this.authController.register);
+    this.router.post("/login", this.authController.login);
+    this.router.post("/jwt-login", this.authController.jwtLogin);
   }
 }

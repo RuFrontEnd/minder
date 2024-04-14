@@ -1,4 +1,4 @@
-// TODO: core shape sendTo 搬遷至 curves sendTo / shape 在有 recieve curve 情況下還會有 recieve point / curve control point 被蓋住時要跳離 shape 範圍 / 以 terminal 為群組功能 / 雙擊 cp1 || cp2 可自動對位 / focus 功能 / zoom 功能 / 處理 data shape SelectFrame 開關(點擊 frame 以外要關閉) / 尋找左側列 icons / 後端判斷新增的 data 是否資料重名 / 對齊功能
+// TODO: 給 shape 預設名稱 / 終點 terminator 要判斷是否沒有接收到其他 shape(要做錯誤題示) / core shape sendTo 搬遷至 curves sendTo / 雙擊 cp1 || cp2 可自動對位  / 處理 data shape SelectFrame 開關(點擊 frame 以外要關閉) / 尋找左側列 icons / 對齊功能
 "use client";
 import Core from "@/shapes/core";
 import Terminal from "@/shapes/terminal";
@@ -8,9 +8,12 @@ import Curve from "@/shapes/curve";
 import Desicion from "@/shapes/decision";
 import DataFrame from "@/components/dataFrame";
 import SidePanel from "@/components/sidePanel";
-import { useState, useRef, useEffect, useCallback } from "react";
+import Accordion from "@/components/accordion";
+import Button from "@/components/button"
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
 import { cloneDeep } from "lodash";
+import { v4 as uuidv4 } from "uuid";
 import * as CoreTypes from "@/types/shapes/core";
 import * as CurveTypes from "@/types/shapes/curve";
 import * as CommonTypes from "@/types/shapes/common";
@@ -37,6 +40,7 @@ let useEffected = false,
     dy: number; // distance between event py & pressing shape py
   } = null,
   offset: CommonTypes.Vec = { x: 0, y: 0 },
+  offset_center: CommonTypes.Vec = { x: 0, y: 0 },
   dragP: CommonTypes.Vec = { x: 0, y: 0 },
   moveP: null | {
     originalX: number;
@@ -104,6 +108,162 @@ const getFramePosition = (shape: Core) => {
   };
 };
 
+const Editor = (props: { className: string; shape: Core }) => {
+  const [title, setTitle] = useState<CommonTypes.Title>(""),
+    [selections, setSelections] = useState<DataFrameTypes.Selections>({}),
+    [data, setData] = useState<CommonTypes.Data>([]);
+
+  const onChangeTitle = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTitle(e.currentTarget.value);
+  };
+
+  const onClickCheckedBox = (DataText: CommonTypes.DataItem["text"]) => {
+    const _selections: DataFrameTypes.Selections = cloneDeep(selections);
+
+    _selections[DataText] = !_selections[DataText];
+
+    setSelections(_selections);
+  };
+
+  const onClickPlus = () => {
+    const _data = cloneDeep(data);
+    _data.push({ id: uuidv4(), text: "" });
+    setData(_data);
+  };
+
+  const onClickMinus = (id: string) => {
+    const _data = cloneDeep(data).filter((datdItem) => datdItem.id !== id);
+    setData(_data);
+  };
+
+  const onChangeData = (e: React.ChangeEvent<HTMLInputElement>, i: number) => {
+    const _data = cloneDeep(data);
+    _data[i].text = e.currentTarget.value;
+    setData(_data);
+  };
+
+  const onClickConfirm = () => {
+    const selectedData = (() => {
+      const data: CommonTypes.Data = [];
+
+      props.shape.options.forEach((option) => {
+        if (selections[option.text]) {
+          data.push(option);
+        }
+      });
+
+      props.shape.redundancies.forEach((option) => {
+        if (selections[option.text]) {
+          data.push(option);
+        }
+      });
+
+      return data;
+    })();
+
+    // onConfirm(title, data, selectedData);
+  };
+
+  useEffect(() => {
+    setTitle(props.shape.title);
+
+    const _selections: DataFrameTypes.Selections = (() => {
+      const output: DataFrameTypes.Selections = {};
+
+      props.shape.options.forEach((option) => {
+        output[option.text] = false;
+      });
+
+      props.shape.selectedData.forEach((selectedDataItem) => {
+        output[selectedDataItem.text] = true;
+      });
+
+      return output;
+    })();
+
+    setSelections(_selections);
+
+    if (props.shape instanceof Data) {
+      setData(props.shape.data);
+    }
+  }, [props.shape]);
+
+  return (
+    <>
+      {(props.shape instanceof Process ||
+        props.shape instanceof Data ||
+        props.shape instanceof Desicion) && (
+          <div className={props.className && props.className}>
+            {props.shape instanceof Data && (
+              <div>
+                <p className="mb-1">Data</p>
+                {/* <div
+              className="w-6 h-6 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
+              onClick={onClickScalePlusIcon}
+            >
+              +
+            </div> */}
+                <ul className="ps-2">
+                  {props.shape.data.map((dataItem) => (
+                    <li className="mb-1"> · {dataItem.text}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <div>
+              <p className="mb-1">Data Usage</p>
+              <ul className="ps-2">
+                {props.shape.options.map((option) => (
+                  <li className="mb-1">
+                    <span className="bg-indigo-100 text-indigo-500 w-4 h-4 rounded-full inline-flex items-center justify-center">
+                      {selections[option.text] && (
+                        <svg
+                          fill="none"
+                          stroke="currentColor"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="3"
+                          className="w-3 h-3"
+                          viewBox="0 0 24 24"
+                        >
+                          <path d="M20 6L9 17l-5-5"></path>
+                        </svg>
+                      )}
+                    </span>
+                    {option.text}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <div className="mb-1">Redundancies</div>
+              <ul className="ps-2">
+                {props.shape.redundancies.map((redundancy) => (
+                  <li className="mb-1"> · {redundancy.text}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
+    </>
+  );
+};
+
+const init = {
+  dataFrameWarning: {
+    title: "",
+    data: {},
+  },
+  shape: {
+    size: {
+      t: { w: 150, h: 75 },
+      p: { w: 150, h: 75 },
+      d: { w: 150, h: 75 },
+      dec: { w: 100, h: 100 }
+    }
+  }
+};
+
 export default function ProcessPage() {
   let { current: $canvas } = useRef<HTMLCanvasElement | null>(null);
 
@@ -117,17 +277,38 @@ export default function ProcessPage() {
     [scale, setScale] = useState(1),
     [leftMouseBtn, setLeftMouseBtn] = useState(false),
     [isDataSidePanelOpen, setIsDataSidePanelOpen] = useState(true),
-    [groups, setGroups] = useState<PageTypes.Groups>([])
+    [isUserSidePanelOpen, setIsUserSidePanelOpen] = useState(false),
+    [steps, setSteps] = useState<PageTypes.Steps>({}),
+    [procedures, setProcedures] = useState<PageTypes.Procedures>({}),
+    [otherStepIds, setOtherStepIds] = useState<PageTypes.OtherStepIds>([]),
+    [dataFrameWarning, setDataFrameWarning] = useState<DataFrameTypes.Warning>(
+      init.dataFrameWarning
+    ),
+    [globalData, setGlobalData] = useState<{
+      [dataShapeId: string]: CommonTypes.Data;
+    }>({});
+
+  const allData = useMemo(() => {
+    const _items: CommonTypes.Data = [];
+    const _mapping: { [data: string]: string } = {};
+
+    Object.entries(globalData).forEach(([shapeId, datas]) => {
+      datas.forEach((data) => {
+        _items.push(data);
+        _mapping[data.text] = shapeId;
+      });
+    });
+
+    return { items: _items, mapping: _mapping };
+  }, [globalData]);
 
   const checkData = () => {
-    const goThroughShapeMapping: { [shapeId: string]: boolean } = {}
+    const goThroughShapeMapping: { [shapeId: string]: boolean } = {};
 
     shapes.forEach((shape) => {
       shape.options = [];
-      goThroughShapeMapping[shape.id] = true
+      goThroughShapeMapping[shape.id] = true;
     });
-
-    const _groups: PageTypes.Groups = []
 
     shapes.forEach((shape) => {
       if (
@@ -137,35 +318,106 @@ export default function ProcessPage() {
         shape.receiveFrom.r === null &&
         shape.receiveFrom.b === null
       ) {
-        const _children: PageTypes.Children = []
         // shape is Terminator
-        shape.onTraversal((goThroughShape, terminator) => {
-          if (goThroughShape.id === terminator.id) {
-            _groups.push({
-              head: terminator,
-              children: _children
-            })
-          } else {
-            _children.push(goThroughShape)
-          }
-          delete goThroughShapeMapping[goThroughShape.id]
-        });
-
+        shape.onTraversal();
       }
     });
 
     // check all correspondants of shapes' between options and selectedData
     shapes.forEach((shape) => {
-      if (goThroughShapeMapping[shape.id]) {
-        _groups.push({
-          head: shape,
-          children: []
-        })
-      }
       shape.getRedundancies();
     });
+  };
 
-    setGroups(_groups)
+  const checkGroups = () => {
+    const _steps: PageTypes.Steps = {};
+
+    shapes.forEach((shape) => {
+      _steps[shape.id] = {
+        shape: cloneDeep(shape),
+        open: steps[shape.id] ? steps[shape.id].open : false,
+      };
+    });
+
+    setSteps(_steps);
+
+    const _procedures: PageTypes.Procedures = {};
+
+    shapes.forEach((shape) => {
+      if (
+        shape instanceof Terminal &&
+        shape.isStart &&
+        !_procedures[shape.id]
+      ) {
+        _procedures[shape.id] = [];
+      }
+    });
+
+    const goThroughShapes: { [shapeId: string]: boolean } = {};
+
+    shapes.forEach((shape) => {
+      if (!(shape instanceof Terminal && shape.isStart)) return;
+
+      const head = shape,
+        queue: Core[] = [shape],
+        locks = { [shape.id]: { l: false, t: false, r: false, b: false } }; // prevent from graph cycle
+
+      while (queue.length !== 0) {
+        const shape = queue[0];
+
+        if (head.id === shape.id) {
+          _procedures[head.id] = [];
+        } else {
+          _procedures[head.id].push(shape.id);
+        }
+        goThroughShapes[shape.id] = true;
+
+        ds.forEach((d) => {
+          const theSendTo = shape.curves[d].sendTo;
+
+          if (!theSendTo) return;
+
+          const hasLock = locks[theSendTo.shape.id];
+
+          if (!hasLock) {
+            locks[theSendTo.shape.id] = {
+              l: false,
+              t: false,
+              r: false,
+              b: false,
+            };
+          }
+
+          const hasDirectionLock = locks[theSendTo.shape.id][d];
+
+          if (!hasDirectionLock) {
+            if (
+              !(
+                theSendTo.shape.id !== head.id &&
+                theSendTo.shape instanceof Terminal &&
+                theSendTo.shape.isStart
+              )
+            ) {
+              queue.push(theSendTo.shape);
+            }
+            locks[theSendTo.shape.id][d] = true;
+          }
+        });
+
+        queue.shift();
+      }
+    });
+
+    setProcedures(_procedures);
+
+    const _otherStepIds: PageTypes.OtherStepIds = [];
+
+    shapes.forEach((shape) => {
+      if (goThroughShapes[shape.id]) return;
+      _otherStepIds.push(shape.id);
+    });
+
+    setOtherStepIds(_otherStepIds);
   };
 
   const zoom = (
@@ -180,24 +432,40 @@ export default function ProcessPage() {
     const _scale = scale * (1 + scaleAmount);
     setScale(_scale);
 
+    // --- get offset value
     // zoom the page based on where the cursor is
-    var distX = client.x / $canvas.width;
-    var distY = client.y / $canvas.height;
+    const distX = client.x / $canvas.width;
+    const distY = client.y / $canvas.height;
 
     // calculate how much we need to zoom
     const unitsZoomedX = ($canvas.width / _scale) * scaleAmount;
     const unitsZoomedY = ($canvas.height / _scale) * scaleAmount;
-
     const unitsAddLeft = unitsZoomedX * distX;
     const unitsAddTop = unitsZoomedY * distY;
 
     offset.x -= unitsAddLeft;
     offset.y -= unitsAddTop;
+    // --
 
     shapes.forEach((shape) => {
       shape.scale = _scale;
       shape.offset = offset;
     });
+
+    // --- get center point offset value
+    const distX_center = 1 / 2;
+    const distY_center = 1 / 2;
+
+    // calculate how much we need to zoom
+    const unitsZoomedX_center = ($canvas.width / _scale) * scaleAmount;
+    const unitsZoomedY_center = ($canvas.height / _scale) * scaleAmount;
+
+    const unitsAddLeft_center = unitsZoomedX_center * distX_center;
+    const unitsAddTop_center = unitsZoomedY_center * distY_center;
+
+    offset_center.x -= unitsAddLeft_center;
+    offset_center.y -= unitsAddTop_center;
+    // ---
 
     if (select.shapes.length > 1) {
       select.start.x = -1;
@@ -223,10 +491,10 @@ export default function ProcessPage() {
   };
 
   const onMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!$canvas || !ctx) return;
+
     e.preventDefault();
     setLeftMouseBtn(true);
-
-    let $canvas = document.querySelector("canvas");
 
     const p = {
       x: e.nativeEvent.offsetX,
@@ -277,7 +545,7 @@ export default function ProcessPage() {
           | "selectArea_rb"
           | "selectArea_lb" = null;
 
-        shapes.forEach((shape) => {
+        select.shapes.forEach((shape) => {
           if (!$canvas) return;
 
           if (shape.checkBoundry(p)) {
@@ -454,10 +722,14 @@ export default function ProcessPage() {
         };
       }
     }
+
+    draw($canvas, ctx);
   };
 
   const onMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     e.preventDefault();
+    if (!$canvas || !ctx) return;
+
     const p = {
       x: e.nativeEvent.offsetX,
       y: e.nativeEvent.offsetY,
@@ -509,6 +781,7 @@ export default function ProcessPage() {
           pressing.parent.disConnect(pressing?.direction, true);
 
           shapes.forEach((shape) => {
+            if (!ctx) return;
             const theEdge = shape.getEdge(),
               threshold = 20,
               isNearShape =
@@ -752,6 +1025,12 @@ export default function ProcessPage() {
       }
     }
 
+    if (dbClickedShape) {
+      setDataFrame({
+        p: getFramePosition(dbClickedShape),
+      });
+    }
+
     // const shapesInView: (Terminal | Process | Data | Desicion)[] = [];
 
     // shapes.forEach((shape) => {
@@ -781,7 +1060,6 @@ export default function ProcessPage() {
     //     shapesInView.push(shape);
     //   }
     // });
-
     // // align feature
     // const thePressing = pressing,
     //   stickyOffset = 5;
@@ -828,10 +1106,14 @@ export default function ProcessPage() {
     }
 
     dragP = p;
+
+    draw($canvas, ctx);
   };
 
   const onMouseUp = (e: React.MouseEvent<HTMLCanvasElement>) => {
     e.preventDefault();
+    if (!$canvas || !ctx) return;
+
     setLeftMouseBtn(false);
 
     const p = {
@@ -906,7 +1188,8 @@ export default function ProcessPage() {
         pressing.shape instanceof Curve &&
         pressing?.target &&
         pressing?.parent &&
-        pressing?.direction
+        pressing?.direction &&
+        otherStepIds.findIndex((stepId) => stepId === shape.id) > -1
       ) {
         const theCheckReceivingPointsBoundry = shape.checkReceivingPointsBoundry(
           p
@@ -929,15 +1212,20 @@ export default function ProcessPage() {
     });
 
     checkData();
+    checkGroups();
 
     selectAreaP = null;
     pressing = null;
     moveP = null;
+
+    draw($canvas, ctx);
+
   };
 
   const onMouseWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
-    setDataFrame(undefined);
+    if (!$canvas || !ctx) return;
     zoom(e.deltaY, { x: e.clientX, y: e.clientY });
+    draw($canvas, ctx);
   };
 
   const onDoubleClick = useCallback(
@@ -951,8 +1239,8 @@ export default function ProcessPage() {
 
       shapes.forEach((shape) => {
         if (shape.checkBoundry(p)) {
+          setDataFrameWarning(init.dataFrameWarning);
           setDbClickedShape(shape);
-
           setDataFrame({
             p: getFramePosition(shape),
           });
@@ -963,6 +1251,8 @@ export default function ProcessPage() {
   );
 
   function handleKeyDown(this: Window, e: KeyboardEvent) {
+    if (!$canvas || !ctx) return;
+
     // delete
     if (e.key === "Backspace" && !dataFrame && !dbClickedShape) {
       let removeShape: null | Terminal | Process | Data | Desicion = null,
@@ -1000,9 +1290,14 @@ export default function ProcessPage() {
         }
         shapes = shapes.filter((shape) => shape.id !== removeShape?.id);
         checkData();
+        checkGroups();
+        const _globalData = cloneDeep(globalData);
+        delete _globalData[removeShape.id];
+        setGlobalData(_globalData);
       } else if (removeCurve) {
         removeCurve.shape.removeCurve(removeCurve.direction);
         checkData();
+        checkGroups();
       }
     }
 
@@ -1010,6 +1305,8 @@ export default function ProcessPage() {
     if (e.key === " " && !space) {
       setSpace(true);
     }
+
+    draw($canvas, ctx);
   }
 
   function handleKeyUp(this: Window, e: KeyboardEvent) {
@@ -1019,82 +1316,168 @@ export default function ProcessPage() {
   }
 
   const onClickTerminator = () => {
+    if (!$canvas || !ctx) return;
+
     let terminal = new Terminal(
-      `terminator_${Date.now()}`,
-      200,
-      100,
+      `terminator_s_${Date.now()}`,
+      init.shape.size.t.w,
+      init.shape.size.t.h,
       {
-        x: -offset.x + window.innerWidth / 2,
-        y: -offset.y + window.innerHeight / 2,
+        x: -offset.x + window.innerWidth / 2 + offset_center.x,
+        y: -offset.y + window.innerHeight / 2 + offset_center.y,
       },
-      "orange"
+      "terminator_start",
+      true
     );
     terminal.offset = offset;
     terminal.scale = scale;
 
     shapes.push(terminal);
-    checkData()
+    checkData();
+    checkGroups();
+    draw($canvas, ctx);
+  };
+
+  const onClickTerminatorEnd = () => {
+    if (!$canvas || !ctx) return;
+
+    let terminal = new Terminal(
+      `terminator_e_${Date.now()}`,
+      init.shape.size.t.w,
+      init.shape.size.t.h,
+      {
+        x: -offset.x + window.innerWidth / 2 + offset_center.x,
+        y: -offset.y + window.innerHeight / 2 + offset_center.y,
+      },
+      "terminator_end",
+      false
+    );
+    terminal.offset = offset;
+    terminal.scale = scale;
+
+    shapes.push(terminal);
+    checkData();
+    checkGroups();
+    draw($canvas, ctx);
   };
 
   const onClickProcess = () => {
+    if (!$canvas || !ctx) return;
+
     let process_new = new Process(
       `process_${Date.now()}`,
-      200,
-      100,
+      init.shape.size.p.w,
+      init.shape.size.p.h,
       {
-        x: -offset.x + window.innerWidth / 2,
-        y: -offset.y + window.innerHeight / 2,
+        x: -offset.x + window.innerWidth / 2 + offset_center.x,
+        y: -offset.y + window.innerHeight / 2 + offset_center.y,
       },
-      "red"
+      "process",
     );
     process_new.offset = offset;
     process_new.scale = scale;
 
     shapes.push(process_new);
-    checkData()
+    checkData();
+    checkGroups();
+    draw($canvas, ctx);
   };
 
   const onClickData = () => {
+    if (!$canvas || !ctx) return;
+
     let data_new = new Data(
       `data_${Date.now()}`,
-      200,
-      100,
+      init.shape.size.d.w,
+      init.shape.size.d.h,
       {
-        x: -offset.x + window.innerWidth / 2,
-        y: -offset.y + window.innerHeight / 2,
+        x: -offset.x + window.innerWidth / 2 + offset_center.x,
+        y: -offset.y + window.innerHeight / 2 + offset_center.y,
       },
-      "green"
+      "data",
     );
     data_new.scale = scale;
     data_new.offset = offset;
 
     shapes.push(data_new);
-    checkData()
+    checkData();
+    checkGroups();
+    draw($canvas, ctx);
   };
 
   const onClickDecision = () => {
+    if (!$canvas || !ctx) return;
+
     let decision_new = new Desicion(
       `decision_${Date.now()}`,
-      100,
-      100,
+      init.shape.size.dec.w,
+      init.shape.size.dec.h,
       {
-        x: -offset.x + window.innerWidth / 2,
-        y: -offset.y + window.innerHeight / 2,
+        x: -offset.x + window.innerWidth / 2 + offset_center.x,
+        y: -offset.y + window.innerHeight / 2 + offset_center.y,
       },
-      "#3498db"
+      "decision",
     );
     decision_new.offset = offset;
     decision_new.scale = scale;
 
     shapes.push(decision_new);
-    checkData()
+    checkData();
+    checkGroups();
+    draw($canvas, ctx);
   };
 
   const onConfirmDataFrame: DataFrameTypes.Props["onConfirm"] = (
     title,
     data,
-    selectedData
+    selectedData,
+    shape
   ) => {
+    // validate repeated title name
+    const titleWarning = title ? "" : "欄位不可為空";
+
+    setDataFrameWarning((dataFrameWarning) => ({
+      ...dataFrameWarning,
+      title: titleWarning,
+    }));
+
+    const dataWarningMapping: DataFrameTypes.Warning["data"] = {};
+
+    const dataMapping: { [dataText: string]: number } = {};
+
+    data.forEach((shapeData, shapeDataI) => {
+      // validate repeated data name in data frame
+      if (!(shapeData.text in dataMapping)) {
+        dataMapping[shapeData.text] = shapeDataI;
+      } else {
+        dataWarningMapping[shapeDataI] = "欄位名稱重複";
+      }
+    });
+
+    data.forEach((shapeData, shapeDataItemI) => {
+      // validate repeated data name in global data
+      if (
+        shape.id !== allData.mapping[shapeData.text] &&
+        shapeData.text in allData.mapping
+      ) {
+        dataWarningMapping[shapeDataItemI] = "欄位名稱重複";
+      }
+    });
+
+    data.forEach((dataItem, dataItemI) => {
+      // validate required data
+      if (!dataItem.text) {
+        dataWarningMapping[dataItemI] = "欄位不可為空";
+      }
+    });
+
+    setDataFrameWarning((dataFrameWarning) => ({
+      ...dataFrameWarning,
+      data: dataWarningMapping,
+    }));
+
+    if (!!titleWarning || Object.keys(dataWarningMapping).length > 0) return;
+
     if (
       dbClickedShape instanceof Process ||
       dbClickedShape instanceof Desicion
@@ -1106,151 +1489,221 @@ export default function ProcessPage() {
       dbClickedShape?.onDataChange(title);
     }
 
+    setGlobalData((globalData) => ({ ...globalData, [shape.id]: data }));
     setDataFrame(undefined);
     setDbClickedShape(null);
     checkData();
+    checkGroups();
   };
 
   const onClickScalePlusIcon = () => {
-    if (!$canvas) return;
+    if (!$canvas || !ctx) return;
     zoom(-100, { x: $canvas?.width / 2, y: $canvas?.height / 2 });
+    draw($canvas, ctx);
   };
 
   const onClickScaleMinusIcon = () => {
-    if (!$canvas) return;
+    if (!$canvas || !ctx) return;
     zoom(100, { x: $canvas?.width / 2, y: $canvas?.height / 2 });
+    draw($canvas, ctx);
   };
 
   const onClickScaleNumber = () => {
-    if (!$canvas) return;
+    if (!$canvas || !ctx) return;
     zoom(-((1 / scale - 1) * 500), {
       x: $canvas?.width / 2,
       y: $canvas?.height / 2,
     });
+    draw($canvas, ctx);
   };
 
   const onClickDataSidePanelSwitch = () => {
-    setIsDataSidePanelOpen(open => !open)
-  }
+    setIsDataSidePanelOpen((open) => !open);
+  };
 
-  const draw = useCallback(() => {
-    if (!ctx) return;
-    ctx?.clearRect(0, 0, window.innerWidth, window.innerHeight);
+  const onClickProfile = () => {
+    setIsUserSidePanelOpen((open) => !open);
+  };
 
-    // draw background
-    ctx?.beginPath();
-    ctx.fillStyle = "#F6F7FA";
-    ctx?.fillRect(0, 0, window.innerWidth, window.innerHeight);
-    ctx?.closePath();
+  const draw = useCallback(
+    ($canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => {
+      if (!ctx || !$canvas) return;
+      $canvas.width = window.innerWidth;
+      $canvas.height = window.innerHeight;
+      ctx?.clearRect(0, 0, window.innerWidth, window.innerHeight);
 
-    // draw shapes
+      // draw background
+      ctx?.beginPath();
+      ctx.fillStyle = "#F6F7FA";
+      ctx?.fillRect(0, 0, window.innerWidth, window.innerHeight);
+      ctx?.closePath();
+
+      // draw shapes
+      shapes.forEach((shape) => {
+        if (!ctx) return;
+        shape.draw(ctx);
+      });
+
+      // draw sending point
+      shapes.forEach((shape) => {
+        if (!ctx || !shape.selecting) return;
+        if (
+          (shape instanceof Terminal &&
+            !shape.curves.l.shape &&
+            !shape.curves.t.shape &&
+            !shape.curves.r.shape &&
+            !shape.curves.b.shape) ||
+          (shape instanceof Process &&
+            !shape.curves.l.shape &&
+            !shape.curves.t.shape &&
+            !shape.curves.r.shape &&
+            !shape.curves.b.shape) ||
+          (shape instanceof Data &&
+            !shape.curves.l.shape &&
+            !shape.curves.t.shape &&
+            !shape.curves.r.shape &&
+            !shape.curves.b.shape) ||
+          (shape instanceof Desicion &&
+            !(shape.getText().y && shape.getText().n))
+        ) {
+          shape.drawSendingPoint(ctx);
+        }
+      });
+
+      // draw curves in shapes
+      shapes.forEach((shape) => {
+        if (!ctx) return;
+
+        shape.drawCurve(ctx);
+      });
+
+      // draw selectArea
+      if (selectAreaP) {
+        ctx?.beginPath();
+
+        ctx.fillStyle = "#2436b155";
+        ctx.fillRect(
+          selectAreaP?.start.x,
+          selectAreaP?.start.y,
+          selectAreaP?.end.x - selectAreaP?.start.x,
+          selectAreaP?.end.y - selectAreaP?.start.y
+        );
+
+        ctx.strokeStyle = "#2436b1";
+        ctx.strokeRect(
+          selectAreaP?.start.x,
+          selectAreaP?.start.y,
+          selectAreaP?.end.x - selectAreaP?.start.x,
+          selectAreaP?.end.y - selectAreaP?.start.y
+        );
+
+        ctx?.closePath();
+      }
+      shapes.forEach((shape) => {
+        if (
+          (shape.receiving.l ||
+            shape.receiving.t ||
+            shape.receiving.r ||
+            shape.receiving.b) &&
+          otherStepIds.findIndex((stepId) => stepId === shape.id) > -1
+        ) {
+          shape.drawRecievingPoint(ctx);
+        }
+      });
+
+      if (select.shapes.length > 1) {
+        // draw select area
+        ctx?.beginPath();
+        ctx.strokeStyle = "#2436b1";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(
+          select.start.x,
+          select.start.y,
+          select.end.x - select.start.x,
+          select.end.y - select.start.y
+        );
+        ctx?.closePath();
+
+        // draw select area anchors
+        ctx.fillStyle = "white";
+        ctx.lineWidth = selectAnchor.size.stroke;
+
+        ctx?.beginPath();
+        ctx.arc(
+          select.start.x,
+          select.start.y,
+          selectAnchor.size.fill,
+          0,
+          2 * Math.PI,
+          false
+        ); // left, top
+        ctx.stroke();
+        ctx.fill();
+        ctx?.closePath();
+
+        ctx?.beginPath();
+        ctx.arc(
+          select.end.x,
+          select.start.y,
+          selectAnchor.size.fill,
+          0,
+          2 * Math.PI,
+          false
+        ); // right, top
+        ctx.stroke();
+        ctx.fill();
+        ctx?.closePath();
+
+        ctx?.beginPath();
+        ctx.arc(
+          select.end.x,
+          select.end.y,
+          selectAnchor.size.fill,
+          0,
+          2 * Math.PI,
+          false
+        ); // right, bottom
+        ctx.stroke();
+        ctx.fill();
+        ctx?.closePath();
+
+        ctx?.beginPath();
+        ctx.arc(
+          select.start.x,
+          select.end.y,
+          selectAnchor.size.fill,
+          0,
+          2 * Math.PI,
+          false
+        ); // left, bottom
+        ctx.stroke();
+        ctx.fill();
+        ctx?.closePath();
+      }
+    },
+    [otherStepIds]
+  );
+
+  const onClickaAccordionArrow = (shapeId: string) => {
+    const _steps = cloneDeep(steps);
+    _steps[shapeId].open = !_steps[shapeId].open;
+    setSteps(_steps);
+  };
+
+  const onClickStep = (shapeP: CommonTypes.Vec) => {
+    if (!$canvas || !ctx) return;
+
+    offset = {
+      x: offset_center.x + (window.innerWidth / 2 - shapeP.x),
+      y: offset_center.y + (window.innerHeight / 2 - shapeP.y),
+    };
+
     shapes.forEach((shape) => {
-      if (!ctx) return;
-      shape.draw(ctx);
+      shape.offset = offset;
     });
 
-    // fraw curves in shapes
-    shapes.forEach((shape) => {
-      if (!ctx) return;
-
-      shape.drawCurve(ctx);
-    });
-
-    // draw selectArea
-    if (selectAreaP) {
-      ctx?.beginPath();
-
-      ctx.fillStyle = "#2436b155";
-      ctx.fillRect(
-        selectAreaP?.start.x,
-        selectAreaP?.start.y,
-        selectAreaP?.end.x - selectAreaP?.start.x,
-        selectAreaP?.end.y - selectAreaP?.start.y
-      );
-
-      ctx.strokeStyle = "#2436b1";
-      ctx.strokeRect(
-        selectAreaP?.start.x,
-        selectAreaP?.start.y,
-        selectAreaP?.end.x - selectAreaP?.start.x,
-        selectAreaP?.end.y - selectAreaP?.start.y
-      );
-
-      ctx?.closePath();
-    }
-
-    if (select.shapes.length > 1) {
-      // draw select area
-      ctx?.beginPath();
-      ctx.strokeStyle = "#2436b1";
-      ctx.lineWidth = 1;
-      ctx.strokeRect(
-        select.start.x,
-        select.start.y,
-        select.end.x - select.start.x,
-        select.end.y - select.start.y
-      );
-      ctx?.closePath();
-
-      // draw select area anchors
-      ctx.fillStyle = "white";
-      ctx.lineWidth = selectAnchor.size.stroke;
-
-      ctx?.beginPath();
-      ctx.arc(
-        select.start.x,
-        select.start.y,
-        selectAnchor.size.fill,
-        0,
-        2 * Math.PI,
-        false
-      ); // left, top
-      ctx.stroke();
-      ctx.fill();
-      ctx?.closePath();
-
-      ctx?.beginPath();
-      ctx.arc(
-        select.end.x,
-        select.start.y,
-        selectAnchor.size.fill,
-        0,
-        2 * Math.PI,
-        false
-      ); // right, top
-      ctx.stroke();
-      ctx.fill();
-      ctx?.closePath();
-
-      ctx?.beginPath();
-      ctx.arc(
-        select.end.x,
-        select.end.y,
-        selectAnchor.size.fill,
-        0,
-        2 * Math.PI,
-        false
-      ); // right, bottom
-      ctx.stroke();
-      ctx.fill();
-      ctx?.closePath();
-
-      ctx?.beginPath();
-      ctx.arc(
-        select.start.x,
-        select.end.y,
-        selectAnchor.size.fill,
-        0,
-        2 * Math.PI,
-        false
-      ); // left, bottom
-      ctx.stroke();
-      ctx.fill();
-      ctx?.closePath();
-    }
-
-    requestAnimationFrame(draw);
-  }, []);
+    draw($canvas, ctx);
+  };
 
   useEffect(() => {
     if (useEffected) return;
@@ -1259,68 +1712,144 @@ export default function ProcessPage() {
       $canvas.width = window.innerWidth;
       $canvas.height = window.innerHeight;
       if (!ctx) return;
-      // let terminal = new Terminal(
-      //   "terminal_1",
-      //   200,
-      //   100,
-      //   { x: 0, y: 0 },
-      //   "orange",
-      //   true
-      // );
-      // ,
-      //   process = new Process("process_1", 200, 100, { x: 300, y: 350 }, "red"),
-      //   process_2 = new Process(
-      //     "process_2",
+
+      let terminal_s_new = new Terminal(
+        `terminator_s_${Date.now()}`,
+        init.shape.size.t.w,
+        init.shape.size.t.h,
+        {
+          x: -offset.x + window.innerWidth / 2,
+          y: -offset.y + window.innerHeight / 2 - 300,
+        },
+        "起點",
+        true
+      );
+      terminal_s_new.offset = offset;
+      terminal_s_new.scale = scale;
+
+      let process_new = new Process(
+        `process_${Date.now()}`,
+        init.shape.size.p.w,
+        init.shape.size.p.h,
+        {
+          x: -offset.x + window.innerWidth / 2 + 200,
+          y: -offset.y + window.innerHeight / 2,
+        },
+        `process`
+      );
+      process_new.offset = offset;
+      process_new.scale = scale;
+
+      let data_new = new Data(
+        `data_${Date.now()}`,
+        init.shape.size.d.w,
+        init.shape.size.d.h,
+        {
+          x: -offset.x + window.innerWidth / 2,
+          y: -offset.y + window.innerHeight / 2 - 100,
+        },
+        "輸入資料_1"
+      );
+      data_new.offset = offset;
+      data_new.scale = scale;
+
+      // for (let i = 0; i < 100; i++) {
+      //   let process = new Process(
+      //     `process_${Date.now()}_${i}`,
       //     200,
       //     100,
-      //     { x: 1200, y: 300 },
-      //     "blue"
-      //   ),
-      //   data_1 = new Data("data_1", 200, 100, { x: 600, y: 600 }, "green"),
-      //   desicion_1 = new Desicion(
-      //     "desicion_1",
-      //     150,
-      //     100,
-      //     { x: 500, y: 100 },
-      //     "#3498db"
+      //     {
+      //       x: -offset.x + window.innerWidth / 2 + i * 2,
+      //       y: -offset.y + window.innerHeight / 2 + 100 + i * 2,
+      //     },
+      //     "red",
+      //     `程序_${i}`
       //   );
+      //   process.offset = offset;
+      //   process.scale = scale;
 
-      // let curve: any = new Curve(
-      //   { w: 1, c: "#c00" },
-      //   { w: 2, c: "#333" },
-      //   { x: 100, y: 200 },
-      //   { x: 200, y: 200 },
-      //   { x: 300, y: 200 },
-      //   { x: 400, y: 200 }
+      //   shapes.push(process);
+      // }
+
+      // let terminal_e_new = new Terminal(
+      //   `terminator_e_${Date.now()}`,
+      //   200,
+      //   100,
+      //   {
+      //     x: -offset.x + window.innerWidth / 2,
+      //     y: -offset.y + window.innerHeight / 2 + 300,
+      //   },
+      //   "rgb(189, 123, 0)",
+      //   "終點",
+      //   false
       // );
+      // terminal_e_new.offset = offset;
+      // terminal_e_new.scale = scale;
 
-      // shapes.push(terminal);
-      // shapes.push(process);
-      // shapes.push(process_2);
-      // shapes.push(data_1);
-      // shapes.push(desicion_1);
-      // shapes.push(curve);
+      // let terminal_s_2_new = new Terminal(
+      //   `terminator_s_2_${Date.now()}`,
+      //   200,
+      //   100,
+      //   {
+      //     x: -offset.x + window.innerWidth / 2,
+      //     y: -offset.y + window.innerHeight / 2 + 500,
+      //   },
+      //   "orange",
+      //   "起點_2",
+      //   true
+      // );
+      // terminal_s_2_new.offset = offset;
+      // terminal_s_2_new.scale = scale;
 
-      requestAnimationFrame(draw);
+      let decision_new = new Desicion(
+        `decision_new_${Date.now()}`,
+        init.shape.size.dec.w,
+        init.shape.size.dec.h,
+        {
+          x: -offset.x + window.innerWidth / 2,
+          y: -offset.y + window.innerHeight / 2 + 100,
+        },
+        "decision",
+      );
+      decision_new.offset = offset;
+      decision_new.scale = scale;
+
+      shapes.push(terminal_s_new);
+      shapes.push(data_new);
+      // shapes.push(terminal_e_new);
+      shapes.push(process_new);
+      // shapes.push(terminal_s_2_new);
+      shapes.push(decision_new);
+
+      checkData();
+      checkGroups();
     }
 
     useEffected = true;
   }, []);
 
   useEffect(() => {
+    if (!$canvas || !ctx) return;
+    draw($canvas, ctx);
+
     const resize = () => {
-      if (!$canvas) return;
+      let $canvas = document.querySelector('canvas')
+      if (!$canvas || !ctx) return
       $canvas.width = window.innerWidth;
       $canvas.height = window.innerHeight;
-    };
-
+      draw($canvas, ctx);
+    }
     window.addEventListener("resize", resize);
+    window.addEventListener('beforeunload', function (e) {
+      e.preventDefault();
+      e.returnValue = '';
+      return ''
+    });
 
     return () => {
-      // 移除事件監聽器或進行其他清理操作
       window.removeEventListener("resize", resize);
     };
-  }, [leftMouseBtn]);
+  }, [])
 
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
@@ -1330,152 +1859,262 @@ export default function ProcessPage() {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, [dataFrame, dbClickedShape, space]);
-
-  useEffect(() => {
-    console.log('groups', groups)
-  }, [groups])
+  }, [dataFrame, dbClickedShape, space, steps, procedures, otherStepIds]);
 
   return (
     <>
-      <header className="w-full fixed z-50 shadow-md text-gray-600 body-font bg-indigo-100">
-        <div className="container mx-auto flex flex-wrap py-2 px-4 flex-col md:flex-row items-center">
-          <a className="flex title-font font-medium items-center text-gray-900 mb-4 md:mb-0">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" className="w-10 h-10 text-white p-2 bg-indigo-500 rounded-full" viewBox="0 0 24 24">
-              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
-            </svg>
-            <span className="ml-3 text-xl">Minder</span>
-          </a>
-          <nav className="md:ml-auto md:mr-auto flex flex-wrap items-center text-base justify-center">
-            <a className="mr-5 hover:text-gray-900">Project_1</a>
-          </nav>
-          <div
-            className="w-10 h-10 inline-flex items-center justify-center rounded-full bg-indigo-500 text-white flex-shrink-0 cursor-pointer"
-          >
-            L
+      <header className="w-full fixed z-50 text-gray-600 body-font bg-primary-500">
+        <ul className="container mx-auto grid grid-cols-3 py-3 px-4">
+          <li>
+            <a className="flex title-font font-medium items-center text-gray-900 mb-4 md:mb-0">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                className="w-10 h-10 text-white p-2 bg-secondary-500 rounded-full"
+                viewBox="0 0 24 24"
+              >
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+              </svg>
+              <span className="ml-3 text-xl text-white-500">Minder</span>
+            </a>
+          </li>
+          <li className="justify-self-center self-center text-base">
+            <nav>
+              <a className="text-white-500">Project_1</a>
+            </nav>
+          </li>
+          <li className="justify-self-end self-center text-base">
+            <Button className={'mr-4 bg-secondary-500'} onClick={(e) => { }} text={
+              <div className="d-flex items-center">
+                <span className="text-white-500">
+                  Save
+                </span>
+                {/* <div
+                  className="mx-2 w-2 h-2 inline-flex items-center justify-center rounded-full bg-info-500 text-indigo-500 flex-shrink-0 cursor-pointer"
+                /> */}
+              </div>
+            } />
+            <div
+              className="w-10 h-10 inline-flex items-center justify-center rounded-full bg-secondary-500 text-white-500 flex-shrink-0 cursor-pointer"
+              onClick={onClickProfile}
+            >
+              L
+            </div>
+          </li>
+        </ul>
+      </header>
+      <SidePanel
+        open={isDataSidePanelOpen}
+        w={"360px"}
+        h={"calc(100vh - 56px)"}
+        d={["b"]}
+        onClickSwitch={onClickDataSidePanelSwitch}
+      >
+        <ul>
+          {Object.entries(procedures).map(
+            ([procedureId, procedure], procedureI) => {
+              return (
+                <li
+                  key={procedureId}
+                  className="mb-1"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onClickStep(steps[procedureId].shape.p);
+                  }}
+                >
+                  <Accordion
+                    title={steps[procedureId].shape.title}
+                    open={steps[procedureId].open}
+                    onClickArrow={(e) => {
+                      e.stopPropagation();
+                      onClickaAccordionArrow(procedureId);
+                    }}
+                  >
+                    <ul>
+                      {procedure.map((child) => {
+                        return (
+                          <>
+                            <li
+                              key={steps[child].shape.id}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onClickStep(steps[child].shape.p);
+                              }}
+                            >
+                              <Accordion
+                                className={"ps-2"}
+                                title={
+                                  <div className="flex">
+                                    <p className="mr-1">
+                                      {steps[child].shape.title}
+                                    </p>
+                                    {/* <svg
+                          className="w-6 h-6 text-gray-800 dark:text-white"
+                          aria-hidden="true"
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="24"
+                          height="24"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke="currentColor"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="m14.304 4.844 2.852 2.852M7 7H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-4.5m2.409-9.91a2.017 2.017 0 0 1 0 2.853l-6.844 6.844L8 14l.713-3.565 6.844-6.844a2.015 2.015 0 0 1 2.852 0Z"
+                          />
+                        </svg> */}
+                                  </div>
+                                }
+                                open={steps[child].open}
+                                onClickArrow={(e) => {
+                                  e.stopPropagation();
+                                  onClickaAccordionArrow(steps[child].shape.id);
+                                }}
+                              >
+                                <Editor
+                                  className="ps-6"
+                                  shape={steps[child].shape}
+                                />
+                              </Accordion>
+                            </li>
+                          </>
+                        );
+                      })}
+                    </ul>
+                  </Accordion>
+                </li>
+              );
+            }
+          )}
+        </ul>
+        <ul>
+          {otherStepIds.map((stepId: string) => (
+            <>
+              <li
+                key={stepId}
+                className="mb-1"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onClickStep(steps[stepId].shape.p);
+                }}
+              >
+                <Accordion
+                  title={steps[stepId].shape.title}
+                  open={steps[stepId].open}
+                  onClickArrow={(e) => {
+                    e.stopPropagation();
+                    onClickaAccordionArrow(stepId);
+                  }}
+                >
+                  <Editor className="ps-6" shape={steps[stepId].shape} />
+                </Accordion>
+              </li>
+            </>
+          ))}
+        </ul>
+      </SidePanel>
+      <SidePanel
+        open={isUserSidePanelOpen}
+        w={"300px"}
+        h={"calc(100vh - 56px)"}
+        d={["b", "r"]}
+      >
+        <div className="flex flex-col h-full">
+          <ul className="flex-1">
+            <li className="mb-2">
+              <div className="h-full flex flex-col items-center text-center">
+                <img
+                  width={100}
+                  height={100}
+                  alt="team"
+                  className="w-100 h-[120px] flex-shrink-0 rounded-lg w-full h-56 object-cover object-center mb-2"
+                  src="https://dummyimage.com/200x200"
+                />
+                <div className="w-full">
+                  <p className="title-font text-gray-900">Project_1</p>
+                </div>
+              </div>
+            </li>
+            <li className="mb-2">
+              <div className="h-full flex flex-col items-center text-center">
+                <img
+                  width={100}
+                  height={100}
+                  alt="team"
+                  className="w-100 h-[120px] flex-shrink-0 rounded-lg w-full h-56 object-cover object-center mb-2"
+                  src="https://dummyimage.com/200x200"
+                />
+                <div className="w-full">
+                  <p className="title-font text-gray-900">Project_2</p>
+                </div>
+              </div>
+            </li>
+          </ul>
+          <div className="text-red-500">
+            <p className="text-end cursor-pointer">Sign Out</p>
           </div>
         </div>
-      </header>
-
-      <div>
-        <SidePanel open={isDataSidePanelOpen} w={'520px'} h={'calc(100vh - 56px)'} d={['b']} onClickSwitch={onClickDataSidePanelSwitch}>
-          <ul>
-            {groups.map(group => <>
-              <li className="flex cursor-pointer ps-2 pe-6 py-2">
-                <svg className="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m8 10 4 4 4-4" />
-                </svg>
-                {group.head.title}
-              </li>
-              {group.children.map(child => (
-                <>
-                  <li className="cursor-pointer ps-6 pe-6 py-2">
-                    <div className="flex flex-col">
-                      <div className="flex">
-                        <svg className="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m8 10 4 4 4-4" />
-                        </svg>
-                        {/* <svg className="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m10 16 4-4-4-4" />
-                  </svg> */}
-                        {child.title}
-                      </div>
-                    </div>
-                  </li>
-                  <li className="ps-10 pe-6 py-2">
-                    <div className="grid grid-cols-3 gap-2">
-                      <div><input placeholder="prefix" type="text" id="hero-field" name="hero-field" className="w-full bg-gray-100 bg-opacity-50 rounded focus:ring-2 focus:ring-indigo-200 focus:bg-transparent border border-gray-300 focus:border-indigo-500 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" /></div>
-                      <div><input placeholder="name" type="text" id="hero-field" name="hero-field" className="w-full bg-gray-100 bg-opacity-50 rounded focus:ring-2 focus:ring-indigo-200 focus:bg-transparent border border-gray-300 focus:border-indigo-500 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" /></div>
-                      <div><input placeholder="suffix" type="text" id="hero-field" name="hero-field" className="w-full bg-gray-100 bg-opacity-50 rounded focus:ring-2 focus:ring-indigo-200 focus:bg-transparent border border-gray-300 focus:border-indigo-500 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" /></div>
-                    </div>
-                  </li>
-                </>
-              ))}
-            </>)}
-          </ul>
-        </SidePanel>
-        <canvas
-          className={`${space ? "cursor-grab" : ""} overflow-hidden`}
-          tabIndex={1}
-          ref={(el) => {
-            $canvas = el;
-            ctx = $canvas?.getContext("2d");
-          }}
-          onMouseDown={onMouseDown}
-          onMouseUp={onMouseUp}
-          onMouseMove={onMouseMove}
-          onWheel={onMouseWheel}
-          onDoubleClick={onDoubleClick}
-        />
-
-        {dataFrame && dbClickedShape && (
-          <DataFrame
-            shape={dbClickedShape}
-            coordinate={dataFrame.p}
-            onConfirm={onConfirmDataFrame}
-            feature={{
-              import: dbClickedShape instanceof Data,
-              usage:
-                dbClickedShape instanceof Process ||
-                dbClickedShape instanceof Data ||
-                dbClickedShape instanceof Desicion,
-              redundancy:
-                dbClickedShape instanceof Process ||
-                dbClickedShape instanceof Data ||
-                dbClickedShape instanceof Desicion,
-            }}
-          />
-        )}
-      </div >
-
-      <motion.ul
-        // style={{ width: `${v ? 'calc(100vw - 520px)' : 'calc(100vw)'}` }}
-        className="fixed grid grid-cols-3 items-end p-4 bottom-0 right-0 shadow-md"
-        variants={{
-          open: {
-            width: 'calc(100vw - 520px)'
-          },
-          closed: {
-            width: 'calc(100vw - 0px)'
-          }
-        }}
-        initial={isDataSidePanelOpen ? "open" : "closed"}
-        animate={isDataSidePanelOpen ? "open" : "closed"}
-        transition={{ type: "easeInOut" }}
-      >
-        <li></li>
-        <li className="justify-self-center">
+      </SidePanel>
+      <div className="fixed p-4 bottom-[16px] left-1/2 -translate-x-1/2 bg-white-500 shadow-md rounded-full">
+        <div className="justify-self-center">
           <div className="flex">
             <div
-              className="mx-2 w-12 h-12 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
+              className="mx-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
               onClick={onClickTerminator}
             >
               T
             </div>
             <div
-              className="mx-2 w-12 h-12 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
+              className="mx-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
+              onClick={onClickTerminatorEnd}
+            >
+              TE
+            </div>
+            <div
+              className="mx-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
               onClick={onClickProcess}
             >
               P
             </div>
             <div
-              className="mx-2 w-12 h-12 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
+              className="mx-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
               onClick={onClickData}
             >
               D
             </div>
             <div
-              className="mx-2 w-12 h-12 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
+              className="mx-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
               onClick={onClickDecision}
             >
               De
             </div>
           </div>
-        </li>
+        </div>
+      </div>
+      <motion.ul
+        className="fixed p-4 bottom-[16px] rounded-full shadow-md bg-white-500"
+        variants={{
+          open: {
+            right: "316px",
+          },
+          closed: {
+            right: "16px",
+          },
+        }}
+        initial={isUserSidePanelOpen ? "open" : "closed"}
+        animate={isUserSidePanelOpen ? "open" : "closed"}
+        transition={{ type: "easeInOut" }}
+      >
         <li className="justify-self-end">
           <div className="flex items-center">
             <div
-              className="w-6 h-6 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
+              className="w-6 h-6 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
               onClick={onClickScaleMinusIcon}
             >
               -
@@ -1487,7 +2126,7 @@ export default function ProcessPage() {
               {Math.ceil(scale * 100)}%
             </div>
             <div
-              className="w-6 h-6 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
+              className="w-6 h-6 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
               onClick={onClickScalePlusIcon}
             >
               +
@@ -1495,6 +2134,39 @@ export default function ProcessPage() {
           </div>
         </li>
       </motion.ul>
+      <canvas
+        className={`${space ? "cursor-grab" : ""} overflow-hidden`}
+        tabIndex={1}
+        ref={(el) => {
+          $canvas = el;
+          ctx = $canvas?.getContext("2d");
+        }}
+        onMouseDown={onMouseDown}
+        onMouseUp={onMouseUp}
+        onMouseMove={onMouseMove}
+        onWheel={onMouseWheel}
+        onDoubleClick={onDoubleClick}
+      />
+
+      {dataFrame && dbClickedShape && (
+        <DataFrame
+          shape={dbClickedShape}
+          coordinate={dataFrame.p}
+          onConfirm={onConfirmDataFrame}
+          feature={{
+            import: dbClickedShape instanceof Data,
+            usage:
+              dbClickedShape instanceof Process ||
+              dbClickedShape instanceof Data ||
+              dbClickedShape instanceof Desicion,
+            redundancy:
+              dbClickedShape instanceof Process ||
+              dbClickedShape instanceof Data ||
+              dbClickedShape instanceof Desicion,
+          }}
+          warning={dataFrameWarning}
+        />
+      )}
     </>
   );
 }

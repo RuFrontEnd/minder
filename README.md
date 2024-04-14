@@ -4,6 +4,7 @@
 A data-verification flowchart application
 
 ## Features
+FT
 - [x] rendering terminator shape 
 - [x] rendering process shape 
 - [x] rendering data shape
@@ -13,16 +14,24 @@ A data-verification flowchart application
 - [x] removing shapes
 - [x] connecting shapes by curves
 - [x] importing data in each data shape
+- [x] defining data usage
 - [x] verifing data
 - [x] infinite whiteboard
 - [x] zoom in / out
-- [ ] define data usage (data shape hasn't finished)
+- [x] validating required fields
+- [X] verifing repeated data name
+- [ ] login
 - [ ] groups
 - [ ] undo
-- [ ] verifing repeated data name (backend)
-- [ ] member system (backend)
-- [ ] optimizing UI
 - [ ] redo
+- [ ] optimizing UI
+BK
+- [X] register
+- [X] auth token(JWT)
+- [X] login
+- [X] login by token
+- [X] create project
+
 
 ## Tech Stack
 - react 18.2.14
@@ -31,7 +40,8 @@ A data-verification flowchart application
 - typescript 5.2.2
 - node.js 20.11.0
 - express 4.18.3
+- mysql 8.3.0
 
 ## Others
-- Icon: heroicons[https://heroicons.com/solid]
+- Icon: heroicons[https://heroicons.com]
         flowbite[https://flowbite.com/icons/]
