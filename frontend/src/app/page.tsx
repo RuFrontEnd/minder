@@ -287,7 +287,11 @@ export default function ProcessPage() {
     ),
     [globalData, setGlobalData] = useState<{
       [dataShapeId: string]: CommonTypes.Data;
-    }>({});
+    }>({}),
+    [isAccountModalOpen, setIsAccountModalOpen] = useState(true),
+    [isLogining, setIsLogining] = useState(false),
+    [hasLogIn, setHasLogIn] = useState(false),
+    [isProjectsModalOpen, setIsProjectsModalOpen] = useState(false);
 
   const allData = useMemo(() => {
     const _items: CommonTypes.Data = [];
@@ -1710,6 +1714,10 @@ export default function ProcessPage() {
     draw($canvas, ctx);
   };
 
+  const onClickChangeAuthButton = (_isLogin: boolean) => {
+    setIsLogining(_isLogin);
+  };
+
   useEffect(() => {
     if (useEffected) return;
 
@@ -1868,7 +1876,7 @@ export default function ProcessPage() {
 
   return (
     <>
-      <Modal isOpen>
+      <Modal isOpen={isAccountModalOpen && !isProjectsModalOpen && !hasLogIn}>
         <div className="bg-white-500 rounded-lg p-8 flex flex-col w-full mt-10">
           <a className="flex title-font font-medium justify-center items-center text-gray-900 mb-4">
             <svg
@@ -1916,24 +1924,161 @@ export default function ProcessPage() {
               className="w-full bg-white rounded border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
             />
           </div>
-          <div className="relative mb-4">
-            <label htmlFor="email" className="leading-7 text-sm text-gray-600">
-              Email
-            </label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              className="w-full bg-white rounded border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
-            />
-          </div>
+          {!isLogining && (
+            <div className="relative mb-4">
+              <label
+                htmlFor="email"
+                className="leading-7 text-sm text-gray-600"
+              >
+                Email
+              </label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                className="w-full bg-white rounded border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
+              />
+            </div>
+          )}
           <button className="text-white-500 bg-primary-500 border-0 py-2 px-8 focus:outline-none rounded text-lg">
-            Sign Up
+            {isLogining ? "Login" : "Sign Up"}
           </button>
           <p className="text-xs text-gray-500 mt-3">
-            Already signed up? <span>login</span>
+            {isLogining ? "No account yet? " : "Already have an account? "}
+            <a
+              className="text-info-500 cursor-pointer"
+              onClick={() => {
+                onClickChangeAuthButton(!isLogining);
+              }}
+            >
+              {isLogining ? "Sign up" : "Login"}
+            </a>
           </p>
         </div>
+      </Modal>
+
+      <Modal isOpen={isProjectsModalOpen && hasLogIn}>
+        <section className="text-gray-600 bg-white-500 body-font">
+          <div className="container px-5 py-24 mx-auto">
+            <h2 className="text-center text-gray-900 title-font text-xl font-semibold mb-4 py-4 px-4 border-b border-grey-5">
+              PROJECTS
+            </h2>
+            <div className="flex flex-wrap">
+              <div className="lg:w-1/4 md:w-1/2 p-4 w-full">
+                <a className="block relative h-48 rounded overflow-hidden">
+                  <img
+                    alt="ecommerce"
+                    className="object-cover object-center w-full h-full block"
+                    src="https://dummyimage.com/420x260"
+                  />
+                </a>
+                <div className="mt-1 ms-1">
+                  <h2 className="text-gray-900 title-font text-lg font-medium">
+                    The Catalyzer
+                  </h2>
+                </div>
+              </div>
+              <div className="lg:w-1/4 md:w-1/2 p-4 w-full">
+                <a className="block relative h-48 rounded overflow-hidden">
+                  <img
+                    alt="ecommerce"
+                    className="object-cover object-center w-full h-full block"
+                    src="https://dummyimage.com/421x261"
+                  />
+                </a>
+                <div className="mt-1 ms-1">
+                  <h2 className="text-gray-900 title-font text-lg font-medium">
+                    Shooting Stars
+                  </h2>
+                </div>
+              </div>
+              <div className="lg:w-1/4 md:w-1/2 p-4 w-full">
+                <a className="block relative h-48 rounded overflow-hidden">
+                  <img
+                    alt="ecommerce"
+                    className="object-cover object-center w-full h-full block"
+                    src="https://dummyimage.com/422x262"
+                  />
+                </a>
+                <div className="mt-1 ms-1">
+                  <h2 className="text-gray-900 title-font text-lg font-medium">
+                    Neptune
+                  </h2>
+                </div>
+              </div>
+              <div className="lg:w-1/4 md:w-1/2 p-4 w-full">
+                <a className="block relative h-48 rounded overflow-hidden">
+                  <img
+                    alt="ecommerce"
+                    className="object-cover object-center w-full h-full block"
+                    src="https://dummyimage.com/423x263"
+                  />
+                </a>
+                <div className="mt-1 ms-1">
+                  <h2 className="text-gray-900 title-font text-lg font-medium">
+                    The 400 Blows
+                  </h2>
+                </div>
+              </div>
+              <div className="lg:w-1/4 md:w-1/2 p-4 w-full">
+                <a className="block relative h-48 rounded overflow-hidden">
+                  <img
+                    alt="ecommerce"
+                    className="object-cover object-center w-full h-full block"
+                    src="https://dummyimage.com/424x264"
+                  />
+                </a>
+                <div className="mt-1 ms-1">
+                  <h2 className="text-gray-900 title-font text-lg font-medium">
+                    The Catalyzer
+                  </h2>
+                </div>
+              </div>
+              <div className="lg:w-1/4 md:w-1/2 p-4 w-full">
+                <a className="block relative h-48 rounded overflow-hidden">
+                  <img
+                    alt="ecommerce"
+                    className="object-cover object-center w-full h-full block"
+                    src="https://dummyimage.com/425x265"
+                  />
+                </a>
+                <div className="mt-1 ms-1">
+                  <h2 className="text-gray-900 title-font text-lg font-medium">
+                    Shooting Stars
+                  </h2>
+                </div>
+              </div>
+              <div className="lg:w-1/4 md:w-1/2 p-4 w-full">
+                <a className="block relative h-48 rounded overflow-hidden">
+                  <img
+                    alt="ecommerce"
+                    className="object-cover object-center w-full h-full block"
+                    src="https://dummyimage.com/427x267"
+                  />
+                </a>
+                <div className="mt-1 ms-1">
+                  <h2 className="text-gray-900 title-font text-lg font-medium">
+                    Neptune
+                  </h2>
+                </div>
+              </div>
+              <div className="lg:w-1/4 md:w-1/2 p-4 w-full">
+                <a className="block relative h-48 rounded overflow-hidden">
+                  <img
+                    alt="ecommerce"
+                    className="object-cover object-center w-full h-full block"
+                    src="https://dummyimage.com/428x268"
+                  />
+                </a>
+                <div className="mt-1 ms-1">
+                  <h2 className="text-gray-900 title-font text-lg font-medium">
+                    The 400 Blows
+                  </h2>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
       </Modal>
       <header className="w-full fixed z-50 text-gray-600 body-font bg-primary-500">
         <ul className="container mx-auto grid grid-cols-3 py-3 px-4">
