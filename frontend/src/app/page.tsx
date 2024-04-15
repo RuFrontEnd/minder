@@ -9,7 +9,8 @@ import Desicion from "@/shapes/decision";
 import DataFrame from "@/components/dataFrame";
 import SidePanel from "@/components/sidePanel";
 import Accordion from "@/components/accordion";
-import Button from "@/components/button"
+import Button from "@/components/button";
+import Modal from "@/components/modal";
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
 import { cloneDeep } from "lodash";
@@ -28,14 +29,14 @@ let useEffected = false,
     shape: null | Terminal | Process | Data | Desicion | Curve;
     direction: null | CommonTypes.Direction;
     target:
-    | null
-    | CoreTypes.PressingTarget
-    | CurveTypes.PressingTarget
-    | "selectArea_m"
-    | "selectArea_lt"
-    | "selectArea_rt"
-    | "selectArea_rb"
-    | "selectArea_lb";
+      | null
+      | CoreTypes.PressingTarget
+      | CurveTypes.PressingTarget
+      | "selectArea_m"
+      | "selectArea_lt"
+      | "selectArea_rt"
+      | "selectArea_rb"
+      | "selectArea_lb";
     dx: number; // distance between event px & pressing shape px
     dy: number; // distance between event py & pressing shape py
   } = null,
@@ -83,22 +84,22 @@ let useEffected = false,
   };
 
 const ds = [
-  CommonTypes.Direction.l,
-  CommonTypes.Direction.t,
-  CommonTypes.Direction.r,
-  CommonTypes.Direction.b,
-],
+    CommonTypes.Direction.l,
+    CommonTypes.Direction.t,
+    CommonTypes.Direction.r,
+    CommonTypes.Direction.b,
+  ],
   vs: (
     | CoreTypes.PressingTarget.lt
     | CoreTypes.PressingTarget.rt
     | CoreTypes.PressingTarget.rb
     | CoreTypes.PressingTarget.lb
   )[] = [
-      CoreTypes.PressingTarget.lt,
-      CoreTypes.PressingTarget.rt,
-      CoreTypes.PressingTarget.rb,
-      CoreTypes.PressingTarget.lb,
-    ];
+    CoreTypes.PressingTarget.lt,
+    CoreTypes.PressingTarget.rt,
+    CoreTypes.PressingTarget.rb,
+    CoreTypes.PressingTarget.lb,
+  ];
 
 const getFramePosition = (shape: Core) => {
   const frameOffset = 12;
@@ -193,58 +194,58 @@ const Editor = (props: { className: string; shape: Core }) => {
       {(props.shape instanceof Process ||
         props.shape instanceof Data ||
         props.shape instanceof Desicion) && (
-          <div className={props.className && props.className}>
-            {props.shape instanceof Data && (
-              <div>
-                <p className="mb-1">Data</p>
-                {/* <div
+        <div className={props.className && props.className}>
+          {props.shape instanceof Data && (
+            <div>
+              <p className="mb-1">Data</p>
+              {/* <div
               className="w-6 h-6 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
               onClick={onClickScalePlusIcon}
             >
               +
             </div> */}
-                <ul className="ps-2">
-                  {props.shape.data.map((dataItem) => (
-                    <li className="mb-1"> · {dataItem.text}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            <div>
-              <p className="mb-1">Data Usage</p>
               <ul className="ps-2">
-                {props.shape.options.map((option) => (
-                  <li className="mb-1">
-                    <span className="bg-indigo-100 text-indigo-500 w-4 h-4 rounded-full inline-flex items-center justify-center">
-                      {selections[option.text] && (
-                        <svg
-                          fill="none"
-                          stroke="currentColor"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="3"
-                          className="w-3 h-3"
-                          viewBox="0 0 24 24"
-                        >
-                          <path d="M20 6L9 17l-5-5"></path>
-                        </svg>
-                      )}
-                    </span>
-                    {option.text}
-                  </li>
+                {props.shape.data.map((dataItem) => (
+                  <li className="mb-1"> · {dataItem.text}</li>
                 ))}
               </ul>
             </div>
-            <div>
-              <div className="mb-1">Redundancies</div>
-              <ul className="ps-2">
-                {props.shape.redundancies.map((redundancy) => (
-                  <li className="mb-1"> · {redundancy.text}</li>
-                ))}
-              </ul>
-            </div>
+          )}
+          <div>
+            <p className="mb-1">Data Usage</p>
+            <ul className="ps-2">
+              {props.shape.options.map((option) => (
+                <li className="mb-1">
+                  <span className="bg-indigo-100 text-indigo-500 w-4 h-4 rounded-full inline-flex items-center justify-center">
+                    {selections[option.text] && (
+                      <svg
+                        fill="none"
+                        stroke="currentColor"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="3"
+                        className="w-3 h-3"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M20 6L9 17l-5-5"></path>
+                      </svg>
+                    )}
+                  </span>
+                  {option.text}
+                </li>
+              ))}
+            </ul>
           </div>
-        )}
+          <div>
+            <div className="mb-1">Redundancies</div>
+            <ul className="ps-2">
+              {props.shape.redundancies.map((redundancy) => (
+                <li className="mb-1"> · {redundancy.text}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
     </>
   );
 };
@@ -259,17 +260,17 @@ const init = {
       t: { w: 150, h: 75 },
       p: { w: 150, h: 75 },
       d: { w: 150, h: 75 },
-      dec: { w: 100, h: 100 }
-    }
-  }
+      dec: { w: 100, h: 100 },
+    },
+  },
 };
 
 export default function ProcessPage() {
   let { current: $canvas } = useRef<HTMLCanvasElement | null>(null);
 
   const [dataFrame, setDataFrame] = useState<
-    { p: CommonTypes.Vec } | undefined
-  >(undefined),
+      { p: CommonTypes.Vec } | undefined
+    >(undefined),
     [dbClickedShape, setDbClickedShape] = useState<
       Terminal | Data | Process | Desicion | null
     >(null),
@@ -497,9 +498,9 @@ export default function ProcessPage() {
     setLeftMouseBtn(true);
 
     const p = {
-      x: e.nativeEvent.offsetX,
-      y: e.nativeEvent.offsetY,
-    },
+        x: e.nativeEvent.offsetX,
+        y: e.nativeEvent.offsetY,
+      },
       pInSelectArea =
         p.x > select.start.x &&
         p.y > select.start.y &&
@@ -595,7 +596,12 @@ export default function ProcessPage() {
           if (theCheckCurveTriggerBoundry) {
             shape.selecting = false;
 
-            if (!shape.curves[theCheckCurveTriggerBoundry].shape && !shape.receiveFrom[CommonTypes.Direction[theCheckCurveTriggerBoundry]]?.shape) {
+            if (
+              !shape.curves[theCheckCurveTriggerBoundry].shape &&
+              !shape.receiveFrom[
+                CommonTypes.Direction[theCheckCurveTriggerBoundry]
+              ]?.shape
+            ) {
               shape.createCurve(
                 `curve_${Date.now()}`,
                 CommonTypes.Direction[theCheckCurveTriggerBoundry]
@@ -672,12 +678,12 @@ export default function ProcessPage() {
                 dx:
                   (p.x - dragP.x) * (1 / scale) -
                   shape?.getEdge()[
-                  theCheckShapeVertexesBoundry[0] as CommonTypes.Direction
+                    theCheckShapeVertexesBoundry[0] as CommonTypes.Direction
                   ],
                 dy:
                   (p.y - dragP.y) * (1 / scale) -
                   shape?.getEdge()[
-                  theCheckShapeVertexesBoundry[1] as CommonTypes.Direction
+                    theCheckShapeVertexesBoundry[1] as CommonTypes.Direction
                   ],
               };
             }
@@ -731,9 +737,9 @@ export default function ProcessPage() {
     if (!$canvas || !ctx) return;
 
     const p = {
-      x: e.nativeEvent.offsetX,
-      y: e.nativeEvent.offsetY,
-    },
+        x: e.nativeEvent.offsetX,
+        y: e.nativeEvent.offsetY,
+      },
       offsetP = {
         x: p.x - dragP.x,
         y: p.y - dragP.y,
@@ -1130,9 +1136,9 @@ export default function ProcessPage() {
         const theEdge = shape.getEdge();
 
         const l =
-          selectAreaP.start.x < selectAreaP.end.x
-            ? selectAreaP.start.x
-            : selectAreaP.end.x,
+            selectAreaP.start.x < selectAreaP.end.x
+              ? selectAreaP.start.x
+              : selectAreaP.end.x,
           t =
             selectAreaP.start.y < selectAreaP.end.y
               ? selectAreaP.start.y
@@ -1219,7 +1225,6 @@ export default function ProcessPage() {
     moveP = null;
 
     draw($canvas, ctx);
-
   };
 
   const onMouseWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
@@ -1372,7 +1377,7 @@ export default function ProcessPage() {
         x: -offset.x + window.innerWidth / 2 + offset_center.x,
         y: -offset.y + window.innerHeight / 2 + offset_center.y,
       },
-      "process",
+      "process"
     );
     process_new.offset = offset;
     process_new.scale = scale;
@@ -1394,7 +1399,7 @@ export default function ProcessPage() {
         x: -offset.x + window.innerWidth / 2 + offset_center.x,
         y: -offset.y + window.innerHeight / 2 + offset_center.y,
       },
-      "data",
+      "data"
     );
     data_new.scale = scale;
     data_new.offset = offset;
@@ -1416,7 +1421,7 @@ export default function ProcessPage() {
         x: -offset.x + window.innerWidth / 2 + offset_center.x,
         y: -offset.y + window.innerHeight / 2 + offset_center.y,
       },
-      "decision",
+      "decision"
     );
     decision_new.offset = offset;
     decision_new.scale = scale;
@@ -1809,7 +1814,7 @@ export default function ProcessPage() {
           x: -offset.x + window.innerWidth / 2,
           y: -offset.y + window.innerHeight / 2 + 100,
         },
-        "decision",
+        "decision"
       );
       decision_new.offset = offset;
       decision_new.scale = scale;
@@ -1833,23 +1838,23 @@ export default function ProcessPage() {
     draw($canvas, ctx);
 
     const resize = () => {
-      let $canvas = document.querySelector('canvas')
-      if (!$canvas || !ctx) return
+      let $canvas = document.querySelector("canvas");
+      if (!$canvas || !ctx) return;
       $canvas.width = window.innerWidth;
       $canvas.height = window.innerHeight;
       draw($canvas, ctx);
-    }
+    };
     window.addEventListener("resize", resize);
-    window.addEventListener('beforeunload', function (e) {
+    window.addEventListener("beforeunload", function (e) {
       e.preventDefault();
-      e.returnValue = '';
-      return ''
+      e.returnValue = "";
+      return "";
     });
 
     return () => {
       window.removeEventListener("resize", resize);
     };
-  }, [])
+  }, []);
 
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
@@ -1863,6 +1868,73 @@ export default function ProcessPage() {
 
   return (
     <>
+      <Modal isOpen>
+        <div className="bg-white-500 rounded-lg p-8 flex flex-col w-full mt-10">
+          <a className="flex title-font font-medium justify-center items-center text-gray-900 mb-4">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              className="w-10 h-10 text-white p-2 bg-secondary-500 rounded-full"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke="#FFFFFF"
+                d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
+              ></path>
+            </svg>
+            <span className="ml-3 text-xl text-grey-1">Minder</span>
+          </a>
+          <div className="relative mb-4">
+            <label
+              htmlFor="full-name"
+              className="leading-7 text-sm text-gray-600"
+            >
+              Account
+            </label>
+            <input
+              type="text"
+              id="full-name"
+              name="full-name"
+              className="w-full bg-white rounded border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
+            />
+          </div>
+          <div className="relative mb-4">
+            <label
+              htmlFor="full-name"
+              className="leading-7 text-sm text-gray-600"
+            >
+              Password
+            </label>
+            <input
+              type="text"
+              id="full-name"
+              name="full-name"
+              className="w-full bg-white rounded border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
+            />
+          </div>
+          <div className="relative mb-4">
+            <label htmlFor="email" className="leading-7 text-sm text-gray-600">
+              Email
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              className="w-full bg-white rounded border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
+            />
+          </div>
+          <button className="text-white-500 bg-primary-500 border-0 py-2 px-8 focus:outline-none rounded text-lg">
+            Sign Up
+          </button>
+          <p className="text-xs text-gray-500 mt-3">
+            Already signed up? <span>login</span>
+          </p>
+        </div>
+      </Modal>
       <header className="w-full fixed z-50 text-gray-600 body-font bg-primary-500">
         <ul className="container mx-auto grid grid-cols-3 py-3 px-4">
           <li>
@@ -1877,8 +1949,10 @@ export default function ProcessPage() {
                 className="w-10 h-10 text-white p-2 bg-secondary-500 rounded-full"
                 viewBox="0 0 24 24"
               >
-                
-                <path stroke="#FFFFFF" d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                <path
+                  stroke="#FFFFFF"
+                  d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
+                ></path>
               </svg>
               <span className="ml-3 text-xl text-white-500">Minder</span>
             </a>
@@ -1889,16 +1963,18 @@ export default function ProcessPage() {
             </nav>
           </li>
           <li className="justify-self-end self-center text-base">
-            <Button className={'mr-4 bg-secondary-500'} onClick={(e) => { }} text={
-              <div className="d-flex items-center">
-                <span className="text-white-500">
-                  Save
-                </span>
-                {/* <div
+            <Button
+              className={"mr-4 bg-secondary-500"}
+              onClick={(e) => {}}
+              text={
+                <div className="d-flex items-center">
+                  <span className="text-white-500">Save</span>
+                  {/* <div
                   className="mx-2 w-2 h-2 inline-flex items-center justify-center rounded-full bg-info-500 text-indigo-500 flex-shrink-0 cursor-pointer"
                 /> */}
-              </div>
-            } />
+                </div>
+              }
+            />
             <div
               className="w-10 h-10 inline-flex items-center justify-center rounded-full bg-info-500 text-white-500 flex-shrink-0 cursor-pointer"
               onClick={onClickProfile}
@@ -1919,10 +1995,7 @@ export default function ProcessPage() {
           {Object.entries(procedures).map(
             ([procedureId, procedure], procedureI) => {
               return (
-                <li
-                  key={procedureId}
-                  className="mb-1"
-                >
+                <li key={procedureId} className="mb-1">
                   <Accordion
                     title={steps[procedureId].shape.title}
                     hoverRender={
@@ -1933,8 +2006,22 @@ export default function ProcessPage() {
                             onClickStep(steps[procedureId].shape.p);
                           }}
                         >
-                          <svg width={18} height={18} xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" viewBox="0 0 100 100" enable-background="new 0 0 100 100" xmlSpace="preserve">
-                            <path fill="#233C53" d="M84.6,45C82.4,29.7,70.3,17.5,55,15.3V5H45v10.3C29.7,17.5,17.6,29.7,15.4,45H5v10h10.4C17.6,70.3,29.7,82.4,45,84.6V95h10  V84.6C70.3,82.4,82.4,70.3,84.6,55H95V45H84.6z M50,75c-13.8,0-25-11.2-25-25s11.2-25,25-25s25,11.2,25,25S63.8,75,50,75z" />
+                          <svg
+                            width={18}
+                            height={18}
+                            xmlns="http://www.w3.org/2000/svg"
+                            xmlnsXlink="http://www.w3.org/1999/xlink"
+                            version="1.1"
+                            x="0px"
+                            y="0px"
+                            viewBox="0 0 100 100"
+                            enable-background="new 0 0 100 100"
+                            xmlSpace="preserve"
+                          >
+                            <path
+                              fill="#233C53"
+                              d="M84.6,45C82.4,29.7,70.3,17.5,55,15.3V5H45v10.3C29.7,17.5,17.6,29.7,15.4,45H5v10h10.4C17.6,70.3,29.7,82.4,45,84.6V95h10  V84.6C70.3,82.4,82.4,70.3,84.6,55H95V45H84.6z M50,75c-13.8,0-25-11.2-25-25s11.2-25,25-25s25,11.2,25,25S63.8,75,50,75z"
+                            />
                             <circle cx="50" cy="50" r="10" />
                           </svg>
                         </div>
@@ -1974,8 +2061,22 @@ export default function ProcessPage() {
                                         onClickStep(steps[child].shape.p);
                                       }}
                                     >
-                                      <svg width={18} height={18} xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" viewBox="0 0 100 100" enable-background="new 0 0 100 100" xmlSpace="preserve">
-                                        <path fill="#233C53" d="M84.6,45C82.4,29.7,70.3,17.5,55,15.3V5H45v10.3C29.7,17.5,17.6,29.7,15.4,45H5v10h10.4C17.6,70.3,29.7,82.4,45,84.6V95h10  V84.6C70.3,82.4,82.4,70.3,84.6,55H95V45H84.6z M50,75c-13.8,0-25-11.2-25-25s11.2-25,25-25s25,11.2,25,25S63.8,75,50,75z" />
+                                      <svg
+                                        width={18}
+                                        height={18}
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        xmlnsXlink="http://www.w3.org/1999/xlink"
+                                        version="1.1"
+                                        x="0px"
+                                        y="0px"
+                                        viewBox="0 0 100 100"
+                                        enable-background="new 0 0 100 100"
+                                        xmlSpace="preserve"
+                                      >
+                                        <path
+                                          fill="#233C53"
+                                          d="M84.6,45C82.4,29.7,70.3,17.5,55,15.3V5H45v10.3C29.7,17.5,17.6,29.7,15.4,45H5v10h10.4C17.6,70.3,29.7,82.4,45,84.6V95h10  V84.6C70.3,82.4,82.4,70.3,84.6,55H95V45H84.6z M50,75c-13.8,0-25-11.2-25-25s11.2-25,25-25s25,11.2,25,25S63.8,75,50,75z"
+                                        />
                                         <circle cx="50" cy="50" r="10" />
                                       </svg>
                                     </div>
@@ -2015,9 +2116,7 @@ export default function ProcessPage() {
                 }}
               >
                 <Accordion
-                  title={
-                    steps[stepId].shape.title
-                  }
+                  title={steps[stepId].shape.title}
                   hoverRender={
                     <div className="h-full flex justify-end items-center">
                       <div
@@ -2026,8 +2125,22 @@ export default function ProcessPage() {
                           onClickStep(steps[stepId].shape.p);
                         }}
                       >
-                        <svg width={18} height={18} xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" viewBox="0 0 100 100" enable-background="new 0 0 100 100" xmlSpace="preserve">
-                          <path fill="#233C53" d="M84.6,45C82.4,29.7,70.3,17.5,55,15.3V5H45v10.3C29.7,17.5,17.6,29.7,15.4,45H5v10h10.4C17.6,70.3,29.7,82.4,45,84.6V95h10  V84.6C70.3,82.4,82.4,70.3,84.6,55H95V45H84.6z M50,75c-13.8,0-25-11.2-25-25s11.2-25,25-25s25,11.2,25,25S63.8,75,50,75z" />
+                        <svg
+                          width={18}
+                          height={18}
+                          xmlns="http://www.w3.org/2000/svg"
+                          xmlnsXlink="http://www.w3.org/1999/xlink"
+                          version="1.1"
+                          x="0px"
+                          y="0px"
+                          viewBox="0 0 100 100"
+                          enable-background="new 0 0 100 100"
+                          xmlSpace="preserve"
+                        >
+                          <path
+                            fill="#233C53"
+                            d="M84.6,45C82.4,29.7,70.3,17.5,55,15.3V5H45v10.3C29.7,17.5,17.6,29.7,15.4,45H5v10h10.4C17.6,70.3,29.7,82.4,45,84.6V95h10  V84.6C70.3,82.4,82.4,70.3,84.6,55H95V45H84.6z M50,75c-13.8,0-25-11.2-25-25s11.2-25,25-25s25,11.2,25,25S63.8,75,50,75z"
+                          />
                           <circle cx="50" cy="50" r="10" />
                         </svg>
                       </div>
@@ -2095,33 +2208,92 @@ export default function ProcessPage() {
               className="mx-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
               onClick={onClickTerminator}
             >
-
-              <svg width={16} height={16} version="1.1" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 256 256" enable-background="new 0 0 256 256" xmlSpace="preserve">
-                <g><g><path fill="#FFFFFF" d="M246,128c0,49.2-39.9,89-89,89H99c-49.2,0-89-39.9-89-89l0,0c0-49.2,39.9-89,89-89H157C206.1,39,246,78.8,246,128L246,128z" /></g></g>
+              <svg
+                width={16}
+                height={16}
+                version="1.1"
+                xmlns="http://www.w3.org/2000/svg"
+                xmlnsXlink="http://www.w3.org/1999/xlink"
+                x="0px"
+                y="0px"
+                viewBox="0 0 256 256"
+                enable-background="new 0 0 256 256"
+                xmlSpace="preserve"
+              >
+                <g>
+                  <g>
+                    <path
+                      fill="#FFFFFF"
+                      d="M246,128c0,49.2-39.9,89-89,89H99c-49.2,0-89-39.9-89-89l0,0c0-49.2,39.9-89,89-89H157C206.1,39,246,78.8,246,128L246,128z"
+                    />
+                  </g>
+                </g>
               </svg>
             </div>
             <div
               className="mx-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
               onClick={onClickProcess}
             >
-              <svg width={16} height={16} xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" viewBox="0 0 100 100" xmlSpace="preserve">
-                <path fill="#FFFFFF" className="st0" d="M93.44,78.48H6.56V21.52h86.88V78.48z" />
+              <svg
+                width={16}
+                height={16}
+                xmlns="http://www.w3.org/2000/svg"
+                xmlnsXlink="http://www.w3.org/1999/xlink"
+                version="1.1"
+                x="0px"
+                y="0px"
+                viewBox="0 0 100 100"
+                xmlSpace="preserve"
+              >
+                <path
+                  fill="#FFFFFF"
+                  className="st0"
+                  d="M93.44,78.48H6.56V21.52h86.88V78.48z"
+                />
               </svg>
             </div>
             <div
               className="mx-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
               onClick={onClickData}
             >
-              <svg width={16} height={16} xmlns="http://www.w3.org/2000/svg" data-name="Layer 21" viewBox="0 0 32 32" x="0px" y="0px">
-                <path fill="#FFFFFF" d="M30.387,5.683A.5.5,0,0,0,30,5.5H6a.5.5,0,0,0-.49.4l-4,20a.5.5,0,0,0,.49.6H26a.5.5,0,0,0,.49-.4l4-20A.5.5,0,0,0,30.387,5.683Z" />
+              <svg
+                width={16}
+                height={16}
+                xmlns="http://www.w3.org/2000/svg"
+                data-name="Layer 21"
+                viewBox="0 0 32 32"
+                x="0px"
+                y="0px"
+              >
+                <path
+                  fill="#FFFFFF"
+                  d="M30.387,5.683A.5.5,0,0,0,30,5.5H6a.5.5,0,0,0-.49.4l-4,20a.5.5,0,0,0,.49.6H26a.5.5,0,0,0,.49-.4l4-20A.5.5,0,0,0,30.387,5.683Z"
+                />
               </svg>
             </div>
             <div
               className="mx-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
               onClick={onClickDecision}
             >
-              <svg width={16} height={16} xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" viewBox="0 0 64 64" xmlSpace="preserve">
-                <rect fill="#FFFFFF" x="12.5545645" y="12.5545635" transform="matrix(0.7071068 -0.7071068 0.7071068 0.7071068 -13.2548332 32)" width={"38.890873"} height={"38.890873"} />
+              <svg
+                width={16}
+                height={16}
+                xmlns="http://www.w3.org/2000/svg"
+                xmlnsXlink="http://www.w3.org/1999/xlink"
+                version="1.1"
+                x="0px"
+                y="0px"
+                viewBox="0 0 64 64"
+                xmlSpace="preserve"
+              >
+                <rect
+                  fill="#FFFFFF"
+                  x="12.5545645"
+                  y="12.5545635"
+                  transform="matrix(0.7071068 -0.7071068 0.7071068 0.7071068 -13.2548332 32)"
+                  width={"38.890873"}
+                  height={"38.890873"}
+                />
               </svg>
             </div>
           </div>
@@ -2177,7 +2349,6 @@ export default function ProcessPage() {
         onWheel={onMouseWheel}
         onDoubleClick={onDoubleClick}
       />
-
       {dataFrame && dbClickedShape && (
         <DataFrame
           shape={dbClickedShape}
