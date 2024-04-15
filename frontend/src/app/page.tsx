@@ -1,5 +1,6 @@
 // TODO: terminator dataframe 新增 start & end 選項 / 更換新增 shape icon / 取消 title 重名檢查 / 終點 terminator 要判斷是否沒有接收到其他 shape(要做錯誤題示) / core shape sendTo 搬遷至 curves sendTo / 雙擊 cp1 || cp2 可自動對位  / 處理 data shape SelectFrame 開關(點擊 frame 以外要關閉) / 尋找左側列 icons / 對齊功能
 "use client";
+import axios from 'axios'
 import Core from "@/shapes/core";
 import Terminal from "@/shapes/terminal";
 import Process from "@/shapes/process";
@@ -15,6 +16,7 @@ import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
 import { cloneDeep } from "lodash";
 import { v4 as uuidv4 } from "uuid";
+import { ChangeEventHandler } from 'react';
 import * as CoreTypes from "@/types/shapes/core";
 import * as CurveTypes from "@/types/shapes/curve";
 import * as CommonTypes from "@/types/shapes/common";
@@ -29,14 +31,14 @@ let useEffected = false,
     shape: null | Terminal | Process | Data | Desicion | Curve;
     direction: null | CommonTypes.Direction;
     target:
-      | null
-      | CoreTypes.PressingTarget
-      | CurveTypes.PressingTarget
-      | "selectArea_m"
-      | "selectArea_lt"
-      | "selectArea_rt"
-      | "selectArea_rb"
-      | "selectArea_lb";
+    | null
+    | CoreTypes.PressingTarget
+    | CurveTypes.PressingTarget
+    | "selectArea_m"
+    | "selectArea_lt"
+    | "selectArea_rt"
+    | "selectArea_rb"
+    | "selectArea_lb";
     dx: number; // distance between event px & pressing shape px
     dy: number; // distance between event py & pressing shape py
   } = null,
@@ -84,22 +86,22 @@ let useEffected = false,
   };
 
 const ds = [
-    CommonTypes.Direction.l,
-    CommonTypes.Direction.t,
-    CommonTypes.Direction.r,
-    CommonTypes.Direction.b,
-  ],
+  CommonTypes.Direction.l,
+  CommonTypes.Direction.t,
+  CommonTypes.Direction.r,
+  CommonTypes.Direction.b,
+],
   vs: (
     | CoreTypes.PressingTarget.lt
     | CoreTypes.PressingTarget.rt
     | CoreTypes.PressingTarget.rb
     | CoreTypes.PressingTarget.lb
   )[] = [
-    CoreTypes.PressingTarget.lt,
-    CoreTypes.PressingTarget.rt,
-    CoreTypes.PressingTarget.rb,
-    CoreTypes.PressingTarget.lb,
-  ];
+      CoreTypes.PressingTarget.lt,
+      CoreTypes.PressingTarget.rt,
+      CoreTypes.PressingTarget.rb,
+      CoreTypes.PressingTarget.lb,
+    ];
 
 const getFramePosition = (shape: Core) => {
   const frameOffset = 12;
@@ -194,58 +196,58 @@ const Editor = (props: { className: string; shape: Core }) => {
       {(props.shape instanceof Process ||
         props.shape instanceof Data ||
         props.shape instanceof Desicion) && (
-        <div className={props.className && props.className}>
-          {props.shape instanceof Data && (
-            <div>
-              <p className="mb-1">Data</p>
-              {/* <div
+          <div className={props.className && props.className}>
+            {props.shape instanceof Data && (
+              <div>
+                <p className="mb-1">Data</p>
+                {/* <div
               className="w-6 h-6 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
               onClick={onClickScalePlusIcon}
             >
               +
             </div> */}
+                <ul className="ps-2">
+                  {props.shape.data.map((dataItem) => (
+                    <li className="mb-1"> · {dataItem.text}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <div>
+              <p className="mb-1">Data Usage</p>
               <ul className="ps-2">
-                {props.shape.data.map((dataItem) => (
-                  <li className="mb-1"> · {dataItem.text}</li>
+                {props.shape.options.map((option) => (
+                  <li className="mb-1">
+                    <span className="bg-indigo-100 text-indigo-500 w-4 h-4 rounded-full inline-flex items-center justify-center">
+                      {selections[option.text] && (
+                        <svg
+                          fill="none"
+                          stroke="currentColor"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="3"
+                          className="w-3 h-3"
+                          viewBox="0 0 24 24"
+                        >
+                          <path d="M20 6L9 17l-5-5"></path>
+                        </svg>
+                      )}
+                    </span>
+                    {option.text}
+                  </li>
                 ))}
               </ul>
             </div>
-          )}
-          <div>
-            <p className="mb-1">Data Usage</p>
-            <ul className="ps-2">
-              {props.shape.options.map((option) => (
-                <li className="mb-1">
-                  <span className="bg-indigo-100 text-indigo-500 w-4 h-4 rounded-full inline-flex items-center justify-center">
-                    {selections[option.text] && (
-                      <svg
-                        fill="none"
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="3"
-                        className="w-3 h-3"
-                        viewBox="0 0 24 24"
-                      >
-                        <path d="M20 6L9 17l-5-5"></path>
-                      </svg>
-                    )}
-                  </span>
-                  {option.text}
-                </li>
-              ))}
-            </ul>
+            <div>
+              <div className="mb-1">Redundancies</div>
+              <ul className="ps-2">
+                {props.shape.redundancies.map((redundancy) => (
+                  <li className="mb-1"> · {redundancy.text}</li>
+                ))}
+              </ul>
+            </div>
           </div>
-          <div>
-            <div className="mb-1">Redundancies</div>
-            <ul className="ps-2">
-              {props.shape.redundancies.map((redundancy) => (
-                <li className="mb-1"> · {redundancy.text}</li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      )}
+        )}
     </>
   );
 };
@@ -263,14 +265,19 @@ const init = {
       dec: { w: 100, h: 100 },
     },
   },
+  authInfo: {
+    account: undefined,
+    password: undefined,
+    email: undefined
+  }
 };
 
 export default function ProcessPage() {
   let { current: $canvas } = useRef<HTMLCanvasElement | null>(null);
 
   const [dataFrame, setDataFrame] = useState<
-      { p: CommonTypes.Vec } | undefined
-    >(undefined),
+    { p: CommonTypes.Vec } | undefined
+  >(undefined),
     [dbClickedShape, setDbClickedShape] = useState<
       Terminal | Data | Process | Desicion | null
     >(null),
@@ -289,9 +296,14 @@ export default function ProcessPage() {
       [dataShapeId: string]: CommonTypes.Data;
     }>({}),
     [isAccountModalOpen, setIsAccountModalOpen] = useState(true),
-    [isLogining, setIsLogining] = useState(false),
+    [isLogining, setIsLogining] = useState(true),
     [hasLogIn, setHasLogIn] = useState(false),
-    [isProjectsModalOpen, setIsProjectsModalOpen] = useState(false);
+    [isProjectsModalOpen, setIsProjectsModalOpen] = useState(false),
+    [authInfo, setAuthInfo] = useState<{
+      account: undefined | string,
+      password: undefined | string,
+      email: undefined | string
+    }>(init.authInfo)
 
   const allData = useMemo(() => {
     const _items: CommonTypes.Data = [];
@@ -502,9 +514,9 @@ export default function ProcessPage() {
     setLeftMouseBtn(true);
 
     const p = {
-        x: e.nativeEvent.offsetX,
-        y: e.nativeEvent.offsetY,
-      },
+      x: e.nativeEvent.offsetX,
+      y: e.nativeEvent.offsetY,
+    },
       pInSelectArea =
         p.x > select.start.x &&
         p.y > select.start.y &&
@@ -682,12 +694,12 @@ export default function ProcessPage() {
                 dx:
                   (p.x - dragP.x) * (1 / scale) -
                   shape?.getEdge()[
-                    theCheckShapeVertexesBoundry[0] as CommonTypes.Direction
+                  theCheckShapeVertexesBoundry[0] as CommonTypes.Direction
                   ],
                 dy:
                   (p.y - dragP.y) * (1 / scale) -
                   shape?.getEdge()[
-                    theCheckShapeVertexesBoundry[1] as CommonTypes.Direction
+                  theCheckShapeVertexesBoundry[1] as CommonTypes.Direction
                   ],
               };
             }
@@ -741,9 +753,9 @@ export default function ProcessPage() {
     if (!$canvas || !ctx) return;
 
     const p = {
-        x: e.nativeEvent.offsetX,
-        y: e.nativeEvent.offsetY,
-      },
+      x: e.nativeEvent.offsetX,
+      y: e.nativeEvent.offsetY,
+    },
       offsetP = {
         x: p.x - dragP.x,
         y: p.y - dragP.y,
@@ -1140,9 +1152,9 @@ export default function ProcessPage() {
         const theEdge = shape.getEdge();
 
         const l =
-            selectAreaP.start.x < selectAreaP.end.x
-              ? selectAreaP.start.x
-              : selectAreaP.end.x,
+          selectAreaP.start.x < selectAreaP.end.x
+            ? selectAreaP.start.x
+            : selectAreaP.end.x,
           t =
             selectAreaP.start.y < selectAreaP.end.y
               ? selectAreaP.start.y
@@ -1714,9 +1726,28 @@ export default function ProcessPage() {
     draw($canvas, ctx);
   };
 
-  const onClickChangeAuthButton = (_isLogin: boolean) => {
-    setIsLogining(_isLogin);
+  const onClickChangeAuthButton = (_isLogining: boolean) => {
+    setIsLogining(_isLogining);
+    setAuthInfo(init.authInfo)
   };
+
+  const onClickLoginButton = () => {
+
+  }
+
+  const onClickSignUpButton = () => { }
+
+  const onChangeAccount: ChangeEventHandler<HTMLInputElement> = (e) => {
+    setAuthInfo(authInfo => ({ ...authInfo, account: e.target.value }))
+  }
+
+  const onChangePassword: ChangeEventHandler<HTMLInputElement> = (e) => {
+    setAuthInfo(authInfo => ({ ...authInfo, password: e.target.value }))
+  }
+
+  const onChangeEmail: ChangeEventHandler<HTMLInputElement> = (e) => {
+    setAuthInfo(authInfo => ({ ...authInfo, email: e.target.value }))
+  }
 
   useEffect(() => {
     if (useEffected) return;
@@ -1876,7 +1907,7 @@ export default function ProcessPage() {
 
   return (
     <>
-      <Modal isOpen={isAccountModalOpen && !isProjectsModalOpen && !hasLogIn}>
+      <Modal isOpen={isAccountModalOpen && !isProjectsModalOpen && !hasLogIn} width="400px">
         <div className="bg-white-500 rounded-lg p-8 flex flex-col w-full mt-10">
           <a className="flex title-font font-medium justify-center items-center text-gray-900 mb-4">
             <svg
@@ -1896,6 +1927,9 @@ export default function ProcessPage() {
             </svg>
             <span className="ml-3 text-xl text-grey-1">Minder</span>
           </a>
+          <div className="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400" role="alert">
+            <span className="font-medium">Incorrect account or password!</span>
+          </div>
           <div className="relative mb-4">
             <label
               htmlFor="full-name"
@@ -1908,6 +1942,8 @@ export default function ProcessPage() {
               id="full-name"
               name="full-name"
               className="w-full bg-white rounded border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
+              value={authInfo.account}
+              onChange={onChangeAccount}
             />
           </div>
           <div className="relative mb-4">
@@ -1918,10 +1954,12 @@ export default function ProcessPage() {
               Password
             </label>
             <input
-              type="text"
+              type="password"
               id="full-name"
               name="full-name"
               className="w-full bg-white rounded border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
+              value={authInfo.password}
+              onChange={onChangePassword}
             />
           </div>
           {!isLogining && (
@@ -1937,12 +1975,12 @@ export default function ProcessPage() {
                 id="email"
                 name="email"
                 className="w-full bg-white rounded border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
+                value={authInfo.email}
+                onChange={onChangeEmail}
               />
             </div>
           )}
-          <button className="text-white-500 bg-primary-500 border-0 py-2 px-8 focus:outline-none rounded text-lg">
-            {isLogining ? "Login" : "Sign Up"}
-          </button>
+          <Button className="text-lg" text={isLogining ? "Login" : "Sign Up"} onClick={isLogining ? onClickLoginButton : onClickSignUpButton} />
           <p className="text-xs text-gray-500 mt-3">
             {isLogining ? "No account yet? " : "Already have an account? "}
             <a
@@ -2110,7 +2148,7 @@ export default function ProcessPage() {
           <li className="justify-self-end self-center text-base">
             <Button
               className={"mr-4 bg-secondary-500"}
-              onClick={(e) => {}}
+              onClick={(e) => { }}
               text={
                 <div className="d-flex items-center">
                   <span className="text-white-500">Save</span>
