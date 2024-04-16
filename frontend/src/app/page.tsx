@@ -12,6 +12,7 @@ import SidePanel from "@/components/sidePanel";
 import Accordion from "@/components/accordion";
 import Button from "@/components/button";
 import Modal from "@/components/modal";
+import Input from "@/components/input";
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
 import { cloneDeep } from "lodash";
@@ -1930,55 +1931,31 @@ export default function ProcessPage() {
           <div className="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400" role="alert">
             <span className="font-medium">Incorrect account or password!</span>
           </div>
-          <div className="relative mb-4">
-            <label
-              htmlFor="full-name"
-              className="leading-7 text-sm text-gray-600"
-            >
-              Account
-            </label>
-            <input
-              type="text"
-              id="full-name"
-              name="full-name"
-              className="w-full bg-white rounded border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
-              value={authInfo.account}
-              onChange={onChangeAccount}
-            />
-          </div>
-          <div className="relative mb-4">
-            <label
-              htmlFor="full-name"
-              className="leading-7 text-sm text-gray-600"
-            >
-              Password
-            </label>
-            <input
-              type="password"
-              id="full-name"
-              name="full-name"
-              className="w-full bg-white rounded border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
-              value={authInfo.password}
-              onChange={onChangePassword}
-            />
-          </div>
+          <Input
+            className="mb-4"
+            label={"Account"}
+            type="text"
+            name="account"
+            value={authInfo.account}
+            onChange={onChangeAccount}
+          />
+          <Input
+            className="mb-4"
+            label={"Password"}
+            type="text"
+            name="password"
+            value={authInfo.password}
+            onChange={onChangePassword}
+          />
           {!isLogining && (
-            <div className="relative mb-4">
-              <label
-                htmlFor="email"
-                className="leading-7 text-sm text-gray-600"
-              >
-                Email
-              </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                className="w-full bg-white rounded border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
-                value={authInfo.email}
-                onChange={onChangeEmail}
-              />
-            </div>
+            <Input
+              className="mb-4"
+              label={"Email"}
+              type="text"
+              name="email"
+              value={authInfo.email}
+              onChange={onChangeEmail}
+            />
           )}
           <Button className="text-lg" text={isLogining ? "Login" : "Sign Up"} onClick={isLogining ? onClickLoginButton : onClickSignUpButton} />
           <p className="text-xs text-gray-500 mt-3">
