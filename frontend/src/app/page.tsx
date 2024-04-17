@@ -14,6 +14,7 @@ import Button from "@/components/button";
 import Modal from "@/components/modal";
 import Input from "@/components/input";
 import Alert from "@/components/alert";
+import Card from "@/components/card";
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
 import { cloneDeep } from "lodash";
@@ -2066,20 +2067,7 @@ export default function ProcessPage() {
               PROJECTS
             </h2>
             <div className="flex flex-wrap">
-              <div className="lg:w-1/4 md:w-1/2 p-4 w-full">
-                <a className="block relative h-48 rounded overflow-hidden">
-                  <img
-                    alt="ecommerce"
-                    className="object-cover object-center w-full h-full block"
-                    src="https://dummyimage.com/420x260"
-                  />
-                </a>
-                <div className="mt-1 ms-1">
-                  <h2 className="text-gray-900 title-font text-lg font-medium">
-                    The Catalyzer
-                  </h2>
-                </div>
-              </div>
+              <Card />
               <div className="lg:w-1/4 md:w-1/2 p-4 w-full">
                 <a className="block relative h-48 rounded overflow-hidden">
                   <img
