@@ -1,4 +1,10 @@
-import { HTMLInputTypeAttribute, ChangeEventHandler, ReactNode } from 'react'
+import { HTMLInputTypeAttribute, ChangeEventHandler } from "react";
+
+enum Status {
+  "normal",
+  "warning",
+  "error",
+}
 
 type Props = {
   id?: string;
@@ -7,7 +13,8 @@ type Props = {
   type?: HTMLInputTypeAttribute;
   name?: string;
   value: undefined | string;
-  onChange: ChangeEventHandler<HTMLInputElement>
+  status?: Status;
+  onChange: ChangeEventHandler<HTMLInputElement>;
 };
-
+export { Status };
 export type { Props };
