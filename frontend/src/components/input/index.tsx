@@ -3,14 +3,14 @@ import * as InputTypes from "@/types/components/input";
 
 const Input = (props: InputTypes.Props) => {
   const textColor = (() => {
-      if (props.status === InputTypes.Status.warning) {
-        return "text-warning-500";
-      } else if (props.status === InputTypes.Status.error) {
-        return "text-error-500";
-      } else {
-        return "text-grey-2";
-      }
-    })(),
+    if (props.status === InputTypes.Status.warning) {
+      return "text-warning-500";
+    } else if (props.status === InputTypes.Status.error) {
+      return "text-error-500";
+    } else {
+      return "text-grey-2";
+    }
+  })(),
     borderColor = (() => {
       if (props.status === InputTypes.Status.warning) {
         return "border-warning-500 focus:border-warning-500";
@@ -23,7 +23,7 @@ const Input = (props: InputTypes.Props) => {
 
   return (
     <div className={props.className} id={props.id}>
-      <label htmlFor={props.name} className={`leading-7 text-sm ${textColor} duration-200 ease-in-out`}>
+      <label htmlFor={props.name} className={`leading-7 text-md text-grey-2 ms-1 duration-200 ease-in-out`}>
         {props.label}
       </label>
       <input
@@ -33,6 +33,7 @@ const Input = (props: InputTypes.Props) => {
         value={props.value || ""}
         onChange={props.onChange}
       />
+      {props.comment && <p className={`${textColor} text-sm ms-1 mt-1`}>{props.comment}</p>}
     </div>
   );
 };

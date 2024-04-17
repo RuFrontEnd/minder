@@ -8,10 +8,9 @@ const Button = (props: ButtonTypes.Props) => {
   return (
     <button
       id={id}
-      className={`${
-        className && className
-      } flex justify-center items-center text-white-500 bg-primary-500 hover:bg-primary-hover border-0 py-2 px-6 focus:outline-none rounded text-md ease-in-out duration-300`}
-      onClick={onClick}
+      className={`${className && className
+        } flex justify-center items-center text-white-500 bg-primary-500 hover:bg-primary-hover border-0 py-2 px-6 focus:outline-none rounded text-md ease-in-out duration-300`}
+      onClick={props.loading ? undefined : onClick}
     >
       {text}
       {props.loading && (

@@ -28,6 +28,7 @@ import * as PageTypes from "@/types/app/page";
 import * as DataFrameTypes from "@/types/components/dataFrame";
 import * as InputTypes from "@/types/components/input";
 import * as AlertTypes from "@/types/components/alert";
+import { comment } from "postcss";
 
 axios.defaults.baseURL = process.env.BASE_URL || "http://localhost:5000/api";
 
@@ -39,14 +40,14 @@ let useEffected = false,
     shape: null | Terminal | Process | Data | Desicion | Curve;
     direction: null | CommonTypes.Direction;
     target:
-      | null
-      | CoreTypes.PressingTarget
-      | CurveTypes.PressingTarget
-      | "selectArea_m"
-      | "selectArea_lt"
-      | "selectArea_rt"
-      | "selectArea_rb"
-      | "selectArea_lb";
+    | null
+    | CoreTypes.PressingTarget
+    | CurveTypes.PressingTarget
+    | "selectArea_m"
+    | "selectArea_lt"
+    | "selectArea_rt"
+    | "selectArea_rb"
+    | "selectArea_lb";
     dx: number; // distance between event px & pressing shape px
     dy: number; // distance between event py & pressing shape py
   } = null,
@@ -94,22 +95,22 @@ let useEffected = false,
   };
 
 const ds = [
-    CommonTypes.Direction.l,
-    CommonTypes.Direction.t,
-    CommonTypes.Direction.r,
-    CommonTypes.Direction.b,
-  ],
+  CommonTypes.Direction.l,
+  CommonTypes.Direction.t,
+  CommonTypes.Direction.r,
+  CommonTypes.Direction.b,
+],
   vs: (
     | CoreTypes.PressingTarget.lt
     | CoreTypes.PressingTarget.rt
     | CoreTypes.PressingTarget.rb
     | CoreTypes.PressingTarget.lb
   )[] = [
-    CoreTypes.PressingTarget.lt,
-    CoreTypes.PressingTarget.rt,
-    CoreTypes.PressingTarget.rb,
-    CoreTypes.PressingTarget.lb,
-  ];
+      CoreTypes.PressingTarget.lt,
+      CoreTypes.PressingTarget.rt,
+      CoreTypes.PressingTarget.rb,
+      CoreTypes.PressingTarget.lb,
+    ];
 
 const getFramePosition = (shape: Core) => {
   const frameOffset = 12;
@@ -204,58 +205,58 @@ const Editor = (props: { className: string; shape: Core }) => {
       {(props.shape instanceof Process ||
         props.shape instanceof Data ||
         props.shape instanceof Desicion) && (
-        <div className={props.className && props.className}>
-          {props.shape instanceof Data && (
-            <div>
-              <p className="mb-1">Data</p>
-              {/* <div
+          <div className={props.className && props.className}>
+            {props.shape instanceof Data && (
+              <div>
+                <p className="mb-1">Data</p>
+                {/* <div
               className="w-6 h-6 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
               onClick={onClickScalePlusIcon}
             >
               +
             </div> */}
+                <ul className="ps-2">
+                  {props.shape.data.map((dataItem) => (
+                    <li className="mb-1"> · {dataItem.text}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <div>
+              <p className="mb-1">Data Usage</p>
               <ul className="ps-2">
-                {props.shape.data.map((dataItem) => (
-                  <li className="mb-1"> · {dataItem.text}</li>
+                {props.shape.options.map((option) => (
+                  <li className="mb-1">
+                    <span className="bg-indigo-100 text-indigo-500 w-4 h-4 rounded-full inline-flex items-center justify-center">
+                      {selections[option.text] && (
+                        <svg
+                          fill="none"
+                          stroke="currentColor"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="3"
+                          className="w-3 h-3"
+                          viewBox="0 0 24 24"
+                        >
+                          <path d="M20 6L9 17l-5-5"></path>
+                        </svg>
+                      )}
+                    </span>
+                    {option.text}
+                  </li>
                 ))}
               </ul>
             </div>
-          )}
-          <div>
-            <p className="mb-1">Data Usage</p>
-            <ul className="ps-2">
-              {props.shape.options.map((option) => (
-                <li className="mb-1">
-                  <span className="bg-indigo-100 text-indigo-500 w-4 h-4 rounded-full inline-flex items-center justify-center">
-                    {selections[option.text] && (
-                      <svg
-                        fill="none"
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="3"
-                        className="w-3 h-3"
-                        viewBox="0 0 24 24"
-                      >
-                        <path d="M20 6L9 17l-5-5"></path>
-                      </svg>
-                    )}
-                  </span>
-                  {option.text}
-                </li>
-              ))}
-            </ul>
+            <div>
+              <div className="mb-1">Redundancies</div>
+              <ul className="ps-2">
+                {props.shape.redundancies.map((redundancy) => (
+                  <li className="mb-1"> · {redundancy.text}</li>
+                ))}
+              </ul>
+            </div>
           </div>
-          <div>
-            <div className="mb-1">Redundancies</div>
-            <ul className="ps-2">
-              {props.shape.redundancies.map((redundancy) => (
-                <li className="mb-1"> · {redundancy.text}</li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      )}
+        )}
     </>
   );
 };
@@ -274,10 +275,9 @@ const init = {
     },
   },
   authInfo: {
-    message: { type: AlertTypes.Type.error, text: "" },
-    account: { value: undefined, status: InputTypes.Status.normal },
-    password: { value: undefined, status: InputTypes.Status.normal },
-    email: { value: undefined, status: InputTypes.Status.normal },
+    account: { value: undefined, status: InputTypes.Status.normal, comment: undefined },
+    password: { value: undefined, status: InputTypes.Status.normal, comment: undefined },
+    email: { value: undefined, status: InputTypes.Status.normal, comment: undefined },
   },
 };
 
@@ -285,8 +285,8 @@ export default function ProcessPage() {
   let { current: $canvas } = useRef<HTMLCanvasElement | null>(null);
 
   const [dataFrame, setDataFrame] = useState<
-      { p: CommonTypes.Vec } | undefined
-    >(undefined),
+    { p: CommonTypes.Vec } | undefined
+  >(undefined),
     [dbClickedShape, setDbClickedShape] = useState<
       Terminal | Data | Process | Desicion | null
     >(null),
@@ -308,12 +308,12 @@ export default function ProcessPage() {
     [isLogIn, setIsLogin] = useState(true),
     [isProjectsModalOpen, setIsProjectsModalOpen] = useState(false),
     [authInfo, setAuthInfo] = useState<{
-      message: { type: AlertTypes.Type; text: string };
-      account: { value: undefined | string; status: InputTypes.Status };
-      password: { value: undefined | string; status: InputTypes.Status };
-      email: { value: undefined | string; status: InputTypes.Status };
+      account: { value: undefined | string; status: InputTypes.Status, comment: undefined | string; };
+      password: { value: undefined | string; status: InputTypes.Status, comment: undefined | string; };
+      email: { value: undefined | string; status: InputTypes.Status, comment: undefined | string; };
     }>(init.authInfo),
-    [isAuthorizing, setIsAuthorizing] = useState(false);
+    [isAuthorizing, setIsAuthorizing] = useState(false),
+    [authMessage, setAuthMessage] = useState('')
 
   const allData = useMemo(() => {
     const _items: CommonTypes.Data = [];
@@ -524,9 +524,9 @@ export default function ProcessPage() {
     setLeftMouseBtn(true);
 
     const p = {
-        x: e.nativeEvent.offsetX,
-        y: e.nativeEvent.offsetY,
-      },
+      x: e.nativeEvent.offsetX,
+      y: e.nativeEvent.offsetY,
+    },
       pInSelectArea =
         p.x > select.start.x &&
         p.y > select.start.y &&
@@ -704,12 +704,12 @@ export default function ProcessPage() {
                 dx:
                   (p.x - dragP.x) * (1 / scale) -
                   shape?.getEdge()[
-                    theCheckShapeVertexesBoundry[0] as CommonTypes.Direction
+                  theCheckShapeVertexesBoundry[0] as CommonTypes.Direction
                   ],
                 dy:
                   (p.y - dragP.y) * (1 / scale) -
                   shape?.getEdge()[
-                    theCheckShapeVertexesBoundry[1] as CommonTypes.Direction
+                  theCheckShapeVertexesBoundry[1] as CommonTypes.Direction
                   ],
               };
             }
@@ -763,9 +763,9 @@ export default function ProcessPage() {
     if (!$canvas || !ctx) return;
 
     const p = {
-        x: e.nativeEvent.offsetX,
-        y: e.nativeEvent.offsetY,
-      },
+      x: e.nativeEvent.offsetX,
+      y: e.nativeEvent.offsetY,
+    },
       offsetP = {
         x: p.x - dragP.x,
         y: p.y - dragP.y,
@@ -1162,9 +1162,9 @@ export default function ProcessPage() {
         const theEdge = shape.getEdge();
 
         const l =
-            selectAreaP.start.x < selectAreaP.end.x
-              ? selectAreaP.start.x
-              : selectAreaP.end.x,
+          selectAreaP.start.x < selectAreaP.end.x
+            ? selectAreaP.start.x
+            : selectAreaP.end.x,
           t =
             selectAreaP.start.y < selectAreaP.end.y
               ? selectAreaP.start.y
@@ -1745,14 +1745,15 @@ export default function ProcessPage() {
     const _authInfo = cloneDeep(authInfo);
     if (!authInfo.account.value) {
       _authInfo.account.status = InputTypes.Status.error;
+      _authInfo.account.comment = "requied!"
     }
     if (!authInfo.password.value) {
       _authInfo.password.status = InputTypes.Status.error;
     }
 
     if (!authInfo.account.value || !authInfo.password.value) {
-      _authInfo.message.type = AlertTypes.Type.error;
-      _authInfo.message.text = "Please fill in all fields.";
+      _authInfo.password.status = InputTypes.Status.error;
+      _authInfo.password.comment = "requied!"
       setAuthInfo(_authInfo);
       return;
     }
@@ -1769,45 +1770,73 @@ export default function ProcessPage() {
 
   const onClickSignUpButton = async () => {
     const _authInfo = cloneDeep(authInfo);
+
+    const isPasswordLengthGreaterThanSix = authInfo.password.value && authInfo.password.value?.length >= 6,
+      isEmailFormatValid = authInfo.email.value && new RegExp(/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/).test(authInfo.email.value);
+
     if (!authInfo.account.value) {
       _authInfo.account.status = InputTypes.Status.error;
-    }
-    if (!authInfo.password.value) {
-      _authInfo.password.status = InputTypes.Status.error;
-    }
-    if (!authInfo.email.value) {
-      _authInfo.email.status = InputTypes.Status.error;
+      _authInfo.account.comment = "required field."
+    } else {
+      _authInfo.account.status = InputTypes.Status.normal;
+      _authInfo.account.comment = ""
     }
 
+    if (!authInfo.password.value) {
+      _authInfo.password.status = InputTypes.Status.error;
+      _authInfo.password.comment = "required field."
+    } else if (!isPasswordLengthGreaterThanSix) {
+      _authInfo.password.status = InputTypes.Status.error;
+      _authInfo.password.comment = "length should be greater than 6 characters."
+    } else {
+      _authInfo.password.status = InputTypes.Status.normal;
+      _authInfo.password.comment = ""
+    }
+
+    if (!authInfo.email.value) {
+      _authInfo.email.status = InputTypes.Status.error;
+      _authInfo.email.comment = "requied field."
+    } else if (!isEmailFormatValid) {
+      _authInfo.email.status = InputTypes.Status.error;
+      _authInfo.email.comment = "invalid email format."
+    } else {
+
+      _authInfo.email.status = InputTypes.Status.normal;
+      _authInfo.email.comment = ""
+    }
+
+    setAuthInfo(_authInfo);
+
     if (
+      !isPasswordLengthGreaterThanSix ||
+      !isEmailFormatValid ||
       !authInfo.account.value ||
       !authInfo.password.value ||
       !authInfo.email.value
-    ) {
-      _authInfo.message.type = AlertTypes.Type.error;
-      _authInfo.message.text = "Please fill in all fields.";
-      setAuthInfo(_authInfo);
+    )
       return;
-    }
+
 
     setIsAuthorizing(true);
 
-    // await authAPIs.register(
-    //   authInfo.account.value,
-    //   authInfo.password.value,
-    //   authInfo.email.value
-    // );
-    await setTimeout(() => {
-      setIsAuthorizing(false);
-      setIsLogin(true);
-      setAuthInfo({
-        ...init.authInfo,
-        message: {
-          type: AlertTypes.Type.succeess,
-          text: "Sign up successfully!",
-        },
-      });
-    }, 1000); // about to delete
+    const res = await authAPIs.register(
+      authInfo.account.value,
+      authInfo.password.value,
+      authInfo.email.value
+    );
+
+
+    if (res.status === 201) {
+      setTimeout(() => {
+        setAuthMessage('Sign up successfully!')
+        setIsAuthorizing(false);
+        setTimeout(() => {
+          setIsLogin(true);
+          setAuthInfo(init.authInfo);
+          setAuthMessage("")
+        }, 1500)
+      }, 1000)
+    }
   };
 
   const onChangeAccount: ChangeEventHandler<HTMLInputElement> = (e) => {
@@ -2011,7 +2040,6 @@ export default function ProcessPage() {
             </svg>
             <span className="ml-3 text-xl text-grey-1">Minder</span>
           </a>
-          <Alert type={authInfo.message.type} text={authInfo.message.text} />
           <Input
             className="mb-4"
             label={"Account"}
@@ -2019,25 +2047,28 @@ export default function ProcessPage() {
             name="account"
             value={authInfo.account.value}
             status={authInfo.account.status}
+            comment={authInfo.account.comment}
             onChange={onChangeAccount}
           />
           <Input
             className="mb-4"
             label={"Password"}
-            type="text"
+            type="password"
             name="password"
             value={authInfo.password.value}
             status={authInfo.password.status}
+            comment={authInfo.password.comment}
             onChange={onChangePassword}
           />
           {!isLogIn && (
             <Input
               className="mb-4"
               label={"Email"}
-              type="text"
+              type="email"
               name="email"
               value={authInfo.email.value}
               status={authInfo.email.status}
+              comment={authInfo.email.comment}
               onChange={onChangeEmail}
             />
           )}
@@ -2047,6 +2078,9 @@ export default function ProcessPage() {
             onClick={isLogIn ? onClickLoginButton : onClickSignUpButton}
             loading={isAuthorizing}
           />
+          {authMessage &&
+            <Alert className="mt-2" type={AlertTypes.Type.succeess} text={authMessage} />
+          }
           <p className="text-xs text-gray-500 mt-3">
             {isLogIn ? "No account yet? " : "Already have an account? "}
             <a
@@ -2200,7 +2234,7 @@ export default function ProcessPage() {
           <li className="justify-self-end self-center text-base">
             <Button
               className={"mr-4 bg-secondary-500"}
-              onClick={(e) => {}}
+              onClick={(e) => { }}
               text={
                 <div className="d-flex items-center">
                   <span className="text-white-500">Save</span>
