@@ -29,7 +29,7 @@ const Input = (props: InputTypes.Props) => {
       <input
         type={props.type}
         name={props.name}
-        className={`w-full bg-white-500 rounded border border-grey-4 ${borderColor} text-base outline-none text-grey-2 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out`}
+        className={`w-full bg-white-500 rounded border ${borderColor} text-base outline-none text-grey-2 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out`}
         value={props.value || ""}
         onChange={props.onChange}
       />

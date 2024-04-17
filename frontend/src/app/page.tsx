@@ -13,6 +13,7 @@ import Accordion from "@/components/accordion";
 import Button from "@/components/button";
 import Modal from "@/components/modal";
 import Input from "@/components/input";
+import Alert from "@/components/alert";
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
 import { cloneDeep } from "lodash";
@@ -24,6 +25,7 @@ import * as CommonTypes from "@/types/shapes/common";
 import * as PageTypes from "@/types/app/page";
 import * as DataFrameTypes from "@/types/components/dataFrame";
 import * as InputTypes from "@/types/components/input";
+import * as AlertTypes from "@/types/components/alert";
 
 let useEffected = false,
   ctx: CanvasRenderingContext2D | null | undefined = null,
@@ -1976,12 +1978,7 @@ export default function ProcessPage() {
             </svg>
             <span className="ml-3 text-xl text-grey-1">Minder</span>
           </a>
-          <div
-            className="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400"
-            role="alert"
-          >
-            <span className="font-medium">Incorrect account or password!</span>
-          </div>
+          <Alert type={AlertTypes.Type.error} text={authInfo.message}/>
           <Input
             className="mb-4"
             label={"Account"}
@@ -2029,7 +2026,6 @@ export default function ProcessPage() {
           </p>
         </div>
       </Modal>
-
       <Modal isOpen={isProjectsModalOpen && hasLogIn}>
         <section className="text-gray-600 bg-white-500 body-font">
           <div className="container px-5 py-24 mx-auto">
