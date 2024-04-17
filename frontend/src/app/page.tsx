@@ -19,6 +19,7 @@ import { motion } from "framer-motion";
 import { cloneDeep } from "lodash";
 import { v4 as uuidv4 } from "uuid";
 import { ChangeEventHandler } from "react";
+import * as authAPIs from "@/apis/auth";
 import * as CoreTypes from "@/types/shapes/core";
 import * as CurveTypes from "@/types/shapes/curve";
 import * as CommonTypes from "@/types/shapes/common";
@@ -26,6 +27,8 @@ import * as PageTypes from "@/types/app/page";
 import * as DataFrameTypes from "@/types/components/dataFrame";
 import * as InputTypes from "@/types/components/input";
 import * as AlertTypes from "@/types/components/alert";
+
+axios.defaults.baseURL = process.env.BASE_URL || "http://localhost:5000/api";
 
 let useEffected = false,
   ctx: CanvasRenderingContext2D | null | undefined = null,
@@ -270,7 +273,7 @@ const init = {
     },
   },
   authInfo: {
-    message: "",
+    message: { type: AlertTypes.Type.error, text: "" },
     account: { value: undefined, status: InputTypes.Status.normal },
     password: { value: undefined, status: InputTypes.Status.normal },
     email: { value: undefined, status: InputTypes.Status.normal },
@@ -301,15 +304,15 @@ export default function ProcessPage() {
       [dataShapeId: string]: CommonTypes.Data;
     }>({}),
     [isAccountModalOpen, setIsAccountModalOpen] = useState(true),
-    [isLogining, setIsLogining] = useState(true),
-    [hasLogIn, setHasLogIn] = useState(false),
+    [isLogIn, setIsLogin] = useState(true),
     [isProjectsModalOpen, setIsProjectsModalOpen] = useState(false),
     [authInfo, setAuthInfo] = useState<{
-      message: string;
+      message: { type: AlertTypes.Type; text: string };
       account: { value: undefined | string; status: InputTypes.Status };
       password: { value: undefined | string; status: InputTypes.Status };
       email: { value: undefined | string; status: InputTypes.Status };
-    }>(init.authInfo);
+    }>(init.authInfo),
+    [isAuthorizing, setIsAuthorizing] = useState(false);
 
   const allData = useMemo(() => {
     const _items: CommonTypes.Data = [];
@@ -1733,11 +1736,11 @@ export default function ProcessPage() {
   };
 
   const onClickChangeAuthButton = (_isLogining: boolean) => {
-    setIsLogining(_isLogining);
+    setIsLogin(_isLogining);
     setAuthInfo(init.authInfo);
   };
 
-  const onClickLoginButton = () => {
+  const onClickLoginButton = async () => {
     const _authInfo = cloneDeep(authInfo);
     if (!authInfo.account.value) {
       _authInfo.account.status = InputTypes.Status.error;
@@ -1746,17 +1749,24 @@ export default function ProcessPage() {
       _authInfo.password.status = InputTypes.Status.error;
     }
 
-    if (
-      _authInfo.account.status === InputTypes.Status.error ||
-      _authInfo.password.status === InputTypes.Status.error
-    ) {
-      _authInfo.message = "Please fill in all fields.";
+    if (!authInfo.account.value || !authInfo.password.value) {
+      _authInfo.message.type = AlertTypes.Type.error;
+      _authInfo.message.text = "Please fill in all fields.";
       setAuthInfo(_authInfo);
       return;
     }
+
+    setIsAuthorizing(true);
+
+    await setTimeout(() => {
+      setIsAuthorizing(false);
+      setAuthInfo(init.authInfo);
+      setIsAccountModalOpen(false);
+      setIsProjectsModalOpen(true);
+    }, 1000); // about to delete
   };
 
-  const onClickSignUpButton = () => {
+  const onClickSignUpButton = async () => {
     const _authInfo = cloneDeep(authInfo);
     if (!authInfo.account.value) {
       _authInfo.account.status = InputTypes.Status.error;
@@ -1769,14 +1779,34 @@ export default function ProcessPage() {
     }
 
     if (
-      _authInfo.account.status === InputTypes.Status.error ||
-      _authInfo.password.status === InputTypes.Status.error ||
-      _authInfo.email.status === InputTypes.Status.error
+      !authInfo.account.value ||
+      !authInfo.password.value ||
+      !authInfo.email.value
     ) {
-      _authInfo.message = "Please fill in all fields.";
+      _authInfo.message.type = AlertTypes.Type.error;
+      _authInfo.message.text = "Please fill in all fields.";
       setAuthInfo(_authInfo);
       return;
     }
+
+    setIsAuthorizing(true);
+
+    // await authAPIs.register(
+    //   authInfo.account.value,
+    //   authInfo.password.value,
+    //   authInfo.email.value
+    // );
+    await setTimeout(() => {
+      setIsAuthorizing(false);
+      setIsLogin(true);
+      setAuthInfo({
+        ...init.authInfo,
+        message: {
+          type: AlertTypes.Type.succeess,
+          text: "Sign up successfully!",
+        },
+      });
+    }, 1000); // about to delete
   };
 
   const onChangeAccount: ChangeEventHandler<HTMLInputElement> = (e) => {
@@ -1956,7 +1986,9 @@ export default function ProcessPage() {
   return (
     <>
       <Modal
-        isOpen={isAccountModalOpen && !isProjectsModalOpen && !hasLogIn}
+        isOpen={
+          isAccountModalOpen && !isProjectsModalOpen && !isProjectsModalOpen
+        }
         width="400px"
       >
         <div className="bg-white-500 rounded-lg p-8 flex flex-col w-full mt-10">
@@ -1978,7 +2010,7 @@ export default function ProcessPage() {
             </svg>
             <span className="ml-3 text-xl text-grey-1">Minder</span>
           </a>
-          <Alert type={AlertTypes.Type.error} text={authInfo.message}/>
+          <Alert type={authInfo.message.type} text={authInfo.message.text} />
           <Input
             className="mb-4"
             label={"Account"}
@@ -1997,7 +2029,7 @@ export default function ProcessPage() {
             status={authInfo.password.status}
             onChange={onChangePassword}
           />
-          {!isLogining && (
+          {!isLogIn && (
             <Input
               className="mb-4"
               label={"Email"}
@@ -2010,23 +2042,24 @@ export default function ProcessPage() {
           )}
           <Button
             className="text-lg"
-            text={isLogining ? "Login" : "Sign Up"}
-            onClick={isLogining ? onClickLoginButton : onClickSignUpButton}
+            text={isLogIn ? "Login" : "Sign Up"}
+            onClick={isLogIn ? onClickLoginButton : onClickSignUpButton}
+            loading={isAuthorizing}
           />
           <p className="text-xs text-gray-500 mt-3">
-            {isLogining ? "No account yet? " : "Already have an account? "}
+            {isLogIn ? "No account yet? " : "Already have an account? "}
             <a
               className="text-info-500 cursor-pointer"
               onClick={() => {
-                onClickChangeAuthButton(!isLogining);
+                onClickChangeAuthButton(!isLogIn);
               }}
             >
-              {isLogining ? "Sign up" : "Login"}
+              {isLogIn ? "Sign up" : "Login"}
             </a>
           </p>
         </div>
       </Modal>
-      <Modal isOpen={isProjectsModalOpen && hasLogIn}>
+      <Modal isOpen={isProjectsModalOpen}>
         <section className="text-gray-600 bg-white-500 body-font">
           <div className="container px-5 py-24 mx-auto">
             <h2 className="text-center text-gray-900 title-font text-xl font-semibold mb-4 py-4 px-4 border-b border-grey-5">
