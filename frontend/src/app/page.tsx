@@ -21,6 +21,7 @@ import { cloneDeep } from "lodash";
 import { v4 as uuidv4 } from "uuid";
 import { ChangeEventHandler } from "react";
 import * as authAPIs from "@/apis/auth";
+import * as projectAPIs from "@/apis/project";
 import * as CoreTypes from "@/types/shapes/core";
 import * as CurveTypes from "@/types/shapes/curve";
 import * as CommonTypes from "@/types/shapes/common";
@@ -29,6 +30,7 @@ import * as DataFrameTypes from "@/types/components/dataFrame";
 import * as InputTypes from "@/types/components/input";
 import * as AlertTypes from "@/types/components/alert";
 import * as AuthTypes from "@/types/apis/auth";
+import * as ProjectTypes from "@/types/apis/project";
 
 axios.defaults.baseURL = process.env.BASE_URL || "http://localhost:5000/api";
 
@@ -316,7 +318,9 @@ export default function ProcessPage() {
     [authMessage, setAuthMessage] = useState({
       status: AlertTypes.Type.succeess,
       text: "",
-    })
+    }),
+    [isFetchingProjects, setIsFetchingProjects] = useState(false),
+    [projects, setProjects] = useState<ProjectTypes.GetProjects['ResData']>([])
 
   const allData = useMemo(() => {
     const _items: CommonTypes.Data = [];
@@ -1769,14 +1773,15 @@ export default function ProcessPage() {
     );
 
     if (res.status === 201) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`
+      localStorage.setItem('Authorization', res.data.token)
       setTimeout(() => {
         setAuthMessage({
           status: AlertTypes.Type.succeess,
           text: res.data.message,
         })
         setIsAuthorizing(false);
-        setAuthInfo(init.authInfo);
-        setTimeout(() => {
+        setTimeout(async () => {
           setIsLogin(true);
           setAuthMessage(authMessage => ({
             ...authMessage,
@@ -1784,6 +1789,9 @@ export default function ProcessPage() {
           }))
           setIsAccountModalOpen(false);
           setIsProjectsModalOpen(true);
+          setAuthInfo(init.authInfo);
+          const res: AxiosResponse<ProjectTypes.GetProjects['ResData'], any> = await projectAPIs.getProjecs()
+          setProjects(res.data)
         }, 1000)
       }, 500)
     } else {
@@ -2137,112 +2145,25 @@ export default function ProcessPage() {
           </p>
         </div>
       </Modal>
-      <Modal isOpen={isProjectsModalOpen}>
+      <Modal isOpen={isProjectsModalOpen} width="728px">
         <section className="text-gray-600 bg-white-500 body-font">
-          <div className="container px-5 py-24 mx-auto">
+          <div className="px-5 py-24 mx-auto">
             <h2 className="text-center text-gray-900 title-font text-xl font-semibold mb-4 py-4 px-4 border-b border-grey-5">
               PROJECTS
             </h2>
-            <div className="flex flex-wrap">
-              <Card />
-              <div className="lg:w-1/4 md:w-1/2 p-4 w-full">
-                <a className="block relative h-48 rounded overflow-hidden">
-                  <img
-                    alt="ecommerce"
-                    className="object-cover object-center w-full h-full block"
-                    src="https://dummyimage.com/421x261"
-                  />
-                </a>
-                <div className="mt-1 ms-1">
-                  <h2 className="text-gray-900 title-font text-lg font-medium">
-                    Shooting Stars
+            <div className="flex justify-between flex-wrap">
+              <Card text={
+                <h2 className="text-info-500 title-font text-lg font-medium">
+                  New Project
+                </h2>
+              } />
+              {projects.map(project =>
+                <Card key={project.id} text={
+                  <h2 className="title-font text-lg font-medium">
+                    {project.name}
                   </h2>
-                </div>
-              </div>
-              <div className="lg:w-1/4 md:w-1/2 p-4 w-full">
-                <a className="block relative h-48 rounded overflow-hidden">
-                  <img
-                    alt="ecommerce"
-                    className="object-cover object-center w-full h-full block"
-                    src="https://dummyimage.com/422x262"
-                  />
-                </a>
-                <div className="mt-1 ms-1">
-                  <h2 className="text-gray-900 title-font text-lg font-medium">
-                    Neptune
-                  </h2>
-                </div>
-              </div>
-              <div className="lg:w-1/4 md:w-1/2 p-4 w-full">
-                <a className="block relative h-48 rounded overflow-hidden">
-                  <img
-                    alt="ecommerce"
-                    className="object-cover object-center w-full h-full block"
-                    src="https://dummyimage.com/423x263"
-                  />
-                </a>
-                <div className="mt-1 ms-1">
-                  <h2 className="text-gray-900 title-font text-lg font-medium">
-                    The 400 Blows
-                  </h2>
-                </div>
-              </div>
-              <div className="lg:w-1/4 md:w-1/2 p-4 w-full">
-                <a className="block relative h-48 rounded overflow-hidden">
-                  <img
-                    alt="ecommerce"
-                    className="object-cover object-center w-full h-full block"
-                    src="https://dummyimage.com/424x264"
-                  />
-                </a>
-                <div className="mt-1 ms-1">
-                  <h2 className="text-gray-900 title-font text-lg font-medium">
-                    The Catalyzer
-                  </h2>
-                </div>
-              </div>
-              <div className="lg:w-1/4 md:w-1/2 p-4 w-full">
-                <a className="block relative h-48 rounded overflow-hidden">
-                  <img
-                    alt="ecommerce"
-                    className="object-cover object-center w-full h-full block"
-                    src="https://dummyimage.com/425x265"
-                  />
-                </a>
-                <div className="mt-1 ms-1">
-                  <h2 className="text-gray-900 title-font text-lg font-medium">
-                    Shooting Stars
-                  </h2>
-                </div>
-              </div>
-              <div className="lg:w-1/4 md:w-1/2 p-4 w-full">
-                <a className="block relative h-48 rounded overflow-hidden">
-                  <img
-                    alt="ecommerce"
-                    className="object-cover object-center w-full h-full block"
-                    src="https://dummyimage.com/427x267"
-                  />
-                </a>
-                <div className="mt-1 ms-1">
-                  <h2 className="text-gray-900 title-font text-lg font-medium">
-                    Neptune
-                  </h2>
-                </div>
-              </div>
-              <div className="lg:w-1/4 md:w-1/2 p-4 w-full">
-                <a className="block relative h-48 rounded overflow-hidden">
-                  <img
-                    alt="ecommerce"
-                    className="object-cover object-center w-full h-full block"
-                    src="https://dummyimage.com/428x268"
-                  />
-                </a>
-                <div className="mt-1 ms-1">
-                  <h2 className="text-gray-900 title-font text-lg font-medium">
-                    The 400 Blows
-                  </h2>
-                </div>
-              </div>
+                } />
+              )}
             </div>
           </div>
         </section>

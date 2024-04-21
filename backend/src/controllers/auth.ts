@@ -44,15 +44,15 @@ export default class Auth {
   async login(req: Request, res: Response, next: NextFunction) {
     const { account, password } = req.body;
 
-    
+
     try {
-      const token = await this.authService.login(account, password);
+      const _token = await this.authService.login(account, password);
       res
         .status(201)
-        .setHeader("Authorization", `Bearer ${token}`)
         .send({
-          status: ERROR,
-          message: "Login successfully!"
+          status: SUCCESSFUL,
+          message: "Login successfully!",
+          token: _token
         });
     } catch (err) {
       const _message = getError(err)

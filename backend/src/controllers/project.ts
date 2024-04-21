@@ -8,26 +8,33 @@ export default class Project {
   private projectService = new ProjectService();
 
   constructor() {
-    this.echo = this.echo.bind(this);
-    this.create = this.create.bind(this);
+    this.getProjects = this.getProjects.bind(this);
+    this.createProject = this.createProject.bind(this);
   }
 
-  echo(request: Request, response: Response, next: NextFunction) {
-    response.type("text/plain");
-    response.send("projects");
-    this.projectService.echo();
+  async getProjects(req: Request<{}, {}, { decoded: JWTDecoded }>, res: Response, next: NextFunction) {
+    const { decoded } = req.body;
+
+    if (!decoded || typeof decoded === "string") return res.status(400).send("invalid user info");
+
+    try {
+      const projects = await this.projectService.getProjects(String(decoded.userId));
+
+      res
+        .status(201)
+        .send(projects);
+    } catch (err) {
+      res.status(400).send(getError(err));
+    }
   }
 
-  async create(req: Request<{}, {}, { name: string | undefined | null, decoded: JWTDecoded }>, res: Response, next: NextFunction) {
+  async createProject(req: Request<{}, {}, { name: string | undefined | null, decoded: JWTDecoded }>, res: Response, next: NextFunction) {
     const { name, decoded } = req.body;
 
     if (!decoded || typeof decoded === "string") return res.status(400).send("invalid user info");
     if (!name) return res.status(400).send("require project name");
-
-
-    console.log('decoded', decoded)
     try {
-      await this.projectService.create(name, String(decoded.userId));
+      await this.projectService.createProject(name, String(decoded.userId));
       res
         .status(201)
         .send("Create project successfully!");

@@ -12,7 +12,7 @@ export default class Project extends Route {
   }
 
   protected setRoutes() {
-    this.router.get("/", this.projectController.echo);
-    this.router.post("/create", verifyToken, this.projectController.create);
+    this.router.get("/projects", verifyToken, this.projectController.getProjects);
+    this.router.post("/createProject", verifyToken, this.projectController.createProject);
   }
 }
