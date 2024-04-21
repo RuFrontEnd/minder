@@ -1,6 +1,6 @@
 enum Status {
-    'successful',
-    'error'
+    successful = "successful",
+    error = "error"
 }
 
 type Message = string

@@ -1,9 +1,9 @@
 import { MouseEventHandler, ReactNode } from "react";
 
 enum Type {
-  "succeess",
-  "warning",
-  "error",
+  succeess = "succeess",
+  warning = "warning",
+  error =  "error",
 }
 
 type Props = {

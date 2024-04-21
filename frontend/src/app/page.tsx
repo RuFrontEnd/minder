@@ -1763,12 +1763,38 @@ export default function ProcessPage() {
 
     setIsAuthorizing(true);
 
-    await setTimeout(() => {
-      setIsAuthorizing(false);
-      setAuthInfo(init.authInfo);
-      setIsAccountModalOpen(false);
-      setIsProjectsModalOpen(true);
-    }, 1000); // about to delete
+    const res: AxiosResponse<AuthTypes.Login['ResData'], any> = await authAPIs.login(
+      authInfo.account.value,
+      authInfo.password.value,
+    );
+
+    if (res.status === 201) {
+      setTimeout(() => {
+        setAuthMessage({
+          status: AlertTypes.Type.succeess,
+          text: res.data.message,
+        })
+        setIsAuthorizing(false);
+        setTimeout(() => {
+          setIsLogin(true);
+          setAuthInfo(init.authInfo);
+          setAuthMessage(authMessage => ({
+            ...authMessage,
+            text: ""
+          }))
+          setIsAccountModalOpen(false);
+          setIsProjectsModalOpen(true);
+        }, 1000)
+      }, 500)
+    } else {
+      setTimeout(() => {
+        setIsAuthorizing(false);
+        setAuthMessage({
+          status: AlertTypes.Type.error,
+          text: res.data.message,
+        })
+      }, 1000)
+    }
   };
 
   const onClickSignUpButton = async () => {
@@ -2095,7 +2121,7 @@ export default function ProcessPage() {
             onClick={isLogIn ? onClickLoginButton : onClickSignUpButton}
             loading={isAuthorizing}
           />
-          {(authMessage.text && authMessage.status) &&
+          {(authMessage.text) &&
             <Alert className="mt-2" type={authMessage.status} text={authMessage.text} />
           }
           <p className="text-xs text-gray-500 mt-3">

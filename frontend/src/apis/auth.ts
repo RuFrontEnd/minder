@@ -12,4 +12,14 @@ const register = async (
   });
 };
 
-export { register };
+const login = async (
+  _account: string,
+  _password: string,
+) => {
+  return axios.post("/auth/login", {
+    account: _account,
+    password: _password,
+  });
+};
+
+export { register, login };

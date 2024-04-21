@@ -44,27 +44,48 @@ export default class Auth {
   async login(req: Request, res: Response, next: NextFunction) {
     const { account, password } = req.body;
 
+    
     try {
       const token = await this.authService.login(account, password);
       res
         .status(201)
         .setHeader("Authorization", `Bearer ${token}`)
-        .send("User login successfully!");
+        .send({
+          status: ERROR,
+          message: "Login successfully!"
+        });
     } catch (err) {
-      res.status(400).send(getError(err));
+      const _message = getError(err)
+      if (_message === "Invalid account or password.") {
+        res.status(200).send({
+          status: ERROR,
+          message: _message
+        });
+      } else {
+        res.status(400)
+      }
     }
   }
 
   async jwtLogin(req: Request, res: Response, next: NextFunction) {
     const { authorization: token } = req.headers;
 
-    if (typeof token !== 'string') return res.status(400).send("User login failed.");
+    if (typeof token !== 'string') return res.status(400).send({
+      status: ERROR,
+      message: "User login failed."
+    });
 
     try {
       await this.authService.jwtLogin(token);
-      res.status(201).send("User login successfully!");
+      res.status(201).send({
+        status: SUCCESSFUL,
+        message: "login successfully!"
+      });
     } catch (err) {
-      res.status(400).send(getError(err));
+      res.status(200).send({
+        status: ERROR,
+        message: getError(err)
+      });
     }
   }
 

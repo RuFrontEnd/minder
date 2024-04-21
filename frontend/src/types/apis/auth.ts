@@ -7,4 +7,11 @@ type Register = {
   }
 }
 
-export type { Register }
+type Login = {
+  ResData: {
+    status: CommonTypes.Status,
+    message: CommonTypes.Message
+  }
+}
+
+export type { Register, Login }
