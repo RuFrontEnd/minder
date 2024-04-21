@@ -1775,9 +1775,9 @@ export default function ProcessPage() {
           text: res.data.message,
         })
         setIsAuthorizing(false);
+        setAuthInfo(init.authInfo);
         setTimeout(() => {
           setIsLogin(true);
-          setAuthInfo(init.authInfo);
           setAuthMessage(authMessage => ({
             ...authMessage,
             text: ""
@@ -1862,9 +1862,9 @@ export default function ProcessPage() {
           text: res.data.message,
         })
         setIsAuthorizing(false);
+        setAuthInfo(init.authInfo);
         setTimeout(() => {
           setIsLogin(true);
-          setAuthInfo(init.authInfo);
           setAuthMessage(authMessage => ({
             ...authMessage,
             text: ""
