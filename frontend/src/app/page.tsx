@@ -1,6 +1,6 @@
 // TODO: terminator dataframe 新增 start & end 選項 / 更換新增 shape icon / 取消 title 重名檢查 / 終點 terminator 要判斷是否沒有接收到其他 shape(要做錯誤題示) / core shape sendTo 搬遷至 curves sendTo / 雙擊 cp1 || cp2 可自動對位  / 處理 data shape SelectFrame 開關(點擊 frame 以外要關閉) / 尋找左側列 icons / 對齊功能
 "use client";
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 import Core from "@/shapes/core";
 import Terminal from "@/shapes/terminal";
 import Process from "@/shapes/process";
@@ -28,7 +28,7 @@ import * as PageTypes from "@/types/app/page";
 import * as DataFrameTypes from "@/types/components/dataFrame";
 import * as InputTypes from "@/types/components/input";
 import * as AlertTypes from "@/types/components/alert";
-import { comment } from "postcss";
+import * as AuthTypes from "@/types/apis/auth";
 
 axios.defaults.baseURL = process.env.BASE_URL || "http://localhost:5000/api";
 
@@ -313,7 +313,10 @@ export default function ProcessPage() {
       email: { value: undefined | string; status: InputTypes.Status, comment: undefined | string; };
     }>(init.authInfo),
     [isAuthorizing, setIsAuthorizing] = useState(false),
-    [authMessage, setAuthMessage] = useState('')
+    [authMessage, setAuthMessage] = useState({
+      status: AlertTypes.Type.succeess,
+      text: "",
+    })
 
   const allData = useMemo(() => {
     const _items: CommonTypes.Data = [];
@@ -1819,7 +1822,7 @@ export default function ProcessPage() {
 
     setIsAuthorizing(true);
 
-    const res = await authAPIs.register(
+    const res: AxiosResponse<AuthTypes.Register['ResData'], any> = await authAPIs.register(
       authInfo.account.value,
       authInfo.password.value,
       authInfo.email.value
@@ -1828,13 +1831,27 @@ export default function ProcessPage() {
 
     if (res.status === 201) {
       setTimeout(() => {
-        setAuthMessage('Sign up successfully!')
+        setAuthMessage({
+          status: AlertTypes.Type.succeess,
+          text: res.data.message,
+        })
         setIsAuthorizing(false);
         setTimeout(() => {
           setIsLogin(true);
           setAuthInfo(init.authInfo);
-          setAuthMessage("")
+          setAuthMessage(authMessage => ({
+            ...authMessage,
+            text: ""
+          }))
         }, 1500)
+      }, 1000)
+    } else {
+      setTimeout(() => {
+        setIsAuthorizing(false);
+        setAuthMessage({
+          status: AlertTypes.Type.error,
+          text: res.data.message,
+        })
       }, 1000)
     }
   };
@@ -2078,8 +2095,8 @@ export default function ProcessPage() {
             onClick={isLogIn ? onClickLoginButton : onClickSignUpButton}
             loading={isAuthorizing}
           />
-          {authMessage &&
-            <Alert className="mt-2" type={AlertTypes.Type.succeess} text={authMessage} />
+          {(authMessage.text && authMessage.status) &&
+            <Alert className="mt-2" type={authMessage.status} text={authMessage.text} />
           }
           <p className="text-xs text-gray-500 mt-3">
             {isLogIn ? "No account yet? " : "Already have an account? "}

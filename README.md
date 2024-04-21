@@ -20,6 +20,7 @@ FT
 - [x] zoom in / out
 - [x] validating required fields
 - [X] verifing repeated data name
+- [X] register
 - [ ] login
 - [ ] groups
 - [ ] undo

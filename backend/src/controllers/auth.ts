@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { Auth as AuthService } from "../services";
 import { getError } from "../utils/error";
+import { SUCCESSFUL, ERROR } from '../constatns/stauts'
 
 export default class Auth {
   private authService = new AuthService();
@@ -17,9 +18,26 @@ export default class Auth {
 
     try {
       await this.authService.register(account, email, password);
-      res.status(201).send("User registered successfully!");
+      res.status(201).send(
+        {
+          status: SUCCESSFUL,
+          message: "Sign up successfully!"
+        });
     } catch (err) {
-      res.status(400).send(getError(err));
+      const _message = getError(err)
+      if (_message === "Invalid email format.") {
+        res.status(200).send({
+          status: ERROR,
+          message: _message
+        });
+      } else if (_message === "Account already exists.") {
+        res.status(200).send({
+          status: ERROR,
+          message: _message
+        });
+      } else {
+        res.status(400)
+      }
     }
   }
 
