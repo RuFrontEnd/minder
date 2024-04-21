@@ -1748,7 +1748,7 @@ export default function ProcessPage() {
     const _authInfo = cloneDeep(authInfo);
     if (!authInfo.account.value) {
       _authInfo.account.status = InputTypes.Status.error;
-      _authInfo.account.comment = "requied!"
+      _authInfo.account.comment = "required!"
     }
     if (!authInfo.password.value) {
       _authInfo.password.status = InputTypes.Status.error;
@@ -1756,7 +1756,7 @@ export default function ProcessPage() {
 
     if (!authInfo.account.value || !authInfo.password.value) {
       _authInfo.password.status = InputTypes.Status.error;
-      _authInfo.password.comment = "requied!"
+      _authInfo.password.comment = "required!"
       setAuthInfo(_authInfo);
       return;
     }
