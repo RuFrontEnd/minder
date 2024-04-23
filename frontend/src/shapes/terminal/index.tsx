@@ -26,56 +26,56 @@ export default class Terminal extends Core {
     this.title = title;
   };
 
-  onTraversal() {
-    // traversal all relational steps
-    const queue: Core[] = [this],
-      locks = { [this.id]: { l: false, t: false, r: false, b: false } }, // prevent from graph cycle
-      ds = [
-        CommonTypes.Direction.l,
-        CommonTypes.Direction.t,
-        CommonTypes.Direction.r,
-        CommonTypes.Direction.b,
-      ];
+  // onTraversal() {
+  //   // traversal all relational steps
+  //   const queue: Core[] = [this],
+  //     locks = { [this.id]: { l: false, t: false, r: false, b: false } }, // prevent from graph cycle
+  //     ds = [
+  //       CommonTypes.Direction.l,
+  //       CommonTypes.Direction.t,
+  //       CommonTypes.Direction.r,
+  //       CommonTypes.Direction.b,
+  //     ];
 
-    while (queue.length !== 0) {
-      const shape = queue[0];
+  //   while (queue.length !== 0) {
+  //     const shape = queue[0];
 
-      const newOptions: CommonTypes.Data = cloneDeep(shape.options);
+  //     const newOptions: CommonTypes.Data = cloneDeep(shape.options);
 
-      if (shape instanceof Data) {
-        shape.data.forEach((dataItem) => {
-          newOptions.push(dataItem);
-        });
-      }
+  //     if (shape instanceof Data) {
+  //       shape.data.forEach((dataItem) => {
+  //         newOptions.push(dataItem);
+  //       });
+  //     }
 
-      ds.forEach((d) => {
-        const theSendTo = shape.curves[d].sendTo;
+  //     ds.forEach((d) => {
+  //       const theSendTo = shape.curves[d].sendTo;
 
-        if (!theSendTo) return;
-        theSendTo.shape.options = newOptions;
+  //       if (!theSendTo) return;
+  //       theSendTo.shape.options = newOptions;
 
-        const hasLock = locks[theSendTo.shape.id];
+  //       const hasLock = locks[theSendTo.shape.id];
 
-        if (!hasLock) {
-          locks[theSendTo.shape.id] = {
-            l: false,
-            t: false,
-            r: false,
-            b: false,
-          };
-        }
+  //       if (!hasLock) {
+  //         locks[theSendTo.shape.id] = {
+  //           l: false,
+  //           t: false,
+  //           r: false,
+  //           b: false,
+  //         };
+  //       }
 
-        const hasDirectLock = locks[theSendTo.shape.id][d];
+  //       const hasDirectLock = locks[theSendTo.shape.id][d];
 
-        if (!hasDirectLock) {
-          queue.push(theSendTo.shape);
-          locks[theSendTo.shape.id][d] = true;
-        }
-      });
+  //       if (!hasDirectLock) {
+  //         queue.push(theSendTo.shape);
+  //         locks[theSendTo.shape.id][d] = true;
+  //       }
+  //     });
 
-      queue.shift();
-    }
-  }
+  //     queue.shift();
+  //   }
+  // }
 
   draw(ctx: CanvasRenderingContext2D) {
     ctx.save();

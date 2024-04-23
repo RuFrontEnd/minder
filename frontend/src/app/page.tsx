@@ -203,63 +203,65 @@ const Editor = (props: { className: string; shape: Core }) => {
   }, [props.shape]);
 
   return (
-    <>
-      {(props.shape instanceof Process ||
-        props.shape instanceof Data ||
-        props.shape instanceof Desicion) && (
-          <div className={props.className && props.className}>
-            {props.shape instanceof Data && (
-              <div>
-                <p className="mb-1">Data</p>
-                {/* <div
+    <div className={props.className && props.className}>
+      <div>
+        {props.shape instanceof Data && (
+          <div>
+            <p className="mb-1">Data</p>
+            {/* <div
               className="w-6 h-6 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
               onClick={onClickScalePlusIcon}
             >
               +
             </div> */}
+            <ul className="ps-2">
+              {props.shape.data.map((dataItem) => (
+                <li className="mb-1"> · {dataItem.text}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {(props.shape instanceof Process ||
+          props.shape instanceof Data ||
+          props.shape instanceof Desicion) && (
+            <>
+              <div>
+                <p className="mb-1">Data Usage</p>
                 <ul className="ps-2">
-                  {props.shape.data.map((dataItem) => (
-                    <li className="mb-1"> · {dataItem.text}</li>
+                  {props.shape.options.map((option) => (
+                    <li className="mb-1">
+                      <span className="bg-indigo-100 text-indigo-500 w-4 h-4 rounded-full inline-flex items-center justify-center">
+                        {selections[option.text] && (
+                          <svg
+                            fill="none"
+                            stroke="currentColor"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="3"
+                            className="w-3 h-3"
+                            viewBox="0 0 24 24"
+                          >
+                            <path d="M20 6L9 17l-5-5"></path>
+                          </svg>
+                        )}
+                      </span>
+                      {option.text}
+                    </li>
                   ))}
                 </ul>
               </div>
-            )}
-            <div>
-              <p className="mb-1">Data Usage</p>
-              <ul className="ps-2">
-                {props.shape.options.map((option) => (
-                  <li className="mb-1">
-                    <span className="bg-indigo-100 text-indigo-500 w-4 h-4 rounded-full inline-flex items-center justify-center">
-                      {selections[option.text] && (
-                        <svg
-                          fill="none"
-                          stroke="currentColor"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="3"
-                          className="w-3 h-3"
-                          viewBox="0 0 24 24"
-                        >
-                          <path d="M20 6L9 17l-5-5"></path>
-                        </svg>
-                      )}
-                    </span>
-                    {option.text}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <div className="mb-1">Redundancies</div>
-              <ul className="ps-2">
-                {props.shape.redundancies.map((redundancy) => (
-                  <li className="mb-1"> · {redundancy.text}</li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        )}
-    </>
+              <div>
+                <div className="mb-1">Redundancies</div>
+                <ul className="ps-2">
+                  {props.shape.redundancies.map((redundancy) => (
+                    <li className="mb-1"> · {redundancy.text}</li>
+                  ))}
+                </ul>
+              </div>
+            </>
+          )}
+      </div>
+    </div>
   );
 };
 
@@ -337,25 +339,65 @@ export default function ProcessPage() {
   }, [globalData]);
 
   const checkData = () => {
-    const goThroughShapeMapping: { [shapeId: string]: boolean } = {};
+    const datas: Data[] = []
 
     shapes.forEach((shape) => {
       shape.options = [];
-      goThroughShapeMapping[shape.id] = true;
-    });
-
-    shapes.forEach((shape) => {
-      if (
-        shape instanceof Terminal &&
-        shape.receiveFrom.l === null &&
-        shape.receiveFrom.t === null &&
-        shape.receiveFrom.r === null &&
-        shape.receiveFrom.b === null
-      ) {
-        // shape is Terminator
-        shape.onTraversal();
+      if (shape instanceof Data) {
+        datas.push(shape)
       }
-    });
+    })
+
+    datas.forEach(data => {
+      // traversal all relational steps
+      const queue: Core[] = [data],
+        locks = { [data.id]: { l: false, t: false, r: false, b: false } }; // prevent from graph cycle
+
+      while (queue.length !== 0) {
+        const shape = queue[0];
+
+        ds.forEach((d) => {
+          const theSendToShape = shape.curves[d].sendTo?.shape;
+
+          const theSendToShapeOptionsMapping = (() => {
+            const mapping: { [optionsText: string]: boolean } = {}
+
+            theSendToShape?.options.forEach(option => {
+              mapping[option.text] = true
+            })
+
+            return mapping
+          })()
+
+          if (!theSendToShape) return;
+          data.data.forEach((dataItem) => {
+            if (theSendToShapeOptionsMapping[dataItem.text]) return
+            theSendToShape.options.push(dataItem)
+          })
+
+          const hasLock = locks[theSendToShape.id];
+
+          if (!hasLock) {
+            locks[theSendToShape.id] = {
+              l: false,
+              t: false,
+              r: false,
+              b: false,
+            };
+          }
+
+          const isDirectionLock = locks[theSendToShape.id][d];
+
+          if (!isDirectionLock) {
+            queue.push(theSendToShape);
+            locks[theSendToShape.id][d] = true;
+          }
+        });
+
+        queue.shift();
+      }
+    })
+
 
     // check all correspondants of shapes' between options and selectedData
     shapes.forEach((shape) => {
@@ -1227,8 +1269,9 @@ export default function ProcessPage() {
         pressing.shape instanceof Curve &&
         pressing?.target &&
         pressing?.parent &&
-        pressing?.direction &&
-        otherStepIds.findIndex((stepId) => stepId === shape.id) > -1
+        pressing?.direction
+        // &&
+        // otherStepIds.findIndex((stepId) => stepId === shape.id) > -1
       ) {
         const theCheckReceivingPointsBoundry = shape.checkReceivingPointsBoundry(
           p
@@ -1483,24 +1526,24 @@ export default function ProcessPage() {
 
     const dataMapping: { [dataText: string]: number } = {};
 
-    data.forEach((shapeData, shapeDataI) => {
-      // validate repeated data name in data frame
-      if (!(shapeData.text in dataMapping)) {
-        dataMapping[shapeData.text] = shapeDataI;
-      } else {
-        dataWarningMapping[shapeDataI] = "欄位名稱重複";
-      }
-    });
+    // data.forEach((shapeData, shapeDataI) => {
+    //   // validate repeated data name in data frame
+    //   if (!(shapeData.text in dataMapping)) {
+    //     dataMapping[shapeData.text] = shapeDataI;
+    //   } else {
+    //     dataWarningMapping[shapeDataI] = "欄位名稱重複";
+    //   }
+    // });
 
-    data.forEach((shapeData, shapeDataItemI) => {
-      // validate repeated data name in global data
-      if (
-        shape.id !== allData.mapping[shapeData.text] &&
-        shapeData.text in allData.mapping
-      ) {
-        dataWarningMapping[shapeDataItemI] = "欄位名稱重複";
-      }
-    });
+    // data.forEach((shapeData, shapeDataItemI) => {
+    //   // validate repeated data name in global data
+    //   if (
+    //     shape.id !== allData.mapping[shapeData.text] &&
+    //     shapeData.text in allData.mapping
+    //   ) {
+    //     dataWarningMapping[shapeDataItemI] = "欄位名稱重複";
+    //   }
+    // });
 
     data.forEach((dataItem, dataItemI) => {
       // validate required data
@@ -1527,7 +1570,7 @@ export default function ProcessPage() {
       dbClickedShape?.onDataChange(title);
     }
 
-    setGlobalData((globalData) => ({ ...globalData, [shape.id]: data }));
+    // setGlobalData((globalData) => ({ ...globalData, [shape.id]: data }));
     setDataFrame(undefined);
     setDbClickedShape(null);
     checkData();
@@ -1586,23 +1629,28 @@ export default function ProcessPage() {
       shapes.forEach((shape) => {
         if (!ctx || !shape.selecting) return;
         if (
-          (shape instanceof Terminal &&
-            !shape.curves.l.shape &&
-            !shape.curves.t.shape &&
-            !shape.curves.r.shape &&
-            !shape.curves.b.shape) ||
-          (shape instanceof Process &&
-            !shape.curves.l.shape &&
-            !shape.curves.t.shape &&
-            !shape.curves.r.shape &&
-            !shape.curves.b.shape) ||
-          (shape instanceof Data &&
-            !shape.curves.l.shape &&
-            !shape.curves.t.shape &&
-            !shape.curves.r.shape &&
-            !shape.curves.b.shape) ||
-          (shape instanceof Desicion &&
-            !(shape.getText().y && shape.getText().n))
+          shape instanceof Terminal ||
+          shape instanceof Process ||
+          shape instanceof Data ||
+          (shape instanceof Desicion && !(shape.getText().y && shape.getText().n))
+          // (shape instanceof Terminal &&
+          //   !shape.curves.l.shape &&
+          //   !shape.curves.t.shape &&
+          //   !shape.curves.r.shape &&
+          //   !shape.curves.b.shape
+          // ) ||
+          // (shape instanceof Process &&
+          //   !shape.curves.l.shape &&
+          //   !shape.curves.t.shape &&
+          //   !shape.curves.r.shape &&
+          //   !shape.curves.b.shape) ||
+          // (shape instanceof Data &&
+          //   !shape.curves.l.shape &&
+          //   !shape.curves.t.shape &&
+          //   !shape.curves.r.shape &&
+          //   !shape.curves.b.shape) ||
+          // (shape instanceof Desicion &&
+          //   !(shape.getText().y && shape.getText().n))
         ) {
           shape.drawSendingPoint(ctx);
         }
@@ -1638,15 +1686,15 @@ export default function ProcessPage() {
         ctx?.closePath();
       }
       shapes.forEach((shape) => {
-        if (
-          (shape.receiving.l ||
-            shape.receiving.t ||
-            shape.receiving.r ||
-            shape.receiving.b) &&
-          otherStepIds.findIndex((stepId) => stepId === shape.id) > -1
-        ) {
-          shape.drawRecievingPoint(ctx);
-        }
+        // if (
+        // (shape.receiving.l ||
+        //   shape.receiving.t ||
+        //   shape.receiving.r ||
+        //   shape.receiving.b) &&
+        // otherStepIds.findIndex((stepId) => stepId === shape.id) > -1
+        // ) {
+        shape.drawRecievingPoint(ctx);
+        // }
       });
 
       if (select.shapes.length > 1) {
@@ -2066,7 +2114,7 @@ export default function ProcessPage() {
 
   return (
     <>
-      <Modal
+      {/* <Modal
         isOpen={
           isAccountModalOpen && !isProjectsModalOpen && !isProjectsModalOpen
         }
@@ -2144,8 +2192,8 @@ export default function ProcessPage() {
             </a>
           </p>
         </div>
-      </Modal>
-      <Modal isOpen={isProjectsModalOpen} width="728px">
+      </Modal> */}
+      {/* <Modal isOpen={isProjectsModalOpen} width="728px">
         <section className="text-gray-600 bg-white-500 body-font">
           <div className="px-5 py-24 mx-auto">
             <h2 className="text-center text-gray-900 title-font text-xl font-semibold mb-4 py-4 px-4 border-b border-grey-5">
@@ -2167,7 +2215,7 @@ export default function ProcessPage() {
             </div>
           </div>
         </section>
-      </Modal>
+      </Modal> */}
       <header className="w-full fixed z-50 text-gray-600 body-font bg-primary-500">
         <ul className="container mx-auto grid grid-cols-3 py-3 px-4">
           <li>
@@ -2195,7 +2243,7 @@ export default function ProcessPage() {
               <a className="text-white-500">Project_1</a>
             </nav>
           </li>
-          <li className="justify-self-end self-center text-base">
+          <li className="flex justify-self-end self-center text-base">
             <Button
               className={"mr-4 bg-secondary-500"}
               onClick={(e) => { }}
@@ -2225,18 +2273,19 @@ export default function ProcessPage() {
         onClickSwitch={onClickDataSidePanelSwitch}
       >
         <ul>
-          {Object.entries(procedures).map(
-            ([procedureId, procedure], procedureI) => {
+          {Object.entries(steps).map(
+            ([stepId, step], stepI) => {
               return (
-                <li key={procedureId} className="mb-1">
+                <li key={stepId} className="mb-1">
                   <Accordion
-                    title={steps[procedureId].shape.title}
+                    showArrow={!(step.shape instanceof Terminal)}
+                    title={step.shape.title}
                     hoverRender={
                       <div className="h-full flex justify-end items-center">
                         <div
                           onClick={(e) => {
                             e.stopPropagation();
-                            onClickStep(steps[procedureId].shape.p);
+                            step.shape instanceof Terminal ? undefined : onClickStep(step.shape.p);
                           }}
                         >
                           <svg
@@ -2260,138 +2309,23 @@ export default function ProcessPage() {
                         </div>
                       </div>
                     }
-                    open={steps[procedureId].open}
+                    open={step.open}
                     onClick={(e) => {
                       e.stopPropagation();
-                      onClickaAccordionArrow(procedureId);
+                      onClickaAccordionArrow(stepId);
                     }}
                   >
-                    <ul>
-                      {procedure.map((child) => {
-                        return (
-                          <>
-                            <li
-                              key={steps[child].shape.id}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onClickStep(steps[child].shape.p);
-                              }}
-                            >
-                              <Accordion
-                                className={"ps-2"}
-                                title={
-                                  <div className="flex">
-                                    <p className="mr-1">
-                                      {steps[child].shape.title}
-                                    </p>
-                                  </div>
-                                }
-                                hoverRender={
-                                  <div className="h-full flex justify-end items-center">
-                                    <div
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        onClickStep(steps[child].shape.p);
-                                      }}
-                                    >
-                                      <svg
-                                        width={18}
-                                        height={18}
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        xmlnsXlink="http://www.w3.org/1999/xlink"
-                                        version="1.1"
-                                        x="0px"
-                                        y="0px"
-                                        viewBox="0 0 100 100"
-                                        enable-background="new 0 0 100 100"
-                                        xmlSpace="preserve"
-                                      >
-                                        <path
-                                          fill="#233C53"
-                                          d="M84.6,45C82.4,29.7,70.3,17.5,55,15.3V5H45v10.3C29.7,17.5,17.6,29.7,15.4,45H5v10h10.4C17.6,70.3,29.7,82.4,45,84.6V95h10  V84.6C70.3,82.4,82.4,70.3,84.6,55H95V45H84.6z M50,75c-13.8,0-25-11.2-25-25s11.2-25,25-25s25,11.2,25,25S63.8,75,50,75z"
-                                        />
-                                        <circle cx="50" cy="50" r="10" />
-                                      </svg>
-                                    </div>
-                                  </div>
-                                }
-                                open={steps[child].open}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onClickaAccordionArrow(steps[child].shape.id);
-                                }}
-                              >
-                                <Editor
-                                  className="ps-6"
-                                  shape={steps[child].shape}
-                                />
-                              </Accordion>
-                            </li>
-                          </>
-                        );
-                      })}
-                    </ul>
+                    <Editor
+                      className="ps-6"
+                      shape={step.shape}
+                    />
                   </Accordion>
                 </li>
               );
             }
           )}
-        </ul>
-        <ul>
-          {otherStepIds.map((stepId: string) => (
-            <>
-              <li
-                key={stepId}
-                className="mb-1"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onClickStep(steps[stepId].shape.p);
-                }}
-              >
-                <Accordion
-                  title={steps[stepId].shape.title}
-                  hoverRender={
-                    <div className="h-full flex justify-end items-center">
-                      <div
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onClickStep(steps[stepId].shape.p);
-                        }}
-                      >
-                        <svg
-                          width={18}
-                          height={18}
-                          xmlns="http://www.w3.org/2000/svg"
-                          xmlnsXlink="http://www.w3.org/1999/xlink"
-                          version="1.1"
-                          x="0px"
-                          y="0px"
-                          viewBox="0 0 100 100"
-                          enable-background="new 0 0 100 100"
-                          xmlSpace="preserve"
-                        >
-                          <path
-                            fill="#233C53"
-                            d="M84.6,45C82.4,29.7,70.3,17.5,55,15.3V5H45v10.3C29.7,17.5,17.6,29.7,15.4,45H5v10h10.4C17.6,70.3,29.7,82.4,45,84.6V95h10  V84.6C70.3,82.4,82.4,70.3,84.6,55H95V45H84.6z M50,75c-13.8,0-25-11.2-25-25s11.2-25,25-25s25,11.2,25,25S63.8,75,50,75z"
-                          />
-                          <circle cx="50" cy="50" r="10" />
-                        </svg>
-                      </div>
-                    </div>
-                  }
-                  open={steps[stepId].open}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onClickaAccordionArrow(stepId);
-                  }}
-                >
-                  <Editor className="ps-6" shape={steps[stepId].shape} />
-                </Accordion>
-              </li>
-            </>
-          ))}
-        </ul>
-      </SidePanel>
+        </ul >
+      </SidePanel >
       <SidePanel
         open={isUserSidePanelOpen}
         w={"300px"}
@@ -2582,25 +2516,27 @@ export default function ProcessPage() {
         onWheel={onMouseWheel}
         onDoubleClick={onDoubleClick}
       />
-      {dataFrame && dbClickedShape && (
-        <DataFrame
-          shape={dbClickedShape}
-          coordinate={dataFrame.p}
-          onConfirm={onConfirmDataFrame}
-          feature={{
-            import: dbClickedShape instanceof Data,
-            usage:
-              dbClickedShape instanceof Process ||
-              dbClickedShape instanceof Data ||
-              dbClickedShape instanceof Desicion,
-            redundancy:
-              dbClickedShape instanceof Process ||
-              dbClickedShape instanceof Data ||
-              dbClickedShape instanceof Desicion,
-          }}
-          warning={dataFrameWarning}
-        />
-      )}
+      {
+        dataFrame && dbClickedShape && (
+          <DataFrame
+            shape={dbClickedShape}
+            coordinate={dataFrame.p}
+            onConfirm={onConfirmDataFrame}
+            feature={{
+              import: dbClickedShape instanceof Data,
+              usage:
+                dbClickedShape instanceof Process ||
+                dbClickedShape instanceof Data ||
+                dbClickedShape instanceof Desicion,
+              redundancy:
+                dbClickedShape instanceof Process ||
+                dbClickedShape instanceof Data ||
+                dbClickedShape instanceof Desicion,
+            }}
+            warning={dataFrameWarning}
+          />
+        )
+      }
     </>
   );
 }

@@ -85,7 +85,9 @@ export default class Desicion extends Core {
   draw(ctx: CanvasRenderingContext2D) {
     ctx.save();
     ctx.translate(this.getScreenP().x, this.getScreenP().y);
-    ctx.fillStyle = this.c;
+    const isAlert = this.redundancies.length > 0
+    let renderC = isAlert ? "#EC3333" : this.c
+    ctx.fillStyle = renderC;
     const x1 = -this.getScaleSize().w / 2,
       y1 = 0;
     const x2 = 0,

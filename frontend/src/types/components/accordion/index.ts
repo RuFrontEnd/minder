@@ -3,7 +3,8 @@ type Props = {
   title: React.ReactNode;
   open: boolean;
   children: React.ReactNode;
-  hoverRender?: any;
+  hoverRender?: React.ReactNode;
+  showArrow?: boolean;
   onClick?: React.MouseEventHandler<HTMLDivElement>;
 };
 
