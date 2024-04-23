@@ -305,9 +305,6 @@ export default function ProcessPage() {
     [dataFrameWarning, setDataFrameWarning] = useState<DataFrameTypes.Warning>(
       init.dataFrameWarning
     ),
-    [globalData, setGlobalData] = useState<{
-      [dataShapeId: string]: CommonTypes.Data;
-    }>({}),
     [isAccountModalOpen, setIsAccountModalOpen] = useState(true),
     [isLogIn, setIsLogin] = useState(true),
     [isProjectsModalOpen, setIsProjectsModalOpen] = useState(false),
@@ -323,20 +320,6 @@ export default function ProcessPage() {
     }),
     [isFetchingProjects, setIsFetchingProjects] = useState(false),
     [projects, setProjects] = useState<ProjectTypes.GetProjects['ResData']>([])
-
-  const allData = useMemo(() => {
-    const _items: CommonTypes.Data = [];
-    const _mapping: { [data: string]: string } = {};
-
-    Object.entries(globalData).forEach(([shapeId, datas]) => {
-      datas.forEach((data) => {
-        _items.push(data);
-        _mapping[data.text] = shapeId;
-      });
-    });
-
-    return { items: _items, mapping: _mapping };
-  }, [globalData]);
 
   const checkData = () => {
     const datas: Data[] = []
@@ -691,6 +674,7 @@ export default function ProcessPage() {
               x: p.x - shape?.getScreenP().x,
               y: p.y - shape?.getScreenP().y,
             };
+
 
             if (!theCurve) continue;
             if (
@@ -1372,9 +1356,7 @@ export default function ProcessPage() {
         shapes = shapes.filter((shape) => shape.id !== removeShape?.id);
         checkData();
         checkGroups();
-        const _globalData = cloneDeep(globalData);
-        delete _globalData[removeShape.id];
-        setGlobalData(_globalData);
+
       } else if (removeCurve) {
         removeCurve.shape.removeCurve(removeCurve.direction);
         checkData();
@@ -1990,6 +1972,8 @@ export default function ProcessPage() {
       );
       process_new.offset = offset;
       process_new.scale = scale;
+
+      console.log('-offset.x + window.innerWidth / 2', -offset.x + window.innerWidth / 2)
 
       let data_new = new Data(
         `data_${Date.now()}`,

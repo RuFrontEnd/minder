@@ -6,12 +6,14 @@ import * as CommonTypes from "@/types/shapes/common";
 export default class Data extends Core {
   isFrameOpen: boolean;
   data: CommonTypes.Data;
+  thershold: number;
   frameOffset: number;
 
   constructor(id: CommonTypes.Id, w: CommonTypes.W, h: CommonTypes.H, p: CommonTypes.Vec, title: CommonTypes.Title) {
     super(id, w, h, p, "#1BC861", title);
     this.isFrameOpen = false;
     this.data = [];
+    this.thershold = 10;
     this.frameOffset = 20;
   }
 
@@ -45,7 +47,7 @@ export default class Data extends Core {
       return CommonTypes.Direction.l;
     }
 
-    dx = this.getScreenP().x + Math.abs((x1 + x2) / 2) - p.x;
+    dx = this.getScreenP().x - p.x;
     dy = edge.t - p.y;
 
     if (
@@ -65,7 +67,7 @@ export default class Data extends Core {
       return CommonTypes.Direction.r;
     }
 
-    dx = this.getScreenP().x - Math.abs((x3 + x4) / 2) - p.x;
+    dx = this.getScreenP().x - p.x;
     dy = p.y - edge.b;
 
     if (
@@ -100,8 +102,6 @@ export default class Data extends Core {
       receiveD: receiveD,
     };
 
-    const thershold = 10;
-
     // define receive curve P2 position
     if (receiveD === CommonTypes.Direction.l) {
       senderCurve.p2 = {
@@ -109,14 +109,14 @@ export default class Data extends Core {
           this.p.x -
           connectTarget.shape.p.x -
           this.w / 2 -
-          thershold +
+          this.thershold +
           this.frameOffset / 2,
         y: this.p.y - connectTarget.shape.p.y,
       };
     } else if (receiveD === CommonTypes.Direction.t) {
       senderCurve.p2 = {
-        x: this.p.x - connectTarget.shape.p.x + this.frameOffset / 2,
-        y: this.p.y - connectTarget.shape.p.y - this.h / 2 - thershold,
+        x: this.p.x - connectTarget.shape.p.x,
+        y: this.p.y - connectTarget.shape.p.y - this.h / 2 - this.thershold,
       };
     } else if (receiveD === CommonTypes.Direction.r) {
       senderCurve.p2 = {
@@ -124,14 +124,15 @@ export default class Data extends Core {
           this.p.x -
           connectTarget.shape.p.x +
           this.w / 2 +
-          thershold -
+          this.thershold -
           this.frameOffset / 2,
         y: this.p.y - connectTarget.shape.p.y,
       };
     } else if (receiveD === CommonTypes.Direction.b) {
       senderCurve.p2 = {
-        x: this.p.x - connectTarget.shape.p.x - this.frameOffset / 2,
-        y: this.p.y - connectTarget.shape.p.y + this.h / 2 + thershold,
+        x: this.p.x - connectTarget.shape.p.x,
+
+        y: this.p.y - connectTarget.shape.p.y + this.h / 2 + this.thershold,
       };
     }
   }
@@ -198,7 +199,7 @@ export default class Data extends Core {
     if (this.receiving.t) {
       ctx.beginPath();
       ctx.arc(
-        Math.abs(x1 + x2) / 2,
+        0,
         -this.getScaleSize().h / 2,
         this.anchor.size.fill,
         0,
@@ -230,7 +231,7 @@ export default class Data extends Core {
     if (this.receiving.b) {
       ctx.beginPath();
       ctx.arc(
-        -Math.abs(x3 + x4) / 2,
+        0,
         this.getScaleSize().h / 2,
         this.anchor.size.fill,
         0,
