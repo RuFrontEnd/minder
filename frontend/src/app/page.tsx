@@ -339,43 +339,44 @@ export default function ProcessPage() {
       while (queue.length !== 0) {
         const shape = queue[0];
 
-        ds.forEach((d) => {
-          const theSendToShape = shape.curves[d].sendTo?.shape;
+        // TODO: curve 相關
+        // ds.forEach((d) => {
+        //   const theSendToShape = shape.curves[d].sendTo?.shape;
 
-          const theSendToShapeOptionsMapping = (() => {
-            const mapping: { [optionsText: string]: boolean } = {}
+        //   const theSendToShapeOptionsMapping = (() => {
+        //     const mapping: { [optionsText: string]: boolean } = {}
 
-            theSendToShape?.options.forEach(option => {
-              mapping[option.text] = true
-            })
+        //     theSendToShape?.options.forEach(option => {
+        //       mapping[option.text] = true
+        //     })
 
-            return mapping
-          })()
+        //     return mapping
+        //   })()
 
-          if (!theSendToShape) return;
-          data.data.forEach((dataItem) => {
-            if (theSendToShapeOptionsMapping[dataItem.text]) return
-            theSendToShape.options.push(dataItem)
-          })
+        //   if (!theSendToShape) return;
+        //   data.data.forEach((dataItem) => {
+        //     if (theSendToShapeOptionsMapping[dataItem.text]) return
+        //     theSendToShape.options.push(dataItem)
+        //   })
 
-          const hasLock = locks[theSendToShape.id];
+        //   const hasLock = locks[theSendToShape.id];
 
-          if (!hasLock) {
-            locks[theSendToShape.id] = {
-              l: false,
-              t: false,
-              r: false,
-              b: false,
-            };
-          }
+        //   if (!hasLock) {
+        //     locks[theSendToShape.id] = {
+        //       l: false,
+        //       t: false,
+        //       r: false,
+        //       b: false,
+        //     };
+        //   }
 
-          const isDirectionLock = locks[theSendToShape.id][d];
+        //   const isDirectionLock = locks[theSendToShape.id][d];
 
-          if (!isDirectionLock) {
-            queue.push(theSendToShape);
-            locks[theSendToShape.id][d] = true;
-          }
-        });
+        //   if (!isDirectionLock) {
+        //     queue.push(theSendToShape);
+        //     locks[theSendToShape.id][d] = true;
+        //   }
+        // });
 
         queue.shift();
       }
@@ -431,37 +432,38 @@ export default function ProcessPage() {
         }
         goThroughShapes[shape.id] = true;
 
-        ds.forEach((d) => {
-          const theSendTo = shape.curves[d].sendTo;
+        // TODO: curve 相關
+        // ds.forEach((d) => {
+        //   const theSendTo = shape.curves[d].sendTo;
 
-          if (!theSendTo) return;
+        //   if (!theSendTo) return;
 
-          const hasLock = locks[theSendTo.shape.id];
+        //   const hasLock = locks[theSendTo.shape.id];
 
-          if (!hasLock) {
-            locks[theSendTo.shape.id] = {
-              l: false,
-              t: false,
-              r: false,
-              b: false,
-            };
-          }
+        //   if (!hasLock) {
+        //     locks[theSendTo.shape.id] = {
+        //       l: false,
+        //       t: false,
+        //       r: false,
+        //       b: false,
+        //     };
+        //   }
 
-          const hasDirectionLock = locks[theSendTo.shape.id][d];
+        //   const hasDirectionLock = locks[theSendTo.shape.id][d];
 
-          if (!hasDirectionLock) {
-            if (
-              !(
-                theSendTo.shape.id !== head.id &&
-                theSendTo.shape instanceof Terminal &&
-                theSendTo.shape.isStart
-              )
-            ) {
-              queue.push(theSendTo.shape);
-            }
-            locks[theSendTo.shape.id][d] = true;
-          }
-        });
+        //   if (!hasDirectionLock) {
+        //     if (
+        //       !(
+        //         theSendTo.shape.id !== head.id &&
+        //         theSendTo.shape instanceof Terminal &&
+        //         theSendTo.shape.isStart
+        //       )
+        //     ) {
+        //       queue.push(theSendTo.shape);
+        //     }
+        //     locks[theSendTo.shape.id][d] = true;
+        //   }
+        // });
 
         queue.shift();
       }
@@ -650,25 +652,27 @@ export default function ProcessPage() {
           if (!$canvas) return;
 
           // onMouseDown curve trigger point and create curve
-          const theCheckCurveTriggerBoundry = shape.checkCurveTriggerBoundry(p);
-          if (theCheckCurveTriggerBoundry) {
+          // TODO: curve 相關
+          const triggerD = shape.getCurveTriggerDirection(p);
+          if (triggerD) {
             shape.selecting = false;
 
             if (
-              !shape.curves[theCheckCurveTriggerBoundry].shape &&
               !shape.receiveFrom[
-                CommonTypes.Direction[theCheckCurveTriggerBoundry]
+                CommonTypes.Direction[triggerD]
               ]?.shape
             ) {
               shape.createCurve(
                 `curve_${Date.now()}`,
-                CommonTypes.Direction[theCheckCurveTriggerBoundry]
+                CommonTypes.Direction[triggerD]
               );
             }
           }
 
-          for (const d of ds) {
-            const theCurve = shape.curves[d].shape;
+          // drag curve
+          for (const curveInShape of shape.curves) {
+            const theCurve = curveInShape.shape,
+              _direction = curveInShape.d
 
             const curveP = {
               x: p.x - shape?.getScreenP().x,
@@ -686,7 +690,7 @@ export default function ProcessPage() {
                   parent: shape,
                   shape: theCurve,
                   target: null,
-                  direction: d,
+                  direction: _direction,
                   dx: 0,
                   dy: 0,
                 };
@@ -697,7 +701,7 @@ export default function ProcessPage() {
                   parent: shape,
                   shape: theCurve,
                   target: theCurve.checkControlPointsBoundry(curveP),
-                  direction: d,
+                  direction: _direction,
                   dx: 0,
                   dy: 0,
                 };
@@ -750,22 +754,23 @@ export default function ProcessPage() {
         }
       }
 
-      // close unselected shapes or curves
+      // close selected status when click the blank area
+      // TODO: curve 相關
       shapes.forEach((shape) => {
         if (pressing?.shape instanceof Curve) {
           // click curve
           shape.selecting = false;
 
-          for (const d of ds) {
-            const theCurve = shape.curves[d].shape;
+          for (const curveInShape of shape.curves) {
+            const theCurve = curveInShape.shape;
             if (theCurve && theCurve?.id !== pressing?.shape?.id) {
               theCurve.selecting = false;
             }
           }
         } else {
           // click shape or blank area
-          for (const d of ds) {
-            const theCurve = shape.curves[d].shape;
+          for (const curveInShape of shape.curves) {
+            const theCurve = curveInShape.shape;
             if (theCurve) {
               theCurve.selecting = false;
             }
@@ -855,11 +860,9 @@ export default function ProcessPage() {
                 p.x <= theEdge.r + threshold &&
                 p.y <= theEdge.b + threshold;
 
+            // TODO: curve 相關
             for (const d of ds) {
-              shape.receiving[d] =
-                isNearShape &&
-                !shape.curves[d]?.shape &&
-                !shape.receiveFrom[d]?.shape;
+              shape.receiving[d] = isNearShape
             }
           });
         }
@@ -1261,11 +1264,11 @@ export default function ProcessPage() {
           p
         );
 
+
         if (theCheckReceivingPointsBoundry) {
-          shape.connect(theCheckReceivingPointsBoundry, {
-            shape: pressing.parent,
-            direction: pressing.direction,
-          });
+          console.log('pressing?', pressing)
+
+          pressing.parent.connect(shape, theCheckReceivingPointsBoundry, pressing.shape.id);
         }
       }
 
@@ -1323,7 +1326,7 @@ export default function ProcessPage() {
       let removeShape: null | Terminal | Process | Data | Desicion = null,
         removeCurve: null | {
           shape: Terminal | Process | Data | Desicion;
-          direction: CommonTypes.Direction;
+          id: string;
         } = null;
 
       const ds = [
@@ -1340,9 +1343,10 @@ export default function ProcessPage() {
           removeShape = currentShape;
           break;
         } else {
-          for (const d of ds) {
-            if (currentShape.curves[d]?.shape?.selecting) {
-              removeCurve = { shape: currentShape, direction: d };
+          for (const curveInShape of currentShape.curves) {
+            // TODO: curve 相關
+            if (curveInShape.shape?.selecting) {
+              removeCurve = { shape: currentShape, id: curveInShape.shape.id };
             }
           }
         }
@@ -1358,7 +1362,8 @@ export default function ProcessPage() {
         checkGroups();
 
       } else if (removeCurve) {
-        removeCurve.shape.removeCurve(removeCurve.direction);
+        // TODO: curve 相關
+        removeCurve.shape.removeCurve(removeCurve.id);
         checkData();
         checkGroups();
       }

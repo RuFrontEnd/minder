@@ -80,62 +80,63 @@ export default class Data extends Core {
     return null;
   }
 
-  connect(receiveD: CommonTypes.Direction, connectTarget: CoreTypes.ConnectTarget) {
-    if (
-      !this.receiving[receiveD] ||
-      this.receiveFrom[receiveD]?.shape ||
-      this.curves[receiveD]?.shape
-    )
-      return;
+  // connect(receiveD: CommonTypes.Direction, connectTarget: CoreTypes.ConnectTarget) {
+  //   // TODO: curve 相關
+  //   if (
+  //     !this.receiving[receiveD] ||
+  //     this.receiveFrom[receiveD]?.shape ||
+  //     this.curves[receiveD]?.shape
+  //   )
+  //     return;
 
-    const senderCurve =
-      connectTarget.shape.curves[connectTarget.direction].shape;
-    if (!senderCurve) return;
-    // receiver
-    this.receiveFrom[receiveD] = {
-      shape: connectTarget.shape,
-      sendD: connectTarget.direction,
-    };
-    // connectTarget
-    connectTarget.shape.curves[connectTarget.direction].sendTo = {
-      shape: this,
-      receiveD: receiveD,
-    };
+  //   const senderCurve =
+  //     connectTarget.shape.curves[connectTarget.direction].shape;
+  //   if (!senderCurve) return;
+  //   // receiver
+  //   this.receiveFrom[receiveD] = {
+  //     shape: connectTarget.shape,
+  //     sendD: connectTarget.direction,
+  //   };
+  //   // connectTarget
+  //   connectTarget.shape.curves[connectTarget.direction].sendTo = {
+  //     shape: this,
+  //     receiveD: receiveD,
+  //   };
 
-    // define receive curve P2 position
-    if (receiveD === CommonTypes.Direction.l) {
-      senderCurve.p2 = {
-        x:
-          this.p.x -
-          connectTarget.shape.p.x -
-          this.w / 2 -
-          this.thershold +
-          this.frameOffset / 2,
-        y: this.p.y - connectTarget.shape.p.y,
-      };
-    } else if (receiveD === CommonTypes.Direction.t) {
-      senderCurve.p2 = {
-        x: this.p.x - connectTarget.shape.p.x,
-        y: this.p.y - connectTarget.shape.p.y - this.h / 2 - this.thershold,
-      };
-    } else if (receiveD === CommonTypes.Direction.r) {
-      senderCurve.p2 = {
-        x:
-          this.p.x -
-          connectTarget.shape.p.x +
-          this.w / 2 +
-          this.thershold -
-          this.frameOffset / 2,
-        y: this.p.y - connectTarget.shape.p.y,
-      };
-    } else if (receiveD === CommonTypes.Direction.b) {
-      senderCurve.p2 = {
-        x: this.p.x - connectTarget.shape.p.x,
+  //   // define receive curve P2 position
+  //   if (receiveD === CommonTypes.Direction.l) {
+  //     senderCurve.p2 = {
+  //       x:
+  //         this.p.x -
+  //         connectTarget.shape.p.x -
+  //         this.w / 2 -
+  //         this.thershold +
+  //         this.frameOffset / 2,
+  //       y: this.p.y - connectTarget.shape.p.y,
+  //     };
+  //   } else if (receiveD === CommonTypes.Direction.t) {
+  //     senderCurve.p2 = {
+  //       x: this.p.x - connectTarget.shape.p.x,
+  //       y: this.p.y - connectTarget.shape.p.y - this.h / 2 - this.thershold,
+  //     };
+  //   } else if (receiveD === CommonTypes.Direction.r) {
+  //     senderCurve.p2 = {
+  //       x:
+  //         this.p.x -
+  //         connectTarget.shape.p.x +
+  //         this.w / 2 +
+  //         this.thershold -
+  //         this.frameOffset / 2,
+  //       y: this.p.y - connectTarget.shape.p.y,
+  //     };
+  //   } else if (receiveD === CommonTypes.Direction.b) {
+  //     senderCurve.p2 = {
+  //       x: this.p.x - connectTarget.shape.p.x,
 
-        y: this.p.y - connectTarget.shape.p.y + this.h / 2 + this.thershold,
-      };
-    }
-  }
+  //       y: this.p.y - connectTarget.shape.p.y + this.h / 2 + this.thershold,
+  //     };
+  //   }
+  // }
 
   draw(ctx: CanvasRenderingContext2D) {
     ctx.save();

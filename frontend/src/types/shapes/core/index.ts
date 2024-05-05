@@ -45,6 +45,7 @@ type ReceivingTarget = {
 };
 
 type ConnectTarget = {
+  curve: Curve,
   shape: Core;
   direction: Direction;
 };
@@ -65,12 +66,12 @@ type Receiving = {
 
 type SendTo = {
   shape: Core;
-  receiveD: Direction;
+  d: Direction;
 }
 
 type ReceiveFrom = {
   shape: Core;
-  sendD: Direction;
+  d: Direction;
 }
 
 export { PressingTarget };
