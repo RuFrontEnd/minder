@@ -232,9 +232,9 @@ export default class Core {
       receiveFromCurves_r.forEach((receiveFromCurve_r) => {
         receiveFromCurve_r.shape.p2 = {
           ...receiveFromCurve_r.shape.p2,
-          x: receiveFromCurve_r.shape.p2.x + offset,
+          x: receiveFromCurve_r.shape.p2.x - offset,
         };
-        receiveFromCurve_r.shape.cp2.x += offset;
+        receiveFromCurve_r.shape.cp2.x -= offset;
       });
     }
   }
@@ -280,6 +280,32 @@ export default class Core {
     });
 
     // TODO: curve 相關
+    const receiveFromCurves_t = this.receiveFrom.t?.shape.curves.filter(
+        (curve) => curve.d === this.receiveFrom.t?.d
+      ),
+      receiveFromCurves_b = this.receiveFrom.b?.shape.curves.filter(
+        (curve) => curve.d === this.receiveFrom.b?.d
+      );
+
+    if (receiveFromCurves_t) {
+      receiveFromCurves_t.forEach((receiveFromCurve_t) => {
+        receiveFromCurve_t.shape.p2 = {
+          ...receiveFromCurve_t.shape.p2,
+          y: receiveFromCurve_t.shape.p2.y + offset,
+        };
+        receiveFromCurve_t.shape.cp2.y += offset;
+      });
+    }
+
+    if (receiveFromCurves_b) {
+      receiveFromCurves_b.forEach((receiveFromCurve_b) => {
+        receiveFromCurve_b.shape.p2 = {
+          ...receiveFromCurve_b.shape.p2,
+          y: receiveFromCurve_b.shape.p2.y - offset,
+        };
+        receiveFromCurve_b.shape.cp2.y -= offset;
+      });
+    }
     // const receiveFromCurve_t = this.receiveFrom.t?.shape.curves[
     //   this.receiveFrom.t.sendD
     // ].shape,
