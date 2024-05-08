@@ -58,10 +58,23 @@ export default class Core {
   title: CommonTypes.Title;
   __p__: Vec;
   curves: {
-    d: CommonTypes.Direction;
-    shape: Curve;
-    sendTo: null | CoreTypes.SendTo;
-  }[];
+    l: {
+      shape: Curve;
+      sendTo: null | CoreTypes.SendTo;
+    }[];
+    t: {
+      shape: Curve;
+      sendTo: null | CoreTypes.SendTo;
+    }[];
+    r: {
+      shape: Curve;
+      sendTo: null | CoreTypes.SendTo;
+    }[];
+    b: {
+      shape: Curve;
+      sendTo: null | CoreTypes.SendTo;
+    }[];
+  };
   __selecting__: boolean;
   __receiving__: CoreTypes.Receiving;
   pressing: {
@@ -100,7 +113,12 @@ export default class Core {
     this.__h__ = h;
     this.__p__ = p;
     this.c = c;
-    this.curves = [];
+    this.curves = {
+      l: [],
+      t: [],
+      r: [],
+      b: [],
+    };
     this.__selecting__ = false;
     this.__receiving__ = {
       l: false,
@@ -138,19 +156,19 @@ export default class Core {
 
     // TODO: curve 相關
     // when receiver shape move, sender curve follows the receiver shape
-    ds.forEach((d) => {
-      const receiveFrom = this.receiveFrom[d];
-      receiveFrom?.shape.curves.forEach((senderCurve) => {
-        if (
-          senderCurve.d === receiveFrom.d &&
-          senderCurve.sendTo?.shape.id === this.id &&
-          !senderCurvesMapping[senderCurve.shape.id]
-        ) {
-          senderCurves.push(senderCurve.shape);
-          senderCurvesMapping[senderCurve.shape.id] = true;
-        }
-      });
-    });
+    // ds.forEach((d) => {
+    //   const receiveFrom = this.receiveFrom[d];
+    //   receiveFrom?.shape.curves.forEach((senderCurve) => {
+    //     if (
+    //       senderCurve.d === receiveFrom.d &&
+    //       senderCurve.sendTo?.shape.id === this.id &&
+    //       !senderCurvesMapping[senderCurve.shape.id]
+    //     ) {
+    //       senderCurves.push(senderCurve.shape);
+    //       senderCurvesMapping[senderCurve.shape.id] = true;
+    //     }
+    //   });
+    // });
 
     senderCurves.forEach((sendCurve) => {
       sendCurve.p2 = {
@@ -161,20 +179,21 @@ export default class Core {
       sendCurve.cp2.y += offest.y;
     });
 
+    // TODO: curve 相關
     // when sender shape move, receiver curve follows the sender shape
-    this.curves.forEach((curve) => {
-      const senderCurve = curve.shape,
-        sendToShape = curve.sendTo;
+    // this.curves.forEach((curve) => {
+    //   const senderCurve = curve.shape,
+    //     sendToShape = curve.sendTo;
 
-      if (senderCurve && sendToShape) {
-        senderCurve.p2 = {
-          x: senderCurve.p2.x - offest.x,
-          y: senderCurve.p2.y - offest.y,
-        };
-        senderCurve.cp2.x -= offest.x;
-        senderCurve.cp2.y -= offest.y;
-      }
-    });
+    //   if (senderCurve && sendToShape) {
+    //     senderCurve.p2 = {
+    //       x: senderCurve.p2.x - offest.x,
+    //       y: senderCurve.p2.y - offest.y,
+    //     };
+    //     senderCurve.cp2.x -= offest.x;
+    //     senderCurve.cp2.y -= offest.y;
+    //   }
+    // });
   }
 
   get p() {
@@ -186,65 +205,64 @@ export default class Core {
     this.__w__ = value;
 
     // TODO: curve 相關
+    // const horizentalCurves = this.curves.filter(
+    //   (curve) => curve.d === Direction.l || curve.d === Direction.r
+    // );
 
-    const horizentalCurves = this.curves.filter(
-      (curve) => curve.d === Direction.l || curve.d === Direction.r
-    );
+    // horizentalCurves.forEach((horizentalCurve) => {
+    //   const theCurve = horizentalCurve.shape;
+    //   if (horizentalCurve.d === Direction.l) {
+    //     theCurve.p1.x += offset;
+    //     theCurve.cp1.x += offset;
 
-    horizentalCurves.forEach((horizentalCurve) => {
-      const theCurve = horizentalCurve.shape;
-      if (horizentalCurve.d === Direction.l) {
-        theCurve.p1.x += offset;
-        theCurve.cp1.x += offset;
+    //     if (!horizentalCurve.sendTo) {
+    //       theCurve.p2 = {
+    //         ...theCurve.p2,
+    //         x: theCurve.p2.x + offset,
+    //       };
+    //       theCurve.cp2.x += offset;
+    //     }
+    //   } else if (horizentalCurve.d === Direction.r) {
+    //     theCurve.p1.x -= offset;
+    //     theCurve.cp1.x -= offset;
+    //   }
 
-        if (!horizentalCurve.sendTo) {
-          theCurve.p2 = {
-            ...theCurve.p2,
-            x: theCurve.p2.x + offset,
-          };
-          theCurve.cp2.x += offset;
-        }
-      } else if (horizentalCurve.d === Direction.r) {
-        theCurve.p1.x -= offset;
-        theCurve.cp1.x -= offset;
-      }
-
-      if (!horizentalCurve.sendTo) {
-        theCurve.p2 = {
-          ...theCurve.p2,
-          x: theCurve.p2.x - offset,
-        };
-        theCurve.cp2.x -= offset;
-      }
-    });
+    //   if (!horizentalCurve.sendTo) {
+    //     theCurve.p2 = {
+    //       ...theCurve.p2,
+    //       x: theCurve.p2.x - offset,
+    //     };
+    //     theCurve.cp2.x -= offset;
+    //   }
+    // });
 
     // TODO: curve 相關
-    const receiveFromCurves_l = this.receiveFrom.l?.shape.curves.filter(
-        (curve) => curve.d === this.receiveFrom.l?.d
-      ),
-      receiveFromCurves_r = this.receiveFrom.r?.shape.curves.filter(
-        (curve) => curve.d === this.receiveFrom.r?.d
-      );
+    // const receiveFromCurves_l = this.receiveFrom.l?.shape.curves.filter(
+    //     (curve) => curve.d === this.receiveFrom.l?.d
+    //   ),
+    //   receiveFromCurves_r = this.receiveFrom.r?.shape.curves.filter(
+    //     (curve) => curve.d === this.receiveFrom.r?.d
+    //   );
 
-    if (receiveFromCurves_l) {
-      receiveFromCurves_l.forEach((receiveFromCurve_l) => {
-        receiveFromCurve_l.shape.p2 = {
-          ...receiveFromCurve_l.shape.p2,
-          x: receiveFromCurve_l.shape.p2.x + offset,
-        };
-        receiveFromCurve_l.shape.cp2.x += offset;
-      });
-    }
+    // if (receiveFromCurves_l) {
+    //   receiveFromCurves_l.forEach((receiveFromCurve_l) => {
+    //     receiveFromCurve_l.shape.p2 = {
+    //       ...receiveFromCurve_l.shape.p2,
+    //       x: receiveFromCurve_l.shape.p2.x + offset,
+    //     };
+    //     receiveFromCurve_l.shape.cp2.x += offset;
+    //   });
+    // }
 
-    if (receiveFromCurves_r) {
-      receiveFromCurves_r.forEach((receiveFromCurve_r) => {
-        receiveFromCurve_r.shape.p2 = {
-          ...receiveFromCurve_r.shape.p2,
-          x: receiveFromCurve_r.shape.p2.x - offset,
-        };
-        receiveFromCurve_r.shape.cp2.x -= offset;
-      });
-    }
+    // if (receiveFromCurves_r) {
+    //   receiveFromCurves_r.forEach((receiveFromCurve_r) => {
+    //     receiveFromCurve_r.shape.p2 = {
+    //       ...receiveFromCurve_r.shape.p2,
+    //       x: receiveFromCurve_r.shape.p2.x - offset,
+    //     };
+    //     receiveFromCurve_r.shape.cp2.x -= offset;
+    //   });
+    // }
   }
 
   get w() {
@@ -256,85 +274,63 @@ export default class Core {
     this.__h__ = value;
 
     // TODO: curve 相關
-    const horizentalCurves = this.curves.filter(
-      (curve) => curve.d === Direction.t || curve.d === Direction.b
-    );
+    // const horizentalCurves = this.curves.filter(
+    //   (curve) => curve.d === Direction.t || curve.d === Direction.b
+    // );
 
-    horizentalCurves.forEach((horizentalCurve) => {
-      const theCurve = horizentalCurve.shape;
-      if (horizentalCurve.d === Direction.t) {
-        theCurve.p1.y += offset;
-        theCurve.cp1.y += offset;
+    // horizentalCurves.forEach((horizentalCurve) => {
+    //   const theCurve = horizentalCurve.shape;
+    //   if (horizentalCurve.d === Direction.t) {
+    //     theCurve.p1.y += offset;
+    //     theCurve.cp1.y += offset;
 
-        if (!horizentalCurve.sendTo) {
-          theCurve.p2 = {
-            ...theCurve.p2,
-            y: theCurve.p2.y + offset,
-          };
-          theCurve.cp2.y += offset;
-        }
-      } else if (horizentalCurve.d === Direction.b) {
-        theCurve.p1.y -= offset;
-        theCurve.cp1.y -= offset;
-      }
+    //     if (!horizentalCurve.sendTo) {
+    //       theCurve.p2 = {
+    //         ...theCurve.p2,
+    //         y: theCurve.p2.y + offset,
+    //       };
+    //       theCurve.cp2.y += offset;
+    //     }
+    //   } else if (horizentalCurve.d === Direction.b) {
+    //     theCurve.p1.y -= offset;
+    //     theCurve.cp1.y -= offset;
+    //   }
 
-      if (!horizentalCurve.sendTo) {
-        theCurve.p2 = {
-          ...theCurve.p2,
-          y: theCurve.p2.y - offset,
-        };
-        theCurve.cp2.y -= offset;
-      }
-    });
+    //   if (!horizentalCurve.sendTo) {
+    //     theCurve.p2 = {
+    //       ...theCurve.p2,
+    //       y: theCurve.p2.y - offset,
+    //     };
+    //     theCurve.cp2.y -= offset;
+    //   }
+    // });
 
     // TODO: curve 相關
-    const receiveFromCurves_t = this.receiveFrom.t?.shape.curves.filter(
-        (curve) => curve.d === this.receiveFrom.t?.d
-      ),
-      receiveFromCurves_b = this.receiveFrom.b?.shape.curves.filter(
-        (curve) => curve.d === this.receiveFrom.b?.d
-      );
+    // const receiveFromCurves_t = this.receiveFrom.t?.shape.curves.filter(
+    //     (curve) => curve.d === this.receiveFrom.t?.d
+    //   ),
+    //   receiveFromCurves_b = this.receiveFrom.b?.shape.curves.filter(
+    //     (curve) => curve.d === this.receiveFrom.b?.d
+    //   );
 
-    if (receiveFromCurves_t) {
-      receiveFromCurves_t.forEach((receiveFromCurve_t) => {
-        receiveFromCurve_t.shape.p2 = {
-          ...receiveFromCurve_t.shape.p2,
-          y: receiveFromCurve_t.shape.p2.y + offset,
-        };
-        receiveFromCurve_t.shape.cp2.y += offset;
-      });
-    }
-
-    if (receiveFromCurves_b) {
-      receiveFromCurves_b.forEach((receiveFromCurve_b) => {
-        receiveFromCurve_b.shape.p2 = {
-          ...receiveFromCurve_b.shape.p2,
-          y: receiveFromCurve_b.shape.p2.y - offset,
-        };
-        receiveFromCurve_b.shape.cp2.y -= offset;
-      });
-    }
-    // const receiveFromCurve_t = this.receiveFrom.t?.shape.curves[
-    //   this.receiveFrom.t.sendD
-    // ].shape,
-    //   receiveFromCurve_b = this.receiveFrom.b?.shape.curves[
-    //     this.receiveFrom.b.sendD
-    //   ].shape;
-
-    // if (receiveFromCurve_t) {
-    //   receiveFromCurve_t.p2 = {
-    //     ...receiveFromCurve_t.p2,
-    //     y: receiveFromCurve_t.p2.y + offset,
-    //   };
-    //   receiveFromCurve_t.cp2.y += offset;
+    // if (receiveFromCurves_t) {
+    //   receiveFromCurves_t.forEach((receiveFromCurve_t) => {
+    //     receiveFromCurve_t.shape.p2 = {
+    //       ...receiveFromCurve_t.shape.p2,
+    //       y: receiveFromCurve_t.shape.p2.y + offset,
+    //     };
+    //     receiveFromCurve_t.shape.cp2.y += offset;
+    //   });
     // }
 
-    // if (receiveFromCurve_b) {
-    //   receiveFromCurve_b.p2 = {
-    //     ...receiveFromCurve_b.p2,
-    //     y: receiveFromCurve_b.p2.y - offset,
-    //   };
-    //   receiveFromCurve_b.cp2.y -= offset;
+    // if (receiveFromCurves_b) {
+    //   receiveFromCurves_b.forEach((receiveFromCurve_b) => {
+    //     receiveFromCurve_b.shape.p2 = {
+    //       ...receiveFromCurve_b.shape.p2,
+    //       y: receiveFromCurve_b.shape.p2.y - offset,
+    //     };
+    //     receiveFromCurve_b.shape.cp2.y -= offset;
+    //   });
     // }
   }
 
@@ -354,8 +350,10 @@ export default class Core {
     this.__scale__ = value;
 
     // TODO: curve 相關
-    this.curves.forEach((curve) => {
-      curve.shape.scale = value;
+    ds.forEach((d) => {
+      this.curves[d].forEach((curve) => {
+        curve.shape.scale = value;
+      });
     });
   }
 
@@ -598,84 +596,85 @@ export default class Core {
   connect(targetShape: Core, targetShapeD: Direction, sendCurveId: string) {
     // TODO: curve 相關
 
-    const bridgeCurve = this.curves.find(
-      (curve) => curve.shape.id === sendCurveId
-    );
-    if (!bridgeCurve) return;
-    bridgeCurve.sendTo = { shape: targetShape, d: targetShapeD };
+    // const bridgeCurve = this.curves.find(
+    //   (curve) => curve.shape.id === sendCurveId
+    // );
+    // if (!bridgeCurve) return;
+    // bridgeCurve.sendTo = { shape: targetShape, d: targetShapeD };
 
-    targetShape.receiveFrom[targetShapeD] = {
-      shape: this,
-      d: bridgeCurve.d,
-    };
+    // targetShape.receiveFrom[targetShapeD] = {
+    //   shape: this,
+    //   d: bridgeCurve.d,
+    // };
 
-    const thershold = 10;
+    // const thershold = 10;
 
-    if (targetShapeD === Direction.l) {
-      bridgeCurve.shape.p2 = {
-        x: targetShape.p.x - this.p.x - targetShape.w / 2 - thershold,
-        y: targetShape.p.y - this.p.y,
-      };
-    } else if (targetShapeD === Direction.t) {
-      bridgeCurve.shape.p2 = {
-        x: targetShape.p.x - this.p.x,
-        y: targetShape.p.y - this.p.y - targetShape.h / 2 - thershold,
-      };
-    } else if (targetShapeD === Direction.r) {
-      bridgeCurve.shape.p2 = {
-        x: targetShape.p.x - this.p.x + targetShape.w / 2 + thershold,
-        y: targetShape.p.y - this.p.y,
-      };
-    } else if (targetShapeD === Direction.b) {
-      bridgeCurve.shape.p2 = {
-        x: targetShape.p.x - this.p.x,
-        y: targetShape.p.y - this.p.y + targetShape.h / 2 + thershold,
-      };
-    }
+    // if (targetShapeD === Direction.l) {
+    //   bridgeCurve.shape.p2 = {
+    //     x: targetShape.p.x - this.p.x - targetShape.w / 2 - thershold,
+    //     y: targetShape.p.y - this.p.y,
+    //   };
+    // } else if (targetShapeD === Direction.t) {
+    //   bridgeCurve.shape.p2 = {
+    //     x: targetShape.p.x - this.p.x,
+    //     y: targetShape.p.y - this.p.y - targetShape.h / 2 - thershold,
+    //   };
+    // } else if (targetShapeD === Direction.r) {
+    //   bridgeCurve.shape.p2 = {
+    //     x: targetShape.p.x - this.p.x + targetShape.w / 2 + thershold,
+    //     y: targetShape.p.y - this.p.y,
+    //   };
+    // } else if (targetShapeD === Direction.b) {
+    //   bridgeCurve.shape.p2 = {
+    //     x: targetShape.p.x - this.p.x,
+    //     y: targetShape.p.y - this.p.y + targetShape.h / 2 + thershold,
+    //   };
+    // }
   }
 
   disConnect(shape: Core, curveIds: string[]) {
     // TODO: curve 相關
-    const curveIdsMapping = (() => {
-      const mapping: { [curveId: string]: boolean } = {};
+    // const curveIdsMapping = (() => {
+    //   const mapping: { [curveId: string]: boolean } = {};
 
-      curveIds.forEach((curveId) => {
-        mapping[curveId] = true;
-      });
+    //   curveIds.forEach((curveId) => {
+    //     mapping[curveId] = true;
+    //   });
 
-      return mapping;
-    })();
+    //   return mapping;
+    // })();
 
-    const curves = shape.curves.filter(
-      (curve) => curve.shape.id in curveIdsMapping
-    );
+    // const curves = shape.curves.filter(
+    //   (curve) => curve.shape.id in curveIdsMapping
+    // );
 
-    curves.forEach((curve) => {
-      const receiverShape = curve?.sendTo?.shape,
-        receiverShapeD = curve?.sendTo?.d;
+    // curves.forEach((curve) => {
+    //   const receiverShape = curve?.sendTo?.shape,
+    //     receiverShapeD = curve?.sendTo?.d;
 
-      if (receiverShape && receiverShapeD) {
-        receiverShape.receiveFrom[receiverShapeD] = null;
-        curve.sendTo = null;
-      }
-    });
+    //   if (receiverShape && receiverShapeD) {
+    //     receiverShape.receiveFrom[receiverShapeD] = null;
+    //     curve.sendTo = null;
+    //   }
+    // });
   }
 
   removeConnection() {
+    // TODO: curve 相關
     // remove connection from receiver
-    this.curves.forEach((curve) => {
-      if (!curve.sendTo) return;
-      curve.sendTo.shape.receiveFrom[curve.sendTo.d] = null;
-    });
+    // this.curves.forEach((curve) => {
+    //   if (!curve.sendTo) return;
+    //   curve.sendTo.shape.receiveFrom[curve.sendTo.d] = null;
+    // });
 
-    // remove connection from sender
-    ds.forEach((d) => {
-      this.receiveFrom[d]?.shape.curves.forEach((curve) => {
-        if (curve.sendTo?.shape.id === this.id) {
-          curve.sendTo = null;
-        }
-      });
-    });
+    // // remove connection from sender
+    // ds.forEach((d) => {
+    //   this.receiveFrom[d]?.shape.curves.forEach((curve) => {
+    //     if (curve.sendTo?.shape.id === this.id) {
+    //       curve.sendTo = null;
+    //     }
+    //   });
+    // });
   }
 
   getRedundancies() {
@@ -705,10 +704,10 @@ export default class Core {
 
   removeCurve(targetId: string) {
     // TODO: curve 相關
-    const targetI = this.curves.findIndex(
-      (curve) => curve.shape.id === targetId
-    );
-    this.curves.splice(targetI, 1);
+    // const targetI = this.curves.findIndex(
+    //   (curve) => curve.shape.id === targetId
+    // );
+    // this.curves.splice(targetI, 1);
   }
 
   move(p: Vec, dragP: Vec) {
@@ -903,8 +902,7 @@ export default class Core {
     if (!newCurve) return;
     newCurve.scale = this.scale;
 
-    this.curves.push({
-      d: _d,
+    this.curves[_d].push({
       shape: newCurve,
       sendTo: null,
     });
@@ -1077,8 +1075,10 @@ export default class Core {
     ctx.save();
     ctx.translate(this.getScreenP().x, this.getScreenP().y);
 
-    this.curves.forEach((curve) => {
-      curve.shape.draw(ctx);
+    ds.forEach((d) => {
+      this.curves[d].forEach((curve) => {
+        curve.shape.draw(ctx);
+      });
     });
 
     ctx.restore();

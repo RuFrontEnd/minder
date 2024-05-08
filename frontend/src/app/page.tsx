@@ -355,7 +355,6 @@ export default function ProcessPage() {
       }
     });
 
-    // TODO: curve 相關
     datas.forEach((data) => {
       // traversal all relational steps
       const queue: Core[] = [data],
@@ -364,39 +363,40 @@ export default function ProcessPage() {
       while (queue.length !== 0) {
         const shape = queue[0];
 
-        shape.curves.forEach((curve) => {
-          const theSendToShape = curve.sendTo?.shape;
+        // TODO: curve 相關
+        // shape.curves.forEach((curve) => {
+        //   const theSendToShape = curve.sendTo?.shape;
 
-          if (!theSendToShape) return;
+        //   if (!theSendToShape) return;
 
-          data.data.forEach((dataItem) => {
-            if (
-              theSendToShape.options.some(
-                (option) => option.text === dataItem.text
-              )
-            )
-              return;
-            theSendToShape.options.push(dataItem);
-          });
+        //   data.data.forEach((dataItem) => {
+        //     if (
+        //       theSendToShape.options.some(
+        //         (option) => option.text === dataItem.text
+        //       )
+        //     )
+        //       return;
+        //     theSendToShape.options.push(dataItem);
+        //   });
 
-          const hasLock = locks[theSendToShape.id];
+        //   const hasLock = locks[theSendToShape.id];
 
-          if (!hasLock) {
-            locks[theSendToShape.id] = {
-              l: false,
-              t: false,
-              r: false,
-              b: false,
-            };
-          }
+        //   if (!hasLock) {
+        //     locks[theSendToShape.id] = {
+        //       l: false,
+        //       t: false,
+        //       r: false,
+        //       b: false,
+        //     };
+        //   }
 
-          const isDirectionLock = locks[theSendToShape.id][curve.d];
+        //   const isDirectionLock = locks[theSendToShape.id][curve.d];
 
-          if (!isDirectionLock) {
-            queue.push(theSendToShape);
-            locks[theSendToShape.id][curve.d] = true;
-          }
-        });
+        //   if (!isDirectionLock) {
+        //     queue.push(theSendToShape);
+        //     locks[theSendToShape.id][curve.d] = true;
+        //   }
+        // });
 
         queue.shift();
       }
@@ -605,46 +605,48 @@ export default function ProcessPage() {
             }
           }
 
+          // TODO: curve 相關
           // drag curve
-          for (const curveInShape of shape.curves) {
-            const theCurve = curveInShape.shape,
-              _direction = curveInShape.d;
+          ds.forEach((d) => {
+            shape.curves[d].forEach((curveInShape) => {
+              const theCurve = curveInShape.shape;
 
-            const curveP = {
-              x: p.x - shape?.getScreenP().x,
-              y: p.y - shape?.getScreenP().y,
-            };
+              const curveP = {
+                x: p.x - shape?.getScreenP().x,
+                y: p.y - shape?.getScreenP().y,
+              };
 
-            if (!theCurve) continue;
-            if (
-              theCurve.checkBoundry(curveP) ||
-              theCurve.checkControlPointsBoundry(curveP)
-            ) {
-              if (theCurve.checkBoundry(curveP)) {
-                pressing = {
-                  parent: shape,
-                  shape: theCurve,
-                  target: null,
-                  direction: _direction,
-                  dx: 0,
-                  dy: 0,
-                };
+              if (!theCurve) return;
+              if (
+                theCurve.checkBoundry(curveP) ||
+                theCurve.checkControlPointsBoundry(curveP)
+              ) {
+                if (theCurve.checkBoundry(curveP)) {
+                  pressing = {
+                    parent: shape,
+                    shape: theCurve,
+                    target: null,
+                    direction: d,
+                    dx: 0,
+                    dy: 0,
+                  };
+                }
+
+                if (theCurve.checkControlPointsBoundry(curveP)) {
+                  pressing = {
+                    parent: shape,
+                    shape: theCurve,
+                    target: theCurve.checkControlPointsBoundry(curveP),
+                    direction: d,
+                    dx: 0,
+                    dy: 0,
+                  };
+                }
+              } else {
+                theCurve.selecting = false;
               }
-
-              if (theCurve.checkControlPointsBoundry(curveP)) {
-                pressing = {
-                  parent: shape,
-                  shape: theCurve,
-                  target: theCurve.checkControlPointsBoundry(curveP),
-                  direction: _direction,
-                  dx: 0,
-                  dy: 0,
-                };
-              }
-            } else {
-              theCurve.selecting = false;
-            }
-          }
+            });
+          });
         });
 
         // if has already selected curve, never select any other shapes
@@ -691,31 +693,31 @@ export default function ProcessPage() {
 
       // close selected status when click the blank area
       // TODO: curve 相關
-      shapes.forEach((shape) => {
-        if (pressing?.shape instanceof Curve) {
-          // click curve
-          shape.selecting = false;
+      // shapes.forEach((shape) => {
+      //   if (pressing?.shape instanceof Curve) {
+      //     // click curve
+      //     shape.selecting = false;
 
-          for (const curveInShape of shape.curves) {
-            const theCurve = curveInShape.shape;
-            if (theCurve && theCurve?.id !== pressing?.shape?.id) {
-              theCurve.selecting = false;
-            }
-          }
-        } else {
-          // click shape or blank area
-          for (const curveInShape of shape.curves) {
-            const theCurve = curveInShape.shape;
-            if (theCurve) {
-              theCurve.selecting = false;
-            }
-          }
+      //     for (const curveInShape of shape.curves) {
+      //       const theCurve = curveInShape.shape;
+      //       if (theCurve && theCurve?.id !== pressing?.shape?.id) {
+      //         theCurve.selecting = false;
+      //       }
+      //     }
+      //   } else {
+      //     // click shape or blank area
+      //     for (const curveInShape of shape.curves) {
+      //       const theCurve = curveInShape.shape;
+      //       if (theCurve) {
+      //         theCurve.selecting = false;
+      //       }
+      //     }
 
-          if (shape.id !== pressing?.shape?.id) {
-            shape.selecting = false;
-          }
-        }
-      });
+      //     if (shape.id !== pressing?.shape?.id) {
+      //       shape.selecting = false;
+      //     }
+      //   }
+      // });
 
       if (pressing?.shape) {
         pressing.shape.selecting = true;
@@ -1279,12 +1281,12 @@ export default function ProcessPage() {
           removeShape = currentShape;
           break;
         } else {
-          for (const curveInShape of currentShape.curves) {
-            // TODO: curve 相關
-            if (curveInShape.shape?.selecting) {
-              removeCurve = { shape: currentShape, id: curveInShape.shape.id };
-            }
-          }
+          // TODO: curve 相關
+          // for (const curveInShape of currentShape.curves) {
+          //   if (curveInShape.shape?.selecting) {
+          //     removeCurve = { shape: currentShape, id: curveInShape.shape.id };
+          //   }
+          // }
         }
       }
 
@@ -1295,7 +1297,7 @@ export default function ProcessPage() {
         checkGroups();
       } else if (removeCurve) {
         // TODO: curve 相關
-        removeCurve.shape.removeCurve(removeCurve.id);
+        // removeCurve.shape.removeCurve(removeCurve.id);
         checkData();
         checkGroups();
       }
