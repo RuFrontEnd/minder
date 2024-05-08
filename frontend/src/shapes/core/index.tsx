@@ -133,24 +133,32 @@ export default class Core {
     };
     this.__p__ = value;
 
+    const senderCurves: Curve[] = [],
+      senderCurvesMapping: { [curveId: string]: boolean } = {};
+
     // TODO: curve 相關
     // when receiver shape move, sender curve follows the receiver shape
     ds.forEach((d) => {
-      const receiverShape = this.receiveFrom[d],
-        sendCurves = receiverShape?.shape.curves.filter(
-          (curve) => curve.d === receiverShape.d
-        );
-
-      if (!sendCurves) return;
-
-      sendCurves.forEach((sendCurve) => {
-        sendCurve.shape.p2 = {
-          x: sendCurve.shape.p2.x + offest.x,
-          y: sendCurve.shape.p2.y + offest.y,
-        };
-        sendCurve.shape.cp2.x += offest.x;
-        sendCurve.shape.cp2.y += offest.y;
+      const receiveFrom = this.receiveFrom[d];
+      receiveFrom?.shape.curves.forEach((senderCurve) => {
+        if (
+          senderCurve.d === receiveFrom.d &&
+          senderCurve.sendTo?.shape.id === this.id &&
+          !senderCurvesMapping[senderCurve.shape.id]
+        ) {
+          senderCurves.push(senderCurve.shape);
+          senderCurvesMapping[senderCurve.shape.id] = true;
+        }
       });
+    });
+
+    senderCurves.forEach((sendCurve) => {
+      sendCurve.p2 = {
+        x: sendCurve.p2.x + offest.x,
+        y: sendCurve.p2.y + offest.y,
+      };
+      sendCurve.cp2.x += offest.x;
+      sendCurve.cp2.y += offest.y;
     });
 
     // when sender shape move, receiver curve follows the sender shape
