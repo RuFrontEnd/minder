@@ -42,14 +42,14 @@ let useEffected = false,
     shape: null | Terminal | Process | Data | Desicion | Curve;
     direction: null | CommonTypes.Direction;
     target:
-    | null
-    | CoreTypes.PressingTarget
-    | CurveTypes.PressingTarget
-    | "selectArea_m"
-    | "selectArea_lt"
-    | "selectArea_rt"
-    | "selectArea_rb"
-    | "selectArea_lb";
+      | null
+      | CoreTypes.PressingTarget
+      | CurveTypes.PressingTarget
+      | "selectArea_m"
+      | "selectArea_lt"
+      | "selectArea_rt"
+      | "selectArea_rb"
+      | "selectArea_lb";
     dx: number; // distance between event px & pressing shape px
     dy: number; // distance between event py & pressing shape py
   } = null,
@@ -97,22 +97,22 @@ let useEffected = false,
   };
 
 const ds = [
-  CommonTypes.Direction.l,
-  CommonTypes.Direction.t,
-  CommonTypes.Direction.r,
-  CommonTypes.Direction.b,
-],
+    CommonTypes.Direction.l,
+    CommonTypes.Direction.t,
+    CommonTypes.Direction.r,
+    CommonTypes.Direction.b,
+  ],
   vs: (
     | CoreTypes.PressingTarget.lt
     | CoreTypes.PressingTarget.rt
     | CoreTypes.PressingTarget.rb
     | CoreTypes.PressingTarget.lb
   )[] = [
-      CoreTypes.PressingTarget.lt,
-      CoreTypes.PressingTarget.rt,
-      CoreTypes.PressingTarget.rb,
-      CoreTypes.PressingTarget.lb,
-    ];
+    CoreTypes.PressingTarget.lt,
+    CoreTypes.PressingTarget.rt,
+    CoreTypes.PressingTarget.rb,
+    CoreTypes.PressingTarget.lb,
+  ];
 
 const getFramePosition = (shape: Core) => {
   const frameOffset = 12;
@@ -224,42 +224,42 @@ const Editor = (props: { className: string; shape: Core }) => {
         {(props.shape instanceof Process ||
           props.shape instanceof Data ||
           props.shape instanceof Desicion) && (
-            <>
-              <div>
-                <p className="mb-1">Data Usage</p>
-                <ul className="ps-2">
-                  {props.shape.options.map((option) => (
-                    <li className="mb-1">
-                      <span className="bg-indigo-100 text-indigo-500 w-4 h-4 rounded-full inline-flex items-center justify-center">
-                        {selections[option.text] && (
-                          <svg
-                            fill="none"
-                            stroke="currentColor"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="3"
-                            className="w-3 h-3"
-                            viewBox="0 0 24 24"
-                          >
-                            <path d="M20 6L9 17l-5-5"></path>
-                          </svg>
-                        )}
-                      </span>
-                      {option.text}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div>
-                <div className="mb-1">Redundancies</div>
-                <ul className="ps-2">
-                  {props.shape.redundancies.map((redundancy) => (
-                    <li className="mb-1"> · {redundancy.text}</li>
-                  ))}
-                </ul>
-              </div>
-            </>
-          )}
+          <>
+            <div>
+              <p className="mb-1">Data Usage</p>
+              <ul className="ps-2">
+                {props.shape.options.map((option) => (
+                  <li className="mb-1">
+                    <span className="bg-indigo-100 text-indigo-500 w-4 h-4 rounded-full inline-flex items-center justify-center">
+                      {selections[option.text] && (
+                        <svg
+                          fill="none"
+                          stroke="currentColor"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="3"
+                          className="w-3 h-3"
+                          viewBox="0 0 24 24"
+                        >
+                          <path d="M20 6L9 17l-5-5"></path>
+                        </svg>
+                      )}
+                    </span>
+                    {option.text}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <div className="mb-1">Redundancies</div>
+              <ul className="ps-2">
+                {props.shape.redundancies.map((redundancy) => (
+                  <li className="mb-1"> · {redundancy.text}</li>
+                ))}
+              </ul>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
@@ -279,9 +279,21 @@ const init = {
     },
   },
   authInfo: {
-    account: { value: undefined, status: InputTypes.Status.normal, comment: undefined },
-    password: { value: undefined, status: InputTypes.Status.normal, comment: undefined },
-    email: { value: undefined, status: InputTypes.Status.normal, comment: undefined },
+    account: {
+      value: undefined,
+      status: InputTypes.Status.normal,
+      comment: undefined,
+    },
+    password: {
+      value: undefined,
+      status: InputTypes.Status.normal,
+      comment: undefined,
+    },
+    email: {
+      value: undefined,
+      status: InputTypes.Status.normal,
+      comment: undefined,
+    },
   },
 };
 
@@ -289,8 +301,8 @@ export default function ProcessPage() {
   let { current: $canvas } = useRef<HTMLCanvasElement | null>(null);
 
   const [dataFrame, setDataFrame] = useState<
-    { p: CommonTypes.Vec } | undefined
-  >(undefined),
+      { p: CommonTypes.Vec } | undefined
+    >(undefined),
     [dbClickedShape, setDbClickedShape] = useState<
       Terminal | Data | Process | Desicion | null
     >(null),
@@ -309,9 +321,21 @@ export default function ProcessPage() {
     [isLogIn, setIsLogin] = useState(true),
     [isProjectsModalOpen, setIsProjectsModalOpen] = useState(false),
     [authInfo, setAuthInfo] = useState<{
-      account: { value: undefined | string; status: InputTypes.Status, comment: undefined | string; };
-      password: { value: undefined | string; status: InputTypes.Status, comment: undefined | string; };
-      email: { value: undefined | string; status: InputTypes.Status, comment: undefined | string; };
+      account: {
+        value: undefined | string;
+        status: InputTypes.Status;
+        comment: undefined | string;
+      };
+      password: {
+        value: undefined | string;
+        status: InputTypes.Status;
+        comment: undefined | string;
+      };
+      email: {
+        value: undefined | string;
+        status: InputTypes.Status;
+        comment: undefined | string;
+      };
     }>(init.authInfo),
     [isAuthorizing, setIsAuthorizing] = useState(false),
     [authMessage, setAuthMessage] = useState({
@@ -319,19 +343,20 @@ export default function ProcessPage() {
       text: "",
     }),
     [isFetchingProjects, setIsFetchingProjects] = useState(false),
-    [projects, setProjects] = useState<ProjectTypes.GetProjects['ResData']>([])
+    [projects, setProjects] = useState<ProjectTypes.GetProjects["ResData"]>([]);
 
   const checkData = () => {
-    const datas: Data[] = []
+    const datas: Data[] = [];
 
     shapes.forEach((shape) => {
       shape.options = [];
       if (shape instanceof Data) {
-        datas.push(shape)
+        datas.push(shape);
       }
-    })
+    });
 
-    datas.forEach(data => {
+    // TODO: curve 相關
+    datas.forEach((data) => {
       // traversal all relational steps
       const queue: Core[] = [data],
         locks = { [data.id]: { l: false, t: false, r: false, b: false } }; // prevent from graph cycle
@@ -339,49 +364,43 @@ export default function ProcessPage() {
       while (queue.length !== 0) {
         const shape = queue[0];
 
-        // TODO: curve 相關
-        // ds.forEach((d) => {
-        //   const theSendToShape = shape.curves[d].sendTo?.shape;
+        shape.curves.forEach((curve) => {
+          const theSendToShape = curve.sendTo?.shape;
 
-        //   const theSendToShapeOptionsMapping = (() => {
-        //     const mapping: { [optionsText: string]: boolean } = {}
+          if (!theSendToShape) return;
 
-        //     theSendToShape?.options.forEach(option => {
-        //       mapping[option.text] = true
-        //     })
+          data.data.forEach((dataItem) => {
+            if (
+              theSendToShape.options.some(
+                (option) => option.text === dataItem.text
+              )
+            )
+              return;
+            theSendToShape.options.push(dataItem);
+          });
 
-        //     return mapping
-        //   })()
+          const hasLock = locks[theSendToShape.id];
 
-        //   if (!theSendToShape) return;
-        //   data.data.forEach((dataItem) => {
-        //     if (theSendToShapeOptionsMapping[dataItem.text]) return
-        //     theSendToShape.options.push(dataItem)
-        //   })
+          if (!hasLock) {
+            locks[theSendToShape.id] = {
+              l: false,
+              t: false,
+              r: false,
+              b: false,
+            };
+          }
 
-        //   const hasLock = locks[theSendToShape.id];
+          const isDirectionLock = locks[theSendToShape.id][curve.d];
 
-        //   if (!hasLock) {
-        //     locks[theSendToShape.id] = {
-        //       l: false,
-        //       t: false,
-        //       r: false,
-        //       b: false,
-        //     };
-        //   }
-
-        //   const isDirectionLock = locks[theSendToShape.id][d];
-
-        //   if (!isDirectionLock) {
-        //     queue.push(theSendToShape);
-        //     locks[theSendToShape.id][d] = true;
-        //   }
-        // });
+          if (!isDirectionLock) {
+            queue.push(theSendToShape);
+            locks[theSendToShape.id][curve.d] = true;
+          }
+        });
 
         queue.shift();
       }
-    })
-
+    });
 
     // check all correspondants of shapes' between options and selectedData
     shapes.forEach((shape) => {
@@ -400,85 +419,6 @@ export default function ProcessPage() {
     });
 
     setSteps(_steps);
-
-    const _procedures: PageTypes.Procedures = {};
-
-    shapes.forEach((shape) => {
-      if (
-        shape instanceof Terminal &&
-        shape.isStart &&
-        !_procedures[shape.id]
-      ) {
-        _procedures[shape.id] = [];
-      }
-    });
-
-    const goThroughShapes: { [shapeId: string]: boolean } = {};
-
-    shapes.forEach((shape) => {
-      if (!(shape instanceof Terminal && shape.isStart)) return;
-
-      const head = shape,
-        queue: Core[] = [shape],
-        locks = { [shape.id]: { l: false, t: false, r: false, b: false } }; // prevent from graph cycle
-
-      while (queue.length !== 0) {
-        const shape = queue[0];
-
-        if (head.id === shape.id) {
-          _procedures[head.id] = [];
-        } else {
-          _procedures[head.id].push(shape.id);
-        }
-        goThroughShapes[shape.id] = true;
-
-        // TODO: curve 相關
-        // ds.forEach((d) => {
-        //   const theSendTo = shape.curves[d].sendTo;
-
-        //   if (!theSendTo) return;
-
-        //   const hasLock = locks[theSendTo.shape.id];
-
-        //   if (!hasLock) {
-        //     locks[theSendTo.shape.id] = {
-        //       l: false,
-        //       t: false,
-        //       r: false,
-        //       b: false,
-        //     };
-        //   }
-
-        //   const hasDirectionLock = locks[theSendTo.shape.id][d];
-
-        //   if (!hasDirectionLock) {
-        //     if (
-        //       !(
-        //         theSendTo.shape.id !== head.id &&
-        //         theSendTo.shape instanceof Terminal &&
-        //         theSendTo.shape.isStart
-        //       )
-        //     ) {
-        //       queue.push(theSendTo.shape);
-        //     }
-        //     locks[theSendTo.shape.id][d] = true;
-        //   }
-        // });
-
-        queue.shift();
-      }
-    });
-
-    setProcedures(_procedures);
-
-    const _otherStepIds: PageTypes.OtherStepIds = [];
-
-    shapes.forEach((shape) => {
-      if (goThroughShapes[shape.id]) return;
-      _otherStepIds.push(shape.id);
-    });
-
-    setOtherStepIds(_otherStepIds);
   };
 
   const zoom = (
@@ -558,9 +498,9 @@ export default function ProcessPage() {
     setLeftMouseBtn(true);
 
     const p = {
-      x: e.nativeEvent.offsetX,
-      y: e.nativeEvent.offsetY,
-    },
+        x: e.nativeEvent.offsetX,
+        y: e.nativeEvent.offsetY,
+      },
       pInSelectArea =
         p.x > select.start.x &&
         p.y > select.start.y &&
@@ -657,11 +597,7 @@ export default function ProcessPage() {
           if (triggerD) {
             shape.selecting = false;
 
-            if (
-              !shape.receiveFrom[
-                CommonTypes.Direction[triggerD]
-              ]?.shape
-            ) {
+            if (!shape.receiveFrom[CommonTypes.Direction[triggerD]]?.shape) {
               shape.createCurve(
                 `curve_${Date.now()}`,
                 CommonTypes.Direction[triggerD]
@@ -672,13 +608,12 @@ export default function ProcessPage() {
           // drag curve
           for (const curveInShape of shape.curves) {
             const theCurve = curveInShape.shape,
-              _direction = curveInShape.d
+              _direction = curveInShape.d;
 
             const curveP = {
               x: p.x - shape?.getScreenP().x,
               y: p.y - shape?.getScreenP().y,
             };
-
 
             if (!theCurve) continue;
             if (
@@ -741,12 +676,12 @@ export default function ProcessPage() {
                 dx:
                   (p.x - dragP.x) * (1 / scale) -
                   shape?.getEdge()[
-                  theCheckShapeVertexesBoundry[0] as CommonTypes.Direction
+                    theCheckShapeVertexesBoundry[0] as CommonTypes.Direction
                   ],
                 dy:
                   (p.y - dragP.y) * (1 / scale) -
                   shape?.getEdge()[
-                  theCheckShapeVertexesBoundry[1] as CommonTypes.Direction
+                    theCheckShapeVertexesBoundry[1] as CommonTypes.Direction
                   ],
               };
             }
@@ -801,9 +736,9 @@ export default function ProcessPage() {
     if (!$canvas || !ctx) return;
 
     const p = {
-      x: e.nativeEvent.offsetX,
-      y: e.nativeEvent.offsetY,
-    },
+        x: e.nativeEvent.offsetX,
+        y: e.nativeEvent.offsetY,
+      },
       offsetP = {
         x: p.x - dragP.x,
         y: p.y - dragP.y,
@@ -848,7 +783,7 @@ export default function ProcessPage() {
           pressing?.parent &&
           pressing?.direction
         ) {
-          pressing.parent.disConnect(pressing?.direction, true);
+          pressing.parent.disConnect(pressing.parent, [pressing.shape.id]);
 
           shapes.forEach((shape) => {
             if (!ctx) return;
@@ -862,7 +797,7 @@ export default function ProcessPage() {
 
             // TODO: curve 相關
             for (const d of ds) {
-              shape.receiving[d] = isNearShape
+              shape.receiving[d] = isNearShape;
             }
           });
         }
@@ -1198,9 +1133,9 @@ export default function ProcessPage() {
         const theEdge = shape.getEdge();
 
         const l =
-          selectAreaP.start.x < selectAreaP.end.x
-            ? selectAreaP.start.x
-            : selectAreaP.end.x,
+            selectAreaP.start.x < selectAreaP.end.x
+              ? selectAreaP.start.x
+              : selectAreaP.end.x,
           t =
             selectAreaP.start.y < selectAreaP.end.y
               ? selectAreaP.start.y
@@ -1264,11 +1199,12 @@ export default function ProcessPage() {
           p
         );
 
-
         if (theCheckReceivingPointsBoundry) {
-          console.log('pressing?', pressing)
-
-          pressing.parent.connect(shape, theCheckReceivingPointsBoundry, pressing.shape.id);
+          pressing.parent.connect(
+            shape,
+            theCheckReceivingPointsBoundry,
+            pressing.shape.id
+          );
         }
       }
 
@@ -1353,14 +1289,10 @@ export default function ProcessPage() {
       }
 
       if (removeShape) {
-        for (const d of ds) {
-          removeShape?.disConnect(d, true);
-          removeShape?.disConnect(d, false);
-        }
+        removeShape?.removeConnection();
         shapes = shapes.filter((shape) => shape.id !== removeShape?.id);
         checkData();
         checkGroups();
-
       } else if (removeCurve) {
         // TODO: curve 相關
         removeCurve.shape.removeCurve(removeCurve.id);
@@ -1619,7 +1551,8 @@ export default function ProcessPage() {
           shape instanceof Terminal ||
           shape instanceof Process ||
           shape instanceof Data ||
-          (shape instanceof Desicion && !(shape.getText().y && shape.getText().n))
+          (shape instanceof Desicion &&
+            !(shape.getText().y && shape.getText().n))
           // (shape instanceof Terminal &&
           //   !shape.curves.l.shape &&
           //   !shape.curves.t.shape &&
@@ -1787,7 +1720,7 @@ export default function ProcessPage() {
     const _authInfo = cloneDeep(authInfo);
     if (!authInfo.account.value) {
       _authInfo.account.status = InputTypes.Status.error;
-      _authInfo.account.comment = "required!"
+      _authInfo.account.comment = "required!";
     }
     if (!authInfo.password.value) {
       _authInfo.password.status = InputTypes.Status.error;
@@ -1795,86 +1728,96 @@ export default function ProcessPage() {
 
     if (!authInfo.account.value || !authInfo.password.value) {
       _authInfo.password.status = InputTypes.Status.error;
-      _authInfo.password.comment = "required!"
+      _authInfo.password.comment = "required!";
       setAuthInfo(_authInfo);
       return;
     }
 
     setIsAuthorizing(true);
 
-    const res: AxiosResponse<AuthTypes.Login['ResData'], any> = await authAPIs.login(
-      authInfo.account.value,
-      authInfo.password.value,
-    );
+    const res: AxiosResponse<
+      AuthTypes.Login["ResData"],
+      any
+    > = await authAPIs.login(authInfo.account.value, authInfo.password.value);
 
     if (res.status === 201) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`
-      localStorage.setItem('Authorization', res.data.token)
+      axios.defaults.headers.common[
+        "Authorization"
+      ] = `Bearer ${res.data.token}`;
+      localStorage.setItem("Authorization", res.data.token);
       setTimeout(() => {
         setAuthMessage({
           status: AlertTypes.Type.succeess,
           text: res.data.message,
-        })
+        });
         setIsAuthorizing(false);
         setTimeout(async () => {
           setIsLogin(true);
-          setAuthMessage(authMessage => ({
+          setAuthMessage((authMessage) => ({
             ...authMessage,
-            text: ""
-          }))
+            text: "",
+          }));
           setIsAccountModalOpen(false);
           setIsProjectsModalOpen(true);
           setAuthInfo(init.authInfo);
-          const res: AxiosResponse<ProjectTypes.GetProjects['ResData'], any> = await projectAPIs.getProjecs()
-          setProjects(res.data)
-        }, 1000)
-      }, 500)
+          const res: AxiosResponse<
+            ProjectTypes.GetProjects["ResData"],
+            any
+          > = await projectAPIs.getProjecs();
+          setProjects(res.data);
+        }, 1000);
+      }, 500);
     } else {
       setTimeout(() => {
         setIsAuthorizing(false);
         setAuthMessage({
           status: AlertTypes.Type.error,
           text: res.data.message,
-        })
-      }, 1000)
+        });
+      }, 1000);
     }
   };
 
   const onClickSignUpButton = async () => {
     const _authInfo = cloneDeep(authInfo);
 
-    const isPasswordLengthGreaterThanSix = authInfo.password.value && authInfo.password.value?.length >= 6,
-      isEmailFormatValid = authInfo.email.value && new RegExp(/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/).test(authInfo.email.value);
+    const isPasswordLengthGreaterThanSix =
+        authInfo.password.value && authInfo.password.value?.length >= 6,
+      isEmailFormatValid =
+        authInfo.email.value &&
+        new RegExp(/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/).test(
+          authInfo.email.value
+        );
 
     if (!authInfo.account.value) {
       _authInfo.account.status = InputTypes.Status.error;
-      _authInfo.account.comment = "required field."
+      _authInfo.account.comment = "required field.";
     } else {
       _authInfo.account.status = InputTypes.Status.normal;
-      _authInfo.account.comment = ""
+      _authInfo.account.comment = "";
     }
 
     if (!authInfo.password.value) {
       _authInfo.password.status = InputTypes.Status.error;
-      _authInfo.password.comment = "required field."
+      _authInfo.password.comment = "required field.";
     } else if (!isPasswordLengthGreaterThanSix) {
       _authInfo.password.status = InputTypes.Status.error;
-      _authInfo.password.comment = "length should be greater than 6 characters."
+      _authInfo.password.comment =
+        "length should be greater than 6 characters.";
     } else {
       _authInfo.password.status = InputTypes.Status.normal;
-      _authInfo.password.comment = ""
+      _authInfo.password.comment = "";
     }
 
     if (!authInfo.email.value) {
       _authInfo.email.status = InputTypes.Status.error;
-      _authInfo.email.comment = "requied field."
+      _authInfo.email.comment = "requied field.";
     } else if (!isEmailFormatValid) {
       _authInfo.email.status = InputTypes.Status.error;
-      _authInfo.email.comment = "invalid email format."
+      _authInfo.email.comment = "invalid email format.";
     } else {
-
       _authInfo.email.status = InputTypes.Status.normal;
-      _authInfo.email.comment = ""
+      _authInfo.email.comment = "";
     }
 
     setAuthInfo(_authInfo);
@@ -1888,40 +1831,41 @@ export default function ProcessPage() {
     )
       return;
 
-
     setIsAuthorizing(true);
 
-    const res: AxiosResponse<AuthTypes.Register['ResData'], any> = await authAPIs.register(
+    const res: AxiosResponse<
+      AuthTypes.Register["ResData"],
+      any
+    > = await authAPIs.register(
       authInfo.account.value,
       authInfo.password.value,
       authInfo.email.value
     );
-
 
     if (res.status === 201) {
       setTimeout(() => {
         setAuthMessage({
           status: AlertTypes.Type.succeess,
           text: res.data.message,
-        })
+        });
         setIsAuthorizing(false);
         setAuthInfo(init.authInfo);
         setTimeout(() => {
           setIsLogin(true);
-          setAuthMessage(authMessage => ({
+          setAuthMessage((authMessage) => ({
             ...authMessage,
-            text: ""
-          }))
-        }, 1500)
-      }, 1000)
+            text: "",
+          }));
+        }, 1500);
+      }, 1000);
     } else {
       setTimeout(() => {
         setIsAuthorizing(false);
         setAuthMessage({
           status: AlertTypes.Type.error,
           text: res.data.message,
-        })
-      }, 1000)
+        });
+      }, 1000);
     }
   };
 
@@ -1977,8 +1921,6 @@ export default function ProcessPage() {
       );
       process_new.offset = offset;
       process_new.scale = scale;
-
-      console.log('-offset.x + window.innerWidth / 2', -offset.x + window.innerWidth / 2)
 
       let data_new = new Data(
         `data_${Date.now()}`,
@@ -2235,7 +2177,7 @@ export default function ProcessPage() {
           <li className="flex justify-self-end self-center text-base">
             <Button
               className={"mr-4 bg-secondary-500"}
-              onClick={(e) => { }}
+              onClick={(e) => {}}
               text={
                 <div className="d-flex items-center">
                   <span className="text-white-500">Save</span>
@@ -2262,59 +2204,56 @@ export default function ProcessPage() {
         onClickSwitch={onClickDataSidePanelSwitch}
       >
         <ul>
-          {Object.entries(steps).map(
-            ([stepId, step], stepI) => {
-              return (
-                <li key={stepId} className="mb-1">
-                  <Accordion
-                    showArrow={!(step.shape instanceof Terminal)}
-                    title={step.shape.title}
-                    hoverRender={
-                      <div className="h-full flex justify-end items-center">
-                        <div
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            step.shape instanceof Terminal ? undefined : onClickStep(step.shape.p);
-                          }}
+          {Object.entries(steps).map(([stepId, step], stepI) => {
+            return (
+              <li key={stepId} className="mb-1">
+                <Accordion
+                  showArrow={!(step.shape instanceof Terminal)}
+                  title={step.shape.title}
+                  hoverRender={
+                    <div className="h-full flex justify-end items-center">
+                      <div
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          step.shape instanceof Terminal
+                            ? undefined
+                            : onClickStep(step.shape.p);
+                        }}
+                      >
+                        <svg
+                          width={18}
+                          height={18}
+                          xmlns="http://www.w3.org/2000/svg"
+                          xmlnsXlink="http://www.w3.org/1999/xlink"
+                          version="1.1"
+                          x="0px"
+                          y="0px"
+                          viewBox="0 0 100 100"
+                          enable-background="new 0 0 100 100"
+                          xmlSpace="preserve"
                         >
-                          <svg
-                            width={18}
-                            height={18}
-                            xmlns="http://www.w3.org/2000/svg"
-                            xmlnsXlink="http://www.w3.org/1999/xlink"
-                            version="1.1"
-                            x="0px"
-                            y="0px"
-                            viewBox="0 0 100 100"
-                            enable-background="new 0 0 100 100"
-                            xmlSpace="preserve"
-                          >
-                            <path
-                              fill="#233C53"
-                              d="M84.6,45C82.4,29.7,70.3,17.5,55,15.3V5H45v10.3C29.7,17.5,17.6,29.7,15.4,45H5v10h10.4C17.6,70.3,29.7,82.4,45,84.6V95h10  V84.6C70.3,82.4,82.4,70.3,84.6,55H95V45H84.6z M50,75c-13.8,0-25-11.2-25-25s11.2-25,25-25s25,11.2,25,25S63.8,75,50,75z"
-                            />
-                            <circle cx="50" cy="50" r="10" />
-                          </svg>
-                        </div>
+                          <path
+                            fill="#233C53"
+                            d="M84.6,45C82.4,29.7,70.3,17.5,55,15.3V5H45v10.3C29.7,17.5,17.6,29.7,15.4,45H5v10h10.4C17.6,70.3,29.7,82.4,45,84.6V95h10  V84.6C70.3,82.4,82.4,70.3,84.6,55H95V45H84.6z M50,75c-13.8,0-25-11.2-25-25s11.2-25,25-25s25,11.2,25,25S63.8,75,50,75z"
+                          />
+                          <circle cx="50" cy="50" r="10" />
+                        </svg>
                       </div>
-                    }
-                    open={step.open}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onClickaAccordionArrow(stepId);
-                    }}
-                  >
-                    <Editor
-                      className="ps-6"
-                      shape={step.shape}
-                    />
-                  </Accordion>
-                </li>
-              );
-            }
-          )}
-        </ul >
-      </SidePanel >
+                    </div>
+                  }
+                  open={step.open}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onClickaAccordionArrow(stepId);
+                  }}
+                >
+                  <Editor className="ps-6" shape={step.shape} />
+                </Accordion>
+              </li>
+            );
+          })}
+        </ul>
+      </SidePanel>
       <SidePanel
         open={isUserSidePanelOpen}
         w={"300px"}
@@ -2505,27 +2444,25 @@ export default function ProcessPage() {
         onWheel={onMouseWheel}
         onDoubleClick={onDoubleClick}
       />
-      {
-        dataFrame && dbClickedShape && (
-          <DataFrame
-            shape={dbClickedShape}
-            coordinate={dataFrame.p}
-            onConfirm={onConfirmDataFrame}
-            feature={{
-              import: dbClickedShape instanceof Data,
-              usage:
-                dbClickedShape instanceof Process ||
-                dbClickedShape instanceof Data ||
-                dbClickedShape instanceof Desicion,
-              redundancy:
-                dbClickedShape instanceof Process ||
-                dbClickedShape instanceof Data ||
-                dbClickedShape instanceof Desicion,
-            }}
-            warning={dataFrameWarning}
-          />
-        )
-      }
+      {dataFrame && dbClickedShape && (
+        <DataFrame
+          shape={dbClickedShape}
+          coordinate={dataFrame.p}
+          onConfirm={onConfirmDataFrame}
+          feature={{
+            import: dbClickedShape instanceof Data,
+            usage:
+              dbClickedShape instanceof Process ||
+              dbClickedShape instanceof Data ||
+              dbClickedShape instanceof Desicion,
+            redundancy:
+              dbClickedShape instanceof Process ||
+              dbClickedShape instanceof Data ||
+              dbClickedShape instanceof Desicion,
+          }}
+          warning={dataFrameWarning}
+        />
+      )}
     </>
   );
 }

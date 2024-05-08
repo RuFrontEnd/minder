@@ -346,7 +346,6 @@ export default class Core {
     this.__scale__ = value;
 
     // TODO: curve 相關
-
     this.curves.forEach((curve) => {
       curve.shape.scale = value;
     });
@@ -627,23 +626,48 @@ export default class Core {
     }
   }
 
-  disConnect(d: Direction, fromSender: boolean) {
+  disConnect(shape: Core, curveIds: string[]) {
     // TODO: curve 相關
-    // if (fromSender) {
-    //   const receiverShape = this.curves[d]?.sendTo?.shape,
-    //     receiverDirection = this.curves[d]?.sendTo?.receiveD;
-    //   if (receiverShape && receiverDirection) {
-    //     receiverShape.receiveFrom[receiverDirection] = null;
-    //     this.curves[d].sendTo = null;
-    //   }
-    // } else {
-    //   const senderShape = this.receiveFrom[d]?.shape,
-    //     senderDirection = this.receiveFrom[d]?.sendD;
-    //   if (senderShape && senderDirection) {
-    //     senderShape.curves[senderDirection].sendTo = null;
-    //     this.receiveFrom[d] = null;
-    //   }
-    // }
+    const curveIdsMapping = (() => {
+      const mapping: { [curveId: string]: boolean } = {};
+
+      curveIds.forEach((curveId) => {
+        mapping[curveId] = true;
+      });
+
+      return mapping;
+    })();
+
+    const curves = shape.curves.filter(
+      (curve) => curve.shape.id in curveIdsMapping
+    );
+
+    curves.forEach((curve) => {
+      const receiverShape = curve?.sendTo?.shape,
+        receiverShapeD = curve?.sendTo?.d;
+
+      if (receiverShape && receiverShapeD) {
+        receiverShape.receiveFrom[receiverShapeD] = null;
+        curve.sendTo = null;
+      }
+    });
+  }
+
+  removeConnection() {
+    // remove connection from receiver
+    this.curves.forEach((curve) => {
+      if (!curve.sendTo) return;
+      curve.sendTo.shape.receiveFrom[curve.sendTo.d] = null;
+    });
+
+    // remove connection from sender
+    ds.forEach((d) => {
+      this.receiveFrom[d]?.shape.curves.forEach((curve) => {
+        if (curve.sendTo?.shape.id === this.id) {
+          curve.sendTo = null;
+        }
+      });
+    });
   }
 
   getRedundancies() {
@@ -1048,22 +1072,6 @@ export default class Core {
     this.curves.forEach((curve) => {
       curve.shape.draw(ctx);
     });
-
-    // if (this.curves.l.shape) {
-    //   this.curves.l.shape.draw(ctx);
-    // }
-
-    // if (this.curves.t.shape) {
-    //   this.curves.t.shape.draw(ctx);
-    // }
-
-    // if (this.curves.r.shape) {
-    //   this.curves.r.shape.draw(ctx);
-    // }
-
-    // if (this.curves.b.shape) {
-    //   this.curves.b.shape.draw(ctx);
-    // }
 
     ctx.restore();
   }
