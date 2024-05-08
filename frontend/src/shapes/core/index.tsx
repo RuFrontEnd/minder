@@ -1,14 +1,13 @@
 "use client";
 import Curve from "@/shapes/curve";
-import { tailwindColors } from '@/variables/colors'
-import { Inter } from 'next/font/google'
+import { tailwindColors } from "@/variables/colors";
+import { Inter } from "next/font/google";
 import { Vec, Direction, Data as DataType } from "@/types/shapes/common";
 import { Line } from "@/types/shapes/curve";
 import * as CoreTypes from "@/types/shapes/core";
 import * as CommonTypes from "@/types/shapes/common";
 
-
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ subsets: ["latin"] });
 
 const ds = [Direction.l, Direction.t, Direction.r, Direction.b];
 
@@ -30,20 +29,20 @@ export default class Core {
     cpline: Line;
     curve: Line;
   } = {
-      d: 50,
-      size: {
-        fill: 4,
-        stroke: 2,
-      },
-      cpline: {
-        w: 1,
-        c: tailwindColors?.info["500"] || "#000000",
-      },
-      curve: {
-        w: 1,
-        c: "#333333",
-      },
-    };
+    d: 50,
+    size: {
+      fill: 4,
+      stroke: 2,
+    },
+    cpline: {
+      w: 1,
+      c: tailwindColors?.info["500"] || "#000000",
+    },
+    curve: {
+      w: 1,
+      c: "#333333",
+    },
+  };
   private strokeSize = 1;
   private initPressing = {
     activate: false,
@@ -58,7 +57,11 @@ export default class Core {
   __h__: number;
   title: CommonTypes.Title;
   __p__: Vec;
-  curves: { d: CommonTypes.Direction, shape: Curve, sendTo: null | CoreTypes.SendTo }[];
+  curves: {
+    d: CommonTypes.Direction;
+    shape: Curve;
+    sendTo: null | CoreTypes.SendTo;
+  }[];
   __selecting__: boolean;
   __receiving__: CoreTypes.Receiving;
   pressing: {
@@ -74,9 +77,9 @@ export default class Core {
   dragP:
     | Vec
     | {
-      x: null;
-      y: null;
-    };
+        x: null;
+        y: null;
+      };
   options: DataType;
   selectedData: DataType;
   redundancies: DataType;
@@ -131,33 +134,39 @@ export default class Core {
     this.__p__ = value;
 
     // TODO: curve 相關
-    // for (const d of ds) {
-    //   // when receiver shape move, sender curve follows the receiver shape
-    //   const receiverShape = this.receiveFrom[d],
-    //     receiverCurve = receiverShape?.shape.curves[receiverShape.sendD].shape;
+    // when receiver shape move, sender curve follows the receiver shape
+    ds.forEach((d) => {
+      const receiverShape = this.receiveFrom[d],
+        sendCurves = receiverShape?.shape.curves.filter(
+          (curve) => curve.d === receiverShape.d
+        );
 
-    //   if (receiverCurve) {
-    //     receiverCurve.p2 = {
-    //       x: receiverCurve.p2.x + offest.x,
-    //       y: receiverCurve.p2.y + offest.y,
-    //     };
-    //     receiverCurve.cp2.x += offest.x;
-    //     receiverCurve.cp2.y += offest.y;
-    //   }
+      if (!sendCurves) return;
 
-    //   // when sender shape move, receiver curve follows the sender shape
-    //   const senderCurve = this.curves[d].shape,
-    //     sendToShape = this.curves[d].sendTo?.shape;
+      sendCurves.forEach((sendCurve) => {
+        sendCurve.shape.p2 = {
+          x: sendCurve.shape.p2.x + offest.x,
+          y: sendCurve.shape.p2.y + offest.y,
+        };
+        sendCurve.shape.cp2.x += offest.x;
+        sendCurve.shape.cp2.y += offest.y;
+      });
+    });
 
-    //   if (senderCurve && sendToShape) {
-    //     senderCurve.p2 = {
-    //       x: senderCurve.p2.x - offest.x,
-    //       y: senderCurve.p2.y - offest.y,
-    //     };
-    //     senderCurve.cp2.x -= offest.x;
-    //     senderCurve.cp2.y -= offest.y;
-    //   }
-    // }
+    // when sender shape move, receiver curve follows the sender shape
+    this.curves.forEach((curve) => {
+      const senderCurve = curve.shape,
+        sendToShape = curve.sendTo;
+
+      if (senderCurve && sendToShape) {
+        senderCurve.p2 = {
+          x: senderCurve.p2.x - offest.x,
+          y: senderCurve.p2.y - offest.y,
+        };
+        senderCurve.cp2.x -= offest.x;
+        senderCurve.cp2.y -= offest.y;
+      }
+    });
   }
 
   get p() {
@@ -170,10 +179,12 @@ export default class Core {
 
     // TODO: curve 相關
 
-    const horizentalCurves = this.curves.filter(curve => curve.d === Direction.l || curve.d === Direction.r)
+    const horizentalCurves = this.curves.filter(
+      (curve) => curve.d === Direction.l || curve.d === Direction.r
+    );
 
-    horizentalCurves.forEach(horizentalCurve => {
-      const theCurve = horizentalCurve.shape
+    horizentalCurves.forEach((horizentalCurve) => {
+      const theCurve = horizentalCurve.shape;
       if (horizentalCurve.d === Direction.l) {
         theCurve.p1.x += offset;
         theCurve.cp1.x += offset;
@@ -185,7 +196,6 @@ export default class Core {
           };
           theCurve.cp2.x += offset;
         }
-
       } else if (horizentalCurve.d === Direction.r) {
         theCurve.p1.x -= offset;
         theCurve.cp1.x -= offset;
@@ -198,7 +208,7 @@ export default class Core {
         };
         theCurve.cp2.x -= offset;
       }
-    })
+    });
 
     // TODO: curve 相關
     // const receiveFromCurve_l = this.receiveFrom.l?.shape.curves[
@@ -234,11 +244,12 @@ export default class Core {
     this.__h__ = value;
 
     // TODO: curve 相關
+    const horizentalCurves = this.curves.filter(
+      (curve) => curve.d === Direction.t || curve.d === Direction.b
+    );
 
-    const horizentalCurves = this.curves.filter(curve => curve.d === Direction.t || curve.d === Direction.b)
-
-    horizentalCurves.forEach(horizentalCurve => {
-      const theCurve = horizentalCurve.shape
+    horizentalCurves.forEach((horizentalCurve) => {
+      const theCurve = horizentalCurve.shape;
       if (horizentalCurve.d === Direction.t) {
         theCurve.p1.y += offset;
         theCurve.cp1.y += offset;
@@ -250,7 +261,6 @@ export default class Core {
           };
           theCurve.cp2.y += offset;
         }
-
       } else if (horizentalCurve.d === Direction.b) {
         theCurve.p1.y -= offset;
         theCurve.cp1.y -= offset;
@@ -263,7 +273,7 @@ export default class Core {
         };
         theCurve.cp2.y -= offset;
       }
-    })
+    });
 
     // TODO: curve 相關
     // const receiveFromCurve_t = this.receiveFrom.t?.shape.curves[
@@ -307,9 +317,9 @@ export default class Core {
 
     // TODO: curve 相關
 
-    this.curves.forEach(curve => {
-      curve.shape.scale = value
-    })
+    this.curves.forEach((curve) => {
+      curve.shape.scale = value;
+    });
   }
 
   get scale() {
@@ -539,9 +549,8 @@ export default class Core {
     // TODO: curve 相關
     for (const d of ds) {
       if (
-
         (p.x - center.curveTrigger[d].x) * (p.x - center.curveTrigger[d].x) +
-        (p.y - center.curveTrigger[d].y) * (p.y - center.curveTrigger[d].y) <
+          (p.y - center.curveTrigger[d].y) * (p.y - center.curveTrigger[d].y) <
         this.curveTrigger.size.fill * this.curveTrigger.size.fill
       ) {
         return Direction[d];
@@ -552,14 +561,16 @@ export default class Core {
   connect(targetShape: Core, targetShapeD: Direction, sendCurveId: string) {
     // TODO: curve 相關
 
-    const bridgeCurve = this.curves.find(curve => curve.shape.id === sendCurveId)
-    if (!bridgeCurve) return
-    bridgeCurve.sendTo = { shape: targetShape, d: targetShapeD }
+    const bridgeCurve = this.curves.find(
+      (curve) => curve.shape.id === sendCurveId
+    );
+    if (!bridgeCurve) return;
+    bridgeCurve.sendTo = { shape: targetShape, d: targetShapeD };
 
     targetShape.receiveFrom[targetShapeD] = {
-      shape: targetShape,
-      d: bridgeCurve.d
-    }
+      shape: this,
+      d: bridgeCurve.d,
+    };
 
     const thershold = 10;
 
@@ -591,7 +602,6 @@ export default class Core {
     // if (fromSender) {
     //   const receiverShape = this.curves[d]?.sendTo?.shape,
     //     receiverDirection = this.curves[d]?.sendTo?.receiveD;
-
     //   if (receiverShape && receiverDirection) {
     //     receiverShape.receiveFrom[receiverDirection] = null;
     //     this.curves[d].sendTo = null;
@@ -599,7 +609,6 @@ export default class Core {
     // } else {
     //   const senderShape = this.receiveFrom[d]?.shape,
     //     senderDirection = this.receiveFrom[d]?.sendD;
-
     //   if (senderShape && senderDirection) {
     //     senderShape.curves[senderDirection].sendTo = null;
     //     this.receiveFrom[d] = null;
@@ -634,8 +643,10 @@ export default class Core {
 
   removeCurve(targetId: string) {
     // TODO: curve 相關
-    const targetI = this.curves.findIndex((curve) => curve.shape.id === targetId)
-    this.curves.splice(targetI, 1)
+    const targetI = this.curves.findIndex(
+      (curve) => curve.shape.id === targetId
+    );
+    this.curves.splice(targetI, 1);
   }
 
   move(p: Vec, dragP: Vec) {
@@ -735,7 +746,7 @@ export default class Core {
   createCurve(id: string, _d: Direction) {
     // TODO: curve 相關
 
-    let newCurve = null
+    let newCurve = null;
 
     if (_d === Direction.l) {
       newCurve = new Curve(
@@ -833,8 +844,8 @@ export default class Core {
     this.curves.push({
       d: _d,
       shape: newCurve,
-      sendTo: null
-    })
+      sendTo: null,
+    });
   }
 
   renderText = (
@@ -852,7 +863,7 @@ export default class Core {
     for (const word of words) {
       const testLine = line + word,
         metrics = ctx.measureText(testLine),
-        testWidth = metrics.width
+        testWidth = metrics.width;
 
       if (testWidth > maxWidth - 32 * this.scale) {
         lines.push(line);
@@ -894,10 +905,10 @@ export default class Core {
     ctx.save();
     ctx.translate(this.getScreenP().x, this.getScreenP().y);
 
-    const isAlert = this.redundancies.length > 0
-    let renderC = isAlert ? "#EB5757" : this.c
+    const isAlert = this.redundancies.length > 0;
+    let renderC = isAlert ? "#EB5757" : this.c;
 
-    ctx.fillStyle = renderC
+    ctx.fillStyle = renderC;
 
     if (isAlert) {
       // draw error message
@@ -1006,7 +1017,7 @@ export default class Core {
 
     this.curves.forEach((curve) => {
       curve.shape.draw(ctx);
-    })
+    });
 
     // if (this.curves.l.shape) {
     //   this.curves.l.shape.draw(ctx);
