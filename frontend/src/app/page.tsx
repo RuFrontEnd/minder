@@ -693,31 +693,35 @@ export default function ProcessPage() {
 
       // close selected status when click the blank area
       // TODO: curve 相關
-      // shapes.forEach((shape) => {
-      //   if (pressing?.shape instanceof Curve) {
-      //     // click curve
-      //     shape.selecting = false;
+      shapes.forEach((shape) => {
+        if (pressing?.shape instanceof Curve) {
+          // click curve
+          shape.selecting = false;
 
-      //     for (const curveInShape of shape.curves) {
-      //       const theCurve = curveInShape.shape;
-      //       if (theCurve && theCurve?.id !== pressing?.shape?.id) {
-      //         theCurve.selecting = false;
-      //       }
-      //     }
-      //   } else {
-      //     // click shape or blank area
-      //     for (const curveInShape of shape.curves) {
-      //       const theCurve = curveInShape.shape;
-      //       if (theCurve) {
-      //         theCurve.selecting = false;
-      //       }
-      //     }
+          ds.forEach((d) => {
+            for (const curveInShape of shape.curves[d]) {
+              const theCurve = curveInShape.shape;
+              if (theCurve && theCurve?.id !== pressing?.shape?.id) {
+                theCurve.selecting = false;
+              }
+            }
+          });
+        } else {
+          // click shape or blank area
+          ds.forEach((d) => {
+            for (const curveInShape of shape.curves[d]) {
+              const theCurve = curveInShape.shape;
+              if (theCurve) {
+                theCurve.selecting = false;
+              }
+            }
 
-      //     if (shape.id !== pressing?.shape?.id) {
-      //       shape.selecting = false;
-      //     }
-      //   }
-      // });
+            if (shape.id !== pressing?.shape?.id) {
+              shape.selecting = false;
+            }
+          });
+        }
+      });
 
       if (pressing?.shape) {
         pressing.shape.selecting = true;
