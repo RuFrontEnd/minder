@@ -11,7 +11,7 @@ const SidePanel = (props: any) => {
         height: h,
       }}
       className={`${className ? className : ""} bg-white-500 fixed ${d[0] === "b" ? "bottom-0" : "top-0"
-        } ${d[1] === "r" ? "right-0" : "left-0"} p-4 shadow-md`}
+        } ${d[1] === "r" ? "right-0" : "left-0"} px-6 py-4 shadow-md`}
       variants={{
         open: {
           x: "0%",
@@ -28,7 +28,7 @@ const SidePanel = (props: any) => {
         {children}
         {onClickSwitch && (
           <div
-            className={`absolute top-[32px] ${d[1] === "r" ? "left-[-68px]" : "right-[-68px]"
+            className={`absolute top-[32px] ${d[1] === "r" ? "left-[-68px]" : "right-[-76px]"
               } w-10 h-10 inline-flex items-center justify-center rounded-${d[1] === "r" ? "l" : "r"
               }-lg bg-white-500 flex-shrink-0 cursor-pointer rounded-full shadow-md`}
           >
