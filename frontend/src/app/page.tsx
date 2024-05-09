@@ -358,45 +358,34 @@ export default function ProcessPage() {
     datas.forEach((data) => {
       // traversal all relational steps
       const queue: Core[] = [data],
-        locks = { [data.id]: { l: false, t: false, r: false, b: false } }; // prevent from graph cycle
+        locks: { [curveId: string]: boolean } = {}; // prevent from graph cycle
 
       while (queue.length !== 0) {
         const shape = queue[0];
 
         // TODO: curve 相關
-        // shape.curves.forEach((curve) => {
-        //   const theSendToShape = curve.sendTo?.shape;
+        ds.forEach((d) => {
+          shape.curves[d].forEach((curve) => {
+            const theSendToShape = curve.sendTo?.shape;
 
-        //   if (!theSendToShape) return;
+            if (!theSendToShape) return;
 
-        //   data.data.forEach((dataItem) => {
-        //     if (
-        //       theSendToShape.options.some(
-        //         (option) => option.text === dataItem.text
-        //       )
-        //     )
-        //       return;
-        //     theSendToShape.options.push(dataItem);
-        //   });
+            data.data.forEach((dataItem) => {
+              if (
+                theSendToShape.options.some(
+                  (option) => option.text === dataItem.text
+                )
+              )
+                return;
+              theSendToShape.options.push(dataItem);
+            });
 
-        //   const hasLock = locks[theSendToShape.id];
-
-        //   if (!hasLock) {
-        //     locks[theSendToShape.id] = {
-        //       l: false,
-        //       t: false,
-        //       r: false,
-        //       b: false,
-        //     };
-        //   }
-
-        //   const isDirectionLock = locks[theSendToShape.id][curve.d];
-
-        //   if (!isDirectionLock) {
-        //     queue.push(theSendToShape);
-        //     locks[theSendToShape.id][curve.d] = true;
-        //   }
-        // });
+            if (!locks[curve.shape.id]) {
+              queue.push(theSendToShape);
+              locks[curve.shape.id] = true;
+            }
+          });
+        });
 
         queue.shift();
       }

@@ -215,64 +215,52 @@ export default class Core {
     this.__w__ = value;
 
     // TODO: curve 相關
-    // const horizentalCurves = this.curves.filter(
-    //   (curve) => curve.d === Direction.l || curve.d === Direction.r
-    // );
+    // when sender width changes, receiver curve follows the sender shape
+    this.curves[Direction.l].forEach((curve) => {
+      curve.shape.p1.x += offset;
+      curve.shape.cp1.x += offset;
 
-    // horizentalCurves.forEach((horizentalCurve) => {
-    //   const theCurve = horizentalCurve.shape;
-    //   if (horizentalCurve.d === Direction.l) {
-    //     theCurve.p1.x += offset;
-    //     theCurve.cp1.x += offset;
+      if (curve.sendTo) return;
 
-    //     if (!horizentalCurve.sendTo) {
-    //       theCurve.p2 = {
-    //         ...theCurve.p2,
-    //         x: theCurve.p2.x + offset,
-    //       };
-    //       theCurve.cp2.x += offset;
-    //     }
-    //   } else if (horizentalCurve.d === Direction.r) {
-    //     theCurve.p1.x -= offset;
-    //     theCurve.cp1.x -= offset;
-    //   }
+      curve.shape.p2 = {
+        ...curve.shape.p2,
+        x: curve.shape.p2.x + offset,
+      };
+      curve.shape.cp2.x += offset;
+    });
 
-    //   if (!horizentalCurve.sendTo) {
-    //     theCurve.p2 = {
-    //       ...theCurve.p2,
-    //       x: theCurve.p2.x - offset,
-    //     };
-    //     theCurve.cp2.x -= offset;
-    //   }
-    // });
+    this.curves[Direction.r].forEach((curve) => {
+      curve.shape.p1.x -= offset;
+      curve.shape.cp1.x -= offset;
+
+      if (curve.sendTo) return;
+
+      curve.shape.p2 = {
+        ...curve.shape.p2,
+        x: curve.shape.p2.x - offset,
+      };
+      curve.shape.cp2.x -= offset;
+    });
 
     // TODO: curve 相關
-    // const receiveFromCurves_l = this.receiveFrom.l?.shape.curves.filter(
-    //     (curve) => curve.d === this.receiveFrom.l?.d
-    //   ),
-    //   receiveFromCurves_r = this.receiveFrom.r?.shape.curves.filter(
-    //     (curve) => curve.d === this.receiveFrom.r?.d
-    //   );
+    // when receiver width changes, receiver curve follows the sender shape
+    ds.forEach((d) => {
+      this.receiveFrom.l?.shape.curves[d].forEach((curve) => {
+        curve.shape.p2 = {
+          ...curve.shape.p2,
+          x: curve.shape.p2.x + offset,
+        };
+        curve.shape.cp2.x += offset;
+      });
 
-    // if (receiveFromCurves_l) {
-    //   receiveFromCurves_l.forEach((receiveFromCurve_l) => {
-    //     receiveFromCurve_l.shape.p2 = {
-    //       ...receiveFromCurve_l.shape.p2,
-    //       x: receiveFromCurve_l.shape.p2.x + offset,
-    //     };
-    //     receiveFromCurve_l.shape.cp2.x += offset;
-    //   });
-    // }
-
-    // if (receiveFromCurves_r) {
-    //   receiveFromCurves_r.forEach((receiveFromCurve_r) => {
-    //     receiveFromCurve_r.shape.p2 = {
-    //       ...receiveFromCurve_r.shape.p2,
-    //       x: receiveFromCurve_r.shape.p2.x - offset,
-    //     };
-    //     receiveFromCurve_r.shape.cp2.x -= offset;
-    //   });
-    // }
+      this.receiveFrom.r?.shape.curves[d].forEach((curve) => {
+        curve.shape.p2 = {
+          ...curve.shape.p2,
+          x: curve.shape.p2.x - offset,
+        };
+        curve.shape.cp2.x -= offset;
+      });
+    });
   }
 
   get w() {
@@ -284,64 +272,52 @@ export default class Core {
     this.__h__ = value;
 
     // TODO: curve 相關
-    // const horizentalCurves = this.curves.filter(
-    //   (curve) => curve.d === Direction.t || curve.d === Direction.b
-    // );
+    // when sender height changes, receiver curve follows the sender shape
+    this.curves[Direction.t].forEach((curve) => {
+      curve.shape.p1.y += offset;
+      curve.shape.cp1.y += offset;
 
-    // horizentalCurves.forEach((horizentalCurve) => {
-    //   const theCurve = horizentalCurve.shape;
-    //   if (horizentalCurve.d === Direction.t) {
-    //     theCurve.p1.y += offset;
-    //     theCurve.cp1.y += offset;
+      if (curve.sendTo) return;
 
-    //     if (!horizentalCurve.sendTo) {
-    //       theCurve.p2 = {
-    //         ...theCurve.p2,
-    //         y: theCurve.p2.y + offset,
-    //       };
-    //       theCurve.cp2.y += offset;
-    //     }
-    //   } else if (horizentalCurve.d === Direction.b) {
-    //     theCurve.p1.y -= offset;
-    //     theCurve.cp1.y -= offset;
-    //   }
+      curve.shape.p2 = {
+        ...curve.shape.p2,
+        y: curve.shape.p2.y + offset,
+      };
+      curve.shape.cp2.y += offset;
+    });
 
-    //   if (!horizentalCurve.sendTo) {
-    //     theCurve.p2 = {
-    //       ...theCurve.p2,
-    //       y: theCurve.p2.y - offset,
-    //     };
-    //     theCurve.cp2.y -= offset;
-    //   }
-    // });
+    this.curves[Direction.b].forEach((curve) => {
+      curve.shape.p1.y -= offset;
+      curve.shape.cp1.y -= offset;
+
+      if (curve.sendTo) return;
+
+      curve.shape.p2 = {
+        ...curve.shape.p2,
+        y: curve.shape.p2.y - offset,
+      };
+      curve.shape.cp2.y -= offset;
+    });
 
     // TODO: curve 相關
-    // const receiveFromCurves_t = this.receiveFrom.t?.shape.curves.filter(
-    //     (curve) => curve.d === this.receiveFrom.t?.d
-    //   ),
-    //   receiveFromCurves_b = this.receiveFrom.b?.shape.curves.filter(
-    //     (curve) => curve.d === this.receiveFrom.b?.d
-    //   );
+    // when receiver height changes, receiver curve follows the sender shape
+    ds.forEach((d) => {
+      this.receiveFrom.t?.shape.curves[d].forEach((curve) => {
+        curve.shape.p2 = {
+          ...curve.shape.p2,
+          y: curve.shape.p2.y + offset,
+        };
+        curve.shape.cp2.y += offset;
+      });
 
-    // if (receiveFromCurves_t) {
-    //   receiveFromCurves_t.forEach((receiveFromCurve_t) => {
-    //     receiveFromCurve_t.shape.p2 = {
-    //       ...receiveFromCurve_t.shape.p2,
-    //       y: receiveFromCurve_t.shape.p2.y + offset,
-    //     };
-    //     receiveFromCurve_t.shape.cp2.y += offset;
-    //   });
-    // }
-
-    // if (receiveFromCurves_b) {
-    //   receiveFromCurves_b.forEach((receiveFromCurve_b) => {
-    //     receiveFromCurve_b.shape.p2 = {
-    //       ...receiveFromCurve_b.shape.p2,
-    //       y: receiveFromCurve_b.shape.p2.y - offset,
-    //     };
-    //     receiveFromCurve_b.shape.cp2.y -= offset;
-    //   });
-    // }
+      this.receiveFrom.b?.shape.curves[d].forEach((curve) => {
+        curve.shape.p2 = {
+          ...curve.shape.p2,
+          y: curve.shape.p2.y - offset,
+        };
+        curve.shape.cp2.y -= offset;
+      });
+    });
   }
 
   get h() {
