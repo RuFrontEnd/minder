@@ -3,9 +3,7 @@ import { MouseEventHandler, ReactNode } from "react";
 type Props = {
   id?: string;
   className?: string;
-  text: ReactNode;
-  loading?: boolean;
-  onClick: MouseEventHandler<HTMLButtonElement>;
+  text?: string | ReactNode
 };
 
 export type { Props };

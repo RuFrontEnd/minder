@@ -3,8 +3,9 @@ type Props = {
   title: React.ReactNode;
   open: boolean;
   children: React.ReactNode;
-  onClickArrow?: React.MouseEventHandler;
-  onClickTitle?: React.MouseEventHandler;
+  hoverRender?: React.ReactNode;
+  showArrow?: boolean;
+  onClick?: React.MouseEventHandler<HTMLDivElement>;
 };
 
 export type { Props };

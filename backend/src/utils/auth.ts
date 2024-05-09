@@ -6,13 +6,13 @@ const env = dotenv.config().parsed;
 
 const verifyToken = (req: Request, res: Response, next: NextFunction) => {
   if (!env?.SECRETKEY) {
-    return res.send("Missing secret key")
+    throw new Error("Missing secret key")
   }
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
 
   if (!token) {
-    return res.send("Missing token")
+    return res.status(400).send("Missing token")
   }
 
   // 驗證 JWT

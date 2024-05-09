@@ -71,8 +71,9 @@ export default class Desicion extends Core {
     this.text[d] = currentText;
   }
 
-  removeCurve(d: CommonTypes.Direction) {
-    super.removeCurve(d);
+  // TODO: curve 相關
+  removeCurve(d: CommonTypes.Direction, targetId: string) {
+    super.removeCurve(d, targetId);
 
     this.text[d] = null;
   }
@@ -85,7 +86,9 @@ export default class Desicion extends Core {
   draw(ctx: CanvasRenderingContext2D) {
     ctx.save();
     ctx.translate(this.getScreenP().x, this.getScreenP().y);
-    ctx.fillStyle = this.c;
+    const isAlert = this.redundancies.length > 0;
+    let renderC = isAlert ? "#EC3333" : this.c;
+    ctx.fillStyle = renderC;
     const x1 = -this.getScaleSize().w / 2,
       y1 = 0;
     const x2 = 0,
@@ -107,6 +110,7 @@ export default class Desicion extends Core {
     super.draw(ctx);
   }
 
+  // TODO: curve 相關
   drawCurve(ctx: CanvasRenderingContext2D): void {
     super.drawCurve(ctx);
     ctx.save();
@@ -116,19 +120,23 @@ export default class Desicion extends Core {
     ctx.textBaseline = "middle";
     ctx.font = `${14 * this.__scale__}px Arial`;
 
+    const curve_l = this.curves.l[0],
+      curve_t = this.curves.t[0],
+      curve_r = this.curves.r[0],
+      curve_b = this.curves.b[0];
     if (
-      this.curves.l &&
-      this.curves.l.shape?.p1 &&
-      this.curves.l.shape?.cp1 &&
-      this.curves.l.shape?.cp2 &&
-      this.curves.l.shape?.p2 &&
+      curve_l &&
+      curve_l.shape?.p1 &&
+      curve_l.shape?.cp1 &&
+      curve_l.shape?.cp2 &&
+      curve_l.shape?.p2 &&
       this.text.l
     ) {
-      const bezierPoint = this.curves.l.shape.getBezierPoint(0.5, [
-        this.curves.l.shape.p1,
-        this.curves.l.shape.cp1,
-        this.curves.l.shape.cp2,
-        this.curves.l.shape.p2,
+      const bezierPoint = curve_l.shape.getBezierPoint(0.5, [
+        curve_l.shape.p1,
+        curve_l.shape.cp1,
+        curve_l.shape.cp2,
+        curve_l.shape.p2,
       ]);
       ctx.fillStyle = "#F6F7FA";
       ctx.beginPath();
@@ -151,18 +159,18 @@ export default class Desicion extends Core {
       );
     }
     if (
-      this.curves.t &&
-      this.curves.t.shape?.p1 &&
-      this.curves.t.shape?.cp1 &&
-      this.curves.t.shape?.cp2 &&
-      this.curves.t.shape?.p2 &&
+      curve_t &&
+      curve_t.shape?.p1 &&
+      curve_t.shape?.cp1 &&
+      curve_t.shape?.cp2 &&
+      curve_t.shape?.p2 &&
       this.text.t
     ) {
-      const bezierPoint = this.curves.t.shape.getBezierPoint(0.5, [
-        this.curves.t.shape.p1,
-        this.curves.t.shape.cp1,
-        this.curves.t.shape.cp2,
-        this.curves.t.shape.p2,
+      const bezierPoint = curve_t.shape.getBezierPoint(0.5, [
+        curve_t.shape.p1,
+        curve_t.shape.cp1,
+        curve_t.shape.cp2,
+        curve_t.shape.p2,
       ]);
       ctx.fillStyle = "#F6F7FA";
       ctx.beginPath();
@@ -185,18 +193,18 @@ export default class Desicion extends Core {
       );
     }
     if (
-      this.curves.r &&
-      this.curves.r.shape?.p1 &&
-      this.curves.r.shape?.cp1 &&
-      this.curves.r.shape?.cp2 &&
-      this.curves.r.shape?.p2 &&
+      curve_r &&
+      curve_r.shape?.p1 &&
+      curve_r.shape?.cp1 &&
+      curve_r.shape?.cp2 &&
+      curve_r.shape?.p2 &&
       this.text.r
     ) {
-      const bezierPoint = this.curves.r.shape.getBezierPoint(0.5, [
-        this.curves.r.shape.p1,
-        this.curves.r.shape.cp1,
-        this.curves.r.shape.cp2,
-        this.curves.r.shape.p2,
+      const bezierPoint = curve_r.shape.getBezierPoint(0.5, [
+        curve_r.shape.p1,
+        curve_r.shape.cp1,
+        curve_r.shape.cp2,
+        curve_r.shape.p2,
       ]);
       ctx.fillStyle = "#F6F7FA";
       ctx.beginPath();
@@ -219,18 +227,18 @@ export default class Desicion extends Core {
       );
     }
     if (
-      this.curves.b &&
-      this.curves.b.shape?.p1 &&
-      this.curves.b.shape?.cp1 &&
-      this.curves.b.shape?.cp2 &&
-      this.curves.b.shape?.p2 &&
+      curve_b &&
+      curve_b.shape?.p1 &&
+      curve_b.shape?.cp1 &&
+      curve_b.shape?.cp2 &&
+      curve_b.shape?.p2 &&
       this.text.b
     ) {
-      const bezierPoint = this.curves.b.shape.getBezierPoint(0.5, [
-        this.curves.b.shape.p1,
-        this.curves.b.shape.cp1,
-        this.curves.b.shape.cp2,
-        this.curves.b.shape.p2,
+      const bezierPoint = curve_b.shape.getBezierPoint(0.5, [
+        curve_b.shape.p1,
+        curve_b.shape.cp1,
+        curve_b.shape.cp2,
+        curve_b.shape.p2,
       ]);
       ctx.fillStyle = "#F6F7FA";
       ctx.beginPath();

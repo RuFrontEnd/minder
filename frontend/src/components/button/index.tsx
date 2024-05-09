@@ -1,4 +1,6 @@
-import * as ButtonTypes from '@/types/components/button'
+import ReactLoading from "react-loading";
+import { tailwindColors } from "@/variables/colors";
+import * as ButtonTypes from "@/types/components/button";
 
 const Button = (props: ButtonTypes.Props) => {
   const { id, className, text, onClick } = props;
@@ -6,9 +8,21 @@ const Button = (props: ButtonTypes.Props) => {
   return (
     <button
       id={id}
-      className={`${className && className} text-white bg-primary-500 border-0 py-2 px-6 focus:outline-none  rounded text-md`}
-      onClick={onClick}
-    >{text}</button>
+      className={`${className && className
+        } flex justify-center items-center text-white-500 bg-primary-500 hover:bg-primary-hover border-0 py-2 px-6 focus:outline-none rounded text-md ease-in-out duration-300`}
+      onClick={props.loading ? undefined : onClick}
+    >
+      {text}
+      {props.loading && (
+        <ReactLoading
+          className={"ml-2"}
+          type={"spin"}
+          color={tailwindColors.white["500"]}
+          height={20}
+          width={20}
+        />
+      )}
+    </button>
   );
 };
 

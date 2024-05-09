@@ -1,5 +1,6 @@
-// TODO: 給 shape 預設名稱 / 終點 terminator 要判斷是否沒有接收到其他 shape(要做錯誤題示) / core shape sendTo 搬遷至 curves sendTo / 雙擊 cp1 || cp2 可自動對位  / 處理 data shape SelectFrame 開關(點擊 frame 以外要關閉) / 尋找左側列 icons / 對齊功能
+// TODO: 支援多個 recieve set W 時, 跟隨錯誤 / 更換新增 shape icon / 取消 title 重名檢查 / 終點 terminator 要判斷是否沒有接收到其他 shape(要做錯誤題示) / core shape sendTo 搬遷至 curves sendTo / 雙擊 cp1 || cp2 可自動對位  / 處理 data shape SelectFrame 開關(點擊 frame 以外要關閉) / 尋找左側列 icons / 對齊功能
 "use client";
+import axios, { AxiosResponse } from "axios";
 import Core from "@/shapes/core";
 import Terminal from "@/shapes/terminal";
 import Process from "@/shapes/process";
@@ -9,16 +10,29 @@ import Desicion from "@/shapes/decision";
 import DataFrame from "@/components/dataFrame";
 import SidePanel from "@/components/sidePanel";
 import Accordion from "@/components/accordion";
-import Button from "@/components/button"
+import Button from "@/components/button";
+import Modal from "@/components/modal";
+import Input from "@/components/input";
+import Alert from "@/components/alert";
+import Card from "@/components/card";
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
 import { cloneDeep } from "lodash";
 import { v4 as uuidv4 } from "uuid";
+import { ChangeEventHandler } from "react";
+import * as authAPIs from "@/apis/auth";
+import * as projectAPIs from "@/apis/project";
 import * as CoreTypes from "@/types/shapes/core";
 import * as CurveTypes from "@/types/shapes/curve";
 import * as CommonTypes from "@/types/shapes/common";
-import * as DataFrameTypes from "@/types/components/dataFrame";
 import * as PageTypes from "@/types/app/page";
+import * as DataFrameTypes from "@/types/components/dataFrame";
+import * as InputTypes from "@/types/components/input";
+import * as AlertTypes from "@/types/components/alert";
+import * as AuthTypes from "@/types/apis/auth";
+import * as ProjectTypes from "@/types/apis/project";
+
+axios.defaults.baseURL = process.env.BASE_URL || "http://localhost:5000/api";
 
 let useEffected = false,
   ctx: CanvasRenderingContext2D | null | undefined = null,
@@ -28,14 +42,14 @@ let useEffected = false,
     shape: null | Terminal | Process | Data | Desicion | Curve;
     direction: null | CommonTypes.Direction;
     target:
-    | null
-    | CoreTypes.PressingTarget
-    | CurveTypes.PressingTarget
-    | "selectArea_m"
-    | "selectArea_lt"
-    | "selectArea_rt"
-    | "selectArea_rb"
-    | "selectArea_lb";
+      | null
+      | CoreTypes.PressingTarget
+      | CurveTypes.PressingTarget
+      | "selectArea_m"
+      | "selectArea_lt"
+      | "selectArea_rt"
+      | "selectArea_rb"
+      | "selectArea_lb";
     dx: number; // distance between event px & pressing shape px
     dy: number; // distance between event py & pressing shape py
   } = null,
@@ -83,22 +97,22 @@ let useEffected = false,
   };
 
 const ds = [
-  CommonTypes.Direction.l,
-  CommonTypes.Direction.t,
-  CommonTypes.Direction.r,
-  CommonTypes.Direction.b,
-],
+    CommonTypes.Direction.l,
+    CommonTypes.Direction.t,
+    CommonTypes.Direction.r,
+    CommonTypes.Direction.b,
+  ],
   vs: (
     | CoreTypes.PressingTarget.lt
     | CoreTypes.PressingTarget.rt
     | CoreTypes.PressingTarget.rb
     | CoreTypes.PressingTarget.lb
   )[] = [
-      CoreTypes.PressingTarget.lt,
-      CoreTypes.PressingTarget.rt,
-      CoreTypes.PressingTarget.rb,
-      CoreTypes.PressingTarget.lb,
-    ];
+    CoreTypes.PressingTarget.lt,
+    CoreTypes.PressingTarget.rt,
+    CoreTypes.PressingTarget.rb,
+    CoreTypes.PressingTarget.lb,
+  ];
 
 const getFramePosition = (shape: Core) => {
   const frameOffset = 12;
@@ -189,27 +203,28 @@ const Editor = (props: { className: string; shape: Core }) => {
   }, [props.shape]);
 
   return (
-    <>
-      {(props.shape instanceof Process ||
-        props.shape instanceof Data ||
-        props.shape instanceof Desicion) && (
-          <div className={props.className && props.className}>
-            {props.shape instanceof Data && (
-              <div>
-                <p className="mb-1">Data</p>
-                {/* <div
+    <div className={props.className && props.className}>
+      <div>
+        {props.shape instanceof Data && (
+          <div>
+            <p className="mb-1">Data</p>
+            {/* <div
               className="w-6 h-6 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
               onClick={onClickScalePlusIcon}
             >
               +
             </div> */}
-                <ul className="ps-2">
-                  {props.shape.data.map((dataItem) => (
-                    <li className="mb-1"> · {dataItem.text}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
+            <ul className="ps-2">
+              {props.shape.data.map((dataItem) => (
+                <li className="mb-1"> · {dataItem.text}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {(props.shape instanceof Process ||
+          props.shape instanceof Data ||
+          props.shape instanceof Desicion) && (
+          <>
             <div>
               <p className="mb-1">Data Usage</p>
               <ul className="ps-2">
@@ -243,9 +258,10 @@ const Editor = (props: { className: string; shape: Core }) => {
                 ))}
               </ul>
             </div>
-          </div>
+          </>
         )}
-    </>
+      </div>
+    </div>
   );
 };
 
@@ -259,17 +275,34 @@ const init = {
       t: { w: 150, h: 75 },
       p: { w: 150, h: 75 },
       d: { w: 150, h: 75 },
-      dec: { w: 100, h: 100 }
-    }
-  }
+      dec: { w: 100, h: 100 },
+    },
+  },
+  authInfo: {
+    account: {
+      value: undefined,
+      status: InputTypes.Status.normal,
+      comment: undefined,
+    },
+    password: {
+      value: undefined,
+      status: InputTypes.Status.normal,
+      comment: undefined,
+    },
+    email: {
+      value: undefined,
+      status: InputTypes.Status.normal,
+      comment: undefined,
+    },
+  },
 };
 
 export default function ProcessPage() {
   let { current: $canvas } = useRef<HTMLCanvasElement | null>(null);
 
   const [dataFrame, setDataFrame] = useState<
-    { p: CommonTypes.Vec } | undefined
-  >(undefined),
+      { p: CommonTypes.Vec } | undefined
+    >(undefined),
     [dbClickedShape, setDbClickedShape] = useState<
       Terminal | Data | Process | Desicion | null
     >(null),
@@ -284,42 +317,77 @@ export default function ProcessPage() {
     [dataFrameWarning, setDataFrameWarning] = useState<DataFrameTypes.Warning>(
       init.dataFrameWarning
     ),
-    [globalData, setGlobalData] = useState<{
-      [dataShapeId: string]: CommonTypes.Data;
-    }>({});
-
-  const allData = useMemo(() => {
-    const _items: CommonTypes.Data = [];
-    const _mapping: { [data: string]: string } = {};
-
-    Object.entries(globalData).forEach(([shapeId, datas]) => {
-      datas.forEach((data) => {
-        _items.push(data);
-        _mapping[data.text] = shapeId;
-      });
-    });
-
-    return { items: _items, mapping: _mapping };
-  }, [globalData]);
+    [isAccountModalOpen, setIsAccountModalOpen] = useState(true),
+    [isLogIn, setIsLogin] = useState(true),
+    [isProjectsModalOpen, setIsProjectsModalOpen] = useState(false),
+    [authInfo, setAuthInfo] = useState<{
+      account: {
+        value: undefined | string;
+        status: InputTypes.Status;
+        comment: undefined | string;
+      };
+      password: {
+        value: undefined | string;
+        status: InputTypes.Status;
+        comment: undefined | string;
+      };
+      email: {
+        value: undefined | string;
+        status: InputTypes.Status;
+        comment: undefined | string;
+      };
+    }>(init.authInfo),
+    [isAuthorizing, setIsAuthorizing] = useState(false),
+    [authMessage, setAuthMessage] = useState({
+      status: AlertTypes.Type.succeess,
+      text: "",
+    }),
+    [isFetchingProjects, setIsFetchingProjects] = useState(false),
+    [projects, setProjects] = useState<ProjectTypes.GetProjects["ResData"]>([]);
 
   const checkData = () => {
-    const goThroughShapeMapping: { [shapeId: string]: boolean } = {};
+    const datas: Data[] = [];
 
     shapes.forEach((shape) => {
       shape.options = [];
-      goThroughShapeMapping[shape.id] = true;
+      if (shape instanceof Data) {
+        datas.push(shape);
+      }
     });
 
-    shapes.forEach((shape) => {
-      if (
-        shape instanceof Terminal &&
-        shape.receiveFrom.l === null &&
-        shape.receiveFrom.t === null &&
-        shape.receiveFrom.r === null &&
-        shape.receiveFrom.b === null
-      ) {
-        // shape is Terminator
-        shape.onTraversal();
+    datas.forEach((data) => {
+      // traversal all relational steps
+      const queue: Core[] = [data],
+        locks: { [curveId: string]: boolean } = {}; // prevent from graph cycle
+
+      while (queue.length !== 0) {
+        const shape = queue[0];
+
+        // TODO: curve 相關
+        ds.forEach((d) => {
+          shape.curves[d].forEach((curve) => {
+            const theSendToShape = curve.sendTo?.shape;
+
+            if (!theSendToShape) return;
+
+            data.data.forEach((dataItem) => {
+              if (
+                theSendToShape.options.some(
+                  (option) => option.text === dataItem.text
+                )
+              )
+                return;
+              theSendToShape.options.push(dataItem);
+            });
+
+            if (!locks[curve.shape.id]) {
+              queue.push(theSendToShape);
+              locks[curve.shape.id] = true;
+            }
+          });
+        });
+
+        queue.shift();
       }
     });
 
@@ -340,84 +408,6 @@ export default function ProcessPage() {
     });
 
     setSteps(_steps);
-
-    const _procedures: PageTypes.Procedures = {};
-
-    shapes.forEach((shape) => {
-      if (
-        shape instanceof Terminal &&
-        shape.isStart &&
-        !_procedures[shape.id]
-      ) {
-        _procedures[shape.id] = [];
-      }
-    });
-
-    const goThroughShapes: { [shapeId: string]: boolean } = {};
-
-    shapes.forEach((shape) => {
-      if (!(shape instanceof Terminal && shape.isStart)) return;
-
-      const head = shape,
-        queue: Core[] = [shape],
-        locks = { [shape.id]: { l: false, t: false, r: false, b: false } }; // prevent from graph cycle
-
-      while (queue.length !== 0) {
-        const shape = queue[0];
-
-        if (head.id === shape.id) {
-          _procedures[head.id] = [];
-        } else {
-          _procedures[head.id].push(shape.id);
-        }
-        goThroughShapes[shape.id] = true;
-
-        ds.forEach((d) => {
-          const theSendTo = shape.curves[d].sendTo;
-
-          if (!theSendTo) return;
-
-          const hasLock = locks[theSendTo.shape.id];
-
-          if (!hasLock) {
-            locks[theSendTo.shape.id] = {
-              l: false,
-              t: false,
-              r: false,
-              b: false,
-            };
-          }
-
-          const hasDirectionLock = locks[theSendTo.shape.id][d];
-
-          if (!hasDirectionLock) {
-            if (
-              !(
-                theSendTo.shape.id !== head.id &&
-                theSendTo.shape instanceof Terminal &&
-                theSendTo.shape.isStart
-              )
-            ) {
-              queue.push(theSendTo.shape);
-            }
-            locks[theSendTo.shape.id][d] = true;
-          }
-        });
-
-        queue.shift();
-      }
-    });
-
-    setProcedures(_procedures);
-
-    const _otherStepIds: PageTypes.OtherStepIds = [];
-
-    shapes.forEach((shape) => {
-      if (goThroughShapes[shape.id]) return;
-      _otherStepIds.push(shape.id);
-    });
-
-    setOtherStepIds(_otherStepIds);
   };
 
   const zoom = (
@@ -497,9 +487,9 @@ export default function ProcessPage() {
     setLeftMouseBtn(true);
 
     const p = {
-      x: e.nativeEvent.offsetX,
-      y: e.nativeEvent.offsetY,
-    },
+        x: e.nativeEvent.offsetX,
+        y: e.nativeEvent.offsetY,
+      },
       pInSelectArea =
         p.x > select.start.x &&
         p.y > select.start.y &&
@@ -591,56 +581,59 @@ export default function ProcessPage() {
           if (!$canvas) return;
 
           // onMouseDown curve trigger point and create curve
-          const theCheckCurveTriggerBoundry = shape.checkCurveTriggerBoundry(p);
-          if (theCheckCurveTriggerBoundry) {
+          // TODO: curve 相關
+          const triggerD = shape.getCurveTriggerDirection(p);
+          if (triggerD) {
             shape.selecting = false;
 
-            if (!shape.curves[theCheckCurveTriggerBoundry].shape) {
-              shape.createCurve(
-                `curve_${Date.now()}`,
-                CommonTypes.Direction[theCheckCurveTriggerBoundry]
-              );
-            }
+            shape.createCurve(
+              `curve_${Date.now()}`,
+              CommonTypes.Direction[triggerD]
+            );
           }
 
-          for (const d of ds) {
-            const theCurve = shape.curves[d].shape;
+          // TODO: curve 相關
+          // drag curve
+          ds.forEach((d) => {
+            shape.curves[d].forEach((curveInShape) => {
+              const theCurve = curveInShape.shape;
 
-            const curveP = {
-              x: p.x - shape?.getScreenP().x,
-              y: p.y - shape?.getScreenP().y,
-            };
+              const curveP = {
+                x: p.x - shape?.getScreenP().x,
+                y: p.y - shape?.getScreenP().y,
+              };
 
-            if (!theCurve) continue;
-            if (
-              theCurve.checkBoundry(curveP) ||
-              theCurve.checkControlPointsBoundry(curveP)
-            ) {
-              if (theCurve.checkBoundry(curveP)) {
-                pressing = {
-                  parent: shape,
-                  shape: theCurve,
-                  target: null,
-                  direction: d,
-                  dx: 0,
-                  dy: 0,
-                };
+              if (!theCurve) return;
+              if (
+                theCurve.checkBoundry(curveP) ||
+                theCurve.checkControlPointsBoundry(curveP)
+              ) {
+                if (theCurve.checkBoundry(curveP)) {
+                  pressing = {
+                    parent: shape,
+                    shape: theCurve,
+                    target: null,
+                    direction: d,
+                    dx: 0,
+                    dy: 0,
+                  };
+                }
+
+                if (theCurve.checkControlPointsBoundry(curveP)) {
+                  pressing = {
+                    parent: shape,
+                    shape: theCurve,
+                    target: theCurve.checkControlPointsBoundry(curveP),
+                    direction: d,
+                    dx: 0,
+                    dy: 0,
+                  };
+                }
+              } else {
+                theCurve.selecting = false;
               }
-
-              if (theCurve.checkControlPointsBoundry(curveP)) {
-                pressing = {
-                  parent: shape,
-                  shape: theCurve,
-                  target: theCurve.checkControlPointsBoundry(curveP),
-                  direction: d,
-                  dx: 0,
-                  dy: 0,
-                };
-              }
-            } else {
-              theCurve.selecting = false;
-            }
-          }
+            });
+          });
         });
 
         // if has already selected curve, never select any other shapes
@@ -672,12 +665,12 @@ export default function ProcessPage() {
                 dx:
                   (p.x - dragP.x) * (1 / scale) -
                   shape?.getEdge()[
-                  theCheckShapeVertexesBoundry[0] as CommonTypes.Direction
+                    theCheckShapeVertexesBoundry[0] as CommonTypes.Direction
                   ],
                 dy:
                   (p.y - dragP.y) * (1 / scale) -
                   shape?.getEdge()[
-                  theCheckShapeVertexesBoundry[1] as CommonTypes.Direction
+                    theCheckShapeVertexesBoundry[1] as CommonTypes.Direction
                   ],
               };
             }
@@ -685,30 +678,35 @@ export default function ProcessPage() {
         }
       }
 
-      // close unselected shapes or curves
+      // close selected status when click the blank area
+      // TODO: curve 相關
       shapes.forEach((shape) => {
         if (pressing?.shape instanceof Curve) {
           // click curve
           shape.selecting = false;
 
-          for (const d of ds) {
-            const theCurve = shape.curves[d].shape;
-            if (theCurve && theCurve?.id !== pressing?.shape?.id) {
-              theCurve.selecting = false;
+          ds.forEach((d) => {
+            for (const curveInShape of shape.curves[d]) {
+              const theCurve = curveInShape.shape;
+              if (theCurve && theCurve?.id !== pressing?.shape?.id) {
+                theCurve.selecting = false;
+              }
             }
-          }
+          });
         } else {
           // click shape or blank area
-          for (const d of ds) {
-            const theCurve = shape.curves[d].shape;
-            if (theCurve) {
-              theCurve.selecting = false;
+          ds.forEach((d) => {
+            for (const curveInShape of shape.curves[d]) {
+              const theCurve = curveInShape.shape;
+              if (theCurve) {
+                theCurve.selecting = false;
+              }
             }
-          }
 
-          if (shape.id !== pressing?.shape?.id) {
-            shape.selecting = false;
-          }
+            if (shape.id !== pressing?.shape?.id) {
+              shape.selecting = false;
+            }
+          });
         }
       });
 
@@ -731,9 +729,9 @@ export default function ProcessPage() {
     if (!$canvas || !ctx) return;
 
     const p = {
-      x: e.nativeEvent.offsetX,
-      y: e.nativeEvent.offsetY,
-    },
+        x: e.nativeEvent.offsetX,
+        y: e.nativeEvent.offsetY,
+      },
       offsetP = {
         x: p.x - dragP.x,
         y: p.y - dragP.y,
@@ -778,7 +776,7 @@ export default function ProcessPage() {
           pressing?.parent &&
           pressing?.direction
         ) {
-          pressing.parent.disConnect(pressing?.direction, true);
+          pressing.parent.disConnect(pressing.parent, [pressing.shape.id]);
 
           shapes.forEach((shape) => {
             if (!ctx) return;
@@ -790,11 +788,9 @@ export default function ProcessPage() {
                 p.x <= theEdge.r + threshold &&
                 p.y <= theEdge.b + threshold;
 
+            // TODO: curve 相關
             for (const d of ds) {
-              shape.receiving[d] =
-                isNearShape &&
-                !shape.curves[d]?.shape &&
-                !shape.receiveFrom[d]?.shape;
+              shape.receiving[d] = isNearShape;
             }
           });
         }
@@ -1130,9 +1126,9 @@ export default function ProcessPage() {
         const theEdge = shape.getEdge();
 
         const l =
-          selectAreaP.start.x < selectAreaP.end.x
-            ? selectAreaP.start.x
-            : selectAreaP.end.x,
+            selectAreaP.start.x < selectAreaP.end.x
+              ? selectAreaP.start.x
+              : selectAreaP.end.x,
           t =
             selectAreaP.start.y < selectAreaP.end.y
               ? selectAreaP.start.y
@@ -1188,18 +1184,20 @@ export default function ProcessPage() {
         pressing.shape instanceof Curve &&
         pressing?.target &&
         pressing?.parent &&
-        pressing?.direction &&
-        otherStepIds.findIndex((stepId) => stepId === shape.id) > -1
+        pressing?.direction
+        // &&
+        // otherStepIds.findIndex((stepId) => stepId === shape.id) > -1
       ) {
         const theCheckReceivingPointsBoundry = shape.checkReceivingPointsBoundry(
           p
         );
 
         if (theCheckReceivingPointsBoundry) {
-          shape.connect(theCheckReceivingPointsBoundry, {
-            shape: pressing.parent,
-            direction: pressing.direction,
-          });
+          pressing.parent.connect(
+            shape,
+            theCheckReceivingPointsBoundry,
+            pressing.shape.id
+          );
         }
       }
 
@@ -1219,7 +1217,6 @@ export default function ProcessPage() {
     moveP = null;
 
     draw($canvas, ctx);
-
   };
 
   const onMouseWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
@@ -1255,50 +1252,26 @@ export default function ProcessPage() {
 
     // delete
     if (e.key === "Backspace" && !dataFrame && !dbClickedShape) {
-      let removeShape: null | Terminal | Process | Data | Desicion = null,
-        removeCurve: null | {
-          shape: Terminal | Process | Data | Desicion;
-          direction: CommonTypes.Direction;
-        } = null;
-
-      const ds = [
-        CommonTypes.Direction.l,
-        CommonTypes.Direction.t,
-        CommonTypes.Direction.r,
-        CommonTypes.Direction.b,
-      ];
-
       for (const currentShape of shapes) {
-        if (removeShape || removeCurve) break;
+        // TODO: curve 相關
 
         if (currentShape.selecting) {
-          removeShape = currentShape;
-          break;
+          currentShape?.removeConnection();
+          shapes = shapes.filter((shape) => shape.id !== currentShape?.id);
+
+          console.log("shapes", shapes);
         } else {
-          for (const d of ds) {
-            if (currentShape.curves[d]?.shape?.selecting) {
-              removeCurve = { shape: currentShape, direction: d };
-            }
-          }
+          ds.forEach((d) => {
+            currentShape.curves[d].forEach((currentCurve) => {
+              if (!currentCurve.shape?.selecting) return;
+              currentShape.removeCurve(d, currentCurve.shape.id);
+            });
+          });
         }
       }
 
-      if (removeShape) {
-        for (const d of ds) {
-          removeShape?.disConnect(d, true);
-          removeShape?.disConnect(d, false);
-        }
-        shapes = shapes.filter((shape) => shape.id !== removeShape?.id);
-        checkData();
-        checkGroups();
-        const _globalData = cloneDeep(globalData);
-        delete _globalData[removeShape.id];
-        setGlobalData(_globalData);
-      } else if (removeCurve) {
-        removeCurve.shape.removeCurve(removeCurve.direction);
-        checkData();
-        checkGroups();
-      }
+      checkData();
+      checkGroups();
     }
 
     // space
@@ -1372,7 +1345,7 @@ export default function ProcessPage() {
         x: -offset.x + window.innerWidth / 2 + offset_center.x,
         y: -offset.y + window.innerHeight / 2 + offset_center.y,
       },
-      "process",
+      "process"
     );
     process_new.offset = offset;
     process_new.scale = scale;
@@ -1394,7 +1367,7 @@ export default function ProcessPage() {
         x: -offset.x + window.innerWidth / 2 + offset_center.x,
         y: -offset.y + window.innerHeight / 2 + offset_center.y,
       },
-      "data",
+      "data"
     );
     data_new.scale = scale;
     data_new.offset = offset;
@@ -1416,7 +1389,7 @@ export default function ProcessPage() {
         x: -offset.x + window.innerWidth / 2 + offset_center.x,
         y: -offset.y + window.innerHeight / 2 + offset_center.y,
       },
-      "decision",
+      "decision"
     );
     decision_new.offset = offset;
     decision_new.scale = scale;
@@ -1445,24 +1418,24 @@ export default function ProcessPage() {
 
     const dataMapping: { [dataText: string]: number } = {};
 
-    data.forEach((shapeData, shapeDataI) => {
-      // validate repeated data name in data frame
-      if (!(shapeData.text in dataMapping)) {
-        dataMapping[shapeData.text] = shapeDataI;
-      } else {
-        dataWarningMapping[shapeDataI] = "欄位名稱重複";
-      }
-    });
+    // data.forEach((shapeData, shapeDataI) => {
+    //   // validate repeated data name in data frame
+    //   if (!(shapeData.text in dataMapping)) {
+    //     dataMapping[shapeData.text] = shapeDataI;
+    //   } else {
+    //     dataWarningMapping[shapeDataI] = "欄位名稱重複";
+    //   }
+    // });
 
-    data.forEach((shapeData, shapeDataItemI) => {
-      // validate repeated data name in global data
-      if (
-        shape.id !== allData.mapping[shapeData.text] &&
-        shapeData.text in allData.mapping
-      ) {
-        dataWarningMapping[shapeDataItemI] = "欄位名稱重複";
-      }
-    });
+    // data.forEach((shapeData, shapeDataItemI) => {
+    //   // validate repeated data name in global data
+    //   if (
+    //     shape.id !== allData.mapping[shapeData.text] &&
+    //     shapeData.text in allData.mapping
+    //   ) {
+    //     dataWarningMapping[shapeDataItemI] = "欄位名稱重複";
+    //   }
+    // });
 
     data.forEach((dataItem, dataItemI) => {
       // validate required data
@@ -1489,7 +1462,7 @@ export default function ProcessPage() {
       dbClickedShape?.onDataChange(title);
     }
 
-    setGlobalData((globalData) => ({ ...globalData, [shape.id]: data }));
+    // setGlobalData((globalData) => ({ ...globalData, [shape.id]: data }));
     setDataFrame(undefined);
     setDbClickedShape(null);
     checkData();
@@ -1548,23 +1521,29 @@ export default function ProcessPage() {
       shapes.forEach((shape) => {
         if (!ctx || !shape.selecting) return;
         if (
-          (shape instanceof Terminal &&
-            !shape.curves.l.shape &&
-            !shape.curves.t.shape &&
-            !shape.curves.r.shape &&
-            !shape.curves.b.shape) ||
-          (shape instanceof Process &&
-            !shape.curves.l.shape &&
-            !shape.curves.t.shape &&
-            !shape.curves.r.shape &&
-            !shape.curves.b.shape) ||
-          (shape instanceof Data &&
-            !shape.curves.l.shape &&
-            !shape.curves.t.shape &&
-            !shape.curves.r.shape &&
-            !shape.curves.b.shape) ||
+          shape instanceof Terminal ||
+          shape instanceof Process ||
+          shape instanceof Data ||
           (shape instanceof Desicion &&
             !(shape.getText().y && shape.getText().n))
+          // (shape instanceof Terminal &&
+          //   !shape.curves.l.shape &&
+          //   !shape.curves.t.shape &&
+          //   !shape.curves.r.shape &&
+          //   !shape.curves.b.shape
+          // ) ||
+          // (shape instanceof Process &&
+          //   !shape.curves.l.shape &&
+          //   !shape.curves.t.shape &&
+          //   !shape.curves.r.shape &&
+          //   !shape.curves.b.shape) ||
+          // (shape instanceof Data &&
+          //   !shape.curves.l.shape &&
+          //   !shape.curves.t.shape &&
+          //   !shape.curves.r.shape &&
+          //   !shape.curves.b.shape) ||
+          // (shape instanceof Desicion &&
+          //   !(shape.getText().y && shape.getText().n))
         ) {
           shape.drawSendingPoint(ctx);
         }
@@ -1600,15 +1579,15 @@ export default function ProcessPage() {
         ctx?.closePath();
       }
       shapes.forEach((shape) => {
-        if (
-          (shape.receiving.l ||
-            shape.receiving.t ||
-            shape.receiving.r ||
-            shape.receiving.b) &&
-          otherStepIds.findIndex((stepId) => stepId === shape.id) > -1
-        ) {
-          shape.drawRecievingPoint(ctx);
-        }
+        // if (
+        // (shape.receiving.l ||
+        //   shape.receiving.t ||
+        //   shape.receiving.r ||
+        //   shape.receiving.b) &&
+        // otherStepIds.findIndex((stepId) => stepId === shape.id) > -1
+        // ) {
+        shape.drawRecievingPoint(ctx);
+        // }
       });
 
       if (select.shapes.length > 1) {
@@ -1703,6 +1682,182 @@ export default function ProcessPage() {
     });
 
     draw($canvas, ctx);
+  };
+
+  const onClickChangeAuthButton = (_isLogining: boolean) => {
+    setIsLogin(_isLogining);
+    setAuthInfo(init.authInfo);
+  };
+
+  const onClickLoginButton = async () => {
+    const _authInfo = cloneDeep(authInfo);
+    if (!authInfo.account.value) {
+      _authInfo.account.status = InputTypes.Status.error;
+      _authInfo.account.comment = "required!";
+    }
+    if (!authInfo.password.value) {
+      _authInfo.password.status = InputTypes.Status.error;
+    }
+
+    if (!authInfo.account.value || !authInfo.password.value) {
+      _authInfo.password.status = InputTypes.Status.error;
+      _authInfo.password.comment = "required!";
+      setAuthInfo(_authInfo);
+      return;
+    }
+
+    setIsAuthorizing(true);
+
+    const res: AxiosResponse<
+      AuthTypes.Login["ResData"],
+      any
+    > = await authAPIs.login(authInfo.account.value, authInfo.password.value);
+
+    if (res.status === 201) {
+      axios.defaults.headers.common[
+        "Authorization"
+      ] = `Bearer ${res.data.token}`;
+      localStorage.setItem("Authorization", res.data.token);
+      setTimeout(() => {
+        setAuthMessage({
+          status: AlertTypes.Type.succeess,
+          text: res.data.message,
+        });
+        setIsAuthorizing(false);
+        setTimeout(async () => {
+          setIsLogin(true);
+          setAuthMessage((authMessage) => ({
+            ...authMessage,
+            text: "",
+          }));
+          setIsAccountModalOpen(false);
+          setIsProjectsModalOpen(true);
+          setAuthInfo(init.authInfo);
+          const res: AxiosResponse<
+            ProjectTypes.GetProjects["ResData"],
+            any
+          > = await projectAPIs.getProjecs();
+          setProjects(res.data);
+        }, 1000);
+      }, 500);
+    } else {
+      setTimeout(() => {
+        setIsAuthorizing(false);
+        setAuthMessage({
+          status: AlertTypes.Type.error,
+          text: res.data.message,
+        });
+      }, 1000);
+    }
+  };
+
+  const onClickSignUpButton = async () => {
+    const _authInfo = cloneDeep(authInfo);
+
+    const isPasswordLengthGreaterThanSix =
+        authInfo.password.value && authInfo.password.value?.length >= 6,
+      isEmailFormatValid =
+        authInfo.email.value &&
+        new RegExp(/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/).test(
+          authInfo.email.value
+        );
+
+    if (!authInfo.account.value) {
+      _authInfo.account.status = InputTypes.Status.error;
+      _authInfo.account.comment = "required field.";
+    } else {
+      _authInfo.account.status = InputTypes.Status.normal;
+      _authInfo.account.comment = "";
+    }
+
+    if (!authInfo.password.value) {
+      _authInfo.password.status = InputTypes.Status.error;
+      _authInfo.password.comment = "required field.";
+    } else if (!isPasswordLengthGreaterThanSix) {
+      _authInfo.password.status = InputTypes.Status.error;
+      _authInfo.password.comment =
+        "length should be greater than 6 characters.";
+    } else {
+      _authInfo.password.status = InputTypes.Status.normal;
+      _authInfo.password.comment = "";
+    }
+
+    if (!authInfo.email.value) {
+      _authInfo.email.status = InputTypes.Status.error;
+      _authInfo.email.comment = "requied field.";
+    } else if (!isEmailFormatValid) {
+      _authInfo.email.status = InputTypes.Status.error;
+      _authInfo.email.comment = "invalid email format.";
+    } else {
+      _authInfo.email.status = InputTypes.Status.normal;
+      _authInfo.email.comment = "";
+    }
+
+    setAuthInfo(_authInfo);
+
+    if (
+      !isPasswordLengthGreaterThanSix ||
+      !isEmailFormatValid ||
+      !authInfo.account.value ||
+      !authInfo.password.value ||
+      !authInfo.email.value
+    )
+      return;
+
+    setIsAuthorizing(true);
+
+    const res: AxiosResponse<
+      AuthTypes.Register["ResData"],
+      any
+    > = await authAPIs.register(
+      authInfo.account.value,
+      authInfo.password.value,
+      authInfo.email.value
+    );
+
+    if (res.status === 201) {
+      setTimeout(() => {
+        setAuthMessage({
+          status: AlertTypes.Type.succeess,
+          text: res.data.message,
+        });
+        setIsAuthorizing(false);
+        setAuthInfo(init.authInfo);
+        setTimeout(() => {
+          setIsLogin(true);
+          setAuthMessage((authMessage) => ({
+            ...authMessage,
+            text: "",
+          }));
+        }, 1500);
+      }, 1000);
+    } else {
+      setTimeout(() => {
+        setIsAuthorizing(false);
+        setAuthMessage({
+          status: AlertTypes.Type.error,
+          text: res.data.message,
+        });
+      }, 1000);
+    }
+  };
+
+  const onChangeAccount: ChangeEventHandler<HTMLInputElement> = (e) => {
+    const _authInfo = cloneDeep(authInfo);
+    _authInfo.account.value = e.target.value;
+    setAuthInfo(_authInfo);
+  };
+
+  const onChangePassword: ChangeEventHandler<HTMLInputElement> = (e) => {
+    const _authInfo = cloneDeep(authInfo);
+    _authInfo.password.value = e.target.value;
+    setAuthInfo(_authInfo);
+  };
+
+  const onChangeEmail: ChangeEventHandler<HTMLInputElement> = (e) => {
+    const _authInfo = cloneDeep(authInfo);
+    _authInfo.email.value = e.target.value;
+    setAuthInfo(_authInfo);
   };
 
   useEffect(() => {
@@ -1809,7 +1964,7 @@ export default function ProcessPage() {
           x: -offset.x + window.innerWidth / 2,
           y: -offset.y + window.innerHeight / 2 + 100,
         },
-        "decision",
+        "decision"
       );
       decision_new.offset = offset;
       decision_new.scale = scale;
@@ -1833,23 +1988,23 @@ export default function ProcessPage() {
     draw($canvas, ctx);
 
     const resize = () => {
-      let $canvas = document.querySelector('canvas')
-      if (!$canvas || !ctx) return
+      let $canvas = document.querySelector("canvas");
+      if (!$canvas || !ctx) return;
       $canvas.width = window.innerWidth;
       $canvas.height = window.innerHeight;
       draw($canvas, ctx);
-    }
+    };
     window.addEventListener("resize", resize);
-    window.addEventListener('beforeunload', function (e) {
+    window.addEventListener("beforeunload", function (e) {
       e.preventDefault();
-      e.returnValue = '';
-      return ''
+      e.returnValue = "";
+      return "";
     });
 
     return () => {
       window.removeEventListener("resize", resize);
     };
-  }, [])
+  }, []);
 
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
@@ -1863,6 +2018,108 @@ export default function ProcessPage() {
 
   return (
     <>
+      {/* <Modal
+        isOpen={
+          isAccountModalOpen && !isProjectsModalOpen && !isProjectsModalOpen
+        }
+        width="400px"
+      >
+        <div className="bg-white-500 rounded-lg p-8 flex flex-col w-full mt-10">
+          <a className="flex title-font font-medium justify-center items-center text-gray-900 mb-4">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              className="w-10 h-10 text-white p-2 bg-secondary-500 rounded-full"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke="#FFFFFF"
+                d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
+              ></path>
+            </svg>
+            <span className="ml-3 text-xl text-grey-1">Minder</span>
+          </a>
+          <Input
+            className="mb-4"
+            label={"Account"}
+            type="text"
+            name="account"
+            value={authInfo.account.value}
+            status={authInfo.account.status}
+            comment={authInfo.account.comment}
+            onChange={onChangeAccount}
+          />
+          <Input
+            className="mb-4"
+            label={"Password"}
+            type="password"
+            name="password"
+            value={authInfo.password.value}
+            status={authInfo.password.status}
+            comment={authInfo.password.comment}
+            onChange={onChangePassword}
+          />
+          {!isLogIn && (
+            <Input
+              className="mb-4"
+              label={"Email"}
+              type="email"
+              name="email"
+              value={authInfo.email.value}
+              status={authInfo.email.status}
+              comment={authInfo.email.comment}
+              onChange={onChangeEmail}
+            />
+          )}
+          <Button
+            className="text-lg"
+            text={isLogIn ? "Login" : "Sign Up"}
+            onClick={isLogIn ? onClickLoginButton : onClickSignUpButton}
+            loading={isAuthorizing}
+          />
+          {(authMessage.text) &&
+            <Alert className="mt-2" type={authMessage.status} text={authMessage.text} />
+          }
+          <p className="text-xs text-gray-500 mt-3">
+            {isLogIn ? "No account yet? " : "Already have an account? "}
+            <a
+              className="text-info-500 cursor-pointer"
+              onClick={() => {
+                onClickChangeAuthButton(!isLogIn);
+              }}
+            >
+              {isLogIn ? "Sign up" : "Login"}
+            </a>
+          </p>
+        </div>
+      </Modal> */}
+      {/* <Modal isOpen={isProjectsModalOpen} width="728px">
+        <section className="text-gray-600 bg-white-500 body-font">
+          <div className="px-5 py-24 mx-auto">
+            <h2 className="text-center text-gray-900 title-font text-xl font-semibold mb-4 py-4 px-4 border-b border-grey-5">
+              PROJECTS
+            </h2>
+            <div className="flex justify-between flex-wrap">
+              <Card text={
+                <h2 className="text-info-500 title-font text-lg font-medium">
+                  New Project
+                </h2>
+              } />
+              {projects.map(project =>
+                <Card key={project.id} text={
+                  <h2 className="title-font text-lg font-medium">
+                    {project.name}
+                  </h2>
+                } />
+              )}
+            </div>
+          </div>
+        </section>
+      </Modal> */}
       <header className="w-full fixed z-50 text-gray-600 body-font bg-primary-500">
         <ul className="container mx-auto grid grid-cols-3 py-3 px-4">
           <li>
@@ -1877,7 +2134,10 @@ export default function ProcessPage() {
                 className="w-10 h-10 text-white p-2 bg-secondary-500 rounded-full"
                 viewBox="0 0 24 24"
               >
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                <path
+                  stroke="#FFFFFF"
+                  d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
+                ></path>
               </svg>
               <span className="ml-3 text-xl text-white-500">Minder</span>
             </a>
@@ -1887,19 +2147,21 @@ export default function ProcessPage() {
               <a className="text-white-500">Project_1</a>
             </nav>
           </li>
-          <li className="justify-self-end self-center text-base">
-            <Button className={'mr-4 bg-secondary-500'} onClick={(e) => { }} text={
-              <div className="d-flex items-center">
-                <span className="text-white-500">
-                  Save
-                </span>
-                {/* <div
+          <li className="flex justify-self-end self-center text-base">
+            <Button
+              className={"mr-4 bg-secondary-500"}
+              onClick={(e) => {}}
+              text={
+                <div className="d-flex items-center">
+                  <span className="text-white-500">Save</span>
+                  {/* <div
                   className="mx-2 w-2 h-2 inline-flex items-center justify-center rounded-full bg-info-500 text-indigo-500 flex-shrink-0 cursor-pointer"
                 /> */}
-              </div>
-            } />
+                </div>
+              }
+            />
             <div
-              className="w-10 h-10 inline-flex items-center justify-center rounded-full bg-secondary-500 text-white-500 flex-shrink-0 cursor-pointer"
+              className="w-10 h-10 inline-flex items-center justify-center rounded-full bg-info-500 text-white-500 flex-shrink-0 cursor-pointer"
               onClick={onClickProfile}
             >
               L
@@ -1910,113 +2172,59 @@ export default function ProcessPage() {
       <SidePanel
         open={isDataSidePanelOpen}
         w={"360px"}
-        h={"calc(100vh - 56px)"}
+        h={"calc(100vh - 64px)"}
         d={["b"]}
         onClickSwitch={onClickDataSidePanelSwitch}
       >
         <ul>
-          {Object.entries(procedures).map(
-            ([procedureId, procedure], procedureI) => {
-              return (
-                <li
-                  key={procedureId}
-                  className="mb-1"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onClickStep(steps[procedureId].shape.p);
-                  }}
-                >
-                  <Accordion
-                    title={steps[procedureId].shape.title}
-                    open={steps[procedureId].open}
-                    onClickArrow={(e) => {
-                      e.stopPropagation();
-                      onClickaAccordionArrow(procedureId);
-                    }}
-                  >
-                    <ul>
-                      {procedure.map((child) => {
-                        return (
-                          <>
-                            <li
-                              key={steps[child].shape.id}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onClickStep(steps[child].shape.p);
-                              }}
-                            >
-                              <Accordion
-                                className={"ps-2"}
-                                title={
-                                  <div className="flex">
-                                    <p className="mr-1">
-                                      {steps[child].shape.title}
-                                    </p>
-                                    {/* <svg
-                          className="w-6 h-6 text-gray-800 dark:text-white"
-                          aria-hidden="true"
+          {Object.entries(steps).map(([stepId, step], stepI) => {
+            return (
+              <li key={stepId} className="mb-1">
+                <Accordion
+                  showArrow={!(step.shape instanceof Terminal)}
+                  title={step.shape.title}
+                  hoverRender={
+                    <div className="h-full flex justify-end items-center">
+                      <div
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          step.shape instanceof Terminal
+                            ? undefined
+                            : onClickStep(step.shape.p);
+                        }}
+                      >
+                        <svg
+                          width={18}
+                          height={18}
                           xmlns="http://www.w3.org/2000/svg"
-                          width="24"
-                          height="24"
-                          fill="none"
-                          viewBox="0 0 24 24"
+                          xmlnsXlink="http://www.w3.org/1999/xlink"
+                          version="1.1"
+                          x="0px"
+                          y="0px"
+                          viewBox="0 0 100 100"
+                          enable-background="new 0 0 100 100"
+                          xmlSpace="preserve"
                         >
                           <path
-                            stroke="currentColor"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="m14.304 4.844 2.852 2.852M7 7H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-4.5m2.409-9.91a2.017 2.017 0 0 1 0 2.853l-6.844 6.844L8 14l.713-3.565 6.844-6.844a2.015 2.015 0 0 1 2.852 0Z"
+                            fill="#233C53"
+                            d="M84.6,45C82.4,29.7,70.3,17.5,55,15.3V5H45v10.3C29.7,17.5,17.6,29.7,15.4,45H5v10h10.4C17.6,70.3,29.7,82.4,45,84.6V95h10  V84.6C70.3,82.4,82.4,70.3,84.6,55H95V45H84.6z M50,75c-13.8,0-25-11.2-25-25s11.2-25,25-25s25,11.2,25,25S63.8,75,50,75z"
                           />
-                        </svg> */}
-                                  </div>
-                                }
-                                open={steps[child].open}
-                                onClickArrow={(e) => {
-                                  e.stopPropagation();
-                                  onClickaAccordionArrow(steps[child].shape.id);
-                                }}
-                              >
-                                <Editor
-                                  className="ps-6"
-                                  shape={steps[child].shape}
-                                />
-                              </Accordion>
-                            </li>
-                          </>
-                        );
-                      })}
-                    </ul>
-                  </Accordion>
-                </li>
-              );
-            }
-          )}
-        </ul>
-        <ul>
-          {otherStepIds.map((stepId: string) => (
-            <>
-              <li
-                key={stepId}
-                className="mb-1"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onClickStep(steps[stepId].shape.p);
-                }}
-              >
-                <Accordion
-                  title={steps[stepId].shape.title}
-                  open={steps[stepId].open}
-                  onClickArrow={(e) => {
+                          <circle cx="50" cy="50" r="10" />
+                        </svg>
+                      </div>
+                    </div>
+                  }
+                  open={step.open}
+                  onClick={(e) => {
                     e.stopPropagation();
                     onClickaAccordionArrow(stepId);
                   }}
                 >
-                  <Editor className="ps-6" shape={steps[stepId].shape} />
+                  <Editor className="ps-6" shape={step.shape} />
                 </Accordion>
               </li>
-            </>
-          ))}
+            );
+          })}
         </ul>
       </SidePanel>
       <SidePanel
@@ -2068,31 +2276,93 @@ export default function ProcessPage() {
               className="mx-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
               onClick={onClickTerminator}
             >
-              T
-            </div>
-            <div
-              className="mx-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
-              onClick={onClickTerminatorEnd}
-            >
-              TE
+              <svg
+                width={16}
+                height={16}
+                version="1.1"
+                xmlns="http://www.w3.org/2000/svg"
+                xmlnsXlink="http://www.w3.org/1999/xlink"
+                x="0px"
+                y="0px"
+                viewBox="0 0 256 256"
+                enable-background="new 0 0 256 256"
+                xmlSpace="preserve"
+              >
+                <g>
+                  <g>
+                    <path
+                      fill="#FFFFFF"
+                      d="M246,128c0,49.2-39.9,89-89,89H99c-49.2,0-89-39.9-89-89l0,0c0-49.2,39.9-89,89-89H157C206.1,39,246,78.8,246,128L246,128z"
+                    />
+                  </g>
+                </g>
+              </svg>
             </div>
             <div
               className="mx-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
               onClick={onClickProcess}
             >
-              P
+              <svg
+                width={16}
+                height={16}
+                xmlns="http://www.w3.org/2000/svg"
+                xmlnsXlink="http://www.w3.org/1999/xlink"
+                version="1.1"
+                x="0px"
+                y="0px"
+                viewBox="0 0 100 100"
+                xmlSpace="preserve"
+              >
+                <path
+                  fill="#FFFFFF"
+                  className="st0"
+                  d="M93.44,78.48H6.56V21.52h86.88V78.48z"
+                />
+              </svg>
             </div>
             <div
               className="mx-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
               onClick={onClickData}
             >
-              D
+              <svg
+                width={16}
+                height={16}
+                xmlns="http://www.w3.org/2000/svg"
+                data-name="Layer 21"
+                viewBox="0 0 32 32"
+                x="0px"
+                y="0px"
+              >
+                <path
+                  fill="#FFFFFF"
+                  d="M30.387,5.683A.5.5,0,0,0,30,5.5H6a.5.5,0,0,0-.49.4l-4,20a.5.5,0,0,0,.49.6H26a.5.5,0,0,0,.49-.4l4-20A.5.5,0,0,0,30.387,5.683Z"
+                />
+              </svg>
             </div>
             <div
               className="mx-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
               onClick={onClickDecision}
             >
-              De
+              <svg
+                width={16}
+                height={16}
+                xmlns="http://www.w3.org/2000/svg"
+                xmlnsXlink="http://www.w3.org/1999/xlink"
+                version="1.1"
+                x="0px"
+                y="0px"
+                viewBox="0 0 64 64"
+                xmlSpace="preserve"
+              >
+                <rect
+                  fill="#FFFFFF"
+                  x="12.5545645"
+                  y="12.5545635"
+                  transform="matrix(0.7071068 -0.7071068 0.7071068 0.7071068 -13.2548332 32)"
+                  width={"38.890873"}
+                  height={"38.890873"}
+                />
+              </svg>
             </div>
           </div>
         </div>
@@ -2147,7 +2417,6 @@ export default function ProcessPage() {
         onWheel={onMouseWheel}
         onDoubleClick={onDoubleClick}
       />
-
       {dataFrame && dbClickedShape && (
         <DataFrame
           shape={dbClickedShape}

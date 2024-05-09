@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { Auth as AuthService } from "../services";
 import { getError } from "../utils/error";
+import { SUCCESSFUL, ERROR } from '../constatns/stauts'
 
 export default class Auth {
   private authService = new AuthService();
@@ -17,36 +18,74 @@ export default class Auth {
 
     try {
       await this.authService.register(account, email, password);
-      res.status(201).send("User registered successfully!");
+      res.status(201).send(
+        {
+          status: SUCCESSFUL,
+          message: "Sign up successfully!"
+        });
     } catch (err) {
-      res.status(400).send(getError(err));
+      const _message = getError(err)
+      if (_message === "Invalid email format.") {
+        res.status(200).send({
+          status: ERROR,
+          message: _message
+        });
+      } else if (_message === "Account already exists.") {
+        res.status(200).send({
+          status: ERROR,
+          message: _message
+        });
+      } else {
+        res.status(400)
+      }
     }
   }
 
   async login(req: Request, res: Response, next: NextFunction) {
     const { account, password } = req.body;
 
+
     try {
-      const token = await this.authService.login(account, password);
+      const _token = await this.authService.login(account, password);
       res
         .status(201)
-        .setHeader("Authorization", `Bearer ${token}`)
-        .send("User login successfully!");
+        .send({
+          status: SUCCESSFUL,
+          message: "Login successfully!",
+          token: _token
+        });
     } catch (err) {
-      res.status(400).send(getError(err));
+      const _message = getError(err)
+      if (_message === "Invalid account or password.") {
+        res.status(200).send({
+          status: ERROR,
+          message: _message
+        });
+      } else {
+        res.status(400)
+      }
     }
   }
 
   async jwtLogin(req: Request, res: Response, next: NextFunction) {
     const { authorization: token } = req.headers;
 
-    if (typeof token !== 'string') return res.status(400).send("User login failed.");
+    if (typeof token !== 'string') return res.status(400).send({
+      status: ERROR,
+      message: "User login failed."
+    });
 
     try {
       await this.authService.jwtLogin(token);
-      res.status(201).send("User login successfully!");
+      res.status(201).send({
+        status: SUCCESSFUL,
+        message: "login successfully!"
+      });
     } catch (err) {
-      res.status(400).send(getError(err));
+      res.status(200).send({
+        status: ERROR,
+        message: getError(err)
+      });
     }
   }
 
