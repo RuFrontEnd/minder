@@ -159,19 +159,19 @@ export default class Core {
 
     senders.forEach((sender) => {
       ds.forEach((d) => {
-        sender?.shape.curves[d].forEach((senderCurve) => {
+        sender?.shape.curves[d].forEach((sendCurve) => {
           if (
             d === sender.d &&
-            senderCurve.sendTo?.shape.id === this.id &&
-            !senderCurvesMapping[senderCurve.shape.id]
+            sendCurve.sendTo?.shape.id === this.id &&
+            !senderCurvesMapping[sendCurve.shape.id]
           ) {
-            senderCurve.shape.p2 = {
-              x: senderCurve.shape.p2.x + offest.x,
-              y: senderCurve.shape.p2.y + offest.y,
+            sendCurve.shape.p2 = {
+              x: sendCurve.shape.p2.x + offest.x,
+              y: sendCurve.shape.p2.y + offest.y,
             };
-            senderCurve.shape.cp2.x += offest.x;
-            senderCurve.shape.cp2.y += offest.y;
-            senderCurvesMapping[senderCurve.shape.id] = true;
+            sendCurve.shape.cp2.x += offest.x;
+            sendCurve.shape.cp2.y += offest.y;
+            senderCurvesMapping[sendCurve.shape.id] = true;
           }
         });
       });
@@ -180,9 +180,9 @@ export default class Core {
     // TODO: curve 相關
     // when sender shape move, receiver curve follows the sender shape
     ds.forEach((d) => {
-      this.curves[d].forEach((curve) => {
-        const senderCurve = curve.shape,
-          sendToShape = curve.sendTo;
+      this.curves[d].forEach((sendCurve) => {
+        const senderCurve = sendCurve.shape,
+          sendToShape = sendCurve.sendTo;
 
         if (senderCurve && sendToShape) {
           senderCurve.p2 = {
@@ -206,52 +206,55 @@ export default class Core {
 
     // TODO: curve 相關
     // when sender width changes, receiver curve follows the sender shape
-    this.curves[Direction.l].forEach((curve) => {
-      curve.shape.p1.x += offset;
-      curve.shape.cp1.x += offset;
+    this.curves[Direction.l].forEach((sendCurve) => {
+      sendCurve.shape.p1.x += offset;
+      sendCurve.shape.cp1.x += offset;
 
-      if (curve.sendTo) return;
+      if (sendCurve.sendTo) return;
 
-      curve.shape.p2 = {
-        ...curve.shape.p2,
-        x: curve.shape.p2.x + offset,
+      sendCurve.shape.p2 = {
+        ...sendCurve.shape.p2,
+        x: sendCurve.shape.p2.x + offset,
       };
-      curve.shape.cp2.x += offset;
+      sendCurve.shape.cp2.x += offset;
     });
 
-    this.curves[Direction.r].forEach((curve) => {
-      curve.shape.p1.x -= offset;
-      curve.shape.cp1.x -= offset;
+    this.curves[Direction.r].forEach((sendCurve) => {
+      sendCurve.shape.p1.x -= offset;
+      sendCurve.shape.cp1.x -= offset;
 
-      if (curve.sendTo) return;
+      if (sendCurve.sendTo) return;
 
-      curve.shape.p2 = {
-        ...curve.shape.p2,
-        x: curve.shape.p2.x - offset,
+      sendCurve.shape.p2 = {
+        ...sendCurve.shape.p2,
+        x: sendCurve.shape.p2.x - offset,
       };
-      curve.shape.cp2.x -= offset;
+      sendCurve.shape.cp2.x -= offset;
     });
 
     // TODO: curve 相關
     // when receiver width changes, receiver curve follows the sender shape
     ds.forEach((d) => {
       this.receiveFrom.l?.forEach((receiveFromItem) => {
-        receiveFromItem.shape.curves[d].forEach((curve) => {
-          curve.shape.p2 = {
-            ...curve.shape.p2,
-            x: curve.shape.p2.x + offset,
+        receiveFromItem.shape.curves[d].forEach((sendCurve) => {
+          if (sendCurve.sendTo?.shape.id !== this.id) return;
+          sendCurve.shape.p2 = {
+            ...sendCurve.shape.p2,
+            x: sendCurve.shape.p2.x + offset,
           };
-          curve.shape.cp2.x += offset;
+          sendCurve.shape.cp2.x += offset;
         });
       });
 
       this.receiveFrom.r?.forEach((receiveFromItem) => {
-        receiveFromItem.shape.curves[d].forEach((curve) => {
-          curve.shape.p2 = {
-            ...curve.shape.p2,
-            x: curve.shape.p2.x - offset,
+        receiveFromItem.shape.curves[d].forEach((sendCurve) => {
+          if (sendCurve.sendTo?.shape.id !== this.id) return;
+
+          sendCurve.shape.p2 = {
+            ...sendCurve.shape.p2,
+            x: sendCurve.shape.p2.x - offset,
           };
-          curve.shape.cp2.x -= offset;
+          sendCurve.shape.cp2.x -= offset;
         });
       });
     });
@@ -267,52 +270,54 @@ export default class Core {
 
     // TODO: curve 相關
     // when sender height changes, receiver curve follows the sender shape
-    this.curves[Direction.t].forEach((curve) => {
-      curve.shape.p1.y += offset;
-      curve.shape.cp1.y += offset;
+    this.curves[Direction.t].forEach((sendCurve) => {
+      sendCurve.shape.p1.y += offset;
+      sendCurve.shape.cp1.y += offset;
 
-      if (curve.sendTo) return;
+      if (sendCurve.sendTo) return;
 
-      curve.shape.p2 = {
-        ...curve.shape.p2,
-        y: curve.shape.p2.y + offset,
+      sendCurve.shape.p2 = {
+        ...sendCurve.shape.p2,
+        y: sendCurve.shape.p2.y + offset,
       };
-      curve.shape.cp2.y += offset;
+      sendCurve.shape.cp2.y += offset;
     });
 
-    this.curves[Direction.b].forEach((curve) => {
-      curve.shape.p1.y -= offset;
-      curve.shape.cp1.y -= offset;
+    this.curves[Direction.b].forEach((sendCurve) => {
+      sendCurve.shape.p1.y -= offset;
+      sendCurve.shape.cp1.y -= offset;
 
-      if (curve.sendTo) return;
+      if (sendCurve.sendTo) return;
 
-      curve.shape.p2 = {
-        ...curve.shape.p2,
-        y: curve.shape.p2.y - offset,
+      sendCurve.shape.p2 = {
+        ...sendCurve.shape.p2,
+        y: sendCurve.shape.p2.y - offset,
       };
-      curve.shape.cp2.y -= offset;
+      sendCurve.shape.cp2.y -= offset;
     });
 
     // TODO: curve 相關
     // when receiver height changes, receiver curve follows the sender shape
     ds.forEach((d) => {
       this.receiveFrom.t?.forEach((receiveFromItem) => {
-        receiveFromItem.shape.curves[d].forEach((curve) => {
-          curve.shape.p2 = {
-            ...curve.shape.p2,
-            y: curve.shape.p2.y + offset,
+        receiveFromItem.shape.curves[d].forEach((sendCurve) => {
+          if (sendCurve.sendTo?.shape.id !== this.id) return;
+          sendCurve.shape.p2 = {
+            ...sendCurve.shape.p2,
+            y: sendCurve.shape.p2.y + offset,
           };
-          curve.shape.cp2.y += offset;
+          sendCurve.shape.cp2.y += offset;
         });
       });
 
       this.receiveFrom.b?.forEach((receiveFromItem) => {
-        receiveFromItem.shape.curves[d].forEach((curve) => {
-          curve.shape.p2 = {
-            ...curve.shape.p2,
-            y: curve.shape.p2.y - offset,
+        receiveFromItem.shape.curves[d].forEach((sendCurve) => {
+          if (sendCurve.sendTo?.shape.id !== this.id) return;
+          sendCurve.shape.p2 = {
+            ...sendCurve.shape.p2,
+            y: sendCurve.shape.p2.y - offset,
           };
-          curve.shape.cp2.y -= offset;
+          sendCurve.shape.cp2.y -= offset;
         });
       });
     });
