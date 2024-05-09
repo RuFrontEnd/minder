@@ -682,18 +682,25 @@ export default class Core {
   removeConnection() {
     // TODO: curve 相關
     // remove connection from receiver
-    // this.curves.forEach((curve) => {
-    //   if (!curve.sendTo) return;
-    //   curve.sendTo.shape.receiveFrom[curve.sendTo.d] = null;
-    // });
-    // // remove connection from sender
-    // ds.forEach((d) => {
-    //   this.receiveFrom[d]?.shape.curves.forEach((curve) => {
-    //     if (curve.sendTo?.shape.id === this.id) {
-    //       curve.sendTo = null;
-    //     }
-    //   });
-    // });
+    ds.forEach((d) => {
+      this.curves[d].forEach((curve) => {
+        if (!curve.sendTo) return;
+        curve.sendTo.shape.receiveFrom[curve.sendTo.d] = null;
+      });
+    });
+    // remove connection from sender
+    ds.forEach((d) => {
+      const sender = this.receiveFrom[d];
+      if (!sender) return;
+
+      ds.forEach((d) => {
+        sender.shape.curves[d].forEach((curve) => {
+          if (curve.sendTo?.shape.id === this.id) {
+            curve.sendTo = null;
+          }
+        });
+      });
+    });
   }
 
   getRedundancies() {
