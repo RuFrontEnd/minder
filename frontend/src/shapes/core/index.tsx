@@ -151,49 +151,59 @@ export default class Core {
     };
     this.__p__ = value;
 
-    const senderCurves: Curve[] = [],
-      senderCurvesMapping: { [curveId: string]: boolean } = {};
-
     // TODO: curve 相關
     // when receiver shape move, sender curve follows the receiver shape
-    // ds.forEach((d) => {
-    //   const receiveFrom = this.receiveFrom[d];
-    //   receiveFrom?.shape.curves.forEach((senderCurve) => {
-    //     if (
-    //       senderCurve.d === receiveFrom.d &&
-    //       senderCurve.sendTo?.shape.id === this.id &&
-    //       !senderCurvesMapping[senderCurve.shape.id]
-    //     ) {
-    //       senderCurves.push(senderCurve.shape);
-    //       senderCurvesMapping[senderCurve.shape.id] = true;
-    //     }
-    //   });
-    // });
+    const senderCurvesMapping: { [curveId: string]: boolean } = {};
 
-    senderCurves.forEach((sendCurve) => {
-      sendCurve.p2 = {
-        x: sendCurve.p2.x + offest.x,
-        y: sendCurve.p2.y + offest.y,
-      };
-      sendCurve.cp2.x += offest.x;
-      sendCurve.cp2.y += offest.y;
+    const senders = (() => {
+      const _senders: CoreTypes.ReceiveFrom[] = [];
+
+      ds.forEach((d) => {
+        const sender = this.receiveFrom[d];
+        if (!sender) return;
+        _senders.push(sender);
+      });
+
+      return _senders;
+    })();
+
+    senders.forEach((sender) => {
+      ds.forEach((d) => {
+        sender?.shape.curves[d].forEach((senderCurve) => {
+          if (
+            d === sender.d &&
+            senderCurve.sendTo?.shape.id === this.id &&
+            !senderCurvesMapping[senderCurve.shape.id]
+          ) {
+            senderCurve.shape.p2 = {
+              x: senderCurve.shape.p2.x + offest.x,
+              y: senderCurve.shape.p2.y + offest.y,
+            };
+            senderCurve.shape.cp2.x += offest.x;
+            senderCurve.shape.cp2.y += offest.y;
+            senderCurvesMapping[senderCurve.shape.id] = true;
+          }
+        });
+      });
     });
 
     // TODO: curve 相關
     // when sender shape move, receiver curve follows the sender shape
-    // this.curves.forEach((curve) => {
-    //   const senderCurve = curve.shape,
-    //     sendToShape = curve.sendTo;
+    ds.forEach((d) => {
+      this.curves[d].forEach((curve) => {
+        const senderCurve = curve.shape,
+          sendToShape = curve.sendTo;
 
-    //   if (senderCurve && sendToShape) {
-    //     senderCurve.p2 = {
-    //       x: senderCurve.p2.x - offest.x,
-    //       y: senderCurve.p2.y - offest.y,
-    //     };
-    //     senderCurve.cp2.x -= offest.x;
-    //     senderCurve.cp2.y -= offest.y;
-    //   }
-    // });
+        if (senderCurve && sendToShape) {
+          senderCurve.p2 = {
+            x: senderCurve.p2.x - offest.x,
+            y: senderCurve.p2.y - offest.y,
+          };
+          senderCurve.cp2.x -= offest.x;
+          senderCurve.cp2.y -= offest.y;
+        }
+      });
+    });
   }
 
   get p() {
@@ -593,39 +603,53 @@ export default class Core {
     }
   }
 
-  connect(targetShape: Core, targetShapeD: Direction, sendCurveId: string) {
+  connect(
+    targetShape: Core,
+    targetShapeReceiveD: Direction,
+    sendCurveId: string
+  ) {
     // TODO: curve 相關
-    // const bridgeCurve = this.curves.find(
-    //   (curve) => curve.shape.id === sendCurveId
-    // );
-    // if (!bridgeCurve) return;
-    // bridgeCurve.sendTo = { shape: targetShape, d: targetShapeD };
-    // targetShape.receiveFrom[targetShapeD] = {
-    //   shape: this,
-    //   d: bridgeCurve.d,
-    // };
-    // const thershold = 10;
-    // if (targetShapeD === Direction.l) {
-    //   bridgeCurve.shape.p2 = {
-    //     x: targetShape.p.x - this.p.x - targetShape.w / 2 - thershold,
-    //     y: targetShape.p.y - this.p.y,
-    //   };
-    // } else if (targetShapeD === Direction.t) {
-    //   bridgeCurve.shape.p2 = {
-    //     x: targetShape.p.x - this.p.x,
-    //     y: targetShape.p.y - this.p.y - targetShape.h / 2 - thershold,
-    //   };
-    // } else if (targetShapeD === Direction.r) {
-    //   bridgeCurve.shape.p2 = {
-    //     x: targetShape.p.x - this.p.x + targetShape.w / 2 + thershold,
-    //     y: targetShape.p.y - this.p.y,
-    //   };
-    // } else if (targetShapeD === Direction.b) {
-    //   bridgeCurve.shape.p2 = {
-    //     x: targetShape.p.x - this.p.x,
-    //     y: targetShape.p.y - this.p.y + targetShape.h / 2 + thershold,
-    //   };
-    // }
+    const bridge = (() => {
+      for (const d of ds) {
+        const curve = this.curves[d].find(
+          (curve) => curve.shape.id === sendCurveId
+        );
+        if (curve)
+          return {
+            d: d,
+            curve: curve,
+          };
+      }
+    })();
+
+    if (!bridge) return;
+    bridge.curve.sendTo = { shape: targetShape, d: targetShapeReceiveD };
+    targetShape.receiveFrom[targetShapeReceiveD] = {
+      shape: this,
+      d: bridge.d,
+    };
+    const thershold = 10;
+    if (targetShapeReceiveD === Direction.l) {
+      bridge.curve.shape.p2 = {
+        x: targetShape.p.x - this.p.x - targetShape.w / 2 - thershold,
+        y: targetShape.p.y - this.p.y,
+      };
+    } else if (targetShapeReceiveD === Direction.t) {
+      bridge.curve.shape.p2 = {
+        x: targetShape.p.x - this.p.x,
+        y: targetShape.p.y - this.p.y - targetShape.h / 2 - thershold,
+      };
+    } else if (targetShapeReceiveD === Direction.r) {
+      bridge.curve.shape.p2 = {
+        x: targetShape.p.x - this.p.x + targetShape.w / 2 + thershold,
+        y: targetShape.p.y - this.p.y,
+      };
+    } else if (targetShapeReceiveD === Direction.b) {
+      bridge.curve.shape.p2 = {
+        x: targetShape.p.x - this.p.x,
+        y: targetShape.p.y - this.p.y + targetShape.h / 2 + thershold,
+      };
+    }
   }
 
   disConnect(shape: Core, curveIds: string[]) {
