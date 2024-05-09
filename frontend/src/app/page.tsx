@@ -586,12 +586,10 @@ export default function ProcessPage() {
           if (triggerD) {
             shape.selecting = false;
 
-            if (!shape.receiveFrom[CommonTypes.Direction[triggerD]]?.shape) {
-              shape.createCurve(
-                `curve_${Date.now()}`,
-                CommonTypes.Direction[triggerD]
-              );
-            }
+            shape.createCurve(
+              `curve_${Date.now()}`,
+              CommonTypes.Direction[triggerD]
+            );
           }
 
           // TODO: curve 相關
@@ -1260,6 +1258,7 @@ export default function ProcessPage() {
         if (currentShape.selecting) {
           currentShape?.removeConnection();
           shapes = shapes.filter((shape) => shape.id !== currentShape?.id);
+
           console.log("shapes", shapes);
         } else {
           ds.forEach((d) => {

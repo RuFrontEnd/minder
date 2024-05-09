@@ -45,17 +45,17 @@ type ReceivingTarget = {
 };
 
 type ConnectTarget = {
-  curve: Curve,
+  curve: Curve;
   shape: Core;
   direction: Direction;
 };
 
 type CurveOffset = {
-  l: Vec,
-  t: Vec,
-  r: Vec,
-  b: Vec
-}
+  l: Vec;
+  t: Vec;
+  r: Vec;
+  b: Vec;
+};
 
 type Receiving = {
   l: boolean;
@@ -67,12 +67,17 @@ type Receiving = {
 type SendTo = {
   shape: Core;
   d: Direction;
-}
+};
+
+type SendCurve = {
+  shape: Curve;
+  sendTo: null | SendTo;
+};
 
 type ReceiveFrom = {
   shape: Core;
   d: Direction;
-}
+};
 
 export { PressingTarget };
 export type {
@@ -83,5 +88,6 @@ export type {
   CurveOffset,
   Receiving,
   SendTo,
-  ReceiveFrom
+  SendCurve,
+  ReceiveFrom,
 };

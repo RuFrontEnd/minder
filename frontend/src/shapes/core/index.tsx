@@ -58,22 +58,10 @@ export default class Core {
   title: CommonTypes.Title;
   __p__: Vec;
   curves: {
-    l: {
-      shape: Curve;
-      sendTo: null | CoreTypes.SendTo;
-    }[];
-    t: {
-      shape: Curve;
-      sendTo: null | CoreTypes.SendTo;
-    }[];
-    r: {
-      shape: Curve;
-      sendTo: null | CoreTypes.SendTo;
-    }[];
-    b: {
-      shape: Curve;
-      sendTo: null | CoreTypes.SendTo;
-    }[];
+    l: CoreTypes.SendCurve[];
+    t: CoreTypes.SendCurve[];
+    r: CoreTypes.SendCurve[];
+    b: CoreTypes.SendCurve[];
   };
   __selecting__: boolean;
   __receiving__: CoreTypes.Receiving;
@@ -82,10 +70,10 @@ export default class Core {
     target: CoreTypes.PressingTarget | null;
   };
   receiveFrom: {
-    l: null | CoreTypes.ReceiveFrom;
-    t: null | CoreTypes.ReceiveFrom;
-    r: null | CoreTypes.ReceiveFrom;
-    b: null | CoreTypes.ReceiveFrom;
+    l: CoreTypes.ReceiveFrom[];
+    t: CoreTypes.ReceiveFrom[];
+    r: CoreTypes.ReceiveFrom[];
+    b: CoreTypes.ReceiveFrom[];
   };
   dragP:
     | Vec
@@ -128,10 +116,10 @@ export default class Core {
     };
     this.pressing = this.initPressing;
     this.receiveFrom = {
-      l: null,
-      t: null,
-      r: null,
-      b: null,
+      l: [],
+      t: [],
+      r: [],
+      b: [],
     };
     this.dragP = {
       x: null,
@@ -159,9 +147,11 @@ export default class Core {
       const _senders: CoreTypes.ReceiveFrom[] = [];
 
       ds.forEach((d) => {
-        const sender = this.receiveFrom[d];
-        if (!sender) return;
-        _senders.push(sender);
+        const senders = this.receiveFrom[d];
+        if (!senders) return;
+        senders.forEach((sender) => {
+          _senders.push(sender);
+        });
       });
 
       return _senders;
@@ -245,20 +235,24 @@ export default class Core {
     // TODO: curve 相關
     // when receiver width changes, receiver curve follows the sender shape
     ds.forEach((d) => {
-      this.receiveFrom.l?.shape.curves[d].forEach((curve) => {
-        curve.shape.p2 = {
-          ...curve.shape.p2,
-          x: curve.shape.p2.x + offset,
-        };
-        curve.shape.cp2.x += offset;
+      this.receiveFrom.l?.forEach((receiveFromItem) => {
+        receiveFromItem.shape.curves[d].forEach((curve) => {
+          curve.shape.p2 = {
+            ...curve.shape.p2,
+            x: curve.shape.p2.x + offset,
+          };
+          curve.shape.cp2.x += offset;
+        });
       });
 
-      this.receiveFrom.r?.shape.curves[d].forEach((curve) => {
-        curve.shape.p2 = {
-          ...curve.shape.p2,
-          x: curve.shape.p2.x - offset,
-        };
-        curve.shape.cp2.x -= offset;
+      this.receiveFrom.r?.forEach((receiveFromItem) => {
+        receiveFromItem.shape.curves[d].forEach((curve) => {
+          curve.shape.p2 = {
+            ...curve.shape.p2,
+            x: curve.shape.p2.x - offset,
+          };
+          curve.shape.cp2.x -= offset;
+        });
       });
     });
   }
@@ -302,20 +296,24 @@ export default class Core {
     // TODO: curve 相關
     // when receiver height changes, receiver curve follows the sender shape
     ds.forEach((d) => {
-      this.receiveFrom.t?.shape.curves[d].forEach((curve) => {
-        curve.shape.p2 = {
-          ...curve.shape.p2,
-          y: curve.shape.p2.y + offset,
-        };
-        curve.shape.cp2.y += offset;
+      this.receiveFrom.t?.forEach((receiveFromItem) => {
+        receiveFromItem.shape.curves[d].forEach((curve) => {
+          curve.shape.p2 = {
+            ...curve.shape.p2,
+            y: curve.shape.p2.y + offset,
+          };
+          curve.shape.cp2.y += offset;
+        });
       });
 
-      this.receiveFrom.b?.shape.curves[d].forEach((curve) => {
-        curve.shape.p2 = {
-          ...curve.shape.p2,
-          y: curve.shape.p2.y - offset,
-        };
-        curve.shape.cp2.y -= offset;
+      this.receiveFrom.b?.forEach((receiveFromItem) => {
+        receiveFromItem.shape.curves[d].forEach((curve) => {
+          curve.shape.p2 = {
+            ...curve.shape.p2,
+            y: curve.shape.p2.y - offset,
+          };
+          curve.shape.cp2.y -= offset;
+        });
       });
     });
   }
@@ -600,10 +598,11 @@ export default class Core {
 
     if (!bridge) return;
     bridge.curve.sendTo = { shape: targetShape, d: targetShapeReceiveD };
-    targetShape.receiveFrom[targetShapeReceiveD] = {
+    targetShape.receiveFrom[targetShapeReceiveD].push({
       shape: this,
       d: bridge.d,
-    };
+    });
+
     const thershold = 10;
     if (targetShapeReceiveD === Direction.l) {
       bridge.curve.shape.p2 = {
@@ -641,15 +640,21 @@ export default class Core {
     })();
 
     ds.forEach((d) => {
-      this.curves[d].forEach((curve) => {
-        if (!(curve.shape.id in curveIdsMapping)) return;
+      this.curves[d].forEach((sendCurve) => {
+        if (!(sendCurve.shape.id in curveIdsMapping)) return;
 
-        const receiverShape = curve?.sendTo?.shape,
-          receiverShapeD = curve?.sendTo?.d;
+        const receiverShape = sendCurve?.sendTo?.shape,
+          receiverShapeD = sendCurve?.sendTo?.d;
 
         if (receiverShape && receiverShapeD) {
-          receiverShape.receiveFrom[receiverShapeD] = null;
-          curve.sendTo = null;
+          const disconnectReceiveI = receiverShape.receiveFrom[
+            receiverShapeD
+          ].findIndex((receiveFrom) => receiveFrom.shape.id === this.id);
+          receiverShape.receiveFrom[receiverShapeD].splice(
+            disconnectReceiveI,
+            1
+          );
+          sendCurve.sendTo = null;
         }
       });
     });
@@ -659,21 +664,29 @@ export default class Core {
     // TODO: curve 相關
     // remove connection from receiver
     ds.forEach((d) => {
-      this.curves[d].forEach((curve) => {
-        if (!curve.sendTo) return;
-        curve.sendTo.shape.receiveFrom[curve.sendTo.d] = null;
+      this.curves[d].forEach((sendCurve) => {
+        const sendTo = sendCurve.sendTo;
+        if (!sendTo) return;
+
+        const removeTargetI = sendTo.shape.receiveFrom[sendTo.d].findIndex(
+          (receiveFrom) => receiveFrom.shape.id === this.id
+        );
+
+        sendTo.shape.receiveFrom[sendTo.d].splice(removeTargetI, 1);
       });
     });
     // remove connection from sender
     ds.forEach((d) => {
-      const sender = this.receiveFrom[d];
-      if (!sender) return;
+      const senders = this.receiveFrom[d];
+      if (!senders) return;
 
       ds.forEach((d) => {
-        sender.shape.curves[d].forEach((curve) => {
-          if (curve.sendTo?.shape.id === this.id) {
-            curve.sendTo = null;
-          }
+        senders.forEach((sender) => {
+          sender.shape.curves[d].forEach((curve) => {
+            if (curve.sendTo?.shape.id === this.id) {
+              curve.sendTo = null;
+            }
+          });
         });
       });
     });
