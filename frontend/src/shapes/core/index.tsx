@@ -595,20 +595,16 @@ export default class Core {
 
   connect(targetShape: Core, targetShapeD: Direction, sendCurveId: string) {
     // TODO: curve 相關
-
     // const bridgeCurve = this.curves.find(
     //   (curve) => curve.shape.id === sendCurveId
     // );
     // if (!bridgeCurve) return;
     // bridgeCurve.sendTo = { shape: targetShape, d: targetShapeD };
-
     // targetShape.receiveFrom[targetShapeD] = {
     //   shape: this,
     //   d: bridgeCurve.d,
     // };
-
     // const thershold = 10;
-
     // if (targetShapeD === Direction.l) {
     //   bridgeCurve.shape.p2 = {
     //     x: targetShape.p.x - this.p.x - targetShape.w / 2 - thershold,
@@ -636,22 +632,17 @@ export default class Core {
     // TODO: curve 相關
     // const curveIdsMapping = (() => {
     //   const mapping: { [curveId: string]: boolean } = {};
-
     //   curveIds.forEach((curveId) => {
     //     mapping[curveId] = true;
     //   });
-
     //   return mapping;
     // })();
-
     // const curves = shape.curves.filter(
     //   (curve) => curve.shape.id in curveIdsMapping
     // );
-
     // curves.forEach((curve) => {
     //   const receiverShape = curve?.sendTo?.shape,
     //     receiverShapeD = curve?.sendTo?.d;
-
     //   if (receiverShape && receiverShapeD) {
     //     receiverShape.receiveFrom[receiverShapeD] = null;
     //     curve.sendTo = null;
@@ -666,7 +657,6 @@ export default class Core {
     //   if (!curve.sendTo) return;
     //   curve.sendTo.shape.receiveFrom[curve.sendTo.d] = null;
     // });
-
     // // remove connection from sender
     // ds.forEach((d) => {
     //   this.receiveFrom[d]?.shape.curves.forEach((curve) => {
@@ -702,12 +692,12 @@ export default class Core {
     );
   }
 
-  removeCurve(targetId: string) {
+  removeCurve(d: Direction, targetId: string) {
     // TODO: curve 相關
-    // const targetI = this.curves.findIndex(
-    //   (curve) => curve.shape.id === targetId
-    // );
-    // this.curves.splice(targetI, 1);
+    const targetI = this.curves[d].findIndex(
+      (curve) => curve.shape.id === targetId
+    );
+    this.curves[d].splice(targetI, 1);
   }
 
   move(p: Vec, dragP: Vec) {

@@ -1265,46 +1265,24 @@ export default function ProcessPage() {
 
     // delete
     if (e.key === "Backspace" && !dataFrame && !dbClickedShape) {
-      let removeShape: null | Terminal | Process | Data | Desicion = null,
-        removeCurve: null | {
-          shape: Terminal | Process | Data | Desicion;
-          id: string;
-        } = null;
-
-      const ds = [
-        CommonTypes.Direction.l,
-        CommonTypes.Direction.t,
-        CommonTypes.Direction.r,
-        CommonTypes.Direction.b,
-      ];
-
       for (const currentShape of shapes) {
-        if (removeShape || removeCurve) break;
+        // TODO: curve 相關
 
         if (currentShape.selecting) {
-          removeShape = currentShape;
-          break;
+          currentShape?.removeConnection();
+          shapes = shapes.filter((shape) => shape.id !== currentShape?.id);
         } else {
-          // TODO: curve 相關
-          // for (const curveInShape of currentShape.curves) {
-          //   if (curveInShape.shape?.selecting) {
-          //     removeCurve = { shape: currentShape, id: curveInShape.shape.id };
-          //   }
-          // }
+          ds.forEach((d) => {
+            currentShape.curves[d].forEach((currentCurve) => {
+              if (!currentCurve.shape?.selecting) return;
+              currentShape.removeCurve(d, currentCurve.shape.id);
+            });
+          });
         }
       }
 
-      if (removeShape) {
-        removeShape?.removeConnection();
-        shapes = shapes.filter((shape) => shape.id !== removeShape?.id);
-        checkData();
-        checkGroups();
-      } else if (removeCurve) {
-        // TODO: curve 相關
-        // removeCurve.shape.removeCurve(removeCurve.id);
-        checkData();
-        checkGroups();
-      }
+      checkData();
+      checkGroups();
     }
 
     // space
