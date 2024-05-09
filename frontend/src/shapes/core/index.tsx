@@ -654,24 +654,29 @@ export default class Core {
 
   disConnect(shape: Core, curveIds: string[]) {
     // TODO: curve 相關
-    // const curveIdsMapping = (() => {
-    //   const mapping: { [curveId: string]: boolean } = {};
-    //   curveIds.forEach((curveId) => {
-    //     mapping[curveId] = true;
-    //   });
-    //   return mapping;
-    // })();
-    // const curves = shape.curves.filter(
-    //   (curve) => curve.shape.id in curveIdsMapping
-    // );
-    // curves.forEach((curve) => {
-    //   const receiverShape = curve?.sendTo?.shape,
-    //     receiverShapeD = curve?.sendTo?.d;
-    //   if (receiverShape && receiverShapeD) {
-    //     receiverShape.receiveFrom[receiverShapeD] = null;
-    //     curve.sendTo = null;
-    //   }
-    // });
+    const curveIdsMapping = (() => {
+      const mapping: { [curveId: string]: boolean } = {};
+
+      curveIds.forEach((curveId) => {
+        mapping[curveId] = true;
+      });
+
+      return mapping;
+    })();
+
+    ds.forEach((d) => {
+      this.curves[d].forEach((curve) => {
+        if (!(curve.shape.id in curveIdsMapping)) return;
+
+        const receiverShape = curve?.sendTo?.shape,
+          receiverShapeD = curve?.sendTo?.d;
+
+        if (receiverShape && receiverShapeD) {
+          receiverShape.receiveFrom[receiverShapeD] = null;
+          curve.sendTo = null;
+        }
+      });
+    });
   }
 
   removeConnection() {
