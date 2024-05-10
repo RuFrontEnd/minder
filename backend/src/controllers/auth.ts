@@ -44,7 +44,6 @@ export default class Auth {
   async login(req: Request, res: Response, next: NextFunction) {
     const { account, password } = req.body;
 
-
     try {
       const _token = await this.authService.login(account, password);
       res

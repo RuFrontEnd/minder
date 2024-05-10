@@ -58,7 +58,132 @@ export default class Shape {
   ) {
     try {
       const collection = await mongoDbPool.query("shapes");
-      await collection.insertOne({ test: "test" });
+      await collection.insertOne({
+        projectId: 1,
+        shapes: {
+          id: "uuid",
+          w: 100,
+          h: 100,
+          title: "title",
+          p: {
+            x: 200,
+            y: 200,
+          },
+          curves: {
+            l: [
+              {
+                shape: {
+                  id: "curve_id_1",
+                  p1: {
+                    x: 100,
+                    y: 100,
+                  },
+                  p2: {
+                    x: 100,
+                    y: 100,
+                  },
+                  cp1: {
+                    x: 100,
+                    y: 100,
+                  },
+                  cp2: {
+                    x: 100,
+                    y: 100,
+                  },
+                },
+                sendTo: {
+                  id: "uuid_shape_1",
+                  d: "t",
+                },
+              },
+            ],
+            t: [
+              {
+                shape: {
+                  id: "curve_id_2",
+                  p1: {
+                    x: 100,
+                    y: 100,
+                  },
+                  p2: {
+                    x: 100,
+                    y: 100,
+                  },
+                  cp1: {
+                    x: 100,
+                    y: 100,
+                  },
+                  cp2: {
+                    x: 100,
+                    y: 100,
+                  },
+                },
+                sendTo: {
+                  id: "uuid_shape_2",
+                  d: "t",
+                },
+              },
+            ],
+            r: [
+              {
+                shape: {
+                  id: "curve_id_3",
+                  p1: {
+                    x: 100,
+                    y: 100,
+                  },
+                  p2: {
+                    x: 100,
+                    y: 100,
+                  },
+                  cp1: {
+                    x: 100,
+                    y: 100,
+                  },
+                  cp2: {
+                    x: 100,
+                    y: 100,
+                  },
+                },
+                sendTo: {
+                  id: "uuid_shape_3",
+                  d: "t",
+                },
+              },
+            ],
+            b: [
+              {
+                shape: {
+                  id: "curve_id_4",
+                  p1: {
+                    x: 100,
+                    y: 100,
+                  },
+                  p2: {
+                    x: 100,
+                    y: 100,
+                  },
+                  cp1: {
+                    x: 100,
+                    y: 100,
+                  },
+                  cp2: {
+                    x: 100,
+                    y: 100,
+                  },
+                },
+                sendTo: {
+                  id: "uuid_shape_4",
+                  d: "t",
+                },
+              },
+            ],
+          },
+          options: [{ id: "uuid_option", text: "data_1" }],
+          selectedData: [{ id: "uuid_selectedData", text: "data_2" }],
+          redundancies: [{ id: "uuid_redundancy", text: "data_3" }],
+        },
+      });
       res.status(201).send("Create shape successfully!");
     } catch (err) {
       console.error("Create shapes error", err);

@@ -28,12 +28,7 @@ export default class Curve {
   __p2__: Vec;
   cp1: Vec;
   __cp2__: Vec;
-  pressing: {
-    activate: boolean;
-    p: CurveTypes.PressingTarget | null;
-  };
   arrow: null | Arrow;
-  dragP: Vec | null;
   selecting: boolean;
   __offset__: Vec;
   __scale__: number;
@@ -60,7 +55,6 @@ export default class Curve {
     this.cp1 = cp1;
     this.__cp2__ = cp2;
     this.__p2__ = p2;
-    this.pressing = this.initPressing;
     this.arrow = new Arrow(
       12,
       12,
@@ -69,7 +63,6 @@ export default class Curve {
       Math.atan2(this.__p2__.y - this.cp2.y, this.__p2__.x - this.cp2.x) +
       90 * (Math.PI / 180)
     );
-    this.dragP = null;
     this.selecting = false;
     this.__offset__ = this.initOffset;
     this.__scale__ = this.initScale;
