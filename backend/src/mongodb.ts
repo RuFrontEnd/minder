@@ -30,4 +30,6 @@ class MongoDbPool {
   }
 }
 
-export default MongoDbPool;
+const mongoDbPool = new MongoDbPool();
+
+export default mongoDbPool;

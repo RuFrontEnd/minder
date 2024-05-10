@@ -2,7 +2,7 @@
 import express, { Express, Request, Response, NextFunction } from "express";
 import colors from "colors";
 import pool from "./db";
-import MongoDbPool from "./mongodb";
+import mongoDbPool from "./mongodb";
 import * as routes from "./routes";
 
 (async function () {
@@ -16,7 +16,6 @@ import * as routes from "./routes";
 
   // connect mongodb
   try {
-    const mongoDbPool = new MongoDbPool();
     await mongoDbPool.getConnection();
     console.log(colors.green(`[mongodb] connect succeed`));
   } catch (err) {
