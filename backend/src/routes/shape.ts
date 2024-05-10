@@ -2,7 +2,7 @@ import { Shape as ShapeController } from "../controllers";
 import Route from "./route";
 import { verifyToken } from '../utils/auth'
 
-export default class Project extends Route {
+export default class Shape extends Route {
   private shapeController = new ShapeController();
 
   constructor() {
