@@ -125,14 +125,21 @@ const getFramePosition = (shape: Core) => {
 };
 
 const getInitializeShapes = (data: ShapeAPITypes.GetShapes["ResData"]) => {
-  const shapes: any = [];
-  let length = 0;
-  console.log("data", data);
+  const shapes: (Terminal | Process | Data | Desicion)[] = [];
+
   data.orders.forEach((shapeId) => {
     const currentShape = data.shapes[shapeId];
 
     switch (currentShape.type) {
       case CommonTypes.Type.terminator:
+        const newShape = new Terminal(
+          shapeId,
+          currentShape.w,
+          currentShape.h,
+          currentShape.p,
+          currentShape.title
+        );
+
         shapes.push(
           new Terminal(
             shapeId,
@@ -809,6 +816,9 @@ export default function ProcessPage() {
       setDataFrame(undefined);
       offset.x += screenOffsetP.x;
       offset.y += screenOffsetP.y;
+      shapes.forEach((shape) => {
+        shape.offset = offset;
+      });
     }
 
     if (pressing?.target && pressing?.shape) {
@@ -1089,73 +1099,6 @@ export default function ProcessPage() {
       });
     }
 
-    // const shapesInView: (Terminal | Process | Data | Desicion)[] = [];
-
-    // shapes.forEach((shape) => {
-    //   if (!$canvas) return;
-
-    //   if (movingCanvas) {
-    //     shape.offset = offset;
-    //   }
-
-    //   if (shape.checkBoundry(p) && dbClickedShape?.id === shape.id) {
-    //     const $dataFrame = document.getElementById(dbClickedShape?.id);
-    //     if ($dataFrame) {
-    //       const framePosition = getFramePosition(shape);
-    //       $dataFrame.style.left = `${framePosition.x}px`;
-    //       $dataFrame.style.top = `${framePosition.y}px`;
-    //     }
-    //   }
-
-    //   const shapeEdge = shape.getEdge(),
-    //     isShapeInView =
-    //       ((shapeEdge.l >= 0 && shapeEdge.l <= $canvas.width) ||
-    //         (shapeEdge.r >= 0 && shapeEdge.r <= $canvas.width)) &&
-    //       ((shapeEdge.t >= 0 && shapeEdge.t <= $canvas.height) ||
-    //         (shapeEdge.b >= 0 && shapeEdge.b <= $canvas.height));
-
-    //   if (isShapeInView) {
-    //     shapesInView.push(shape);
-    //   }
-    // });
-    // // align feature
-    // const thePressing = pressing,
-    //   stickyOffset = 5;
-
-    // if (thePressing) {
-    //   shapesInView.forEach((shapeInView) => {
-    //     if (shapeInView.id === thePressing?.shape?.id) return;
-    //     if (
-    //       !(thePressing.shape instanceof Terminal) &&
-    //       !(thePressing.shape instanceof Process) &&
-    //       !(thePressing.shape instanceof Desicion) &&
-    //       !(thePressing.shape instanceof Data)
-    //     )
-    //       return;
-
-    //     if (thePressing?.shape?.p.x === shapeInView.p.x && !moveP) {
-    //       moveP = {
-    //         originalX: p.x,
-    //         originalY: p.y,
-    //         x: p.x,
-    //         y: p.y,
-    //       };
-    //     } else if (moveP) {
-    //       moveP.x = p.x;
-    //       moveP.y = p.y;
-    //     }
-
-    //     if (
-    //       moveP &&
-    //       moveP.x &&
-    //       moveP.originalX &&
-    //       Math.abs(moveP.x - moveP?.originalX) > 10
-    //     ) {
-    //       moveP = null;
-    //     }
-    //   });
-    // }
-
     if (selectAreaP && !space) {
       selectAreaP = {
         ...selectAreaP,
@@ -1320,8 +1263,6 @@ export default function ProcessPage() {
         if (currentShape.selecting) {
           currentShape?.removeConnection();
           shapes = shapes.filter((shape) => shape.id !== currentShape?.id);
-
-          console.log("shapes", shapes);
         } else {
           ds.forEach((d) => {
             currentShape.curves[d].forEach((currentCurve) => {
@@ -1560,7 +1501,6 @@ export default function ProcessPage() {
 
   const draw = useCallback(
     ($canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => {
-      if (!ctx || !$canvas) return;
       $canvas.width = window.innerWidth;
       $canvas.height = window.innerHeight;
       ctx?.clearRect(0, 0, window.innerWidth, window.innerHeight);
@@ -1810,8 +1750,6 @@ export default function ProcessPage() {
 
           shapes = getInitializeShapes(resShapes.data);
           draw($canvas, ctx);
-
-          // console.log('shapes', shapes)
         }, 1000);
       }, 500);
     } else {
