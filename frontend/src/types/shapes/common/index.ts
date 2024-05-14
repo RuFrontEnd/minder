@@ -27,5 +27,12 @@ type DataItem = { id: string; text: string };
 
 type Data = DataItem[];
 
+enum Type {
+  terminator = "terminator",
+  process = "process",
+  data = "data",
+  decision = "decision",
+}
+
 export type { Id, W, H, C, Vec, Shapes, Title, DataItem, Data };
-export { Direction };
+export { Direction, Type };

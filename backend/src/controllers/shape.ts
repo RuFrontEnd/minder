@@ -33,7 +33,7 @@ export default class Shape {
   }
 
   async createShapes(
-    req: Request<{}, {}, ShapeTypes.CreateShapesData>,
+    req: Request<{}, {}, ShapeTypes.CreateShapes["req"]["data"]>,
     res: Response,
     next: NextFunction
   ) {
@@ -41,42 +41,58 @@ export default class Shape {
     try {
       await this.shapeService.createShape({
         projectId: 1,
+        orders: ["shape_1", "shape_2", "shape_3"],
         shapes: {
           shape_1: {
-            order: 1,
             w: 100,
             h: 100,
             title: "shape_1_title",
-            type: "terminator",
+            type: ShapeTypes.Type.terminator,
             p: {
               x: 200,
               y: 200,
+            },
+            curves: {
+              l: ["curve_1"],
+              t: [],
+              r: [],
+              b: [],
             },
             data: [],
             selectedData: {},
           },
           shape_2: {
-            order: 2,
             w: 100,
             h: 100,
             title: "shape_2_title",
-            type: "data",
+            type: ShapeTypes.Type.data,
             p: {
               x: 200,
               y: 200,
+            },
+            curves: {
+              l: [],
+              t: [],
+              r: ["curve_2"],
+              b: [],
             },
             data: ["data_1", "data_2", "data_3"],
             selectedData: {},
           },
           shape_3: {
-            order: 3,
             w: 100,
             h: 100,
             title: "shape_3_title",
-            type: "process",
+            type: ShapeTypes.Type.process,
             p: {
               x: 200,
               y: 200,
+            },
+            curves: {
+              l: [],
+              t: [],
+              r: [],
+              b: ["curve_3"],
             },
             data: [],
             selectedData: {
@@ -87,71 +103,74 @@ export default class Shape {
           },
         },
         curves: {
-          shape_1: {
-            l: [
-              {
-                id: "curve_id_1",
-                p1: {
-                  x: 100,
-                  y: 100,
-                },
-                p2: {
-                  x: 100,
-                  y: 100,
-                },
-                cp1: {
-                  x: 100,
-                  y: 100,
-                },
-                cp2: {
-                  x: 100,
-                  y: 100,
-                },
-                sendTo: {
-                  id: "shape_2",
-                  d: "t",
-                },
-              },
-            ],
-            t: [],
-            r: [],
-            b: [],
+          curve_1: {
+            p1: {
+              x: 100,
+              y: 100,
+            },
+            p2: {
+              x: 100,
+              y: 100,
+            },
+            cp1: {
+              x: 100,
+              y: 100,
+            },
+            cp2: {
+              x: 100,
+              y: 100,
+            },
+            sendTo: {
+              id: "shape_2",
+              d: ShapeTypes.Direction.r,
+            },
+            text: null,
           },
-          shape_2: {
-            l: [],
-            t: [],
-            r: [],
-            b: [
-              {
-                id: "curve_id_2",
-                p1: {
-                  x: 100,
-                  y: 100,
-                },
-                p2: {
-                  x: 100,
-                  y: 100,
-                },
-                cp1: {
-                  x: 100,
-                  y: 100,
-                },
-                cp2: {
-                  x: 100,
-                  y: 100,
-                },
-                sendTo: {
-                  id: "shape_3",
-                  d: "r",
-                },
-              },
-            ],
+          curve_2: {
+            p1: {
+              x: 100,
+              y: 100,
+            },
+            p2: {
+              x: 100,
+              y: 100,
+            },
+            cp1: {
+              x: 100,
+              y: 100,
+            },
+            cp2: {
+              x: 100,
+              y: 100,
+            },
+            sendTo: {
+              id: "shape_2",
+              d: ShapeTypes.Direction.t,
+            },
+            text: null,
           },
-          shape_3: {
-            l: [],
-            t: [],
-            r: [],
-            b: [],
+          curve_3: {
+            p1: {
+              x: 100,
+              y: 100,
+            },
+            p2: {
+              x: 100,
+              y: 100,
+            },
+            cp1: {
+              x: 100,
+              y: 100,
+            },
+            cp2: {
+              x: 100,
+              y: 100,
+            },
+            sendTo: {
+              id: "shape_3",
+              d: ShapeTypes.Direction.t,
+            },
+            text: null,
           },
         },
         data: {

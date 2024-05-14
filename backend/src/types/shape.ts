@@ -4,12 +4,25 @@ enum Type {
   data = "data",
   decision = "decision",
 }
+
+enum Direction {
+  l = "l",
+  t = "t",
+  r = "r",
+  b = "b",
+}
+
 type ShapeId = string;
+
 type Title = string;
+
 type Vec = { x: number; y: number };
+
 type W = number;
+
 type H = number;
-type CurveD = {
+
+type CurveInfo = {
   p1: {
     x: Vec["x"];
     y: Vec["y"];
@@ -26,14 +39,18 @@ type CurveD = {
     x: Vec["x"];
     y: Vec["y"];
   };
-  sendTo: ShapeId;
+  sendTo: {
+    id: ShapeId;
+    d: Direction;
+  };
   text: null | string;
 };
-type CreateShapesData = {
+
+type ShapeData = {
   projectId: number;
+  orders: string[];
   shapes: {
-    [shapeId: string]: {
-      order: number;
+    [shapeId: ShapeId]: {
       w: number;
       h: number;
       title: string;
@@ -42,41 +59,35 @@ type CreateShapesData = {
         x: number;
         y: number;
       };
-      data: string[];
-      selectedData: { [dataId: string]: boolean };
+      curves: {
+        l: ShapeId[];
+        t: ShapeId[];
+        r: ShapeId[];
+        b: ShapeId[];
+      };
+      data: ShapeId[];
+      selectedData: { [dataId: ShapeId]: boolean };
     };
   };
   curves: {
-    [shapeId: string]: {
-      [direction: string]: {
-        id: string;
-        p1: {
-          x: number;
-          y: number;
-        };
-        p2: {
-          x: number;
-          y: number;
-        };
-        cp1: {
-          x: number;
-          y: number;
-        };
-        cp2: {
-          x: number;
-          y: number;
-        };
-        sendTo: {
-          id: string;
-          d: string;
-        };
-      }[];
-    };
+    [curveId: ShapeId]: CurveInfo;
   };
   data: {
-    [stringId: string]: string;
+    [stringId: ShapeId]: string;
   };
 };
 
-export { Type };
-export type { ShapeId, Title, Vec, W, H, CurveD, CreateShapesData };
+type GetShapes = {
+  res: {
+    data: ShapeData;
+  };
+};
+
+type CreateShapes = {
+  req: {
+    data: ShapeData;
+  };
+};
+
+export { Type, Direction };
+export type { ShapeId, Title, Vec, W, H, CurveInfo, GetShapes, CreateShapes };

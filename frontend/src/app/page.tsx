@@ -31,7 +31,8 @@ import * as DataFrameTypes from "@/types/components/dataFrame";
 import * as InputTypes from "@/types/components/input";
 import * as AlertTypes from "@/types/components/alert";
 import * as AuthTypes from "@/types/apis/auth";
-import * as ProjectTypes from "@/types/apis/project";
+import * as ProjectAPITypes from "@/types/apis/project";
+import * as ShapeAPITypes from "@/types/apis/shape";
 
 axios.defaults.baseURL = process.env.BASE_URL || "http://localhost:5000/api";
 
@@ -121,6 +122,64 @@ const getFramePosition = (shape: Core) => {
     x: shape.getScreenP().x + shape.getScaleSize().w / 2 + frameOffset,
     y: shape.getScreenP().y,
   };
+};
+
+const getInitializeShapes = (data: ShapeAPITypes.GetShapes["ResData"]) => {
+  const shapes: any = [];
+  let length = 0;
+  console.log("data", data);
+  data.orders.forEach((shapeId) => {
+    const currentShape = data.shapes[shapeId];
+
+    switch (currentShape.type) {
+      case CommonTypes.Type.terminator:
+        shapes.push(
+          new Terminal(
+            shapeId,
+            currentShape.w,
+            currentShape.h,
+            currentShape.p,
+            currentShape.title
+          )
+        );
+        break;
+      case CommonTypes.Type.data:
+        shapes.push(
+          new Data(
+            shapeId,
+            currentShape.w,
+            currentShape.h,
+            currentShape.p,
+            currentShape.title
+          )
+        );
+        break;
+      case CommonTypes.Type.process:
+        shapes.push(
+          new Process(
+            shapeId,
+            currentShape.w,
+            currentShape.h,
+            currentShape.p,
+            currentShape.title
+          )
+        );
+        break;
+      case CommonTypes.Type.decision:
+        shapes.push(
+          new Desicion(
+            shapeId,
+            currentShape.w,
+            currentShape.h,
+            currentShape.p,
+            currentShape.title
+          )
+        );
+        break;
+    }
+  });
+
+  return shapes
 };
 
 const Editor = (props: { className: string; shape: Core }) => {
@@ -344,7 +403,9 @@ export default function ProcessPage() {
       text: "",
     }),
     [isFetchingProjects, setIsFetchingProjects] = useState(false),
-    [projects, setProjects] = useState<ProjectTypes.GetProjects["ResData"]>([]);
+    [projects, setProjects] = useState<ProjectAPITypes.GetProjects["ResData"]>(
+      []
+    );
 
   const checkData = () => {
     const datas: Data[] = [];
@@ -1300,8 +1361,7 @@ export default function ProcessPage() {
         x: -offset.x + window.innerWidth / 2 + offset_center.x,
         y: -offset.y + window.innerHeight / 2 + offset_center.y,
       },
-      "terminator_start",
-      true
+      "terminator_start"
     );
     terminal.offset = offset;
     terminal.scale = scale;
@@ -1323,8 +1383,7 @@ export default function ProcessPage() {
         x: -offset.x + window.innerWidth / 2 + offset_center.x,
         y: -offset.y + window.innerHeight / 2 + offset_center.y,
       },
-      "terminator_end",
-      false
+      "terminator_end"
     );
     terminal.offset = offset;
     terminal.scale = scale;
@@ -1735,14 +1794,20 @@ export default function ProcessPage() {
           setIsProjectsModalOpen(true);
           setAuthInfo(init.authInfo);
           const res: AxiosResponse<
-            ProjectTypes.GetProjects["ResData"],
+            ProjectAPITypes.GetProjects["ResData"],
             any
           > = await projectAPIs.getProjecs();
           setProjects(res.data);
 
           // TODO: move to after project selected
-          const myShapes = shapeAPIs.getShapes(1);
-          console.log("myShapes", myShapes);
+          // const resShapes: AxiosResponse<
+          //   ShapeAPITypes.GetShapes["ResData"],
+          //   any
+          // > = await shapeAPIs.getShapes(1);
+
+          // shapes = getInitializeShapes(resShapes.data);
+
+          // console.log('shapes', shapes)
         }, 1000);
       }, 500);
     } else {
@@ -1881,8 +1946,7 @@ export default function ProcessPage() {
           x: -offset.x + window.innerWidth / 2,
           y: -offset.y + window.innerHeight / 2 - 300,
         },
-        "起點",
-        true
+        "起點"
       );
       terminal_s_new.offset = offset;
       terminal_s_new.scale = scale;

@@ -9,7 +9,7 @@ export default class Shape {
     return shapes;
   }
 
-  async createShape(data: ShapeTypes.CreateShapesData) {
+  async createShape(data: ShapeTypes.CreateShapes["req"]["data"]) {
     await this.shpaeModel.createShape(data);
   }
 }
