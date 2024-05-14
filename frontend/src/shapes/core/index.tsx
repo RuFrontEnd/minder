@@ -65,22 +65,12 @@ export default class Core {
   };
   __selecting__: boolean;
   __receiving__: CoreTypes.Receiving;
-  pressing: {
-    activate: boolean;
-    target: CoreTypes.PressingTarget | null;
-  };
   receiveFrom: {
     l: CoreTypes.ReceiveFrom[];
     t: CoreTypes.ReceiveFrom[];
     r: CoreTypes.ReceiveFrom[];
     b: CoreTypes.ReceiveFrom[];
   };
-  dragP:
-    | Vec
-    | {
-        x: null;
-        y: null;
-      };
   options: DataType;
   selectedData: DataType;
   redundancies: DataType;
@@ -114,16 +104,11 @@ export default class Core {
       r: false,
       b: false,
     };
-    this.pressing = this.initPressing;
     this.receiveFrom = {
       l: [],
       t: [],
       r: [],
       b: [],
-    };
-    this.dragP = {
-      x: null,
-      y: null,
     };
     this.options = [];
     this.selectedData = [];

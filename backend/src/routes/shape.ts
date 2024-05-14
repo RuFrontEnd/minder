@@ -12,7 +12,7 @@ export default class Shape extends Route {
   }
 
   protected setRoutes() {
-    this.router.get("/shpaes", verifyToken, this.shapeController.getShapes);
+    this.router.get("/shapes", verifyToken, this.shapeController.getShapes);
     this.router.post("/shapes", verifyToken, this.shapeController.createShapes);
   }
 }

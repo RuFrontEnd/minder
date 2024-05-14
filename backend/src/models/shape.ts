@@ -1,21 +1,19 @@
-import pool from "../db";
-import { RowDataPacket } from "mysql2";
-
+import mongoDbPool from "../mongodb";
+import * as ShapeTypes from "../types/shape";
 
 export default class Shape {
-  // async getProjects(user: string) {
-  //   const [rows] = await pool.query('SELECT * FROM projects WHERE user = ?', [user]);
-  //   return (rows as { id: number, user: number, name: string }[])
-  // }
+  async getShape(projectId: number) {
+    const collection = await mongoDbPool.query("shapes");
 
-  // async createProject(name: string, user: string) {
-  //   await pool.query(
-  //     "INSERT INTO projects (name, user) VALUES (?, ?)",
-  //     [name, user]
-  //   );
-  // }
+    const shapes = await collection
+      .find({ projectId: Number(projectId) })
+      .toArray();
 
-  // echo() {
-  //   console.log("project model");
-  // }
+    return shapes;
+  }
+
+  async createShape(data: ShapeTypes.CreateShapesData) {
+    const collection = await mongoDbPool.query("shapes");
+    await collection.insertOne(data);
+  }
 }
