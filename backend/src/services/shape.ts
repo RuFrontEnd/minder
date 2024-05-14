@@ -4,8 +4,8 @@ import * as ShapeTypes from "../types/shape";
 export default class Shape {
   private shpaeModel = new ShapeModel();
 
-  async getShape(projectId: number) {
-    const shapes = await this.shpaeModel.getShape(projectId);
+  async getShapes(projectId: number) {
+    const shapes = await this.shpaeModel.getShapes(projectId);
     return shapes;
   }
 

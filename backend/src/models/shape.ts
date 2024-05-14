@@ -2,7 +2,7 @@ import mongoDbPool from "../mongodb";
 import * as ShapeTypes from "../types/shape";
 
 export default class Shape {
-  async getShape(projectId: number) {
+  async getShapes(projectId: number) {
     const collection = await mongoDbPool.query("shapes");
 
     const shapes = await collection

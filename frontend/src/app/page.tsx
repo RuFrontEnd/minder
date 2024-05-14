@@ -22,6 +22,7 @@ import { v4 as uuidv4 } from "uuid";
 import { ChangeEventHandler } from "react";
 import * as authAPIs from "@/apis/auth";
 import * as projectAPIs from "@/apis/project";
+import * as shapeAPIs from "@/apis/shapes";
 import * as CoreTypes from "@/types/shapes/core";
 import * as CurveTypes from "@/types/shapes/curve";
 import * as CommonTypes from "@/types/shapes/common";
@@ -42,14 +43,14 @@ let useEffected = false,
     shape: null | Terminal | Process | Data | Desicion | Curve;
     direction: null | CommonTypes.Direction;
     target:
-    | null
-    | CoreTypes.PressingTarget
-    | CurveTypes.PressingTarget
-    | "selectArea_m"
-    | "selectArea_lt"
-    | "selectArea_rt"
-    | "selectArea_rb"
-    | "selectArea_lb";
+      | null
+      | CoreTypes.PressingTarget
+      | CurveTypes.PressingTarget
+      | "selectArea_m"
+      | "selectArea_lt"
+      | "selectArea_rt"
+      | "selectArea_rb"
+      | "selectArea_lb";
     dx: number; // distance between event px & pressing shape px
     dy: number; // distance between event py & pressing shape py
   } = null,
@@ -97,22 +98,22 @@ let useEffected = false,
   };
 
 const ds = [
-  CommonTypes.Direction.l,
-  CommonTypes.Direction.t,
-  CommonTypes.Direction.r,
-  CommonTypes.Direction.b,
-],
+    CommonTypes.Direction.l,
+    CommonTypes.Direction.t,
+    CommonTypes.Direction.r,
+    CommonTypes.Direction.b,
+  ],
   vs: (
     | CoreTypes.PressingTarget.lt
     | CoreTypes.PressingTarget.rt
     | CoreTypes.PressingTarget.rb
     | CoreTypes.PressingTarget.lb
   )[] = [
-      CoreTypes.PressingTarget.lt,
-      CoreTypes.PressingTarget.rt,
-      CoreTypes.PressingTarget.rb,
-      CoreTypes.PressingTarget.lb,
-    ];
+    CoreTypes.PressingTarget.lt,
+    CoreTypes.PressingTarget.rt,
+    CoreTypes.PressingTarget.rb,
+    CoreTypes.PressingTarget.lb,
+  ];
 
 const getFramePosition = (shape: Core) => {
   const frameOffset = 12;
@@ -224,42 +225,42 @@ const Editor = (props: { className: string; shape: Core }) => {
         {(props.shape instanceof Process ||
           props.shape instanceof Data ||
           props.shape instanceof Desicion) && (
-            <>
-              <div>
-                <p className="mb-1">Data Usage</p>
-                <ul className="ps-2">
-                  {props.shape.options.map((option) => (
-                    <li className="mb-1">
-                      <span className="bg-indigo-100 text-indigo-500 w-4 h-4 rounded-full inline-flex items-center justify-center">
-                        {selections[option.text] && (
-                          <svg
-                            fill="none"
-                            stroke="currentColor"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="3"
-                            className="w-3 h-3"
-                            viewBox="0 0 24 24"
-                          >
-                            <path d="M20 6L9 17l-5-5"></path>
-                          </svg>
-                        )}
-                      </span>
-                      {option.text}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div>
-                <div className="mb-1">Redundancies</div>
-                <ul className="ps-2">
-                  {props.shape.redundancies.map((redundancy) => (
-                    <li className="mb-1"> · {redundancy.text}</li>
-                  ))}
-                </ul>
-              </div>
-            </>
-          )}
+          <>
+            <div>
+              <p className="mb-1">Data Usage</p>
+              <ul className="ps-2">
+                {props.shape.options.map((option) => (
+                  <li className="mb-1">
+                    <span className="bg-indigo-100 text-indigo-500 w-4 h-4 rounded-full inline-flex items-center justify-center">
+                      {selections[option.text] && (
+                        <svg
+                          fill="none"
+                          stroke="currentColor"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="3"
+                          className="w-3 h-3"
+                          viewBox="0 0 24 24"
+                        >
+                          <path d="M20 6L9 17l-5-5"></path>
+                        </svg>
+                      )}
+                    </span>
+                    {option.text}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <div className="mb-1">Redundancies</div>
+              <ul className="ps-2">
+                {props.shape.redundancies.map((redundancy) => (
+                  <li className="mb-1"> · {redundancy.text}</li>
+                ))}
+              </ul>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
@@ -301,8 +302,8 @@ export default function ProcessPage() {
   let { current: $canvas } = useRef<HTMLCanvasElement | null>(null);
 
   const [dataFrame, setDataFrame] = useState<
-    { p: CommonTypes.Vec } | undefined
-  >(undefined),
+      { p: CommonTypes.Vec } | undefined
+    >(undefined),
     [dbClickedShape, setDbClickedShape] = useState<
       Terminal | Data | Process | Desicion | null
     >(null),
@@ -487,9 +488,9 @@ export default function ProcessPage() {
     setLeftMouseBtn(true);
 
     const p = {
-      x: e.nativeEvent.offsetX,
-      y: e.nativeEvent.offsetY,
-    },
+        x: e.nativeEvent.offsetX,
+        y: e.nativeEvent.offsetY,
+      },
       pInSelectArea =
         p.x > select.start.x &&
         p.y > select.start.y &&
@@ -665,12 +666,12 @@ export default function ProcessPage() {
                 dx:
                   (p.x - dragP.x) * (1 / scale) -
                   shape?.getEdge()[
-                  theCheckShapeVertexesBoundry[0] as CommonTypes.Direction
+                    theCheckShapeVertexesBoundry[0] as CommonTypes.Direction
                   ],
                 dy:
                   (p.y - dragP.y) * (1 / scale) -
                   shape?.getEdge()[
-                  theCheckShapeVertexesBoundry[1] as CommonTypes.Direction
+                    theCheckShapeVertexesBoundry[1] as CommonTypes.Direction
                   ],
               };
             }
@@ -729,9 +730,9 @@ export default function ProcessPage() {
     if (!$canvas || !ctx) return;
 
     const p = {
-      x: e.nativeEvent.offsetX,
-      y: e.nativeEvent.offsetY,
-    },
+        x: e.nativeEvent.offsetX,
+        y: e.nativeEvent.offsetY,
+      },
       offsetP = {
         x: p.x - dragP.x,
         y: p.y - dragP.y,
@@ -1126,9 +1127,9 @@ export default function ProcessPage() {
         const theEdge = shape.getEdge();
 
         const l =
-          selectAreaP.start.x < selectAreaP.end.x
-            ? selectAreaP.start.x
-            : selectAreaP.end.x,
+            selectAreaP.start.x < selectAreaP.end.x
+              ? selectAreaP.start.x
+              : selectAreaP.end.x,
           t =
             selectAreaP.start.y < selectAreaP.end.y
               ? selectAreaP.start.y
@@ -1738,6 +1739,10 @@ export default function ProcessPage() {
             any
           > = await projectAPIs.getProjecs();
           setProjects(res.data);
+
+          // TODO: move to after project selected
+          const myShapes = shapeAPIs.getShapes(1);
+          console.log("myShapes", myShapes);
         }, 1000);
       }, 500);
     } else {
@@ -1755,7 +1760,7 @@ export default function ProcessPage() {
     const _authInfo = cloneDeep(authInfo);
 
     const isPasswordLengthGreaterThanSix =
-      authInfo.password.value && authInfo.password.value?.length >= 6,
+        authInfo.password.value && authInfo.password.value?.length >= 6,
       isEmailFormatValid =
         authInfo.email.value &&
         new RegExp(/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/).test(
@@ -1908,54 +1913,6 @@ export default function ProcessPage() {
       data_new.offset = offset;
       data_new.scale = scale;
 
-      // for (let i = 0; i < 100; i++) {
-      //   let process = new Process(
-      //     `process_${Date.now()}_${i}`,
-      //     200,
-      //     100,
-      //     {
-      //       x: -offset.x + window.innerWidth / 2 + i * 2,
-      //       y: -offset.y + window.innerHeight / 2 + 100 + i * 2,
-      //     },
-      //     "red",
-      //     `程序_${i}`
-      //   );
-      //   process.offset = offset;
-      //   process.scale = scale;
-
-      //   shapes.push(process);
-      // }
-
-      // let terminal_e_new = new Terminal(
-      //   `terminator_e_${Date.now()}`,
-      //   200,
-      //   100,
-      //   {
-      //     x: -offset.x + window.innerWidth / 2,
-      //     y: -offset.y + window.innerHeight / 2 + 300,
-      //   },
-      //   "rgb(189, 123, 0)",
-      //   "終點",
-      //   false
-      // );
-      // terminal_e_new.offset = offset;
-      // terminal_e_new.scale = scale;
-
-      // let terminal_s_2_new = new Terminal(
-      //   `terminator_s_2_${Date.now()}`,
-      //   200,
-      //   100,
-      //   {
-      //     x: -offset.x + window.innerWidth / 2,
-      //     y: -offset.y + window.innerHeight / 2 + 500,
-      //   },
-      //   "orange",
-      //   "起點_2",
-      //   true
-      // );
-      // terminal_s_2_new.offset = offset;
-      // terminal_s_2_new.scale = scale;
-
       let decision_new = new Desicion(
         `decision_new_${Date.now()}`,
         init.shape.size.dec.w,
@@ -1994,6 +1951,7 @@ export default function ProcessPage() {
       $canvas.height = window.innerHeight;
       draw($canvas, ctx);
     };
+
     window.addEventListener("resize", resize);
     window.addEventListener("beforeunload", function (e) {
       e.preventDefault();
@@ -2018,7 +1976,7 @@ export default function ProcessPage() {
 
   return (
     <>
-      {/* <Modal
+      <Modal
         isOpen={
           isAccountModalOpen && !isProjectsModalOpen && !isProjectsModalOpen
         }
@@ -2081,9 +2039,13 @@ export default function ProcessPage() {
             onClick={isLogIn ? onClickLoginButton : onClickSignUpButton}
             loading={isAuthorizing}
           />
-          {(authMessage.text) &&
-            <Alert className="mt-2" type={authMessage.status} text={authMessage.text} />
-          }
+          {authMessage.text && (
+            <Alert
+              className="mt-2"
+              type={authMessage.status}
+              text={authMessage.text}
+            />
+          )}
           <p className="text-xs text-gray-500 mt-3">
             {isLogIn ? "No account yet? " : "Already have an account? "}
             <a
@@ -2096,7 +2058,7 @@ export default function ProcessPage() {
             </a>
           </p>
         </div>
-      </Modal> */}
+      </Modal>
       {/* <Modal isOpen={isProjectsModalOpen} width="728px">
         <section className="text-gray-600 bg-white-500 body-font">
           <div className="px-5 py-24 mx-auto">
@@ -2150,7 +2112,7 @@ export default function ProcessPage() {
           <li className="flex justify-self-end self-center text-base">
             <Button
               className={"mr-4 bg-secondary-500"}
-              onClick={(e) => { }}
+              onClick={(e) => {}}
               text={
                 <div className="d-flex items-center">
                   <span className="text-white-500">Save</span>

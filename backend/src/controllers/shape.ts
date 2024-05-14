@@ -24,8 +24,9 @@ export default class Shape {
 
     const { projectId } = req.query;
     try {
-      const shapes = await this.shapeService.getShape(Number(projectId));
-      return shapes;
+      const shapes = await this.shapeService.getShapes(Number(projectId));
+
+      res.status(201).send(shapes);
     } catch (err) {
       res.status(400).send(getError(err));
     }
