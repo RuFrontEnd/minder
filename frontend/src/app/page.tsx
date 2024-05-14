@@ -179,7 +179,7 @@ const getInitializeShapes = (data: ShapeAPITypes.GetShapes["ResData"]) => {
     }
   });
 
-  return shapes
+  return shapes;
 };
 
 const Editor = (props: { className: string; shape: Core }) => {
@@ -1799,13 +1799,17 @@ export default function ProcessPage() {
           > = await projectAPIs.getProjecs();
           setProjects(res.data);
 
-          // TODO: move to after project selected
-          // const resShapes: AxiosResponse<
-          //   ShapeAPITypes.GetShapes["ResData"],
-          //   any
-          // > = await shapeAPIs.getShapes(1);
+          let $canvas = document.querySelector("canvas");
+          if (!$canvas || !ctx) return;
 
-          // shapes = getInitializeShapes(resShapes.data);
+          // TODO: move to after project selected
+          const resShapes: AxiosResponse<
+            ShapeAPITypes.GetShapes["ResData"],
+            any
+          > = await shapeAPIs.getShapes(1);
+
+          shapes = getInitializeShapes(resShapes.data);
+          draw($canvas, ctx);
 
           // console.log('shapes', shapes)
         }, 1000);
