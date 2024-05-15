@@ -123,31 +123,74 @@ const getInitializedShapes = (data: ShapeAPITypes.GetShapes["ResData"]) => {
   dataShapes.forEach(([id, info]) => {
     switch (info.type) {
       case CommonTypes.Type.terminator:
-        shapeMappings[id] = new Terminal(
+        const newTerminator = new Terminal(
           id,
           info.w,
           info.h,
           info.p,
           info.title
         );
+
+        info.selectedData.forEach((dataId) => {
+          newTerminator.selectedData.push({
+            id: dataId,
+            text: data.data[dataId],
+          });
+        });
+
+        shapeMappings[id] = newTerminator;
 
         break;
       case CommonTypes.Type.data:
-        shapeMappings[id] = new Data(id, info.w, info.h, info.p, info.title);
+        const newData = new Data(id, info.w, info.h, info.p, info.title);
+
+        info.data.forEach((dataId) => {
+          newData.data.push({
+            id: dataId,
+            text: data.data[dataId],
+          });
+        });
+
+        info.selectedData.forEach((dataId) => {
+          newData.selectedData.push({
+            id: dataId,
+            text: data.data[dataId],
+          });
+        });
+
+        shapeMappings[id] = newData;
 
         break;
       case CommonTypes.Type.process:
-        shapeMappings[id] = new Process(id, info.w, info.h, info.p, info.title);
+        const newProcess = new Process(id, info.w, info.h, info.p, info.title);
+
+        info.selectedData.forEach((dataId) => {
+          newProcess.selectedData.push({
+            id: dataId,
+            text: data.data[dataId],
+          });
+        });
+
+        shapeMappings[id] = newProcess;
 
         break;
       case CommonTypes.Type.decision:
-        shapeMappings[id] = new Desicion(
+        const newDesicion = new Desicion(
           id,
           info.w,
           info.h,
           info.p,
           info.title
         );
+
+        info.selectedData.forEach((dataId) => {
+          newDesicion.selectedData.push({
+            id: dataId,
+            text: data.data[dataId],
+          });
+        });
+
+        shapeMappings[id] = newDesicion;
 
         break;
     }
@@ -1733,6 +1776,8 @@ export default function ProcessPage() {
           > = await shapeAPIs.getShapes(1);
 
           shapes = getInitializedShapes(resShapes.data);
+          checkData();
+          checkGroups();
 
           draw($canvas, ctx);
         }, 1000);

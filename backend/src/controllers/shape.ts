@@ -59,7 +59,7 @@ export default class Shape {
               b: [],
             },
             data: [],
-            selectedData: {},
+            selectedData: [],
           },
           shape_2: {
             w: 100,
@@ -77,7 +77,7 @@ export default class Shape {
               b: [],
             },
             data: ["data_1", "data_2", "data_3"],
-            selectedData: {},
+            selectedData: [],
           },
           shape_3: {
             w: 100,
@@ -95,11 +95,7 @@ export default class Shape {
               b: ["curve_3"],
             },
             data: [],
-            selectedData: {
-              data_1: true,
-              data_2: true,
-              data_3: true,
-            },
+            selectedData: ["data_1", "data_2", "data_3"],
           },
         },
         curves: {

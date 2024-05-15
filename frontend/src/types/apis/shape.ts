@@ -45,7 +45,7 @@ type GetShapes = {
           b: CommonTypes.Id[];
         };
         data: CommonTypes.Id[];
-        selectedData: { [dataId: CommonTypes.Id]: boolean };
+        selectedData: CommonTypes.Id[];
       };
     };
     curves: {

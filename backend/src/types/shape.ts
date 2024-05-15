@@ -66,7 +66,7 @@ type ShapeData = {
         b: ShapeId[];
       };
       data: ShapeId[];
-      selectedData: { [dataId: ShapeId]: boolean };
+      selectedData: ShapeId[];
     };
   };
   curves: {
