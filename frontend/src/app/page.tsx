@@ -19,7 +19,7 @@ import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
 import { cloneDeep } from "lodash";
 import { v4 as uuidv4 } from "uuid";
-import { ChangeEventHandler } from "react";
+import { ChangeEventHandler, MouseEventHandler } from "react";
 import * as authAPIs from "@/apis/auth";
 import * as projectAPIs from "@/apis/project";
 import * as shapeAPIs from "@/apis/shapes";
@@ -209,10 +209,12 @@ const getInitializedShapes = (data: ShapeAPITypes.GetShapes["ResData"]) => {
           curveInfo.p2,
           curveInfo.cp1,
           curveInfo.cp2,
-          {
-            shape: shapeMappings[curveInfo.sendTo.id],
-            d: curveInfo.sendTo.d,
-          }
+          curveInfo.sendTo
+            ? {
+                shape: shapeMappings[curveInfo.sendTo.id],
+                d: curveInfo.sendTo.d,
+              }
+            : null
         );
       });
     });
@@ -1902,79 +1904,170 @@ export default function ProcessPage() {
     setAuthInfo(_authInfo);
   };
 
-  useEffect(() => {
-    if (useEffected) return;
+  const onClickSaveButton: MouseEventHandler<HTMLSpanElement> = () => {
+    console.log("shapes", shapes);
 
-    if ($canvas) {
-      $canvas.width = window.innerWidth;
-      $canvas.height = window.innerHeight;
-      if (!ctx) return;
+    const modifyData: ShapeAPITypes.CreateShapes["data"] = {
+      projectId: 1,
+      orders: [],
+      shapes: {},
+      curves: {},
+      data: {},
+    };
 
-      let terminal_s_new = new Terminal(
-        `terminator_s_${Date.now()}`,
-        init.shape.size.t.w,
-        init.shape.size.t.h,
-        {
-          x: -offset.x + window.innerWidth / 2,
-          y: -offset.y + window.innerHeight / 2 - 300,
-        },
-        "起點"
-      );
-      terminal_s_new.offset = offset;
-      terminal_s_new.scale = scale;
+    shapes.forEach((shape) => {
+      modifyData.orders.push(shape.id);
 
-      let process_new = new Process(
-        `process_${Date.now()}`,
-        init.shape.size.p.w,
-        init.shape.size.p.h,
-        {
-          x: -offset.x + window.innerWidth / 2 + 200,
-          y: -offset.y + window.innerHeight / 2,
-        },
-        `process`
-      );
-      process_new.offset = offset;
-      process_new.scale = scale;
+      if (
+        !(shape instanceof Terminal) &&
+        !(shape instanceof Process) &&
+        !(shape instanceof Data) &&
+        !(shape instanceof Desicion)
+      )
+        return;
 
-      let data_new = new Data(
-        `data_${Date.now()}`,
-        init.shape.size.d.w,
-        init.shape.size.d.h,
-        {
-          x: -offset.x + window.innerWidth / 2,
-          y: -offset.y + window.innerHeight / 2 - 100,
-        },
-        "輸入資料_1"
-      );
-      data_new.offset = offset;
-      data_new.scale = scale;
+      modifyData.shapes[shape.id] = {
+        w: shape.w,
+        h: shape.h,
+        title: shape.title,
+        type: (() => {
+          if (shape instanceof Terminal) {
+            return CommonTypes.Type.terminator;
+          } else if (shape instanceof Process) {
+            return CommonTypes.Type.process;
+          } else if (shape instanceof Data) {
+            return CommonTypes.Type.data;
+          } else if (shape instanceof Desicion) {
+            return CommonTypes.Type.decision;
+          }
 
-      let decision_new = new Desicion(
-        `decision_new_${Date.now()}`,
-        init.shape.size.dec.w,
-        init.shape.size.dec.h,
-        {
-          x: -offset.x + window.innerWidth / 2,
-          y: -offset.y + window.innerHeight / 2 + 100,
-        },
-        "decision"
-      );
-      decision_new.offset = offset;
-      decision_new.scale = scale;
+          return CommonTypes.Type.process;
+        })(),
+        p: shape.p,
+        curves: (() => {
+          const curves: {
+            l: string[];
+            t: string[];
+            r: string[];
+            b: string[];
+          } = { l: [], t: [], r: [], b: [] };
 
-      shapes.push(terminal_s_new);
-      shapes.push(data_new);
-      // shapes.push(terminal_e_new);
-      shapes.push(process_new);
-      // shapes.push(terminal_s_2_new);
-      shapes.push(decision_new);
+          ds.forEach((d) => {
+            shape.curves[d].forEach((curve) => {
+              curves[d].push(curve.shape?.id);
 
-      checkData();
-      checkGroups();
-    }
+              modifyData.curves[curve.shape?.id] = {
+                p1: curve.shape.p1,
+                p2: curve.shape.p2,
+                cp1: curve.shape.cp1,
+                cp2: curve.shape.cp2,
+                sendTo: curve.sendTo
+                  ? {
+                      id: curve.sendTo.shape.id,
+                      d: curve.sendTo.d,
+                    }
+                  : null,
+                text: shape instanceof Desicion ? shape?.text[d] : null,
+              };
+            });
+          });
 
-    useEffected = true;
-  }, []);
+          return curves;
+        })(),
+        data: (() => {
+          if (shape instanceof Data) {
+            return shape.data.map((dataItem) => {
+              modifyData.data[dataItem.id] = dataItem.text;
+
+              return dataItem.id;
+            });
+          }
+
+          return [];
+        })(),
+
+        selectedData: shape.selectedData.map(
+          (selectedDataItem) => selectedDataItem.id
+        ),
+      };
+    });
+
+    shapeAPIs.createShapes(modifyData);
+  };
+
+  // useEffect(() => {
+  //   if (useEffected) return;
+
+  //   if ($canvas) {
+  //     $canvas.width = window.innerWidth;
+  //     $canvas.height = window.innerHeight;
+  //     if (!ctx) return;
+
+  //     let terminal_s_new = new Terminal(
+  //       `terminator_s_${Date.now()}`,
+  //       init.shape.size.t.w,
+  //       init.shape.size.t.h,
+  //       {
+  //         x: -offset.x + window.innerWidth / 2,
+  //         y: -offset.y + window.innerHeight / 2 - 300,
+  //       },
+  //       "起點"
+  //     );
+  //     terminal_s_new.offset = offset;
+  //     terminal_s_new.scale = scale;
+
+  //     let process_new = new Process(
+  //       `process_${Date.now()}`,
+  //       init.shape.size.p.w,
+  //       init.shape.size.p.h,
+  //       {
+  //         x: -offset.x + window.innerWidth / 2 + 200,
+  //         y: -offset.y + window.innerHeight / 2,
+  //       },
+  //       `process`
+  //     );
+  //     process_new.offset = offset;
+  //     process_new.scale = scale;
+
+  //     let data_new = new Data(
+  //       `data_${Date.now()}`,
+  //       init.shape.size.d.w,
+  //       init.shape.size.d.h,
+  //       {
+  //         x: -offset.x + window.innerWidth / 2,
+  //         y: -offset.y + window.innerHeight / 2 - 100,
+  //       },
+  //       "輸入資料_1"
+  //     );
+  //     data_new.offset = offset;
+  //     data_new.scale = scale;
+
+  //     let decision_new = new Desicion(
+  //       `decision_new_${Date.now()}`,
+  //       init.shape.size.dec.w,
+  //       init.shape.size.dec.h,
+  //       {
+  //         x: -offset.x + window.innerWidth / 2,
+  //         y: -offset.y + window.innerHeight / 2 + 100,
+  //       },
+  //       "decision"
+  //     );
+  //     decision_new.offset = offset;
+  //     decision_new.scale = scale;
+
+  //     shapes.push(terminal_s_new);
+  //     shapes.push(data_new);
+  //     // shapes.push(terminal_e_new);
+  //     shapes.push(process_new);
+  //     // shapes.push(terminal_s_2_new);
+  //     shapes.push(decision_new);
+
+  //     checkData();
+  //     checkGroups();
+  //   }
+
+  //   useEffected = true;
+  // }, []);
 
   useEffect(() => {
     if (!$canvas || !ctx) return;
@@ -2148,7 +2241,7 @@ export default function ProcessPage() {
           <li className="flex justify-self-end self-center text-base">
             <Button
               className={"mr-4 bg-secondary-500"}
-              onClick={(e) => {}}
+              onClick={onClickSaveButton}
               text={
                 <div className="d-flex items-center">
                   <span className="text-white-500">Save</span>

@@ -39,7 +39,7 @@ type CurveInfo = {
     x: Vec["x"];
     y: Vec["y"];
   };
-  sendTo: {
+  sendTo: null | {
     id: ShapeId;
     d: Direction;
   };

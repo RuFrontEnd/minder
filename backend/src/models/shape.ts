@@ -15,6 +15,8 @@ export default class Shape {
 
   async createShape(data: ShapeTypes.CreateShapes["req"]["data"]) {
     const collection = await mongoDbPool.query("shapes");
-    await collection.insertOne(data);
+    console.log("data.projectId", data.projectId);
+    console.log("data", data);
+    await collection.replaceOne({ projectId: 1 }, data.orders);
   }
 }
