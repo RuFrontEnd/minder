@@ -99,22 +99,11 @@ let useEffected = false,
   };
 
 const ds = [
-    CommonTypes.Direction.l,
-    CommonTypes.Direction.t,
-    CommonTypes.Direction.r,
-    CommonTypes.Direction.b,
-  ],
-  vs: (
-    | CoreTypes.PressingTarget.lt
-    | CoreTypes.PressingTarget.rt
-    | CoreTypes.PressingTarget.rb
-    | CoreTypes.PressingTarget.lb
-  )[] = [
-    CoreTypes.PressingTarget.lt,
-    CoreTypes.PressingTarget.rt,
-    CoreTypes.PressingTarget.rb,
-    CoreTypes.PressingTarget.lb,
-  ];
+  CommonTypes.Direction.l,
+  CommonTypes.Direction.t,
+  CommonTypes.Direction.r,
+  CommonTypes.Direction.b,
+];
 
 const getFramePosition = (shape: Core) => {
   const frameOffset = 12;
@@ -124,69 +113,69 @@ const getFramePosition = (shape: Core) => {
   };
 };
 
-const getInitializeShapes = (data: ShapeAPITypes.GetShapes["ResData"]) => {
-  const shapes: (Terminal | Process | Data | Desicion)[] = [];
+const getInitializedShapes = (data: ShapeAPITypes.GetShapes["ResData"]) => {
+  const shapeMappings: {
+    [shapeId: string]: Terminal | Process | Data | Desicion;
+  } = {};
 
-  data.orders.forEach((shapeId) => {
-    const currentShape = data.shapes[shapeId];
+  const dataShapes = Object.entries(data.shapes);
 
-    switch (currentShape.type) {
+  dataShapes.forEach(([id, info]) => {
+    switch (info.type) {
       case CommonTypes.Type.terminator:
-        const newShape = new Terminal(
-          shapeId,
-          currentShape.w,
-          currentShape.h,
-          currentShape.p,
-          currentShape.title
+        shapeMappings[id] = new Terminal(
+          id,
+          info.w,
+          info.h,
+          info.p,
+          info.title
         );
 
-        shapes.push(
-          new Terminal(
-            shapeId,
-            currentShape.w,
-            currentShape.h,
-            currentShape.p,
-            currentShape.title
-          )
-        );
         break;
       case CommonTypes.Type.data:
-        shapes.push(
-          new Data(
-            shapeId,
-            currentShape.w,
-            currentShape.h,
-            currentShape.p,
-            currentShape.title
-          )
-        );
+        shapeMappings[id] = new Data(id, info.w, info.h, info.p, info.title);
+
         break;
       case CommonTypes.Type.process:
-        shapes.push(
-          new Process(
-            shapeId,
-            currentShape.w,
-            currentShape.h,
-            currentShape.p,
-            currentShape.title
-          )
-        );
+        shapeMappings[id] = new Process(id, info.w, info.h, info.p, info.title);
+
         break;
       case CommonTypes.Type.decision:
-        shapes.push(
-          new Desicion(
-            shapeId,
-            currentShape.w,
-            currentShape.h,
-            currentShape.p,
-            currentShape.title
-          )
+        shapeMappings[id] = new Desicion(
+          id,
+          info.w,
+          info.h,
+          info.p,
+          info.title
         );
+
         break;
     }
   });
 
-  return shapes;
+  dataShapes.forEach(([shapeId, shapeInfo]) => {
+    ds.forEach((d) => {
+      if (shapeInfo.curves[d].length === 0) return;
+      shapeInfo.curves[d].forEach((curveId) => {
+        const curveInfo = data.curves[curveId];
+
+        shapeMappings[shapeId].createCurve(
+          curveId,
+          d,
+          curveInfo.p1,
+          curveInfo.p2,
+          curveInfo.cp1,
+          curveInfo.cp2,
+          {
+            shape: shapeMappings[curveInfo.sendTo.id],
+            d: curveInfo.sendTo.d,
+          }
+        );
+      });
+    });
+  });
+
+  return data.orders.map((orderId) => shapeMappings[orderId]);
 };
 
 const Editor = (props: { className: string; shape: Core }) => {
@@ -432,7 +421,6 @@ export default function ProcessPage() {
       while (queue.length !== 0) {
         const shape = queue[0];
 
-        // TODO: curve 相關
         ds.forEach((d) => {
           shape.curves[d].forEach((curve) => {
             const theSendToShape = curve.sendTo?.shape;
@@ -650,18 +638,17 @@ export default function ProcessPage() {
           if (!$canvas) return;
 
           // onMouseDown curve trigger point and create curve
-          // TODO: curve 相關
+
           const triggerD = shape.getCurveTriggerDirection(p);
           if (triggerD) {
             shape.selecting = false;
 
-            shape.createCurve(
+            shape.initializeCurve(
               `curve_${Date.now()}`,
               CommonTypes.Direction[triggerD]
             );
           }
 
-          // TODO: curve 相關
           // drag curve
           ds.forEach((d) => {
             shape.curves[d].forEach((curveInShape) => {
@@ -748,7 +735,7 @@ export default function ProcessPage() {
       }
 
       // close selected status when click the blank area
-      // TODO: curve 相關
+
       shapes.forEach((shape) => {
         if (pressing?.shape instanceof Curve) {
           // click curve
@@ -860,7 +847,6 @@ export default function ProcessPage() {
                 p.x <= theEdge.r + threshold &&
                 p.y <= theEdge.b + threshold;
 
-            // TODO: curve 相關
             for (const d of ds) {
               shape.receiving[d] = isNearShape;
             }
@@ -1258,8 +1244,6 @@ export default function ProcessPage() {
     // delete
     if (e.key === "Backspace" && !dataFrame && !dbClickedShape) {
       for (const currentShape of shapes) {
-        // TODO: curve 相關
-
         if (currentShape.selecting) {
           currentShape?.removeConnection();
           shapes = shapes.filter((shape) => shape.id !== currentShape?.id);
@@ -1748,7 +1732,8 @@ export default function ProcessPage() {
             any
           > = await shapeAPIs.getShapes(1);
 
-          shapes = getInitializeShapes(resShapes.data);
+          shapes = getInitializedShapes(resShapes.data);
+
           draw($canvas, ctx);
         }, 1000);
       }, 500);

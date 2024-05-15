@@ -26,28 +26,14 @@ export default class Core {
       fill: number;
       stroke: number;
     };
-    cpline: Line;
-    curve: Line;
   } = {
     d: 50,
     size: {
       fill: 4,
       stroke: 2,
     },
-    cpline: {
-      w: 1,
-      c: tailwindColors?.info["500"] || "#000000",
-    },
-    curve: {
-      w: 1,
-      c: "#333333",
-    },
   };
   private strokeSize = 1;
-  private initPressing = {
-    activate: false,
-    target: null,
-  };
   private initOffset = {
     x: 0,
     y: 0,
@@ -124,7 +110,6 @@ export default class Core {
     };
     this.__p__ = value;
 
-    // TODO: curve 相關
     // when receiver shape move, sender curve follows the receiver shape
     const senderCurvesMapping: { [curveId: string]: boolean } = {};
 
@@ -162,7 +147,6 @@ export default class Core {
       });
     });
 
-    // TODO: curve 相關
     // when sender shape move, receiver curve follows the sender shape
     ds.forEach((d) => {
       this.curves[d].forEach((sendCurve) => {
@@ -189,7 +173,6 @@ export default class Core {
     const offset = (this.w - value) / 2;
     this.__w__ = value;
 
-    // TODO: curve 相關
     // when sender width changes, receiver curve follows the sender shape
     this.curves[Direction.l].forEach((sendCurve) => {
       sendCurve.shape.p1.x += offset;
@@ -217,7 +200,6 @@ export default class Core {
       sendCurve.shape.cp2.x -= offset;
     });
 
-    // TODO: curve 相關
     // when receiver width changes, receiver curve follows the sender shape
     ds.forEach((d) => {
       this.receiveFrom.l?.forEach((receiveFromItem) => {
@@ -253,7 +235,6 @@ export default class Core {
     const offset = (this.h - value) / 2;
     this.__h__ = value;
 
-    // TODO: curve 相關
     // when sender height changes, receiver curve follows the sender shape
     this.curves[Direction.t].forEach((sendCurve) => {
       sendCurve.shape.p1.y += offset;
@@ -281,7 +262,6 @@ export default class Core {
       sendCurve.shape.cp2.y -= offset;
     });
 
-    // TODO: curve 相關
     // when receiver height changes, receiver curve follows the sender shape
     ds.forEach((d) => {
       this.receiveFrom.t?.forEach((receiveFromItem) => {
@@ -323,7 +303,6 @@ export default class Core {
   set scale(value: number) {
     this.__scale__ = value;
 
-    // TODO: curve 相關
     ds.forEach((d) => {
       this.curves[d].forEach((curve) => {
         curve.shape.scale = value;
@@ -555,7 +534,6 @@ export default class Core {
     if (!this.selecting) return null;
     const center = this.getCenter();
 
-    // TODO: curve 相關
     for (const d of ds) {
       if (
         (p.x - center.curveTrigger[d].x) * (p.x - center.curveTrigger[d].x) +
@@ -572,7 +550,6 @@ export default class Core {
     targetShapeReceiveD: Direction,
     sendCurveId: string
   ) {
-    // TODO: curve 相關
     const bridge = (() => {
       for (const d of ds) {
         const curve = this.curves[d].find(
@@ -618,7 +595,6 @@ export default class Core {
   }
 
   disConnect(shape: Core, curveIds: string[]) {
-    // TODO: curve 相關
     const curveIdsMapping = (() => {
       const mapping: { [curveId: string]: boolean } = {};
 
@@ -651,7 +627,6 @@ export default class Core {
   }
 
   removeConnection() {
-    // TODO: curve 相關
     // remove connection from receiver
     ds.forEach((d) => {
       this.curves[d].forEach((sendCurve) => {
@@ -708,7 +683,6 @@ export default class Core {
   }
 
   removeCurve(d: Direction, targetId: string) {
-    // TODO: curve 相關
     const targetI = this.curves[d].findIndex(
       (curve) => curve.shape.id === targetId
     );
@@ -809,16 +783,12 @@ export default class Core {
     };
   }
 
-  createCurve(id: string, _d: Direction) {
-    // TODO: curve 相關
-
+  initializeCurve(id: string, _d: Direction) {
     let newCurve = null;
 
     if (_d === Direction.l) {
       newCurve = new Curve(
         id,
-        this.curveTrigger.cpline,
-        this.curveTrigger.curve,
         {
           x: -this.w / 2,
           y: 0,
@@ -839,8 +809,6 @@ export default class Core {
     } else if (_d === Direction.t) {
       newCurve = new Curve(
         id,
-        this.curveTrigger.cpline,
-        this.curveTrigger.curve,
         {
           x: 0,
           y: -this.h / 2,
@@ -861,8 +829,6 @@ export default class Core {
     } else if (_d === Direction.r) {
       newCurve = new Curve(
         id,
-        this.curveTrigger.cpline,
-        this.curveTrigger.curve,
         {
           x: this.w / 2,
           y: 0,
@@ -883,8 +849,6 @@ export default class Core {
     } else if (_d === Direction.b) {
       newCurve = new Curve(
         id,
-        this.curveTrigger.cpline,
-        this.curveTrigger.curve,
         {
           x: 0,
           y: this.h / 2,
@@ -910,6 +874,21 @@ export default class Core {
     this.curves[_d].push({
       shape: newCurve,
       sendTo: null,
+    });
+  }
+
+  createCurve(
+    id: string,
+    d: Direction,
+    p1: Vec,
+    p2: Vec,
+    cp1: Vec,
+    cp2: Vec,
+    sendTo: CoreTypes.SendTo
+  ) {
+    this.curves[d].push({
+      shape: new Curve(id, p1, p2, cp1, cp2),
+      sendTo: sendTo,
     });
   }
 
@@ -1076,7 +1055,6 @@ export default class Core {
   }
 
   drawCurve(ctx: CanvasRenderingContext2D) {
-    // TODO: curve 相關
     ctx.save();
     ctx.translate(this.getScreenP().x, this.getScreenP().y);
 
@@ -1097,8 +1075,6 @@ export default class Core {
     ctx.fillStyle = "white";
     ctx.strokeStyle = "DeepSkyBlue";
     ctx.lineWidth = this.strokeSize;
-
-    // TODO: curve 相關
 
     // left
     ctx.beginPath();
