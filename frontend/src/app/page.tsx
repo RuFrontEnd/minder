@@ -216,6 +216,16 @@ const getInitializedShapes = (data: ShapeAPITypes.GetShapes["ResData"]) => {
               }
             : null
         );
+
+        if (curveInfo.sendTo) {
+          // initialize received shape
+          shapeMappings[curveInfo.sendTo.id].receiveFrom[
+            curveInfo.sendTo.d
+          ].push({
+            shape: shapeMappings[shapeId],
+            d: d,
+          });
+        }
       });
     });
   });
@@ -1221,8 +1231,6 @@ export default function ProcessPage() {
         pressing?.target &&
         pressing?.parent &&
         pressing?.direction
-        // &&
-        // otherStepIds.findIndex((stepId) => stepId === shape.id) > -1
       ) {
         const theCheckReceivingPointsBoundry = shape.checkReceivingPointsBoundry(
           p
@@ -1332,28 +1340,6 @@ export default function ProcessPage() {
         y: -offset.y + window.innerHeight / 2 + offset_center.y,
       },
       "terminator_start"
-    );
-    terminal.offset = offset;
-    terminal.scale = scale;
-
-    shapes.push(terminal);
-    checkData();
-    checkGroups();
-    draw($canvas, ctx);
-  };
-
-  const onClickTerminatorEnd = () => {
-    if (!$canvas || !ctx) return;
-
-    let terminal = new Terminal(
-      `terminator_e_${Date.now()}`,
-      init.shape.size.t.w,
-      init.shape.size.t.h,
-      {
-        x: -offset.x + window.innerWidth / 2 + offset_center.x,
-        y: -offset.y + window.innerHeight / 2 + offset_center.y,
-      },
-      "terminator_end"
     );
     terminal.offset = offset;
     terminal.scale = scale;
@@ -1555,24 +1541,6 @@ export default function ProcessPage() {
           shape instanceof Data ||
           (shape instanceof Desicion &&
             !(shape.getText().y && shape.getText().n))
-          // (shape instanceof Terminal &&
-          //   !shape.curves.l.shape &&
-          //   !shape.curves.t.shape &&
-          //   !shape.curves.r.shape &&
-          //   !shape.curves.b.shape
-          // ) ||
-          // (shape instanceof Process &&
-          //   !shape.curves.l.shape &&
-          //   !shape.curves.t.shape &&
-          //   !shape.curves.r.shape &&
-          //   !shape.curves.b.shape) ||
-          // (shape instanceof Data &&
-          //   !shape.curves.l.shape &&
-          //   !shape.curves.t.shape &&
-          //   !shape.curves.r.shape &&
-          //   !shape.curves.b.shape) ||
-          // (shape instanceof Desicion &&
-          //   !(shape.getText().y && shape.getText().n))
         ) {
           shape.drawSendingPoint(ctx);
         }
@@ -1607,16 +1575,9 @@ export default function ProcessPage() {
 
         ctx?.closePath();
       }
+
       shapes.forEach((shape) => {
-        // if (
-        // (shape.receiving.l ||
-        //   shape.receiving.t ||
-        //   shape.receiving.r ||
-        //   shape.receiving.b) &&
-        // otherStepIds.findIndex((stepId) => stepId === shape.id) > -1
-        // ) {
         shape.drawRecievingPoint(ctx);
-        // }
       });
 
       if (select.shapes.length > 1) {

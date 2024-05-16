@@ -887,7 +887,7 @@ export default class Core {
     sendTo: null | CoreTypes.SendTo
   ) {
     this.curves[d].push({
-      shape: new Curve(id, p1, p2, cp1, cp2),
+      shape: new Curve(id, p1, cp1, cp2, p2),
       sendTo: sendTo,
     });
   }
