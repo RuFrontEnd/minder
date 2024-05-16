@@ -59,8 +59,8 @@ type GetShapes = {
   ResData: ShapeData;
 };
 
-type CreateShapes = {
+type UpdateShapes = {
   data: ShapeData;
 };
 
-export type { GetShapes, CreateShapes };
+export type { GetShapes, UpdateShapes };

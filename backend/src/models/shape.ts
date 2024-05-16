@@ -13,10 +13,8 @@ export default class Shape {
     return shapes[0];
   }
 
-  async createShape(data: ShapeTypes.CreateShapes["req"]["data"]) {
+  async updateShapes(data: ShapeTypes.UpdateShapes["req"]["data"]) {
     const collection = await mongoDbPool.query("shapes");
-    console.log("data.projectId", data.projectId);
-    console.log("data", data);
-    await collection.replaceOne({ projectId: 1 }, data.orders);
+    await collection.replaceOne({ projectId: data.projectId }, data);
   }
 }

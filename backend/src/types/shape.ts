@@ -83,11 +83,11 @@ type GetShapes = {
   };
 };
 
-type CreateShapes = {
+type UpdateShapes = {
   req: {
     data: ShapeData;
   };
 };
 
 export { Type, Direction };
-export type { ShapeId, Title, Vec, W, H, CurveInfo, GetShapes, CreateShapes };
+export type { ShapeId, Title, Vec, W, H, CurveInfo, GetShapes, UpdateShapes };

@@ -1905,9 +1905,7 @@ export default function ProcessPage() {
   };
 
   const onClickSaveButton: MouseEventHandler<HTMLSpanElement> = () => {
-    console.log("shapes", shapes);
-
-    const modifyData: ShapeAPITypes.CreateShapes["data"] = {
+    const modifyData: ShapeAPITypes.UpdateShapes["data"] = {
       projectId: 1,
       orders: [],
       shapes: {},
@@ -1992,7 +1990,9 @@ export default function ProcessPage() {
       };
     });
 
-    shapeAPIs.createShapes(modifyData);
+    console.log("modifyData", modifyData);
+
+    shapeAPIs.updateShapes(modifyData);
   };
 
   // useEffect(() => {

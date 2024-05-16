@@ -7,12 +7,12 @@ const getShapes = async (_projectId: number) => {
   });
 };
 
-const createShapes = async (
-  _data: ShapeAPITypes.CreateShapes["data"]
+const updateShapes = async (
+  _data: ShapeAPITypes.UpdateShapes["data"]
 ) => {
-  return axios.post("/shape/shapes", {
+  return axios.put("/shape/shapes", {
     data: _data,
   });
 };
 
-export { getShapes, createShapes };
+export { getShapes, updateShapes };
