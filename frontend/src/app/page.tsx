@@ -2180,7 +2180,7 @@ export default function ProcessPage() {
                 </div>
               ))}
             </div>
-            <div className="flex justify-end items-center p-4 mt-4">
+            <div className="flex justify-end items-center p-4 mt-4 border-t border-grey-5">
               <Button className="me-3" onClick={() => {}} text={"Delete"} />
               <Button onClick={() => {}} text={"Confirm"} />
             </div>
