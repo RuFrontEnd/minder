@@ -60,8 +60,8 @@ export default class Desicion extends Core {
     return output;
   }
 
-  createCurve(id: string, d: CommonTypes.Direction) {
-    super.createCurve(id, d);
+  initializeCurve(id: string, d: CommonTypes.Direction) {
+    super.initializeCurve(id, d);
 
     // define curve text
     const currentText = this.getText().text;

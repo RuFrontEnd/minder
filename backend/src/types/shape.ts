@@ -39,7 +39,7 @@ type CurveInfo = {
     x: Vec["x"];
     y: Vec["y"];
   };
-  sendTo: {
+  sendTo: null | {
     id: ShapeId;
     d: Direction;
   };
@@ -66,7 +66,7 @@ type ShapeData = {
         b: ShapeId[];
       };
       data: ShapeId[];
-      selectedData: { [dataId: ShapeId]: boolean };
+      selectedData: ShapeId[];
     };
   };
   curves: {
@@ -83,11 +83,11 @@ type GetShapes = {
   };
 };
 
-type CreateShapes = {
+type UpdateShapes = {
   req: {
     data: ShapeData;
   };
 };
 
 export { Type, Direction };
-export type { ShapeId, Title, Vec, W, H, CurveInfo, GetShapes, CreateShapes };
+export type { ShapeId, Title, Vec, W, H, CurveInfo, GetShapes, UpdateShapes };

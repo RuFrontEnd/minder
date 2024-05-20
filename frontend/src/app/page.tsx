@@ -19,7 +19,7 @@ import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
 import { cloneDeep } from "lodash";
 import { v4 as uuidv4 } from "uuid";
-import { ChangeEventHandler } from "react";
+import { ChangeEventHandler, MouseEventHandler } from "react";
 import * as authAPIs from "@/apis/auth";
 import * as projectAPIs from "@/apis/project";
 import * as shapeAPIs from "@/apis/shapes";
@@ -99,22 +99,11 @@ let useEffected = false,
   };
 
 const ds = [
-    CommonTypes.Direction.l,
-    CommonTypes.Direction.t,
-    CommonTypes.Direction.r,
-    CommonTypes.Direction.b,
-  ],
-  vs: (
-    | CoreTypes.PressingTarget.lt
-    | CoreTypes.PressingTarget.rt
-    | CoreTypes.PressingTarget.rb
-    | CoreTypes.PressingTarget.lb
-  )[] = [
-    CoreTypes.PressingTarget.lt,
-    CoreTypes.PressingTarget.rt,
-    CoreTypes.PressingTarget.rb,
-    CoreTypes.PressingTarget.lb,
-  ];
+  CommonTypes.Direction.l,
+  CommonTypes.Direction.t,
+  CommonTypes.Direction.r,
+  CommonTypes.Direction.b,
+];
 
 const getFramePosition = (shape: Core) => {
   const frameOffset = 12;
@@ -124,62 +113,124 @@ const getFramePosition = (shape: Core) => {
   };
 };
 
-const getInitializeShapes = (data: ShapeAPITypes.GetShapes["ResData"]) => {
-  const shapes: any = [];
-  let length = 0;
-  console.log("data", data);
-  data.orders.forEach((shapeId) => {
-    const currentShape = data.shapes[shapeId];
+const getInitializedShapes = (data: ShapeAPITypes.GetShapes["ResData"]) => {
+  const shapeMappings: {
+    [shapeId: string]: Terminal | Process | Data | Desicion;
+  } = {};
 
-    switch (currentShape.type) {
+  const dataShapes = Object.entries(data.shapes);
+
+  dataShapes.forEach(([id, info]) => {
+    switch (info.type) {
       case CommonTypes.Type.terminator:
-        shapes.push(
-          new Terminal(
-            shapeId,
-            currentShape.w,
-            currentShape.h,
-            currentShape.p,
-            currentShape.title
-          )
+        const newTerminator = new Terminal(
+          id,
+          info.w,
+          info.h,
+          info.p,
+          info.title
         );
+
+        info.selectedData.forEach((dataId) => {
+          newTerminator.selectedData.push({
+            id: dataId,
+            text: data.data[dataId],
+          });
+        });
+
+        shapeMappings[id] = newTerminator;
+
         break;
       case CommonTypes.Type.data:
-        shapes.push(
-          new Data(
-            shapeId,
-            currentShape.w,
-            currentShape.h,
-            currentShape.p,
-            currentShape.title
-          )
-        );
+        const newData = new Data(id, info.w, info.h, info.p, info.title);
+
+        info.data.forEach((dataId) => {
+          newData.data.push({
+            id: dataId,
+            text: data.data[dataId],
+          });
+        });
+
+        info.selectedData.forEach((dataId) => {
+          newData.selectedData.push({
+            id: dataId,
+            text: data.data[dataId],
+          });
+        });
+
+        shapeMappings[id] = newData;
+
         break;
       case CommonTypes.Type.process:
-        shapes.push(
-          new Process(
-            shapeId,
-            currentShape.w,
-            currentShape.h,
-            currentShape.p,
-            currentShape.title
-          )
-        );
+        const newProcess = new Process(id, info.w, info.h, info.p, info.title);
+
+        info.selectedData.forEach((dataId) => {
+          newProcess.selectedData.push({
+            id: dataId,
+            text: data.data[dataId],
+          });
+        });
+
+        shapeMappings[id] = newProcess;
+
         break;
       case CommonTypes.Type.decision:
-        shapes.push(
-          new Desicion(
-            shapeId,
-            currentShape.w,
-            currentShape.h,
-            currentShape.p,
-            currentShape.title
-          )
+        const newDesicion = new Desicion(
+          id,
+          info.w,
+          info.h,
+          info.p,
+          info.title
         );
+
+        info.selectedData.forEach((dataId) => {
+          newDesicion.selectedData.push({
+            id: dataId,
+            text: data.data[dataId],
+          });
+        });
+
+        shapeMappings[id] = newDesicion;
+
         break;
     }
   });
 
-  return shapes
+  dataShapes.forEach(([shapeId, shapeInfo]) => {
+    ds.forEach((d) => {
+      if (shapeInfo.curves[d].length === 0) return;
+      shapeInfo.curves[d].forEach((curveId) => {
+        const curveInfo = data.curves[curveId];
+
+        shapeMappings[shapeId].createCurve(
+          curveId,
+          d,
+          curveInfo.p1,
+          curveInfo.p2,
+          curveInfo.cp1,
+          curveInfo.cp2,
+          curveInfo.sendTo
+            ? {
+                shape: shapeMappings[curveInfo.sendTo.id],
+                d: curveInfo.sendTo.d,
+              }
+            : null
+        );
+
+        if (curveInfo.sendTo) {
+          // initialize received shape
+          shapeMappings[curveInfo.sendTo.id].receiveFrom[
+            curveInfo.sendTo.d
+          ].push({
+            shape: shapeMappings[shapeId],
+            d: d,
+          });
+        }
+      });
+    });
+  });
+
+  return data.orders.map((orderId) => shapeMappings[orderId]);
 };
 
 const Editor = (props: { className: string; shape: Core }) => {
@@ -425,7 +476,6 @@ export default function ProcessPage() {
       while (queue.length !== 0) {
         const shape = queue[0];
 
-        // TODO: curve 相關
         ds.forEach((d) => {
           shape.curves[d].forEach((curve) => {
             const theSendToShape = curve.sendTo?.shape;
@@ -643,18 +693,17 @@ export default function ProcessPage() {
           if (!$canvas) return;
 
           // onMouseDown curve trigger point and create curve
-          // TODO: curve 相關
+
           const triggerD = shape.getCurveTriggerDirection(p);
           if (triggerD) {
             shape.selecting = false;
 
-            shape.createCurve(
+            shape.initializeCurve(
               `curve_${Date.now()}`,
               CommonTypes.Direction[triggerD]
             );
           }
 
-          // TODO: curve 相關
           // drag curve
           ds.forEach((d) => {
             shape.curves[d].forEach((curveInShape) => {
@@ -741,7 +790,7 @@ export default function ProcessPage() {
       }
 
       // close selected status when click the blank area
-      // TODO: curve 相關
+
       shapes.forEach((shape) => {
         if (pressing?.shape instanceof Curve) {
           // click curve
@@ -809,6 +858,9 @@ export default function ProcessPage() {
       setDataFrame(undefined);
       offset.x += screenOffsetP.x;
       offset.y += screenOffsetP.y;
+      shapes.forEach((shape) => {
+        shape.offset = offset;
+      });
     }
 
     if (pressing?.target && pressing?.shape) {
@@ -850,7 +902,6 @@ export default function ProcessPage() {
                 p.x <= theEdge.r + threshold &&
                 p.y <= theEdge.b + threshold;
 
-            // TODO: curve 相關
             for (const d of ds) {
               shape.receiving[d] = isNearShape;
             }
@@ -1089,73 +1140,6 @@ export default function ProcessPage() {
       });
     }
 
-    // const shapesInView: (Terminal | Process | Data | Desicion)[] = [];
-
-    // shapes.forEach((shape) => {
-    //   if (!$canvas) return;
-
-    //   if (movingCanvas) {
-    //     shape.offset = offset;
-    //   }
-
-    //   if (shape.checkBoundry(p) && dbClickedShape?.id === shape.id) {
-    //     const $dataFrame = document.getElementById(dbClickedShape?.id);
-    //     if ($dataFrame) {
-    //       const framePosition = getFramePosition(shape);
-    //       $dataFrame.style.left = `${framePosition.x}px`;
-    //       $dataFrame.style.top = `${framePosition.y}px`;
-    //     }
-    //   }
-
-    //   const shapeEdge = shape.getEdge(),
-    //     isShapeInView =
-    //       ((shapeEdge.l >= 0 && shapeEdge.l <= $canvas.width) ||
-    //         (shapeEdge.r >= 0 && shapeEdge.r <= $canvas.width)) &&
-    //       ((shapeEdge.t >= 0 && shapeEdge.t <= $canvas.height) ||
-    //         (shapeEdge.b >= 0 && shapeEdge.b <= $canvas.height));
-
-    //   if (isShapeInView) {
-    //     shapesInView.push(shape);
-    //   }
-    // });
-    // // align feature
-    // const thePressing = pressing,
-    //   stickyOffset = 5;
-
-    // if (thePressing) {
-    //   shapesInView.forEach((shapeInView) => {
-    //     if (shapeInView.id === thePressing?.shape?.id) return;
-    //     if (
-    //       !(thePressing.shape instanceof Terminal) &&
-    //       !(thePressing.shape instanceof Process) &&
-    //       !(thePressing.shape instanceof Desicion) &&
-    //       !(thePressing.shape instanceof Data)
-    //     )
-    //       return;
-
-    //     if (thePressing?.shape?.p.x === shapeInView.p.x && !moveP) {
-    //       moveP = {
-    //         originalX: p.x,
-    //         originalY: p.y,
-    //         x: p.x,
-    //         y: p.y,
-    //       };
-    //     } else if (moveP) {
-    //       moveP.x = p.x;
-    //       moveP.y = p.y;
-    //     }
-
-    //     if (
-    //       moveP &&
-    //       moveP.x &&
-    //       moveP.originalX &&
-    //       Math.abs(moveP.x - moveP?.originalX) > 10
-    //     ) {
-    //       moveP = null;
-    //     }
-    //   });
-    // }
-
     if (selectAreaP && !space) {
       selectAreaP = {
         ...selectAreaP,
@@ -1247,8 +1231,6 @@ export default function ProcessPage() {
         pressing?.target &&
         pressing?.parent &&
         pressing?.direction
-        // &&
-        // otherStepIds.findIndex((stepId) => stepId === shape.id) > -1
       ) {
         const theCheckReceivingPointsBoundry = shape.checkReceivingPointsBoundry(
           p
@@ -1315,13 +1297,9 @@ export default function ProcessPage() {
     // delete
     if (e.key === "Backspace" && !dataFrame && !dbClickedShape) {
       for (const currentShape of shapes) {
-        // TODO: curve 相關
-
         if (currentShape.selecting) {
           currentShape?.removeConnection();
           shapes = shapes.filter((shape) => shape.id !== currentShape?.id);
-
-          console.log("shapes", shapes);
         } else {
           ds.forEach((d) => {
             currentShape.curves[d].forEach((currentCurve) => {
@@ -1362,28 +1340,6 @@ export default function ProcessPage() {
         y: -offset.y + window.innerHeight / 2 + offset_center.y,
       },
       "terminator_start"
-    );
-    terminal.offset = offset;
-    terminal.scale = scale;
-
-    shapes.push(terminal);
-    checkData();
-    checkGroups();
-    draw($canvas, ctx);
-  };
-
-  const onClickTerminatorEnd = () => {
-    if (!$canvas || !ctx) return;
-
-    let terminal = new Terminal(
-      `terminator_e_${Date.now()}`,
-      init.shape.size.t.w,
-      init.shape.size.t.h,
-      {
-        x: -offset.x + window.innerWidth / 2 + offset_center.x,
-        y: -offset.y + window.innerHeight / 2 + offset_center.y,
-      },
-      "terminator_end"
     );
     terminal.offset = offset;
     terminal.scale = scale;
@@ -1560,7 +1516,6 @@ export default function ProcessPage() {
 
   const draw = useCallback(
     ($canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => {
-      if (!ctx || !$canvas) return;
       $canvas.width = window.innerWidth;
       $canvas.height = window.innerHeight;
       ctx?.clearRect(0, 0, window.innerWidth, window.innerHeight);
@@ -1586,24 +1541,6 @@ export default function ProcessPage() {
           shape instanceof Data ||
           (shape instanceof Desicion &&
             !(shape.getText().y && shape.getText().n))
-          // (shape instanceof Terminal &&
-          //   !shape.curves.l.shape &&
-          //   !shape.curves.t.shape &&
-          //   !shape.curves.r.shape &&
-          //   !shape.curves.b.shape
-          // ) ||
-          // (shape instanceof Process &&
-          //   !shape.curves.l.shape &&
-          //   !shape.curves.t.shape &&
-          //   !shape.curves.r.shape &&
-          //   !shape.curves.b.shape) ||
-          // (shape instanceof Data &&
-          //   !shape.curves.l.shape &&
-          //   !shape.curves.t.shape &&
-          //   !shape.curves.r.shape &&
-          //   !shape.curves.b.shape) ||
-          // (shape instanceof Desicion &&
-          //   !(shape.getText().y && shape.getText().n))
         ) {
           shape.drawSendingPoint(ctx);
         }
@@ -1638,16 +1575,9 @@ export default function ProcessPage() {
 
         ctx?.closePath();
       }
+
       shapes.forEach((shape) => {
-        // if (
-        // (shape.receiving.l ||
-        //   shape.receiving.t ||
-        //   shape.receiving.r ||
-        //   shape.receiving.b) &&
-        // otherStepIds.findIndex((stepId) => stepId === shape.id) > -1
-        // ) {
         shape.drawRecievingPoint(ctx);
-        // }
       });
 
       if (select.shapes.length > 1) {
@@ -1799,15 +1729,20 @@ export default function ProcessPage() {
           > = await projectAPIs.getProjecs();
           setProjects(res.data);
 
+          let $canvas = document.querySelector("canvas");
+          if (!$canvas || !ctx) return;
+
           // TODO: move to after project selected
-          // const resShapes: AxiosResponse<
-          //   ShapeAPITypes.GetShapes["ResData"],
-          //   any
-          // > = await shapeAPIs.getShapes(1);
+          const resShapes: AxiosResponse<
+            ShapeAPITypes.GetShapes["ResData"],
+            any
+          > = await shapeAPIs.getShapes(1);
 
-          // shapes = getInitializeShapes(resShapes.data);
+          shapes = getInitializedShapes(resShapes.data);
+          checkData();
+          checkGroups();
 
-          // console.log('shapes', shapes)
+          draw($canvas, ctx);
         }, 1000);
       }, 500);
     } else {
@@ -1930,79 +1865,170 @@ export default function ProcessPage() {
     setAuthInfo(_authInfo);
   };
 
-  useEffect(() => {
-    if (useEffected) return;
+  const onClickSaveButton: MouseEventHandler<HTMLSpanElement> = () => {
+    const modifyData: ShapeAPITypes.UpdateShapes["data"] = {
+      projectId: 1,
+      orders: [],
+      shapes: {},
+      curves: {},
+      data: {},
+    };
 
-    if ($canvas) {
-      $canvas.width = window.innerWidth;
-      $canvas.height = window.innerHeight;
-      if (!ctx) return;
+    shapes.forEach((shape) => {
+      modifyData.orders.push(shape.id);
 
-      let terminal_s_new = new Terminal(
-        `terminator_s_${Date.now()}`,
-        init.shape.size.t.w,
-        init.shape.size.t.h,
-        {
-          x: -offset.x + window.innerWidth / 2,
-          y: -offset.y + window.innerHeight / 2 - 300,
-        },
-        "起點"
-      );
-      terminal_s_new.offset = offset;
-      terminal_s_new.scale = scale;
+      if (
+        !(shape instanceof Terminal) &&
+        !(shape instanceof Process) &&
+        !(shape instanceof Data) &&
+        !(shape instanceof Desicion)
+      )
+        return;
 
-      let process_new = new Process(
-        `process_${Date.now()}`,
-        init.shape.size.p.w,
-        init.shape.size.p.h,
-        {
-          x: -offset.x + window.innerWidth / 2 + 200,
-          y: -offset.y + window.innerHeight / 2,
-        },
-        `process`
-      );
-      process_new.offset = offset;
-      process_new.scale = scale;
+      modifyData.shapes[shape.id] = {
+        w: shape.w,
+        h: shape.h,
+        title: shape.title,
+        type: (() => {
+          if (shape instanceof Terminal) {
+            return CommonTypes.Type.terminator;
+          } else if (shape instanceof Process) {
+            return CommonTypes.Type.process;
+          } else if (shape instanceof Data) {
+            return CommonTypes.Type.data;
+          } else if (shape instanceof Desicion) {
+            return CommonTypes.Type.decision;
+          }
 
-      let data_new = new Data(
-        `data_${Date.now()}`,
-        init.shape.size.d.w,
-        init.shape.size.d.h,
-        {
-          x: -offset.x + window.innerWidth / 2,
-          y: -offset.y + window.innerHeight / 2 - 100,
-        },
-        "輸入資料_1"
-      );
-      data_new.offset = offset;
-      data_new.scale = scale;
+          return CommonTypes.Type.process;
+        })(),
+        p: shape.p,
+        curves: (() => {
+          const curves: {
+            l: string[];
+            t: string[];
+            r: string[];
+            b: string[];
+          } = { l: [], t: [], r: [], b: [] };
 
-      let decision_new = new Desicion(
-        `decision_new_${Date.now()}`,
-        init.shape.size.dec.w,
-        init.shape.size.dec.h,
-        {
-          x: -offset.x + window.innerWidth / 2,
-          y: -offset.y + window.innerHeight / 2 + 100,
-        },
-        "decision"
-      );
-      decision_new.offset = offset;
-      decision_new.scale = scale;
+          ds.forEach((d) => {
+            shape.curves[d].forEach((curve) => {
+              curves[d].push(curve.shape?.id);
 
-      shapes.push(terminal_s_new);
-      shapes.push(data_new);
-      // shapes.push(terminal_e_new);
-      shapes.push(process_new);
-      // shapes.push(terminal_s_2_new);
-      shapes.push(decision_new);
+              modifyData.curves[curve.shape?.id] = {
+                p1: curve.shape.p1,
+                p2: curve.shape.p2,
+                cp1: curve.shape.cp1,
+                cp2: curve.shape.cp2,
+                sendTo: curve.sendTo
+                  ? {
+                      id: curve.sendTo.shape.id,
+                      d: curve.sendTo.d,
+                    }
+                  : null,
+                text: shape instanceof Desicion ? shape?.text[d] : null,
+              };
+            });
+          });
 
-      checkData();
-      checkGroups();
-    }
+          return curves;
+        })(),
+        data: (() => {
+          if (shape instanceof Data) {
+            return shape.data.map((dataItem) => {
+              modifyData.data[dataItem.id] = dataItem.text;
 
-    useEffected = true;
-  }, []);
+              return dataItem.id;
+            });
+          }
+
+          return [];
+        })(),
+
+        selectedData: shape.selectedData.map(
+          (selectedDataItem) => selectedDataItem.id
+        ),
+      };
+    });
+
+    console.log("modifyData", modifyData);
+
+    shapeAPIs.updateShapes(modifyData);
+  };
+
+  // useEffect(() => {
+  //   if (useEffected) return;
+
+  //   if ($canvas) {
+  //     $canvas.width = window.innerWidth;
+  //     $canvas.height = window.innerHeight;
+  //     if (!ctx) return;
+
+  //     let terminal_s_new = new Terminal(
+  //       `terminator_s_${Date.now()}`,
+  //       init.shape.size.t.w,
+  //       init.shape.size.t.h,
+  //       {
+  //         x: -offset.x + window.innerWidth / 2,
+  //         y: -offset.y + window.innerHeight / 2 - 300,
+  //       },
+  //       "起點"
+  //     );
+  //     terminal_s_new.offset = offset;
+  //     terminal_s_new.scale = scale;
+
+  //     let process_new = new Process(
+  //       `process_${Date.now()}`,
+  //       init.shape.size.p.w,
+  //       init.shape.size.p.h,
+  //       {
+  //         x: -offset.x + window.innerWidth / 2 + 200,
+  //         y: -offset.y + window.innerHeight / 2,
+  //       },
+  //       `process`
+  //     );
+  //     process_new.offset = offset;
+  //     process_new.scale = scale;
+
+  //     let data_new = new Data(
+  //       `data_${Date.now()}`,
+  //       init.shape.size.d.w,
+  //       init.shape.size.d.h,
+  //       {
+  //         x: -offset.x + window.innerWidth / 2,
+  //         y: -offset.y + window.innerHeight / 2 - 100,
+  //       },
+  //       "輸入資料_1"
+  //     );
+  //     data_new.offset = offset;
+  //     data_new.scale = scale;
+
+  //     let decision_new = new Desicion(
+  //       `decision_new_${Date.now()}`,
+  //       init.shape.size.dec.w,
+  //       init.shape.size.dec.h,
+  //       {
+  //         x: -offset.x + window.innerWidth / 2,
+  //         y: -offset.y + window.innerHeight / 2 + 100,
+  //       },
+  //       "decision"
+  //     );
+  //     decision_new.offset = offset;
+  //     decision_new.scale = scale;
+
+  //     shapes.push(terminal_s_new);
+  //     shapes.push(data_new);
+  //     // shapes.push(terminal_e_new);
+  //     shapes.push(process_new);
+  //     // shapes.push(terminal_s_2_new);
+  //     shapes.push(decision_new);
+
+  //     checkData();
+  //     checkGroups();
+  //   }
+
+  //   useEffected = true;
+  // }, []);
 
   useEffect(() => {
     if (!$canvas || !ctx) return;
@@ -2176,7 +2202,7 @@ export default function ProcessPage() {
           <li className="flex justify-self-end self-center text-base">
             <Button
               className={"mr-4 bg-secondary-500"}
-              onClick={(e) => {}}
+              onClick={onClickSaveButton}
               text={
                 <div className="d-flex items-center">
                   <span className="text-white-500">Save</span>
