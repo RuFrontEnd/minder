@@ -5,7 +5,7 @@ import * as CardTypes from "@/types/components/card";
 const Card = (props: CardTypes.Props) => {
 
   return (
-    <div id={props.id} className={`p-4 ${props.className ? props.className : ""}`}>
+    <div id={props.id} className={`${props.className ? props.className : ""}`}>
       <a className="block relative h-48 rounded overflow-hidden">
         <img
           alt="project"

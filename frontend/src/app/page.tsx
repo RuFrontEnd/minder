@@ -2149,29 +2149,44 @@ export default function ProcessPage() {
           </p>
         </div>
       </Modal>
-      {/* <Modal isOpen={isProjectsModalOpen} width="728px">
+      <Modal isOpen={isProjectsModalOpen} width="1120px">
         <section className="text-gray-600 bg-white-500 body-font">
-          <div className="px-5 py-24 mx-auto">
+          <div className="px-5 py-24 mx-aut">
             <h2 className="text-center text-gray-900 title-font text-xl font-semibold mb-4 py-4 px-4 border-b border-grey-5">
               PROJECTS
             </h2>
-            <div className="flex justify-between flex-wrap">
-              <Card text={
-                <h2 className="text-info-500 title-font text-lg font-medium">
-                  New Project
-                </h2>
-              } />
-              {projects.map(project =>
-                <Card key={project.id} text={
-                  <h2 className="title-font text-lg font-medium">
-                    {project.name}
-                  </h2>
-                } />
-              )}
+            <div className="grid grid-cols-3 gap-4 h-[500px] overflow-auto">
+              {/* <div>
+                <Card
+                  className="cursor-pointer"
+                  text={
+                    <h2 className="text-info-500 title-font text-lg font-medium">
+                      New Project
+                    </h2>
+                  }
+                />
+              </div> */}
+              {projects.map((project) => (
+                <div>
+                  <Card
+                    className="cursor-pointer"
+                    key={project.id}
+                    text={
+                      <h2 className="title-font text-lg font-medium">
+                        {project.name}
+                      </h2>
+                    }
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="flex justify-end items-center p-4 mt-4">
+              <Button className="me-3" onClick={() => {}} text={"Delete"} />
+              <Button onClick={() => {}} text={"Confirm"} />
             </div>
           </div>
         </section>
-      </Modal> */}
+      </Modal>
       <header className="w-full fixed z-50 text-gray-600 body-font bg-primary-500 shadow-md">
         <ul className="container mx-auto grid grid-cols-3 py-3 px-4">
           <li>
