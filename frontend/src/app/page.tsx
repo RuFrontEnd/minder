@@ -183,6 +183,10 @@ const getInitializedShapes = (data: ShapeAPITypes.GetShapes["ResData"]) => {
           info.p,
           info.title
         );
+        
+        if (info.text) {
+          newDesicion.text = info.text;
+        }
 
         info.selectedData.forEach((dataId) => {
           newDesicion.selectedData.push({
@@ -214,6 +218,7 @@ const getInitializedShapes = (data: ShapeAPITypes.GetShapes["ResData"]) => {
             ? {
                 shape: shapeMappings[curveInfo.sendTo.id],
                 d: curveInfo.sendTo.d,
+                bridgeId: curveId,
               }
             : null
         );
@@ -225,6 +230,7 @@ const getInitializedShapes = (data: ShapeAPITypes.GetShapes["ResData"]) => {
           ].push({
             shape: shapeMappings[shapeId],
             d: d,
+            bridgeId: curveId,
           });
         }
       });
@@ -1855,8 +1861,9 @@ export default function ProcessPage() {
   };
 
   const onClickSaveButton: MouseEventHandler<HTMLSpanElement> = () => {
+    if (selectedProjectId === null) return;
     const modifyData: ShapeAPITypes.UpdateShapes["data"] = {
-      projectId: 1,
+      projectId: selectedProjectId,
       orders: [],
       shapes: {},
       curves: {},
@@ -1915,7 +1922,6 @@ export default function ProcessPage() {
                       d: curve.sendTo.d,
                     }
                   : null,
-                text: shape instanceof Desicion ? shape?.text[d] : null,
               };
             });
           });
@@ -1933,10 +1939,10 @@ export default function ProcessPage() {
 
           return [];
         })(),
-
         selectedData: shape.selectedData.map(
           (selectedDataItem) => selectedDataItem.id
         ),
+        text: shape instanceof Desicion ? shape?.text : null,
       };
     });
 
@@ -2073,7 +2079,7 @@ export default function ProcessPage() {
 
   return (
     <>
-      {/* <Modal
+      <Modal
         isOpen={
           isAccountModalOpen && !isProjectsModalOpen && !isProjectsModalOpen
         }
@@ -2155,8 +2161,8 @@ export default function ProcessPage() {
             </a>
           </p>
         </div>
-      </Modal> */}
-      {/* <Modal isOpen={isProjectsModalOpen} width="1120px">
+      </Modal>
+      <Modal isOpen={isProjectsModalOpen} width="1120px">
         <section className="text-gray-600 bg-white-500 body-font">
           <div className="px-5 py-24 mx-aut">
             <h2 className="text-center text-gray-900 title-font text-xl font-semibold mb-4 py-4 px-4 border-b border-grey-5">
@@ -2209,7 +2215,7 @@ export default function ProcessPage() {
             </div>
           </div>
         </section>
-      </Modal> */}
+      </Modal>
       <header className="w-full fixed z-50 text-gray-600 body-font bg-primary-500 shadow-md">
         <ul className="container mx-auto grid grid-cols-3 py-3 px-4">
           <li>

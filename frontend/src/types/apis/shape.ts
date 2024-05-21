@@ -1,4 +1,5 @@
 import * as CommonTypes from "@/types/shapes/common";
+import * as DecisionTypes from "@/types/shapes/decision";
 
 type CurveInfo = {
   p1: {
@@ -21,7 +22,6 @@ type CurveInfo = {
     id: CommonTypes.Id;
     d: CommonTypes.Direction;
   };
-  text: null | string;
 };
 
 type ShapeData = {
@@ -45,6 +45,12 @@ type ShapeData = {
       };
       data: CommonTypes.Id[];
       selectedData: CommonTypes.Id[];
+      text: null | {
+        l: DecisionTypes.Text;
+        t: DecisionTypes.Text;
+        r: DecisionTypes.Text;
+        b: DecisionTypes.Text;
+      };
     };
   };
   curves: {
