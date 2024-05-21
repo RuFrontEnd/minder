@@ -5,14 +5,14 @@ export default class Auth {
 
   async getProjects(user: string) {
     const projects = await this.projectModel.getProjects(user);
-    return projects.filter(project => ({
+    return projects.filter((project) => ({
       id: project.id,
-      name: project.name
-    }))
+      name: project.name,
+    }));
   }
 
-  async createProject(name: string, user: string) {
-    await this.projectModel.createProject(name, user);
+  async createProject(user: string) {
+    await this.projectModel.createProject(user);
   }
 
   echo() {

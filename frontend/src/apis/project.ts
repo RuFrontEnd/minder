@@ -4,4 +4,8 @@ const getProjecs = async () => {
   return axios.get("/project/projects");
 };
 
-export { getProjecs };
+const createProject = async () => {
+  return axios.post("/project/project");
+};
+
+export { getProjecs, createProject };

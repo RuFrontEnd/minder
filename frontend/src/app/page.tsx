@@ -17,7 +17,7 @@ import Alert from "@/components/alert";
 import Card from "@/components/card";
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
-import { cloneDeep } from "lodash";
+import { cloneDeep, set } from "lodash";
 import { v4 as uuidv4 } from "uuid";
 import { ChangeEventHandler, MouseEventHandler } from "react";
 import * as authAPIs from "@/apis/auth";
@@ -183,7 +183,7 @@ const getInitializedShapes = (data: ShapeAPITypes.GetShapes["ResData"]) => {
           info.p,
           info.title
         );
-        
+
         if (info.text) {
           newDesicion.text = info.text;
         }
@@ -1969,6 +1969,16 @@ export default function ProcessPage() {
     setIsProjectsModalOpen(false);
   };
 
+  const onClickNewProjectCard = async () => {
+    await projectAPIs.createProject();
+    setIsProjectsModalOpen(false);
+    const res: AxiosResponse<
+      ProjectAPITypes.GetProjects["ResData"],
+      any
+    > = await projectAPIs.getProjecs();
+    setProjects(res.data);
+  };
+
   // useEffect(() => {
   //   if (useEffected) return;
 
@@ -2177,6 +2187,7 @@ export default function ProcessPage() {
                       New Project
                     </h2>
                   }
+                  onClick={onClickNewProjectCard}
                 />
               </div>
               {projects.map((project) => (
