@@ -33,6 +33,7 @@ import * as AlertTypes from "@/types/components/alert";
 import * as AuthTypes from "@/types/apis/auth";
 import * as ProjectAPITypes from "@/types/apis/project";
 import * as ShapeAPITypes from "@/types/apis/shape";
+import * as ProjectTypes from "@/types/project";
 
 axios.defaults.baseURL = process.env.BASE_URL || "http://localhost:5000/api";
 
@@ -456,7 +457,10 @@ export default function ProcessPage() {
     [isFetchingProjects, setIsFetchingProjects] = useState(false),
     [projects, setProjects] = useState<ProjectAPITypes.GetProjects["ResData"]>(
       []
-    );
+    ),
+    [selectedProjectId, setSelectedProjectId] = useState<
+      null | ProjectTypes.Project["id"]
+    >(null);
 
   const checkData = () => {
     const datas: Data[] = [];
@@ -1728,21 +1732,6 @@ export default function ProcessPage() {
             any
           > = await projectAPIs.getProjecs();
           setProjects(res.data);
-
-          let $canvas = document.querySelector("canvas");
-          if (!$canvas || !ctx) return;
-
-          // TODO: move to after project selected
-          const resShapes: AxiosResponse<
-            ShapeAPITypes.GetShapes["ResData"],
-            any
-          > = await shapeAPIs.getShapes(1);
-
-          shapes = getInitializedShapes(resShapes.data);
-          checkData();
-          checkGroups();
-
-          draw($canvas, ctx);
         }, 1000);
       }, 500);
     } else {
@@ -1951,9 +1940,27 @@ export default function ProcessPage() {
       };
     });
 
-    console.log("modifyData", modifyData);
-
     shapeAPIs.updateShapes(modifyData);
+  };
+
+  const onClickProjectCard = (id: ProjectTypes.Project["id"]) => {
+    setSelectedProjectId(id);
+  };
+
+  const onClickConfrimProject = async (id: ProjectTypes.Project["id"]) => {
+    let $canvas = document.querySelector("canvas");
+    if (!$canvas || !ctx) return;
+
+    const resShapes: AxiosResponse<
+      ShapeAPITypes.GetShapes["ResData"],
+      any
+    > = await shapeAPIs.getShapes(id);
+
+    shapes = getInitializedShapes(resShapes.data);
+    checkData();
+    checkGroups();
+    draw($canvas, ctx);
+    setIsProjectsModalOpen(false);
   };
 
   // useEffect(() => {
@@ -2176,13 +2183,29 @@ export default function ProcessPage() {
                         {project.name}
                       </h2>
                     }
+                    selected={selectedProjectId === project.id}
+                    onClick={() => {
+                      onClickProjectCard(project.id);
+                    }}
                   />
                 </div>
               ))}
             </div>
             <div className="flex justify-end items-center p-4 mt-4 border-t border-grey-5">
-              <Button className="me-3" onClick={() => {}} text={"Delete"} />
-              <Button onClick={() => {}} text={"Confirm"} />
+              <Button
+                className="me-3"
+                onClick={() => {}}
+                text={"Delete"}
+                disabled={selectedProjectId === null}
+              />
+              <Button
+                onClick={() => {
+                  if (!selectedProjectId) return;
+                  onClickConfrimProject(selectedProjectId);
+                }}
+                text={"Confirm"}
+                disabled={selectedProjectId === null}
+              />
             </div>
           </div>
         </section>
