@@ -1,5 +1,6 @@
 import pool from "../db";
-import { RowDataPacket } from "mysql2";
+import mongoDbPool from "../mongodb";
+import { ResultSetHeader, FieldPacket } from "mysql2";
 
 export default class Project {
   async getProjects(user: string) {
@@ -10,10 +11,23 @@ export default class Project {
   }
 
   async createProject(user: string) {
-    await pool.query("INSERT INTO projects (name, user) VALUES (?, ?)", [
+    const insertInfo: [
+      ResultSetHeader,
+      FieldPacket[]
+    ] = await pool.query("INSERT INTO projects (name, user) VALUES (?, ?)", [
       "Untitled",
       user,
     ]);
+
+    const collection = await mongoDbPool.query("shapes");
+
+    collection.insertOne({
+      projectId: insertInfo[0].insertId,
+      orders: [],
+      shapes: {},
+      curves: {},
+      data: {},
+    });
   }
 
   echo() {
