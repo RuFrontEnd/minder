@@ -13,9 +13,9 @@ const Button = (props: ButtonTypes.Props) => {
   return (
     <button
       id={props.id}
-      className={`${
+      className={`${statusStyle} flex justify-center items-center text-white-500 border-0 py-2 px-6 focus:outline-none rounded text-md ease-in-out duration-300 ${
         props.className && props.className
-      } ${statusStyle} flex justify-center items-center text-white-500 border-0 py-2 px-6 focus:outline-none rounded text-md ease-in-out duration-300`}
+      }`}
       onClick={props.loading ? undefined : props.onClick}
     >
       {props.text}

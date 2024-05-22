@@ -1521,7 +1521,7 @@ export default function ProcessPage() {
   };
 
   const onClickProfile = () => {
-    setIsUserSidePanelOpen((open) => !open);
+    setIsProjectsModalOpen(true)
   };
 
   const draw = useCallback(
@@ -2095,7 +2095,7 @@ export default function ProcessPage() {
         }
         width="400px"
       >
-        <div className="bg-white-500 rounded-lg p-8 flex flex-col w-full mt-10">
+        <div className="bg-white-500 rounded-lg p-8 flex flex-col w-full">
           <a className="flex title-font font-medium justify-center items-center text-gray-900 mb-4">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -2173,11 +2173,20 @@ export default function ProcessPage() {
         </div>
       </Modal>
       <Modal isOpen={isProjectsModalOpen} width="1120px">
-        <section className="text-gray-600 bg-white-500 body-font">
-          <div className="px-5 py-24 mx-aut">
-            <h2 className="text-center text-gray-900 title-font text-xl font-semibold mb-4 py-4 px-4 border-b border-grey-5">
-              PROJECTS
-            </h2>
+        <div>
+          <section className="rounded-lg text-gray-600 bg-white-500 p-8 body-font">
+            {/* <div className="text-right">
+              <Button
+                className="ms-auto inline-flex"
+                onClick={() => {}}
+                text={"Sign Out"}
+              />
+            </div> */}
+            <div className="mb-6 py-2 px-4 border-b border-grey-5">
+              <h2 className="text-gray-900 title-font text-xl font-semibold">
+                Projects
+              </h2>
+            </div>
             <div className="grid grid-cols-3 gap-4 h-[500px] overflow-auto">
               <div>
                 <Card
@@ -2208,7 +2217,7 @@ export default function ProcessPage() {
                 </div>
               ))}
             </div>
-            <div className="flex justify-end items-center p-4 mt-4 border-t border-grey-5">
+            <div className="flex justify-end items-center mt-6 pt-4 border-t border-grey-5">
               <Button
                 className="me-3"
                 onClick={() => {}}
@@ -2224,8 +2233,8 @@ export default function ProcessPage() {
                 disabled={selectedProjectId === null}
               />
             </div>
-          </div>
-        </section>
+          </section>
+        </div>
       </Modal>
       <header className="w-full fixed z-50 text-gray-600 body-font bg-primary-500 shadow-md">
         <ul className="container mx-auto grid grid-cols-3 py-3 px-4">
