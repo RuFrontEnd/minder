@@ -10,6 +10,16 @@ export default class Project {
     return rows as { id: number; user: number; name: string }[];
   }
 
+  async getProject(user: string, id: number) {
+    const [
+      rows,
+    ] = await pool.query("SELECT * FROM projects WHERE user = ? AND id = ?", [
+      user,
+      id,
+    ]);
+    return (rows as { id: number; user: number; name: string }[])[0];
+  }
+
   async createProject(user: string) {
     const insertInfo: [
       ResultSetHeader,
@@ -28,6 +38,10 @@ export default class Project {
       curves: {},
       data: {},
     });
+
+    const newProject = await this.getProject(user, insertInfo[0].insertId);
+
+    return newProject;
   }
 
   echo() {
