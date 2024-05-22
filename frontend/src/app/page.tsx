@@ -466,7 +466,8 @@ export default function ProcessPage() {
     ),
     [selectedProjectId, setSelectedProjectId] = useState<
       null | ProjectTypes.Project["id"]
-    >(null);
+    >(null),
+    [hasEnter, setHasEnter] = useState(false);
 
   const checkData = () => {
     const datas: Data[] = [];
@@ -1521,7 +1522,7 @@ export default function ProcessPage() {
   };
 
   const onClickProfile = () => {
-    setIsProjectsModalOpen(true)
+    setIsProjectsModalOpen(true);
   };
 
   const draw = useCallback(
@@ -1967,9 +1968,14 @@ export default function ProcessPage() {
     checkGroups();
     draw($canvas, ctx);
     setIsProjectsModalOpen(false);
+
+    if (!hasEnter) {
+      setHasEnter(true);
+    }
   };
 
   const onClickNewProjectCard = async () => {
+    shapes = [];
     await projectAPIs.createProject();
     setIsProjectsModalOpen(false);
     const res: AxiosResponse<
@@ -1977,6 +1983,10 @@ export default function ProcessPage() {
       any
     > = await projectAPIs.getProjecs();
     setProjects(res.data);
+  };
+
+  const onClickProjectsModalX = () => {
+    setIsProjectsModalOpen(false);
   };
 
   // useEffect(() => {
@@ -2172,7 +2182,11 @@ export default function ProcessPage() {
           </p>
         </div>
       </Modal>
-      <Modal isOpen={isProjectsModalOpen} width="1120px">
+      <Modal
+        isOpen={isProjectsModalOpen}
+        width="1120px"
+        onClickX={hasEnter ? onClickProjectsModalX : undefined}
+      >
         <div>
           <section className="rounded-lg text-gray-600 bg-white-500 p-8 body-font">
             {/* <div className="text-right">

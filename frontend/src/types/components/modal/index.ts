@@ -8,6 +8,7 @@ type Props = {
   children?: ReactNode;
   width?: string;
   zIndex?: string;
+  onClickX?: MouseEventHandler<HTMLDivElement>;
 };
 
 export type { Props };
