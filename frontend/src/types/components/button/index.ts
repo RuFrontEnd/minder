@@ -6,6 +6,7 @@ type Props = {
   text: ReactNode;
   loading?: boolean;
   disabled?: boolean;
+  danger?: boolean;
   onClick: MouseEventHandler<HTMLButtonElement>;
 };
 

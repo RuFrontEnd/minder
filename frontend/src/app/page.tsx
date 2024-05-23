@@ -2189,6 +2189,9 @@ export default function ProcessPage() {
       >
         <div>
           <section className="rounded-lg text-gray-600 bg-white-500 p-8 body-font">
+            <div className="flex justify-end align-center">
+              <Button onClick={() => {}} text={"Log Out"} danger/>
+            </div>
             {/* <div className="text-right">
               <Button
                 className="ms-auto inline-flex"
@@ -2197,7 +2200,7 @@ export default function ProcessPage() {
               />
             </div> */}
             <div className="mb-6 py-2 px-4 border-b border-grey-5">
-              <h2 className="text-gray-900 title-font text-xl font-semibold">
+              <h2 className="text-gray-900 title-font text-lg font-semibold">
                 Projects
               </h2>
             </div>
@@ -2237,6 +2240,7 @@ export default function ProcessPage() {
                 onClick={() => {}}
                 text={"Delete"}
                 disabled={selectedProjectId === null}
+                danger
               />
               <Button
                 onClick={() => {

@@ -7,7 +7,10 @@ const Button = (props: ButtonTypes.Props) => {
     if (props.disabled) {
       return "bg-grey-5 cursor-default";
     }
-    return "bg-primary-500 hover:bg-primary-hover";
+    if(props.danger){
+      return "bg-error-500"
+    }
+    return "bg-primary-500";
   })();
 
   return (
