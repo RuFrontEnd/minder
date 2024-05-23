@@ -20,7 +20,9 @@ class MongoDbPool {
     if (!url) throw new Error("Mongodb url is not defined.");
     const client = new MongoClient(url);
     this.client = await client.connect();
-    this.db = this.client.db();
+    const database = env?.DATABASE
+    if (!database) throw new Error("Database is not defined.");
+    this.db = this.client.db(env.DATABASE);
   }
 
   async query(collectionName: string) {
