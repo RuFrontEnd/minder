@@ -12,14 +12,19 @@ const register = async (
   });
 };
 
-const login = async (
-  _account: string,
-  _password: string,
-) => {
+const login = async (_account: string, _password: string) => {
   return axios.post("/auth/login", {
     account: _account,
     password: _password,
   });
 };
 
-export { register, login };
+const jwtLogin = async (token: string) => {
+  return axios.post("/auth/jwt-login", undefined, {
+    headers: {
+      Authorization: `${token}`,
+    },
+  });
+};
+
+export { register, login, jwtLogin };

@@ -114,7 +114,7 @@ const getFramePosition = (shape: Core) => {
   };
 };
 
-const getInitializedShapes = (data: ShapeAPITypes.GetShapes["ResData"]) => {
+const getInitializedShapes = (data: ShapeAPITypes.GetShapes["resData"]) => {
   const shapeMappings: {
     [shapeId: string]: Terminal | Process | Data | Desicion;
   } = {};
@@ -435,7 +435,7 @@ export default function ProcessPage() {
     [dataFrameWarning, setDataFrameWarning] = useState<DataFrameTypes.Warning>(
       init.dataFrameWarning
     ),
-    [isAccountModalOpen, setIsAccountModalOpen] = useState(true),
+    [isAccountModalOpen, setIsAccountModalOpen] = useState(false),
     [isLogIn, setIsLogin] = useState(true),
     [isProjectsModalOpen, setIsProjectsModalOpen] = useState(false),
     [authInfo, setAuthInfo] = useState<{
@@ -461,7 +461,7 @@ export default function ProcessPage() {
       text: "",
     }),
     [isFetchingProjects, setIsFetchingProjects] = useState(false),
-    [projects, setProjects] = useState<ProjectAPITypes.GetProjects["ResData"]>(
+    [projects, setProjects] = useState<ProjectAPITypes.GetProjects["resData"]>(
       []
     ),
     [selectedProjectId, setSelectedProjectId] = useState<
@@ -600,6 +600,32 @@ export default function ProcessPage() {
           select.end.y = theEdge.b;
         }
       });
+    }
+  };
+
+  const verifyToken = async () => {
+    const token = localStorage.getItem("Authorization");
+
+    if (token) {
+      const res: AxiosResponse<
+        AuthTypes.JWTLogin["resData"]
+      > = await authAPIs.jwtLogin(token);
+
+      if (res.data.isPass) {
+        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+        setIsLogin(false);
+        const res: AxiosResponse<
+          ProjectAPITypes.GetProjects["resData"],
+          any
+        > = await projectAPIs.getProjecs();
+        setProjects(res.data);
+        setIsProjectsModalOpen(true);
+      } else {
+        setIsAccountModalOpen(true);
+      }
+    } else {
+      setIsAccountModalOpen(true);
     }
   };
 
@@ -1710,7 +1736,7 @@ export default function ProcessPage() {
     setIsAuthorizing(true);
 
     const res: AxiosResponse<
-      AuthTypes.Login["ResData"],
+      AuthTypes.Login["resData"],
       any
     > = await authAPIs.login(authInfo.account.value, authInfo.password.value);
 
@@ -1732,13 +1758,13 @@ export default function ProcessPage() {
             text: "",
           }));
           setIsAccountModalOpen(false);
-          setIsProjectsModalOpen(true);
           setAuthInfo(init.authInfo);
           const res: AxiosResponse<
-            ProjectAPITypes.GetProjects["ResData"],
+            ProjectAPITypes.GetProjects["resData"],
             any
           > = await projectAPIs.getProjecs();
           setProjects(res.data);
+          setIsProjectsModalOpen(true);
         }, 1000);
       }, 500);
     } else {
@@ -1808,7 +1834,7 @@ export default function ProcessPage() {
     setIsAuthorizing(true);
 
     const res: AxiosResponse<
-      AuthTypes.Register["ResData"],
+      AuthTypes.Register["resData"],
       any
     > = await authAPIs.register(
       authInfo.account.value,
@@ -1959,7 +1985,7 @@ export default function ProcessPage() {
     if (!$canvas || !ctx) return;
 
     const resShapes: AxiosResponse<
-      ShapeAPITypes.GetShapes["ResData"],
+      ShapeAPITypes.GetShapes["resData"],
       any
     > = await shapeAPIs.getShapes(id);
 
@@ -1979,7 +2005,7 @@ export default function ProcessPage() {
     await projectAPIs.createProject();
     setIsProjectsModalOpen(false);
     const res: AxiosResponse<
-      ProjectAPITypes.GetProjects["ResData"],
+      ProjectAPITypes.GetProjects["resData"],
       any
     > = await projectAPIs.getProjecs();
     setProjects(res.data);
@@ -2064,8 +2090,7 @@ export default function ProcessPage() {
   // }, []);
 
   useEffect(() => {
-    if (!$canvas || !ctx) return;
-    draw($canvas, ctx);
+    verifyToken();
 
     const resize = () => {
       let $canvas = document.querySelector("canvas");
@@ -2190,7 +2215,7 @@ export default function ProcessPage() {
         <div>
           <section className="rounded-lg text-gray-600 bg-white-500 p-8 body-font">
             <div className="flex justify-end align-center">
-              <Button onClick={() => {}} text={"Log Out"} danger/>
+              <Button onClick={() => {}} text={"Log Out"} danger />
             </div>
             {/* <div className="text-right">
               <Button

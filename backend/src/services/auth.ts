@@ -26,14 +26,20 @@ export default class Auth {
 
   async jwtLogin(token: string): Promise<boolean> {
     if (!token || !env?.SECRETKEY) {
-      return false
+      return false;
     }
 
+    let isPass = false;
+
     jwt.verify(token, env.SECRETKEY, (err, decoded) => {
-      return !!err
+      if (err) {
+        isPass = false;
+      } else {
+        isPass = true;
+      }
     });
 
-    return false
+    return isPass;
   }
 
   async login(account: string, password: string): Promise<string> {

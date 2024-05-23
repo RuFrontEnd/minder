@@ -1,7 +1,7 @@
 import * as ProjectTypes from "@/types/project";
 
 type GetProjects = {
-  ResData: ProjectTypes.Project[];
+  resData: ProjectTypes.Project[];
 };
 
 export type { GetProjects };

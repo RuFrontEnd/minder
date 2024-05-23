@@ -62,7 +62,7 @@ type ShapeData = {
 };
 
 type GetShapes = {
-  ResData: ShapeData;
+  resData: ShapeData;
 };
 
 type UpdateShapes = {
