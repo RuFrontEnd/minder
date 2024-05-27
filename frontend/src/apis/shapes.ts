@@ -7,9 +7,7 @@ const getShapes = async (_projectId: number) => {
   });
 };
 
-const updateShapes = async (
-  _data: ShapeAPITypes.UpdateShapes["data"]
-) => {
+const updateShapes = async (_data: ShapeAPITypes.UpdateShapes["data"]) => {
   return axios.put("/shape/shapes", {
     data: _data,
   });

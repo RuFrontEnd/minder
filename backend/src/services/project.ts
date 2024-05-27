@@ -14,7 +14,8 @@ export default class Auth {
   }
 
   async createProject(user: string) {
-    await this.projectModel.createProject(user);
+    const newProject = await this.projectModel.createProject(user);
+    return newProject;
   }
 
   async deleteProject(userId: AuthTypes.UserId, id: ProjectTypes.Id) {

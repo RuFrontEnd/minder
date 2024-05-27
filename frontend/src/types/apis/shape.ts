@@ -1,5 +1,6 @@
 import * as CommonTypes from "@/types/shapes/common";
 import * as DecisionTypes from "@/types/shapes/decision";
+import * as ProjectTypes from "@/types/project";
 
 type CurveInfo = {
   p1: {
@@ -25,7 +26,7 @@ type CurveInfo = {
 };
 
 type ShapeData = {
-  projectId: number;
+  projectId: ProjectTypes.Project["id"];
   orders: string[];
   shapes: {
     [shapeId: CommonTypes.Id]: {
@@ -69,4 +70,10 @@ type UpdateShapes = {
   data: ShapeData;
 };
 
-export type { GetShapes, UpdateShapes };
+type DeleteShape = {
+  data: {
+    id: ProjectTypes.Project["id"];
+  };
+};
+
+export type { GetShapes, UpdateShapes, DeleteShape };

@@ -52,11 +52,8 @@ export default class Project {
       id,
     ]);
 
-    console.log("id", id);
     const collection = await mongoDbPool.query("shapes");
     collection.deleteOne({ projectId: id });
-
-    console.log("collection", collection);
   }
 
   echo() {

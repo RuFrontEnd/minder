@@ -2000,15 +2000,43 @@ export default function ProcessPage() {
     }
   };
 
+  const onClickDeleteProject = async (id: ProjectTypes.Project["id"]) => {
+    let $canvas = document.querySelector("canvas");
+    if (!$canvas || !ctx) return;
+
+    try {
+      const res: AxiosResponse<
+        ProjectAPITypes.DeleteProject["resData"]
+      > = await projectAPIs.deleteProject(id);
+
+      if (id === selectedProjectId) {
+        shapes = [];
+        setSelectedProjectId(null);
+        setHasEnter(false);
+        setProjects(
+          cloneDeep(projects).filter((project) => project.id !== res.data.id)
+        );
+      }
+    } catch (err) {
+      // TODO: handle error
+    }
+  };
+
   const onClickNewProjectCard = async () => {
     shapes = [];
-    await projectAPIs.createProject();
-    setIsProjectsModalOpen(false);
+    const newProject: AxiosResponse<
+      ProjectAPITypes.CreateProject["resData"]
+    > = await projectAPIs.createProject();
+
     const res: AxiosResponse<
       ProjectAPITypes.GetProjects["resData"],
       any
     > = await projectAPIs.getProjecs();
+
+    setIsProjectsModalOpen(false);
     setProjects(res.data);
+    setSelectedProjectId(newProject.data.id);
+    setHasEnter(true);
   };
 
   const onClickProjectsModalX = () => {
@@ -2210,7 +2238,11 @@ export default function ProcessPage() {
       <Modal
         isOpen={isProjectsModalOpen}
         width="1120px"
-        onClickX={hasEnter ? onClickProjectsModalX : undefined}
+        onClickX={
+          hasEnter && selectedProjectId !== null
+            ? onClickProjectsModalX
+            : undefined
+        }
       >
         <div>
           <section className="rounded-lg text-gray-600 bg-white-500 p-8 body-font">
@@ -2262,7 +2294,10 @@ export default function ProcessPage() {
             <div className="flex justify-end items-center mt-6 pt-4 border-t border-grey-5">
               <Button
                 className="me-3"
-                onClick={() => {}}
+                onClick={() => {
+                  if (!selectedProjectId) return;
+                  onClickDeleteProject(selectedProjectId);
+                }}
                 text={"Delete"}
                 disabled={selectedProjectId === null}
                 danger

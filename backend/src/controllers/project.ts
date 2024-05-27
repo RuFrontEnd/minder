@@ -3,6 +3,7 @@ import { Request, Response, NextFunction } from "express";
 import { Project as ProjectService } from "../services";
 import { getError } from "../utils/error";
 import { JWTDecoded } from "../types/auth";
+import { SUCCESSFUL, ERROR } from "../constatns/stauts";
 
 export default class Project {
   private projectService = new ProjectService();
@@ -39,8 +40,15 @@ export default class Project {
     const { decoded } = req.body;
 
     try {
-      await this.projectService.createProject(String(decoded.userId));
-      res.status(201).send("Create project successfully!");
+      const newProject = await this.projectService.createProject(
+        String(decoded.userId)
+      );
+
+      res.status(201).send({
+        status: SUCCESSFUL,
+        message: "Create project successfully!",
+        ...newProject,
+      });
     } catch (err) {
       res.status(400).send(getError(err));
     }
@@ -57,7 +65,11 @@ export default class Project {
 
     try {
       await this.projectService.deleteProject(decoded.userId, Number(id));
-      res.status(201).send("Delete project successfully!");
+      res.status(201).send({
+        status: SUCCESSFUL,
+        message: "Delete project successfully!",
+        id: Number(id),
+      });
     } catch (err) {
       res.status(400).send(getError(err));
     }

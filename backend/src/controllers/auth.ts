@@ -66,8 +66,6 @@ export default class Auth {
   async jwtLogin(req: Request, res: Response, next: NextFunction) {
     const { authorization: token } = req.headers;
 
-    console.log("token", token);
-
     if (typeof token !== "string")
       return res.status(400).send({
         status: ERROR,
