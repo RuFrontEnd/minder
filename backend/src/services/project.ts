@@ -1,3 +1,5 @@
+import * as AuthTypes from "../types/auth";
+import * as ProjectTypes from "../types/project";
 import { Project as ProjectModel } from "../models";
 
 export default class Auth {
@@ -13,6 +15,10 @@ export default class Auth {
 
   async createProject(user: string) {
     await this.projectModel.createProject(user);
+  }
+
+  async deleteProject(userId: AuthTypes.UserId, id: ProjectTypes.Id) {
+    await this.projectModel.deleteProject(userId, id);
   }
 
   echo() {

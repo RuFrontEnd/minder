@@ -1,3 +1,4 @@
+import * as ProjectTypes from "../types/project";
 import { Request, Response, NextFunction } from "express";
 import { Project as ProjectService } from "../services";
 import { getError } from "../utils/error";
@@ -9,6 +10,7 @@ export default class Project {
   constructor() {
     this.getProjects = this.getProjects.bind(this);
     this.createProject = this.createProject.bind(this);
+    this.deleteProject = this.deleteProject.bind(this);
   }
 
   async getProjects(
@@ -17,9 +19,6 @@ export default class Project {
     next: NextFunction
   ) {
     const { decoded } = req.body;
-
-    if (!decoded || typeof decoded === "string")
-      return res.status(400).send("invalid user info");
 
     try {
       const projects = await this.projectService.getProjects(
@@ -39,11 +38,26 @@ export default class Project {
   ) {
     const { decoded } = req.body;
 
-    if (!decoded || typeof decoded === "string")
-      return res.status(400).send("invalid user info");
     try {
       await this.projectService.createProject(String(decoded.userId));
       res.status(201).send("Create project successfully!");
+    } catch (err) {
+      res.status(400).send(getError(err));
+    }
+  }
+
+  async deleteProject(
+    req: Request<{}, {}, { decoded: JWTDecoded; id: string }>,
+    res: Response,
+    next: NextFunction
+  ) {
+    const { decoded, id } = req.body;
+
+    if (!id) return res.status(400).send("invalid project id");
+
+    try {
+      await this.projectService.deleteProject(decoded.userId, Number(id));
+      res.status(201).send("Delete project successfully!");
     } catch (err) {
       res.status(400).send(getError(err));
     }

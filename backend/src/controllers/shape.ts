@@ -17,12 +17,8 @@ export default class Shape {
     res: Response,
     next: NextFunction
   ) {
-    const { decoded } = req.body;
-
-    if (!decoded || typeof decoded === "string")
-      return res.status(400).send("invalid user info");
-
     const { projectId } = req.query;
+
     try {
       const shapes = await this.shapeService.getShapes(Number(projectId));
 
@@ -39,7 +35,7 @@ export default class Shape {
   ) {
     try {
       await this.shapeService.updateShapes(req.body.data);
-      res.status(201).send("Create shape successfully!");
+      res.status(201).send("Update shape successfully!");
     } catch (err) {
       res.status(400).send(getError(err));
     }

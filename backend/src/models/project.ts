@@ -1,5 +1,7 @@
 import pool from "../db";
 import mongoDbPool from "../mongodb";
+import * as ProjectTypes from "../types/project";
+import * as AuthTypes from "../types/auth";
 import { ResultSetHeader, FieldPacket } from "mysql2";
 
 export default class Project {
@@ -42,6 +44,19 @@ export default class Project {
     const newProject = await this.getProject(user, insertInfo[0].insertId);
 
     return newProject;
+  }
+
+  async deleteProject(userId: AuthTypes.UserId, id: ProjectTypes.Id) {
+    await pool.query("DELETE FROM projects WHERE user=? AND id=?", [
+      userId,
+      id,
+    ]);
+
+    console.log("id", id);
+    const collection = await mongoDbPool.query("shapes");
+    collection.deleteOne({ projectId: id });
+
+    console.log("collection", collection);
   }
 
   echo() {
