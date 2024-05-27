@@ -17,7 +17,7 @@ import Alert from "@/components/alert";
 import Card from "@/components/card";
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
-import { cloneDeep } from "lodash";
+import {cloneDeep } from "lodash";
 import { v4 as uuidv4 } from "uuid";
 import { ChangeEventHandler, MouseEventHandler } from "react";
 import { tailwindColors } from "@/variables/colors";
@@ -69,6 +69,17 @@ const init = {
     },
   },
   offset: { x: 0, y: 0 },
+  select: {
+    start: {
+      x: -1,
+      y: -1,
+    },
+    end: {
+      x: -1,
+      y: -1,
+    },
+    shapes: [],
+  },
 };
 
 let useEffected = false,
@@ -110,22 +121,11 @@ let useEffected = false,
     start: CommonTypes.Vec;
     end: CommonTypes.Vec;
   } = null,
-  initMultiSelect = {
-    start: {
-      x: -1,
-      y: -1,
-    },
-    end: {
-      x: -1,
-      y: -1,
-    },
-    shapes: [],
-  },
   select: {
     start: CommonTypes.Vec;
     end: CommonTypes.Vec;
     shapes: Core[];
-  } = initMultiSelect,
+  } = cloneDeep(init.select),
   selectAnchor = {
     size: {
       fill: 4,
@@ -1338,7 +1338,6 @@ export default function ProcessPage() {
     []
   );
 
-
   function handleKeyDown(this: Window, e: KeyboardEvent) {
     // space
     if (e.key === " " && !space) {
@@ -1999,6 +1998,7 @@ export default function ProcessPage() {
     offset = cloneDeep(init.offset);
     offset_center = cloneDeep(init.offset);
     shapes = getInitializedShapes(resShapes.data);
+    select = cloneDeep(init.select);
     checkData();
     checkGroups();
     draw($canvas, ctx);
