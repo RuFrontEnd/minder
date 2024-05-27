@@ -1337,11 +1337,16 @@ export default function ProcessPage() {
     []
   );
 
-  function handleKeyDown(this: Window, e: KeyboardEvent) {
-    if (!$canvas || !ctx) return;
 
-    // delete
-    if (e.key === "Backspace" && !dataFrame && !dbClickedShape) {
+  function handleKeyDown(this: Window, e: KeyboardEvent) {
+    // space
+    if (e.key === " " && !space) {
+      setSpace(true);
+    } else if (e.key === "Backspace" && !dataFrame && !dbClickedShape) {
+      const $canvas = document.querySelector("canvas");
+      if (!$canvas || !ctx) return;
+
+      // delete
       for (const currentShape of shapes) {
         if (currentShape.selecting) {
           currentShape?.removeConnection();
@@ -1356,16 +1361,8 @@ export default function ProcessPage() {
         }
       }
 
-      checkData();
-      checkGroups();
+      draw($canvas, ctx);
     }
-
-    // space
-    if (e.key === " " && !space) {
-      setSpace(true);
-    }
-
-    draw($canvas, ctx);
   }
 
   function handleKeyUp(this: Window, e: KeyboardEvent) {
