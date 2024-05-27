@@ -37,6 +37,39 @@ import * as ProjectTypes from "@/types/project";
 
 axios.defaults.baseURL = process.env.BASE_URL || "http://localhost:5000/api";
 
+const init = {
+  dataFrameWarning: {
+    title: "",
+    data: {},
+  },
+  shape: {
+    size: {
+      t: { w: 150, h: 75 },
+      p: { w: 150, h: 75 },
+      d: { w: 150, h: 75 },
+      dec: { w: 100, h: 100 },
+    },
+  },
+  authInfo: {
+    account: {
+      value: undefined,
+      status: InputTypes.Status.normal,
+      comment: undefined,
+    },
+    password: {
+      value: undefined,
+      status: InputTypes.Status.normal,
+      comment: undefined,
+    },
+    email: {
+      value: undefined,
+      status: InputTypes.Status.normal,
+      comment: undefined,
+    },
+  },
+  offset: { x: 0, y: 0 },
+};
+
 let useEffected = false,
   ctx: CanvasRenderingContext2D | null | undefined = null,
   shapes: (Terminal | Process | Data | Desicion)[] = [],
@@ -56,8 +89,8 @@ let useEffected = false,
     dx: number; // distance between event px & pressing shape px
     dy: number; // distance between event py & pressing shape py
   } = null,
-  offset: CommonTypes.Vec = { x: 0, y: 0 },
-  offset_center: CommonTypes.Vec = { x: 0, y: 0 },
+  offset: CommonTypes.Vec = cloneDeep(init.offset),
+  offset_center: CommonTypes.Vec = cloneDeep(init.offset),
   dragP: CommonTypes.Vec = { x: 0, y: 0 },
   moveP: null | {
     originalX: number;
@@ -139,6 +172,8 @@ const getInitializedShapes = (data: ShapeAPITypes.GetShapes["resData"]) => {
           });
         });
 
+        newTerminator.offset = offset;
+
         shapeMappings[id] = newTerminator;
 
         break;
@@ -159,6 +194,8 @@ const getInitializedShapes = (data: ShapeAPITypes.GetShapes["resData"]) => {
           });
         });
 
+        newData.offset = offset;
+
         shapeMappings[id] = newData;
 
         break;
@@ -171,6 +208,8 @@ const getInitializedShapes = (data: ShapeAPITypes.GetShapes["resData"]) => {
             text: data.data[dataId],
           });
         });
+
+        newProcess.offset = offset;
 
         shapeMappings[id] = newProcess;
 
@@ -194,6 +233,8 @@ const getInitializedShapes = (data: ShapeAPITypes.GetShapes["resData"]) => {
             text: data.data[dataId],
           });
         });
+
+        newDesicion.offset = offset;
 
         shapeMappings[id] = newDesicion;
 
@@ -381,38 +422,6 @@ const Editor = (props: { className: string; shape: Core }) => {
       </div>
     </div>
   );
-};
-
-const init = {
-  dataFrameWarning: {
-    title: "",
-    data: {},
-  },
-  shape: {
-    size: {
-      t: { w: 150, h: 75 },
-      p: { w: 150, h: 75 },
-      d: { w: 150, h: 75 },
-      dec: { w: 100, h: 100 },
-    },
-  },
-  authInfo: {
-    account: {
-      value: undefined,
-      status: InputTypes.Status.normal,
-      comment: undefined,
-    },
-    password: {
-      value: undefined,
-      status: InputTypes.Status.normal,
-      comment: undefined,
-    },
-    email: {
-      value: undefined,
-      status: InputTypes.Status.normal,
-      comment: undefined,
-    },
-  },
 };
 
 export default function ProcessPage() {
@@ -1988,6 +1997,9 @@ export default function ProcessPage() {
       any
     > = await shapeAPIs.getShapes(id);
 
+    setScale(1);
+    offset = cloneDeep(init.offset);
+    offset_center = cloneDeep(init.offset);
     shapes = getInitializedShapes(resShapes.data);
     checkData();
     checkGroups();
