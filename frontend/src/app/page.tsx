@@ -1460,7 +1460,7 @@ export default function ProcessPage() {
     shape
   ) => {
     // validate repeated title name
-    const titleWarning = title ? "" : "欄位不可為空";
+    const titleWarning = title ? "" : "required field.";
 
     setDataFrameWarning((dataFrameWarning) => ({
       ...dataFrameWarning,
@@ -1493,7 +1493,7 @@ export default function ProcessPage() {
     data.forEach((dataItem, dataItemI) => {
       // validate required data
       if (!dataItem.text) {
-        dataWarningMapping[dataItemI] = "欄位不可為空";
+        dataWarningMapping[dataItemI] = "required field.";
       }
     });
 
@@ -1515,7 +1515,6 @@ export default function ProcessPage() {
       dbClickedShape?.onDataChange(title);
     }
 
-    // setGlobalData((globalData) => ({ ...globalData, [shape.id]: data }));
     setDataFrame(undefined);
     setDbClickedShape(null);
     checkData();
@@ -1720,7 +1719,7 @@ export default function ProcessPage() {
     const _authInfo = cloneDeep(authInfo);
     if (!authInfo.account.value) {
       _authInfo.account.status = InputTypes.Status.error;
-      _authInfo.account.comment = "required!";
+      _authInfo.account.comment = "required field.";
     }
     if (!authInfo.password.value) {
       _authInfo.password.status = InputTypes.Status.error;
@@ -1728,7 +1727,7 @@ export default function ProcessPage() {
 
     if (!authInfo.account.value || !authInfo.password.value) {
       _authInfo.password.status = InputTypes.Status.error;
-      _authInfo.password.comment = "required!";
+      _authInfo.password.comment = "required field.";
       setAuthInfo(_authInfo);
       return;
     }
@@ -2043,79 +2042,21 @@ export default function ProcessPage() {
     setIsProjectsModalOpen(false);
   };
 
-  // useEffect(() => {
-  //   if (useEffected) return;
-
-  //   if ($canvas) {
-  //     $canvas.width = window.innerWidth;
-  //     $canvas.height = window.innerHeight;
-  //     if (!ctx) return;
-
-  //     let terminal_s_new = new Terminal(
-  //       `terminator_s_${Date.now()}`,
-  //       init.shape.size.t.w,
-  //       init.shape.size.t.h,
-  //       {
-  //         x: -offset.x + window.innerWidth / 2,
-  //         y: -offset.y + window.innerHeight / 2 - 300,
-  //       },
-  //       "起點"
-  //     );
-  //     terminal_s_new.offset = offset;
-  //     terminal_s_new.scale = scale;
-
-  //     let process_new = new Process(
-  //       `process_${Date.now()}`,
-  //       init.shape.size.p.w,
-  //       init.shape.size.p.h,
-  //       {
-  //         x: -offset.x + window.innerWidth / 2 + 200,
-  //         y: -offset.y + window.innerHeight / 2,
-  //       },
-  //       `process`
-  //     );
-  //     process_new.offset = offset;
-  //     process_new.scale = scale;
-
-  //     let data_new = new Data(
-  //       `data_${Date.now()}`,
-  //       init.shape.size.d.w,
-  //       init.shape.size.d.h,
-  //       {
-  //         x: -offset.x + window.innerWidth / 2,
-  //         y: -offset.y + window.innerHeight / 2 - 100,
-  //       },
-  //       "輸入資料_1"
-  //     );
-  //     data_new.offset = offset;
-  //     data_new.scale = scale;
-
-  //     let decision_new = new Desicion(
-  //       `decision_new_${Date.now()}`,
-  //       init.shape.size.dec.w,
-  //       init.shape.size.dec.h,
-  //       {
-  //         x: -offset.x + window.innerWidth / 2,
-  //         y: -offset.y + window.innerHeight / 2 + 100,
-  //       },
-  //       "decision"
-  //     );
-  //     decision_new.offset = offset;
-  //     decision_new.scale = scale;
-
-  //     shapes.push(terminal_s_new);
-  //     shapes.push(data_new);
-  //     // shapes.push(terminal_e_new);
-  //     shapes.push(process_new);
-  //     // shapes.push(terminal_s_2_new);
-  //     shapes.push(decision_new);
-
-  //     checkData();
-  //     checkGroups();
-  //   }
-
-  //   useEffected = true;
-  // }, []);
+  const onClickLogOutButton = () => {
+    shapes = [];
+    let $canvas = document.querySelector("canvas");
+    if (!$canvas || !ctx) return;
+    draw($canvas, ctx);
+    localStorage.removeItem("Authorization");
+    setIsLogin(true);
+    setProjects([]);
+    setSelectedProjectId(null);
+    setHasEnter(false);
+    setAuthInfo(init.authInfo);
+    setIsProjectsModalOpen(false);
+    setIsAccountModalOpen(true);
+    setSteps({});
+  };
 
   useEffect(() => {
     verifyToken();
@@ -2247,7 +2188,7 @@ export default function ProcessPage() {
         <div>
           <section className="rounded-lg text-gray-600 bg-white-500 p-8 body-font">
             <div className="flex justify-end align-center">
-              <Button onClick={() => {}} text={"Log Out"} danger />
+              <Button onClick={onClickLogOutButton} text={"Log Out"} danger />
             </div>
             {/* <div className="text-right">
               <Button
