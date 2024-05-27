@@ -17,9 +17,10 @@ import Alert from "@/components/alert";
 import Card from "@/components/card";
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
-import { cloneDeep, set } from "lodash";
+import { cloneDeep } from "lodash";
 import { v4 as uuidv4 } from "uuid";
 import { ChangeEventHandler, MouseEventHandler } from "react";
+import { tailwindColors } from "@/variables/colors";
 import * as authAPIs from "@/apis/auth";
 import * as projectAPIs from "@/apis/project";
 import * as shapeAPIs from "@/apis/shapes";
@@ -1625,7 +1626,7 @@ export default function ProcessPage() {
       if (select.shapes.length > 1) {
         // draw select area
         ctx?.beginPath();
-        ctx.strokeStyle = "#2436b1";
+        ctx.strokeStyle = tailwindColors.info["500"];
         ctx.lineWidth = 1;
         ctx.strokeRect(
           select.start.x,
