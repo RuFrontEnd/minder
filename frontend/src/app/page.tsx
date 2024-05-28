@@ -38,6 +38,8 @@ import * as ProjectTypes from "@/types/project";
 
 axios.defaults.baseURL = process.env.BASE_URL || "http://localhost:5000/api";
 
+const isBrowser = typeof window !== "undefined";
+
 const init = {
   dataFrameWarning: {
     title: "",
@@ -427,7 +429,7 @@ const Editor = (props: { className: string; shape: Core }) => {
 
 export default function ProcessPage() {
   let { current: $canvas } = useRef<HTMLCanvasElement | null>(null);
-  const qas = window.location.href.includes("qas");
+  const qas = isBrowser && window.location.href.includes("qas");
 
   const [dataFrame, setDataFrame] = useState<
       { p: CommonTypes.Vec } | undefined
@@ -1378,7 +1380,7 @@ export default function ProcessPage() {
   }
 
   const onClickTerminator = () => {
-    if (!$canvas || !ctx) return;
+    if (!isBrowser || !$canvas || !ctx) return;
 
     let terminal = new Terminal(
       `terminator_s_${Date.now()}`,
@@ -1400,7 +1402,7 @@ export default function ProcessPage() {
   };
 
   const onClickProcess = () => {
-    if (!$canvas || !ctx) return;
+    if (!isBrowser || !$canvas || !ctx) return;
 
     let process_new = new Process(
       `process_${Date.now()}`,
@@ -1422,7 +1424,7 @@ export default function ProcessPage() {
   };
 
   const onClickData = () => {
-    if (!$canvas || !ctx) return;
+    if (!isBrowser || !$canvas || !ctx) return;
 
     let data_new = new Data(
       `data_${Date.now()}`,
@@ -1444,7 +1446,7 @@ export default function ProcessPage() {
   };
 
   const onClickDecision = () => {
-    if (!$canvas || !ctx) return;
+    if (!isBrowser || !$canvas || !ctx) return;
 
     let decision_new = new Desicion(
       `decision_${Date.now()}`,
@@ -1564,6 +1566,7 @@ export default function ProcessPage() {
 
   const draw = useCallback(
     ($canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => {
+      if (!isBrowser) return;
       $canvas.width = window.innerWidth;
       $canvas.height = window.innerHeight;
       ctx?.clearRect(0, 0, window.innerWidth, window.innerHeight);
@@ -1708,7 +1711,7 @@ export default function ProcessPage() {
   };
 
   const onClickStep = (shapeP: CommonTypes.Vec) => {
-    if (!$canvas || !ctx) return;
+    if (!isBrowser || !$canvas || !ctx) return;
 
     offset = {
       x: offset_center.x + (window.innerWidth / 2 - shapeP.x),
@@ -2088,11 +2091,12 @@ export default function ProcessPage() {
   };
 
   useEffect(() => {
+    if (!isBrowser) return;
     verifyToken();
 
     const resize = () => {
       let $canvas = document.querySelector("canvas");
-      if (!$canvas || !ctx) return;
+      if (!isBrowser || !$canvas || !ctx) return;
       $canvas.width = window.innerWidth;
       $canvas.height = window.innerHeight;
       draw($canvas, ctx);
@@ -2106,15 +2110,18 @@ export default function ProcessPage() {
     });
 
     return () => {
+      if (!isBrowser) return;
       window.removeEventListener("resize", resize);
     };
   }, []);
 
   useEffect(() => {
+    if (!isBrowser) return;
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
 
     return () => {
+      if (!isBrowser) return;
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
