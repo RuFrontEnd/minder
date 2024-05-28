@@ -17,7 +17,7 @@ import Alert from "@/components/alert";
 import Card from "@/components/card";
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
-import {cloneDeep } from "lodash";
+import { cloneDeep } from "lodash";
 import { v4 as uuidv4 } from "uuid";
 import { ChangeEventHandler, MouseEventHandler } from "react";
 import { tailwindColors } from "@/variables/colors";
@@ -427,6 +427,7 @@ const Editor = (props: { className: string; shape: Core }) => {
 
 export default function ProcessPage() {
   let { current: $canvas } = useRef<HTMLCanvasElement | null>(null);
+  const qas = window.location.href.includes("qas");
 
   const [dataFrame, setDataFrame] = useState<
       { p: CommonTypes.Vec } | undefined
@@ -614,6 +615,11 @@ export default function ProcessPage() {
   };
 
   const verifyToken = async () => {
+    if (qas) {
+      setIsAccountModalOpen(true);
+      return;
+    }
+
     const token = localStorage.getItem("Authorization");
 
     if (token) {
@@ -1722,6 +1728,13 @@ export default function ProcessPage() {
   };
 
   const onClickLoginButton = async () => {
+    if (qas) {
+      setIsAccountModalOpen(false);
+      setAuthInfo(init.authInfo);
+      setIsProjectsModalOpen(true);
+      return;
+    }
+
     const _authInfo = cloneDeep(authInfo);
     if (!authInfo.account.value) {
       _authInfo.account.status = InputTypes.Status.error;
@@ -1784,6 +1797,7 @@ export default function ProcessPage() {
   };
 
   const onClickSignUpButton = async () => {
+    if (qas) return;
     const _authInfo = cloneDeep(authInfo);
 
     const isPasswordLengthGreaterThanSix =
@@ -2032,6 +2046,11 @@ export default function ProcessPage() {
   };
 
   const onClickNewProjectCard = async () => {
+    if (qas) {
+      setHasEnter(true);
+      setIsProjectsModalOpen(false);
+      return;
+    }
     shapes = [];
     const newProject: AxiosResponse<
       ProjectAPITypes.CreateProject["resData"]
