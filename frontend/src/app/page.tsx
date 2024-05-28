@@ -2094,6 +2094,10 @@ export default function ProcessPage() {
     if (!isBrowser) return;
     verifyToken();
 
+    const $canvas = document.querySelector("canvas");
+    if (!$canvas || !ctx) return;
+    draw($canvas, ctx);
+
     const resize = () => {
       let $canvas = document.querySelector("canvas");
       if (!isBrowser || !$canvas || !ctx) return;
