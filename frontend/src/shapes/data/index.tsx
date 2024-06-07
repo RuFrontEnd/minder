@@ -7,30 +7,39 @@ export default class Data extends Core {
   isFrameOpen: boolean;
   data: CommonTypes.Data;
   thershold: number;
-  frameOffset: number;
 
-  constructor(id: CommonTypes.Id, w: CommonTypes.W, h: CommonTypes.H, p: CommonTypes.Vec, title: CommonTypes.Title) {
+  constructor(
+    id: CommonTypes.Id,
+    w: CommonTypes.W,
+    h: CommonTypes.H,
+    p: CommonTypes.Vec,
+    title: CommonTypes.Title
+  ) {
     super(id, w, h, p, "#1BC861", title);
     this.isFrameOpen = false;
     this.data = [];
     this.thershold = 10;
-    this.frameOffset = 20;
   }
 
-  onDataChange = (title: CommonTypes.Title, data: CommonTypes.Data, selectedData: CommonTypes.Data) => {
+  onDataChange = (
+    title: CommonTypes.Title,
+    data: CommonTypes.Data,
+    selectedData: CommonTypes.Data
+  ) => {
     this.title = title;
     this.data = data;
     this.selectedData = selectedData;
   };
 
   checkReceivingPointsBoundry(p: CommonTypes.Vec) {
+    const frameThreshold = this.getScaleSize().w * (1 / 10);
     const edge = this.getEdge(),
       center = this.getCenter(),
-      x1 = -this.getScaleSize().w / 2 + this.frameOffset * this.scale,
+      x1 = -this.getScaleSize().w / 2 + frameThreshold * this.scale,
       y1 = -this.getScaleSize().h / 2,
       x2 = this.getScaleSize().w / 2,
       y2 = -this.getScaleSize().h / 2,
-      x3 = this.getScaleSize().w / 2 - this.frameOffset * this.scale,
+      x3 = this.getScaleSize().w / 2 - frameThreshold * this.scale,
       y3 = this.getScaleSize().h / 2,
       x4 = -this.getScaleSize().w / 2,
       y4 = this.getScaleSize().h / 2;
@@ -141,15 +150,17 @@ export default class Data extends Core {
   draw(ctx: CanvasRenderingContext2D) {
     ctx.save();
     ctx.translate(this.getScreenP().x, this.getScreenP().y);
-    const isAlert = this.redundancies.length > 0
-    let renderC = isAlert ? "#EC3333" : this.c
+    const isAlert = this.redundancies.length > 0;
+    let renderC = isAlert ? "#EC3333" : this.c;
     ctx.fillStyle = renderC;
 
-    const x1 = -this.getScaleSize().w / 2 + this.frameOffset * this.scale,
+    const frameThreshold = this.getScaleSize().w * (1 / 10);
+
+    const x1 = -this.getScaleSize().w / 2 + frameThreshold * this.scale,
       y1 = -this.getScaleSize().h / 2,
       x2 = this.getScaleSize().w / 2,
       y2 = -this.getScaleSize().h / 2,
-      x3 = this.getScaleSize().w / 2 - this.frameOffset * this.scale,
+      x3 = this.getScaleSize().w / 2 - frameThreshold * this.scale,
       y3 = this.getScaleSize().h / 2,
       x4 = -this.getScaleSize().w / 2,
       y4 = this.getScaleSize().h / 2;
@@ -175,9 +186,11 @@ export default class Data extends Core {
     ctx.strokeStyle = "DeepSkyBlue";
     ctx.lineWidth = this.anchor.size.stroke;
 
-    const x1 = -this.getScaleSize().w / 2 + this.frameOffset * this.scale,
+    const frameThreshold = this.getScaleSize().w * (1 / 10);
+
+    const x1 = -this.getScaleSize().w / 2 + frameThreshold * this.scale,
       x2 = this.getScaleSize().w / 2,
-      x3 = this.getScaleSize().w / 2 - this.frameOffset * this.scale,
+      x3 = this.getScaleSize().w / 2 - frameThreshold * this.scale,
       x4 = -this.getScaleSize().w / 2;
 
     // left
