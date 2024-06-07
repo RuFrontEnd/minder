@@ -1,6 +1,7 @@
 "use client";
 import Core from "@/shapes/core";
-import * as CoreTypes from "@/types/shapes/core";
+import Curve from "@/shapes/curve";
+import { Direction } from "@/types/shapes/common";
 import * as CommonTypes from "@/types/shapes/common";
 
 export default class Data extends Core {
@@ -30,6 +31,101 @@ export default class Data extends Core {
     this.data = data;
     this.selectedData = selectedData;
   };
+
+  initializeCurve(id: string, _d: Direction) {
+    let newCurve = null;
+    const threshold = (this.getScaleSize().w * (1 / 10)) / 2;
+
+    if (_d === Direction.l) {
+      newCurve = new Curve(
+        id,
+        {
+          x: -this.w / 2 + threshold,
+          y: 0,
+        },
+        {
+          x: -this.w / 2 + (-this.curveTrigger.d * 1) / 3 + threshold,
+          y: 0,
+        },
+        {
+          x: -this.w / 2 + (-this.curveTrigger.d * 2) / 3,
+          y: 0,
+        },
+        {
+          x: -this.w / 2 - this.curveTrigger.d,
+          y: 0,
+        }
+      );
+    } else if (_d === Direction.t) {
+      newCurve = new Curve(
+        id,
+        {
+          x: 0,
+          y: -this.h / 2,
+        },
+        {
+          x: 0,
+          y: -this.h / 2 + (-this.curveTrigger.d * 1) / 3,
+        },
+        {
+          x: 0,
+          y: -this.h / 2 + (-this.curveTrigger.d * 2) / 3,
+        },
+        {
+          x: 0,
+          y: -this.h / 2 - this.curveTrigger.d,
+        }
+      );
+    } else if (_d === Direction.r) {
+      newCurve = new Curve(
+        id,
+        {
+          x: this.w / 2 - threshold,
+          y: 0,
+        },
+        {
+          x: this.w / 2 + (this.curveTrigger.d * 1) / 3 - threshold,
+          y: 0,
+        },
+        {
+          x: this.w / 2 + (this.curveTrigger.d * 2) / 3,
+          y: 0,
+        },
+        {
+          x: this.w / 2 + this.curveTrigger.d,
+          y: 0,
+        }
+      );
+    } else if (_d === Direction.b) {
+      newCurve = new Curve(
+        id,
+        {
+          x: 0,
+          y: this.h / 2,
+        },
+        {
+          x: 0,
+          y: this.h / 2 + (this.curveTrigger.d * 1) / 3,
+        },
+        {
+          x: 0,
+          y: this.h / 2 + (this.curveTrigger.d * 2) / 3,
+        },
+        {
+          x: 0,
+          y: this.h / 2 + this.curveTrigger.d,
+        }
+      );
+    }
+
+    if (!newCurve) return;
+    newCurve.scale = this.scale;
+
+    this.curves[_d].push({
+      shape: newCurve,
+      sendTo: null,
+    });
+  }
 
   checkReceivingPointsBoundry(p: CommonTypes.Vec) {
     const frameThreshold = this.getScaleSize().w * (1 / 10);

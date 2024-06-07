@@ -20,7 +20,7 @@ export default class Core {
       stroke: 2,
     },
   };
-  private curveTrigger: {
+  curveTrigger: {
     d: number;
     size: {
       fill: number;
