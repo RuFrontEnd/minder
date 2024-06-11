@@ -3,7 +3,6 @@ import Curve from "@/shapes/curve";
 import { tailwindColors } from "@/variables/colors";
 import { Inter } from "next/font/google";
 import { Vec, Direction, Data as DataType } from "@/types/shapes/common";
-import { Line } from "@/types/shapes/curve";
 import * as CoreTypes from "@/types/shapes/core";
 import * as CommonTypes from "@/types/shapes/common";
 
@@ -549,7 +548,18 @@ export default class Core {
     }
   }
 
-  connect(targetShape: Core, targetShapeReceiveD: Direction, bridgeId: string) {
+  connect(
+    targetShape: Core,
+    targetShapeReceiveD: Direction,
+    bridgeId: string,
+    handleAfterConnect?: (
+      bridge: {
+        d: CommonTypes.Direction;
+        curve: CoreTypes.SendCurve;
+      },
+      targetShapeReceiveD: CommonTypes.Direction
+    ) => void
+  ) {
     const bridge = (() => {
       for (const d of ds) {
         const curve = this.curves[d].find(
@@ -575,26 +585,29 @@ export default class Core {
       bridgeId: bridgeId,
     });
 
-    const thershold = 10;
+    if (handleAfterConnect) {
+      return handleAfterConnect(bridge, targetShapeReceiveD);
+    }
+
     if (targetShapeReceiveD === Direction.l) {
       bridge.curve.shape.p2 = {
-        x: targetShape.p.x - this.p.x - targetShape.w / 2 - thershold,
+        x: targetShape.p.x - this.p.x - targetShape.w / 2 - 6,
         y: targetShape.p.y - this.p.y,
       };
     } else if (targetShapeReceiveD === Direction.t) {
       bridge.curve.shape.p2 = {
         x: targetShape.p.x - this.p.x,
-        y: targetShape.p.y - this.p.y - targetShape.h / 2 - thershold,
+        y: targetShape.p.y - this.p.y - targetShape.h / 2 - 6,
       };
     } else if (targetShapeReceiveD === Direction.r) {
       bridge.curve.shape.p2 = {
-        x: targetShape.p.x - this.p.x + targetShape.w / 2 + thershold,
+        x: targetShape.p.x - this.p.x + targetShape.w / 2 + 6,
         y: targetShape.p.y - this.p.y,
       };
     } else if (targetShapeReceiveD === Direction.b) {
       bridge.curve.shape.p2 = {
         x: targetShape.p.x - this.p.x,
-        y: targetShape.p.y - this.p.y + targetShape.h / 2 + thershold,
+        y: targetShape.p.y - this.p.y + targetShape.h / 2 + 6,
       };
     }
   }

@@ -100,28 +100,55 @@ export default class Data extends Core {
     return this.__w__;
   }
 
-  getScaleFrameThreshold() {
-    return this.getScaleSize().w * this.thersholdRatio;
+  getFrameThreshold() {
+    return {
+      normal: this.w * this.thersholdRatio,
+      scale: this.getScaleSize().w * this.thersholdRatio,
+    };
+  }
+
+  stickyToConnectTarget(){
+    
   }
 
   getCorner() {
-    const frameThreshold = this.getScaleFrameThreshold();
+    const frameThreshold = this.getFrameThreshold();
     return {
-      tl: {
-        x: -this.getScaleSize().w / 2 + frameThreshold,
-        y: -this.getScaleSize().h / 2,
+      normal: {
+        tl: {
+          x: -this.w / 2 + frameThreshold.normal,
+          y: -this.h / 2,
+        },
+        tr: {
+          x: this.w / 2,
+          y: -this.h / 2,
+        },
+        br: {
+          x: this.w / 2 - frameThreshold.normal,
+          y: this.h / 2,
+        },
+        bl: {
+          x: -this.w / 2,
+          y: this.h / 2,
+        },
       },
-      tr: {
-        x: this.getScaleSize().w / 2,
-        y: -this.getScaleSize().h / 2,
-      },
-      br: {
-        x: this.getScaleSize().w / 2 - frameThreshold,
-        y: this.getScaleSize().h / 2,
-      },
-      bl: {
-        x: -this.getScaleSize().w / 2,
-        y: this.getScaleSize().h / 2,
+      scale: {
+        tl: {
+          x: -this.getScaleSize().w / 2 + frameThreshold.scale,
+          y: -this.getScaleSize().h / 2,
+        },
+        tr: {
+          x: this.getScaleSize().w / 2,
+          y: -this.getScaleSize().h / 2,
+        },
+        br: {
+          x: this.getScaleSize().w / 2 - frameThreshold.scale,
+          y: this.getScaleSize().h / 2,
+        },
+        bl: {
+          x: -this.getScaleSize().w / 2,
+          y: this.getScaleSize().h / 2,
+        },
       },
     };
   }
@@ -235,7 +262,7 @@ export default class Data extends Core {
   }
 
   checkReceivingPointsBoundry(p: CommonTypes.Vec) {
-    const corners = this.getCorner(),
+    const corners = this.getCorner().scale,
       edge = this.getEdge(),
       center = this.getCenter();
 
@@ -351,7 +378,7 @@ export default class Data extends Core {
     let renderC = isAlert ? "#EC3333" : this.c;
     ctx.fillStyle = renderC;
 
-    const corners = this.getCorner();
+    const corners = this.getCorner().scale;
 
     ctx.beginPath();
     ctx.moveTo(corners.tl.x, corners.tl.y);
@@ -374,7 +401,7 @@ export default class Data extends Core {
     ctx.strokeStyle = "DeepSkyBlue";
     ctx.lineWidth = this.anchor.size.stroke;
 
-    const corners = this.getCorner();
+    const corners = this.getCorner().scale;
 
     // left
     if (this.receiving.l) {
