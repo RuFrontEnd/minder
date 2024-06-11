@@ -7,7 +7,7 @@ import * as CommonTypes from "@/types/shapes/common";
 export default class Data extends Core {
   isFrameOpen: boolean;
   data: CommonTypes.Data;
-  thershold: number;
+  thersholdRatio: number;
 
   constructor(
     id: CommonTypes.Id,
@@ -19,7 +19,111 @@ export default class Data extends Core {
     super(id, w, h, p, "#1BC861", title);
     this.isFrameOpen = false;
     this.data = [];
-    this.thershold = 10;
+    this.thersholdRatio = 1 / 10;
+  }
+
+  set w(value: number) {
+    const offset = (this.w - value) / 2;
+    this.__w__ = value;
+
+    // when sender width changes, receiver curve follows the sender shape
+    this.curves[Direction.l].forEach((sendCurve) => {
+      const point = {
+          t: -this.w / 2 + this.w * this.thersholdRatio,
+          b: -this.w / 2,
+        },
+        centerP = (point.t + point.b) / 2,
+        distance = centerP - sendCurve.shape.p1.x;
+
+      sendCurve.shape.p1.x += distance;
+      sendCurve.shape.cp1.x += distance;
+
+      if (sendCurve.sendTo) return;
+
+      sendCurve.shape.p2 = {
+        ...sendCurve.shape.p2,
+        x: sendCurve.shape.p2.x + offset,
+      };
+      sendCurve.shape.cp2.x += offset;
+    });
+
+    this.curves[Direction.r].forEach((sendCurve) => {
+      const point = {
+          t: this.w / 2,
+          b: this.w / 2 - this.w * this.thersholdRatio,
+        },
+        centerP = (point.t + point.b) / 2,
+        distance = centerP - sendCurve.shape.p1.x;
+
+      sendCurve.shape.p1.x += distance;
+      sendCurve.shape.cp1.x += distance;
+
+      if (sendCurve.sendTo) return;
+
+      sendCurve.shape.p2 = {
+        ...sendCurve.shape.p2,
+        x: sendCurve.shape.p2.x - offset,
+      };
+      sendCurve.shape.cp2.x -= offset;
+    });
+
+    // when receiver width changes, receiver curve follows the sender shape
+
+    this.receiveFrom.l?.forEach((receiveFromItem) => {
+      const bridge = receiveFromItem.shape.curves[receiveFromItem.d].find(
+        (sendCurve) => sendCurve.shape.id === receiveFromItem.bridgeId
+      );
+
+      if (!bridge) return;
+      bridge.shape.p2 = {
+        ...bridge.shape.p2,
+        x: bridge.shape.p2.x + offset,
+      };
+      bridge.shape.cp2.x += offset;
+    });
+
+    this.receiveFrom.r?.forEach((receiveFromItem) => {
+      const bridge = receiveFromItem.shape.curves[receiveFromItem.d].find(
+        (sendCurve) => sendCurve.shape.id === receiveFromItem.bridgeId
+      );
+
+      if (!bridge) return;
+      bridge.shape.p2 = {
+        ...bridge.shape.p2,
+        x: bridge.shape.p2.x - offset,
+      };
+      bridge.shape.cp2.x -= offset;
+    });
+  }
+
+  get w() {
+    return this.__w__;
+  }
+
+  getScaleFrameThreshold() {
+    return this.getScaleSize().w * this.thersholdRatio;
+  }
+
+  getCorner() {
+    const frameThreshold = this.getScaleFrameThreshold();
+    return {
+      tl: {
+        x: -this.getScaleSize().w / 2 + frameThreshold,
+        y: -this.getScaleSize().h / 2,
+      },
+      tr: {
+        x: this.getScaleSize().w / 2,
+        y: -this.getScaleSize().h / 2,
+      },
+      br: {
+        x: this.getScaleSize().w / 2 - frameThreshold,
+        y: this.getScaleSize().h / 2,
+      },
+      bl: {
+        x: -this.getScaleSize().w / 2,
+        y: this.getScaleSize().h / 2,
+      },
+    };
   }
 
   onDataChange = (
@@ -34,17 +138,20 @@ export default class Data extends Core {
 
   initializeCurve(id: string, _d: Direction) {
     let newCurve = null;
-    const threshold = (this.getScaleSize().w * (1 / 10)) / 2;
+    const horizentalCenterX = {
+      l: (-this.w / 2 + -this.w / 2 + this.w * this.thersholdRatio) / 2,
+      r: (this.w / 2 + this.w / 2 - this.w * this.thersholdRatio) / 2,
+    };
 
     if (_d === Direction.l) {
       newCurve = new Curve(
         id,
         {
-          x: -this.w / 2 + threshold,
+          x: horizentalCenterX.l,
           y: 0,
         },
         {
-          x: -this.w / 2 + (-this.curveTrigger.d * 1) / 3 + threshold,
+          x: horizentalCenterX.l - this.curveTrigger.d * (1 / 3),
           y: 0,
         },
         {
@@ -80,15 +187,15 @@ export default class Data extends Core {
       newCurve = new Curve(
         id,
         {
-          x: this.w / 2 - threshold,
+          x: horizentalCenterX.r,
           y: 0,
         },
         {
-          x: this.w / 2 + (this.curveTrigger.d * 1) / 3 - threshold,
+          x: horizentalCenterX.r + this.curveTrigger.d * (1 / 3),
           y: 0,
         },
         {
-          x: this.w / 2 + (this.curveTrigger.d * 2) / 3,
+          x: this.w / 2 + this.curveTrigger.d * (2 / 3),
           y: 0,
         },
         {
@@ -105,11 +212,11 @@ export default class Data extends Core {
         },
         {
           x: 0,
-          y: this.h / 2 + (this.curveTrigger.d * 1) / 3,
+          y: this.h / 2 + this.curveTrigger.d * (1 / 3),
         },
         {
           x: 0,
-          y: this.h / 2 + (this.curveTrigger.d * 2) / 3,
+          y: this.h / 2 + this.curveTrigger.d * (2 / 3),
         },
         {
           x: 0,
@@ -128,21 +235,14 @@ export default class Data extends Core {
   }
 
   checkReceivingPointsBoundry(p: CommonTypes.Vec) {
-    const frameThreshold = this.getScaleSize().w * (1 / 10);
-    const edge = this.getEdge(),
-      center = this.getCenter(),
-      x1 = -this.getScaleSize().w / 2 + frameThreshold * this.scale,
-      y1 = -this.getScaleSize().h / 2,
-      x2 = this.getScaleSize().w / 2,
-      y2 = -this.getScaleSize().h / 2,
-      x3 = this.getScaleSize().w / 2 - frameThreshold * this.scale,
-      y3 = this.getScaleSize().h / 2,
-      x4 = -this.getScaleSize().w / 2,
-      y4 = this.getScaleSize().h / 2;
+    const corners = this.getCorner(),
+      edge = this.getEdge(),
+      center = this.getCenter();
 
     let dx, dy;
 
-    dx = this.getScreenP().x - Math.abs((x4 + x1) / 2) - p.x;
+    dx =
+      this.getScreenP().x - Math.abs((corners.bl.x + corners.tl.x) / 2) - p.x;
     dy = center.m.y - p.y;
 
     if (
@@ -162,7 +262,8 @@ export default class Data extends Core {
       return CommonTypes.Direction.t;
     }
 
-    dx = this.getScreenP().x + Math.abs((x2 + x3) / 2) - p.x;
+    dx =
+      this.getScreenP().x + Math.abs((corners.tr.x + corners.br.x) / 2) - p.x;
     dy = center.m.y - p.y;
 
     if (
@@ -250,22 +351,13 @@ export default class Data extends Core {
     let renderC = isAlert ? "#EC3333" : this.c;
     ctx.fillStyle = renderC;
 
-    const frameThreshold = this.getScaleSize().w * (1 / 10);
-
-    const x1 = -this.getScaleSize().w / 2 + frameThreshold * this.scale,
-      y1 = -this.getScaleSize().h / 2,
-      x2 = this.getScaleSize().w / 2,
-      y2 = -this.getScaleSize().h / 2,
-      x3 = this.getScaleSize().w / 2 - frameThreshold * this.scale,
-      y3 = this.getScaleSize().h / 2,
-      x4 = -this.getScaleSize().w / 2,
-      y4 = this.getScaleSize().h / 2;
+    const corners = this.getCorner();
 
     ctx.beginPath();
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
-    ctx.lineTo(x3, y3);
-    ctx.lineTo(x4, y4);
+    ctx.moveTo(corners.tl.x, corners.tl.y);
+    ctx.lineTo(corners.tr.x, corners.tr.y);
+    ctx.lineTo(corners.br.x, corners.br.y);
+    ctx.lineTo(corners.bl.x, corners.bl.y);
     ctx.closePath();
     ctx.fill();
 
@@ -282,18 +374,13 @@ export default class Data extends Core {
     ctx.strokeStyle = "DeepSkyBlue";
     ctx.lineWidth = this.anchor.size.stroke;
 
-    const frameThreshold = this.getScaleSize().w * (1 / 10);
-
-    const x1 = -this.getScaleSize().w / 2 + frameThreshold * this.scale,
-      x2 = this.getScaleSize().w / 2,
-      x3 = this.getScaleSize().w / 2 - frameThreshold * this.scale,
-      x4 = -this.getScaleSize().w / 2;
+    const corners = this.getCorner();
 
     // left
     if (this.receiving.l) {
       ctx.beginPath();
       ctx.arc(
-        -this.getScaleSize().w / 2 + Math.abs(x1 - x4) / 2,
+        -this.getScaleSize().w / 2 + Math.abs(corners.tl.x - corners.bl.x) / 2,
         0,
         this.anchor.size.fill,
         0,
@@ -325,7 +412,7 @@ export default class Data extends Core {
     if (this.receiving.r) {
       ctx.beginPath();
       ctx.arc(
-        this.getScaleSize().w / 2 - Math.abs(x2 - x3) / 2,
+        this.getScaleSize().w / 2 - Math.abs(corners.tr.x - corners.br.x) / 2,
         0,
         this.anchor.size.fill,
         0,
