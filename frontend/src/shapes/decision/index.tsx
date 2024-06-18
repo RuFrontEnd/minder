@@ -78,9 +78,10 @@ export default class Desicion extends Core {
     this.text[d] = null;
   }
 
-  onDataChange(title: CommonTypes.Title, data: CommonTypes.Data) {
-    this.title = title;
-    this.selectedData = data;
+  onDataChange(_title: CommonTypes.Title, _selectedData: CommonTypes.Data, _deletedData: CommonTypes.Data) {
+    this.title = _title;
+    this.selectedData = _selectedData;
+    this.deletedData = _deletedData
   }
 
   draw(ctx: CanvasRenderingContext2D) {

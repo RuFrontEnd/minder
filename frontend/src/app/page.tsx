@@ -92,14 +92,14 @@ let useEffected = false,
     shape: null | Terminal | Process | Data | Desicion | Curve;
     direction: null | CommonTypes.Direction;
     target:
-      | null
-      | CoreTypes.PressingTarget
-      | CurveTypes.PressingTarget
-      | "selectArea_m"
-      | "selectArea_lt"
-      | "selectArea_rt"
-      | "selectArea_rb"
-      | "selectArea_lb";
+    | null
+    | CoreTypes.PressingTarget
+    | CurveTypes.PressingTarget
+    | "selectArea_m"
+    | "selectArea_lt"
+    | "selectArea_rt"
+    | "selectArea_rb"
+    | "selectArea_lb";
     dx: number; // distance between event px & pressing shape px
     dy: number; // distance between event py & pressing shape py
   } = null,
@@ -260,10 +260,10 @@ const getInitializedShapes = (data: ShapeAPITypes.GetShapes["resData"]) => {
           curveInfo.cp2,
           curveInfo.sendTo
             ? {
-                shape: shapeMappings[curveInfo.sendTo.id],
-                d: curveInfo.sendTo.d,
-                bridgeId: curveId,
-              }
+              shape: shapeMappings[curveInfo.sendTo.id],
+              d: curveInfo.sendTo.d,
+              bridgeId: curveId,
+            }
             : null
         );
 
@@ -386,42 +386,42 @@ const Editor = (props: { className: string; shape: Core }) => {
         {(props.shape instanceof Process ||
           props.shape instanceof Data ||
           props.shape instanceof Desicion) && (
-          <>
-            <div>
-              <p className="mb-1">Data Usage</p>
-              <ul className="ps-2">
-                {props.shape.options.map((option) => (
-                  <li className="mb-1">
-                    <span className="bg-indigo-100 text-indigo-500 w-4 h-4 rounded-full inline-flex items-center justify-center">
-                      {selections[option.text] && (
-                        <svg
-                          fill="none"
-                          stroke="currentColor"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="3"
-                          className="w-3 h-3"
-                          viewBox="0 0 24 24"
-                        >
-                          <path d="M20 6L9 17l-5-5"></path>
-                        </svg>
-                      )}
-                    </span>
-                    {option.text}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <div className="mb-1">Redundancies</div>
-              <ul className="ps-2">
-                {props.shape.redundancies.map((redundancy) => (
-                  <li className="mb-1"> · {redundancy.text}</li>
-                ))}
-              </ul>
-            </div>
-          </>
-        )}
+            <>
+              <div>
+                <p className="mb-1">Data Usage</p>
+                <ul className="ps-2">
+                  {props.shape.options.map((option) => (
+                    <li className="mb-1">
+                      <span className="bg-indigo-100 text-indigo-500 w-4 h-4 rounded-full inline-flex items-center justify-center">
+                        {selections[option.text] && (
+                          <svg
+                            fill="none"
+                            stroke="currentColor"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="3"
+                            className="w-3 h-3"
+                            viewBox="0 0 24 24"
+                          >
+                            <path d="M20 6L9 17l-5-5"></path>
+                          </svg>
+                        )}
+                      </span>
+                      {option.text}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <div className="mb-1">Redundancies</div>
+                <ul className="ps-2">
+                  {props.shape.redundancies.map((redundancy) => (
+                    <li className="mb-1"> · {redundancy.text}</li>
+                  ))}
+                </ul>
+              </div>
+            </>
+          )}
       </div>
     </div>
   );
@@ -432,8 +432,8 @@ export default function ProcessPage() {
   const qas = isBrowser && window.location.href.includes("qas");
 
   const [dataFrame, setDataFrame] = useState<
-      { p: CommonTypes.Vec } | undefined
-    >(undefined),
+    { p: CommonTypes.Vec } | undefined
+  >(undefined),
     [dbClickedShape, setDbClickedShape] = useState<
       Terminal | Data | Process | Desicion | null
     >(null),
@@ -483,18 +483,18 @@ export default function ProcessPage() {
     [hasEnter, setHasEnter] = useState(false);
 
   const checkData = () => {
-    const datas: Data[] = [];
+    const dataShapes: Data[] = [];
 
     shapes.forEach((shape) => {
       shape.options = [];
       if (shape instanceof Data) {
-        datas.push(shape);
+        dataShapes.push(shape);
       }
     });
 
-    datas.forEach((data) => {
+    dataShapes.forEach((dataShape) => {
       // traversal all relational steps
-      const queue: Core[] = [data],
+      const queue: Core[] = [dataShape],
         locks: { [curveId: string]: boolean } = {}; // prevent from graph cycle
 
       while (queue.length !== 0) {
@@ -506,7 +506,7 @@ export default function ProcessPage() {
 
             if (!theSendToShape) return;
 
-            data.data.forEach((dataItem) => {
+            dataShape.data.forEach((dataItem) => {
               if (
                 theSendToShape.options.some(
                   (option) => option.text === dataItem.text
@@ -654,9 +654,9 @@ export default function ProcessPage() {
     setLeftMouseBtn(true);
 
     const p = {
-        x: e.nativeEvent.offsetX,
-        y: e.nativeEvent.offsetY,
-      },
+      x: e.nativeEvent.offsetX,
+      y: e.nativeEvent.offsetY,
+    },
       pInSelectArea =
         p.x > select.start.x &&
         p.y > select.start.y &&
@@ -831,12 +831,12 @@ export default function ProcessPage() {
                 dx:
                   (p.x - dragP.x) * (1 / scale) -
                   shape?.getEdge()[
-                    theCheckShapeVertexesBoundry[0] as CommonTypes.Direction
+                  theCheckShapeVertexesBoundry[0] as CommonTypes.Direction
                   ],
                 dy:
                   (p.y - dragP.y) * (1 / scale) -
                   shape?.getEdge()[
-                    theCheckShapeVertexesBoundry[1] as CommonTypes.Direction
+                  theCheckShapeVertexesBoundry[1] as CommonTypes.Direction
                   ],
               };
             }
@@ -895,9 +895,9 @@ export default function ProcessPage() {
     if (!$canvas || !ctx) return;
 
     const p = {
-        x: e.nativeEvent.offsetX,
-        y: e.nativeEvent.offsetY,
-      },
+      x: e.nativeEvent.offsetX,
+      y: e.nativeEvent.offsetY,
+    },
       offsetP = {
         x: p.x - dragP.x,
         y: p.y - dragP.y,
@@ -1227,9 +1227,9 @@ export default function ProcessPage() {
         const theEdge = shape.getEdge();
 
         const l =
-            selectAreaP.start.x < selectAreaP.end.x
-              ? selectAreaP.start.x
-              : selectAreaP.end.x,
+          selectAreaP.start.x < selectAreaP.end.x
+            ? selectAreaP.start.x
+            : selectAreaP.end.x,
           t =
             selectAreaP.start.y < selectAreaP.end.y
               ? selectAreaP.start.y
@@ -1311,7 +1311,7 @@ export default function ProcessPage() {
                     pressingShape.p.x +
                     (shape.getCorner().normal.tl.x +
                       shape.getCorner().normal.bl.x) /
-                      2 -
+                    2 -
                     6,
                   y: shape.p.y - pressingShape.p.y,
                 };
@@ -1327,7 +1327,7 @@ export default function ProcessPage() {
                     pressingShape.p.x -
                     (shape.getCorner().normal.tl.x +
                       shape.getCorner().normal.bl.x) /
-                      2 +
+                    2 +
                     6,
                   y: shape.p.y - pressingShape.p.y,
                 };
@@ -1522,7 +1522,7 @@ export default function ProcessPage() {
     title,
     data,
     selectedData,
-    shape
+    deletedData
   ) => {
     // validate repeated title name
     const titleWarning = title ? "" : "required field.";
@@ -1573,9 +1573,9 @@ export default function ProcessPage() {
       dbClickedShape instanceof Process ||
       dbClickedShape instanceof Desicion
     ) {
-      dbClickedShape?.onDataChange(title, selectedData);
+      dbClickedShape?.onDataChange(title, selectedData, deletedData);
     } else if (dbClickedShape instanceof Data) {
-      dbClickedShape?.onDataChange(title, data, selectedData);
+      dbClickedShape?.onDataChange(title, data, selectedData, deletedData);
     } else if (dbClickedShape instanceof Terminal) {
       dbClickedShape?.onDataChange(title);
     }
@@ -1855,7 +1855,7 @@ export default function ProcessPage() {
     const _authInfo = cloneDeep(authInfo);
 
     const isPasswordLengthGreaterThanSix =
-        authInfo.password.value && authInfo.password.value?.length >= 6,
+      authInfo.password.value && authInfo.password.value?.length >= 6,
       isEmailFormatValid =
         authInfo.email.value &&
         new RegExp(/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/).test(
@@ -2018,9 +2018,9 @@ export default function ProcessPage() {
                 cp2: curve.shape.cp2,
                 sendTo: curve.sendTo
                   ? {
-                      id: curve.sendTo.shape.id,
-                      d: curve.sendTo.d,
-                    }
+                    id: curve.sendTo.shape.id,
+                    d: curve.sendTo.d,
+                  }
                   : null,
               };
             });

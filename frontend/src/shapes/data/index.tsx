@@ -29,9 +29,9 @@ export default class Data extends Core {
     // when sender width changes, receiver curve follows the sender shape
     this.curves[Direction.l].forEach((sendCurve) => {
       const point = {
-          t: -this.w / 2 + this.w * this.thersholdRatio,
-          b: -this.w / 2,
-        },
+        t: -this.w / 2 + this.w * this.thersholdRatio,
+        b: -this.w / 2,
+      },
         centerP = (point.t + point.b) / 2,
         distance = centerP - sendCurve.shape.p1.x;
 
@@ -49,9 +49,9 @@ export default class Data extends Core {
 
     this.curves[Direction.r].forEach((sendCurve) => {
       const point = {
-          t: this.w / 2,
-          b: this.w / 2 - this.w * this.thersholdRatio,
-        },
+        t: this.w / 2,
+        b: this.w / 2 - this.w * this.thersholdRatio,
+      },
         centerP = (point.t + point.b) / 2,
         distance = centerP - sendCurve.shape.p1.x;
 
@@ -107,8 +107,8 @@ export default class Data extends Core {
     };
   }
 
-  stickyToConnectTarget(){
-    
+  stickyToConnectTarget() {
+
   }
 
   getCorner() {
@@ -154,13 +154,15 @@ export default class Data extends Core {
   }
 
   onDataChange = (
-    title: CommonTypes.Title,
-    data: CommonTypes.Data,
-    selectedData: CommonTypes.Data
+    _title: CommonTypes.Title,
+    _data: CommonTypes.Data,
+    _selectedData: CommonTypes.Data,
+    _deletedData: CommonTypes.Data
   ) => {
-    this.title = title;
-    this.data = data;
-    this.selectedData = selectedData;
+    this.title = _title;
+    this.data = _data;
+    this.selectedData = _selectedData;
+    this.selectedData = _deletedData;
   };
 
   initializeCurve(id: string, _d: Direction) {

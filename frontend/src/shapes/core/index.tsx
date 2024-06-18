@@ -26,12 +26,12 @@ export default class Core {
       stroke: number;
     };
   } = {
-    d: 50,
-    size: {
-      fill: 4,
-      stroke: 2,
-    },
-  };
+      d: 50,
+      size: {
+        fill: 4,
+        stroke: 2,
+      },
+    };
   private strokeSize = 1;
   private initOffset = {
     x: 0,
@@ -58,6 +58,7 @@ export default class Core {
   };
   options: DataType;
   selectedData: DataType;
+  deletedData: DataType;
   redundancies: DataType;
   __offset__: Vec;
   __scale__: number;
@@ -97,6 +98,7 @@ export default class Core {
     };
     this.options = [];
     this.selectedData = [];
+    this.deletedData = []
     this.redundancies = [];
     this.__offset__ = this.initOffset;
     this.__scale__ = this.initScale;
@@ -540,7 +542,7 @@ export default class Core {
     for (const d of ds) {
       if (
         (p.x - center.curveTrigger[d].x) * (p.x - center.curveTrigger[d].x) +
-          (p.y - center.curveTrigger[d].y) * (p.y - center.curveTrigger[d].y) <
+        (p.y - center.curveTrigger[d].y) * (p.y - center.curveTrigger[d].y) <
         this.curveTrigger.size.fill * this.curveTrigger.size.fill
       ) {
         return Direction[d];
@@ -685,6 +687,12 @@ export default class Core {
     });
 
     this.selectedData.forEach((dataItem) => {
+      if (!optionsHash[dataItem.text]) {
+        this.redundancies.push(dataItem);
+      }
+    });
+
+    this.deletedData.forEach((dataItem) => {
       if (!optionsHash[dataItem.text]) {
         this.redundancies.push(dataItem);
       }

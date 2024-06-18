@@ -8,9 +8,10 @@ export default class Process extends Core {
     super(id, w, h, p, "#AB44F4", title);
   }
 
-  onDataChange = (title: CommonTypes.Title, data: CommonTypes.Data) => {
-    this.title = title;
-    this.selectedData = data;
+  onDataChange = (_title: CommonTypes.Title, _selectedData: CommonTypes.Data, _deletedData: CommonTypes.Data) => {
+    this.title = _title;
+    this.selectedData = _selectedData;
+    this.deletedData = _deletedData
   };
 
   draw(ctx: CanvasRenderingContext2D) {
