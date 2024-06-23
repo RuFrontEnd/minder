@@ -1,9 +1,12 @@
 import { MouseEventHandler, ReactNode } from "react";
+import * as ProjectTypes from "@/types/project";
 
 type Props = {
-  id?: string;
+  id?: number | string;
   className?: string;
-  text?: string | ReactNode
+  text?: string | ReactNode;
+  selected?: boolean;
+  onClick?: (id?: number | string) => void;
 };
 
 export type { Props };

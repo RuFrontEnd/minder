@@ -16,18 +16,39 @@ export default function DataFrame({
 }: Props) {
   const [title, setTitle] = useState<Title>(""),
     [selections, setSelections] = useState<Selections>({}),
+    [deletions, setDeletions] = useState<Selections>({}),
     [data, setData] = useState<DataType>([]);
 
   const onChangeTitle = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTitle(e.currentTarget.value);
   };
 
-  const onClickCheckedBox = (DataText: DataItem["text"]) => {
+  const onClickCheckedBox = (dataText: DataItem["text"]) => {
     const _selections: Selections = cloneDeep(selections);
 
-    _selections[DataText] = !_selections[DataText];
+    if (dataText in deletions && deletions[dataText] === true) {
+      const _deletions: Selections = cloneDeep(deletions);
+      _deletions[dataText] = false;
+      setDeletions(_deletions);
+    }
+
+    _selections[dataText] = !_selections[dataText];
 
     setSelections(_selections);
+  };
+
+  const onClickDeletionCheckedBox = (dataText: DataItem["text"]) => {
+    const _deletions: Selections = cloneDeep(deletions);
+
+    if (dataText in selections && selections[dataText] === true) {
+      const _selections: Selections = cloneDeep(selections);
+      _selections[dataText] = false;
+      setSelections(_selections);
+    }
+
+    _deletions[dataText] = !_deletions[dataText];
+
+    setDeletions(_deletions);
   };
 
   const onClickPlus = () => {
@@ -66,7 +87,25 @@ export default function DataFrame({
       return data;
     })();
 
-    onConfirm(title, data, selectedData, shape);
+    const deletedData = (() => {
+      const data: DataType = [];
+
+      shape.options.forEach((option) => {
+        if (deletions[option.text]) {
+          data.push(option);
+        }
+      });
+
+      shape.redundancies.forEach((option) => {
+        if (deletions[option.text]) {
+          data.push(option);
+        }
+      });
+
+      return data;
+    })();
+
+    onConfirm(title, data, selectedData, deletedData);
   };
 
   useEffect(() => {
@@ -87,6 +126,22 @@ export default function DataFrame({
     })();
 
     setSelections(_selections);
+
+    const _deletions: Selections = (() => {
+      const output: Selections = {};
+
+      shape.options.forEach((option) => {
+        output[option.text] = false;
+      });
+
+      shape.deletedData.forEach((deletedData) => {
+        output[deletedData.text] = true;
+      });
+
+      return output;
+    })();
+
+    setDeletions(_deletions);
 
     if (shape instanceof Data) {
       setData(shape.data);
@@ -115,9 +170,8 @@ export default function DataFrame({
           type="text"
           id="full-name"
           name="full-name"
-          className={`w-full h-[28px] bg-white rounded border ${
-            !!warning?.title ? "border-red-500" : "border-gray-300"
-          } focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out`}
+          className={`w-full h-[28px] bg-white rounded border ${!!warning?.title ? "border-red-500" : "border-gray-300"
+            } focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out`}
           value={title}
           onChange={onChangeTitle}
         />
@@ -142,11 +196,10 @@ export default function DataFrame({
                   id="full-name"
                   name="full-name"
                   className={`w-full h-[28px] mb-2 bg-white rounded border 
-                  ${
-                    warning && warning.data[i]
+                  ${warning && warning.data[i]
                       ? "border-red-500"
                       : "border-gray-300"
-                  }
+                    }
                   focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out`}
                   value={dataItem.text}
                   onChange={(e) => {
@@ -177,7 +230,7 @@ export default function DataFrame({
             {shape.options.map((option, i) => (
               <li className="mb-2">
                 <div className="grid grid-cols-[auto,1fr] gap-2">
-                  <div className="col-span-1">
+                  <div className="col-span-1 flex items-center">
                     <span
                       className="bg-indigo-100 text-indigo-500 w-4 h-4 rounded-full inline-flex items-center justify-center"
                       onClick={() => {
@@ -195,6 +248,31 @@ export default function DataFrame({
                           viewBox="0 0 24 24"
                         >
                           <path d="M20 6L9 17l-5-5"></path>
+                        </svg>
+                      )}
+                    </span>
+                    <span
+                      className="bg-indigo-100 text-indigo-500 w-4 h-4 rounded-full inline-flex items-center justify-center ml-1"
+                      onClick={() => {
+                        onClickDeletionCheckedBox(option.text);
+                      }}
+                    >
+                      {deletions[option.text] && (
+                        <svg
+                          className="w-3 h-3"
+                          aria-hidden="true"
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="12"
+                          height="12"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke="currentColor"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="4"
+                            d="M6 18 17.94 6M18 18 6.06 6"
+                          />
                         </svg>
                       )}
                     </span>
@@ -219,7 +297,7 @@ export default function DataFrame({
             {shape.redundancies.map((redundancy) => (
               <li className="mb-2">
                 <div className="grid grid-cols-[auto,1fr] gap-2">
-                  <div className="col-span-1">
+                  <div className="col-span-1 flex items-center">
                     <span
                       className="bg-red-100 text-red-500 w-4 h-4 rounded-full inline-flex items-center justify-center"
                       onClick={() => {
@@ -237,6 +315,31 @@ export default function DataFrame({
                           viewBox="0 0 24 24"
                         >
                           <path d="M20 6L9 17l-5-5"></path>
+                        </svg>
+                      )}
+                    </span>
+                    <span
+                      className="bg-red-100 text-red-500 w-4 h-4 rounded-full inline-flex items-center justify-center ml-1"
+                      onClick={() => {
+                        onClickDeletionCheckedBox(redundancy.text);
+                      }}
+                    >
+                      {deletions[redundancy.text] && (
+                        <svg
+                          className="w-3 h-3"
+                          aria-hidden="true"
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="12"
+                          height="12"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke="currentColor"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="4"
+                            d="M6 18 17.94 6M18 18 6.06 6"
+                          />
                         </svg>
                       )}
                     </span>

@@ -2,7 +2,7 @@ import { Shape as ShapeController } from "../controllers";
 import Route from "./route";
 import { verifyToken } from '../utils/auth'
 
-export default class Project extends Route {
+export default class Shape extends Route {
   private shapeController = new ShapeController();
 
   constructor() {
@@ -12,7 +12,7 @@ export default class Project extends Route {
   }
 
   protected setRoutes() {
-    this.router.get("/shpaes", verifyToken, this.shapeController.getShapes);
-    this.router.post("/shapes", verifyToken, this.shapeController.createShapes);
+    this.router.get("/shapes", verifyToken, this.shapeController.getShapes);
+    this.router.put("/shapes", verifyToken, this.shapeController.updateShapes);
   }
 }

@@ -1,17 +1,15 @@
 import { Shape as ShapeModel } from "../models";
+import * as ShapeTypes from "../types/shape";
 
 export default class Shape {
   private shpaeModel = new ShapeModel();
 
-  // async getProjects(user: string) {
-  //   const projects = await this.shpaeModel.getProjects(user);
-  //   return projects.filter(project => ({
-  //     id: project.id,
-  //     name: project.name
-  //   }))
-  // }
+  async getShapes(projectId: number) {
+    const shapes = await this.shpaeModel.getShapes(projectId);
+    return shapes;
+  }
 
-  // async createProject(name: string, user: string) {
-  //   await this.shpaeModel.createProject(name, user);
-  // }
+  async updateShapes(data: ShapeTypes.UpdateShapes["req"]["data"]) {
+    await this.shpaeModel.updateShapes(data);
+  }
 }

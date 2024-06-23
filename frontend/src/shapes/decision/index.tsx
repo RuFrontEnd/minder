@@ -60,8 +60,8 @@ export default class Desicion extends Core {
     return output;
   }
 
-  createCurve(id: string, d: CommonTypes.Direction) {
-    super.createCurve(id, d);
+  initializeCurve(id: string, d: CommonTypes.Direction) {
+    super.initializeCurve(id, d);
 
     // define curve text
     const currentText = this.getText().text;
@@ -78,36 +78,35 @@ export default class Desicion extends Core {
     this.text[d] = null;
   }
 
-  onDataChange(title: CommonTypes.Title, data: CommonTypes.Data) {
-    this.title = title;
-    this.selectedData = data;
+  onDataChange(
+    _title: CommonTypes.Title,
+    _selectedData: CommonTypes.Data,
+    _deletedData: CommonTypes.Data
+  ) {
+    this.title = _title;
+    this.selectedData = _selectedData;
+    this.deletedData = _deletedData;
   }
 
   draw(ctx: CanvasRenderingContext2D) {
-    ctx.save();
-    ctx.translate(this.getScreenP().x, this.getScreenP().y);
-    const isAlert = this.redundancies.length > 0;
-    let renderC = isAlert ? "#EC3333" : this.c;
-    ctx.fillStyle = renderC;
-    const x1 = -this.getScaleSize().w / 2,
-      y1 = 0;
-    const x2 = 0,
-      y2 = this.getScaleSize().h / 2;
-    const x3 = this.getScaleSize().w / 2,
-      y3 = 0;
-    const x4 = 0,
-      y4 = -this.getScaleSize().h / 2;
+    super.draw(ctx, () => {
+      const x1 = -this.getScaleSize().w / 2,
+        y1 = 0;
+      const x2 = 0,
+        y2 = this.getScaleSize().h / 2;
+      const x3 = this.getScaleSize().w / 2,
+        y3 = 0;
+      const x4 = 0,
+        y4 = -this.getScaleSize().h / 2;
 
-    ctx.beginPath();
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
-    ctx.lineTo(x3, y3);
-    ctx.lineTo(x4, y4);
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
-
-    super.draw(ctx);
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.lineTo(x3, y3);
+      ctx.lineTo(x4, y4);
+      ctx.closePath();
+      ctx.fill();
+    });
   }
 
   // TODO: curve 相關

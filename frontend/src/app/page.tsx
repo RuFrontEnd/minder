@@ -19,9 +19,11 @@ import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
 import { cloneDeep } from "lodash";
 import { v4 as uuidv4 } from "uuid";
-import { ChangeEventHandler } from "react";
+import { ChangeEventHandler, MouseEventHandler } from "react";
+import { tailwindColors } from "@/variables/colors";
 import * as authAPIs from "@/apis/auth";
 import * as projectAPIs from "@/apis/project";
+import * as shapeAPIs from "@/apis/shapes";
 import * as CoreTypes from "@/types/shapes/core";
 import * as CurveTypes from "@/types/shapes/curve";
 import * as CommonTypes from "@/types/shapes/common";
@@ -30,9 +32,57 @@ import * as DataFrameTypes from "@/types/components/dataFrame";
 import * as InputTypes from "@/types/components/input";
 import * as AlertTypes from "@/types/components/alert";
 import * as AuthTypes from "@/types/apis/auth";
-import * as ProjectTypes from "@/types/apis/project";
+import * as ProjectAPITypes from "@/types/apis/project";
+import * as ShapeAPITypes from "@/types/apis/shape";
+import * as ProjectTypes from "@/types/project";
 
 axios.defaults.baseURL = process.env.BASE_URL || "http://localhost:5000/api";
+
+const isBrowser = typeof window !== "undefined";
+
+const init = {
+  dataFrameWarning: {
+    title: "",
+    data: {},
+  },
+  shape: {
+    size: {
+      t: { w: 150, h: 75 },
+      p: { w: 150, h: 75 },
+      d: { w: 150, h: 75 },
+      dec: { w: 100, h: 100 },
+    },
+  },
+  authInfo: {
+    account: {
+      value: undefined,
+      status: InputTypes.Status.normal,
+      comment: undefined,
+    },
+    password: {
+      value: undefined,
+      status: InputTypes.Status.normal,
+      comment: undefined,
+    },
+    email: {
+      value: undefined,
+      status: InputTypes.Status.normal,
+      comment: undefined,
+    },
+  },
+  offset: { x: 0, y: 0 },
+  select: {
+    start: {
+      x: -1,
+      y: -1,
+    },
+    end: {
+      x: -1,
+      y: -1,
+    },
+    shapes: [],
+  },
+};
 
 let useEffected = false,
   ctx: CanvasRenderingContext2D | null | undefined = null,
@@ -53,8 +103,8 @@ let useEffected = false,
     dx: number; // distance between event px & pressing shape px
     dy: number; // distance between event py & pressing shape py
   } = null,
-  offset: CommonTypes.Vec = { x: 0, y: 0 },
-  offset_center: CommonTypes.Vec = { x: 0, y: 0 },
+  offset: CommonTypes.Vec = cloneDeep(init.offset),
+  offset_center: CommonTypes.Vec = cloneDeep(init.offset),
   dragP: CommonTypes.Vec = { x: 0, y: 0 },
   moveP: null | {
     originalX: number;
@@ -73,22 +123,11 @@ let useEffected = false,
     start: CommonTypes.Vec;
     end: CommonTypes.Vec;
   } = null,
-  initMultiSelect = {
-    start: {
-      x: -1,
-      y: -1,
-    },
-    end: {
-      x: -1,
-      y: -1,
-    },
-    shapes: [],
-  },
   select: {
     start: CommonTypes.Vec;
     end: CommonTypes.Vec;
     shapes: Core[];
-  } = initMultiSelect,
+  } = cloneDeep(init.select),
   selectAnchor = {
     size: {
       fill: 4,
@@ -97,22 +136,11 @@ let useEffected = false,
   };
 
 const ds = [
-    CommonTypes.Direction.l,
-    CommonTypes.Direction.t,
-    CommonTypes.Direction.r,
-    CommonTypes.Direction.b,
-  ],
-  vs: (
-    | CoreTypes.PressingTarget.lt
-    | CoreTypes.PressingTarget.rt
-    | CoreTypes.PressingTarget.rb
-    | CoreTypes.PressingTarget.lb
-  )[] = [
-    CoreTypes.PressingTarget.lt,
-    CoreTypes.PressingTarget.rt,
-    CoreTypes.PressingTarget.rb,
-    CoreTypes.PressingTarget.lb,
-  ];
+  CommonTypes.Direction.l,
+  CommonTypes.Direction.t,
+  CommonTypes.Direction.r,
+  CommonTypes.Direction.b,
+];
 
 const getFramePosition = (shape: Core) => {
   const frameOffset = 12;
@@ -120,6 +148,168 @@ const getFramePosition = (shape: Core) => {
     x: shape.getScreenP().x + shape.getScaleSize().w / 2 + frameOffset,
     y: shape.getScreenP().y,
   };
+};
+
+const getInitializedShapes = (data: ShapeAPITypes.GetShapes["resData"]) => {
+  const shapeMappings: {
+    [shapeId: string]: Terminal | Process | Data | Desicion;
+  } = {};
+
+  const dataShapes = Object.entries(data.shapes);
+
+  dataShapes.forEach(([id, info]) => {
+    switch (info.type) {
+      case CommonTypes.Type.terminator:
+        const newTerminator = new Terminal(
+          id,
+          info.w,
+          info.h,
+          info.p,
+          info.title
+        );
+
+        info.selectedData.forEach((dataId) => {
+          newTerminator.selectedData.push({
+            id: dataId,
+            text: data.data[dataId],
+          });
+        });
+
+        info.deletedData.forEach((dataId) => {
+          newTerminator.deletedData.push({
+            id: dataId,
+            text: data.data[dataId],
+          });
+        });
+
+        newTerminator.offset = offset;
+
+        shapeMappings[id] = newTerminator;
+
+        break;
+      case CommonTypes.Type.data:
+        const newData = new Data(id, info.w, info.h, info.p, info.title);
+
+        info.data.forEach((dataId) => {
+          newData.data.push({
+            id: dataId,
+            text: data.data[dataId],
+          });
+        });
+
+        info.selectedData.forEach((dataId) => {
+          newData.selectedData.push({
+            id: dataId,
+            text: data.data[dataId],
+          });
+        });
+
+        info.deletedData.forEach((dataId) => {
+          newData.deletedData.push({
+            id: dataId,
+            text: data.data[dataId],
+          });
+        });
+
+        newData.offset = offset;
+
+        shapeMappings[id] = newData;
+
+        break;
+      case CommonTypes.Type.process:
+        const newProcess = new Process(id, info.w, info.h, info.p, info.title);
+
+        info.selectedData.forEach((dataId) => {
+          newProcess.selectedData.push({
+            id: dataId,
+            text: data.data[dataId],
+          });
+        });
+
+        info.deletedData.forEach((dataId) => {
+          newProcess.deletedData.push({
+            id: dataId,
+            text: data.data[dataId],
+          });
+        });
+
+        newProcess.offset = offset;
+
+        shapeMappings[id] = newProcess;
+
+        break;
+      case CommonTypes.Type.decision:
+        const newDesicion = new Desicion(
+          id,
+          info.w,
+          info.h,
+          info.p,
+          info.title
+        );
+
+        if (info.text) {
+          newDesicion.text = info.text;
+        }
+
+        info.selectedData.forEach((dataId) => {
+          newDesicion.selectedData.push({
+            id: dataId,
+            text: data.data[dataId],
+          });
+        });
+
+        info.deletedData.forEach((dataId) => {
+          newDesicion.deletedData.push({
+            id: dataId,
+            text: data.data[dataId],
+          });
+        });
+
+        newDesicion.offset = offset;
+
+        shapeMappings[id] = newDesicion;
+
+        break;
+    }
+  });
+
+  dataShapes.forEach(([shapeId, shapeInfo]) => {
+    ds.forEach((d) => {
+      if (shapeInfo.curves[d].length === 0) return;
+      shapeInfo.curves[d].forEach((curveId) => {
+        const curveInfo = data.curves[curveId];
+
+        shapeMappings[shapeId].createCurve(
+          curveId,
+          d,
+          curveInfo.p1,
+          curveInfo.p2,
+          curveInfo.cp1,
+          curveInfo.cp2,
+          curveInfo.sendTo
+            ? {
+                shape: shapeMappings[curveInfo.sendTo.id],
+                d: curveInfo.sendTo.d,
+                bridgeId: curveId,
+              }
+            : null
+        );
+
+        if (curveInfo.sendTo) {
+          // initialize received shape
+          shapeMappings[curveInfo.sendTo.id].receiveFrom[
+            curveInfo.sendTo.d
+          ].push({
+            shape: shapeMappings[shapeId],
+            d: d,
+            bridgeId: curveId,
+          });
+        }
+      });
+    });
+  });
+
+  return data.orders.map((orderId) => shapeMappings[orderId]);
 };
 
 const Editor = (props: { className: string; shape: Core }) => {
@@ -265,40 +455,9 @@ const Editor = (props: { className: string; shape: Core }) => {
   );
 };
 
-const init = {
-  dataFrameWarning: {
-    title: "",
-    data: {},
-  },
-  shape: {
-    size: {
-      t: { w: 150, h: 75 },
-      p: { w: 150, h: 75 },
-      d: { w: 150, h: 75 },
-      dec: { w: 100, h: 100 },
-    },
-  },
-  authInfo: {
-    account: {
-      value: undefined,
-      status: InputTypes.Status.normal,
-      comment: undefined,
-    },
-    password: {
-      value: undefined,
-      status: InputTypes.Status.normal,
-      comment: undefined,
-    },
-    email: {
-      value: undefined,
-      status: InputTypes.Status.normal,
-      comment: undefined,
-    },
-  },
-};
-
 export default function ProcessPage() {
   let { current: $canvas } = useRef<HTMLCanvasElement | null>(null);
+  const qas = isBrowser && window.location.href.includes("qas");
 
   const [dataFrame, setDataFrame] = useState<
       { p: CommonTypes.Vec } | undefined
@@ -317,7 +476,7 @@ export default function ProcessPage() {
     [dataFrameWarning, setDataFrameWarning] = useState<DataFrameTypes.Warning>(
       init.dataFrameWarning
     ),
-    [isAccountModalOpen, setIsAccountModalOpen] = useState(true),
+    [isAccountModalOpen, setIsAccountModalOpen] = useState(false),
     [isLogIn, setIsLogin] = useState(true),
     [isProjectsModalOpen, setIsProjectsModalOpen] = useState(false),
     [authInfo, setAuthInfo] = useState<{
@@ -343,41 +502,54 @@ export default function ProcessPage() {
       text: "",
     }),
     [isFetchingProjects, setIsFetchingProjects] = useState(false),
-    [projects, setProjects] = useState<ProjectTypes.GetProjects["ResData"]>([]);
+    [projects, setProjects] = useState<ProjectAPITypes.GetProjects["resData"]>(
+      []
+    ),
+    [selectedProjectId, setSelectedProjectId] = useState<
+      null | ProjectTypes.Project["id"]
+    >(null),
+    [hasEnter, setHasEnter] = useState(false);
 
   const checkData = () => {
-    const datas: Data[] = [];
+    const dataShapes: Data[] = [];
 
     shapes.forEach((shape) => {
       shape.options = [];
       if (shape instanceof Data) {
-        datas.push(shape);
+        dataShapes.push(shape);
       }
     });
 
-    datas.forEach((data) => {
+    dataShapes.forEach((dataShape) => {
       // traversal all relational steps
-      const queue: Core[] = [data],
-        locks: { [curveId: string]: boolean } = {}; // prevent from graph cycle
+      const queue: (Core | Terminal | Process | Data | Desicion)[] = [
+          dataShape,
+        ],
+        locks: { [curveId: string]: boolean } = {}, // prevent from graph cycle
+        deletedDataMap: { [text: string]: boolean } = {};
 
       while (queue.length !== 0) {
         const shape = queue[0];
 
-        // TODO: curve 相關
         ds.forEach((d) => {
           shape.curves[d].forEach((curve) => {
             const theSendToShape = curve.sendTo?.shape;
 
             if (!theSendToShape) return;
 
-            data.data.forEach((dataItem) => {
+            dataShape.data.forEach((dataItem) => {
               if (
                 theSendToShape.options.some(
                   (option) => option.text === dataItem.text
-                )
+                ) ||
+                deletedDataMap[dataItem.text]
               )
                 return;
               theSendToShape.options.push(dataItem);
+            });
+
+            theSendToShape.deletedData.forEach((deleteDataItem) => {
+              deletedDataMap[deleteDataItem.text] = true;
             });
 
             if (!locks[curve.shape.id]) {
@@ -394,6 +566,42 @@ export default function ProcessPage() {
     // check all correspondants of shapes' between options and selectedData
     shapes.forEach((shape) => {
       shape.getRedundancies();
+    });
+
+    const errorShapes: Core[] = shapes.filter(
+      (shape) => shape.status === CoreTypes.Status.error
+    );
+
+    errorShapes.forEach((errorShape) => {
+      // traversal all relational steps
+      const queue: (Core | Terminal | Process | Data | Desicion)[] = [
+          errorShape,
+        ],
+        locks: { [curveId: string]: boolean } = {}; // prevent from graph cycle
+
+      while (queue.length !== 0) {
+        const shape = queue[0];
+
+        if (shape.status !== CoreTypes.Status.error) {
+          shape.status = CoreTypes.Status.disabled;
+          // console.log('shape', shape)
+        }
+
+        ds.forEach((d) => {
+          shape.curves[d].forEach((curve) => {
+            const theSendToShape = curve.sendTo?.shape;
+
+            if (!theSendToShape) return;
+
+            if (!locks[curve.shape.id]) {
+              queue.push(theSendToShape);
+              locks[curve.shape.id] = true;
+            }
+          });
+        });
+
+        queue.shift();
+      }
     });
   };
 
@@ -477,6 +685,34 @@ export default function ProcessPage() {
           select.end.y = theEdge.b;
         }
       });
+    }
+  };
+
+  const verifyToken = async () => {
+    if (qas) {
+      setIsAccountModalOpen(true);
+      return;
+    }
+
+    const token = localStorage.getItem("Authorization");
+
+    if (token) {
+      const res: AxiosResponse<AuthTypes.JWTLogin["resData"]> =
+        await authAPIs.jwtLogin(token);
+
+      if (res.data.isPass) {
+        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+        setIsLogin(false);
+        const res: AxiosResponse<ProjectAPITypes.GetProjects["resData"], any> =
+          await projectAPIs.getProjecs();
+        setProjects(res.data);
+        setIsProjectsModalOpen(true);
+      } else {
+        setIsAccountModalOpen(true);
+      }
+    } else {
+      setIsAccountModalOpen(true);
     }
   };
 
@@ -581,18 +817,17 @@ export default function ProcessPage() {
           if (!$canvas) return;
 
           // onMouseDown curve trigger point and create curve
-          // TODO: curve 相關
+
           const triggerD = shape.getCurveTriggerDirection(p);
           if (triggerD) {
             shape.selecting = false;
 
-            shape.createCurve(
+            shape.initializeCurve(
               `curve_${Date.now()}`,
               CommonTypes.Direction[triggerD]
             );
           }
 
-          // TODO: curve 相關
           // drag curve
           ds.forEach((d) => {
             shape.curves[d].forEach((curveInShape) => {
@@ -679,7 +914,7 @@ export default function ProcessPage() {
       }
 
       // close selected status when click the blank area
-      // TODO: curve 相關
+
       shapes.forEach((shape) => {
         if (pressing?.shape instanceof Curve) {
           // click curve
@@ -747,6 +982,9 @@ export default function ProcessPage() {
       setDataFrame(undefined);
       offset.x += screenOffsetP.x;
       offset.y += screenOffsetP.y;
+      shapes.forEach((shape) => {
+        shape.offset = offset;
+      });
     }
 
     if (pressing?.target && pressing?.shape) {
@@ -788,7 +1026,6 @@ export default function ProcessPage() {
                 p.x <= theEdge.r + threshold &&
                 p.y <= theEdge.b + threshold;
 
-            // TODO: curve 相關
             for (const d of ds) {
               shape.receiving[d] = isNearShape;
             }
@@ -1027,73 +1264,6 @@ export default function ProcessPage() {
       });
     }
 
-    // const shapesInView: (Terminal | Process | Data | Desicion)[] = [];
-
-    // shapes.forEach((shape) => {
-    //   if (!$canvas) return;
-
-    //   if (movingCanvas) {
-    //     shape.offset = offset;
-    //   }
-
-    //   if (shape.checkBoundry(p) && dbClickedShape?.id === shape.id) {
-    //     const $dataFrame = document.getElementById(dbClickedShape?.id);
-    //     if ($dataFrame) {
-    //       const framePosition = getFramePosition(shape);
-    //       $dataFrame.style.left = `${framePosition.x}px`;
-    //       $dataFrame.style.top = `${framePosition.y}px`;
-    //     }
-    //   }
-
-    //   const shapeEdge = shape.getEdge(),
-    //     isShapeInView =
-    //       ((shapeEdge.l >= 0 && shapeEdge.l <= $canvas.width) ||
-    //         (shapeEdge.r >= 0 && shapeEdge.r <= $canvas.width)) &&
-    //       ((shapeEdge.t >= 0 && shapeEdge.t <= $canvas.height) ||
-    //         (shapeEdge.b >= 0 && shapeEdge.b <= $canvas.height));
-
-    //   if (isShapeInView) {
-    //     shapesInView.push(shape);
-    //   }
-    // });
-    // // align feature
-    // const thePressing = pressing,
-    //   stickyOffset = 5;
-
-    // if (thePressing) {
-    //   shapesInView.forEach((shapeInView) => {
-    //     if (shapeInView.id === thePressing?.shape?.id) return;
-    //     if (
-    //       !(thePressing.shape instanceof Terminal) &&
-    //       !(thePressing.shape instanceof Process) &&
-    //       !(thePressing.shape instanceof Desicion) &&
-    //       !(thePressing.shape instanceof Data)
-    //     )
-    //       return;
-
-    //     if (thePressing?.shape?.p.x === shapeInView.p.x && !moveP) {
-    //       moveP = {
-    //         originalX: p.x,
-    //         originalY: p.y,
-    //         x: p.x,
-    //         y: p.y,
-    //       };
-    //     } else if (moveP) {
-    //       moveP.x = p.x;
-    //       moveP.y = p.y;
-    //     }
-
-    //     if (
-    //       moveP &&
-    //       moveP.x &&
-    //       moveP.originalX &&
-    //       Math.abs(moveP.x - moveP?.originalX) > 10
-    //     ) {
-    //       moveP = null;
-    //     }
-    //   });
-    // }
-
     if (selectAreaP && !space) {
       selectAreaP = {
         ...selectAreaP,
@@ -1185,20 +1355,68 @@ export default function ProcessPage() {
         pressing?.target &&
         pressing?.parent &&
         pressing?.direction
-        // &&
-        // otherStepIds.findIndex((stepId) => stepId === shape.id) > -1
       ) {
-        const theCheckReceivingPointsBoundry = shape.checkReceivingPointsBoundry(
-          p
-        );
+        const theCheckReceivingPointsBoundryD =
+          shape.checkReceivingPointsBoundry(p);
 
-        if (theCheckReceivingPointsBoundry) {
-          pressing.parent.connect(
-            shape,
-            theCheckReceivingPointsBoundry,
-            pressing.shape.id
-          );
-        }
+        const pressingShape = pressing.parent;
+
+        if (!theCheckReceivingPointsBoundryD || !pressingShape) return;
+
+        const relocateP2 = (() => {
+          if (shape instanceof Data) {
+            return (
+              bridge: {
+                d: CommonTypes.Direction;
+                curve: CoreTypes.SendCurve;
+              },
+              targetShapeReceiveD: CommonTypes.Direction
+            ) => {
+              if (targetShapeReceiveD === CommonTypes.Direction.l) {
+                bridge.curve.shape.p2 = {
+                  x:
+                    shape.p.x -
+                    pressingShape.p.x +
+                    (shape.getCorner().normal.tl.x +
+                      shape.getCorner().normal.bl.x) /
+                      2 -
+                    6,
+                  y: shape.p.y - pressingShape.p.y,
+                };
+              } else if (targetShapeReceiveD === CommonTypes.Direction.t) {
+                bridge.curve.shape.p2 = {
+                  x: shape.p.x - pressingShape.p.x,
+                  y: shape.p.y - pressingShape.p.y - shape.h / 2 - 6,
+                };
+              } else if (targetShapeReceiveD === CommonTypes.Direction.r) {
+                bridge.curve.shape.p2 = {
+                  x:
+                    shape.p.x -
+                    pressingShape.p.x -
+                    (shape.getCorner().normal.tl.x +
+                      shape.getCorner().normal.bl.x) /
+                      2 +
+                    6,
+                  y: shape.p.y - pressingShape.p.y,
+                };
+              } else if (targetShapeReceiveD === CommonTypes.Direction.b) {
+                bridge.curve.shape.p2 = {
+                  x: shape.p.x - pressingShape.p.x,
+                  y: shape.p.y - pressingShape.p.y + shape.h / 2 + 6,
+                };
+              }
+            };
+          }
+
+          return;
+        })();
+
+        pressingShape.connect(
+          shape,
+          theCheckReceivingPointsBoundryD,
+          pressing.shape.id,
+          relocateP2
+        );
       }
 
       shape.receiving = {
@@ -1248,18 +1466,18 @@ export default function ProcessPage() {
   );
 
   function handleKeyDown(this: Window, e: KeyboardEvent) {
-    if (!$canvas || !ctx) return;
+    // space
+    if (e.key === " " && !space) {
+      setSpace(true);
+    } else if (e.key === "Backspace" && !dataFrame && !dbClickedShape) {
+      const $canvas = document.querySelector("canvas");
+      if (!$canvas || !ctx) return;
 
-    // delete
-    if (e.key === "Backspace" && !dataFrame && !dbClickedShape) {
+      // delete
       for (const currentShape of shapes) {
-        // TODO: curve 相關
-
         if (currentShape.selecting) {
           currentShape?.removeConnection();
           shapes = shapes.filter((shape) => shape.id !== currentShape?.id);
-
-          console.log("shapes", shapes);
         } else {
           ds.forEach((d) => {
             currentShape.curves[d].forEach((currentCurve) => {
@@ -1270,16 +1488,8 @@ export default function ProcessPage() {
         }
       }
 
-      checkData();
-      checkGroups();
+      draw($canvas, ctx);
     }
-
-    // space
-    if (e.key === " " && !space) {
-      setSpace(true);
-    }
-
-    draw($canvas, ctx);
   }
 
   function handleKeyUp(this: Window, e: KeyboardEvent) {
@@ -1289,7 +1499,7 @@ export default function ProcessPage() {
   }
 
   const onClickTerminator = () => {
-    if (!$canvas || !ctx) return;
+    if (!isBrowser || !$canvas || !ctx) return;
 
     let terminal = new Terminal(
       `terminator_s_${Date.now()}`,
@@ -1299,31 +1509,7 @@ export default function ProcessPage() {
         x: -offset.x + window.innerWidth / 2 + offset_center.x,
         y: -offset.y + window.innerHeight / 2 + offset_center.y,
       },
-      "terminator_start",
-      true
-    );
-    terminal.offset = offset;
-    terminal.scale = scale;
-
-    shapes.push(terminal);
-    checkData();
-    checkGroups();
-    draw($canvas, ctx);
-  };
-
-  const onClickTerminatorEnd = () => {
-    if (!$canvas || !ctx) return;
-
-    let terminal = new Terminal(
-      `terminator_e_${Date.now()}`,
-      init.shape.size.t.w,
-      init.shape.size.t.h,
-      {
-        x: -offset.x + window.innerWidth / 2 + offset_center.x,
-        y: -offset.y + window.innerHeight / 2 + offset_center.y,
-      },
-      "terminator_end",
-      false
+      "terminator_start"
     );
     terminal.offset = offset;
     terminal.scale = scale;
@@ -1335,7 +1521,7 @@ export default function ProcessPage() {
   };
 
   const onClickProcess = () => {
-    if (!$canvas || !ctx) return;
+    if (!isBrowser || !$canvas || !ctx) return;
 
     let process_new = new Process(
       `process_${Date.now()}`,
@@ -1357,7 +1543,7 @@ export default function ProcessPage() {
   };
 
   const onClickData = () => {
-    if (!$canvas || !ctx) return;
+    if (!isBrowser || !$canvas || !ctx) return;
 
     let data_new = new Data(
       `data_${Date.now()}`,
@@ -1379,7 +1565,7 @@ export default function ProcessPage() {
   };
 
   const onClickDecision = () => {
-    if (!$canvas || !ctx) return;
+    if (!isBrowser || !$canvas || !ctx) return;
 
     let decision_new = new Desicion(
       `decision_${Date.now()}`,
@@ -1404,10 +1590,10 @@ export default function ProcessPage() {
     title,
     data,
     selectedData,
-    shape
+    deletedData
   ) => {
     // validate repeated title name
-    const titleWarning = title ? "" : "欄位不可為空";
+    const titleWarning = title ? "" : "required field.";
 
     setDataFrameWarning((dataFrameWarning) => ({
       ...dataFrameWarning,
@@ -1440,7 +1626,7 @@ export default function ProcessPage() {
     data.forEach((dataItem, dataItemI) => {
       // validate required data
       if (!dataItem.text) {
-        dataWarningMapping[dataItemI] = "欄位不可為空";
+        dataWarningMapping[dataItemI] = "required field.";
       }
     });
 
@@ -1455,14 +1641,13 @@ export default function ProcessPage() {
       dbClickedShape instanceof Process ||
       dbClickedShape instanceof Desicion
     ) {
-      dbClickedShape?.onDataChange(title, selectedData);
+      dbClickedShape?.onDataChange(title, selectedData, deletedData);
     } else if (dbClickedShape instanceof Data) {
-      dbClickedShape?.onDataChange(title, data, selectedData);
+      dbClickedShape?.onDataChange(title, data, selectedData, deletedData);
     } else if (dbClickedShape instanceof Terminal) {
       dbClickedShape?.onDataChange(title);
     }
 
-    // setGlobalData((globalData) => ({ ...globalData, [shape.id]: data }));
     setDataFrame(undefined);
     setDbClickedShape(null);
     checkData();
@@ -1495,12 +1680,12 @@ export default function ProcessPage() {
   };
 
   const onClickProfile = () => {
-    setIsUserSidePanelOpen((open) => !open);
+    setIsProjectsModalOpen(true);
   };
 
   const draw = useCallback(
     ($canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => {
-      if (!ctx || !$canvas) return;
+      if (!isBrowser) return;
       $canvas.width = window.innerWidth;
       $canvas.height = window.innerHeight;
       ctx?.clearRect(0, 0, window.innerWidth, window.innerHeight);
@@ -1526,24 +1711,6 @@ export default function ProcessPage() {
           shape instanceof Data ||
           (shape instanceof Desicion &&
             !(shape.getText().y && shape.getText().n))
-          // (shape instanceof Terminal &&
-          //   !shape.curves.l.shape &&
-          //   !shape.curves.t.shape &&
-          //   !shape.curves.r.shape &&
-          //   !shape.curves.b.shape
-          // ) ||
-          // (shape instanceof Process &&
-          //   !shape.curves.l.shape &&
-          //   !shape.curves.t.shape &&
-          //   !shape.curves.r.shape &&
-          //   !shape.curves.b.shape) ||
-          // (shape instanceof Data &&
-          //   !shape.curves.l.shape &&
-          //   !shape.curves.t.shape &&
-          //   !shape.curves.r.shape &&
-          //   !shape.curves.b.shape) ||
-          // (shape instanceof Desicion &&
-          //   !(shape.getText().y && shape.getText().n))
         ) {
           shape.drawSendingPoint(ctx);
         }
@@ -1578,22 +1745,15 @@ export default function ProcessPage() {
 
         ctx?.closePath();
       }
+
       shapes.forEach((shape) => {
-        // if (
-        // (shape.receiving.l ||
-        //   shape.receiving.t ||
-        //   shape.receiving.r ||
-        //   shape.receiving.b) &&
-        // otherStepIds.findIndex((stepId) => stepId === shape.id) > -1
-        // ) {
         shape.drawRecievingPoint(ctx);
-        // }
       });
 
       if (select.shapes.length > 1) {
         // draw select area
         ctx?.beginPath();
-        ctx.strokeStyle = "#2436b1";
+        ctx.strokeStyle = tailwindColors.info["500"];
         ctx.lineWidth = 1;
         ctx.strokeRect(
           select.start.x,
@@ -1670,7 +1830,7 @@ export default function ProcessPage() {
   };
 
   const onClickStep = (shapeP: CommonTypes.Vec) => {
-    if (!$canvas || !ctx) return;
+    if (!isBrowser || !$canvas || !ctx) return;
 
     offset = {
       x: offset_center.x + (window.innerWidth / 2 - shapeP.x),
@@ -1690,10 +1850,17 @@ export default function ProcessPage() {
   };
 
   const onClickLoginButton = async () => {
+    if (qas) {
+      setIsAccountModalOpen(false);
+      setAuthInfo(init.authInfo);
+      setIsProjectsModalOpen(true);
+      return;
+    }
+
     const _authInfo = cloneDeep(authInfo);
     if (!authInfo.account.value) {
       _authInfo.account.status = InputTypes.Status.error;
-      _authInfo.account.comment = "required!";
+      _authInfo.account.comment = "required field.";
     }
     if (!authInfo.password.value) {
       _authInfo.password.status = InputTypes.Status.error;
@@ -1701,17 +1868,15 @@ export default function ProcessPage() {
 
     if (!authInfo.account.value || !authInfo.password.value) {
       _authInfo.password.status = InputTypes.Status.error;
-      _authInfo.password.comment = "required!";
+      _authInfo.password.comment = "required field.";
       setAuthInfo(_authInfo);
       return;
     }
 
     setIsAuthorizing(true);
 
-    const res: AxiosResponse<
-      AuthTypes.Login["ResData"],
-      any
-    > = await authAPIs.login(authInfo.account.value, authInfo.password.value);
+    const res: AxiosResponse<AuthTypes.Login["resData"], any> =
+      await authAPIs.login(authInfo.account.value, authInfo.password.value);
 
     if (res.status === 201) {
       axios.defaults.headers.common[
@@ -1731,13 +1896,13 @@ export default function ProcessPage() {
             text: "",
           }));
           setIsAccountModalOpen(false);
-          setIsProjectsModalOpen(true);
           setAuthInfo(init.authInfo);
           const res: AxiosResponse<
-            ProjectTypes.GetProjects["ResData"],
+            ProjectAPITypes.GetProjects["resData"],
             any
           > = await projectAPIs.getProjecs();
           setProjects(res.data);
+          setIsProjectsModalOpen(true);
         }, 1000);
       }, 500);
     } else {
@@ -1752,6 +1917,7 @@ export default function ProcessPage() {
   };
 
   const onClickSignUpButton = async () => {
+    if (qas) return;
     const _authInfo = cloneDeep(authInfo);
 
     const isPasswordLengthGreaterThanSix =
@@ -1806,14 +1972,12 @@ export default function ProcessPage() {
 
     setIsAuthorizing(true);
 
-    const res: AxiosResponse<
-      AuthTypes.Register["ResData"],
-      any
-    > = await authAPIs.register(
-      authInfo.account.value,
-      authInfo.password.value,
-      authInfo.email.value
-    );
+    const res: AxiosResponse<AuthTypes.Register["resData"], any> =
+      await authAPIs.register(
+        authInfo.account.value,
+        authInfo.password.value,
+        authInfo.email.value
+      );
 
     if (res.status === 201) {
       setTimeout(() => {
@@ -1860,140 +2024,198 @@ export default function ProcessPage() {
     setAuthInfo(_authInfo);
   };
 
-  useEffect(() => {
-    if (useEffected) return;
+  const onClickSaveButton: MouseEventHandler<HTMLSpanElement> = () => {
+    if (selectedProjectId === null) return;
+    const modifyData: ShapeAPITypes.UpdateShapes["data"] = {
+      projectId: selectedProjectId,
+      orders: [],
+      shapes: {},
+      curves: {},
+      data: {},
+    };
 
-    if ($canvas) {
-      $canvas.width = window.innerWidth;
-      $canvas.height = window.innerHeight;
-      if (!ctx) return;
+    shapes.forEach((shape) => {
+      modifyData.orders.push(shape.id);
 
-      let terminal_s_new = new Terminal(
-        `terminator_s_${Date.now()}`,
-        init.shape.size.t.w,
-        init.shape.size.t.h,
-        {
-          x: -offset.x + window.innerWidth / 2,
-          y: -offset.y + window.innerHeight / 2 - 300,
-        },
-        "起點",
-        true
-      );
-      terminal_s_new.offset = offset;
-      terminal_s_new.scale = scale;
+      if (
+        !(shape instanceof Terminal) &&
+        !(shape instanceof Process) &&
+        !(shape instanceof Data) &&
+        !(shape instanceof Desicion)
+      )
+        return;
 
-      let process_new = new Process(
-        `process_${Date.now()}`,
-        init.shape.size.p.w,
-        init.shape.size.p.h,
-        {
-          x: -offset.x + window.innerWidth / 2 + 200,
-          y: -offset.y + window.innerHeight / 2,
-        },
-        `process`
-      );
-      process_new.offset = offset;
-      process_new.scale = scale;
+      modifyData.shapes[shape.id] = {
+        w: shape.w,
+        h: shape.h,
+        title: shape.title,
+        type: (() => {
+          if (shape instanceof Terminal) {
+            return CommonTypes.Type.terminator;
+          } else if (shape instanceof Process) {
+            return CommonTypes.Type.process;
+          } else if (shape instanceof Data) {
+            return CommonTypes.Type.data;
+          } else if (shape instanceof Desicion) {
+            return CommonTypes.Type.decision;
+          }
 
-      let data_new = new Data(
-        `data_${Date.now()}`,
-        init.shape.size.d.w,
-        init.shape.size.d.h,
-        {
-          x: -offset.x + window.innerWidth / 2,
-          y: -offset.y + window.innerHeight / 2 - 100,
-        },
-        "輸入資料_1"
-      );
-      data_new.offset = offset;
-      data_new.scale = scale;
+          return CommonTypes.Type.process;
+        })(),
+        p: shape.p,
+        curves: (() => {
+          const curves: {
+            l: string[];
+            t: string[];
+            r: string[];
+            b: string[];
+          } = { l: [], t: [], r: [], b: [] };
 
-      // for (let i = 0; i < 100; i++) {
-      //   let process = new Process(
-      //     `process_${Date.now()}_${i}`,
-      //     200,
-      //     100,
-      //     {
-      //       x: -offset.x + window.innerWidth / 2 + i * 2,
-      //       y: -offset.y + window.innerHeight / 2 + 100 + i * 2,
-      //     },
-      //     "red",
-      //     `程序_${i}`
-      //   );
-      //   process.offset = offset;
-      //   process.scale = scale;
+          ds.forEach((d) => {
+            shape.curves[d].forEach((curve) => {
+              curves[d].push(curve.shape?.id);
 
-      //   shapes.push(process);
-      // }
+              modifyData.curves[curve.shape?.id] = {
+                p1: curve.shape.p1,
+                p2: curve.shape.p2,
+                cp1: curve.shape.cp1,
+                cp2: curve.shape.cp2,
+                sendTo: curve.sendTo
+                  ? {
+                      id: curve.sendTo.shape.id,
+                      d: curve.sendTo.d,
+                    }
+                  : null,
+              };
+            });
+          });
 
-      // let terminal_e_new = new Terminal(
-      //   `terminator_e_${Date.now()}`,
-      //   200,
-      //   100,
-      //   {
-      //     x: -offset.x + window.innerWidth / 2,
-      //     y: -offset.y + window.innerHeight / 2 + 300,
-      //   },
-      //   "rgb(189, 123, 0)",
-      //   "終點",
-      //   false
-      // );
-      // terminal_e_new.offset = offset;
-      // terminal_e_new.scale = scale;
+          return curves;
+        })(),
+        data: (() => {
+          if (shape instanceof Data) {
+            return shape.data.map((dataItem) => {
+              modifyData.data[dataItem.id] = dataItem.text;
 
-      // let terminal_s_2_new = new Terminal(
-      //   `terminator_s_2_${Date.now()}`,
-      //   200,
-      //   100,
-      //   {
-      //     x: -offset.x + window.innerWidth / 2,
-      //     y: -offset.y + window.innerHeight / 2 + 500,
-      //   },
-      //   "orange",
-      //   "起點_2",
-      //   true
-      // );
-      // terminal_s_2_new.offset = offset;
-      // terminal_s_2_new.scale = scale;
+              return dataItem.id;
+            });
+          }
 
-      let decision_new = new Desicion(
-        `decision_new_${Date.now()}`,
-        init.shape.size.dec.w,
-        init.shape.size.dec.h,
-        {
-          x: -offset.x + window.innerWidth / 2,
-          y: -offset.y + window.innerHeight / 2 + 100,
-        },
-        "decision"
-      );
-      decision_new.offset = offset;
-      decision_new.scale = scale;
+          return [];
+        })(),
+        selectedData: shape.selectedData.map(
+          (selectedDataItem) => selectedDataItem.id
+        ),
+        deletedData: shape.deletedData.map((deleteData) => deleteData.id),
+        text: shape instanceof Desicion ? shape?.text : null,
+      };
+    });
 
-      shapes.push(terminal_s_new);
-      shapes.push(data_new);
-      // shapes.push(terminal_e_new);
-      shapes.push(process_new);
-      // shapes.push(terminal_s_2_new);
-      shapes.push(decision_new);
+    shapeAPIs.updateShapes(modifyData);
+  };
 
-      checkData();
-      checkGroups();
+  const onClickProjectCard = (id: ProjectTypes.Project["id"]) => {
+    setSelectedProjectId(id);
+  };
+
+  const onClickConfrimProject = async (id: ProjectTypes.Project["id"]) => {
+    let $canvas = document.querySelector("canvas");
+    if (!$canvas || !ctx) return;
+
+    const resShapes: AxiosResponse<ShapeAPITypes.GetShapes["resData"], any> =
+      await shapeAPIs.getShapes(id);
+
+    setScale(1);
+    offset = cloneDeep(init.offset);
+    offset_center = cloneDeep(init.offset);
+    shapes = getInitializedShapes(resShapes.data);
+    select = cloneDeep(init.select);
+    checkData();
+    checkGroups();
+    draw($canvas, ctx);
+    setIsProjectsModalOpen(false);
+
+    if (!hasEnter) {
+      setHasEnter(true);
     }
+  };
 
-    useEffected = true;
-  }, []);
+  const onClickDeleteProject = async (id: ProjectTypes.Project["id"]) => {
+    let $canvas = document.querySelector("canvas");
+    if (!$canvas || !ctx) return;
+
+    try {
+      const res: AxiosResponse<ProjectAPITypes.DeleteProject["resData"]> =
+        await projectAPIs.deleteProject(id);
+
+      if (id === selectedProjectId) {
+        shapes = [];
+        setSelectedProjectId(null);
+        setHasEnter(false);
+        setProjects(
+          cloneDeep(projects).filter((project) => project.id !== res.data.id)
+        );
+      }
+    } catch (err) {
+      // TODO: handle error
+    }
+  };
+
+  const onClickNewProjectCard = async () => {
+    if (qas) {
+      setHasEnter(true);
+      setIsProjectsModalOpen(false);
+      return;
+    }
+    shapes = [];
+    const newProject: AxiosResponse<ProjectAPITypes.CreateProject["resData"]> =
+      await projectAPIs.createProject();
+
+    const res: AxiosResponse<ProjectAPITypes.GetProjects["resData"], any> =
+      await projectAPIs.getProjecs();
+
+    setIsProjectsModalOpen(false);
+    setProjects(res.data);
+    setSelectedProjectId(newProject.data.id);
+    setHasEnter(true);
+  };
+
+  const onClickProjectsModalX = () => {
+    setIsProjectsModalOpen(false);
+  };
+
+  const onClickLogOutButton = () => {
+    shapes = [];
+    let $canvas = document.querySelector("canvas");
+    if (!$canvas || !ctx) return;
+    draw($canvas, ctx);
+    localStorage.removeItem("Authorization");
+    setIsLogin(true);
+    setProjects([]);
+    setSelectedProjectId(null);
+    setHasEnter(false);
+    setAuthInfo(init.authInfo);
+    setIsProjectsModalOpen(false);
+    setIsAccountModalOpen(true);
+    setSteps({});
+  };
 
   useEffect(() => {
+    if (!isBrowser) return;
+    verifyToken();
+
+    const $canvas = document.querySelector("canvas");
     if (!$canvas || !ctx) return;
     draw($canvas, ctx);
 
     const resize = () => {
       let $canvas = document.querySelector("canvas");
-      if (!$canvas || !ctx) return;
+      if (!isBrowser || !$canvas || !ctx) return;
       $canvas.width = window.innerWidth;
       $canvas.height = window.innerHeight;
       draw($canvas, ctx);
     };
+
     window.addEventListener("resize", resize);
     window.addEventListener("beforeunload", function (e) {
       e.preventDefault();
@@ -2002,15 +2224,18 @@ export default function ProcessPage() {
     });
 
     return () => {
+      if (!isBrowser) return;
       window.removeEventListener("resize", resize);
     };
   }, []);
 
   useEffect(() => {
+    if (!isBrowser) return;
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
 
     return () => {
+      if (!isBrowser) return;
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
@@ -2018,13 +2243,13 @@ export default function ProcessPage() {
 
   return (
     <>
-      {/* <Modal
+      <Modal
         isOpen={
           isAccountModalOpen && !isProjectsModalOpen && !isProjectsModalOpen
         }
         width="400px"
       >
-        <div className="bg-white-500 rounded-lg p-8 flex flex-col w-full mt-10">
+        <div className="bg-white-500 rounded-lg p-8 flex flex-col w-full">
           <a className="flex title-font font-medium justify-center items-center text-gray-900 mb-4">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -2081,9 +2306,13 @@ export default function ProcessPage() {
             onClick={isLogIn ? onClickLoginButton : onClickSignUpButton}
             loading={isAuthorizing}
           />
-          {(authMessage.text) &&
-            <Alert className="mt-2" type={authMessage.status} text={authMessage.text} />
-          }
+          {authMessage.text && (
+            <Alert
+              className="mt-2"
+              type={authMessage.status}
+              text={authMessage.text}
+            />
+          )}
           <p className="text-xs text-gray-500 mt-3">
             {isLogIn ? "No account yet? " : "Already have an account? "}
             <a
@@ -2096,31 +2325,87 @@ export default function ProcessPage() {
             </a>
           </p>
         </div>
-      </Modal> */}
-      {/* <Modal isOpen={isProjectsModalOpen} width="728px">
-        <section className="text-gray-600 bg-white-500 body-font">
-          <div className="px-5 py-24 mx-auto">
-            <h2 className="text-center text-gray-900 title-font text-xl font-semibold mb-4 py-4 px-4 border-b border-grey-5">
-              PROJECTS
-            </h2>
-            <div className="flex justify-between flex-wrap">
-              <Card text={
-                <h2 className="text-info-500 title-font text-lg font-medium">
-                  New Project
-                </h2>
-              } />
-              {projects.map(project =>
-                <Card key={project.id} text={
-                  <h2 className="title-font text-lg font-medium">
-                    {project.name}
-                  </h2>
-                } />
-              )}
+      </Modal>
+      <Modal
+        isOpen={isProjectsModalOpen}
+        width="1120px"
+        onClickX={
+          hasEnter && selectedProjectId !== null
+            ? onClickProjectsModalX
+            : undefined
+        }
+      >
+        <div>
+          <section className="rounded-lg text-gray-600 bg-white-500 p-8 body-font">
+            <div className="flex justify-end align-center">
+              <Button onClick={onClickLogOutButton} text={"Log Out"} danger />
             </div>
-          </div>
-        </section>
-      </Modal> */}
-      <header className="w-full fixed z-50 text-gray-600 body-font bg-primary-500">
+            {/* <div className="text-right">
+              <Button
+                className="ms-auto inline-flex"
+                onClick={() => {}}
+                text={"Sign Out"}
+              />
+            </div> */}
+            <div className="mb-6 py-2 px-4 border-b border-grey-5">
+              <h2 className="text-gray-900 title-font text-lg font-semibold">
+                Projects
+              </h2>
+            </div>
+            <div className="grid grid-cols-3 gap-4 h-[500px] overflow-auto">
+              <div>
+                <Card
+                  className="cursor-pointer"
+                  text={
+                    <h2 className="text-info-500 title-font text-lg font-medium">
+                      New Project
+                    </h2>
+                  }
+                  onClick={onClickNewProjectCard}
+                />
+              </div>
+              {projects.map((project) => (
+                <div>
+                  <Card
+                    className="cursor-pointer"
+                    key={project.id}
+                    text={
+                      <h2 className="title-font text-lg font-medium">
+                        {project.name}
+                      </h2>
+                    }
+                    selected={selectedProjectId === project.id}
+                    onClick={() => {
+                      onClickProjectCard(project.id);
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="flex justify-end items-center mt-6 pt-4 border-t border-grey-5">
+              <Button
+                className="me-3"
+                onClick={() => {
+                  if (!selectedProjectId) return;
+                  onClickDeleteProject(selectedProjectId);
+                }}
+                text={"Delete"}
+                disabled={selectedProjectId === null}
+                danger
+              />
+              <Button
+                onClick={() => {
+                  if (!selectedProjectId) return;
+                  onClickConfrimProject(selectedProjectId);
+                }}
+                text={"Confirm"}
+                disabled={selectedProjectId === null}
+              />
+            </div>
+          </section>
+        </div>
+      </Modal>
+      <header className="w-full fixed z-50 text-gray-600 body-font bg-primary-500 shadow-md">
         <ul className="container mx-auto grid grid-cols-3 py-3 px-4">
           <li>
             <a className="flex title-font font-medium items-center text-gray-900 mb-4 md:mb-0">
@@ -2150,7 +2435,7 @@ export default function ProcessPage() {
           <li className="flex justify-self-end self-center text-base">
             <Button
               className={"mr-4 bg-secondary-500"}
-              onClick={(e) => {}}
+              onClick={onClickSaveButton}
               text={
                 <div className="d-flex items-center">
                   <span className="text-white-500">Save</span>
@@ -2176,10 +2461,13 @@ export default function ProcessPage() {
         d={["b"]}
         onClickSwitch={onClickDataSidePanelSwitch}
       >
+        <div className="text-xl pb-4 mb-2 border-b border-grey-5 text-black-2">
+          Shapes
+        </div>
         <ul>
           {Object.entries(steps).map(([stepId, step], stepI) => {
             return (
-              <li key={stepId} className="mb-1">
+              <li key={stepId}>
                 <Accordion
                   showArrow={!(step.shape instanceof Terminal)}
                   title={step.shape.title}

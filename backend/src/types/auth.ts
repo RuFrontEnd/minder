@@ -1,5 +1,7 @@
 import { JwtPayload } from "jsonwebtoken";
 
-type JWTDecoded = string | JwtPayload & { userId: number } | undefined
+type JWTDecoded = JwtPayload & { userId: number };
 
-export type { JWTDecoded }
+type UserId = number;
+
+export type { JWTDecoded, UserId };

@@ -21,7 +21,7 @@ type Props = {
     title: Title,
     data: DataType,
     selectedData: DataType,
-    shape: any
+    deletedData:DataType,
   ) => void;
   onClick?: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
   warning?: Warning;

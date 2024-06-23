@@ -67,6 +67,7 @@ type Receiving = {
 type SendTo = {
   shape: Core;
   d: Direction;
+  bridgeId: string;
 };
 
 type SendCurve = {
@@ -77,9 +78,16 @@ type SendCurve = {
 type ReceiveFrom = {
   shape: Core;
   d: Direction;
+  bridgeId: string;
 };
 
-export { PressingTarget };
+enum Status {
+  normal = "normal",
+  disabled = "disabled",
+  error = "error",
+}
+
+export { PressingTarget, Status };
 export type {
   ConncetionTarget,
   ReceivingTarget,

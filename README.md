@@ -21,8 +21,7 @@ FT
 - [x] validating required fields
 - [X] verifing repeated data name
 - [X] register
-- [ ] login
-- [ ] groups
+- [X] login
 - [ ] undo
 - [ ] redo
 - [ ] optimizing UI
