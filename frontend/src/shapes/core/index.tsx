@@ -26,12 +26,12 @@ export default class Core {
       stroke: number;
     };
   } = {
-      d: 50,
-      size: {
-        fill: 4,
-        stroke: 2,
-      },
-    };
+    d: 50,
+    size: {
+      fill: 4,
+      stroke: 2,
+    },
+  };
   private strokeSize = 1;
   private initOffset = {
     x: 0,
@@ -62,6 +62,7 @@ export default class Core {
   redundancies: DataType;
   __offset__: Vec;
   __scale__: number;
+  status: CoreTypes.Status;
 
   constructor(
     id: string,
@@ -98,10 +99,11 @@ export default class Core {
     };
     this.options = [];
     this.selectedData = [];
-    this.deletedData = []
+    this.deletedData = [];
     this.redundancies = [];
     this.__offset__ = this.initOffset;
     this.__scale__ = this.initScale;
+    this.status = CoreTypes.Status.normal;
   }
 
   set p(value: Vec) {
@@ -542,7 +544,7 @@ export default class Core {
     for (const d of ds) {
       if (
         (p.x - center.curveTrigger[d].x) * (p.x - center.curveTrigger[d].x) +
-        (p.y - center.curveTrigger[d].y) * (p.y - center.curveTrigger[d].y) <
+          (p.y - center.curveTrigger[d].y) * (p.y - center.curveTrigger[d].y) <
         this.curveTrigger.size.fill * this.curveTrigger.size.fill
       ) {
         return Direction[d];
@@ -678,6 +680,7 @@ export default class Core {
   }
 
   getRedundancies() {
+    this.status = CoreTypes.Status.normal;
     this.redundancies = [];
 
     let optionsHash: { [text: string]: boolean } = {};
@@ -697,6 +700,10 @@ export default class Core {
         this.redundancies.push(dataItem);
       }
     });
+
+    if (this.redundancies.length > 0) {
+      this.status = CoreTypes.Status.error;
+    }
   }
 
   getIsReceiving() {
@@ -963,7 +970,7 @@ export default class Core {
     });
   };
 
-  draw(ctx: CanvasRenderingContext2D) {
+  draw(ctx: CanvasRenderingContext2D, drawShapePath: () => void) {
     const edge = this.getEdge(),
       fillRectParams = {
         x: edge.l - this.getScreenP().x,
@@ -975,12 +982,22 @@ export default class Core {
     ctx.save();
     ctx.translate(this.getScreenP().x, this.getScreenP().y);
 
-    const isAlert = this.redundancies.length > 0;
-    let renderC = isAlert ? "#EB5757" : this.c;
+    ctx.fillStyle = (() => {
+      switch (this.status) {
+        case CoreTypes.Status.disabled:
+          return "#7e7e7e";
 
-    ctx.fillStyle = renderC;
+        case CoreTypes.Status.error:
+          return "#EB5757";
 
-    if (isAlert) {
+        default:
+          return this.c;
+      }
+    })();
+
+    drawShapePath();
+
+    if (this.status === CoreTypes.Status.error) {
       // draw error message
       ctx.textAlign = "end";
       ctx.fillText(

@@ -29,9 +29,9 @@ export default class Data extends Core {
     // when sender width changes, receiver curve follows the sender shape
     this.curves[Direction.l].forEach((sendCurve) => {
       const point = {
-        t: -this.w / 2 + this.w * this.thersholdRatio,
-        b: -this.w / 2,
-      },
+          t: -this.w / 2 + this.w * this.thersholdRatio,
+          b: -this.w / 2,
+        },
         centerP = (point.t + point.b) / 2,
         distance = centerP - sendCurve.shape.p1.x;
 
@@ -49,9 +49,9 @@ export default class Data extends Core {
 
     this.curves[Direction.r].forEach((sendCurve) => {
       const point = {
-        t: this.w / 2,
-        b: this.w / 2 - this.w * this.thersholdRatio,
-      },
+          t: this.w / 2,
+          b: this.w / 2 - this.w * this.thersholdRatio,
+        },
         centerP = (point.t + point.b) / 2,
         distance = centerP - sendCurve.shape.p1.x;
 
@@ -107,9 +107,7 @@ export default class Data extends Core {
     };
   }
 
-  stickyToConnectTarget() {
-
-  }
+  stickyToConnectTarget() {}
 
   getCorner() {
     const frameThreshold = this.getFrameThreshold();
@@ -374,25 +372,17 @@ export default class Data extends Core {
   // }
 
   draw(ctx: CanvasRenderingContext2D) {
-    ctx.save();
-    ctx.translate(this.getScreenP().x, this.getScreenP().y);
-    const isAlert = this.redundancies.length > 0;
-    let renderC = isAlert ? "#EC3333" : this.c;
-    ctx.fillStyle = renderC;
+    super.draw(ctx, () => {
+      const corners = this.getCorner().scale;
 
-    const corners = this.getCorner().scale;
-
-    ctx.beginPath();
-    ctx.moveTo(corners.tl.x, corners.tl.y);
-    ctx.lineTo(corners.tr.x, corners.tr.y);
-    ctx.lineTo(corners.br.x, corners.br.y);
-    ctx.lineTo(corners.bl.x, corners.bl.y);
-    ctx.closePath();
-    ctx.fill();
-
-    ctx.restore();
-
-    super.draw(ctx);
+      ctx.beginPath();
+      ctx.moveTo(corners.tl.x, corners.tl.y);
+      ctx.lineTo(corners.tr.x, corners.tr.y);
+      ctx.lineTo(corners.br.x, corners.br.y);
+      ctx.lineTo(corners.bl.x, corners.bl.y);
+      ctx.closePath();
+      ctx.fill();
+    });
   }
 
   drawRecievingPoint(ctx: CanvasRenderingContext2D) {
