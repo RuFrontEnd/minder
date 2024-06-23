@@ -46,6 +46,8 @@ type CurveInfo = {
   text: null | string;
 };
 
+type Data = { id: string; text: string };
+
 type ShapeData = {
   projectId: number;
   orders: string[];
@@ -65,15 +67,16 @@ type ShapeData = {
         r: ShapeId[];
         b: ShapeId[];
       };
-      data: ShapeId[];
-      selectedData: ShapeId[];
+      data: Data["id"][];
+      selectedData: Data["id"][];
+      deletedData: Data["id"][];
     };
   };
   curves: {
     [curveId: ShapeId]: CurveInfo;
   };
   data: {
-    [stringId: ShapeId]: string;
+    [stringId: Data["id"]]: string;
   };
 };
 

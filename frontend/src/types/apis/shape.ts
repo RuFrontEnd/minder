@@ -46,6 +46,7 @@ type ShapeData = {
       };
       data: CommonTypes.Id[];
       selectedData: CommonTypes.Id[];
+      deletedData: CommonTypes.Id[];
       text: null | {
         l: DecisionTypes.Text;
         t: DecisionTypes.Text;

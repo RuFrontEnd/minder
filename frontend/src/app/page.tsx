@@ -175,6 +175,13 @@ const getInitializedShapes = (data: ShapeAPITypes.GetShapes["resData"]) => {
           });
         });
 
+        info.deletedData.forEach((dataId) => {
+          newTerminator.deletedData.push({
+            id: dataId,
+            text: data.data[dataId],
+          });
+        });
+
         newTerminator.offset = offset;
 
         shapeMappings[id] = newTerminator;
@@ -197,6 +204,13 @@ const getInitializedShapes = (data: ShapeAPITypes.GetShapes["resData"]) => {
           });
         });
 
+        info.deletedData.forEach((dataId) => {
+          newData.deletedData.push({
+            id: dataId,
+            text: data.data[dataId],
+          });
+        });
+
         newData.offset = offset;
 
         shapeMappings[id] = newData;
@@ -207,6 +221,13 @@ const getInitializedShapes = (data: ShapeAPITypes.GetShapes["resData"]) => {
 
         info.selectedData.forEach((dataId) => {
           newProcess.selectedData.push({
+            id: dataId,
+            text: data.data[dataId],
+          });
+        });
+
+        info.deletedData.forEach((dataId) => {
+          newProcess.deletedData.push({
             id: dataId,
             text: data.data[dataId],
           });
@@ -232,6 +253,13 @@ const getInitializedShapes = (data: ShapeAPITypes.GetShapes["resData"]) => {
 
         info.selectedData.forEach((dataId) => {
           newDesicion.selectedData.push({
+            id: dataId,
+            text: data.data[dataId],
+          });
+        });
+
+        info.deletedData.forEach((dataId) => {
+          newDesicion.deletedData.push({
             id: dataId,
             text: data.data[dataId],
           });
@@ -2078,6 +2106,7 @@ export default function ProcessPage() {
         selectedData: shape.selectedData.map(
           (selectedDataItem) => selectedDataItem.id
         ),
+        deletedData: shape.deletedData.map((deleteData) => deleteData.id),
         text: shape instanceof Desicion ? shape?.text : null,
       };
     });
