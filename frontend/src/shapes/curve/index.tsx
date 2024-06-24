@@ -243,69 +243,69 @@ export default class Curve {
     };
   }
 
-  moveHandler(pressingTarget: CurveTypes.PressingTarget, p: Vec) {
-    // TODO: temporary closed
-    // if (pressingTarget === CurveTypes.PressingTarget.p1 && this.p1 !== null && this.cp1 !== null) {
-    //   const offset = {
-    //     x: p.x - this.getScreenP().p1.x,
-    //     y: p.y - this.getScreenP().p1.y,
-    //   };
+  // moveHandler(pressingTarget: CurveTypes.PressingTarget, p: Vec) {
+  //   // TODO: temporary closed
+  //   // if (pressingTarget === CurveTypes.PressingTarget.p1 && this.p1 !== null && this.cp1 !== null) {
+  //   //   const offset = {
+  //   //     x: p.x - this.getScreenP().p1.x,
+  //   //     y: p.y - this.getScreenP().p1.y,
+  //   //   };
 
-    //   this.p1 = {
-    //     x: p.x / this.__scale__ - this.__offset__.x - this.p1.x,
-    //     y: p.y / this.__scale__ - this.__offset__.y - this.p1.y,
-    //   };
+  //   //   this.p1 = {
+  //   //     x: p.x / this.__scale__ - this.__offset__.x - this.p1.x,
+  //   //     y: p.y / this.__scale__ - this.__offset__.y - this.p1.y,
+  //   //   };
 
-    //   this.cp1.x += offset.x;
-    //   this.cp1.y += offset.y;
-    // } else
-    if (
-      pressingTarget === CurveTypes.PressingTarget.cp1 &&
-      this.cp1?.x !== null &&
-      this.cp1?.y !== null
-    ) {
-      this.cp1 = {
-        x: p.x / this.__scale__ - this.__offset__.x,
-        y: p.y / this.__scale__ - this.__offset__.y,
-      };
-    } else if (
-      pressingTarget === CurveTypes.PressingTarget.cp2 &&
-      this.cp2?.x !== null &&
-      this.cp2?.y !== null
-    ) {
-      this.cp2 = {
-        x: p.x / this.__scale__ - this.__offset__.x,
-        y: p.y / this.__scale__ - this.__offset__.y,
-      };
-    } else if (
-      pressingTarget === CurveTypes.PressingTarget.p2 &&
-      this.p2 !== null &&
-      this.cp2 !== null
-    ) {
-      const offset = {
-        x: p.x / this.__scale__ - this.__offset__.x - this.p2.x,
-        y: p.y / this.__scale__ - this.__offset__.y - this.p2.y,
-      };
+  //   //   this.cp1.x += offset.x;
+  //   //   this.cp1.y += offset.y;
+  //   // } else
+  //   if (
+  //     pressingTarget === CurveTypes.PressingTarget.cp1 &&
+  //     this.cp1?.x !== null &&
+  //     this.cp1?.y !== null
+  //   ) {
+  //     this.cp1 = {
+  //       x: p.x / this.__scale__ - this.__offset__.x,
+  //       y: p.y / this.__scale__ - this.__offset__.y,
+  //     };
+  //   } else if (
+  //     pressingTarget === CurveTypes.PressingTarget.cp2 &&
+  //     this.cp2?.x !== null &&
+  //     this.cp2?.y !== null
+  //   ) {
+  //     this.cp2 = {
+  //       x: p.x / this.__scale__ - this.__offset__.x,
+  //       y: p.y / this.__scale__ - this.__offset__.y,
+  //     };
+  //   } else if (
+  //     pressingTarget === CurveTypes.PressingTarget.p2 &&
+  //     this.p2 !== null &&
+  //     this.cp2 !== null
+  //   ) {
+  //     const offset = {
+  //       x: p.x / this.__scale__ - this.__offset__.x - this.p2.x,
+  //       y: p.y / this.__scale__ - this.__offset__.y - this.p2.y,
+  //     };
 
-      this.p2 = {
-        x: p.x / this.__scale__ - this.__offset__.x,
-        y: p.y / this.__scale__ - this.__offset__.y,
-      };
+  //     this.p2 = {
+  //       x: p.x / this.__scale__ - this.__offset__.x,
+  //       y: p.y / this.__scale__ - this.__offset__.y,
+  //     };
 
-      this.cp2.x += offset.x;
-      this.cp2.y += offset.y;
-    }
+  //     this.cp2.x += offset.x;
+  //     this.cp2.y += offset.y;
+  //   }
 
-    if (this.arrow && this.p2 && this.cp2) {
-      this.arrow.p = { x: this.getScreenP().p2.x, y: this.getScreenP().p2.y };
-      // this.arrow.deg =
-      //   Math.atan2(
-      //     this.getScreenP().p2.y - this.getScreenP().cp2.y,
-      //     this.getScreenP().p2.x - this.getScreenP().cp2.x
-      //   ) +
-      //   90 * (Math.PI / 180);
-    }
-  }
+  //   if (this.arrow && this.p2 && this.cp2) {
+  //     this.arrow.p = { x: this.getScreenP().p2.x, y: this.getScreenP().p2.y };
+  //     // this.arrow.deg =
+  //     //   Math.atan2(
+  //     //     this.getScreenP().p2.y - this.getScreenP().cp2.y,
+  //     //     this.getScreenP().p2.x - this.getScreenP().cp2.x
+  //     //   ) +
+  //     //   90 * (Math.PI / 180);
+  //   }
+  // }
 
   draw(ctx: CanvasRenderingContext2D) {
     if (!this.p1 || !this.p2 || !this.cp1 || !this.cp2) return;

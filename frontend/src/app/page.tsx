@@ -1032,17 +1032,23 @@ export default function ProcessPage() {
           });
         }
         if (
+          !pressing.parent ||
+          !pressing.direction ||
           (pressing.target !== CurveTypes.PressingTarget.cp1 &&
             pressing.target !== CurveTypes.PressingTarget.cp2 &&
-            pressing.target !== CurveTypes.PressingTarget.p2) ||
-          !pressing.parent
+            pressing.target !== CurveTypes.PressingTarget.p2)
         )
           return;
         const curveP = {
           x: p.x - pressing.parent?.getScreenP().x,
           y: p.y - pressing.parent?.getScreenP().y,
         };
-        pressing.shape.moveHandler(pressing.target, curveP);
+        pressing.parent.moveCurve(
+          pressing.direction,
+          pressing.shape.id,
+          pressing.target,
+          offsetP
+        );
       }
     } else if (select.shapes.length > 0) {
       // multi select

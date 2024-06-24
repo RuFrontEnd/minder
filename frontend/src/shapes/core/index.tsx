@@ -5,6 +5,7 @@ import { Inter } from "next/font/google";
 import { Vec, Direction, Data as DataType } from "@/types/shapes/common";
 import * as CoreTypes from "@/types/shapes/core";
 import * as CommonTypes from "@/types/shapes/common";
+import * as CurveTypes from "@/types/shapes/curve";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -730,6 +731,30 @@ export default class Core {
       x: this.p.x + xOffset,
       y: this.p.y + yOffset,
     };
+  }
+
+  moveCurve(
+    d: CommonTypes.Direction,
+    id: string,
+    moveTarget: CurveTypes.PressingTarget,
+    p: Vec
+  ) {
+    const curve = this.curves[d].find((curve) => curve.shape.id === id)?.shape;
+
+    if (!curve) return;
+
+    switch (moveTarget) {
+      case CurveTypes.PressingTarget.cp1:
+        break;
+      case CurveTypes.PressingTarget.cp2:
+        break;
+      case CurveTypes.PressingTarget.p2:
+        curve.p2 = {
+          x: curve.p2.x + p.x / this.__scale__,
+          y: curve.p2.y + p.y / this.__scale__,
+        };
+        break;
+    }
   }
 
   resize(offset: Vec, vertex: CoreTypes.PressingTarget) {
