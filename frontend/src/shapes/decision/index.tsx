@@ -90,14 +90,14 @@ export default class Desicion extends Core {
 
   draw(ctx: CanvasRenderingContext2D) {
     super.draw(ctx, () => {
-      const x1 = -this.getScaleSize().w / 2,
+      const x1 = -this.getScreenSize().w / 2,
         y1 = 0;
       const x2 = 0,
-        y2 = this.getScaleSize().h / 2;
-      const x3 = this.getScaleSize().w / 2,
+        y2 = this.getScreenSize().h / 2;
+      const x3 = this.getScreenSize().w / 2,
         y3 = 0;
       const x4 = 0,
-        y4 = -this.getScaleSize().h / 2;
+        y4 = -this.getScreenSize().h / 2;
 
       ctx.beginPath();
       ctx.moveTo(x1, y1);

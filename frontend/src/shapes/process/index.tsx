@@ -32,8 +32,8 @@ export default class Process extends Core {
       ctx.fillRect(
         edge.l - this.getScreenP().x,
         edge.t - this.getScreenP().y,
-        this.getScaleSize().w,
-        this.getScaleSize().h
+        this.getScreenSize().w,
+        this.getScreenSize().h
       );
       ctx.closePath();
     });

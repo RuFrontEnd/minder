@@ -103,7 +103,7 @@ export default class Data extends Core {
   getFrameThreshold() {
     return {
       normal: this.w * this.thersholdRatio,
-      scale: this.getScaleSize().w * this.thersholdRatio,
+      scale: this.getScreenSize().w * this.thersholdRatio,
     };
   }
 
@@ -132,20 +132,20 @@ export default class Data extends Core {
       },
       scale: {
         tl: {
-          x: -this.getScaleSize().w / 2 + frameThreshold.scale,
-          y: -this.getScaleSize().h / 2,
+          x: -this.getScreenSize().w / 2 + frameThreshold.scale,
+          y: -this.getScreenSize().h / 2,
         },
         tr: {
-          x: this.getScaleSize().w / 2,
-          y: -this.getScaleSize().h / 2,
+          x: this.getScreenSize().w / 2,
+          y: -this.getScreenSize().h / 2,
         },
         br: {
-          x: this.getScaleSize().w / 2 - frameThreshold.scale,
-          y: this.getScaleSize().h / 2,
+          x: this.getScreenSize().w / 2 - frameThreshold.scale,
+          y: this.getScreenSize().h / 2,
         },
         bl: {
-          x: -this.getScaleSize().w / 2,
-          y: this.getScaleSize().h / 2,
+          x: -this.getScreenSize().w / 2,
+          y: this.getScreenSize().h / 2,
         },
       },
     };
@@ -399,7 +399,7 @@ export default class Data extends Core {
     if (this.receiving.l) {
       ctx.beginPath();
       ctx.arc(
-        -this.getScaleSize().w / 2 + Math.abs(corners.tl.x - corners.bl.x) / 2,
+        -this.getScreenSize().w / 2 + Math.abs(corners.tl.x - corners.bl.x) / 2,
         0,
         this.anchor.size.fill,
         0,
@@ -416,7 +416,7 @@ export default class Data extends Core {
       ctx.beginPath();
       ctx.arc(
         0,
-        -this.getScaleSize().h / 2,
+        -this.getScreenSize().h / 2,
         this.anchor.size.fill,
         0,
         2 * Math.PI,
@@ -431,7 +431,7 @@ export default class Data extends Core {
     if (this.receiving.r) {
       ctx.beginPath();
       ctx.arc(
-        this.getScaleSize().w / 2 - Math.abs(corners.tr.x - corners.br.x) / 2,
+        this.getScreenSize().w / 2 - Math.abs(corners.tr.x - corners.br.x) / 2,
         0,
         this.anchor.size.fill,
         0,
@@ -448,7 +448,7 @@ export default class Data extends Core {
       ctx.beginPath();
       ctx.arc(
         0,
-        this.getScaleSize().h / 2,
+        this.getScreenSize().h / 2,
         this.anchor.size.fill,
         0,
         2 * Math.PI,

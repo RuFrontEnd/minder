@@ -345,7 +345,7 @@ export default class Core {
     };
   }
 
-  getScaleSize() {
+  getScreenSize() {
     return {
       w: this.w * this.scale,
       h: this.h * this.scale,
@@ -358,10 +358,10 @@ export default class Core {
 
   getEdge() {
     return {
-      l: this.getScreenP().x - this.getScaleSize().w / 2,
-      t: this.getScreenP().y - this.getScaleSize().h / 2,
-      r: this.getScreenP().x + this.getScaleSize().w / 2,
-      b: this.getScreenP().y + this.getScaleSize().h / 2,
+      l: this.getScreenP().x - this.getScreenSize().w / 2,
+      t: this.getScreenP().y - this.getScreenSize().h / 2,
+      r: this.getScreenP().x + this.getScreenSize().w / 2,
+      b: this.getScreenP().y + this.getScreenSize().h / 2,
     };
   }
 
@@ -410,20 +410,20 @@ export default class Core {
       },
       receivingPoints: {
         l: {
-          x: pivot.x - this.getScaleSize().w / 2,
+          x: pivot.x - this.getScreenSize().w / 2,
           y: pivot.y,
         },
         t: {
           x: pivot.x,
-          y: pivot.y - this.getScaleSize().h / 2,
+          y: pivot.y - this.getScreenSize().h / 2,
         },
         r: {
-          x: pivot.x + this.getScaleSize().w / 2,
+          x: pivot.x + this.getScreenSize().w / 2,
           y: pivot.y,
         },
         b: {
           x: pivot.x,
-          y: pivot.y + this.getScaleSize().h / 2,
+          y: pivot.y + this.getScreenSize().h / 2,
         },
       },
     };
@@ -474,6 +474,28 @@ export default class Core {
     }
 
     return null;
+  }
+
+  checkCurveBoundry(d: CommonTypes.Direction, id: string, p: Vec) {
+    const curve = this.curves[d].find((curve) => curve.shape.id === id)?.shape;
+
+    if (!curve) return;
+
+    return curve.checkBoundry({
+      x: p.x - this.getScreenP().x,
+      y: p.y - this.getScreenP().y,
+    });
+  }
+
+  checkCurveControlPointsBoundry(d: CommonTypes.Direction, id: string, p: Vec) {
+    const curve = this.curves[d].find((curve) => curve.shape.id === id)?.shape;
+
+    if (!curve) return;
+
+    return curve.checkControlPointsBoundry({
+      x: p.x - this.getScreenP().x,
+      y: p.y - this.getScreenP().y,
+    });
   }
 
   checkReceivingBoundry(p: Vec) {
@@ -767,8 +789,6 @@ export default class Core {
           break;
       }
     });
-
-
   }
 
   resize(offset: Vec, vertex: CoreTypes.PressingTarget) {
@@ -1014,8 +1034,8 @@ export default class Core {
       fillRectParams = {
         x: edge.l - this.getScreenP().x,
         y: edge.t - this.getScreenP().y,
-        w: this.getScaleSize().w,
-        h: this.getScaleSize().h,
+        w: this.getScreenSize().w,
+        h: this.getScreenSize().h,
       };
 
     ctx.save();
@@ -1041,8 +1061,8 @@ export default class Core {
       ctx.textAlign = "end";
       ctx.fillText(
         "error!",
-        this.getScaleSize().w / 2,
-        -this.getScaleSize().h / 2 - 10
+        this.getScreenSize().w / 2,
+        -this.getScreenSize().h / 2 - 10
       );
     }
 
@@ -1123,14 +1143,14 @@ export default class Core {
     ctx.fillStyle = "white";
     ctx.font = `16px ${inter.style.fontFamily}`;
 
-    this.renderText(ctx, this.title, 0, 0, this.getScaleSize().w, 16);
+    this.renderText(ctx, this.title, 0, 0, this.getScreenSize().w, 16);
 
     // draw id text
     // ctx.textAlign = "start";
     // ctx.fillText(
     //   this.id,
-    //   -this.getScaleSize().w / 2,
-    //   -this.getScaleSize().h / 2 - 10
+    //   -this.getScreenSize().w / 2,
+    //   -this.getScreenSize().h / 2 - 10
     // );
 
     ctx.restore();
@@ -1161,7 +1181,7 @@ export default class Core {
     // left
     ctx.beginPath();
     ctx.arc(
-      -this.getScaleSize().w / 2 - this.getScaleCurveTriggerDistance(),
+      -this.getScreenSize().w / 2 - this.getScaleCurveTriggerDistance(),
       0,
       this.anchor.size.fill,
       0,
@@ -1176,7 +1196,7 @@ export default class Core {
     ctx.beginPath();
     ctx.arc(
       0,
-      -this.getScaleSize().h / 2 - this.getScaleCurveTriggerDistance(),
+      -this.getScreenSize().h / 2 - this.getScaleCurveTriggerDistance(),
       this.anchor.size.fill,
       0,
       2 * Math.PI,
@@ -1189,7 +1209,7 @@ export default class Core {
     // right
     ctx.beginPath();
     ctx.arc(
-      this.getScaleSize().w / 2 + this.getScaleCurveTriggerDistance(),
+      this.getScreenSize().w / 2 + this.getScaleCurveTriggerDistance(),
       0,
       this.anchor.size.fill,
       0,
@@ -1204,7 +1224,7 @@ export default class Core {
     ctx.beginPath();
     ctx.arc(
       0,
-      this.getScaleSize().h / 2 + this.getScaleCurveTriggerDistance(),
+      this.getScreenSize().h / 2 + this.getScaleCurveTriggerDistance(),
       this.curveTrigger.size.fill,
       0,
       2 * Math.PI,
@@ -1229,7 +1249,7 @@ export default class Core {
     if (this.receiving.l) {
       ctx.beginPath();
       ctx.arc(
-        -this.getScaleSize().w / 2,
+        -this.getScreenSize().w / 2,
         0,
         this.anchor.size.fill,
         0,
@@ -1246,7 +1266,7 @@ export default class Core {
       ctx.beginPath();
       ctx.arc(
         0,
-        -this.getScaleSize().h / 2,
+        -this.getScreenSize().h / 2,
         this.anchor.size.fill,
         0,
         2 * Math.PI,
@@ -1261,7 +1281,7 @@ export default class Core {
     if (this.receiving.r) {
       ctx.beginPath();
       ctx.arc(
-        this.getScaleSize().w / 2,
+        this.getScreenSize().w / 2,
         0,
         this.anchor.size.fill,
         0,
@@ -1278,7 +1298,7 @@ export default class Core {
       ctx.beginPath();
       ctx.arc(
         0,
-        this.getScaleSize().h / 2,
+        this.getScreenSize().h / 2,
         this.anchor.size.fill,
         0,
         2 * Math.PI,

@@ -20,29 +20,29 @@ export default class Terminal extends Core {
 
   draw(ctx: CanvasRenderingContext2D) {
     super.draw(ctx, () => {
-      if (this.getScaleSize().w >= this.getScaleSize().h) {
-        let r = this.getScaleSize().h / 2;
+      if (this.getScreenSize().w >= this.getScreenSize().h) {
+        let r = this.getScreenSize().h / 2;
         ctx.beginPath();
-        ctx.arc(-this.getScaleSize().w / 2 + r, 0, r, 0, 2 * Math.PI);
-        ctx.arc(this.getScaleSize().w / 2 - r, 0, r, 0, 2 * Math.PI);
+        ctx.arc(-this.getScreenSize().w / 2 + r, 0, r, 0, 2 * Math.PI);
+        ctx.arc(this.getScreenSize().w / 2 - r, 0, r, 0, 2 * Math.PI);
         ctx.fill();
         ctx.fillRect(
-          -this.getScaleSize().w / 2 + r,
+          -this.getScreenSize().w / 2 + r,
           -r,
-          this.getScaleSize().w - 2 * r,
-          this.getScaleSize().h
+          this.getScreenSize().w - 2 * r,
+          this.getScreenSize().h
         );
-      } else if (this.getScaleSize().w < this.getScaleSize().h) {
-        let r = this.getScaleSize().w / 2;
+      } else if (this.getScreenSize().w < this.getScreenSize().h) {
+        let r = this.getScreenSize().w / 2;
         ctx.beginPath();
-        ctx.arc(0, -this.getScaleSize().h / 2 + r, r, 0, 2 * Math.PI);
-        ctx.arc(0, this.getScaleSize().h / 2 - r, r, 0, 2 * Math.PI);
+        ctx.arc(0, -this.getScreenSize().h / 2 + r, r, 0, 2 * Math.PI);
+        ctx.arc(0, this.getScreenSize().h / 2 - r, r, 0, 2 * Math.PI);
         ctx.fill();
         ctx.fillRect(
           -r,
-          -this.getScaleSize().h / 2 + r,
-          this.getScaleSize().w,
-          this.getScaleSize().h - 2 * r
+          -this.getScreenSize().h / 2 + r,
+          this.getScreenSize().w,
+          this.getScreenSize().h - 2 * r
         );
       }
     });

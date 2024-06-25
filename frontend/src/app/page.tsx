@@ -145,7 +145,7 @@ const ds = [
 const getFramePosition = (shape: Core) => {
   const frameOffset = 12;
   return {
-    x: shape.getScreenP().x + shape.getScaleSize().w / 2 + frameOffset,
+    x: shape.getScreenP().x + shape.getScreenSize().w / 2 + frameOffset,
     y: shape.getScreenP().y,
   };
 };
@@ -766,7 +766,7 @@ export default function ProcessPage() {
     } else {
       if (select.shapes.length > 1) {
         // when multi select shapes
-        let _target:
+        let selectArea:
           | null
           | "selectArea_m"
           | "selectArea_lt"
@@ -778,25 +778,25 @@ export default function ProcessPage() {
           if (!$canvas) return;
 
           if (shape.checkBoundry(p)) {
-            _target = "selectArea_m";
+            selectArea = "selectArea_m";
           }
         });
 
         if (pInSelectArea_lt) {
-          _target = "selectArea_lt";
+          selectArea = "selectArea_lt";
         } else if (pInSelectArea_rt) {
-          _target = "selectArea_rt";
+          selectArea = "selectArea_rt";
         } else if (pInSelectArea_rb) {
-          _target = "selectArea_rb";
+          selectArea = "selectArea_rb";
         } else if (pInSelectArea_lb) {
-          _target = "selectArea_lb";
+          selectArea = "selectArea_lb";
         }
 
-        if (_target) {
+        if (selectArea) {
           pressing = {
             parent: null,
             shape: null,
-            target: _target,
+            target: selectArea,
             direction: null,
             dx: 0,
             dy: 0,
@@ -836,17 +836,17 @@ export default function ProcessPage() {
             shape.curves[d].forEach((curveInShape) => {
               const theCurve = curveInShape.shape;
 
-              const curveP = {
-                x: p.x - shape?.getScreenP().x,
-                y: p.y - shape?.getScreenP().y,
-              };
-
               if (!theCurve) return;
-              if (
-                theCurve.checkBoundry(curveP) ||
-                theCurve.checkControlPointsBoundry(curveP)
-              ) {
-                if (theCurve.checkBoundry(curveP)) {
+              
+              const isClickedCurve = shape.checkCurveBoundry(d, theCurve.id, p);
+              const clickCurveControlPointD = shape.checkCurveControlPointsBoundry(
+                d,
+                theCurve.id,
+                p
+              );
+
+              if (isClickedCurve || clickCurveControlPointD) {
+                if (isClickedCurve) {
                   pressing = {
                     parent: shape,
                     shape: theCurve,
@@ -857,11 +857,11 @@ export default function ProcessPage() {
                   };
                 }
 
-                if (theCurve.checkControlPointsBoundry(curveP)) {
+                if (clickCurveControlPointD) {
                   pressing = {
                     parent: shape,
                     shape: theCurve,
-                    target: theCurve.checkControlPointsBoundry(curveP),
+                    target: clickCurveControlPointD,
                     direction: d,
                     dx: 0,
                     dy: 0,
@@ -1030,7 +1030,7 @@ export default function ProcessPage() {
         };
 
         const moveCurve = getMoveCurve();
-        
+
         switch (pressing?.target) {
           case CurveTypes.PressingTarget.p2:
             pressing.parent.disConnect(pressing.parent, [pressing.shape.id]);
@@ -1096,7 +1096,7 @@ export default function ProcessPage() {
           };
 
           select.shapes.forEach((shape) => {
-            const ratioW = shape.getScaleSize().w / theSelect.w,
+            const ratioW = shape.getScreenSize().w / theSelect.w,
               unitW = offsetP.x * ratioW;
 
             if (canResize.x) {
@@ -1112,7 +1112,7 @@ export default function ProcessPage() {
               };
             }
 
-            const ratioH = shape.getScaleSize().h / theSelect.h,
+            const ratioH = shape.getScreenSize().h / theSelect.h,
               unitH = offsetP.y * ratioH;
 
             if (canResize.y) {
@@ -1143,7 +1143,7 @@ export default function ProcessPage() {
           };
 
           select.shapes.forEach((shape) => {
-            const ratioW = shape.getScaleSize().w / theSelect.w,
+            const ratioW = shape.getScreenSize().w / theSelect.w,
               unitW = offsetP.x * ratioW;
 
             if (canResize.x) {
@@ -1163,7 +1163,7 @@ export default function ProcessPage() {
               unitH = offsetP.y * ratioH;
 
             if (canResize.y) {
-              shape.h = shape.getScaleSize().h - unitH / scale;
+              shape.h = shape.getScreenSize().h - unitH / scale;
 
               const dy = Math.abs(shape.getScreenP().y - select.end.y),
                 ratioY = dy / theSelect.h,
@@ -1190,7 +1190,7 @@ export default function ProcessPage() {
           };
 
           select.shapes.forEach((shape) => {
-            const ratioW = shape.getScaleSize().w / theSelect.w,
+            const ratioW = shape.getScreenSize().w / theSelect.w,
               unitW = offsetP.x * ratioW;
 
             if (canResize.x) {
@@ -1206,7 +1206,7 @@ export default function ProcessPage() {
               };
             }
 
-            const ratioH = shape.getScaleSize().h / theSelect.h,
+            const ratioH = shape.getScreenSize().h / theSelect.h,
               unitH = offsetP.y * ratioH;
 
             if (canResize.y) {
@@ -1237,7 +1237,7 @@ export default function ProcessPage() {
           };
 
           select.shapes.forEach((shape) => {
-            const ratioW = shape.getScaleSize().w / theSelect.w,
+            const ratioW = shape.getScreenSize().w / theSelect.w,
               unitW = offsetP.x * ratioW;
 
             if (canResize.x) {
@@ -1253,7 +1253,7 @@ export default function ProcessPage() {
               };
             }
 
-            const ratioH = shape.getScaleSize().h / theSelect.h,
+            const ratioH = shape.getScreenSize().h / theSelect.h,
               unitH = offsetP.y * ratioH;
 
             if (canResize.y) {
