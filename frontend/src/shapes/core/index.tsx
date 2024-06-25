@@ -736,25 +736,39 @@ export default class Core {
   moveCurve(
     d: CommonTypes.Direction,
     id: string,
-    moveTarget: CurveTypes.PressingTarget,
+    moveTargets: CurveTypes.PressingTarget[],
     p: Vec
   ) {
     const curve = this.curves[d].find((curve) => curve.shape.id === id)?.shape;
 
     if (!curve) return;
 
-    switch (moveTarget) {
-      case CurveTypes.PressingTarget.cp1:
-        break;
-      case CurveTypes.PressingTarget.cp2:
-        break;
-      case CurveTypes.PressingTarget.p2:
-        curve.p2 = {
-          x: curve.p2.x + p.x / this.__scale__,
-          y: curve.p2.y + p.y / this.__scale__,
-        };
-        break;
-    }
+    moveTargets.forEach((moveTarget) => {
+      switch (moveTarget) {
+        case CurveTypes.PressingTarget.cp1:
+          curve.cp1 = {
+            x: curve.cp1.x + p.x / this.__scale__,
+            y: curve.cp1.y + p.y / this.__scale__,
+          };
+          break;
+
+        case CurveTypes.PressingTarget.cp2:
+          curve.cp2 = {
+            x: curve.cp2.x + p.x / this.__scale__,
+            y: curve.cp2.y + p.y / this.__scale__,
+          };
+          break;
+
+        case CurveTypes.PressingTarget.p2:
+          curve.p2 = {
+            x: curve.p2.x + p.x / this.__scale__,
+            y: curve.p2.y + p.y / this.__scale__,
+          };
+          break;
+      }
+    });
+
+
   }
 
   resize(offset: Vec, vertex: CoreTypes.PressingTarget) {
