@@ -263,8 +263,8 @@ export default class Data extends Core {
 
   checkReceivingPointsBoundry(p: CommonTypes.Vec) {
     const corners = this.getCorner().scale,
-      edge = this.getEdge(),
-      center = this.getCenter();
+      edge = this.getEdge().screen,
+      center = this.getCenter().screen;
 
     let dx, dy;
 

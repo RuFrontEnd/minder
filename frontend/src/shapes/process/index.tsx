@@ -26,7 +26,7 @@ export default class Process extends Core {
 
   draw(ctx: CanvasRenderingContext2D) {
     super.draw(ctx, () => {
-      const edge = this.getEdge();
+      const edge = this.getEdge().screen;
 
       ctx.beginPath();
       ctx.fillRect(

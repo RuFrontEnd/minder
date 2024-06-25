@@ -57,6 +57,7 @@ export default class Core {
     r: CoreTypes.ReceiveFrom[];
     b: CoreTypes.ReceiveFrom[];
   };
+  receiveHighlightOffset: number;
   options: DataType;
   selectedData: DataType;
   deletedData: DataType;
@@ -87,10 +88,10 @@ export default class Core {
     };
     this.__selecting__ = false;
     this.__receiving__ = {
-      l: false,
-      t: false,
-      r: false,
-      b: false,
+      l: { open: false, highlight: false },
+      t: { open: false, highlight: false },
+      r: { open: false, highlight: false },
+      b: { open: false, highlight: false },
     };
     this.receiveFrom = {
       l: [],
@@ -105,6 +106,7 @@ export default class Core {
     this.__offset__ = this.initOffset;
     this.__scale__ = this.initScale;
     this.status = CoreTypes.Status.normal;
+    this.receiveHighlightOffset = 5;
   }
 
   set p(value: Vec) {
@@ -358,72 +360,143 @@ export default class Core {
 
   getEdge() {
     return {
-      l: this.getScreenP().x - this.getScreenSize().w / 2,
-      t: this.getScreenP().y - this.getScreenSize().h / 2,
-      r: this.getScreenP().x + this.getScreenSize().w / 2,
-      b: this.getScreenP().y + this.getScreenSize().h / 2,
+      normal: {
+        l: this.p.x - this.w / 2,
+        t: this.p.y - this.h / 2,
+        r: this.p.x + this.w / 2,
+        b: this.p.y + this.h / 2,
+      },
+      screen: {
+        l: this.getScreenP().x - this.getScreenSize().w / 2,
+        t: this.getScreenP().y - this.getScreenSize().h / 2,
+        r: this.getScreenP().x + this.getScreenSize().w / 2,
+        b: this.getScreenP().y + this.getScreenSize().h / 2,
+      },
     };
   }
 
   getCenter() {
     const edge = this.getEdge();
     const pivot = {
-      x: this.getScreenP().x,
-      y: this.getScreenP().y,
+      normal: {
+        x: this.p.x,
+        y: this.p.y,
+      },
+      screen: {
+        x: this.getScreenP().x,
+        y: this.getScreenP().y,
+      },
     };
 
     return {
-      m: pivot,
-      lt: {
-        x: edge.l,
-        y: edge.t,
+      normal: {
+        m: pivot.normal,
+        lt: {
+          x: edge.normal.l,
+          y: edge.normal.t,
+        },
+        rt: {
+          x: edge.normal.r,
+          y: edge.normal.t,
+        },
+        rb: {
+          x: edge.normal.r,
+          y: edge.normal.b,
+        },
+        lb: {
+          x: edge.normal.l,
+          y: edge.normal.b,
+        },
+        curveTrigger: {
+          l: {
+            x: edge.normal.l - this.curveTrigger.d,
+            y: pivot.normal.y,
+          },
+          t: {
+            x: pivot.normal.x,
+            y: edge.normal.t - this.curveTrigger.d,
+          },
+          r: {
+            x: edge.normal.r + this.curveTrigger.d,
+            y: pivot.normal.y,
+          },
+          b: {
+            x: pivot.normal.x,
+            y: edge.normal.b + this.curveTrigger.d,
+          },
+        },
+        receivingPoints: {
+          l: {
+            x: pivot.normal.x - this.w / 2,
+            y: pivot.normal.y,
+          },
+          t: {
+            x: pivot.normal.x,
+            y: pivot.normal.y - this.h / 2,
+          },
+          r: {
+            x: pivot.normal.x + this.w / 2,
+            y: pivot.normal.y,
+          },
+          b: {
+            x: pivot.normal.x,
+            y: pivot.normal.y + this.h / 2,
+          },
+        },
       },
-      rt: {
-        x: edge.r,
-        y: edge.t,
-      },
-      rb: {
-        x: edge.r,
-        y: edge.b,
-      },
-      lb: {
-        x: edge.l,
-        y: edge.b,
-      },
-      curveTrigger: {
-        l: {
-          x: edge.l - this.getScaleCurveTriggerDistance(),
-          y: pivot.y,
+      screen: {
+        m: pivot.screen,
+        lt: {
+          x: edge.screen.l,
+          y: edge.screen.t,
         },
-        t: {
-          x: pivot.x,
-          y: edge.t - this.getScaleCurveTriggerDistance(),
+        rt: {
+          x: edge.screen.r,
+          y: edge.screen.t,
         },
-        r: {
-          x: edge.r + this.getScaleCurveTriggerDistance(),
-          y: pivot.y,
+        rb: {
+          x: edge.screen.r,
+          y: edge.screen.b,
         },
-        b: {
-          x: pivot.x,
-          y: edge.b + this.getScaleCurveTriggerDistance(),
+        lb: {
+          x: edge.screen.l,
+          y: edge.screen.b,
         },
-      },
-      receivingPoints: {
-        l: {
-          x: pivot.x - this.getScreenSize().w / 2,
-          y: pivot.y,
+        curveTrigger: {
+          l: {
+            x: edge.screen.l - this.getScaleCurveTriggerDistance(),
+            y: pivot.screen.y,
+          },
+          t: {
+            x: pivot.screen.x,
+            y: edge.screen.t - this.getScaleCurveTriggerDistance(),
+          },
+          r: {
+            x: edge.screen.r + this.getScaleCurveTriggerDistance(),
+            y: pivot.screen.y,
+          },
+          b: {
+            x: pivot.screen.x,
+            y: edge.screen.b + this.getScaleCurveTriggerDistance(),
+          },
         },
-        t: {
-          x: pivot.x,
-          y: pivot.y - this.getScreenSize().h / 2,
-        },
-        r: {
-          x: pivot.x + this.getScreenSize().w / 2,
-          y: pivot.y,
-        },
-        b: {
-          x: pivot.x,
-          y: pivot.y + this.getScreenSize().h / 2,
+        receivingPoints: {
+          l: {
+            x: pivot.screen.x - this.getScreenSize().w / 2,
+            y: pivot.screen.y,
+          },
+          t: {
+            x: pivot.screen.x,
+            y: pivot.screen.y - this.getScreenSize().h / 2,
+          },
+          r: {
+            x: pivot.screen.x + this.getScreenSize().w / 2,
+            y: pivot.screen.y,
+          },
+          b: {
+            x: pivot.screen.x,
+            y: pivot.screen.y + this.getScreenSize().h / 2,
+          },
         },
       },
     };
@@ -433,10 +506,10 @@ export default class Core {
     const edge = this.getEdge();
 
     return (
-      p.x > edge.l - this.anchor.size.fill &&
-      p.y > edge.t - this.anchor.size.fill &&
-      p.x < edge.r + this.anchor.size.fill &&
-      p.y < edge.b + this.anchor.size.fill
+      p.x > edge.screen.l - this.anchor.size.fill &&
+      p.y > edge.screen.t - this.anchor.size.fill &&
+      p.x < edge.screen.r + this.anchor.size.fill &&
+      p.y < edge.screen.b + this.anchor.size.fill
     );
   }
 
@@ -445,29 +518,29 @@ export default class Core {
 
     let dx, dy;
 
-    dx = edge.l - p.x;
-    dy = edge.t - p.y;
+    dx = edge.screen.l - p.x;
+    dy = edge.screen.t - p.y;
 
     if (dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill) {
       return CoreTypes.PressingTarget.lt;
     }
 
-    dx = edge.r - p.x;
-    dy = edge.t - p.y;
+    dx = edge.screen.r - p.x;
+    dy = edge.screen.t - p.y;
 
     if (dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill) {
       return CoreTypes.PressingTarget.rt;
     }
 
-    dx = edge.r - p.x;
-    dy = edge.b - p.y;
+    dx = edge.screen.r - p.x;
+    dy = edge.screen.b - p.y;
 
     if (dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill) {
       return CoreTypes.PressingTarget.rb;
     }
 
-    dx = edge.l - p.x;
-    dy = edge.b - p.y;
+    dx = edge.screen.l - p.x;
+    dy = edge.screen.b - p.y;
 
     if (dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill) {
       return CoreTypes.PressingTarget.lb;
@@ -504,10 +577,10 @@ export default class Core {
     const receivingBoundryOffset = 75;
 
     return (
-      p.x > edge.l - receivingBoundryOffset &&
-      p.y > edge.t - receivingBoundryOffset &&
-      p.x < edge.r + receivingBoundryOffset &&
-      p.y < edge.b + receivingBoundryOffset
+      p.x > edge.screen.l - receivingBoundryOffset &&
+      p.y > edge.screen.t - receivingBoundryOffset &&
+      p.x < edge.screen.r + receivingBoundryOffset &&
+      p.y < edge.screen.b + receivingBoundryOffset
     );
   }
 
@@ -517,43 +590,39 @@ export default class Core {
 
     let dx, dy;
 
-    dx = edge.l - p.x;
-    dy = center.m.y - p.y;
+    dx = edge.screen.l - p.x;
+    dy = center.screen.m.y - p.y;
 
-    if (
-      this.receiving.l &&
-      dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill
-    ) {
+    const squaredFillAnchorSize =
+      this.receiving.l.highlight ||
+      this.receiving.t.highlight ||
+      this.receiving.r.highlight ||
+      this.receiving.b.highlight
+        ? Math.pow(this.anchor.size.fill + this.receiveHighlightOffset, 2)
+        : Math.pow(this.anchor.size.fill, 2);
+
+    if (this.receiving.l.open && dx * dx + dy * dy < squaredFillAnchorSize) {
       return Direction.l;
     }
 
-    dx = center.m.x - p.x;
-    dy = edge.t - p.y;
+    dx = center.screen.m.x - p.x;
+    dy = edge.screen.t - p.y;
 
-    if (
-      this.receiving.t &&
-      dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill
-    ) {
+    if (this.receiving.t.open && dx * dx + dy * dy < squaredFillAnchorSize) {
       return Direction.t;
     }
 
-    dx = p.x - edge.r;
-    dy = center.m.y - p.y;
+    dx = p.x - edge.screen.r;
+    dy = center.screen.m.y - p.y;
 
-    if (
-      this.receiving.r &&
-      dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill
-    ) {
+    if (this.receiving.r.open && dx * dx + dy * dy < squaredFillAnchorSize) {
       return Direction.r;
     }
 
-    dx = center.m.x - p.x;
-    dy = p.y - edge.b;
+    dx = center.screen.m.x - p.x;
+    dy = p.y - edge.screen.b;
 
-    if (
-      this.receiving.b &&
-      dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill
-    ) {
+    if (this.receiving.b.open && dx * dx + dy * dy < squaredFillAnchorSize) {
       return Direction.b;
     }
 
@@ -566,8 +635,10 @@ export default class Core {
 
     for (const d of ds) {
       if (
-        (p.x - center.curveTrigger[d].x) * (p.x - center.curveTrigger[d].x) +
-          (p.y - center.curveTrigger[d].y) * (p.y - center.curveTrigger[d].y) <
+        (p.x - center.screen.curveTrigger[d].x) *
+          (p.x - center.screen.curveTrigger[d].x) +
+          (p.y - center.screen.curveTrigger[d].y) *
+            (p.y - center.screen.curveTrigger[d].y) <
         this.curveTrigger.size.fill * this.curveTrigger.size.fill
       ) {
         return Direction[d];
@@ -731,10 +802,10 @@ export default class Core {
 
   getIsReceiving() {
     return (
-      !this.receiving.l &&
-      !this.receiving.t &&
-      !this.receiving.r &&
-      !this.receiving.b
+      !this.receiving.l.open &&
+      !this.receiving.t.open &&
+      !this.receiving.r.open &&
+      !this.receiving.b.open
     );
   }
 
@@ -789,6 +860,42 @@ export default class Core {
           break;
       }
     });
+  }
+
+  locateCurve(
+    d: Direction,
+    id: string,
+    coordinate: {
+      [moveTarget in
+        | CurveTypes.PressingTarget.cp1
+        | CurveTypes.PressingTarget.cp2
+        | CurveTypes.PressingTarget.p2]?: Vec;
+    }
+  ) {
+    const curve = this.curves[d].find((curve) => curve.shape.id === id)?.shape;
+
+    if (!curve) return;
+
+    if (coordinate[CurveTypes.PressingTarget.cp1]) {
+      curve.cp1 = {
+        x: coordinate[CurveTypes.PressingTarget.cp1].x - this.p.x,
+        y: coordinate[CurveTypes.PressingTarget.cp1].y - this.p.y,
+      };
+    }
+
+    if (coordinate[CurveTypes.PressingTarget.cp2]) {
+      curve.cp2 = {
+        x: coordinate[CurveTypes.PressingTarget.cp2].x - this.p.x,
+        y: coordinate[CurveTypes.PressingTarget.cp2].y - this.p.y,
+      };
+    }
+
+    if (coordinate[CurveTypes.PressingTarget.p2]) {
+      curve.p2 = {
+        x: coordinate[CurveTypes.PressingTarget.p2].x - this.p.x,
+        y: coordinate[CurveTypes.PressingTarget.p2].y - this.p.y,
+      };
+    }
   }
 
   resize(offset: Vec, vertex: CoreTypes.PressingTarget) {
@@ -1032,8 +1139,8 @@ export default class Core {
   draw(ctx: CanvasRenderingContext2D, drawShapePath: () => void) {
     const edge = this.getEdge(),
       fillRectParams = {
-        x: edge.l - this.getScreenP().x,
-        y: edge.t - this.getScreenP().y,
+        x: edge.screen.l - this.getScreenP().x,
+        y: edge.screen.t - this.getScreenP().y,
         w: this.getScreenSize().w,
         h: this.getScreenSize().h,
       };
@@ -1085,8 +1192,8 @@ export default class Core {
         ctx.lineWidth = this.anchor.size.stroke;
         ctx.beginPath();
         ctx.arc(
-          edge.l - this.getScreenP().x,
-          edge.t - this.getScreenP().y,
+          edge.screen.l - this.getScreenP().x,
+          edge.screen.t - this.getScreenP().y,
           this.anchor.size.fill,
           0,
           2 * Math.PI,
@@ -1098,8 +1205,8 @@ export default class Core {
 
         ctx.beginPath();
         ctx.arc(
-          edge.r - this.getScreenP().x,
-          edge.t - this.getScreenP().y,
+          edge.screen.r - this.getScreenP().x,
+          edge.screen.t - this.getScreenP().y,
           this.anchor.size.fill,
           0,
           2 * Math.PI,
@@ -1111,8 +1218,8 @@ export default class Core {
 
         ctx.beginPath();
         ctx.arc(
-          edge.l - this.getScreenP().x,
-          edge.b - this.getScreenP().y,
+          edge.screen.l - this.getScreenP().x,
+          edge.screen.b - this.getScreenP().y,
           this.anchor.size.fill,
           0,
           2 * Math.PI,
@@ -1124,8 +1231,8 @@ export default class Core {
 
         ctx.beginPath();
         ctx.arc(
-          edge.r - this.getScreenP().x,
-          edge.b - this.getScreenP().y,
+          edge.screen.r - this.getScreenP().x,
+          edge.screen.b - this.getScreenP().y,
           this.anchor.size.fill,
           0,
           2 * Math.PI,
@@ -1246,7 +1353,7 @@ export default class Core {
     ctx.lineWidth = this.anchor.size.stroke;
 
     // left
-    if (this.receiving.l) {
+    if (this.receiving.l.open) {
       ctx.beginPath();
       ctx.arc(
         -this.getScreenSize().w / 2,
@@ -1262,7 +1369,7 @@ export default class Core {
     }
 
     // top
-    if (this.receiving.t) {
+    if (this.receiving.t.open) {
       ctx.beginPath();
       ctx.arc(
         0,
@@ -1278,7 +1385,7 @@ export default class Core {
     }
 
     // right
-    if (this.receiving.r) {
+    if (this.receiving.r.open) {
       ctx.beginPath();
       ctx.arc(
         this.getScreenSize().w / 2,
@@ -1294,7 +1401,7 @@ export default class Core {
     }
 
     // bottom
-    if (this.receiving.b) {
+    if (this.receiving.b.open) {
       ctx.beginPath();
       ctx.arc(
         0,

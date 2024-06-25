@@ -671,7 +671,7 @@ export default function ProcessPage() {
       select.start.y = -1;
       select.end.y = -1;
       select.shapes.forEach((shape) => {
-        const theEdge = shape.getEdge();
+        const theEdge = shape.getEdge().screen;
         if (select?.start.x === -1 || theEdge.l < select?.start.x) {
           select.start.x = theEdge.l;
         }
@@ -837,7 +837,7 @@ export default function ProcessPage() {
               const theCurve = curveInShape.shape;
 
               if (!theCurve) return;
-              
+
               const isClickedCurve = shape.checkCurveBoundry(d, theCurve.id, p);
               const clickCurveControlPointD = shape.checkCurveControlPointsBoundry(
                 d,
@@ -902,12 +902,12 @@ export default function ProcessPage() {
                 direction: null,
                 dx:
                   (p.x - dragP.x) * (1 / scale) -
-                  shape?.getEdge()[
+                  shape?.getEdge().screen[
                     theCheckShapeVertexesBoundry[0] as CommonTypes.Direction
                   ],
                 dy:
                   (p.y - dragP.y) * (1 / scale) -
-                  shape?.getEdge()[
+                  shape?.getEdge().screen[
                     theCheckShapeVertexesBoundry[1] as CommonTypes.Direction
                   ],
               };
@@ -1034,10 +1034,11 @@ export default function ProcessPage() {
         switch (pressing?.target) {
           case CurveTypes.PressingTarget.p2:
             pressing.parent.disConnect(pressing.parent, [pressing.shape.id]);
+            let isStickToTargetShape = false;
 
             shapes.forEach((shape) => {
               if (!ctx) return;
-              const theEdge = shape.getEdge(),
+              const theEdge = shape.getEdge().screen,
                 threshold = 20,
                 isNearShape =
                   p.x >= theEdge.l - threshold &&
@@ -1046,14 +1047,56 @@ export default function ProcessPage() {
                   p.y <= theEdge.b + threshold;
 
               for (const d of ds) {
-                shape.receiving[d] = isNearShape;
+                shape.receiving[d].open = isNearShape;
+              }
+
+              const curveP2InsideReceivingPointsD = shape.checkReceivingPointsBoundry(
+                p
+              );
+
+              if (
+                curveP2InsideReceivingPointsD &&
+                pressing?.direction &&
+                pressing?.parent &&
+                pressing?.shape instanceof Curve
+              ) {
+                console.log("pressing?.shape.p2", pressing?.shape.p2);
+                console.log("A");
+
+                const _p2 = ((shape) => {
+                  const receivingPoints = shape.getCenter().normal
+                    .receivingPoints;
+                  switch (curveP2InsideReceivingPointsD) {
+                    case CommonTypes.Direction.l:
+                      return receivingPoints.l;
+                    case CommonTypes.Direction.t:
+                      return receivingPoints.t;
+                    case CommonTypes.Direction.r:
+                      return receivingPoints.r;
+                    case CommonTypes.Direction.b:
+                      return receivingPoints.b;
+                  }
+                })(shape);
+
+                if (_p2) {
+                  pressing.parent.locateCurve(
+                    pressing.direction,
+                    pressing.shape.id,
+                    {
+                      p2: _p2,
+                    }
+                  );
+                  isStickToTargetShape = true;
+                }
               }
             });
 
-            moveCurve([
-              CurveTypes.PressingTarget.cp2,
-              CurveTypes.PressingTarget.p2,
-            ]);
+            if (!isStickToTargetShape) {
+              moveCurve([
+                CurveTypes.PressingTarget.cp2,
+                CurveTypes.PressingTarget.p2,
+              ]);
+            }
 
             break;
 
@@ -1316,7 +1359,7 @@ export default function ProcessPage() {
 
       shapes.forEach((shape) => {
         if (!selectAreaP) return;
-        const theEdge = shape.getEdge();
+        const theEdge = shape.getEdge().screen;
 
         const l =
             selectAreaP.start.x < selectAreaP.end.x
@@ -1353,7 +1396,7 @@ export default function ProcessPage() {
       selectedShapes[0].selecting = true;
     } else if (selectedShapes.length > 1) {
       selectedShapes.forEach((selectedShape) => {
-        const theEdge = selectedShape.getEdge();
+        const theEdge = selectedShape.getEdge().screen;
         if (select?.start.x === -1 || theEdge.l < select?.start.x) {
           select.start.x = theEdge.l;
         }
@@ -1444,10 +1487,10 @@ export default function ProcessPage() {
       }
 
       shape.receiving = {
-        l: false,
-        t: false,
-        r: false,
-        b: false,
+        l: { open: false, highlight: false },
+        t: { open: false, highlight: false },
+        r: { open: false, highlight: false },
+        b: { open: false, highlight: false },
       };
     });
 

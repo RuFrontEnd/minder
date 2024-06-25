@@ -57,11 +57,13 @@ type CurveOffset = {
   b: Vec;
 };
 
+type ReceivingStatus = { open: boolean; highlight: boolean };
+
 type Receiving = {
-  l: boolean;
-  t: boolean;
-  r: boolean;
-  b: boolean;
+  l: ReceivingStatus;
+  t: ReceivingStatus;
+  r: ReceivingStatus;
+  b: ReceivingStatus;
 };
 
 type SendTo = {
@@ -94,6 +96,7 @@ export type {
   ConnectTarget,
   Direction,
   CurveOffset,
+  ReceivingStatus,
   Receiving,
   SendTo,
   SendCurve,
