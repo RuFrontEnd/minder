@@ -697,18 +697,15 @@ export default function ProcessPage() {
     const token = localStorage.getItem("Authorization");
 
     if (token) {
-      const res: AxiosResponse<
-        AuthTypes.JWTLogin["resData"]
-      > = await authAPIs.jwtLogin(token);
+      const res: AxiosResponse<AuthTypes.JWTLogin["resData"]> =
+        await authAPIs.jwtLogin(token);
 
       if (res.data.isPass) {
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
         setIsLogin(false);
-        const res: AxiosResponse<
-          ProjectAPITypes.GetProjects["resData"],
-          any
-        > = await projectAPIs.getProjecs();
+        const res: AxiosResponse<ProjectAPITypes.GetProjects["resData"], any> =
+          await projectAPIs.getProjecs();
         setProjects(res.data);
         setIsProjectsModalOpen(true);
       } else {
@@ -839,11 +836,8 @@ export default function ProcessPage() {
               if (!theCurve) return;
 
               const isClickedCurve = shape.checkCurveBoundry(d, theCurve.id, p);
-              const clickCurveControlPointD = shape.checkCurveControlPointsBoundry(
-                d,
-                theCurve.id,
-                p
-              );
+              const clickCurveControlPointD =
+                shape.checkCurveControlPointsBoundry(d, theCurve.id, p);
 
               if (isClickedCurve || clickCurveControlPointD) {
                 if (isClickedCurve) {
@@ -1048,24 +1042,20 @@ export default function ProcessPage() {
 
               for (const d of ds) {
                 shape.receiving[d].open = isNearShape;
+                shape.receiving[d].highlight = false;
               }
 
-              const curveP2InsideReceivingPointsD = shape.checkReceivingPointsBoundry(
-                p
-              );
-
               if (
-                curveP2InsideReceivingPointsD &&
                 pressing?.direction &&
                 pressing?.parent &&
                 pressing?.shape instanceof Curve
               ) {
-                console.log("pressing?.shape.p2", pressing?.shape.p2);
-                console.log("A");
+                const curveP2InsideReceivingPointsD =
+                  shape.checkReceivingPointsBoundry(p);
 
-                const _p2 = ((shape) => {
-                  const receivingPoints = shape.getCenter().normal
-                    .receivingPoints;
+                const pressingCurveP2 = ((shape) => {
+                  const receivingPoints =
+                    shape.getCenter().normal.receivingPoints;
                   switch (curveP2InsideReceivingPointsD) {
                     case CommonTypes.Direction.l:
                       return receivingPoints.l;
@@ -1078,25 +1068,29 @@ export default function ProcessPage() {
                   }
                 })(shape);
 
-                if (_p2) {
+                if (pressingCurveP2 && curveP2InsideReceivingPointsD) {
+                  console.log("A");
+                  shape.receiving[curveP2InsideReceivingPointsD].highlight =
+                    true;
                   pressing.parent.locateCurve(
                     pressing.direction,
                     pressing.shape.id,
                     {
-                      p2: _p2,
+                      p2: pressingCurveP2,
                     }
                   );
                   isStickToTargetShape = true;
+                } else if (!isStickToTargetShape) {
+                  pressing.parent.locateCurve(
+                    pressing.direction,
+                    pressing.shape.id,
+                    {
+                      p2: p,
+                    }
+                  );
                 }
               }
             });
-
-            if (!isStickToTargetShape) {
-              moveCurve([
-                CurveTypes.PressingTarget.cp2,
-                CurveTypes.PressingTarget.p2,
-              ]);
-            }
 
             break;
 
@@ -1422,9 +1416,8 @@ export default function ProcessPage() {
         pressing?.parent &&
         pressing?.direction
       ) {
-        const theCheckReceivingPointsBoundryD = shape.checkReceivingPointsBoundry(
-          p
-        );
+        const theCheckReceivingPointsBoundryD =
+          shape.checkReceivingPointsBoundry(p);
 
         const pressingShape = pressing.parent;
 
@@ -1783,6 +1776,10 @@ export default function ProcessPage() {
         }
       });
 
+      shapes.forEach((shape) => {
+        shape.drawRecievingPoint(ctx);
+      });
+
       // draw curves in shapes
       shapes.forEach((shape) => {
         if (!ctx) return;
@@ -1812,10 +1809,6 @@ export default function ProcessPage() {
 
         ctx?.closePath();
       }
-
-      shapes.forEach((shape) => {
-        shape.drawRecievingPoint(ctx);
-      });
 
       if (select.shapes.length > 1) {
         // draw select area
@@ -1942,10 +1935,8 @@ export default function ProcessPage() {
 
     setIsAuthorizing(true);
 
-    const res: AxiosResponse<
-      AuthTypes.Login["resData"],
-      any
-    > = await authAPIs.login(authInfo.account.value, authInfo.password.value);
+    const res: AxiosResponse<AuthTypes.Login["resData"], any> =
+      await authAPIs.login(authInfo.account.value, authInfo.password.value);
 
     if (res.status === 201) {
       axios.defaults.headers.common[
@@ -2041,14 +2032,12 @@ export default function ProcessPage() {
 
     setIsAuthorizing(true);
 
-    const res: AxiosResponse<
-      AuthTypes.Register["resData"],
-      any
-    > = await authAPIs.register(
-      authInfo.account.value,
-      authInfo.password.value,
-      authInfo.email.value
-    );
+    const res: AxiosResponse<AuthTypes.Register["resData"], any> =
+      await authAPIs.register(
+        authInfo.account.value,
+        authInfo.password.value,
+        authInfo.email.value
+      );
 
     if (res.status === 201) {
       setTimeout(() => {
@@ -2193,10 +2182,8 @@ export default function ProcessPage() {
     let $canvas = document.querySelector("canvas");
     if (!$canvas || !ctx) return;
 
-    const resShapes: AxiosResponse<
-      ShapeAPITypes.GetShapes["resData"],
-      any
-    > = await shapeAPIs.getShapes(id);
+    const resShapes: AxiosResponse<ShapeAPITypes.GetShapes["resData"], any> =
+      await shapeAPIs.getShapes(id);
 
     setScale(1);
     offset = cloneDeep(init.offset);
@@ -2218,9 +2205,8 @@ export default function ProcessPage() {
     if (!$canvas || !ctx) return;
 
     try {
-      const res: AxiosResponse<
-        ProjectAPITypes.DeleteProject["resData"]
-      > = await projectAPIs.deleteProject(id);
+      const res: AxiosResponse<ProjectAPITypes.DeleteProject["resData"]> =
+        await projectAPIs.deleteProject(id);
 
       if (id === selectedProjectId) {
         shapes = [];
@@ -2242,14 +2228,11 @@ export default function ProcessPage() {
       return;
     }
     shapes = [];
-    const newProject: AxiosResponse<
-      ProjectAPITypes.CreateProject["resData"]
-    > = await projectAPIs.createProject();
+    const newProject: AxiosResponse<ProjectAPITypes.CreateProject["resData"]> =
+      await projectAPIs.createProject();
 
-    const res: AxiosResponse<
-      ProjectAPITypes.GetProjects["resData"],
-      any
-    > = await projectAPIs.getProjecs();
+    const res: AxiosResponse<ProjectAPITypes.GetProjects["resData"], any> =
+      await projectAPIs.getProjecs();
 
     setIsProjectsModalOpen(false);
     setProjects(res.data);

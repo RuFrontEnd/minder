@@ -593,13 +593,10 @@ export default class Core {
     dx = edge.screen.l - p.x;
     dy = center.screen.m.y - p.y;
 
-    const squaredFillAnchorSize =
-      this.receiving.l.highlight ||
-      this.receiving.t.highlight ||
-      this.receiving.r.highlight ||
-      this.receiving.b.highlight
-        ? Math.pow(this.anchor.size.fill + this.receiveHighlightOffset, 2)
-        : Math.pow(this.anchor.size.fill, 2);
+    const squaredFillAnchorSize = Math.pow(
+      this.anchor.size.fill + this.receiveHighlightOffset,
+      2
+    );
 
     if (this.receiving.l.open && dx * dx + dy * dy < squaredFillAnchorSize) {
       return Direction.l;
@@ -876,24 +873,38 @@ export default class Core {
 
     if (!curve) return;
 
+    const getRedressedCoordinate = (coordinate: Vec) => ({
+      x: coordinate.x / this.scale - this.offset.x,
+      y: coordinate.y / this.scale - this.offset.y,
+    });
+
     if (coordinate[CurveTypes.PressingTarget.cp1]) {
+      const redressedCoordinate = getRedressedCoordinate(
+        coordinate[CurveTypes.PressingTarget.cp1]
+      );
       curve.cp1 = {
-        x: coordinate[CurveTypes.PressingTarget.cp1].x - this.p.x,
-        y: coordinate[CurveTypes.PressingTarget.cp1].y - this.p.y,
+        x: redressedCoordinate.x - this.p.x,
+        y: redressedCoordinate.y - this.p.y,
       };
     }
 
     if (coordinate[CurveTypes.PressingTarget.cp2]) {
+      const redressedCoordinate = getRedressedCoordinate(
+        coordinate[CurveTypes.PressingTarget.cp2]
+      );
       curve.cp2 = {
-        x: coordinate[CurveTypes.PressingTarget.cp2].x - this.p.x,
-        y: coordinate[CurveTypes.PressingTarget.cp2].y - this.p.y,
+        x: redressedCoordinate.x - this.p.x,
+        y: redressedCoordinate.y - this.p.y,
       };
     }
 
     if (coordinate[CurveTypes.PressingTarget.p2]) {
+      const redressedCoordinate = getRedressedCoordinate(
+        coordinate[CurveTypes.PressingTarget.p2]
+      );
       curve.p2 = {
-        x: coordinate[CurveTypes.PressingTarget.p2].x - this.p.x,
-        y: coordinate[CurveTypes.PressingTarget.p2].y - this.p.y,
+        x: redressedCoordinate.x - this.p.x,
+        y: redressedCoordinate.y - this.p.y,
       };
     }
   }
@@ -1124,12 +1135,10 @@ export default class Core {
         ? lineHeight * (1 / 2 + lines.length / 2 - 1)
         : lineHeight * Math.floor(lines.length / 2);
 
-    lines.forEach((line) => {
+    lines.forEach(() => {
       offsetYs.push(offsetY);
       offsetY -= lineHeight;
     });
-
-    // console.log('lines', lines)
 
     lines.forEach((line, lineI) => {
       ctx.fillText(line, x, y - offsetYs[lineI]);
@@ -1358,7 +1367,9 @@ export default class Core {
       ctx.arc(
         -this.getScreenSize().w / 2,
         0,
-        this.anchor.size.fill,
+        this.receiving.l.highlight
+          ? this.anchor.size.fill + this.receiveHighlightOffset
+          : this.anchor.size.fill,
         0,
         2 * Math.PI,
         false
@@ -1374,7 +1385,9 @@ export default class Core {
       ctx.arc(
         0,
         -this.getScreenSize().h / 2,
-        this.anchor.size.fill,
+        this.receiving.t.highlight
+          ? this.anchor.size.fill + this.receiveHighlightOffset
+          : this.anchor.size.fill,
         0,
         2 * Math.PI,
         false
@@ -1390,7 +1403,9 @@ export default class Core {
       ctx.arc(
         this.getScreenSize().w / 2,
         0,
-        this.anchor.size.fill,
+        this.receiving.r.highlight
+          ? this.anchor.size.fill + this.receiveHighlightOffset
+          : this.anchor.size.fill,
         0,
         2 * Math.PI,
         false
@@ -1406,7 +1421,9 @@ export default class Core {
       ctx.arc(
         0,
         this.getScreenSize().h / 2,
-        this.anchor.size.fill,
+        this.receiving.b.highlight
+          ? this.anchor.size.fill + this.receiveHighlightOffset
+          : this.anchor.size.fill,
         0,
         2 * Math.PI,
         false
