@@ -106,7 +106,7 @@ export default class Core {
     this.__offset__ = this.initOffset;
     this.__scale__ = this.initScale;
     this.status = CoreTypes.Status.normal;
-    this.receiveHighlightOffset = 5;
+    this.receiveHighlightOffset = 4;
   }
 
   set p(value: Vec) {
@@ -344,6 +344,31 @@ export default class Core {
     return {
       x: (this.p.x + this.offset.x) * this.scale,
       y: (this.p.y + this.offset.y) * this.scale,
+    };
+  }
+
+  getCurveP(d: CommonTypes.Direction, id: string) {
+    const curve = this.curves[d].find((curve) => curve.shape.id === id)?.shape;
+
+    if (!curve) return;
+
+    return {
+      normal: {
+        cp1: { x: curve.cp1.x + this.p.x, y: curve.cp1.y + this.p.y },
+        cp2: {
+          x: curve.cp2.x + this.p.x,
+          y: curve.cp2.y + this.p.y,
+        },
+        p2: { x: curve.p2.x + this.p.x, y: curve.p2.y + this.p.y },
+      },
+      screen: {
+        cp1: { x: curve.cp1.x + this.p.x, y: curve.cp1.y + this.p.y },
+        cp2: {
+          x: curve.cp2.x + this.p.x,
+          y: curve.cp2.y + this.p.y,
+        },
+        p2: { x: curve.p2.x + this.p.x, y: curve.p2.y + this.p.y },
+      },
     };
   }
 
@@ -1364,6 +1389,9 @@ export default class Core {
     // left
     if (this.receiving.l.open) {
       ctx.beginPath();
+      if (this.receiving.l.highlight) {
+        ctx.fillStyle = "DeepSkyBlue";
+      }
       ctx.arc(
         -this.getScreenSize().w / 2,
         0,
@@ -1379,8 +1407,13 @@ export default class Core {
       ctx.closePath();
     }
 
+    ctx.fillStyle = "white";
+
     // top
     if (this.receiving.t.open) {
+      if (this.receiving.t.highlight) {
+        ctx.fillStyle = "DeepSkyBlue";
+      }
       ctx.beginPath();
       ctx.arc(
         0,
@@ -1397,8 +1430,13 @@ export default class Core {
       ctx.closePath();
     }
 
+    ctx.fillStyle = "white";
+
     // right
     if (this.receiving.r.open) {
+      if (this.receiving.r.highlight) {
+        ctx.fillStyle = "DeepSkyBlue";
+      }
       ctx.beginPath();
       ctx.arc(
         this.getScreenSize().w / 2,
@@ -1415,8 +1453,13 @@ export default class Core {
       ctx.closePath();
     }
 
+    ctx.fillStyle = "white";
+
     // bottom
     if (this.receiving.b.open) {
+      if (this.receiving.b.highlight) {
+        ctx.fillStyle = "DeepSkyBlue";
+      }
       ctx.beginPath();
       ctx.arc(
         0,

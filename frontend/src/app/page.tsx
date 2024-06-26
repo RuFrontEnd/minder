@@ -1028,69 +1028,99 @@ export default function ProcessPage() {
         switch (pressing?.target) {
           case CurveTypes.PressingTarget.p2:
             pressing.parent.disConnect(pressing.parent, [pressing.shape.id]);
-            let isStickToTargetShape = false;
 
-            shapes.forEach((shape) => {
-              if (!ctx) return;
-              const theEdge = shape.getEdge().screen,
-                threshold = 20,
-                isNearShape =
-                  p.x >= theEdge.l - threshold &&
-                  p.y >= theEdge.t - threshold &&
-                  p.x <= theEdge.r + threshold &&
-                  p.y <= theEdge.b + threshold;
+            const curveP = pressing.parent.getCurveP(
+              pressing.direction,
+              pressing.shape.id
+            );
 
-              for (const d of ds) {
-                shape.receiving[d].open = isNearShape;
-                shape.receiving[d].highlight = false;
-              }
+            if (curveP) {
+              const dOfCp2P2 = {
+                x:
+                  Math.abs(curveP.screen.p2.x - curveP.screen.cp2.x) *
+                  (curveP.screen.p2.x > curveP.screen.cp2.x ? 1 : -1),
+                y:
+                  Math.abs(curveP.screen.p2.y - curveP.screen.cp2.y) *
+                  (curveP.screen.p2.y > curveP.screen.cp2.x ? 1 : -1),
+              };
 
-              if (
-                pressing?.direction &&
-                pressing?.parent &&
-                pressing?.shape instanceof Curve
-              ) {
-                const curveP2InsideReceivingPointsD =
-                  shape.checkReceivingPointsBoundry(p);
+              let moveable = true;
 
-                const pressingCurveP2 = ((shape) => {
-                  const receivingPoints =
-                    shape.getCenter().normal.receivingPoints;
-                  switch (curveP2InsideReceivingPointsD) {
-                    case CommonTypes.Direction.l:
-                      return receivingPoints.l;
-                    case CommonTypes.Direction.t:
-                      return receivingPoints.t;
-                    case CommonTypes.Direction.r:
-                      return receivingPoints.r;
-                    case CommonTypes.Direction.b:
-                      return receivingPoints.b;
-                  }
-                })(shape);
+              shapes.forEach((shape) => {
+                if (!ctx) return;
+                const theEdge = shape.getEdge().screen,
+                  threshold = 20,
+                  isNearShape =
+                    p.x >= theEdge.l - threshold &&
+                    p.y >= theEdge.t - threshold &&
+                    p.x <= theEdge.r + threshold &&
+                    p.y <= theEdge.b + threshold;
 
-                if (pressingCurveP2 && curveP2InsideReceivingPointsD) {
-                  console.log("A");
-                  shape.receiving[curveP2InsideReceivingPointsD].highlight =
-                    true;
-                  pressing.parent.locateCurve(
-                    pressing.direction,
-                    pressing.shape.id,
-                    {
-                      p2: pressingCurveP2,
-                    }
-                  );
-                  isStickToTargetShape = true;
-                } else if (!isStickToTargetShape) {
-                  pressing.parent.locateCurve(
-                    pressing.direction,
-                    pressing.shape.id,
-                    {
-                      p2: p,
-                    }
-                  );
+                for (const d of ds) {
+                  shape.receiving[d].open = isNearShape;
+                  shape.receiving[d].highlight = false;
                 }
+
+                if (
+                  pressing?.direction &&
+                  pressing?.parent &&
+                  pressing?.shape instanceof Curve
+                ) {
+                  const dOfCurveP2InsideReceivingPoints =
+                    shape.checkReceivingPointsBoundry(p);
+
+                  if (dOfCurveP2InsideReceivingPoints) {
+                    moveable = false;
+                    shape.receiving[dOfCurveP2InsideReceivingPoints].highlight =
+                      true;
+
+                    const pressingCurveP2 = ((shape) => {
+                      const receivingPoints =
+                        shape.getCenter().screen.receivingPoints;
+                      switch (dOfCurveP2InsideReceivingPoints) {
+                        case CommonTypes.Direction.l:
+                          return receivingPoints.l;
+                        case CommonTypes.Direction.t:
+                          return receivingPoints.t;
+                        case CommonTypes.Direction.r:
+                          return receivingPoints.r;
+                        case CommonTypes.Direction.b:
+                          return receivingPoints.b;
+                      }
+                    })(shape);
+
+                    pressing.parent.locateCurve(
+                      pressing.direction,
+                      pressing.shape.id,
+                      {
+                        cp2: {
+                          x: pressingCurveP2.x - 6 * scale - dOfCp2P2.x,
+                          y: pressingCurveP2.y - dOfCp2P2.y,
+                        },
+                        p2: {
+                          x: pressingCurveP2.x - 6 * scale,
+                          y: pressingCurveP2.y,
+                        },
+                      }
+                    );
+                  }
+                }
+              });
+
+              if (moveable) {
+                pressing.parent.locateCurve(
+                  pressing.direction,
+                  pressing.shape.id,
+                  {
+                    cp2: {
+                      x: p.x - dOfCp2P2.x,
+                      y: p.y - dOfCp2P2.y,
+                    },
+                    p2: p,
+                  }
+                );
               }
-            });
+            }
 
             break;
 
