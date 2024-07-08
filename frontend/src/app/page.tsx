@@ -15,6 +15,8 @@ import Modal from "@/components/modal";
 import Input from "@/components/input";
 import Alert from "@/components/alert";
 import Card from "@/components/card";
+import Frame from "@/components/frame";
+import PencilSquareIcon from "@/assets/svg/pencil-square.svg";
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
 import { cloneDeep } from "lodash";
@@ -2428,8 +2430,24 @@ export default function ProcessPage() {
             </a>
           </li>
           <li className="justify-self-center self-center text-base">
-            <nav>
+            <nav className="flex items-center relative">
               <a className="text-white-500">Project_1</a>
+              <PencilSquareIcon
+                width={20}
+                height={20}
+                className={"cursor-pointer ms-2"}
+                fill={tailwindColors.white["500"]}
+              />
+              <Frame
+                className={
+                  "absolute -bottom-[6px] left-1/2 -translate-x-1/2 translate-y-full w-[300px]"
+                }
+              >
+                <div className="flex">
+                  <Input value="20" onChange={() => {}} />
+                  <Button className="ms-4" text="Save" onClick={() => {}} />
+                </div>
+              </Frame>
             </nav>
           </li>
           <li className="flex justify-self-end self-center text-base">

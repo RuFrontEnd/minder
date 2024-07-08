@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@svgr/webpack": "^8.1.0",
     "axios": "^1.6.8",
     "framer-motion": "^11.0.12",
     "lodash": "^4.17.21",
