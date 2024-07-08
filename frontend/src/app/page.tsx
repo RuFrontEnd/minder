@@ -2430,14 +2430,15 @@ export default function ProcessPage() {
             </a>
           </li>
           <li className="justify-self-center self-center text-base">
-            <nav className="flex items-center relative">
+            <nav className="cursor-pointer flex items-center relative [&:hover>div:nth-child(2)]:translate-x-full [&:hover>div:nth-child(2)]:opacity-100 transition ease-in-out duration-150">
               <a className="text-white-500">Project_1</a>
-              <PencilSquareIcon
-                width={20}
-                height={20}
-                className={"cursor-pointer ms-2"}
-                fill={tailwindColors.white["500"]}
-              />
+              <div className="absolute right-0 translate-x-[0px] opacity-0 transition ease-in-out duration-150 ps-1">
+                <PencilSquareIcon
+                  width={20}
+                  height={20}
+                  fill={tailwindColors.white["500"]}
+                />
+              </div>
               <Frame
                 className={
                   "absolute -bottom-[6px] left-1/2 -translate-x-1/2 translate-y-full w-[300px]"
