@@ -19,7 +19,7 @@ import Frame from "@/components/frame";
 import PencilSquareIcon from "@/assets/svg/pencil-square.svg";
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
-import { cloneDeep } from "lodash";
+import { cloneDeep, set } from "lodash";
 import { v4 as uuidv4 } from "uuid";
 import { ChangeEventHandler, MouseEventHandler } from "react";
 import { tailwindColors } from "@/variables/colors";
@@ -472,6 +472,7 @@ export default function ProcessPage() {
     [leftMouseBtn, setLeftMouseBtn] = useState(false),
     [isDataSidePanelOpen, setIsDataSidePanelOpen] = useState(true),
     [isUserSidePanelOpen, setIsUserSidePanelOpen] = useState(false),
+    [isRenameFrameOpen, setIsRenameFrameOpen] = useState(false),
     [steps, setSteps] = useState<PageTypes.Steps>({}),
     [procedures, setProcedures] = useState<PageTypes.Procedures>({}),
     [otherStepIds, setOtherStepIds] = useState<PageTypes.OtherStepIds>([]),
@@ -699,15 +700,18 @@ export default function ProcessPage() {
     const token = localStorage.getItem("Authorization");
 
     if (token) {
-      const res: AxiosResponse<AuthTypes.JWTLogin["resData"]> =
-        await authAPIs.jwtLogin(token);
+      const res: AxiosResponse<
+        AuthTypes.JWTLogin["resData"]
+      > = await authAPIs.jwtLogin(token);
 
       if (res.data.isPass) {
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
         setIsLogin(false);
-        const res: AxiosResponse<ProjectAPITypes.GetProjects["resData"], any> =
-          await projectAPIs.getProjecs();
+        const res: AxiosResponse<
+          ProjectAPITypes.GetProjects["resData"],
+          any
+        > = await projectAPIs.getProjecs();
         setProjects(res.data);
         setIsProjectsModalOpen(true);
       } else {
@@ -1358,8 +1362,9 @@ export default function ProcessPage() {
         pressing?.parent &&
         pressing?.direction
       ) {
-        const theCheckReceivingPointsBoundryD =
-          shape.checkReceivingPointsBoundry(p);
+        const theCheckReceivingPointsBoundryD = shape.checkReceivingPointsBoundry(
+          p
+        );
 
         const pressingShape = pressing.parent;
 
@@ -1877,8 +1882,10 @@ export default function ProcessPage() {
 
     setIsAuthorizing(true);
 
-    const res: AxiosResponse<AuthTypes.Login["resData"], any> =
-      await authAPIs.login(authInfo.account.value, authInfo.password.value);
+    const res: AxiosResponse<
+      AuthTypes.Login["resData"],
+      any
+    > = await authAPIs.login(authInfo.account.value, authInfo.password.value);
 
     if (res.status === 201) {
       axios.defaults.headers.common[
@@ -1974,12 +1981,14 @@ export default function ProcessPage() {
 
     setIsAuthorizing(true);
 
-    const res: AxiosResponse<AuthTypes.Register["resData"], any> =
-      await authAPIs.register(
-        authInfo.account.value,
-        authInfo.password.value,
-        authInfo.email.value
-      );
+    const res: AxiosResponse<
+      AuthTypes.Register["resData"],
+      any
+    > = await authAPIs.register(
+      authInfo.account.value,
+      authInfo.password.value,
+      authInfo.email.value
+    );
 
     if (res.status === 201) {
       setTimeout(() => {
@@ -2124,8 +2133,10 @@ export default function ProcessPage() {
     let $canvas = document.querySelector("canvas");
     if (!$canvas || !ctx) return;
 
-    const resShapes: AxiosResponse<ShapeAPITypes.GetShapes["resData"], any> =
-      await shapeAPIs.getShapes(id);
+    const resShapes: AxiosResponse<
+      ShapeAPITypes.GetShapes["resData"],
+      any
+    > = await shapeAPIs.getShapes(id);
 
     setScale(1);
     offset = cloneDeep(init.offset);
@@ -2147,8 +2158,9 @@ export default function ProcessPage() {
     if (!$canvas || !ctx) return;
 
     try {
-      const res: AxiosResponse<ProjectAPITypes.DeleteProject["resData"]> =
-        await projectAPIs.deleteProject(id);
+      const res: AxiosResponse<
+        ProjectAPITypes.DeleteProject["resData"]
+      > = await projectAPIs.deleteProject(id);
 
       if (id === selectedProjectId) {
         shapes = [];
@@ -2170,11 +2182,14 @@ export default function ProcessPage() {
       return;
     }
     shapes = [];
-    const newProject: AxiosResponse<ProjectAPITypes.CreateProject["resData"]> =
-      await projectAPIs.createProject();
+    const newProject: AxiosResponse<
+      ProjectAPITypes.CreateProject["resData"]
+    > = await projectAPIs.createProject();
 
-    const res: AxiosResponse<ProjectAPITypes.GetProjects["resData"], any> =
-      await projectAPIs.getProjecs();
+    const res: AxiosResponse<
+      ProjectAPITypes.GetProjects["resData"],
+      any
+    > = await projectAPIs.getProjecs();
 
     setIsProjectsModalOpen(false);
     setProjects(res.data);
@@ -2200,6 +2215,10 @@ export default function ProcessPage() {
     setIsProjectsModalOpen(false);
     setIsAccountModalOpen(true);
     setSteps({});
+  };
+
+  const onClickProjectName = () => {
+    setIsRenameFrameOpen((isRenameFrameOpen) => !isRenameFrameOpen);
   };
 
   useEffect(() => {
@@ -2430,26 +2449,52 @@ export default function ProcessPage() {
             </a>
           </li>
           <li className="justify-self-center self-center text-base">
-            <nav className="cursor-pointer flex items-center relative [&:hover>div:nth-child(2)]:translate-x-full [&:hover>div:nth-child(2)]:opacity-100 transition ease-in-out duration-150">
-              <a className="text-white-500">Project_1</a>
-              <div className="absolute right-0 translate-x-[0px] opacity-0 transition ease-in-out duration-150 ps-1">
-                <PencilSquareIcon
-                  width={20}
-                  height={20}
-                  fill={tailwindColors.white["500"]}
-                />
-              </div>
-              <Frame
-                className={
-                  "absolute -bottom-[6px] left-1/2 -translate-x-1/2 translate-y-full w-[300px]"
-                }
+            <div>
+              <nav
+                className="cursor-pointer flex items-center relative [&:hover>div:nth-child(2)]:translate-x-full [&:hover>div:nth-child(2)]:opacity-100 transition ease-in-out duration-150"
+                onClick={onClickProjectName}
               >
-                <div className="flex">
-                  <Input value="20" onChange={() => {}} />
-                  <Button className="ms-4" text="Save" onClick={() => {}} />
+                <a className="text-white-500">Project_1</a>
+                <div className="absolute right-0 translate-x-[0px] opacity-0 transition ease-in-out duration-150 ps-1">
+                  <PencilSquareIcon
+                    width={20}
+                    height={20}
+                    fill={tailwindColors.white["500"]}
+                  />
                 </div>
-              </Frame>
-            </nav>
+              </nav>
+              <motion.div
+                className={`${isRenameFrameOpen ? "block" : "hidden"}`}
+                variants={{
+                  open: {
+                    display: "block",
+                    opacity: 1,
+                    y: "4px",
+                  },
+                  closed: {
+                    transitionEnd: {
+                      display: "none",
+                    },
+                    opacity: 0,
+                    y: "-2px",
+                  },
+                }}
+                initial={isRenameFrameOpen ? "open" : "closed"}
+                animate={isRenameFrameOpen ? "open" : "closed"}
+                transition={{ type: "easeInOut", duration: 0.15 }}
+              >
+                <Frame
+                  className={
+                    "absolute -bottom-[6px] left-1/2 -translate-x-1/2 translate-y-full w-[300px]"
+                  }
+                >
+                  <div className="flex">
+                    <Input value="20" onChange={() => {}} />
+                    <Button className="ms-4" text="Save" onClick={() => {}} />
+                  </div>
+                </Frame>
+              </motion.div>
+            </div>
           </li>
           <li className="flex justify-self-end self-center text-base">
             <Button
