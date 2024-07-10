@@ -17,7 +17,13 @@ import Alert from "@/components/alert";
 import Card from "@/components/card";
 import Frame from "@/components/frame";
 import PencilSquareIcon from "@/assets/svg/pencil-square.svg";
-import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  useMemo,
+} from "react";
 import { motion } from "framer-motion";
 import { cloneDeep, set } from "lodash";
 import { v4 as uuidv4 } from "uuid";
@@ -511,7 +517,11 @@ export default function ProcessPage() {
     [selectedProjectId, setSelectedProjectId] = useState<
       null | ProjectTypes.Project["id"]
     >(null),
-    [hasEnter, setHasEnter] = useState(false);
+    [hasEnter, setHasEnter] = useState(false),
+    [projectName, setProjectName] = useState({
+      inputVal: "Untitled",
+      val: "Untitled",
+    });
 
   const checkData = () => {
     const dataShapes: Data[] = [];
@@ -2221,6 +2231,23 @@ export default function ProcessPage() {
     setIsRenameFrameOpen((isRenameFrameOpen) => !isRenameFrameOpen);
   };
 
+  const onChangeProjectName: ChangeEventHandler<HTMLInputElement> = (e) => {
+    setProjectName((projectName) => ({
+      ...projectName,
+      inputVal: e.target.value,
+    }));
+  };
+
+  const onClickSaveProjectNameButton: MouseEventHandler<HTMLButtonElement> = (
+    e
+  ) => {
+    setProjectName((projectName) => ({
+      ...projectName,
+      val: projectName.inputVal,
+    }));
+    setIsRenameFrameOpen(false);
+  };
+
   useEffect(() => {
     if (!isBrowser) return;
     verifyToken();
@@ -2454,7 +2481,7 @@ export default function ProcessPage() {
                 className="cursor-pointer flex items-center relative [&:hover>div:nth-child(2)]:translate-x-full [&:hover>div:nth-child(2)]:opacity-100 transition ease-in-out duration-150"
                 onClick={onClickProjectName}
               >
-                <a className="text-white-500">Project_1</a>
+                <a className="text-white-500">{projectName.val}</a>
                 <div className="absolute right-0 translate-x-[0px] opacity-0 transition ease-in-out duration-150 ps-1">
                   <PencilSquareIcon
                     width={20}
@@ -2489,8 +2516,15 @@ export default function ProcessPage() {
                   }
                 >
                   <div className="flex">
-                    <Input value="20" onChange={() => {}} />
-                    <Button className="ms-4" text="Save" onClick={() => {}} />
+                    <Input
+                      value={projectName.inputVal}
+                      onChange={onChangeProjectName}
+                    />
+                    <Button
+                      className="ms-4"
+                      text="Save"
+                      onClick={onClickSaveProjectNameButton}
+                    />
                   </div>
                 </Frame>
               </motion.div>

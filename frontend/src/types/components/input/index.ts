@@ -12,10 +12,10 @@ type Props = {
   label?: HTMLInputTypeAttribute;
   type?: HTMLInputTypeAttribute;
   name?: string;
-  value: undefined | string;
+  value?: undefined | string;
   status?: Status;
   comment?: string;
-  onChange: ChangeEventHandler<HTMLInputElement>;
+  onChange?: ChangeEventHandler<HTMLInputElement>;
 };
 export { Status };
 export type { Props };
