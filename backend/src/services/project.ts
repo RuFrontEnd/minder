@@ -2,7 +2,7 @@ import * as AuthTypes from "../types/auth";
 import * as ProjectTypes from "../types/project";
 import { Project as ProjectModel } from "../models";
 
-export default class Auth {
+export default class Project {
   private projectModel = new ProjectModel();
 
   async getProjects(user: string) {
@@ -11,6 +11,11 @@ export default class Auth {
       id: project.id,
       name: project.name,
     }));
+  }
+
+  async getProject(id: number) {
+    const shapes = await this.projectModel.getProject(id);
+    return shapes;
   }
 
   async createProject(user: string) {

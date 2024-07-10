@@ -5,6 +5,10 @@ const getProjecs = async () => {
   return axios.get("/project/projects");
 };
 
+const getProject = async (id: number) => {
+  return axios.get(`/project/projects/${id}`);
+};
+
 const createProject = async () => {
   return axios.post("/project/project");
 };
@@ -15,4 +19,4 @@ const deleteProject = async (projectId: ProjectTypes.Project["id"]) => {
   });
 };
 
-export { getProjecs, createProject, deleteProject };
+export { getProjecs, getProject, createProject, deleteProject };

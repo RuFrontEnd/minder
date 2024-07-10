@@ -1,3 +1,6 @@
 type Id = number;
 
-export type { Id };
+type Row = { id: number; user: number; name: string };
+type Rows = Row[];
+
+export type { Id, Row, Rows };

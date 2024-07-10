@@ -3,13 +3,14 @@ import { Request, Response, NextFunction } from "express";
 import { Project as ProjectService } from "../services";
 import { getError } from "../utils/error";
 import { JWTDecoded } from "../types/auth";
-import { SUCCESSFUL, ERROR } from "../constatns/stauts";
+import { SUCCESSFUL } from "../constatns/stauts";
 
 export default class Project {
   private projectService = new ProjectService();
 
   constructor() {
     this.getProjects = this.getProjects.bind(this);
+    this.getProject = this.getProject.bind(this);
     this.createProject = this.createProject.bind(this);
     this.deleteProject = this.deleteProject.bind(this);
   }
@@ -27,6 +28,25 @@ export default class Project {
       );
 
       res.status(201).send(projects);
+    } catch (err) {
+      res.status(400).send(getError(err));
+    }
+  }
+
+  async getProject(
+    req: Request<
+      { id: string },
+      { projectId: number },
+      { decoded: JWTDecoded }
+    >,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const shapes = await this.projectService.getProject(
+        Number(req.params.id)
+      );
+      res.status(201).send(shapes);
     } catch (err) {
       res.status(400).send(getError(err));
     }

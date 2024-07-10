@@ -158,12 +158,17 @@ const getFramePosition = (shape: Core) => {
   };
 };
 
-const getInitializedShapes = (data: ShapeAPITypes.GetShapes["resData"]) => {
+const getInitializedShapes = (
+  orders: ProjectAPITypes.GetProject["resData"]["orders"],
+  shapes: ProjectAPITypes.GetProject["resData"]["shapes"],
+  curves: ProjectAPITypes.GetProject["resData"]["curves"],
+  data: ProjectAPITypes.GetProject["resData"]["data"]
+) => {
   const shapeMappings: {
     [shapeId: string]: Terminal | Process | Data | Desicion;
   } = {};
 
-  const dataShapes = Object.entries(data.shapes);
+  const dataShapes = Object.entries(shapes);
 
   dataShapes.forEach(([id, info]) => {
     switch (info.type) {
@@ -179,14 +184,14 @@ const getInitializedShapes = (data: ShapeAPITypes.GetShapes["resData"]) => {
         info.selectedData.forEach((dataId) => {
           newTerminator.selectedData.push({
             id: dataId,
-            text: data.data[dataId],
+            text: data[dataId],
           });
         });
 
         info.deletedData.forEach((dataId) => {
           newTerminator.deletedData.push({
             id: dataId,
-            text: data.data[dataId],
+            text: data[dataId],
           });
         });
 
@@ -201,21 +206,21 @@ const getInitializedShapes = (data: ShapeAPITypes.GetShapes["resData"]) => {
         info.data.forEach((dataId) => {
           newData.data.push({
             id: dataId,
-            text: data.data[dataId],
+            text: data[dataId],
           });
         });
 
         info.selectedData.forEach((dataId) => {
           newData.selectedData.push({
             id: dataId,
-            text: data.data[dataId],
+            text: data[dataId],
           });
         });
 
         info.deletedData.forEach((dataId) => {
           newData.deletedData.push({
             id: dataId,
-            text: data.data[dataId],
+            text: data[dataId],
           });
         });
 
@@ -230,14 +235,14 @@ const getInitializedShapes = (data: ShapeAPITypes.GetShapes["resData"]) => {
         info.selectedData.forEach((dataId) => {
           newProcess.selectedData.push({
             id: dataId,
-            text: data.data[dataId],
+            text: data[dataId],
           });
         });
 
         info.deletedData.forEach((dataId) => {
           newProcess.deletedData.push({
             id: dataId,
-            text: data.data[dataId],
+            text: data[dataId],
           });
         });
 
@@ -262,14 +267,14 @@ const getInitializedShapes = (data: ShapeAPITypes.GetShapes["resData"]) => {
         info.selectedData.forEach((dataId) => {
           newDesicion.selectedData.push({
             id: dataId,
-            text: data.data[dataId],
+            text: data[dataId],
           });
         });
 
         info.deletedData.forEach((dataId) => {
           newDesicion.deletedData.push({
             id: dataId,
-            text: data.data[dataId],
+            text: data[dataId],
           });
         });
 
@@ -285,7 +290,7 @@ const getInitializedShapes = (data: ShapeAPITypes.GetShapes["resData"]) => {
     ds.forEach((d) => {
       if (shapeInfo.curves[d].length === 0) return;
       shapeInfo.curves[d].forEach((curveId) => {
-        const curveInfo = data.curves[curveId];
+        const curveInfo = curves[curveId];
 
         shapeMappings[shapeId].createCurve(
           curveId,
@@ -317,7 +322,7 @@ const getInitializedShapes = (data: ShapeAPITypes.GetShapes["resData"]) => {
     });
   });
 
-  return data.orders.map((orderId) => shapeMappings[orderId]);
+  return orders.map((orderId) => shapeMappings[orderId]);
 };
 
 const Editor = (props: { className: string; shape: Core }) => {
@@ -710,18 +715,15 @@ export default function ProcessPage() {
     const token = localStorage.getItem("Authorization");
 
     if (token) {
-      const res: AxiosResponse<
-        AuthTypes.JWTLogin["resData"]
-      > = await authAPIs.jwtLogin(token);
+      const res: AxiosResponse<AuthTypes.JWTLogin["resData"]> =
+        await authAPIs.jwtLogin(token);
 
       if (res.data.isPass) {
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
         setIsLogin(false);
-        const res: AxiosResponse<
-          ProjectAPITypes.GetProjects["resData"],
-          any
-        > = await projectAPIs.getProjecs();
+        const res: AxiosResponse<ProjectAPITypes.GetProjects["resData"], any> =
+          await projectAPIs.getProjecs();
         setProjects(res.data);
         setIsProjectsModalOpen(true);
       } else {
@@ -1372,9 +1374,8 @@ export default function ProcessPage() {
         pressing?.parent &&
         pressing?.direction
       ) {
-        const theCheckReceivingPointsBoundryD = shape.checkReceivingPointsBoundry(
-          p
-        );
+        const theCheckReceivingPointsBoundryD =
+          shape.checkReceivingPointsBoundry(p);
 
         const pressingShape = pressing.parent;
 
@@ -1892,10 +1893,8 @@ export default function ProcessPage() {
 
     setIsAuthorizing(true);
 
-    const res: AxiosResponse<
-      AuthTypes.Login["resData"],
-      any
-    > = await authAPIs.login(authInfo.account.value, authInfo.password.value);
+    const res: AxiosResponse<AuthTypes.Login["resData"], any> =
+      await authAPIs.login(authInfo.account.value, authInfo.password.value);
 
     if (res.status === 201) {
       axios.defaults.headers.common[
@@ -1991,14 +1990,12 @@ export default function ProcessPage() {
 
     setIsAuthorizing(true);
 
-    const res: AxiosResponse<
-      AuthTypes.Register["resData"],
-      any
-    > = await authAPIs.register(
-      authInfo.account.value,
-      authInfo.password.value,
-      authInfo.email.value
-    );
+    const res: AxiosResponse<AuthTypes.Register["resData"], any> =
+      await authAPIs.register(
+        authInfo.account.value,
+        authInfo.password.value,
+        authInfo.email.value
+      );
 
     if (res.status === 201) {
       setTimeout(() => {
@@ -2143,20 +2140,27 @@ export default function ProcessPage() {
     let $canvas = document.querySelector("canvas");
     if (!$canvas || !ctx) return;
 
-    const resShapes: AxiosResponse<
-      ShapeAPITypes.GetShapes["resData"],
-      any
-    > = await shapeAPIs.getShapes(id);
+    const res: AxiosResponse<ProjectAPITypes.GetProject["resData"], any> =
+      await projectAPIs.getProject(id);
 
     setScale(1);
     offset = cloneDeep(init.offset);
     offset_center = cloneDeep(init.offset);
-    shapes = getInitializedShapes(resShapes.data);
+    shapes = getInitializedShapes(
+      res.data.orders,
+      res.data.shapes,
+      res.data.curves,
+      res.data.data
+    );
     select = cloneDeep(init.select);
     checkData();
     checkGroups();
     draw($canvas, ctx);
     setIsProjectsModalOpen(false);
+    setProjectName({
+      inputVal: res.data.projectName,
+      val: res.data.projectName,
+    });
 
     if (!hasEnter) {
       setHasEnter(true);
@@ -2168,9 +2172,8 @@ export default function ProcessPage() {
     if (!$canvas || !ctx) return;
 
     try {
-      const res: AxiosResponse<
-        ProjectAPITypes.DeleteProject["resData"]
-      > = await projectAPIs.deleteProject(id);
+      const res: AxiosResponse<ProjectAPITypes.DeleteProject["resData"]> =
+        await projectAPIs.deleteProject(id);
 
       if (id === selectedProjectId) {
         shapes = [];
@@ -2192,14 +2195,11 @@ export default function ProcessPage() {
       return;
     }
     shapes = [];
-    const newProject: AxiosResponse<
-      ProjectAPITypes.CreateProject["resData"]
-    > = await projectAPIs.createProject();
+    const newProject: AxiosResponse<ProjectAPITypes.CreateProject["resData"]> =
+      await projectAPIs.createProject();
 
-    const res: AxiosResponse<
-      ProjectAPITypes.GetProjects["resData"],
-      any
-    > = await projectAPIs.getProjecs();
+    const res: AxiosResponse<ProjectAPITypes.GetProjects["resData"], any> =
+      await projectAPIs.getProjecs();
 
     setIsProjectsModalOpen(false);
     setProjects(res.data);

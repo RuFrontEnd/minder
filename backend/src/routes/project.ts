@@ -13,6 +13,7 @@ export default class Project extends Route {
 
   protected setRoutes() {
     this.router.get("/projects", verifyToken, this.projectController.getProjects);
+    this.router.get("/projects/:id", verifyToken, this.projectController.getProject);
     this.router.post("/project", verifyToken, this.projectController.createProject);
     this.router.delete("/project", verifyToken, this.projectController.deleteProject);
   }
