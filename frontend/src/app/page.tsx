@@ -698,6 +698,14 @@ export default function ProcessPage() {
     }
   };
 
+  const fetchProjects = async () => {
+    const res: AxiosResponse<
+      ProjectAPITypes.GetProjects["resData"],
+      any
+    > = await projectAPIs.getProjecs();
+    setProjects(res.data);
+  };
+
   const verifyToken = async () => {
     if (qas) {
       setIsAccountModalOpen(true);
@@ -715,11 +723,7 @@ export default function ProcessPage() {
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
         setIsLogin(false);
-        const res: AxiosResponse<
-          ProjectAPITypes.GetProjects["resData"],
-          any
-        > = await projectAPIs.getProjecs();
-        setProjects(res.data);
+        fetchProjects();
         setIsProjectsModalOpen(true);
       } else {
         setIsAccountModalOpen(true);
@@ -2264,6 +2268,7 @@ export default function ProcessPage() {
           val: res.data.name,
           inputVal: res.data.name,
         });
+        fetchProjects();
       }
     } catch (error) {
       setProjectName({
@@ -2271,7 +2276,7 @@ export default function ProcessPage() {
         inputVal: projectName.inputVal,
       });
     }
-    
+
     setIsRenameFrameOpen(false);
   };
 
