@@ -14,13 +14,20 @@ export default class Project {
   }
 
   async getProject(id: number) {
-    const shapes = await this.projectModel.getProject(id);
-    return shapes;
+    const project = await this.projectModel.getProject(id);
+    return project;
   }
 
   async createProject(user: string) {
     const newProject = await this.projectModel.createProject(user);
     return newProject;
+  }
+
+  async updateProject(
+    id: number,
+    data: ProjectTypes.UpdateProject["req"]["data"]
+  ) {
+    await this.projectModel.updateProject(id, data);
   }
 
   async deleteProject(userId: AuthTypes.UserId, id: ProjectTypes.Id) {

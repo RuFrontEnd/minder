@@ -92,14 +92,14 @@ type GetProject = {
   resData: ProjectData;
 };
 
-type UpdateShapes = {
-  data: ProjectData;
-}; // TOOD: 待替換
-
-type DeleteShape = {
-  data: {
-    id: ProjectTypes.Project["id"];
-  };
+type UpdateProject = {
+  data: Omit<ProjectData, "projectId" | "projectName">;
 };
 
-export type { GetProjects, GetProject, CreateProject, DeleteProject };
+export type {
+  GetProjects,
+  GetProject,
+  CreateProject,
+  UpdateProject,
+  DeleteProject,
+};

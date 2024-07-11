@@ -12,15 +12,13 @@ export default class Project {
     return rows as ProjectTypes.Rows;
   }
 
-  async getProject(projectId: number) {
+  async getProject(id: number) {
     const collection = await mongoDbPool.query("shapes");
 
-    const shapes = await collection
-      .find({ projectId: Number(projectId) })
-      .toArray();
+    const shapes = await collection.find({ projectId: Number(id) }).toArray();
 
     const [rows] = await pool.query("SELECT * FROM projects WHERE id = ?", [
-      projectId,
+      id,
     ]);
 
     shapes[0].projectName = (rows as ProjectTypes.Rows)[0].name;
@@ -29,10 +27,13 @@ export default class Project {
   }
 
   async createProject(user: string) {
-    const insertInfo: [ResultSetHeader, FieldPacket[]] = await pool.query(
-      "INSERT INTO projects (name, user) VALUES (?, ?)",
-      ["Untitled", user]
-    );
+    const insertInfo: [
+      ResultSetHeader,
+      FieldPacket[]
+    ] = await pool.query("INSERT INTO projects (name, user) VALUES (?, ?)", [
+      "Untitled",
+      user,
+    ]);
 
     const collection = await mongoDbPool.query("shapes");
 
@@ -44,16 +45,29 @@ export default class Project {
       data: {},
     });
 
-    const [rows] = await pool.query(
-      "SELECT * FROM projects WHERE user = ? AND id = ?",
-      [user, insertInfo[0].insertId]
-    );
+    const [
+      rows,
+    ] = await pool.query("SELECT * FROM projects WHERE user = ? AND id = ?", [
+      user,
+      insertInfo[0].insertId,
+    ]);
 
-    const newProject = (
-      rows as { id: number; user: number; name: string }[]
-    )[0];
+    const newProject = (rows as {
+      id: number;
+      user: number;
+      name: string;
+    }[])[0];
 
     return newProject;
+  }
+
+  async updateProject(
+    id: number,
+    data: ProjectTypes.UpdateProject["req"]["data"]
+  ) {
+    const collection = await mongoDbPool.query("shapes");
+    const dataWithProjectId = {...data, projectId: id};
+    await collection.replaceOne({ projectId: id }, dataWithProjectId);
   }
 
   async deleteProject(userId: AuthTypes.UserId, id: ProjectTypes.Id) {

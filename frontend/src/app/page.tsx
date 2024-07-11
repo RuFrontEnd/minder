@@ -22,16 +22,14 @@ import React, {
   useRef,
   useEffect,
   useCallback,
-  useMemo,
 } from "react";
 import { motion } from "framer-motion";
-import { cloneDeep, set } from "lodash";
+import { cloneDeep } from "lodash";
 import { v4 as uuidv4 } from "uuid";
 import { ChangeEventHandler, MouseEventHandler } from "react";
 import { tailwindColors } from "@/variables/colors";
 import * as authAPIs from "@/apis/auth";
 import * as projectAPIs from "@/apis/project";
-import * as shapeAPIs from "@/apis/shapes";
 import * as CoreTypes from "@/types/shapes/core";
 import * as CurveTypes from "@/types/shapes/curve";
 import * as CommonTypes from "@/types/shapes/common";
@@ -41,7 +39,6 @@ import * as InputTypes from "@/types/components/input";
 import * as AlertTypes from "@/types/components/alert";
 import * as AuthTypes from "@/types/apis/auth";
 import * as ProjectAPITypes from "@/types/apis/project";
-import * as ShapeAPITypes from "@/types/apis/shape";
 import * as ProjectTypes from "@/types/project";
 
 axios.defaults.baseURL = process.env.BASE_URL || "http://localhost:5000/api";
@@ -602,7 +599,6 @@ export default function ProcessPage() {
 
         if (shape.status !== CoreTypes.Status.error) {
           shape.status = CoreTypes.Status.disabled;
-          // console.log('shape', shape)
         }
 
         ds.forEach((d) => {
@@ -715,15 +711,18 @@ export default function ProcessPage() {
     const token = localStorage.getItem("Authorization");
 
     if (token) {
-      const res: AxiosResponse<AuthTypes.JWTLogin["resData"]> =
-        await authAPIs.jwtLogin(token);
+      const res: AxiosResponse<
+        AuthTypes.JWTLogin["resData"]
+      > = await authAPIs.jwtLogin(token);
 
       if (res.data.isPass) {
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
         setIsLogin(false);
-        const res: AxiosResponse<ProjectAPITypes.GetProjects["resData"], any> =
-          await projectAPIs.getProjecs();
+        const res: AxiosResponse<
+          ProjectAPITypes.GetProjects["resData"],
+          any
+        > = await projectAPIs.getProjecs();
         setProjects(res.data);
         setIsProjectsModalOpen(true);
       } else {
@@ -1374,8 +1373,9 @@ export default function ProcessPage() {
         pressing?.parent &&
         pressing?.direction
       ) {
-        const theCheckReceivingPointsBoundryD =
-          shape.checkReceivingPointsBoundry(p);
+        const theCheckReceivingPointsBoundryD = shape.checkReceivingPointsBoundry(
+          p
+        );
 
         const pressingShape = pressing.parent;
 
@@ -1893,8 +1893,10 @@ export default function ProcessPage() {
 
     setIsAuthorizing(true);
 
-    const res: AxiosResponse<AuthTypes.Login["resData"], any> =
-      await authAPIs.login(authInfo.account.value, authInfo.password.value);
+    const res: AxiosResponse<
+      AuthTypes.Login["resData"],
+      any
+    > = await authAPIs.login(authInfo.account.value, authInfo.password.value);
 
     if (res.status === 201) {
       axios.defaults.headers.common[
@@ -1990,12 +1992,14 @@ export default function ProcessPage() {
 
     setIsAuthorizing(true);
 
-    const res: AxiosResponse<AuthTypes.Register["resData"], any> =
-      await authAPIs.register(
-        authInfo.account.value,
-        authInfo.password.value,
-        authInfo.email.value
-      );
+    const res: AxiosResponse<
+      AuthTypes.Register["resData"],
+      any
+    > = await authAPIs.register(
+      authInfo.account.value,
+      authInfo.password.value,
+      authInfo.email.value
+    );
 
     if (res.status === 201) {
       setTimeout(() => {
@@ -2044,8 +2048,7 @@ export default function ProcessPage() {
 
   const onClickSaveButton: MouseEventHandler<HTMLSpanElement> = () => {
     if (selectedProjectId === null) return;
-    const modifyData: ShapeAPITypes.UpdateShapes["data"] = {
-      projectId: selectedProjectId,
+    const modifyData: ProjectAPITypes.UpdateProject["data"] = {
       orders: [],
       shapes: {},
       curves: {},
@@ -2129,7 +2132,7 @@ export default function ProcessPage() {
       };
     });
 
-    shapeAPIs.updateShapes(modifyData);
+    projectAPIs.updateProject(selectedProjectId, modifyData);
   };
 
   const onClickProjectCard = (id: ProjectTypes.Project["id"]) => {
@@ -2140,8 +2143,10 @@ export default function ProcessPage() {
     let $canvas = document.querySelector("canvas");
     if (!$canvas || !ctx) return;
 
-    const res: AxiosResponse<ProjectAPITypes.GetProject["resData"], any> =
-      await projectAPIs.getProject(id);
+    const res: AxiosResponse<
+      ProjectAPITypes.GetProject["resData"],
+      any
+    > = await projectAPIs.getProject(id);
 
     setScale(1);
     offset = cloneDeep(init.offset);
@@ -2172,8 +2177,9 @@ export default function ProcessPage() {
     if (!$canvas || !ctx) return;
 
     try {
-      const res: AxiosResponse<ProjectAPITypes.DeleteProject["resData"]> =
-        await projectAPIs.deleteProject(id);
+      const res: AxiosResponse<
+        ProjectAPITypes.DeleteProject["resData"]
+      > = await projectAPIs.deleteProject(id);
 
       if (id === selectedProjectId) {
         shapes = [];
@@ -2195,11 +2201,14 @@ export default function ProcessPage() {
       return;
     }
     shapes = [];
-    const newProject: AxiosResponse<ProjectAPITypes.CreateProject["resData"]> =
-      await projectAPIs.createProject();
+    const newProject: AxiosResponse<
+      ProjectAPITypes.CreateProject["resData"]
+    > = await projectAPIs.createProject();
 
-    const res: AxiosResponse<ProjectAPITypes.GetProjects["resData"], any> =
-      await projectAPIs.getProjecs();
+    const res: AxiosResponse<
+      ProjectAPITypes.GetProjects["resData"],
+      any
+    > = await projectAPIs.getProjecs();
 
     setIsProjectsModalOpen(false);
     setProjects(res.data);

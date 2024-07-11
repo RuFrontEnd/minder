@@ -12,6 +12,7 @@ export default class Project {
     this.getProjects = this.getProjects.bind(this);
     this.getProject = this.getProject.bind(this);
     this.createProject = this.createProject.bind(this);
+    this.updateProject = this.updateProject.bind(this);
     this.deleteProject = this.deleteProject.bind(this);
   }
 
@@ -34,19 +35,15 @@ export default class Project {
   }
 
   async getProject(
-    req: Request<
-      { id: string },
-      { projectId: number },
-      { decoded: JWTDecoded }
-    >,
+    req: Request<{ id: string }, { decoded: JWTDecoded }>,
     res: Response,
     next: NextFunction
   ) {
     try {
-      const shapes = await this.projectService.getProject(
+      const project = await this.projectService.getProject(
         Number(req.params.id)
       );
-      res.status(201).send(shapes);
+      res.status(201).send(project);
     } catch (err) {
       res.status(400).send(getError(err));
     }
@@ -69,6 +66,22 @@ export default class Project {
         message: "Create project successfully!",
         ...newProject,
       });
+    } catch (err) {
+      res.status(400).send(getError(err));
+    }
+  }
+
+  async updateProject(
+    req: Request<{ id: string }, {}, ProjectTypes.UpdateProject["req"]>,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      await this.projectService.updateProject(
+        Number(req.params.id),
+        req.body.data
+      );
+      res.status(201).send("Update project successfully!");
     } catch (err) {
       res.status(400).send(getError(err));
     }
