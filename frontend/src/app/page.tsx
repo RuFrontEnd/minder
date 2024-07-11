@@ -15,15 +15,17 @@ import Modal from "@/components/modal";
 import Input from "@/components/input";
 import Alert from "@/components/alert";
 import Card from "@/components/card";
-import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import Frame from "@/components/frame";
+import PencilSquareIcon from "@/assets/svg/pencil-square.svg";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { cloneDeep } from "lodash";
 import { v4 as uuidv4 } from "uuid";
 import { ChangeEventHandler, MouseEventHandler } from "react";
 import { tailwindColors } from "@/variables/colors";
+import * as statusConstants from "@/constants/stauts";
 import * as authAPIs from "@/apis/auth";
 import * as projectAPIs from "@/apis/project";
-import * as shapeAPIs from "@/apis/shapes";
 import * as CoreTypes from "@/types/shapes/core";
 import * as CurveTypes from "@/types/shapes/curve";
 import * as CommonTypes from "@/types/shapes/common";
@@ -33,7 +35,6 @@ import * as InputTypes from "@/types/components/input";
 import * as AlertTypes from "@/types/components/alert";
 import * as AuthTypes from "@/types/apis/auth";
 import * as ProjectAPITypes from "@/types/apis/project";
-import * as ShapeAPITypes from "@/types/apis/shape";
 import * as ProjectTypes from "@/types/project";
 
 axios.defaults.baseURL = process.env.BASE_URL || "http://localhost:5000/api";
@@ -150,12 +151,17 @@ const getFramePosition = (shape: Core) => {
   };
 };
 
-const getInitializedShapes = (data: ShapeAPITypes.GetShapes["resData"]) => {
+const getInitializedShapes = (
+  orders: ProjectAPITypes.GetProject["resData"]["orders"],
+  shapes: ProjectAPITypes.GetProject["resData"]["shapes"],
+  curves: ProjectAPITypes.GetProject["resData"]["curves"],
+  data: ProjectAPITypes.GetProject["resData"]["data"]
+) => {
   const shapeMappings: {
     [shapeId: string]: Terminal | Process | Data | Desicion;
   } = {};
 
-  const dataShapes = Object.entries(data.shapes);
+  const dataShapes = Object.entries(shapes);
 
   dataShapes.forEach(([id, info]) => {
     switch (info.type) {
@@ -171,14 +177,14 @@ const getInitializedShapes = (data: ShapeAPITypes.GetShapes["resData"]) => {
         info.selectedData.forEach((dataId) => {
           newTerminator.selectedData.push({
             id: dataId,
-            text: data.data[dataId],
+            text: data[dataId],
           });
         });
 
         info.deletedData.forEach((dataId) => {
           newTerminator.deletedData.push({
             id: dataId,
-            text: data.data[dataId],
+            text: data[dataId],
           });
         });
 
@@ -193,21 +199,21 @@ const getInitializedShapes = (data: ShapeAPITypes.GetShapes["resData"]) => {
         info.data.forEach((dataId) => {
           newData.data.push({
             id: dataId,
-            text: data.data[dataId],
+            text: data[dataId],
           });
         });
 
         info.selectedData.forEach((dataId) => {
           newData.selectedData.push({
             id: dataId,
-            text: data.data[dataId],
+            text: data[dataId],
           });
         });
 
         info.deletedData.forEach((dataId) => {
           newData.deletedData.push({
             id: dataId,
-            text: data.data[dataId],
+            text: data[dataId],
           });
         });
 
@@ -222,14 +228,14 @@ const getInitializedShapes = (data: ShapeAPITypes.GetShapes["resData"]) => {
         info.selectedData.forEach((dataId) => {
           newProcess.selectedData.push({
             id: dataId,
-            text: data.data[dataId],
+            text: data[dataId],
           });
         });
 
         info.deletedData.forEach((dataId) => {
           newProcess.deletedData.push({
             id: dataId,
-            text: data.data[dataId],
+            text: data[dataId],
           });
         });
 
@@ -254,14 +260,14 @@ const getInitializedShapes = (data: ShapeAPITypes.GetShapes["resData"]) => {
         info.selectedData.forEach((dataId) => {
           newDesicion.selectedData.push({
             id: dataId,
-            text: data.data[dataId],
+            text: data[dataId],
           });
         });
 
         info.deletedData.forEach((dataId) => {
           newDesicion.deletedData.push({
             id: dataId,
-            text: data.data[dataId],
+            text: data[dataId],
           });
         });
 
@@ -277,7 +283,7 @@ const getInitializedShapes = (data: ShapeAPITypes.GetShapes["resData"]) => {
     ds.forEach((d) => {
       if (shapeInfo.curves[d].length === 0) return;
       shapeInfo.curves[d].forEach((curveId) => {
-        const curveInfo = data.curves[curveId];
+        const curveInfo = curves[curveId];
 
         shapeMappings[shapeId].createCurve(
           curveId,
@@ -309,7 +315,7 @@ const getInitializedShapes = (data: ShapeAPITypes.GetShapes["resData"]) => {
     });
   });
 
-  return data.orders.map((orderId) => shapeMappings[orderId]);
+  return orders.map((orderId) => shapeMappings[orderId]);
 };
 
 const Editor = (props: { className: string; shape: Core }) => {
@@ -470,6 +476,7 @@ export default function ProcessPage() {
     [leftMouseBtn, setLeftMouseBtn] = useState(false),
     [isDataSidePanelOpen, setIsDataSidePanelOpen] = useState(true),
     [isUserSidePanelOpen, setIsUserSidePanelOpen] = useState(false),
+    [isRenameFrameOpen, setIsRenameFrameOpen] = useState(false),
     [steps, setSteps] = useState<PageTypes.Steps>({}),
     [procedures, setProcedures] = useState<PageTypes.Procedures>({}),
     [otherStepIds, setOtherStepIds] = useState<PageTypes.OtherStepIds>([]),
@@ -508,7 +515,11 @@ export default function ProcessPage() {
     [selectedProjectId, setSelectedProjectId] = useState<
       null | ProjectTypes.Project["id"]
     >(null),
-    [hasEnter, setHasEnter] = useState(false);
+    [hasEnter, setHasEnter] = useState(false),
+    [projectName, setProjectName] = useState({
+      inputVal: "Untitled",
+      val: "Untitled",
+    });
 
   const checkData = () => {
     const dataShapes: Data[] = [];
@@ -584,7 +595,6 @@ export default function ProcessPage() {
 
         if (shape.status !== CoreTypes.Status.error) {
           shape.status = CoreTypes.Status.disabled;
-          // console.log('shape', shape)
         }
 
         ds.forEach((d) => {
@@ -688,6 +698,14 @@ export default function ProcessPage() {
     }
   };
 
+  const fetchProjects = async () => {
+    const res: AxiosResponse<
+      ProjectAPITypes.GetProjects["resData"],
+      any
+    > = await projectAPIs.getProjecs();
+    setProjects(res.data);
+  };
+
   const verifyToken = async () => {
     if (qas) {
       setIsAccountModalOpen(true);
@@ -697,16 +715,15 @@ export default function ProcessPage() {
     const token = localStorage.getItem("Authorization");
 
     if (token) {
-      const res: AxiosResponse<AuthTypes.JWTLogin["resData"]> =
-        await authAPIs.jwtLogin(token);
+      const res: AxiosResponse<
+        AuthTypes.JWTLogin["resData"]
+      > = await authAPIs.jwtLogin(token);
 
       if (res.data.isPass) {
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
         setIsLogin(false);
-        const res: AxiosResponse<ProjectAPITypes.GetProjects["resData"], any> =
-          await projectAPIs.getProjecs();
-        setProjects(res.data);
+        fetchProjects();
         setIsProjectsModalOpen(true);
       } else {
         setIsAccountModalOpen(true);
@@ -1356,8 +1373,9 @@ export default function ProcessPage() {
         pressing?.parent &&
         pressing?.direction
       ) {
-        const theCheckReceivingPointsBoundryD =
-          shape.checkReceivingPointsBoundry(p);
+        const theCheckReceivingPointsBoundryD = shape.checkReceivingPointsBoundry(
+          p
+        );
 
         const pressingShape = pressing.parent;
 
@@ -1875,8 +1893,10 @@ export default function ProcessPage() {
 
     setIsAuthorizing(true);
 
-    const res: AxiosResponse<AuthTypes.Login["resData"], any> =
-      await authAPIs.login(authInfo.account.value, authInfo.password.value);
+    const res: AxiosResponse<
+      AuthTypes.Login["resData"],
+      any
+    > = await authAPIs.login(authInfo.account.value, authInfo.password.value);
 
     if (res.status === 201) {
       axios.defaults.headers.common[
@@ -1972,12 +1992,14 @@ export default function ProcessPage() {
 
     setIsAuthorizing(true);
 
-    const res: AxiosResponse<AuthTypes.Register["resData"], any> =
-      await authAPIs.register(
-        authInfo.account.value,
-        authInfo.password.value,
-        authInfo.email.value
-      );
+    const res: AxiosResponse<
+      AuthTypes.Register["resData"],
+      any
+    > = await authAPIs.register(
+      authInfo.account.value,
+      authInfo.password.value,
+      authInfo.email.value
+    );
 
     if (res.status === 201) {
       setTimeout(() => {
@@ -2026,8 +2048,7 @@ export default function ProcessPage() {
 
   const onClickSaveButton: MouseEventHandler<HTMLSpanElement> = () => {
     if (selectedProjectId === null) return;
-    const modifyData: ShapeAPITypes.UpdateShapes["data"] = {
-      projectId: selectedProjectId,
+    const modifyData: ProjectAPITypes.UpdateProject["data"] = {
       orders: [],
       shapes: {},
       curves: {},
@@ -2111,7 +2132,7 @@ export default function ProcessPage() {
       };
     });
 
-    shapeAPIs.updateShapes(modifyData);
+    projectAPIs.updateProject(selectedProjectId, modifyData);
   };
 
   const onClickProjectCard = (id: ProjectTypes.Project["id"]) => {
@@ -2122,18 +2143,29 @@ export default function ProcessPage() {
     let $canvas = document.querySelector("canvas");
     if (!$canvas || !ctx) return;
 
-    const resShapes: AxiosResponse<ShapeAPITypes.GetShapes["resData"], any> =
-      await shapeAPIs.getShapes(id);
+    const res: AxiosResponse<
+      ProjectAPITypes.GetProject["resData"],
+      any
+    > = await projectAPIs.getProject(id);
 
     setScale(1);
     offset = cloneDeep(init.offset);
     offset_center = cloneDeep(init.offset);
-    shapes = getInitializedShapes(resShapes.data);
+    shapes = getInitializedShapes(
+      res.data.orders,
+      res.data.shapes,
+      res.data.curves,
+      res.data.data
+    );
     select = cloneDeep(init.select);
     checkData();
     checkGroups();
     draw($canvas, ctx);
     setIsProjectsModalOpen(false);
+    setProjectName({
+      inputVal: res.data.projectName,
+      val: res.data.projectName,
+    });
 
     if (!hasEnter) {
       setHasEnter(true);
@@ -2145,8 +2177,9 @@ export default function ProcessPage() {
     if (!$canvas || !ctx) return;
 
     try {
-      const res: AxiosResponse<ProjectAPITypes.DeleteProject["resData"]> =
-        await projectAPIs.deleteProject(id);
+      const res: AxiosResponse<
+        ProjectAPITypes.DeleteProject["resData"]
+      > = await projectAPIs.deleteProject(id);
 
       if (id === selectedProjectId) {
         shapes = [];
@@ -2168,11 +2201,14 @@ export default function ProcessPage() {
       return;
     }
     shapes = [];
-    const newProject: AxiosResponse<ProjectAPITypes.CreateProject["resData"]> =
-      await projectAPIs.createProject();
+    const newProject: AxiosResponse<
+      ProjectAPITypes.CreateProject["resData"]
+    > = await projectAPIs.createProject();
 
-    const res: AxiosResponse<ProjectAPITypes.GetProjects["resData"], any> =
-      await projectAPIs.getProjecs();
+    const res: AxiosResponse<
+      ProjectAPITypes.GetProjects["resData"],
+      any
+    > = await projectAPIs.getProjecs();
 
     setIsProjectsModalOpen(false);
     setProjects(res.data);
@@ -2198,6 +2234,50 @@ export default function ProcessPage() {
     setIsProjectsModalOpen(false);
     setIsAccountModalOpen(true);
     setSteps({});
+  };
+
+  const onClickProjectName = () => {
+    setIsRenameFrameOpen((isRenameFrameOpen) => !isRenameFrameOpen);
+  };
+
+  const onChangeProjectName: ChangeEventHandler<HTMLInputElement> = (e) => {
+    setProjectName((projectName) => ({
+      ...projectName,
+      inputVal: e.target.value,
+    }));
+  };
+
+  const onClickSaveProjectNameButton: MouseEventHandler<HTMLButtonElement> = async (
+    e
+  ) => {
+    if (!selectedProjectId) return;
+    const res: AxiosResponse<
+      ProjectAPITypes.UpdateProjectName["resData"],
+      any
+    > = await projectAPIs.updateProjectName(
+      selectedProjectId,
+      projectName.inputVal
+    );
+
+    try {
+      if (
+        res.status === 201 &&
+        res.data.status === statusConstants.SUCCESSFUL
+      ) {
+        setProjectName({
+          val: res.data.name,
+          inputVal: res.data.name,
+        });
+        fetchProjects();
+      }
+    } catch (error) {
+      setProjectName({
+        val: projectName.inputVal,
+        inputVal: projectName.inputVal,
+      });
+    }
+
+    setIsRenameFrameOpen(false);
   };
 
   useEffect(() => {
@@ -2428,9 +2508,59 @@ export default function ProcessPage() {
             </a>
           </li>
           <li className="justify-self-center self-center text-base">
-            <nav>
-              <a className="text-white-500">Project_1</a>
-            </nav>
+            <div>
+              <nav
+                className="cursor-pointer flex items-center relative [&:hover>div:nth-child(2)]:translate-x-full [&:hover>div:nth-child(2)]:opacity-100 transition ease-in-out duration-150"
+                onClick={onClickProjectName}
+              >
+                <a className="text-white-500">{projectName.val}</a>
+                <div className="absolute right-0 translate-x-[0px] opacity-0 transition ease-in-out duration-150 ps-1">
+                  <PencilSquareIcon
+                    width={20}
+                    height={20}
+                    fill={tailwindColors.white["500"]}
+                  />
+                </div>
+              </nav>
+              <motion.div
+                className={`${isRenameFrameOpen ? "block" : "hidden"}`}
+                variants={{
+                  open: {
+                    display: "block",
+                    opacity: 1,
+                    y: "4px",
+                  },
+                  closed: {
+                    transitionEnd: {
+                      display: "none",
+                    },
+                    opacity: 0,
+                    y: "-2px",
+                  },
+                }}
+                initial={isRenameFrameOpen ? "open" : "closed"}
+                animate={isRenameFrameOpen ? "open" : "closed"}
+                transition={{ type: "easeInOut", duration: 0.15 }}
+              >
+                <Frame
+                  className={
+                    "absolute -bottom-[6px] left-1/2 -translate-x-1/2 translate-y-full w-[300px]"
+                  }
+                >
+                  <div className="flex">
+                    <Input
+                      value={projectName.inputVal}
+                      onChange={onChangeProjectName}
+                    />
+                    <Button
+                      className="ms-4"
+                      text="Save"
+                      onClick={onClickSaveProjectNameButton}
+                    />
+                  </div>
+                </Frame>
+              </motion.div>
+            </div>
           </li>
           <li className="flex justify-self-end self-center text-base">
             <Button
