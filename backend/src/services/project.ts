@@ -30,6 +30,13 @@ export default class Project {
     await this.projectModel.updateProject(id, data);
   }
 
+  async updateProjectName(
+    id: number,
+    data: ProjectTypes.UpdateProjectName["req"]["data"]
+  ) {
+    return this.projectModel.updateProjectName(id, data);
+  }
+
   async deleteProject(userId: AuthTypes.UserId, id: ProjectTypes.Id) {
     await this.projectModel.deleteProject(userId, id);
   }

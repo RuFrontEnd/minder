@@ -17,17 +17,13 @@ import Alert from "@/components/alert";
 import Card from "@/components/card";
 import Frame from "@/components/frame";
 import PencilSquareIcon from "@/assets/svg/pencil-square.svg";
-import React, {
-  useState,
-  useRef,
-  useEffect,
-  useCallback,
-} from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { cloneDeep } from "lodash";
 import { v4 as uuidv4 } from "uuid";
 import { ChangeEventHandler, MouseEventHandler } from "react";
 import { tailwindColors } from "@/variables/colors";
+import * as statusConstants from "@/constants/stauts";
 import * as authAPIs from "@/apis/auth";
 import * as projectAPIs from "@/apis/project";
 import * as CoreTypes from "@/types/shapes/core";
@@ -2247,13 +2243,35 @@ export default function ProcessPage() {
     }));
   };
 
-  const onClickSaveProjectNameButton: MouseEventHandler<HTMLButtonElement> = (
+  const onClickSaveProjectNameButton: MouseEventHandler<HTMLButtonElement> = async (
     e
   ) => {
-    setProjectName((projectName) => ({
-      ...projectName,
-      val: projectName.inputVal,
-    }));
+    if (!selectedProjectId) return;
+    const res: AxiosResponse<
+      ProjectAPITypes.UpdateProjectName["resData"],
+      any
+    > = await projectAPIs.updateProjectName(
+      selectedProjectId,
+      projectName.inputVal
+    );
+
+    try {
+      if (
+        res.status === 201 &&
+        res.data.status === statusConstants.SUCCESSFUL
+      ) {
+        setProjectName({
+          val: res.data.name,
+          inputVal: res.data.name,
+        });
+      }
+    } catch (error) {
+      setProjectName({
+        val: projectName.inputVal,
+        inputVal: projectName.inputVal,
+      });
+    }
+    
     setIsRenameFrameOpen(false);
   };
 

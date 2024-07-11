@@ -1,6 +1,7 @@
 type Id = number;
+type Name = string;
 
-type Row = { id: number; user: number; name: string };
+type Row = { id: number; user: number; name: Name };
 type Rows = Row[];
 
 enum Direction {
@@ -75,6 +76,12 @@ type UpdateProject = {
   };
 };
 
+type UpdateProjectName = {
+  req: {
+    data: Name;
+  };
+};
+
 export type {
   Id,
   Row,
@@ -86,4 +93,5 @@ export type {
   CurveInfo,
   ProjectData,
   UpdateProject,
+  UpdateProjectName,
 };

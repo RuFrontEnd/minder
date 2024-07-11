@@ -66,8 +66,23 @@ export default class Project {
     data: ProjectTypes.UpdateProject["req"]["data"]
   ) {
     const collection = await mongoDbPool.query("shapes");
-    const dataWithProjectId = {...data, projectId: id};
+    const dataWithProjectId = { ...data, projectId: id };
     await collection.replaceOne({ projectId: id }, dataWithProjectId);
+  }
+
+  async updateProjectName(
+    id: number,
+    data: ProjectTypes.UpdateProjectName["req"]["data"]
+  ) {
+    await pool.query("UPDATE projects SET name = ? WHERE id = ?", [data, id]);
+
+    const [rows] = await pool.query("SELECT * FROM projects WHERE id = ?", [
+      id,
+    ]);
+
+    const newName = (rows as ProjectTypes.Rows)[0].name;
+
+    return newName;
   }
 
   async deleteProject(userId: AuthTypes.UserId, id: ProjectTypes.Id) {

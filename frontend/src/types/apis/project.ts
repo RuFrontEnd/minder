@@ -96,10 +96,20 @@ type UpdateProject = {
   data: Omit<ProjectData, "projectId" | "projectName">;
 };
 
+type UpdateProjectName = {
+  data: string;
+  resData: {
+    status: string;
+    message: "Update project name successfully!";
+    name: string;
+  };
+};
+
 export type {
   GetProjects,
   GetProject,
   CreateProject,
   UpdateProject,
+  UpdateProjectName,
   DeleteProject,
 };

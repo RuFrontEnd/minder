@@ -13,6 +13,7 @@ export default class Project {
     this.getProject = this.getProject.bind(this);
     this.createProject = this.createProject.bind(this);
     this.updateProject = this.updateProject.bind(this);
+    this.updateProjectName = this.updateProjectName.bind(this);
     this.deleteProject = this.deleteProject.bind(this);
   }
 
@@ -82,6 +83,27 @@ export default class Project {
         req.body.data
       );
       res.status(201).send("Update project successfully!");
+    } catch (err) {
+      res.status(400).send(getError(err));
+    }
+  }
+
+  async updateProjectName(
+    req: Request<{ id: string }, {}, ProjectTypes.UpdateProjectName["req"]>,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const newName = await this.projectService.updateProjectName(
+        Number(req.params.id),
+        req.body.data
+      );
+
+      res.status(201).send({
+        status: SUCCESSFUL,
+        message: "Update project name successfully!",
+        name: newName,
+      });
     } catch (err) {
       res.status(400).send(getError(err));
     }
