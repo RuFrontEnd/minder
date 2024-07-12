@@ -87,7 +87,9 @@ const init = {
 
 let useEffected = false,
   ctx: CanvasRenderingContext2D | null | undefined = null,
+  ctx_screentshot: CanvasRenderingContext2D | null | undefined = null,
   shapes: (Terminal | Process | Data | Desicion)[] = [],
+  screenshotShapes: (Terminal | Process | Data | Desicion)[] = [],
   pressing: null | {
     parent: null | Terminal | Process | Data | Desicion;
     shape: null | Terminal | Process | Data | Desicion | Curve;
@@ -463,6 +465,7 @@ const Editor = (props: { className: string; shape: Core }) => {
 
 export default function ProcessPage() {
   let { current: $canvas } = useRef<HTMLCanvasElement | null>(null);
+  let { current: $screenshot } = useRef<HTMLCanvasElement | null>(null);
   const qas = isBrowser && window.location.href.includes("qas");
 
   const [dataFrame, setDataFrame] = useState<
@@ -521,7 +524,7 @@ export default function ProcessPage() {
       val: "Untitled",
     });
 
-  const checkData = () => {
+  const checkData = (shapes: (Terminal | Process | Data | Desicion)[]) => {
     const dataShapes: Data[] = [];
 
     shapes.forEach((shape) => {
@@ -973,12 +976,16 @@ export default function ProcessPage() {
       }
     }
 
-    draw($canvas, ctx);
+    draw($canvas, ctx, shapes);
   };
 
   const onMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     e.preventDefault();
-    if (!$canvas || !ctx) return;
+    let $canvas = document.querySelector("canvas");
+    let $screenshot: HTMLCanvasElement | null = document.querySelector(
+      "canvas[role='screenshot']"
+    );
+    if (!$canvas || !$screenshot || !ctx || !ctx_screentshot) return;
 
     const p = {
         x: e.nativeEvent.offsetX,
@@ -1290,7 +1297,8 @@ export default function ProcessPage() {
 
     dragP = p;
 
-    draw($canvas, ctx);
+    draw($canvas, ctx, shapes);
+    draw($screenshot, ctx_screentshot, screenshotShapes);
   };
 
   const onMouseUp = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -1445,20 +1453,21 @@ export default function ProcessPage() {
       };
     });
 
-    checkData();
+    checkData(shapes);
+    checkData(screenshotShapes);
     checkGroups();
 
     selectAreaP = null;
     pressing = null;
     moveP = null;
 
-    draw($canvas, ctx);
+    draw($canvas, ctx, shapes);
   };
 
   const onMouseWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
     if (!$canvas || !ctx) return;
     zoom(e.deltaY, { x: e.clientX, y: e.clientY });
-    draw($canvas, ctx);
+    draw($canvas, ctx, shapes);
   };
 
   const onDoubleClick = useCallback(
@@ -1506,7 +1515,7 @@ export default function ProcessPage() {
         }
       }
 
-      draw($canvas, ctx);
+      draw($canvas, ctx, shapes);
     }
   }
 
@@ -1533,9 +1542,10 @@ export default function ProcessPage() {
     terminal.scale = scale;
 
     shapes.push(terminal);
-    checkData();
+    checkData(shapes);
+    checkData(screenshotShapes);
     checkGroups();
-    draw($canvas, ctx);
+    draw($canvas, ctx, shapes);
   };
 
   const onClickProcess = () => {
@@ -1555,9 +1565,10 @@ export default function ProcessPage() {
     process_new.scale = scale;
 
     shapes.push(process_new);
-    checkData();
+    checkData(shapes);
+    checkData(screenshotShapes);
     checkGroups();
-    draw($canvas, ctx);
+    draw($canvas, ctx, shapes);
   };
 
   const onClickData = () => {
@@ -1577,9 +1588,10 @@ export default function ProcessPage() {
     data_new.offset = offset;
 
     shapes.push(data_new);
-    checkData();
+    checkData(shapes);
+    checkData(screenshotShapes);
     checkGroups();
-    draw($canvas, ctx);
+    draw($canvas, ctx, shapes);
   };
 
   const onClickDecision = () => {
@@ -1599,9 +1611,10 @@ export default function ProcessPage() {
     decision_new.scale = scale;
 
     shapes.push(decision_new);
-    checkData();
+    checkData(shapes);
+    checkData(screenshotShapes);
     checkGroups();
-    draw($canvas, ctx);
+    draw($canvas, ctx, shapes);
   };
 
   const onConfirmDataFrame: DataFrameTypes.Props["onConfirm"] = (
@@ -1668,20 +1681,21 @@ export default function ProcessPage() {
 
     setDataFrame(undefined);
     setDbClickedShape(null);
-    checkData();
+    checkData(shapes);
+    checkData(screenshotShapes);
     checkGroups();
   };
 
   const onClickScalePlusIcon = () => {
     if (!$canvas || !ctx) return;
     zoom(-100, { x: $canvas?.width / 2, y: $canvas?.height / 2 });
-    draw($canvas, ctx);
+    draw($canvas, ctx, shapes);
   };
 
   const onClickScaleMinusIcon = () => {
     if (!$canvas || !ctx) return;
     zoom(100, { x: $canvas?.width / 2, y: $canvas?.height / 2 });
-    draw($canvas, ctx);
+    draw($canvas, ctx, shapes);
   };
 
   const onClickScaleNumber = () => {
@@ -1690,7 +1704,7 @@ export default function ProcessPage() {
       x: $canvas?.width / 2,
       y: $canvas?.height / 2,
     });
-    draw($canvas, ctx);
+    draw($canvas, ctx, shapes);
   };
 
   const onClickDataSidePanelSwitch = () => {
@@ -1702,9 +1716,13 @@ export default function ProcessPage() {
   };
 
   const draw = useCallback(
-    ($canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => {
+    (
+      $canvas: HTMLCanvasElement,
+      ctx: CanvasRenderingContext2D,
+      shapes: (Terminal | Process | Data | Desicion)[]
+    ) => {
       if (!isBrowser) return;
-      $canvas.width = window.innerWidth;
+      $canvas.width = window.innerWidth / 2; // TODO: feat is completed, recover this line
       $canvas.height = window.innerHeight;
       ctx?.clearRect(0, 0, window.innerWidth, window.innerHeight);
 
@@ -1859,7 +1877,7 @@ export default function ProcessPage() {
       shape.offset = offset;
     });
 
-    draw($canvas, ctx);
+    draw($canvas, ctx, shapes);
   };
 
   const onClickChangeAuthButton = (_isLogining: boolean) => {
@@ -2132,6 +2150,27 @@ export default function ProcessPage() {
       };
     });
 
+    // TODO: capture image feature
+    // const $canvas = document.querySelector("canvas");
+    // if (!$canvas || !ctx) return;
+
+    // const screenshotImg = document.getElementById(
+    //   "screenshotImg"
+    // ) as HTMLImageElement;
+
+    // if (!screenshotImg) return;
+    // const dataURL = $canvas.toDataURL("image/png");
+
+    // // 將 Data URL 設置為圖片的 src
+    // screenshotImg.src = dataURL;
+    // screenshotImg.style.display = "block";
+
+    // // 如果想下載圖片，可以創建一個臨時的錨點並模擬點擊
+    // const link = document.createElement("a");
+    // link.href = dataURL;
+    // link.download = "canvas_screenshot.png";
+    // link.click();
+
     projectAPIs.updateProject(selectedProjectId, modifyData);
   };
 
@@ -2141,7 +2180,10 @@ export default function ProcessPage() {
 
   const onClickConfrimProject = async (id: ProjectTypes.Project["id"]) => {
     let $canvas = document.querySelector("canvas");
-    if (!$canvas || !ctx) return;
+    let $screenshot: HTMLCanvasElement | null = document.querySelector(
+      "canvas[role='screenshot']"
+    );
+    if (!$canvas || !$screenshot || !ctx || !ctx_screentshot) return;
 
     const res: AxiosResponse<
       ProjectAPITypes.GetProject["resData"],
@@ -2151,16 +2193,20 @@ export default function ProcessPage() {
     setScale(1);
     offset = cloneDeep(init.offset);
     offset_center = cloneDeep(init.offset);
-    shapes = getInitializedShapes(
+    const initShapes = getInitializedShapes(
       res.data.orders,
       res.data.shapes,
       res.data.curves,
       res.data.data
     );
+    shapes = initShapes;
+    screenshotShapes = cloneDeep(initShapes);
     select = cloneDeep(init.select);
-    checkData();
+    checkData(shapes);
+    checkData(screenshotShapes);
     checkGroups();
-    draw($canvas, ctx);
+    draw($canvas, ctx, shapes);
+    draw($screenshot, ctx_screentshot, screenshotShapes);
     setIsProjectsModalOpen(false);
     setProjectName({
       inputVal: res.data.projectName,
@@ -2224,7 +2270,7 @@ export default function ProcessPage() {
     shapes = [];
     let $canvas = document.querySelector("canvas");
     if (!$canvas || !ctx) return;
-    draw($canvas, ctx);
+    draw($canvas, ctx, shapes);
     localStorage.removeItem("Authorization");
     setIsLogin(true);
     setProjects([]);
@@ -2286,14 +2332,14 @@ export default function ProcessPage() {
 
     const $canvas = document.querySelector("canvas");
     if (!$canvas || !ctx) return;
-    draw($canvas, ctx);
+    draw($canvas, ctx, shapes);
 
     const resize = () => {
       let $canvas = document.querySelector("canvas");
       if (!isBrowser || !$canvas || !ctx) return;
       $canvas.width = window.innerWidth;
       $canvas.height = window.innerHeight;
-      draw($canvas, ctx);
+      draw($canvas, ctx, shapes);
     };
 
     window.addEventListener("resize", resize);
@@ -2420,13 +2466,6 @@ export default function ProcessPage() {
             <div className="flex justify-end align-center">
               <Button onClick={onClickLogOutButton} text={"Log Out"} danger />
             </div>
-            {/* <div className="text-right">
-              <Button
-                className="ms-auto inline-flex"
-                onClick={() => {}}
-                text={"Sign Out"}
-              />
-            </div> */}
             <div className="mb-6 py-2 px-4 border-b border-grey-5">
               <h2 className="text-gray-900 title-font text-lg font-semibold">
                 Projects
@@ -2822,19 +2861,32 @@ export default function ProcessPage() {
           </div>
         </li>
       </motion.ul>
-      <canvas
-        className={`${space ? "cursor-grab" : ""} overflow-hidden`}
-        tabIndex={1}
-        ref={(el) => {
-          $canvas = el;
-          ctx = $canvas?.getContext("2d");
-        }}
-        onMouseDown={onMouseDown}
-        onMouseUp={onMouseUp}
-        onMouseMove={onMouseMove}
-        onWheel={onMouseWheel}
-        onDoubleClick={onDoubleClick}
-      />
+      <img id="screenshotImg" alt="Screenshot" style={{ display: "none" }} />
+      <div className={"flex"}>
+        <canvas
+          role="canvas"
+          className={`${space ? "cursor-grab" : ""} overflow-hidden`}
+          tabIndex={1}
+          ref={(el) => {
+            $canvas = el;
+            ctx = $canvas?.getContext("2d");
+          }}
+          onMouseDown={onMouseDown}
+          onMouseUp={onMouseUp}
+          onMouseMove={onMouseMove}
+          onWheel={onMouseWheel}
+          onDoubleClick={onDoubleClick}
+        />
+        <canvas
+          role="screenshot"
+          className={`${space ? "cursor-grab" : ""} overflow-hidden`}
+          tabIndex={1}
+          ref={(el) => {
+            $screenshot = el;
+            ctx_screentshot = $screenshot?.getContext("2d");
+          }}
+        />
+      </div>
       {dataFrame && dbClickedShape && (
         <DataFrame
           shape={dbClickedShape}
