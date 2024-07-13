@@ -29,13 +29,7 @@ export default class Curve {
   __offset__: Vec;
   __scale__: number;
 
-  constructor(
-    id: string,
-    p1: Vec,
-    cp1: Vec,
-    cp2: Vec,
-    p2: Vec
-  ) {
+  constructor(id: string, p1: Vec, cp1: Vec, cp2: Vec, p2: Vec) {
     this.id = id;
     this.cpline = {
       w: 1,
@@ -133,6 +127,10 @@ export default class Curve {
   }
 
   getScaleCurveW = () => {
+    // console.log("this.id", this.id);
+    // console.log("this.curve.w", this.curve.w);
+    // console.log("this.__scale__", this.__scale__);
+    // console.log('this.curve.w * this.__scale__', this.curve.w * this.__scale__)
     return this.curve.w * this.__scale__;
   };
 
@@ -310,7 +308,12 @@ export default class Curve {
   draw(ctx: CanvasRenderingContext2D) {
     if (!this.p1 || !this.p2 || !this.cp1 || !this.cp2) return;
     // curve
-    ctx.lineWidth = this.getScaleCurveW();
+    ctx.lineWidth = this.curve.w * this.__scale__;
+    // console.log("this.id", this.id);
+
+    // console.log("this.__scale__", this.__scale__);
+
+    // console.log("this.getScaleCurveW()", this.getScaleCurveW());
     ctx.strokeStyle = this.curve.c;
 
     ctx.beginPath();

@@ -87,9 +87,8 @@ const init = {
 
 let useEffected = false,
   ctx: CanvasRenderingContext2D | null | undefined = null,
-  ctx_screentshot: CanvasRenderingContext2D | null | undefined = null,
+  ctx_screenshot: CanvasRenderingContext2D | null | undefined = null,
   shapes: (Terminal | Process | Data | Desicion)[] = [],
-  screenshotShapes: (Terminal | Process | Data | Desicion)[] = [],
   pressing: null | {
     parent: null | Terminal | Process | Data | Desicion;
     shape: null | Terminal | Process | Data | Desicion | Curve;
@@ -151,6 +150,61 @@ const getFramePosition = (shape: Core) => {
     x: shape.getScreenP().x + shape.getScaleSize().w / 2 + frameOffset,
     y: shape.getScreenP().y,
   };
+};
+
+const getInitializedShape = (
+  type: CommonTypes.Type,
+  offset: CommonTypes.Vec,
+  offset_center: CommonTypes.Vec
+) => {
+  switch (type) {
+    case CommonTypes.Type["terminator"]:
+      return new Terminal(
+        `${type}_${Date.now()}`,
+        init.shape.size.t.w,
+        init.shape.size.t.h,
+        {
+          x: -offset.x + window.innerWidth / 2 + offset_center.x,
+          y: -offset.y + window.innerHeight / 2 + offset_center.y,
+        },
+        type
+      );
+    case CommonTypes.Type["process"]:
+      return new Process(
+        `${type}_${Date.now()}`,
+        init.shape.size.p.w,
+        init.shape.size.p.h,
+        {
+          x: -offset.x + window.innerWidth / 2 + offset_center.x,
+          y: -offset.y + window.innerHeight / 2 + offset_center.y,
+        },
+        type
+      );
+
+    case CommonTypes.Type["data"]:
+      return new Data(
+        `${type}_${Date.now()}`,
+        init.shape.size.d.w,
+        init.shape.size.d.h,
+        {
+          x: -offset.x + window.innerWidth / 2 + offset_center.x,
+          y: -offset.y + window.innerHeight / 2 + offset_center.y,
+        },
+        type
+      );
+
+    case CommonTypes.Type["decision"]:
+      return new Desicion(
+        `${type}_${Date.now()}`,
+        init.shape.size.dec.w,
+        init.shape.size.dec.h,
+        {
+          x: -offset.x + window.innerWidth / 2 + offset_center.x,
+          y: -offset.y + window.innerHeight / 2 + offset_center.y,
+        },
+        type
+      );
+  }
 };
 
 const getInitializedShapes = (
@@ -318,6 +372,35 @@ const getInitializedShapes = (
   });
 
   return orders.map((orderId) => shapeMappings[orderId]);
+};
+
+const getScreenshotShapes = (
+  shapes: (Terminal | Process | Data | Desicion)[]
+) => {
+  const screenshotShapes = cloneDeep(shapes);
+
+  return screenshotShapes.map((screenshotShape) => {
+    // ds.forEach((d) => {
+    //   screenshotShape.curves[d].forEach((curve) => {
+    //     curve.shape.id = curve.shape.id + "_screenshot";
+    //     curve.shape.selecting = false;
+    //     curve.shape.offset = { x: 0, y: 0 };
+    //     // console.log("curve.shape", curve.shape);
+    //     // console.log("curve.shape.id", curve.shape.id);
+    //     // console.log("curve.shape.curve.w", curve.shape.curve.w);
+    //     // console.log("curve.shape.__scale__", curve.shape.__scale__);
+    //     // console.log("curve.shape.getScaleCurveW()", curve.shape.getScaleCurveW());
+    //   });
+    // });
+
+    screenshotShape.id = screenshotShape.id + "_screenshot";
+    // screenshotShape.offset = { x: 0, y: 0 };
+    screenshotShape.scale = 1;
+    // screenshotShape.selecting = false;
+    // screenshotShape.receiving = { l: false, t: false, r: false, b: false };
+
+    return screenshotShape;
+  });
 };
 
 const Editor = (props: { className: string; shape: Core }) => {
@@ -702,10 +785,8 @@ export default function ProcessPage() {
   };
 
   const fetchProjects = async () => {
-    const res: AxiosResponse<
-      ProjectAPITypes.GetProjects["resData"],
-      any
-    > = await projectAPIs.getProjecs();
+    const res: AxiosResponse<ProjectAPITypes.GetProjects["resData"], any> =
+      await projectAPIs.getProjecs();
     setProjects(res.data);
   };
 
@@ -718,9 +799,8 @@ export default function ProcessPage() {
     const token = localStorage.getItem("Authorization");
 
     if (token) {
-      const res: AxiosResponse<
-        AuthTypes.JWTLogin["resData"]
-      > = await authAPIs.jwtLogin(token);
+      const res: AxiosResponse<AuthTypes.JWTLogin["resData"]> =
+        await authAPIs.jwtLogin(token);
 
       if (res.data.isPass) {
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
@@ -981,11 +1061,11 @@ export default function ProcessPage() {
 
   const onMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     e.preventDefault();
-    let $canvas = document.querySelector("canvas");
-    let $screenshot: HTMLCanvasElement | null = document.querySelector(
+    const $canvas = document.querySelector("canvas");
+    const $screenshot: HTMLCanvasElement | null = document.querySelector(
       "canvas[role='screenshot']"
     );
-    if (!$canvas || !$screenshot || !ctx || !ctx_screentshot) return;
+    if (!$canvas || !$screenshot || !ctx || !ctx_screenshot) return;
 
     const p = {
         x: e.nativeEvent.offsetX,
@@ -1298,7 +1378,8 @@ export default function ProcessPage() {
     dragP = p;
 
     draw($canvas, ctx, shapes);
-    draw($screenshot, ctx_screentshot, screenshotShapes);
+    // console.log('getScreenshotShapes(shapes)', getScreenshotShapes(shapes))
+    // draw($screenshot, ctx_screenshot, getScreenshotShapes(shapes));
   };
 
   const onMouseUp = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -1381,9 +1462,8 @@ export default function ProcessPage() {
         pressing?.parent &&
         pressing?.direction
       ) {
-        const theCheckReceivingPointsBoundryD = shape.checkReceivingPointsBoundry(
-          p
-        );
+        const theCheckReceivingPointsBoundryD =
+          shape.checkReceivingPointsBoundry(p);
 
         const pressingShape = pressing.parent;
 
@@ -1454,7 +1534,6 @@ export default function ProcessPage() {
     });
 
     checkData(shapes);
-    checkData(screenshotShapes);
     checkGroups();
 
     selectAreaP = null;
@@ -1493,6 +1572,11 @@ export default function ProcessPage() {
   );
 
   function handleKeyDown(this: Window, e: KeyboardEvent) {
+    const $canvas = document.querySelector("canvas");
+    const $screenshot: HTMLCanvasElement | null = document.querySelector(
+      "canvas[role='screenshot']"
+    );
+    if (!$canvas || !$screenshot || !ctx || !ctx_screenshot) return;
     // space
     if (e.key === " " && !space) {
       setSpace(true);
@@ -1516,6 +1600,7 @@ export default function ProcessPage() {
       }
 
       draw($canvas, ctx, shapes);
+      draw($screenshot, ctx_screenshot, getScreenshotShapes(shapes));
     }
   }
 
@@ -1525,96 +1610,28 @@ export default function ProcessPage() {
     }
   }
 
-  const onClickTerminator = () => {
-    if (!isBrowser || !$canvas || !ctx) return;
-
-    let terminal = new Terminal(
-      `terminator_s_${Date.now()}`,
-      init.shape.size.t.w,
-      init.shape.size.t.h,
-      {
-        x: -offset.x + window.innerWidth / 2 + offset_center.x,
-        y: -offset.y + window.innerHeight / 2 + offset_center.y,
-      },
-      "terminator_start"
+  const onClickShapeButton = (
+    e: React.MouseEvent<HTMLButtonElement>,
+    type: CommonTypes.Type
+  ) => {
+    e.stopPropagation();
+    e.preventDefault();
+    let $canvas = document.querySelector("canvas");
+    let $screenshot: HTMLCanvasElement | null = document.querySelector(
+      "canvas[role='screenshot']"
     );
-    terminal.offset = offset;
-    terminal.scale = scale;
+    if (!isBrowser || !$canvas || !$screenshot || !ctx || !ctx_screenshot)
+      return;
 
-    shapes.push(terminal);
+    let intiShape = getInitializedShape(type, offset, offset_center);
+    intiShape.offset = offset;
+    intiShape.scale = scale;
+    shapes.push(intiShape);
+
     checkData(shapes);
-    checkData(screenshotShapes);
     checkGroups();
     draw($canvas, ctx, shapes);
-  };
-
-  const onClickProcess = () => {
-    if (!isBrowser || !$canvas || !ctx) return;
-
-    let process_new = new Process(
-      `process_${Date.now()}`,
-      init.shape.size.p.w,
-      init.shape.size.p.h,
-      {
-        x: -offset.x + window.innerWidth / 2 + offset_center.x,
-        y: -offset.y + window.innerHeight / 2 + offset_center.y,
-      },
-      "process"
-    );
-    process_new.offset = offset;
-    process_new.scale = scale;
-
-    shapes.push(process_new);
-    checkData(shapes);
-    checkData(screenshotShapes);
-    checkGroups();
-    draw($canvas, ctx, shapes);
-  };
-
-  const onClickData = () => {
-    if (!isBrowser || !$canvas || !ctx) return;
-
-    let data_new = new Data(
-      `data_${Date.now()}`,
-      init.shape.size.d.w,
-      init.shape.size.d.h,
-      {
-        x: -offset.x + window.innerWidth / 2 + offset_center.x,
-        y: -offset.y + window.innerHeight / 2 + offset_center.y,
-      },
-      "data"
-    );
-    data_new.scale = scale;
-    data_new.offset = offset;
-
-    shapes.push(data_new);
-    checkData(shapes);
-    checkData(screenshotShapes);
-    checkGroups();
-    draw($canvas, ctx, shapes);
-  };
-
-  const onClickDecision = () => {
-    if (!isBrowser || !$canvas || !ctx) return;
-
-    let decision_new = new Desicion(
-      `decision_${Date.now()}`,
-      init.shape.size.dec.w,
-      init.shape.size.dec.h,
-      {
-        x: -offset.x + window.innerWidth / 2 + offset_center.x,
-        y: -offset.y + window.innerHeight / 2 + offset_center.y,
-      },
-      "decision"
-    );
-    decision_new.offset = offset;
-    decision_new.scale = scale;
-
-    shapes.push(decision_new);
-    checkData(shapes);
-    checkData(screenshotShapes);
-    checkGroups();
-    draw($canvas, ctx, shapes);
+    draw($screenshot, ctx_screenshot, getScreenshotShapes(shapes));
   };
 
   const onConfirmDataFrame: DataFrameTypes.Props["onConfirm"] = (
@@ -1682,7 +1699,6 @@ export default function ProcessPage() {
     setDataFrame(undefined);
     setDbClickedShape(null);
     checkData(shapes);
-    checkData(screenshotShapes);
     checkGroups();
   };
 
@@ -1721,6 +1737,7 @@ export default function ProcessPage() {
       ctx: CanvasRenderingContext2D,
       shapes: (Terminal | Process | Data | Desicion)[]
     ) => {
+      // console.log('shapes', shapes)
       if (!isBrowser) return;
       $canvas.width = window.innerWidth / 2; // TODO: feat is completed, recover this line
       $canvas.height = window.innerHeight;
@@ -1731,6 +1748,8 @@ export default function ProcessPage() {
       ctx.fillStyle = "#F6F7FA";
       ctx?.fillRect(0, 0, window.innerWidth, window.innerHeight);
       ctx?.closePath();
+
+      // console.log('shapes', shapes)
 
       // draw shapes
       shapes.forEach((shape) => {
@@ -1911,10 +1930,8 @@ export default function ProcessPage() {
 
     setIsAuthorizing(true);
 
-    const res: AxiosResponse<
-      AuthTypes.Login["resData"],
-      any
-    > = await authAPIs.login(authInfo.account.value, authInfo.password.value);
+    const res: AxiosResponse<AuthTypes.Login["resData"], any> =
+      await authAPIs.login(authInfo.account.value, authInfo.password.value);
 
     if (res.status === 201) {
       axios.defaults.headers.common[
@@ -2010,14 +2027,12 @@ export default function ProcessPage() {
 
     setIsAuthorizing(true);
 
-    const res: AxiosResponse<
-      AuthTypes.Register["resData"],
-      any
-    > = await authAPIs.register(
-      authInfo.account.value,
-      authInfo.password.value,
-      authInfo.email.value
-    );
+    const res: AxiosResponse<AuthTypes.Register["resData"], any> =
+      await authAPIs.register(
+        authInfo.account.value,
+        authInfo.password.value,
+        authInfo.email.value
+      );
 
     if (res.status === 201) {
       setTimeout(() => {
@@ -2151,7 +2166,9 @@ export default function ProcessPage() {
     });
 
     // TODO: capture image feature
-    // const $canvas = document.querySelector("canvas");
+    // const $canvas = document.querySelector(
+    //   "canvas[role='screenshot']"
+    // ) as HTMLCanvasElement;
     // if (!$canvas || !ctx) return;
 
     // const screenshotImg = document.getElementById(
@@ -2159,11 +2176,12 @@ export default function ProcessPage() {
     // ) as HTMLImageElement;
 
     // if (!screenshotImg) return;
+    // console.log("A");
     // const dataURL = $canvas.toDataURL("image/png");
 
     // // 將 Data URL 設置為圖片的 src
     // screenshotImg.src = dataURL;
-    // screenshotImg.style.display = "block";
+    // // screenshotImg.style.display = "block";
 
     // // 如果想下載圖片，可以創建一個臨時的錨點並模擬點擊
     // const link = document.createElement("a");
@@ -2179,16 +2197,14 @@ export default function ProcessPage() {
   };
 
   const onClickConfrimProject = async (id: ProjectTypes.Project["id"]) => {
-    let $canvas = document.querySelector("canvas");
-    let $screenshot: HTMLCanvasElement | null = document.querySelector(
+    const $canvas = document.querySelector("canvas");
+    const $screenshot: HTMLCanvasElement | null = document.querySelector(
       "canvas[role='screenshot']"
     );
-    if (!$canvas || !$screenshot || !ctx || !ctx_screentshot) return;
+    if (!$canvas || !$screenshot || !ctx || !ctx_screenshot) return;
 
-    const res: AxiosResponse<
-      ProjectAPITypes.GetProject["resData"],
-      any
-    > = await projectAPIs.getProject(id);
+    const res: AxiosResponse<ProjectAPITypes.GetProject["resData"], any> =
+      await projectAPIs.getProject(id);
 
     setScale(1);
     offset = cloneDeep(init.offset);
@@ -2200,13 +2216,11 @@ export default function ProcessPage() {
       res.data.data
     );
     shapes = initShapes;
-    screenshotShapes = cloneDeep(initShapes);
     select = cloneDeep(init.select);
     checkData(shapes);
-    checkData(screenshotShapes);
     checkGroups();
     draw($canvas, ctx, shapes);
-    draw($screenshot, ctx_screentshot, screenshotShapes);
+    draw($screenshot, ctx_screenshot, getScreenshotShapes(shapes));
     setIsProjectsModalOpen(false);
     setProjectName({
       inputVal: res.data.projectName,
@@ -2219,13 +2233,12 @@ export default function ProcessPage() {
   };
 
   const onClickDeleteProject = async (id: ProjectTypes.Project["id"]) => {
-    let $canvas = document.querySelector("canvas");
+    const $canvas = document.querySelector("canvas");
     if (!$canvas || !ctx) return;
 
     try {
-      const res: AxiosResponse<
-        ProjectAPITypes.DeleteProject["resData"]
-      > = await projectAPIs.deleteProject(id);
+      const res: AxiosResponse<ProjectAPITypes.DeleteProject["resData"]> =
+        await projectAPIs.deleteProject(id);
 
       if (id === selectedProjectId) {
         shapes = [];
@@ -2247,14 +2260,11 @@ export default function ProcessPage() {
       return;
     }
     shapes = [];
-    const newProject: AxiosResponse<
-      ProjectAPITypes.CreateProject["resData"]
-    > = await projectAPIs.createProject();
+    const newProject: AxiosResponse<ProjectAPITypes.CreateProject["resData"]> =
+      await projectAPIs.createProject();
 
-    const res: AxiosResponse<
-      ProjectAPITypes.GetProjects["resData"],
-      any
-    > = await projectAPIs.getProjecs();
+    const res: AxiosResponse<ProjectAPITypes.GetProjects["resData"], any> =
+      await projectAPIs.getProjecs();
 
     setIsProjectsModalOpen(false);
     setProjects(res.data);
@@ -2268,9 +2278,13 @@ export default function ProcessPage() {
 
   const onClickLogOutButton = () => {
     shapes = [];
-    let $canvas = document.querySelector("canvas");
-    if (!$canvas || !ctx) return;
+    const $canvas = document.querySelector("canvas");
+    const $screenshot: HTMLCanvasElement | null = document.querySelector(
+      "canvas[role='screenshot']"
+    );
+    if (!$canvas || !$screenshot || !ctx || !ctx_screenshot) return;
     draw($canvas, ctx, shapes);
+    draw($screenshot, ctx_screenshot, getScreenshotShapes(shapes));
     localStorage.removeItem("Authorization");
     setIsLogin(true);
     setProjects([]);
@@ -2293,9 +2307,9 @@ export default function ProcessPage() {
     }));
   };
 
-  const onClickSaveProjectNameButton: MouseEventHandler<HTMLButtonElement> = async (
-    e
-  ) => {
+  const onClickSaveProjectNameButton: MouseEventHandler<
+    HTMLButtonElement
+  > = async (e) => {
     if (!selectedProjectId) return;
     const res: AxiosResponse<
       ProjectAPITypes.UpdateProjectName["resData"],
@@ -2331,15 +2345,24 @@ export default function ProcessPage() {
     verifyToken();
 
     const $canvas = document.querySelector("canvas");
-    if (!$canvas || !ctx) return;
+    const $screenshot: HTMLCanvasElement | null = document.querySelector(
+      "canvas[role='screenshot']"
+    );
+    if (!$canvas || !$screenshot || !ctx || !ctx_screenshot) return;
     draw($canvas, ctx, shapes);
+    draw($screenshot, ctx_screenshot, getScreenshotShapes(shapes));
 
     const resize = () => {
-      let $canvas = document.querySelector("canvas");
-      if (!isBrowser || !$canvas || !ctx) return;
+      const $canvas = document.querySelector("canvas");
+      const $screenshot: HTMLCanvasElement | null = document.querySelector(
+        "canvas[role='screenshot']"
+      );
+      if (!isBrowser || !$canvas || !$screenshot || !ctx || !ctx_screenshot)
+        return;
       $canvas.width = window.innerWidth;
       $canvas.height = window.innerHeight;
       draw($canvas, ctx, shapes);
+      draw($screenshot, ctx_screenshot, getScreenshotShapes(shapes));
     };
 
     window.addEventListener("resize", resize);
@@ -2366,6 +2389,101 @@ export default function ProcessPage() {
       window.removeEventListener("keyup", handleKeyUp);
     };
   }, [dataFrame, dbClickedShape, space, steps, procedures, otherStepIds]);
+
+  const createShapeButtons = [
+    {
+      type: CommonTypes.Type["terminator"],
+      icon: (
+        <svg
+          width={16}
+          height={16}
+          version="1.1"
+          xmlns="http://www.w3.org/2000/svg"
+          xmlnsXlink="http://www.w3.org/1999/xlink"
+          x="0px"
+          y="0px"
+          viewBox="0 0 256 256"
+          enable-background="new 0 0 256 256"
+          xmlSpace="preserve"
+        >
+          <g>
+            <g>
+              <path
+                fill="#FFFFFF"
+                d="M246,128c0,49.2-39.9,89-89,89H99c-49.2,0-89-39.9-89-89l0,0c0-49.2,39.9-89,89-89H157C206.1,39,246,78.8,246,128L246,128z"
+              />
+            </g>
+          </g>
+        </svg>
+      ),
+    },
+    {
+      type: CommonTypes.Type["process"],
+      icon: (
+        <svg
+          width={16}
+          height={16}
+          xmlns="http://www.w3.org/2000/svg"
+          xmlnsXlink="http://www.w3.org/1999/xlink"
+          version="1.1"
+          x="0px"
+          y="0px"
+          viewBox="0 0 100 100"
+          xmlSpace="preserve"
+        >
+          <path
+            fill="#FFFFFF"
+            className="st0"
+            d="M93.44,78.48H6.56V21.52h86.88V78.48z"
+          />
+        </svg>
+      ),
+    },
+    {
+      type: CommonTypes.Type["data"],
+      icon: (
+        <svg
+          width={16}
+          height={16}
+          xmlns="http://www.w3.org/2000/svg"
+          data-name="Layer 21"
+          viewBox="0 0 32 32"
+          x="0px"
+          y="0px"
+        >
+          <path
+            fill="#FFFFFF"
+            d="M30.387,5.683A.5.5,0,0,0,30,5.5H6a.5.5,0,0,0-.49.4l-4,20a.5.5,0,0,0,.49.6H26a.5.5,0,0,0,.49-.4l4-20A.5.5,0,0,0,30.387,5.683Z"
+          />
+        </svg>
+      ),
+    },
+    {
+      type: CommonTypes.Type["decision"],
+      icon: (
+        <svg
+          width={16}
+          height={16}
+          xmlns="http://www.w3.org/2000/svg"
+          xmlnsXlink="http://www.w3.org/1999/xlink"
+          version="1.1"
+          x="0px"
+          y="0px"
+          viewBox="0 0 64 64"
+          xmlSpace="preserve"
+        >
+          <rect
+            fill="#FFFFFF"
+            x="12.5545645"
+            y="12.5545635"
+            transform="matrix(0.7071068 -0.7071068 0.7071068 0.7071068 -13.2548332 32)"
+            width={"38.890873"}
+            height={"38.890873"}
+          />
+        </svg>
+      ),
+    },
+  ];
 
   return (
     <>
@@ -2524,7 +2642,47 @@ export default function ProcessPage() {
           </section>
         </div>
       </Modal>
-      <header className="w-full fixed z-50 text-gray-600 body-font bg-primary-500 shadow-md">
+      <header
+        className="w-full fixed z-50 text-gray-600 body-font bg-primary-500 shadow-md"
+        onClick={() => {
+          console.log("shapes", shapes);
+
+          const shapes_screenshot = cloneDeep(shapes);
+
+          shapes_screenshot.forEach((screenshotShape, i) => {
+            // ds.forEach((d) => {
+            //   screenshotShape.curves[d].forEach((curve) => {
+            //     curve.shape.id = curve.shape.id + "_screenshot";
+            //     curve.shape.selecting = false;
+            //     curve.shape.offset = { x: 0, y: 0 };
+            //     // console.log("curve.shape", curve.shape);
+            //     // console.log("curve.shape.id", curve.shape.id);
+            //     // console.log("curve.shape.curve.w", curve.shape.curve.w);
+            //     // console.log("curve.shape.__scale__", curve.shape.__scale__);
+            //     // console.log("curve.shape.getScaleCurveW()", curve.shape.getScaleCurveW());
+            //   });
+            // });
+
+            shapes_screenshot[i].id = shapes_screenshot[i].id + "_screenshot";
+            // screenshotShape.offset = { x: 0, y: 0 };
+            shapes_screenshot[i].scale = 1;
+            // screenshotShape.selecting = false;
+            // screenshotShape.receiving = { l: false, t: false, r: false, b: false };
+          });
+
+          if (!$screenshot) return;
+
+          console.log("shapes_screenshot", shapes_screenshot);
+          console.log(
+            "shapes_screenshot === shapes",
+            shapes_screenshot === shapes
+          );
+          shapes_screenshot.forEach((shape_screenshot) => {
+            if (!ctx_screenshot) return;
+            shape_screenshot.echoScale();
+          });
+        }}
+      >
         <ul className="container mx-auto grid grid-cols-3 py-3 px-4">
           <li>
             <a className="flex title-font font-medium items-center text-gray-900 mb-4 md:mb-0">
@@ -2729,98 +2887,20 @@ export default function ProcessPage() {
       <div className="fixed p-4 bottom-[16px] left-1/2 -translate-x-1/2 bg-white-500 shadow-md rounded-full">
         <div className="justify-self-center">
           <div className="flex">
-            <div
-              className="mx-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
-              onClick={onClickTerminator}
-            >
-              <svg
-                width={16}
-                height={16}
-                version="1.1"
-                xmlns="http://www.w3.org/2000/svg"
-                xmlnsXlink="http://www.w3.org/1999/xlink"
-                x="0px"
-                y="0px"
-                viewBox="0 0 256 256"
-                enable-background="new 0 0 256 256"
-                xmlSpace="preserve"
+            {createShapeButtons.map((createShapeButton) => (
+              <button
+                tabIndex={-1}
+                className="mx-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
+                onClick={(e) => {
+                  onClickShapeButton(e, createShapeButton.type);
+                }}
+                onKeyDown={(event) => {
+                  event.preventDefault();
+                }}
               >
-                <g>
-                  <g>
-                    <path
-                      fill="#FFFFFF"
-                      d="M246,128c0,49.2-39.9,89-89,89H99c-49.2,0-89-39.9-89-89l0,0c0-49.2,39.9-89,89-89H157C206.1,39,246,78.8,246,128L246,128z"
-                    />
-                  </g>
-                </g>
-              </svg>
-            </div>
-            <div
-              className="mx-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
-              onClick={onClickProcess}
-            >
-              <svg
-                width={16}
-                height={16}
-                xmlns="http://www.w3.org/2000/svg"
-                xmlnsXlink="http://www.w3.org/1999/xlink"
-                version="1.1"
-                x="0px"
-                y="0px"
-                viewBox="0 0 100 100"
-                xmlSpace="preserve"
-              >
-                <path
-                  fill="#FFFFFF"
-                  className="st0"
-                  d="M93.44,78.48H6.56V21.52h86.88V78.48z"
-                />
-              </svg>
-            </div>
-            <div
-              className="mx-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
-              onClick={onClickData}
-            >
-              <svg
-                width={16}
-                height={16}
-                xmlns="http://www.w3.org/2000/svg"
-                data-name="Layer 21"
-                viewBox="0 0 32 32"
-                x="0px"
-                y="0px"
-              >
-                <path
-                  fill="#FFFFFF"
-                  d="M30.387,5.683A.5.5,0,0,0,30,5.5H6a.5.5,0,0,0-.49.4l-4,20a.5.5,0,0,0,.49.6H26a.5.5,0,0,0,.49-.4l4-20A.5.5,0,0,0,30.387,5.683Z"
-                />
-              </svg>
-            </div>
-            <div
-              className="mx-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
-              onClick={onClickDecision}
-            >
-              <svg
-                width={16}
-                height={16}
-                xmlns="http://www.w3.org/2000/svg"
-                xmlnsXlink="http://www.w3.org/1999/xlink"
-                version="1.1"
-                x="0px"
-                y="0px"
-                viewBox="0 0 64 64"
-                xmlSpace="preserve"
-              >
-                <rect
-                  fill="#FFFFFF"
-                  x="12.5545645"
-                  y="12.5545635"
-                  transform="matrix(0.7071068 -0.7071068 0.7071068 0.7071068 -13.2548332 32)"
-                  width={"38.890873"}
-                  height={"38.890873"}
-                />
-              </svg>
-            </div>
+                {createShapeButton.icon}
+              </button>
+            ))}
           </div>
         </div>
       </div>
@@ -2879,11 +2959,11 @@ export default function ProcessPage() {
         />
         <canvas
           role="screenshot"
-          className={`${space ? "cursor-grab" : ""} overflow-hidden`}
+          className={`${space ? "cursor-grab" : ""} overflow-hidden `}
           tabIndex={1}
           ref={(el) => {
             $screenshot = el;
-            ctx_screentshot = $screenshot?.getContext("2d");
+            ctx_screenshot = $screenshot?.getContext("2d");
           }}
         />
       </div>

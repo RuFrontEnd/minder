@@ -109,7 +109,6 @@ export default class Desicion extends Core {
     });
   }
 
-  // TODO: curve 相關
   drawCurve(ctx: CanvasRenderingContext2D): void {
     super.drawCurve(ctx);
     ctx.save();
