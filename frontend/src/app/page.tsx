@@ -2784,10 +2784,14 @@ export default function ProcessPage() {
         d={["b"]}
         onClickSwitch={onClickDataSidePanelSwitch}
       >
-        <div className="text-xl pb-4 mb-2 border-b border-grey-5 text-black-2">
+        <h3 className="text-lg font-semibold py-3 px-5 border-b border-grey-5 text-black-2 shadow-sm">
           Shapes
-        </div>
-        <ul>
+        </h3>
+        <ul
+          style={{ height: "calc(100% - 52px)" }}
+          className="overflow-y-auto overflow-x-hidden"
+        >
+          <li className="h-[8px]" />
           {Object.entries(steps).map(([stepId, step], stepI) => {
             return (
               <li key={stepId}>
@@ -2795,7 +2799,7 @@ export default function ProcessPage() {
                   showArrow={!(step.shape instanceof Terminal)}
                   title={step.shape.title}
                   hoverRender={
-                    <div className="h-full flex justify-end items-center">
+                    <div className="h-full justify-end items-center">
                       <div
                         onClick={(e) => {
                           e.stopPropagation();
@@ -2836,6 +2840,7 @@ export default function ProcessPage() {
               </li>
             );
           })}
+          <li className="h-[8px]" />
         </ul>
       </SidePanel>
       <SidePanel
