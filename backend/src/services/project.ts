@@ -7,9 +7,10 @@ export default class Project {
 
   async getProjects(user: string) {
     const projects = await this.projectModel.getProjects(user);
-    return projects.filter((project) => ({
+    return projects.map((project) => ({
       id: project.id,
       name: project.name,
+      img: project.img,
     }));
   }
 

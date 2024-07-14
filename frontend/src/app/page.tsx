@@ -1777,7 +1777,7 @@ export default function ProcessPage() {
       shapes: (Terminal | Process | Data | Desicion)[]
     ) => {
       if (!isBrowser) return;
-      $canvas.width = window.innerWidth / 2; // TODO: feat is completed, recover this line
+      $canvas.width = window.innerWidth;
       $canvas.height = window.innerHeight;
       ctx?.clearRect(0, 0, window.innerWidth, window.innerHeight);
 
@@ -2128,7 +2128,7 @@ export default function ProcessPage() {
       shapes: {},
       curves: {},
       data: {},
-      img: $canvas.toDataURL("image/png"),
+      img: $screenshot.toDataURL("image/png"),
     };
 
     shapes.forEach((shape) => {
@@ -2652,6 +2652,7 @@ export default function ProcessPage() {
                       </h2>
                     }
                     selected={selectedProjectId === project.id}
+                    src={project.img}
                     onClick={() => {
                       onClickProjectCard(project.id);
                     }}
@@ -2964,7 +2965,7 @@ export default function ProcessPage() {
         />
         <canvas
           role="screenshot"
-          className={`${space ? "cursor-grab" : ""} overflow-hidden `}
+          className={`${space ? "cursor-grab" : ""} overflow-hidden absolute left-0 top-0 z-[-1]`}
           tabIndex={1}
           ref={(el) => {
             $screenshot = el;

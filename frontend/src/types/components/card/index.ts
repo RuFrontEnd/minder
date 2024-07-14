@@ -6,6 +6,7 @@ type Props = {
   className?: string;
   text?: string | ReactNode;
   selected?: boolean;
+  src?: string;
   onClick?: (id?: number | string) => void;
 };
 

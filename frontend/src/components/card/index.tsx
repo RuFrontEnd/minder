@@ -17,7 +17,8 @@ const Card = (props: CardTypes.Props) => {
           className={`object-cover object-center w-full h-full block ${
             props.selected && "border-info-500 border-2"
           }`}
-          src="https://dummyimage.com/324x200"
+          src={props.src}
+          // "https://dummyimage.com/324x200" // TODO: should set default img
         />
       </a>
       <div className="mt-1 ms-1">{props.text}</div>

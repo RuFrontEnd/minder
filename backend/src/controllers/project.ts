@@ -29,7 +29,7 @@ export default class Project {
         String(decoded.userId)
       );
 
-      res.status(201).send(projects);
+      res.status(200).send(projects);
     } catch (err) {
       res.status(400).send(getError(err));
     }
@@ -44,7 +44,7 @@ export default class Project {
       const project = await this.projectService.getProject(
         Number(req.params.id)
       );
-      res.status(201).send(project);
+      res.status(200).send(project);
     } catch (err) {
       res.status(400).send(getError(err));
     }

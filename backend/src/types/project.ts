@@ -1,8 +1,8 @@
 type Id = number;
 type Name = string;
 
-type Row = { id: number; user: number; name: Name };
-type Rows = Row[];
+type Project = { id: number; user: number; name: Name; img: string };
+type Projects = Project[];
 
 enum Direction {
   l = "l",
@@ -42,7 +42,7 @@ type CurveInfo = {
 };
 
 type ProjectData = {
-  projectId: number;
+  projectId: Project['id'];
   orders: string[];
   shapes: {
     [shapeId: ShapeId]: {
@@ -68,7 +68,7 @@ type ProjectData = {
   data: {
     [stringId: Data["id"]]: string;
   };
-  img: string;
+  img: Project['img'];
 };
 
 type UpdateProject = {
@@ -85,8 +85,8 @@ type UpdateProjectName = {
 
 export type {
   Id,
-  Row,
-  Rows,
+  Project,
+  Projects,
   Direction,
   ShapeId,
   Data,

@@ -9,7 +9,7 @@ export default class Project {
     const [rows] = await pool.query("SELECT * FROM projects WHERE user = ?", [
       user,
     ]);
-    return rows as ProjectTypes.Rows;
+    return rows as ProjectTypes.Projects;
   }
 
   async getProject(id: number) {
@@ -21,7 +21,7 @@ export default class Project {
       id,
     ]);
 
-    shapes[0].projectName = (rows as ProjectTypes.Rows)[0].name;
+    shapes[0].projectName = (rows as ProjectTypes.Projects)[0].name;
 
     return shapes[0];
   }
@@ -82,7 +82,7 @@ export default class Project {
       id,
     ]);
 
-    const newName = (rows as ProjectTypes.Rows)[0].name;
+    const newName = (rows as ProjectTypes.Projects)[0].name;
 
     return newName;
   }
