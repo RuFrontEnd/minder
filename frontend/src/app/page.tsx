@@ -377,30 +377,70 @@ const getInitializedShapes = (
 const getScreenshotShapes = (
   shapes: (Terminal | Process | Data | Desicion)[]
 ) => {
-  const screenshotShapes = cloneDeep(shapes);
+  const suffix = "screenshot";
+  const screenshotShapes: (Terminal | Process | Data | Desicion)[] = [];
 
-  return screenshotShapes.map((screenshotShape) => {
-    // ds.forEach((d) => {
-    //   screenshotShape.curves[d].forEach((curve) => {
-    //     curve.shape.id = curve.shape.id + "_screenshot";
-    //     curve.shape.selecting = false;
-    //     curve.shape.offset = { x: 0, y: 0 };
-    //     // console.log("curve.shape", curve.shape);
-    //     // console.log("curve.shape.id", curve.shape.id);
-    //     // console.log("curve.shape.curve.w", curve.shape.curve.w);
-    //     // console.log("curve.shape.__scale__", curve.shape.__scale__);
-    //     // console.log("curve.shape.getScaleCurveW()", curve.shape.getScaleCurveW());
-    //   });
-    // });
+  shapes.forEach((shape) => {
+    let screenshotShape;
 
-    screenshotShape.id = screenshotShape.id + "_screenshot";
-    // screenshotShape.offset = { x: 0, y: 0 };
-    screenshotShape.scale = 1;
-    // screenshotShape.selecting = false;
-    // screenshotShape.receiving = { l: false, t: false, r: false, b: false };
+    if (shape instanceof Terminal) {
+      screenshotShape = new Terminal(
+        shape.id + suffix,
+        shape.w,
+        shape.h,
+        shape.p,
+        shape.title
+      );
+    } else if (shape instanceof Process) {
+      screenshotShape = new Process(
+        shape.id + suffix,
+        shape.w,
+        shape.h,
+        shape.p,
+        shape.title
+      );
+    } else if (shape instanceof Data) {
+      screenshotShape = new Data(
+        shape.id + suffix,
+        shape.w,
+        shape.h,
+        shape.p,
+        shape.title
+      );
+    } else if (shape instanceof Desicion) {
+      screenshotShape = new Desicion(
+        shape.id + suffix,
+        shape.w,
+        shape.h,
+        shape.p,
+        shape.title
+      );
+    }
 
-    return screenshotShape;
+    if (!screenshotShape) return;
+
+    screenshotShapes.push(screenshotShape);
   });
+
+  if (shapes.length !== screenshotShapes.length) return [];
+
+  screenshotShapes.forEach((screenshotShape, screenshotShapeI) => {
+    ds.forEach((d) => {
+      shapes[screenshotShapeI].curves[d].forEach((curve) => {
+        screenshotShape.createCurve(
+          curve.shape.id + suffix,
+          d,
+          curve.shape.p1,
+          curve.shape.p2,
+          curve.shape.cp1,
+          curve.shape.cp2,
+          curve.sendTo
+        );
+      });
+    });
+  });
+
+  return screenshotShapes;
 };
 
 const Editor = (props: { className: string; shape: Core }) => {
@@ -1378,8 +1418,7 @@ export default function ProcessPage() {
     dragP = p;
 
     draw($canvas, ctx, shapes);
-    // console.log('getScreenshotShapes(shapes)', getScreenshotShapes(shapes))
-    // draw($screenshot, ctx_screenshot, getScreenshotShapes(shapes));
+    draw($screenshot, ctx_screenshot, getScreenshotShapes(shapes));
   };
 
   const onMouseUp = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -1737,7 +1776,6 @@ export default function ProcessPage() {
       ctx: CanvasRenderingContext2D,
       shapes: (Terminal | Process | Data | Desicion)[]
     ) => {
-      // console.log('shapes', shapes)
       if (!isBrowser) return;
       $canvas.width = window.innerWidth / 2; // TODO: feat is completed, recover this line
       $canvas.height = window.innerHeight;
@@ -1748,8 +1786,6 @@ export default function ProcessPage() {
       ctx.fillStyle = "#F6F7FA";
       ctx?.fillRect(0, 0, window.innerWidth, window.innerHeight);
       ctx?.closePath();
-
-      // console.log('shapes', shapes)
 
       // draw shapes
       shapes.forEach((shape) => {
@@ -2642,47 +2678,7 @@ export default function ProcessPage() {
           </section>
         </div>
       </Modal>
-      <header
-        className="w-full fixed z-50 text-gray-600 body-font bg-primary-500 shadow-md"
-        onClick={() => {
-          console.log("shapes", shapes);
-
-          const shapes_screenshot = cloneDeep(shapes);
-
-          shapes_screenshot.forEach((screenshotShape, i) => {
-            // ds.forEach((d) => {
-            //   screenshotShape.curves[d].forEach((curve) => {
-            //     curve.shape.id = curve.shape.id + "_screenshot";
-            //     curve.shape.selecting = false;
-            //     curve.shape.offset = { x: 0, y: 0 };
-            //     // console.log("curve.shape", curve.shape);
-            //     // console.log("curve.shape.id", curve.shape.id);
-            //     // console.log("curve.shape.curve.w", curve.shape.curve.w);
-            //     // console.log("curve.shape.__scale__", curve.shape.__scale__);
-            //     // console.log("curve.shape.getScaleCurveW()", curve.shape.getScaleCurveW());
-            //   });
-            // });
-
-            shapes_screenshot[i].id = shapes_screenshot[i].id + "_screenshot";
-            // screenshotShape.offset = { x: 0, y: 0 };
-            shapes_screenshot[i].scale = 1;
-            // screenshotShape.selecting = false;
-            // screenshotShape.receiving = { l: false, t: false, r: false, b: false };
-          });
-
-          if (!$screenshot) return;
-
-          console.log("shapes_screenshot", shapes_screenshot);
-          console.log(
-            "shapes_screenshot === shapes",
-            shapes_screenshot === shapes
-          );
-          shapes_screenshot.forEach((shape_screenshot) => {
-            if (!ctx_screenshot) return;
-            shape_screenshot.echoScale();
-          });
-        }}
-      >
+      <header className="w-full fixed z-50 text-gray-600 body-font bg-primary-500 shadow-md">
         <ul className="container mx-auto grid grid-cols-3 py-3 px-4">
           <li>
             <a className="flex title-font font-medium items-center text-gray-900 mb-4 md:mb-0">

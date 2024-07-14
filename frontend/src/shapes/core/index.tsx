@@ -312,15 +312,11 @@ export default class Core {
   }
 
   set scale(value: number) {
-    // console.log('value', value)
     this.__scale__ = value;
-
 
     ds.forEach((d) => {
       this.curves[d].forEach((curve) => {
         curve.shape.scale = value;
-        // console.log('curve.shape.id', curve.shape.id)
-        // console.log('curve.shape', curve.shape)
       });
     });
   }
@@ -349,8 +345,6 @@ export default class Core {
   }
 
   getScaleSize() {
-    // console.log('this.scale', this.scale)
-    // console.log('this.w', this.w)
     return {
       w: this.w * this.scale,
       h: this.h * this.scale,
@@ -931,12 +925,6 @@ export default class Core {
     });
   }
 
-  echoScale = () => {
-    console.log("this.id", this.id);
-    console.log("this.scale", this.scale);
-    console.log("this.__scale__", this.__scale__);
-  };
-
   renderText = (
     ctx: CanvasRenderingContext2D,
     text: string,
@@ -946,14 +934,6 @@ export default class Core {
     lineHeight: number,
     scale: number
   ) => {
-    // console.log('this.id', this.id)
-    // console.log('x', x)
-    // console.log('y', y)
-    // console.log('maxWidth', maxWidth)
-    // console.log('lineHeight', lineHeight)
-    // console.log("this", this);
-    // console.log("this.scale", this.scale);
-    // console.log("this.__scale__", this.__scale__);
     const words = text.split(""),
       lines: string[] = [];
     let line = "";
@@ -963,8 +943,6 @@ export default class Core {
         metrics = ctx.measureText(testLine),
         testWidth = metrics.width;
 
-      // console.log('testWidth', testWidth)
-
       if (testWidth > maxWidth - 32 * scale) {
         lines.push(line);
         line = word;
@@ -972,8 +950,6 @@ export default class Core {
         line = testLine;
       }
     }
-
-    // console.log('lines', lines)
 
     lines.push(line);
 
@@ -987,8 +963,6 @@ export default class Core {
       offsetYs.push(offsetY);
       offsetY -= lineHeight;
     });
-
-    // console.log('lines', lines)
 
     lines.forEach((line, lineI) => {
       ctx.fillText(line, x, y - offsetYs[lineI]);
@@ -1109,9 +1083,15 @@ export default class Core {
     ctx.fillStyle = "white";
     ctx.font = `16px ${inter.style.fontFamily}`;
 
-    // console.log("this", this);
-
-    // this.renderText(ctx, this.title, 0, 0, this.getScaleSize().w, 16, this.scale);
+    this.renderText(
+      ctx,
+      this.title,
+      0,
+      0,
+      this.getScaleSize().w,
+      16,
+      this.scale
+    );
 
     // draw id text
     // ctx.textAlign = "start";
