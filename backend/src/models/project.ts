@@ -27,13 +27,10 @@ export default class Project {
   }
 
   async createProject(user: string) {
-    const insertInfo: [
-      ResultSetHeader,
-      FieldPacket[]
-    ] = await pool.query("INSERT INTO projects (name, user) VALUES (?, ?)", [
-      "Untitled",
-      user,
-    ]);
+    const insertInfo: [ResultSetHeader, FieldPacket[]] = await pool.query(
+      "INSERT INTO projects (name, user) VALUES (?, ?)",
+      ["Untitled", user]
+    );
 
     const collection = await mongoDbPool.query("shapes");
 
@@ -45,18 +42,18 @@ export default class Project {
       data: {},
     });
 
-    const [
-      rows,
-    ] = await pool.query("SELECT * FROM projects WHERE user = ? AND id = ?", [
-      user,
-      insertInfo[0].insertId,
-    ]);
+    const [rows] = await pool.query(
+      "SELECT * FROM projects WHERE user = ? AND id = ?",
+      [user, insertInfo[0].insertId]
+    );
 
-    const newProject = (rows as {
-      id: number;
-      user: number;
-      name: string;
-    }[])[0];
+    const newProject = (
+      rows as {
+        id: number;
+        user: number;
+        name: string;
+      }[]
+    )[0];
 
     return newProject;
   }
@@ -65,6 +62,11 @@ export default class Project {
     id: number,
     data: ProjectTypes.UpdateProject["req"]["data"]
   ) {
+    await pool.query("UPDATE projects SET img = ? WHERE id = ?", [
+      data.img,
+      id,
+    ]);
+
     const collection = await mongoDbPool.query("shapes");
     const dataWithProjectId = { ...data, projectId: id };
     await collection.replaceOne({ projectId: id }, dataWithProjectId);

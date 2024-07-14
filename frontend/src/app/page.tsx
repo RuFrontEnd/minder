@@ -1655,8 +1655,8 @@ export default function ProcessPage() {
   ) => {
     e.stopPropagation();
     e.preventDefault();
-    let $canvas = document.querySelector("canvas");
-    let $screenshot: HTMLCanvasElement | null = document.querySelector(
+    const $canvas = document.querySelector("canvas");
+    const $screenshot: HTMLCanvasElement | null = document.querySelector(
       "canvas[role='screenshot']"
     );
     if (!isBrowser || !$canvas || !$screenshot || !ctx || !ctx_screenshot)
@@ -2116,12 +2116,19 @@ export default function ProcessPage() {
   };
 
   const onClickSaveButton: MouseEventHandler<HTMLSpanElement> = () => {
-    if (selectedProjectId === null) return;
+    const $canvas = document.querySelector("canvas");
+    const $screenshot: HTMLCanvasElement | null = document.querySelector(
+      "canvas[role='screenshot']"
+    );
+
+    if (!$canvas || !$screenshot || selectedProjectId === null) return;
+
     const modifyData: ProjectAPITypes.UpdateProject["data"] = {
       orders: [],
       shapes: {},
       curves: {},
       data: {},
+      img: $canvas.toDataURL("image/png"),
     };
 
     shapes.forEach((shape) => {
@@ -2202,18 +2209,15 @@ export default function ProcessPage() {
     });
 
     // TODO: capture image feature
-    // const $canvas = document.querySelector(
-    //   "canvas[role='screenshot']"
-    // ) as HTMLCanvasElement;
-    // if (!$canvas || !ctx) return;
-
     // const screenshotImg = document.getElementById(
     //   "screenshotImg"
     // ) as HTMLImageElement;
 
     // if (!screenshotImg) return;
-    // console.log("A");
     // const dataURL = $canvas.toDataURL("image/png");
+    // console.log("A");
+    // console.log("dataURL", dataURL);
+    // console.log("dataURL.length", dataURL.length);
 
     // // 將 Data URL 設置為圖片的 src
     // screenshotImg.src = dataURL;

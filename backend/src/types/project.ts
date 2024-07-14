@@ -68,6 +68,7 @@ type ProjectData = {
   data: {
     [stringId: Data["id"]]: string;
   };
+  img: string;
 };
 
 type UpdateProject = {

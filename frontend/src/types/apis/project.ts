@@ -86,6 +86,7 @@ type ProjectData = {
   data: {
     [stringId: CommonTypes.Id]: string;
   };
+  img:string
 };
 
 type GetProject = {
