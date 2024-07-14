@@ -601,8 +601,8 @@ export default function ProcessPage() {
     [scale, setScale] = useState(1),
     [leftMouseBtn, setLeftMouseBtn] = useState(false),
     [isDataSidePanelOpen, setIsDataSidePanelOpen] = useState(true),
-    [isUserSidePanelOpen, setIsUserSidePanelOpen] = useState(false),
     [isRenameFrameOpen, setIsRenameFrameOpen] = useState(false),
+    [isProfileFrameOpen, setIsProfileFrameOpen] = useState(false),
     [steps, setSteps] = useState<PageTypes.Steps>({}),
     [procedures, setProcedures] = useState<PageTypes.Procedures>({}),
     [otherStepIds, setOtherStepIds] = useState<PageTypes.OtherStepIds>([]),
@@ -634,7 +634,7 @@ export default function ProcessPage() {
       status: AlertTypes.Type.succeess,
       text: "",
     }),
-    [isFetchingProjects, setIsFetchingProjects] = useState(false),
+    [isFetchingProjects, setIsFetchingProjects] = useState(false), // TODO: should be used for loading
     [projects, setProjects] = useState<ProjectAPITypes.GetProjects["resData"]>(
       []
     ),
@@ -1767,7 +1767,12 @@ export default function ProcessPage() {
   };
 
   const onClickProfile = () => {
+    setIsProfileFrameOpen((isProfileFrameOpen) => !isProfileFrameOpen);
+  };
+
+  const onClickProjectsButton = () => {
     setIsProjectsModalOpen(true);
+    setIsProfileFrameOpen(false);
   };
 
   const draw = useCallback(
@@ -2327,6 +2332,7 @@ export default function ProcessPage() {
     setIsProjectsModalOpen(false);
     setIsAccountModalOpen(true);
     setSteps({});
+    setIsProfileFrameOpen(false);
   };
 
   const onClickProjectName = () => {
@@ -2614,9 +2620,6 @@ export default function ProcessPage() {
       >
         <div>
           <section className="rounded-lg text-gray-600 bg-white-500 p-8 body-font">
-            {/* <div className="flex justify-end align-center">
-              <Button onClick={onClickLogOutButton} text={"Log Out"} danger />
-            </div> */}
             <div className="mb-6 pb-3 ps-4 border-b border-grey-5 flex justify-between items-end">
               <h2 className="text-gray-900 title-font text-lg font-semibold">
                 Projects
@@ -2756,11 +2759,43 @@ export default function ProcessPage() {
                 </div>
               }
             />
-            <div
-              className="w-10 h-10 inline-flex items-center justify-center rounded-full bg-info-500 text-white-500 flex-shrink-0 cursor-pointer"
-              onClick={onClickProfile}
-            >
-              L
+            <div className="relative">
+              <div
+                className="w-10 h-10 inline-flex items-center justify-center rounded-full bg-info-500 text-white-500 flex-shrink-0 cursor-pointer"
+                onClick={onClickProfile}
+              >
+                L
+              </div>
+              <motion.div
+                className={`${isProfileFrameOpen ? "block" : "hidden"}`}
+                variants={{
+                  open: {
+                    display: "block",
+                    opacity: 1,
+                    y: "4px",
+                  },
+                  closed: {
+                    transitionEnd: {
+                      display: "none",
+                    },
+                    opacity: 0,
+                    y: "-2px",
+                  },
+                }}
+                initial={isProfileFrameOpen ? "open" : "closed"}
+                animate={isProfileFrameOpen ? "open" : "closed"}
+                transition={{ type: "easeInOut", duration: 0.15 }}
+              >
+                <Frame className="absolute top-full right-0 translate-y-[8px]">
+                  <Button text={"Projects"} onClick={onClickProjectsButton} />
+                  <Button
+                    className="mt-2"
+                    text={"Log Out"}
+                    onClick={onClickLogOutButton}
+                    danger
+                  />
+                </Frame>
+              </motion.div>
             </div>
           </li>
         </ul>
@@ -2831,48 +2866,7 @@ export default function ProcessPage() {
           <li className="h-[8px]" />
         </ul>
       </SidePanel>
-      <SidePanel
-        open={isUserSidePanelOpen}
-        w={"300px"}
-        h={"calc(100vh - 56px)"}
-        d={["b", "r"]}
-      >
-        <div className="flex flex-col h-full">
-          <ul className="flex-1">
-            <li className="mb-2">
-              <div className="h-full flex flex-col items-center text-center">
-                <img
-                  width={100}
-                  height={100}
-                  alt="team"
-                  className="w-100 h-[120px] flex-shrink-0 rounded-lg w-full h-56 object-cover object-center mb-2"
-                  src="https://dummyimage.com/200x200"
-                />
-                <div className="w-full">
-                  <p className="title-font text-gray-900">Project_1</p>
-                </div>
-              </div>
-            </li>
-            <li className="mb-2">
-              <div className="h-full flex flex-col items-center text-center">
-                <img
-                  width={100}
-                  height={100}
-                  alt="team"
-                  className="w-100 h-[120px] flex-shrink-0 rounded-lg w-full h-56 object-cover object-center mb-2"
-                  src="https://dummyimage.com/200x200"
-                />
-                <div className="w-full">
-                  <p className="title-font text-gray-900">Project_2</p>
-                </div>
-              </div>
-            </li>
-          </ul>
-          <div className="text-red-500">
-            <p className="text-end cursor-pointer">Sign Out</p>
-          </div>
-        </div>
-      </SidePanel>
+
       <div className="fixed p-4 bottom-[16px] left-1/2 -translate-x-1/2 bg-white-500 shadow-md rounded-full">
         <div className="justify-self-center">
           <div className="flex">
@@ -2893,20 +2887,8 @@ export default function ProcessPage() {
           </div>
         </div>
       </div>
-      <motion.ul
-        className="fixed p-4 bottom-[16px] rounded-full shadow-md bg-white-500"
-        variants={{
-          open: {
-            right: "316px",
-          },
-          closed: {
-            right: "16px",
-          },
-        }}
-        initial={isUserSidePanelOpen ? "open" : "closed"}
-        animate={isUserSidePanelOpen ? "open" : "closed"}
-        transition={{ type: "easeInOut" }}
-      >
+      <ul className="fixed p-4 bottom-[16px] right-4 rounded-full shadow-md bg-white-500">
+        {" "}
         <li className="justify-self-end">
           <div className="flex items-center">
             <div
@@ -2929,7 +2911,7 @@ export default function ProcessPage() {
             </div>
           </div>
         </li>
-      </motion.ul>
+      </ul>
       <img id="screenshotImg" alt="Screenshot" style={{ display: "none" }} />
       <div className={"flex"}>
         <canvas
@@ -2948,7 +2930,7 @@ export default function ProcessPage() {
         />
         <canvas
           role="screenshot"
-          className={`${
+          className={`invisible ${
             space ? "cursor-grab" : ""
           } overflow-hidden absolute left-0 top-0 z-[-1]`}
           tabIndex={1}
