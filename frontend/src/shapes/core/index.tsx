@@ -307,6 +307,10 @@ export default class Core {
     return this.__offset__;
   }
 
+  get scale() {
+    return this.__scale__;
+  }
+
   set scale(value: number) {
     this.__scale__ = value;
 
@@ -315,10 +319,6 @@ export default class Core {
         curve.shape.scale = value;
       });
     });
-  }
-
-  get scale() {
-    return this.__scale__;
   }
 
   set selecting(_selecting: boolean) {
@@ -931,7 +931,8 @@ export default class Core {
     x: number,
     y: number,
     maxWidth: number,
-    lineHeight: number
+    lineHeight: number,
+    scale: number
   ) => {
     const words = text.split(""),
       lines: string[] = [];
@@ -942,7 +943,7 @@ export default class Core {
         metrics = ctx.measureText(testLine),
         testWidth = metrics.width;
 
-      if (testWidth > maxWidth - 32 * this.scale) {
+      if (testWidth > maxWidth - 32 * scale) {
         lines.push(line);
         line = word;
       } else {
@@ -962,8 +963,6 @@ export default class Core {
       offsetYs.push(offsetY);
       offsetY -= lineHeight;
     });
-
-    // console.log('lines', lines)
 
     lines.forEach((line, lineI) => {
       ctx.fillText(line, x, y - offsetYs[lineI]);
@@ -1084,7 +1083,15 @@ export default class Core {
     ctx.fillStyle = "white";
     ctx.font = `16px ${inter.style.fontFamily}`;
 
-    this.renderText(ctx, this.title, 0, 0, this.getScaleSize().w, 16);
+    this.renderText(
+      ctx,
+      this.title,
+      0,
+      0,
+      this.getScaleSize().w,
+      16,
+      this.scale
+    );
 
     // draw id text
     // ctx.textAlign = "start";

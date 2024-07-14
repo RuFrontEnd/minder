@@ -87,6 +87,7 @@ const init = {
 
 let useEffected = false,
   ctx: CanvasRenderingContext2D | null | undefined = null,
+  ctx_screenshot: CanvasRenderingContext2D | null | undefined = null,
   shapes: (Terminal | Process | Data | Desicion)[] = [],
   pressing: null | {
     parent: null | Terminal | Process | Data | Desicion;
@@ -149,6 +150,61 @@ const getFramePosition = (shape: Core) => {
     x: shape.getScreenP().x + shape.getScaleSize().w / 2 + frameOffset,
     y: shape.getScreenP().y,
   };
+};
+
+const getInitializedShape = (
+  type: CommonTypes.Type,
+  offset: CommonTypes.Vec,
+  offset_center: CommonTypes.Vec
+) => {
+  switch (type) {
+    case CommonTypes.Type["terminator"]:
+      return new Terminal(
+        `${type}_${Date.now()}`,
+        init.shape.size.t.w,
+        init.shape.size.t.h,
+        {
+          x: -offset.x + window.innerWidth / 2 + offset_center.x,
+          y: -offset.y + window.innerHeight / 2 + offset_center.y,
+        },
+        type
+      );
+    case CommonTypes.Type["process"]:
+      return new Process(
+        `${type}_${Date.now()}`,
+        init.shape.size.p.w,
+        init.shape.size.p.h,
+        {
+          x: -offset.x + window.innerWidth / 2 + offset_center.x,
+          y: -offset.y + window.innerHeight / 2 + offset_center.y,
+        },
+        type
+      );
+
+    case CommonTypes.Type["data"]:
+      return new Data(
+        `${type}_${Date.now()}`,
+        init.shape.size.d.w,
+        init.shape.size.d.h,
+        {
+          x: -offset.x + window.innerWidth / 2 + offset_center.x,
+          y: -offset.y + window.innerHeight / 2 + offset_center.y,
+        },
+        type
+      );
+
+    case CommonTypes.Type["decision"]:
+      return new Desicion(
+        `${type}_${Date.now()}`,
+        init.shape.size.dec.w,
+        init.shape.size.dec.h,
+        {
+          x: -offset.x + window.innerWidth / 2 + offset_center.x,
+          y: -offset.y + window.innerHeight / 2 + offset_center.y,
+        },
+        type
+      );
+  }
 };
 
 const getInitializedShapes = (
@@ -318,6 +374,75 @@ const getInitializedShapes = (
   return orders.map((orderId) => shapeMappings[orderId]);
 };
 
+const getScreenshotShapes = (
+  shapes: (Terminal | Process | Data | Desicion)[]
+) => {
+  const suffix = "screenshot";
+  const screenshotShapes: (Terminal | Process | Data | Desicion)[] = [];
+
+  shapes.forEach((shape) => {
+    let screenshotShape;
+
+    if (shape instanceof Terminal) {
+      screenshotShape = new Terminal(
+        shape.id + suffix,
+        shape.w,
+        shape.h,
+        shape.p,
+        shape.title
+      );
+    } else if (shape instanceof Process) {
+      screenshotShape = new Process(
+        shape.id + suffix,
+        shape.w,
+        shape.h,
+        shape.p,
+        shape.title
+      );
+    } else if (shape instanceof Data) {
+      screenshotShape = new Data(
+        shape.id + suffix,
+        shape.w,
+        shape.h,
+        shape.p,
+        shape.title
+      );
+    } else if (shape instanceof Desicion) {
+      screenshotShape = new Desicion(
+        shape.id + suffix,
+        shape.w,
+        shape.h,
+        shape.p,
+        shape.title
+      );
+    }
+
+    if (!screenshotShape) return;
+
+    screenshotShapes.push(screenshotShape);
+  });
+
+  if (shapes.length !== screenshotShapes.length) return [];
+
+  screenshotShapes.forEach((screenshotShape, screenshotShapeI) => {
+    ds.forEach((d) => {
+      shapes[screenshotShapeI].curves[d].forEach((curve) => {
+        screenshotShape.createCurve(
+          curve.shape.id + suffix,
+          d,
+          curve.shape.p1,
+          curve.shape.p2,
+          curve.shape.cp1,
+          curve.shape.cp2,
+          curve.sendTo
+        );
+      });
+    });
+  });
+
+  return screenshotShapes;
+};
+
 const Editor = (props: { className: string; shape: Core }) => {
   const [title, setTitle] = useState<CommonTypes.Title>(""),
     [selections, setSelections] = useState<DataFrameTypes.Selections>({}),
@@ -463,6 +588,7 @@ const Editor = (props: { className: string; shape: Core }) => {
 
 export default function ProcessPage() {
   let { current: $canvas } = useRef<HTMLCanvasElement | null>(null);
+  let { current: $screenshot } = useRef<HTMLCanvasElement | null>(null);
   const qas = isBrowser && window.location.href.includes("qas");
 
   const [dataFrame, setDataFrame] = useState<
@@ -475,8 +601,8 @@ export default function ProcessPage() {
     [scale, setScale] = useState(1),
     [leftMouseBtn, setLeftMouseBtn] = useState(false),
     [isDataSidePanelOpen, setIsDataSidePanelOpen] = useState(true),
-    [isUserSidePanelOpen, setIsUserSidePanelOpen] = useState(false),
     [isRenameFrameOpen, setIsRenameFrameOpen] = useState(false),
+    [isProfileFrameOpen, setIsProfileFrameOpen] = useState(false),
     [steps, setSteps] = useState<PageTypes.Steps>({}),
     [procedures, setProcedures] = useState<PageTypes.Procedures>({}),
     [otherStepIds, setOtherStepIds] = useState<PageTypes.OtherStepIds>([]),
@@ -508,7 +634,7 @@ export default function ProcessPage() {
       status: AlertTypes.Type.succeess,
       text: "",
     }),
-    [isFetchingProjects, setIsFetchingProjects] = useState(false),
+    [isFetchingProjects, setIsFetchingProjects] = useState(false), // TODO: should be used for loading
     [projects, setProjects] = useState<ProjectAPITypes.GetProjects["resData"]>(
       []
     ),
@@ -521,7 +647,7 @@ export default function ProcessPage() {
       val: "Untitled",
     });
 
-  const checkData = () => {
+  const checkData = (shapes: (Terminal | Process | Data | Desicion)[]) => {
     const dataShapes: Data[] = [];
 
     shapes.forEach((shape) => {
@@ -699,10 +825,8 @@ export default function ProcessPage() {
   };
 
   const fetchProjects = async () => {
-    const res: AxiosResponse<
-      ProjectAPITypes.GetProjects["resData"],
-      any
-    > = await projectAPIs.getProjecs();
+    const res: AxiosResponse<ProjectAPITypes.GetProjects["resData"], any> =
+      await projectAPIs.getProjecs();
     setProjects(res.data);
   };
 
@@ -715,9 +839,8 @@ export default function ProcessPage() {
     const token = localStorage.getItem("Authorization");
 
     if (token) {
-      const res: AxiosResponse<
-        AuthTypes.JWTLogin["resData"]
-      > = await authAPIs.jwtLogin(token);
+      const res: AxiosResponse<AuthTypes.JWTLogin["resData"]> =
+        await authAPIs.jwtLogin(token);
 
       if (res.data.isPass) {
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
@@ -973,12 +1096,16 @@ export default function ProcessPage() {
       }
     }
 
-    draw($canvas, ctx);
+    draw($canvas, ctx, shapes);
   };
 
   const onMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     e.preventDefault();
-    if (!$canvas || !ctx) return;
+    const $canvas = document.querySelector("canvas");
+    const $screenshot: HTMLCanvasElement | null = document.querySelector(
+      "canvas[role='screenshot']"
+    );
+    if (!$canvas || !$screenshot || !ctx || !ctx_screenshot) return;
 
     const p = {
         x: e.nativeEvent.offsetX,
@@ -1290,7 +1417,8 @@ export default function ProcessPage() {
 
     dragP = p;
 
-    draw($canvas, ctx);
+    draw($canvas, ctx, shapes);
+    draw($screenshot, ctx_screenshot, getScreenshotShapes(shapes));
   };
 
   const onMouseUp = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -1373,9 +1501,8 @@ export default function ProcessPage() {
         pressing?.parent &&
         pressing?.direction
       ) {
-        const theCheckReceivingPointsBoundryD = shape.checkReceivingPointsBoundry(
-          p
-        );
+        const theCheckReceivingPointsBoundryD =
+          shape.checkReceivingPointsBoundry(p);
 
         const pressingShape = pressing.parent;
 
@@ -1445,20 +1572,20 @@ export default function ProcessPage() {
       };
     });
 
-    checkData();
+    checkData(shapes);
     checkGroups();
 
     selectAreaP = null;
     pressing = null;
     moveP = null;
 
-    draw($canvas, ctx);
+    draw($canvas, ctx, shapes);
   };
 
   const onMouseWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
     if (!$canvas || !ctx) return;
     zoom(e.deltaY, { x: e.clientX, y: e.clientY });
-    draw($canvas, ctx);
+    draw($canvas, ctx, shapes);
   };
 
   const onDoubleClick = useCallback(
@@ -1484,6 +1611,11 @@ export default function ProcessPage() {
   );
 
   function handleKeyDown(this: Window, e: KeyboardEvent) {
+    const $canvas = document.querySelector("canvas");
+    const $screenshot: HTMLCanvasElement | null = document.querySelector(
+      "canvas[role='screenshot']"
+    );
+    if (!$canvas || !$screenshot || !ctx || !ctx_screenshot) return;
     // space
     if (e.key === " " && !space) {
       setSpace(true);
@@ -1506,7 +1638,8 @@ export default function ProcessPage() {
         }
       }
 
-      draw($canvas, ctx);
+      draw($canvas, ctx, shapes);
+      draw($screenshot, ctx_screenshot, getScreenshotShapes(shapes));
     }
   }
 
@@ -1516,92 +1649,28 @@ export default function ProcessPage() {
     }
   }
 
-  const onClickTerminator = () => {
-    if (!isBrowser || !$canvas || !ctx) return;
-
-    let terminal = new Terminal(
-      `terminator_s_${Date.now()}`,
-      init.shape.size.t.w,
-      init.shape.size.t.h,
-      {
-        x: -offset.x + window.innerWidth / 2 + offset_center.x,
-        y: -offset.y + window.innerHeight / 2 + offset_center.y,
-      },
-      "terminator_start"
+  const onClickShapeButton = (
+    e: React.MouseEvent<HTMLButtonElement>,
+    type: CommonTypes.Type
+  ) => {
+    e.stopPropagation();
+    e.preventDefault();
+    const $canvas = document.querySelector("canvas");
+    const $screenshot: HTMLCanvasElement | null = document.querySelector(
+      "canvas[role='screenshot']"
     );
-    terminal.offset = offset;
-    terminal.scale = scale;
+    if (!isBrowser || !$canvas || !$screenshot || !ctx || !ctx_screenshot)
+      return;
 
-    shapes.push(terminal);
-    checkData();
+    let intiShape = getInitializedShape(type, offset, offset_center);
+    intiShape.offset = offset;
+    intiShape.scale = scale;
+    shapes.push(intiShape);
+
+    checkData(shapes);
     checkGroups();
-    draw($canvas, ctx);
-  };
-
-  const onClickProcess = () => {
-    if (!isBrowser || !$canvas || !ctx) return;
-
-    let process_new = new Process(
-      `process_${Date.now()}`,
-      init.shape.size.p.w,
-      init.shape.size.p.h,
-      {
-        x: -offset.x + window.innerWidth / 2 + offset_center.x,
-        y: -offset.y + window.innerHeight / 2 + offset_center.y,
-      },
-      "process"
-    );
-    process_new.offset = offset;
-    process_new.scale = scale;
-
-    shapes.push(process_new);
-    checkData();
-    checkGroups();
-    draw($canvas, ctx);
-  };
-
-  const onClickData = () => {
-    if (!isBrowser || !$canvas || !ctx) return;
-
-    let data_new = new Data(
-      `data_${Date.now()}`,
-      init.shape.size.d.w,
-      init.shape.size.d.h,
-      {
-        x: -offset.x + window.innerWidth / 2 + offset_center.x,
-        y: -offset.y + window.innerHeight / 2 + offset_center.y,
-      },
-      "data"
-    );
-    data_new.scale = scale;
-    data_new.offset = offset;
-
-    shapes.push(data_new);
-    checkData();
-    checkGroups();
-    draw($canvas, ctx);
-  };
-
-  const onClickDecision = () => {
-    if (!isBrowser || !$canvas || !ctx) return;
-
-    let decision_new = new Desicion(
-      `decision_${Date.now()}`,
-      init.shape.size.dec.w,
-      init.shape.size.dec.h,
-      {
-        x: -offset.x + window.innerWidth / 2 + offset_center.x,
-        y: -offset.y + window.innerHeight / 2 + offset_center.y,
-      },
-      "decision"
-    );
-    decision_new.offset = offset;
-    decision_new.scale = scale;
-
-    shapes.push(decision_new);
-    checkData();
-    checkGroups();
-    draw($canvas, ctx);
+    draw($canvas, ctx, shapes);
+    draw($screenshot, ctx_screenshot, getScreenshotShapes(shapes));
   };
 
   const onConfirmDataFrame: DataFrameTypes.Props["onConfirm"] = (
@@ -1668,20 +1737,20 @@ export default function ProcessPage() {
 
     setDataFrame(undefined);
     setDbClickedShape(null);
-    checkData();
+    checkData(shapes);
     checkGroups();
   };
 
   const onClickScalePlusIcon = () => {
     if (!$canvas || !ctx) return;
     zoom(-100, { x: $canvas?.width / 2, y: $canvas?.height / 2 });
-    draw($canvas, ctx);
+    draw($canvas, ctx, shapes);
   };
 
   const onClickScaleMinusIcon = () => {
     if (!$canvas || !ctx) return;
     zoom(100, { x: $canvas?.width / 2, y: $canvas?.height / 2 });
-    draw($canvas, ctx);
+    draw($canvas, ctx, shapes);
   };
 
   const onClickScaleNumber = () => {
@@ -1690,7 +1759,7 @@ export default function ProcessPage() {
       x: $canvas?.width / 2,
       y: $canvas?.height / 2,
     });
-    draw($canvas, ctx);
+    draw($canvas, ctx, shapes);
   };
 
   const onClickDataSidePanelSwitch = () => {
@@ -1698,11 +1767,20 @@ export default function ProcessPage() {
   };
 
   const onClickProfile = () => {
+    setIsProfileFrameOpen((isProfileFrameOpen) => !isProfileFrameOpen);
+  };
+
+  const onClickProjectsButton = () => {
     setIsProjectsModalOpen(true);
+    setIsProfileFrameOpen(false);
   };
 
   const draw = useCallback(
-    ($canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => {
+    (
+      $canvas: HTMLCanvasElement,
+      ctx: CanvasRenderingContext2D,
+      shapes: (Terminal | Process | Data | Desicion)[]
+    ) => {
       if (!isBrowser) return;
       $canvas.width = window.innerWidth;
       $canvas.height = window.innerHeight;
@@ -1859,7 +1937,7 @@ export default function ProcessPage() {
       shape.offset = offset;
     });
 
-    draw($canvas, ctx);
+    draw($canvas, ctx, shapes);
   };
 
   const onClickChangeAuthButton = (_isLogining: boolean) => {
@@ -1893,10 +1971,8 @@ export default function ProcessPage() {
 
     setIsAuthorizing(true);
 
-    const res: AxiosResponse<
-      AuthTypes.Login["resData"],
-      any
-    > = await authAPIs.login(authInfo.account.value, authInfo.password.value);
+    const res: AxiosResponse<AuthTypes.Login["resData"], any> =
+      await authAPIs.login(authInfo.account.value, authInfo.password.value);
 
     if (res.status === 201) {
       axios.defaults.headers.common[
@@ -1992,14 +2068,12 @@ export default function ProcessPage() {
 
     setIsAuthorizing(true);
 
-    const res: AxiosResponse<
-      AuthTypes.Register["resData"],
-      any
-    > = await authAPIs.register(
-      authInfo.account.value,
-      authInfo.password.value,
-      authInfo.email.value
-    );
+    const res: AxiosResponse<AuthTypes.Register["resData"], any> =
+      await authAPIs.register(
+        authInfo.account.value,
+        authInfo.password.value,
+        authInfo.email.value
+      );
 
     if (res.status === 201) {
       setTimeout(() => {
@@ -2047,12 +2121,19 @@ export default function ProcessPage() {
   };
 
   const onClickSaveButton: MouseEventHandler<HTMLSpanElement> = () => {
-    if (selectedProjectId === null) return;
+    const $canvas = document.querySelector("canvas");
+    const $screenshot: HTMLCanvasElement | null = document.querySelector(
+      "canvas[role='screenshot']"
+    );
+
+    if (!$canvas || !$screenshot || selectedProjectId === null) return;
+
     const modifyData: ProjectAPITypes.UpdateProject["data"] = {
       orders: [],
       shapes: {},
       curves: {},
       data: {},
+      img: $screenshot.toDataURL("image/png"),
     };
 
     shapes.forEach((shape) => {
@@ -2132,7 +2213,21 @@ export default function ProcessPage() {
       };
     });
 
-    projectAPIs.updateProject(selectedProjectId, modifyData);
+    projectAPIs
+      .updateProject(selectedProjectId, modifyData)
+      .then((res: AxiosResponse<ProjectAPITypes.UpdateProject["resData"]>) => {
+        if (res.status !== 200) return;
+
+        const projectI = projects.findIndex(
+          (project) => project.id === res.data.data.id
+        );
+
+        if (!projectI) return;
+        const _projects = cloneDeep(projects);
+        _projects[projectI].img = res.data.data.img;
+
+        setProjects(_projects);
+      });
   };
 
   const onClickProjectCard = (id: ProjectTypes.Project["id"]) => {
@@ -2140,27 +2235,30 @@ export default function ProcessPage() {
   };
 
   const onClickConfrimProject = async (id: ProjectTypes.Project["id"]) => {
-    let $canvas = document.querySelector("canvas");
-    if (!$canvas || !ctx) return;
+    const $canvas = document.querySelector("canvas");
+    const $screenshot: HTMLCanvasElement | null = document.querySelector(
+      "canvas[role='screenshot']"
+    );
+    if (!$canvas || !$screenshot || !ctx || !ctx_screenshot) return;
 
-    const res: AxiosResponse<
-      ProjectAPITypes.GetProject["resData"],
-      any
-    > = await projectAPIs.getProject(id);
+    const res: AxiosResponse<ProjectAPITypes.GetProject["resData"], any> =
+      await projectAPIs.getProject(id);
 
     setScale(1);
     offset = cloneDeep(init.offset);
     offset_center = cloneDeep(init.offset);
-    shapes = getInitializedShapes(
+    const initShapes = getInitializedShapes(
       res.data.orders,
       res.data.shapes,
       res.data.curves,
       res.data.data
     );
+    shapes = initShapes;
     select = cloneDeep(init.select);
-    checkData();
+    checkData(shapes);
     checkGroups();
-    draw($canvas, ctx);
+    draw($canvas, ctx, shapes);
+    draw($screenshot, ctx_screenshot, getScreenshotShapes(shapes));
     setIsProjectsModalOpen(false);
     setProjectName({
       inputVal: res.data.projectName,
@@ -2173,13 +2271,12 @@ export default function ProcessPage() {
   };
 
   const onClickDeleteProject = async (id: ProjectTypes.Project["id"]) => {
-    let $canvas = document.querySelector("canvas");
+    const $canvas = document.querySelector("canvas");
     if (!$canvas || !ctx) return;
 
     try {
-      const res: AxiosResponse<
-        ProjectAPITypes.DeleteProject["resData"]
-      > = await projectAPIs.deleteProject(id);
+      const res: AxiosResponse<ProjectAPITypes.DeleteProject["resData"]> =
+        await projectAPIs.deleteProject(id);
 
       if (id === selectedProjectId) {
         shapes = [];
@@ -2194,21 +2291,18 @@ export default function ProcessPage() {
     }
   };
 
-  const onClickNewProjectCard = async () => {
+  const onClickNewProjectButton = async () => {
     if (qas) {
       setHasEnter(true);
       setIsProjectsModalOpen(false);
       return;
     }
     shapes = [];
-    const newProject: AxiosResponse<
-      ProjectAPITypes.CreateProject["resData"]
-    > = await projectAPIs.createProject();
+    const newProject: AxiosResponse<ProjectAPITypes.CreateProject["resData"]> =
+      await projectAPIs.createProject();
 
-    const res: AxiosResponse<
-      ProjectAPITypes.GetProjects["resData"],
-      any
-    > = await projectAPIs.getProjecs();
+    const res: AxiosResponse<ProjectAPITypes.GetProjects["resData"], any> =
+      await projectAPIs.getProjecs();
 
     setIsProjectsModalOpen(false);
     setProjects(res.data);
@@ -2222,9 +2316,13 @@ export default function ProcessPage() {
 
   const onClickLogOutButton = () => {
     shapes = [];
-    let $canvas = document.querySelector("canvas");
-    if (!$canvas || !ctx) return;
-    draw($canvas, ctx);
+    const $canvas = document.querySelector("canvas");
+    const $screenshot: HTMLCanvasElement | null = document.querySelector(
+      "canvas[role='screenshot']"
+    );
+    if (!$canvas || !$screenshot || !ctx || !ctx_screenshot) return;
+    draw($canvas, ctx, shapes);
+    draw($screenshot, ctx_screenshot, getScreenshotShapes(shapes));
     localStorage.removeItem("Authorization");
     setIsLogin(true);
     setProjects([]);
@@ -2234,6 +2332,7 @@ export default function ProcessPage() {
     setIsProjectsModalOpen(false);
     setIsAccountModalOpen(true);
     setSteps({});
+    setIsProfileFrameOpen(false);
   };
 
   const onClickProjectName = () => {
@@ -2247,9 +2346,9 @@ export default function ProcessPage() {
     }));
   };
 
-  const onClickSaveProjectNameButton: MouseEventHandler<HTMLButtonElement> = async (
-    e
-  ) => {
+  const onClickSaveProjectNameButton: MouseEventHandler<
+    HTMLButtonElement
+  > = async (e) => {
     if (!selectedProjectId) return;
     const res: AxiosResponse<
       ProjectAPITypes.UpdateProjectName["resData"],
@@ -2285,15 +2384,24 @@ export default function ProcessPage() {
     verifyToken();
 
     const $canvas = document.querySelector("canvas");
-    if (!$canvas || !ctx) return;
-    draw($canvas, ctx);
+    const $screenshot: HTMLCanvasElement | null = document.querySelector(
+      "canvas[role='screenshot']"
+    );
+    if (!$canvas || !$screenshot || !ctx || !ctx_screenshot) return;
+    draw($canvas, ctx, shapes);
+    draw($screenshot, ctx_screenshot, getScreenshotShapes(shapes));
 
     const resize = () => {
-      let $canvas = document.querySelector("canvas");
-      if (!isBrowser || !$canvas || !ctx) return;
+      const $canvas = document.querySelector("canvas");
+      const $screenshot: HTMLCanvasElement | null = document.querySelector(
+        "canvas[role='screenshot']"
+      );
+      if (!isBrowser || !$canvas || !$screenshot || !ctx || !ctx_screenshot)
+        return;
       $canvas.width = window.innerWidth;
       $canvas.height = window.innerHeight;
-      draw($canvas, ctx);
+      draw($canvas, ctx, shapes);
+      draw($screenshot, ctx_screenshot, getScreenshotShapes(shapes));
     };
 
     window.addEventListener("resize", resize);
@@ -2320,6 +2428,101 @@ export default function ProcessPage() {
       window.removeEventListener("keyup", handleKeyUp);
     };
   }, [dataFrame, dbClickedShape, space, steps, procedures, otherStepIds]);
+
+  const createShapeButtons = [
+    {
+      type: CommonTypes.Type["terminator"],
+      icon: (
+        <svg
+          width={16}
+          height={16}
+          version="1.1"
+          xmlns="http://www.w3.org/2000/svg"
+          xmlnsXlink="http://www.w3.org/1999/xlink"
+          x="0px"
+          y="0px"
+          viewBox="0 0 256 256"
+          enable-background="new 0 0 256 256"
+          xmlSpace="preserve"
+        >
+          <g>
+            <g>
+              <path
+                fill="#FFFFFF"
+                d="M246,128c0,49.2-39.9,89-89,89H99c-49.2,0-89-39.9-89-89l0,0c0-49.2,39.9-89,89-89H157C206.1,39,246,78.8,246,128L246,128z"
+              />
+            </g>
+          </g>
+        </svg>
+      ),
+    },
+    {
+      type: CommonTypes.Type["process"],
+      icon: (
+        <svg
+          width={16}
+          height={16}
+          xmlns="http://www.w3.org/2000/svg"
+          xmlnsXlink="http://www.w3.org/1999/xlink"
+          version="1.1"
+          x="0px"
+          y="0px"
+          viewBox="0 0 100 100"
+          xmlSpace="preserve"
+        >
+          <path
+            fill="#FFFFFF"
+            className="st0"
+            d="M93.44,78.48H6.56V21.52h86.88V78.48z"
+          />
+        </svg>
+      ),
+    },
+    {
+      type: CommonTypes.Type["data"],
+      icon: (
+        <svg
+          width={16}
+          height={16}
+          xmlns="http://www.w3.org/2000/svg"
+          data-name="Layer 21"
+          viewBox="0 0 32 32"
+          x="0px"
+          y="0px"
+        >
+          <path
+            fill="#FFFFFF"
+            d="M30.387,5.683A.5.5,0,0,0,30,5.5H6a.5.5,0,0,0-.49.4l-4,20a.5.5,0,0,0,.49.6H26a.5.5,0,0,0,.49-.4l4-20A.5.5,0,0,0,30.387,5.683Z"
+          />
+        </svg>
+      ),
+    },
+    {
+      type: CommonTypes.Type["decision"],
+      icon: (
+        <svg
+          width={16}
+          height={16}
+          xmlns="http://www.w3.org/2000/svg"
+          xmlnsXlink="http://www.w3.org/1999/xlink"
+          version="1.1"
+          x="0px"
+          y="0px"
+          viewBox="0 0 64 64"
+          xmlSpace="preserve"
+        >
+          <rect
+            fill="#FFFFFF"
+            x="12.5545645"
+            y="12.5545635"
+            transform="matrix(0.7071068 -0.7071068 0.7071068 0.7071068 -13.2548332 32)"
+            width={"38.890873"}
+            height={"38.890873"}
+          />
+        </svg>
+      ),
+    },
+  ];
 
   return (
     <>
@@ -2417,33 +2620,13 @@ export default function ProcessPage() {
       >
         <div>
           <section className="rounded-lg text-gray-600 bg-white-500 p-8 body-font">
-            <div className="flex justify-end align-center">
-              <Button onClick={onClickLogOutButton} text={"Log Out"} danger />
-            </div>
-            {/* <div className="text-right">
-              <Button
-                className="ms-auto inline-flex"
-                onClick={() => {}}
-                text={"Sign Out"}
-              />
-            </div> */}
-            <div className="mb-6 py-2 px-4 border-b border-grey-5">
+            <div className="mb-6 pb-3 ps-4 border-b border-grey-5 flex justify-between items-end">
               <h2 className="text-gray-900 title-font text-lg font-semibold">
                 Projects
               </h2>
+              <Button onClick={onClickNewProjectButton} text={"New Project"} />
             </div>
             <div className="grid grid-cols-3 gap-4 h-[500px] overflow-auto">
-              <div>
-                <Card
-                  className="cursor-pointer"
-                  text={
-                    <h2 className="text-info-500 title-font text-lg font-medium">
-                      New Project
-                    </h2>
-                  }
-                  onClick={onClickNewProjectCard}
-                />
-              </div>
               {projects.map((project) => (
                 <div>
                   <Card
@@ -2455,6 +2638,7 @@ export default function ProcessPage() {
                       </h2>
                     }
                     selected={selectedProjectId === project.id}
+                    src={project.img}
                     onClick={() => {
                       onClickProjectCard(project.id);
                     }}
@@ -2462,7 +2646,7 @@ export default function ProcessPage() {
                 </div>
               ))}
             </div>
-            <div className="flex justify-end items-center mt-6 pt-4 border-t border-grey-5">
+            <div className="flex justify-end items-center mt-6 pt-3 border-t border-grey-5">
               <Button
                 className="me-3"
                 onClick={() => {
@@ -2575,11 +2759,43 @@ export default function ProcessPage() {
                 </div>
               }
             />
-            <div
-              className="w-10 h-10 inline-flex items-center justify-center rounded-full bg-info-500 text-white-500 flex-shrink-0 cursor-pointer"
-              onClick={onClickProfile}
-            >
-              L
+            <div className="relative">
+              <div
+                className="w-10 h-10 inline-flex items-center justify-center rounded-full bg-info-500 text-white-500 flex-shrink-0 cursor-pointer"
+                onClick={onClickProfile}
+              >
+                L
+              </div>
+              <motion.div
+                className={`${isProfileFrameOpen ? "block" : "hidden"}`}
+                variants={{
+                  open: {
+                    display: "block",
+                    opacity: 1,
+                    y: "4px",
+                  },
+                  closed: {
+                    transitionEnd: {
+                      display: "none",
+                    },
+                    opacity: 0,
+                    y: "-2px",
+                  },
+                }}
+                initial={isProfileFrameOpen ? "open" : "closed"}
+                animate={isProfileFrameOpen ? "open" : "closed"}
+                transition={{ type: "easeInOut", duration: 0.15 }}
+              >
+                <Frame className="absolute top-full right-0 translate-y-[8px]">
+                  <Button text={"Projects"} onClick={onClickProjectsButton} />
+                  <Button
+                    className="mt-2"
+                    text={"Log Out"}
+                    onClick={onClickLogOutButton}
+                    danger
+                  />
+                </Frame>
+              </motion.div>
             </div>
           </li>
         </ul>
@@ -2591,10 +2807,14 @@ export default function ProcessPage() {
         d={["b"]}
         onClickSwitch={onClickDataSidePanelSwitch}
       >
-        <div className="text-xl pb-4 mb-2 border-b border-grey-5 text-black-2">
+        <h3 className="text-lg font-semibold py-3 px-5 border-b border-grey-5 text-black-2 shadow-sm">
           Shapes
-        </div>
-        <ul>
+        </h3>
+        <ul
+          style={{ height: "calc(100% - 52px)" }}
+          className="overflow-y-auto overflow-x-hidden"
+        >
+          <li className="h-[8px]" />
           {Object.entries(steps).map(([stepId, step], stepI) => {
             return (
               <li key={stepId}>
@@ -2602,7 +2822,7 @@ export default function ProcessPage() {
                   showArrow={!(step.shape instanceof Terminal)}
                   title={step.shape.title}
                   hoverRender={
-                    <div className="h-full flex justify-end items-center">
+                    <div className="h-full justify-end items-center">
                       <div
                         onClick={(e) => {
                           e.stopPropagation();
@@ -2643,162 +2863,32 @@ export default function ProcessPage() {
               </li>
             );
           })}
+          <li className="h-[8px]" />
         </ul>
       </SidePanel>
-      <SidePanel
-        open={isUserSidePanelOpen}
-        w={"300px"}
-        h={"calc(100vh - 56px)"}
-        d={["b", "r"]}
-      >
-        <div className="flex flex-col h-full">
-          <ul className="flex-1">
-            <li className="mb-2">
-              <div className="h-full flex flex-col items-center text-center">
-                <img
-                  width={100}
-                  height={100}
-                  alt="team"
-                  className="w-100 h-[120px] flex-shrink-0 rounded-lg w-full h-56 object-cover object-center mb-2"
-                  src="https://dummyimage.com/200x200"
-                />
-                <div className="w-full">
-                  <p className="title-font text-gray-900">Project_1</p>
-                </div>
-              </div>
-            </li>
-            <li className="mb-2">
-              <div className="h-full flex flex-col items-center text-center">
-                <img
-                  width={100}
-                  height={100}
-                  alt="team"
-                  className="w-100 h-[120px] flex-shrink-0 rounded-lg w-full h-56 object-cover object-center mb-2"
-                  src="https://dummyimage.com/200x200"
-                />
-                <div className="w-full">
-                  <p className="title-font text-gray-900">Project_2</p>
-                </div>
-              </div>
-            </li>
-          </ul>
-          <div className="text-red-500">
-            <p className="text-end cursor-pointer">Sign Out</p>
-          </div>
-        </div>
-      </SidePanel>
+
       <div className="fixed p-4 bottom-[16px] left-1/2 -translate-x-1/2 bg-white-500 shadow-md rounded-full">
         <div className="justify-self-center">
           <div className="flex">
-            <div
-              className="mx-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
-              onClick={onClickTerminator}
-            >
-              <svg
-                width={16}
-                height={16}
-                version="1.1"
-                xmlns="http://www.w3.org/2000/svg"
-                xmlnsXlink="http://www.w3.org/1999/xlink"
-                x="0px"
-                y="0px"
-                viewBox="0 0 256 256"
-                enable-background="new 0 0 256 256"
-                xmlSpace="preserve"
+            {createShapeButtons.map((createShapeButton) => (
+              <button
+                tabIndex={-1}
+                className="mx-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
+                onClick={(e) => {
+                  onClickShapeButton(e, createShapeButton.type);
+                }}
+                onKeyDown={(event) => {
+                  event.preventDefault();
+                }}
               >
-                <g>
-                  <g>
-                    <path
-                      fill="#FFFFFF"
-                      d="M246,128c0,49.2-39.9,89-89,89H99c-49.2,0-89-39.9-89-89l0,0c0-49.2,39.9-89,89-89H157C206.1,39,246,78.8,246,128L246,128z"
-                    />
-                  </g>
-                </g>
-              </svg>
-            </div>
-            <div
-              className="mx-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
-              onClick={onClickProcess}
-            >
-              <svg
-                width={16}
-                height={16}
-                xmlns="http://www.w3.org/2000/svg"
-                xmlnsXlink="http://www.w3.org/1999/xlink"
-                version="1.1"
-                x="0px"
-                y="0px"
-                viewBox="0 0 100 100"
-                xmlSpace="preserve"
-              >
-                <path
-                  fill="#FFFFFF"
-                  className="st0"
-                  d="M93.44,78.48H6.56V21.52h86.88V78.48z"
-                />
-              </svg>
-            </div>
-            <div
-              className="mx-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
-              onClick={onClickData}
-            >
-              <svg
-                width={16}
-                height={16}
-                xmlns="http://www.w3.org/2000/svg"
-                data-name="Layer 21"
-                viewBox="0 0 32 32"
-                x="0px"
-                y="0px"
-              >
-                <path
-                  fill="#FFFFFF"
-                  d="M30.387,5.683A.5.5,0,0,0,30,5.5H6a.5.5,0,0,0-.49.4l-4,20a.5.5,0,0,0,.49.6H26a.5.5,0,0,0,.49-.4l4-20A.5.5,0,0,0,30.387,5.683Z"
-                />
-              </svg>
-            </div>
-            <div
-              className="mx-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
-              onClick={onClickDecision}
-            >
-              <svg
-                width={16}
-                height={16}
-                xmlns="http://www.w3.org/2000/svg"
-                xmlnsXlink="http://www.w3.org/1999/xlink"
-                version="1.1"
-                x="0px"
-                y="0px"
-                viewBox="0 0 64 64"
-                xmlSpace="preserve"
-              >
-                <rect
-                  fill="#FFFFFF"
-                  x="12.5545645"
-                  y="12.5545635"
-                  transform="matrix(0.7071068 -0.7071068 0.7071068 0.7071068 -13.2548332 32)"
-                  width={"38.890873"}
-                  height={"38.890873"}
-                />
-              </svg>
-            </div>
+                {createShapeButton.icon}
+              </button>
+            ))}
           </div>
         </div>
       </div>
-      <motion.ul
-        className="fixed p-4 bottom-[16px] rounded-full shadow-md bg-white-500"
-        variants={{
-          open: {
-            right: "316px",
-          },
-          closed: {
-            right: "16px",
-          },
-        }}
-        initial={isUserSidePanelOpen ? "open" : "closed"}
-        animate={isUserSidePanelOpen ? "open" : "closed"}
-        transition={{ type: "easeInOut" }}
-      >
+      <ul className="fixed p-4 bottom-[16px] right-4 rounded-full shadow-md bg-white-500">
+        {" "}
         <li className="justify-self-end">
           <div className="flex items-center">
             <div
@@ -2821,20 +2911,35 @@ export default function ProcessPage() {
             </div>
           </div>
         </li>
-      </motion.ul>
-      <canvas
-        className={`${space ? "cursor-grab" : ""} overflow-hidden`}
-        tabIndex={1}
-        ref={(el) => {
-          $canvas = el;
-          ctx = $canvas?.getContext("2d");
-        }}
-        onMouseDown={onMouseDown}
-        onMouseUp={onMouseUp}
-        onMouseMove={onMouseMove}
-        onWheel={onMouseWheel}
-        onDoubleClick={onDoubleClick}
-      />
+      </ul>
+      <img id="screenshotImg" alt="Screenshot" style={{ display: "none" }} />
+      <div className={"flex"}>
+        <canvas
+          role="canvas"
+          className={`${space ? "cursor-grab" : ""} overflow-hidden`}
+          tabIndex={1}
+          ref={(el) => {
+            $canvas = el;
+            ctx = $canvas?.getContext("2d");
+          }}
+          onMouseDown={onMouseDown}
+          onMouseUp={onMouseUp}
+          onMouseMove={onMouseMove}
+          onWheel={onMouseWheel}
+          onDoubleClick={onDoubleClick}
+        />
+        <canvas
+          role="screenshot"
+          className={`invisible ${
+            space ? "cursor-grab" : ""
+          } overflow-hidden absolute left-0 top-0 z-[-1]`}
+          tabIndex={1}
+          ref={(el) => {
+            $screenshot = el;
+            ctx_screenshot = $screenshot?.getContext("2d");
+          }}
+        />
+      </div>
       {dataFrame && dbClickedShape && (
         <DataFrame
           shape={dbClickedShape}

@@ -86,6 +86,7 @@ type ProjectData = {
   data: {
     [stringId: CommonTypes.Id]: string;
   };
+  img: string;
 };
 
 type GetProject = {
@@ -94,6 +95,11 @@ type GetProject = {
 
 type UpdateProject = {
   data: Omit<ProjectData, "projectId" | "projectName">;
+  resData: {
+    status: string;
+    message: "Update project successfully!";
+    data: ProjectTypes.Project;
+  };
 };
 
 type UpdateProjectName = {
