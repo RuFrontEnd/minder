@@ -28,7 +28,7 @@ export default class Project {
     id: number,
     data: ProjectTypes.UpdateProject["req"]["data"]
   ) {
-    await this.projectModel.updateProject(id, data);
+    return this.projectModel.updateProject(id, data);
   }
 
   async updateProjectName(

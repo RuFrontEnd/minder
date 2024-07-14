@@ -78,11 +78,16 @@ export default class Project {
     next: NextFunction
   ) {
     try {
-      await this.projectService.updateProject(
+      const updatedProject = await this.projectService.updateProject(
         Number(req.params.id),
         req.body.data
       );
-      res.status(201).send("Update project successfully!");
+
+      res.status(200).send({
+        status: SUCCESSFUL,
+        message: "Update project successfully!",
+        data: updatedProject,
+      });
     } catch (err) {
       res.status(400).send(getError(err));
     }

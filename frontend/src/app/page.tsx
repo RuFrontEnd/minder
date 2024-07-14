@@ -2208,28 +2208,21 @@ export default function ProcessPage() {
       };
     });
 
-    // TODO: capture image feature
-    // const screenshotImg = document.getElementById(
-    //   "screenshotImg"
-    // ) as HTMLImageElement;
+    projectAPIs
+      .updateProject(selectedProjectId, modifyData)
+      .then((res: AxiosResponse<ProjectAPITypes.UpdateProject["resData"]>) => {
+        if (res.status !== 200) return;
 
-    // if (!screenshotImg) return;
-    // const dataURL = $canvas.toDataURL("image/png");
-    // console.log("A");
-    // console.log("dataURL", dataURL);
-    // console.log("dataURL.length", dataURL.length);
+        const projectI = projects.findIndex(
+          (project) => project.id === res.data.data.id
+        );
 
-    // // 將 Data URL 設置為圖片的 src
-    // screenshotImg.src = dataURL;
-    // // screenshotImg.style.display = "block";
+        if (!projectI) return;
+        const _projects = cloneDeep(projects);
+        _projects[projectI].img = res.data.data.img;
 
-    // // 如果想下載圖片，可以創建一個臨時的錨點並模擬點擊
-    // const link = document.createElement("a");
-    // link.href = dataURL;
-    // link.download = "canvas_screenshot.png";
-    // link.click();
-
-    projectAPIs.updateProject(selectedProjectId, modifyData);
+        setProjects(_projects);
+      });
   };
 
   const onClickProjectCard = (id: ProjectTypes.Project["id"]) => {
@@ -2293,7 +2286,7 @@ export default function ProcessPage() {
     }
   };
 
-  const onClickNewProjectCard = async () => {
+  const onClickNewProjectButton = async () => {
     if (qas) {
       setHasEnter(true);
       setIsProjectsModalOpen(false);
@@ -2621,26 +2614,16 @@ export default function ProcessPage() {
       >
         <div>
           <section className="rounded-lg text-gray-600 bg-white-500 p-8 body-font">
-            <div className="flex justify-end align-center">
+            {/* <div className="flex justify-end align-center">
               <Button onClick={onClickLogOutButton} text={"Log Out"} danger />
-            </div>
-            <div className="mb-6 py-2 px-4 border-b border-grey-5">
+            </div> */}
+            <div className="mb-6 pb-3 ps-4 border-b border-grey-5 flex justify-between items-end">
               <h2 className="text-gray-900 title-font text-lg font-semibold">
                 Projects
               </h2>
+              <Button onClick={onClickNewProjectButton} text={"New Project"} />
             </div>
             <div className="grid grid-cols-3 gap-4 h-[500px] overflow-auto">
-              <div>
-                <Card
-                  className="cursor-pointer"
-                  text={
-                    <h2 className="text-info-500 title-font text-lg font-medium">
-                      New Project
-                    </h2>
-                  }
-                  onClick={onClickNewProjectCard}
-                />
-              </div>
               {projects.map((project) => (
                 <div>
                   <Card
@@ -2660,7 +2643,7 @@ export default function ProcessPage() {
                 </div>
               ))}
             </div>
-            <div className="flex justify-end items-center mt-6 pt-4 border-t border-grey-5">
+            <div className="flex justify-end items-center mt-6 pt-3 border-t border-grey-5">
               <Button
                 className="me-3"
                 onClick={() => {
@@ -2965,7 +2948,9 @@ export default function ProcessPage() {
         />
         <canvas
           role="screenshot"
-          className={`${space ? "cursor-grab" : ""} overflow-hidden absolute left-0 top-0 z-[-1]`}
+          className={`${
+            space ? "cursor-grab" : ""
+          } overflow-hidden absolute left-0 top-0 z-[-1]`}
           tabIndex={1}
           ref={(el) => {
             $screenshot = el;
