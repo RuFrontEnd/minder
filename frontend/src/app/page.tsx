@@ -857,8 +857,6 @@ export default function ProcessPage() {
   };
 
   const onMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!$canvas || !ctx) return;
-
     e.preventDefault();
     setLeftMouseBtn(true);
 
@@ -1096,16 +1094,11 @@ export default function ProcessPage() {
       }
     }
 
-    draw($canvas, ctx, shapes);
+    drawCanvas();
   };
 
   const onMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     e.preventDefault();
-    const $canvas = document.querySelector("canvas");
-    const $screenshot: HTMLCanvasElement | null = document.querySelector(
-      "canvas[role='screenshot']"
-    );
-    if (!$canvas || !$screenshot || !ctx || !ctx_screenshot) return;
 
     const p = {
         x: e.nativeEvent.offsetX,
@@ -1417,13 +1410,12 @@ export default function ProcessPage() {
 
     dragP = p;
 
-    draw($canvas, ctx, shapes);
-    draw($screenshot, ctx_screenshot, getScreenshotShapes(shapes));
+    drawCanvas();
+    drawScreenshot();
   };
 
   const onMouseUp = (e: React.MouseEvent<HTMLCanvasElement>) => {
     e.preventDefault();
-    if (!$canvas || !ctx) return;
 
     setLeftMouseBtn(false);
 
@@ -1579,13 +1571,12 @@ export default function ProcessPage() {
     pressing = null;
     moveP = null;
 
-    draw($canvas, ctx, shapes);
+    drawCanvas();
   };
 
   const onMouseWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
-    if (!$canvas || !ctx) return;
     zoom(e.deltaY, { x: e.clientX, y: e.clientY });
-    draw($canvas, ctx, shapes);
+    drawCanvas();
   };
 
   const onDoubleClick = useCallback(
@@ -1611,11 +1602,6 @@ export default function ProcessPage() {
   );
 
   function handleKeyDown(this: Window, e: KeyboardEvent) {
-    const $canvas = document.querySelector("canvas");
-    const $screenshot: HTMLCanvasElement | null = document.querySelector(
-      "canvas[role='screenshot']"
-    );
-    if (!$canvas || !$screenshot || !ctx || !ctx_screenshot) return;
     // space
     if (e.key === " " && !space) {
       setSpace(true);
@@ -1638,8 +1624,8 @@ export default function ProcessPage() {
         }
       }
 
-      draw($canvas, ctx, shapes);
-      draw($screenshot, ctx_screenshot, getScreenshotShapes(shapes));
+      drawCanvas();
+      drawScreenshot();
     }
   }
 
@@ -1655,12 +1641,7 @@ export default function ProcessPage() {
   ) => {
     e.stopPropagation();
     e.preventDefault();
-    const $canvas = document.querySelector("canvas");
-    const $screenshot: HTMLCanvasElement | null = document.querySelector(
-      "canvas[role='screenshot']"
-    );
-    if (!isBrowser || !$canvas || !$screenshot || !ctx || !ctx_screenshot)
-      return;
+    if (!isBrowser) return;
 
     let intiShape = getInitializedShape(type, offset, offset_center);
     intiShape.offset = offset;
@@ -1669,8 +1650,8 @@ export default function ProcessPage() {
 
     checkData(shapes);
     checkGroups();
-    draw($canvas, ctx, shapes);
-    draw($screenshot, ctx_screenshot, getScreenshotShapes(shapes));
+    drawCanvas();
+    drawScreenshot();
   };
 
   const onConfirmDataFrame: DataFrameTypes.Props["onConfirm"] = (
@@ -1742,24 +1723,27 @@ export default function ProcessPage() {
   };
 
   const onClickScalePlusIcon = () => {
-    if (!$canvas || !ctx) return;
+    const $canvas = document.querySelector("canvas");
+    if (!$canvas) return;
     zoom(-100, { x: $canvas?.width / 2, y: $canvas?.height / 2 });
-    draw($canvas, ctx, shapes);
+    drawCanvas();
   };
 
   const onClickScaleMinusIcon = () => {
-    if (!$canvas || !ctx) return;
+    const $canvas = document.querySelector("canvas");
+    if (!$canvas) return;
     zoom(100, { x: $canvas?.width / 2, y: $canvas?.height / 2 });
-    draw($canvas, ctx, shapes);
+    drawCanvas();
   };
 
   const onClickScaleNumber = () => {
-    if (!$canvas || !ctx) return;
+    const $canvas = document.querySelector("canvas");
+    if (!$canvas) return;
     zoom(-((1 / scale - 1) * 500), {
       x: $canvas?.width / 2,
       y: $canvas?.height / 2,
     });
-    draw($canvas, ctx, shapes);
+    drawCanvas();
   };
 
   const onClickDataSidePanelSwitch = () => {
@@ -1779,7 +1763,8 @@ export default function ProcessPage() {
     (
       $canvas: HTMLCanvasElement,
       ctx: CanvasRenderingContext2D,
-      shapes: (Terminal | Process | Data | Desicion)[]
+      shapes: (Terminal | Process | Data | Desicion)[],
+      isScreenshot?: boolean
     ) => {
       if (!isBrowser) return;
       $canvas.width = window.innerWidth;
@@ -1798,19 +1783,21 @@ export default function ProcessPage() {
         shape.draw(ctx);
       });
 
-      // draw sending point
-      shapes.forEach((shape) => {
-        if (!ctx || !shape.selecting) return;
-        if (
-          shape instanceof Terminal ||
-          shape instanceof Process ||
-          shape instanceof Data ||
-          (shape instanceof Desicion &&
-            !(shape.getText().y && shape.getText().n))
-        ) {
-          shape.drawSendingPoint(ctx);
-        }
-      });
+      if (!isScreenshot) {
+        // draw sending point
+        shapes.forEach((shape) => {
+          if (!ctx || !shape.selecting) return;
+          if (
+            shape instanceof Terminal ||
+            shape instanceof Process ||
+            shape instanceof Data ||
+            (shape instanceof Desicion &&
+              !(shape.getText().y && shape.getText().n))
+          ) {
+            shape.drawSendingPoint(ctx);
+          }
+        });
+      }
 
       // draw curves in shapes
       shapes.forEach((shape) => {
@@ -1819,34 +1806,38 @@ export default function ProcessPage() {
         shape.drawCurve(ctx);
       });
 
-      // draw selectArea
-      if (selectAreaP) {
-        ctx?.beginPath();
+      if (!isScreenshot) {
+        // draw selectArea
+        if (selectAreaP) {
+          ctx?.beginPath();
 
-        ctx.fillStyle = "#2436b155";
-        ctx.fillRect(
-          selectAreaP?.start.x,
-          selectAreaP?.start.y,
-          selectAreaP?.end.x - selectAreaP?.start.x,
-          selectAreaP?.end.y - selectAreaP?.start.y
-        );
+          ctx.fillStyle = "#2436b155";
+          ctx.fillRect(
+            selectAreaP?.start.x,
+            selectAreaP?.start.y,
+            selectAreaP?.end.x - selectAreaP?.start.x,
+            selectAreaP?.end.y - selectAreaP?.start.y
+          );
 
-        ctx.strokeStyle = "#2436b1";
-        ctx.strokeRect(
-          selectAreaP?.start.x,
-          selectAreaP?.start.y,
-          selectAreaP?.end.x - selectAreaP?.start.x,
-          selectAreaP?.end.y - selectAreaP?.start.y
-        );
+          ctx.strokeStyle = "#2436b1";
+          ctx.strokeRect(
+            selectAreaP?.start.x,
+            selectAreaP?.start.y,
+            selectAreaP?.end.x - selectAreaP?.start.x,
+            selectAreaP?.end.y - selectAreaP?.start.y
+          );
 
-        ctx?.closePath();
+          ctx?.closePath();
+        }
       }
 
-      shapes.forEach((shape) => {
-        shape.drawRecievingPoint(ctx);
-      });
+      if (!isScreenshot) {
+        shapes.forEach((shape) => {
+          shape.drawRecievingPoint(ctx);
+        });
+      }
 
-      if (select.shapes.length > 1) {
+      if (select.shapes.length > 1 && !isScreenshot) {
         // draw select area
         ctx?.beginPath();
         ctx.strokeStyle = tailwindColors.info["500"];
@@ -1919,6 +1910,20 @@ export default function ProcessPage() {
     [otherStepIds]
   );
 
+  const drawCanvas = () => {
+    const $canvas = document.querySelector("canvas");
+    if (!$canvas || !ctx) return;
+    draw($canvas, ctx, shapes, false);
+  };
+
+  const drawScreenshot = () => {
+    const $screenshot: HTMLCanvasElement | null = document.querySelector(
+      "canvas[role='screenshot']"
+    );
+    if (!$screenshot || !ctx_screenshot) return;
+    draw($screenshot, ctx_screenshot, getScreenshotShapes(shapes), true);
+  };
+
   const onClickaAccordionArrow = (shapeId: string) => {
     const _steps = cloneDeep(steps);
     _steps[shapeId].open = !_steps[shapeId].open;
@@ -1926,7 +1931,7 @@ export default function ProcessPage() {
   };
 
   const onClickStep = (shapeP: CommonTypes.Vec) => {
-    if (!isBrowser || !$canvas || !ctx) return;
+    if (!isBrowser) return;
 
     offset = {
       x: offset_center.x + (window.innerWidth / 2 - shapeP.x),
@@ -1937,7 +1942,7 @@ export default function ProcessPage() {
       shape.offset = offset;
     });
 
-    draw($canvas, ctx, shapes);
+    drawCanvas();
   };
 
   const onClickChangeAuthButton = (_isLogining: boolean) => {
@@ -2235,12 +2240,6 @@ export default function ProcessPage() {
   };
 
   const onClickConfrimProject = async (id: ProjectTypes.Project["id"]) => {
-    const $canvas = document.querySelector("canvas");
-    const $screenshot: HTMLCanvasElement | null = document.querySelector(
-      "canvas[role='screenshot']"
-    );
-    if (!$canvas || !$screenshot || !ctx || !ctx_screenshot) return;
-
     const res: AxiosResponse<ProjectAPITypes.GetProject["resData"], any> =
       await projectAPIs.getProject(id);
 
@@ -2257,8 +2256,8 @@ export default function ProcessPage() {
     select = cloneDeep(init.select);
     checkData(shapes);
     checkGroups();
-    draw($canvas, ctx, shapes);
-    draw($screenshot, ctx_screenshot, getScreenshotShapes(shapes));
+    drawCanvas();
+    drawScreenshot();
     setIsProjectsModalOpen(false);
     setProjectName({
       inputVal: res.data.projectName,
@@ -2316,13 +2315,8 @@ export default function ProcessPage() {
 
   const onClickLogOutButton = () => {
     shapes = [];
-    const $canvas = document.querySelector("canvas");
-    const $screenshot: HTMLCanvasElement | null = document.querySelector(
-      "canvas[role='screenshot']"
-    );
-    if (!$canvas || !$screenshot || !ctx || !ctx_screenshot) return;
-    draw($canvas, ctx, shapes);
-    draw($screenshot, ctx_screenshot, getScreenshotShapes(shapes));
+    drawCanvas();
+    drawScreenshot();
     localStorage.removeItem("Authorization");
     setIsLogin(true);
     setProjects([]);
@@ -2382,26 +2376,21 @@ export default function ProcessPage() {
   useEffect(() => {
     if (!isBrowser) return;
     verifyToken();
-
-    const $canvas = document.querySelector("canvas");
-    const $screenshot: HTMLCanvasElement | null = document.querySelector(
-      "canvas[role='screenshot']"
-    );
-    if (!$canvas || !$screenshot || !ctx || !ctx_screenshot) return;
-    draw($canvas, ctx, shapes);
-    draw($screenshot, ctx_screenshot, getScreenshotShapes(shapes));
+    drawCanvas();
+    drawScreenshot();
 
     const resize = () => {
       const $canvas = document.querySelector("canvas");
       const $screenshot: HTMLCanvasElement | null = document.querySelector(
         "canvas[role='screenshot']"
       );
-      if (!isBrowser || !$canvas || !$screenshot || !ctx || !ctx_screenshot)
-        return;
+      if (!isBrowser || !$canvas || !$screenshot) return;
       $canvas.width = window.innerWidth;
       $canvas.height = window.innerHeight;
-      draw($canvas, ctx, shapes);
-      draw($screenshot, ctx_screenshot, getScreenshotShapes(shapes));
+      $screenshot.width = window.innerWidth;
+      $screenshot.height = window.innerHeight;
+      drawCanvas();
+      drawScreenshot();
     };
 
     window.addEventListener("resize", resize);
