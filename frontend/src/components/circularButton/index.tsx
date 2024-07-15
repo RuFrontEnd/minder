@@ -11,6 +11,7 @@ const CircularButton = (props: CircularButtonTypes.Props) => {
         height: props.size ? props.size : defaultSize,
       }}
       className={`inline-flex items-center justify-center bg-white-500 flex-shrink-0 cursor-pointer rounded-full shadow-md ${props.className}`}
+      onClick={props.onClick}
     >
       <div
         style={{
@@ -18,7 +19,6 @@ const CircularButton = (props: CircularButtonTypes.Props) => {
           height: props.size ? props.size - 6 : defaultSize - 6,
         }}
         className={`inline-flex items-center justify-center bg-primary-500 flex-shrink-0 cursor-pointer rounded-full`}
-        onClick={props.onClick}
       >
         {props.content}
       </div>
