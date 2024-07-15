@@ -160,7 +160,7 @@ export default class Data extends Core {
     this.title = _title;
     this.data = _data;
     this.selectedData = _selectedData;
-    this.selectedData = _deletedData;
+    this.deletedData = _deletedData;
   };
 
   initializeCurve(id: string, _d: Direction) {

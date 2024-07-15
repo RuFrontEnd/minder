@@ -309,7 +309,9 @@ export default function DataFrame({
         <div className="mb-4 pb-4 border-b border-grey-5">
           <div className="px-1">
             <div className="mb-1">
-              <label className="leading-7 text-sm text-gray-600">Redundancies</label>
+              <label className="leading-7 text-sm text-gray-600">
+                Redundancies
+              </label>
             </div>
             <ul className="flex flex-col">
               {shape.redundancies.length > 0 ? (

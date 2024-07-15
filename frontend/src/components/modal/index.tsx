@@ -7,7 +7,6 @@ import { tailwindColors } from "@/variables/colors";
 ReactModal.setAppElement("body");
 
 const Modal = (props: ModalTypes.Props) => {
-  console.log(tailwindColors.white["500"]);
   return (
     <ReactModal
       isOpen={props.isOpen}
