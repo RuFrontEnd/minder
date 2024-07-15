@@ -825,8 +825,10 @@ export default function ProcessPage() {
   };
 
   const fetchProjects = async () => {
-    const res: AxiosResponse<ProjectAPITypes.GetProjects["resData"], any> =
-      await projectAPIs.getProjecs();
+    const res: AxiosResponse<
+      ProjectAPITypes.GetProjects["resData"],
+      any
+    > = await projectAPIs.getProjecs();
     setProjects(res.data);
   };
 
@@ -839,8 +841,9 @@ export default function ProcessPage() {
     const token = localStorage.getItem("Authorization");
 
     if (token) {
-      const res: AxiosResponse<AuthTypes.JWTLogin["resData"]> =
-        await authAPIs.jwtLogin(token);
+      const res: AxiosResponse<
+        AuthTypes.JWTLogin["resData"]
+      > = await authAPIs.jwtLogin(token);
 
       if (res.data.isPass) {
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
@@ -1493,8 +1496,9 @@ export default function ProcessPage() {
         pressing?.parent &&
         pressing?.direction
       ) {
-        const theCheckReceivingPointsBoundryD =
-          shape.checkReceivingPointsBoundry(p);
+        const theCheckReceivingPointsBoundryD = shape.checkReceivingPointsBoundry(
+          p
+        );
 
         const pressingShape = pressing.parent;
 
@@ -1976,8 +1980,10 @@ export default function ProcessPage() {
 
     setIsAuthorizing(true);
 
-    const res: AxiosResponse<AuthTypes.Login["resData"], any> =
-      await authAPIs.login(authInfo.account.value, authInfo.password.value);
+    const res: AxiosResponse<
+      AuthTypes.Login["resData"],
+      any
+    > = await authAPIs.login(authInfo.account.value, authInfo.password.value);
 
     if (res.status === 201) {
       axios.defaults.headers.common[
@@ -2073,12 +2079,14 @@ export default function ProcessPage() {
 
     setIsAuthorizing(true);
 
-    const res: AxiosResponse<AuthTypes.Register["resData"], any> =
-      await authAPIs.register(
-        authInfo.account.value,
-        authInfo.password.value,
-        authInfo.email.value
-      );
+    const res: AxiosResponse<
+      AuthTypes.Register["resData"],
+      any
+    > = await authAPIs.register(
+      authInfo.account.value,
+      authInfo.password.value,
+      authInfo.email.value
+    );
 
     if (res.status === 201) {
       setTimeout(() => {
@@ -2240,8 +2248,10 @@ export default function ProcessPage() {
   };
 
   const onClickConfrimProject = async (id: ProjectTypes.Project["id"]) => {
-    const res: AxiosResponse<ProjectAPITypes.GetProject["resData"], any> =
-      await projectAPIs.getProject(id);
+    const res: AxiosResponse<
+      ProjectAPITypes.GetProject["resData"],
+      any
+    > = await projectAPIs.getProject(id);
 
     setScale(1);
     offset = cloneDeep(init.offset);
@@ -2274,8 +2284,9 @@ export default function ProcessPage() {
     if (!$canvas || !ctx) return;
 
     try {
-      const res: AxiosResponse<ProjectAPITypes.DeleteProject["resData"]> =
-        await projectAPIs.deleteProject(id);
+      const res: AxiosResponse<
+        ProjectAPITypes.DeleteProject["resData"]
+      > = await projectAPIs.deleteProject(id);
 
       if (id === selectedProjectId) {
         shapes = [];
@@ -2297,11 +2308,14 @@ export default function ProcessPage() {
       return;
     }
     shapes = [];
-    const newProject: AxiosResponse<ProjectAPITypes.CreateProject["resData"]> =
-      await projectAPIs.createProject();
+    const newProject: AxiosResponse<
+      ProjectAPITypes.CreateProject["resData"]
+    > = await projectAPIs.createProject();
 
-    const res: AxiosResponse<ProjectAPITypes.GetProjects["resData"], any> =
-      await projectAPIs.getProjecs();
+    const res: AxiosResponse<
+      ProjectAPITypes.GetProjects["resData"],
+      any
+    > = await projectAPIs.getProjecs();
 
     setIsProjectsModalOpen(false);
     setProjects(res.data);
@@ -2340,9 +2354,9 @@ export default function ProcessPage() {
     }));
   };
 
-  const onClickSaveProjectNameButton: MouseEventHandler<
-    HTMLButtonElement
-  > = async (e) => {
+  const onClickSaveProjectNameButton: MouseEventHandler<HTMLButtonElement> = async (
+    e
+  ) => {
     if (!selectedProjectId) return;
     const res: AxiosResponse<
       ProjectAPITypes.UpdateProjectName["resData"],
@@ -2815,9 +2829,7 @@ export default function ProcessPage() {
                       <div
                         onClick={(e) => {
                           e.stopPropagation();
-                          step.shape instanceof Terminal
-                            ? undefined
-                            : onClickStep(step.shape.p);
+                          onClickStep(step.shape.p);
                         }}
                       >
                         <svg
