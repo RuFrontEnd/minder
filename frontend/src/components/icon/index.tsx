@@ -1,8 +1,8 @@
 "use client";
-import * as Types from "@/types/components/icon";
+import * as IconTypes from "@/types/components/icon";
 import { tailwindColors } from "@/variables/colors";
 
-export default function Icon(props: Types.Props) {
+export default function Icon(props: IconTypes.Props) {
   const defaultVal = {
     w: 12,
     h: 12,
@@ -11,7 +11,7 @@ export default function Icon(props: Types.Props) {
   };
   return (
     <>
-      {(!props.type || props.type === Types.Type.x) && (
+      {(!props.type || props.type === IconTypes.Type.x) && (
         <svg
           className={props.className}
           aria-hidden="true"
@@ -36,7 +36,7 @@ export default function Icon(props: Types.Props) {
           />
         </svg>
       )}
-      {props.type === Types.Type.pencilSquare && (
+      {props.type === IconTypes.Type.pencilSquare && (
         <svg
           className={props.className}
           xmlns="http://www.w3.org/2000/svg"
