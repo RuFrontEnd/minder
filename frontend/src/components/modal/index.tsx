@@ -1,6 +1,6 @@
 import ReactModal from "react-modal";
-import CircleButton from "@/components/circularButton";
-import XIcon from "@/assets/svg/x.svg";
+import RoundButton from "@/components/roundButton";
+import Icon from "@/components/icon";
 import * as ModalTypes from "@/types/components/modal";
 import { tailwindColors } from "@/variables/colors";
 
@@ -32,16 +32,10 @@ const Modal = (props: ModalTypes.Props) => {
     >
       <div className="relative p-6">
         {props.onClickX && (
-          <CircleButton
+          <RoundButton
             className={"absolute top-[0px] right-[0px]"}
             onClick={props.onClickX}
-            content={
-              <XIcon
-                className={`w-3 h-3 [&>*]:stroke-cyan-700}`}
-                fill={tailwindColors.white["500"]}
-                storke={tailwindColors.white["500"]}
-              />
-            }
+            content={<Icon stroke={tailwindColors.white["500"]} />}
           />
         )}
 

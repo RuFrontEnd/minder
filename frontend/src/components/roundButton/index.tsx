@@ -1,7 +1,7 @@
 "use client";
-import * as CircularButtonTypes from "@/types/components/circularButton";
+import * as RoundButtonTypes from "@/types/components/roundButton";
 
-const CircularButton = (props: CircularButtonTypes.Props) => {
+const RoundButton = (props: RoundButtonTypes.Props) => {
   const defaultSize = 24;
 
   return (
@@ -26,4 +26,4 @@ const CircularButton = (props: CircularButtonTypes.Props) => {
   );
 };
 
-export default CircularButton;
+export default RoundButton;
