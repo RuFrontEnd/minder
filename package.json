@@ -1,0 +1,8 @@
+{
+  "scripts": {
+    "start": "concurrently \"cd frontend && yarn run dev\" \"cd backend && yarn run start\""
+  },
+  "dependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
