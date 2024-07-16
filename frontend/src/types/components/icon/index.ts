@@ -3,6 +3,10 @@ import { MouseEventHandler } from "react";
 enum Type {
   x = "x",
   pencilSquare = "pencil-square",
+  ellipse = "ellipse",
+  square = "square",
+  parallelogram = "parallelogram",
+  dimond = "dimond",
 }
 
 type Props = {

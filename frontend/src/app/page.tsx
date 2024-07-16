@@ -17,6 +17,8 @@ import Alert from "@/components/alert";
 import Card from "@/components/card";
 import Frame from "@/components/frame";
 import PencilSquareIcon from "@/assets/svg/pencil-square.svg";
+import Icon from "@/components/icon";
+import RoundButton from "@/components/roundButton";
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { cloneDeep } from "lodash";
@@ -33,6 +35,7 @@ import * as PageTypes from "@/types/app/page";
 import * as DataFrameTypes from "@/types/components/dataFrame";
 import * as InputTypes from "@/types/components/input";
 import * as AlertTypes from "@/types/components/alert";
+import * as IconTypes from "@/types/components/icon";
 import * as AuthTypes from "@/types/apis/auth";
 import * as ProjectAPITypes from "@/types/apis/project";
 import * as ProjectTypes from "@/types/project";
@@ -2433,99 +2436,16 @@ export default function ProcessPage() {
   }, [dataFrame, dbClickedShape, space, steps, procedures, otherStepIds]);
 
   const createShapeButtons = [
-    {
-      type: CommonTypes.Type["terminator"],
-      icon: (
-        <svg
-          width={16}
-          height={16}
-          version="1.1"
-          xmlns="http://www.w3.org/2000/svg"
-          xmlnsXlink="http://www.w3.org/1999/xlink"
-          x="0px"
-          y="0px"
-          viewBox="0 0 256 256"
-          enable-background="new 0 0 256 256"
-          xmlSpace="preserve"
-        >
-          <g>
-            <g>
-              <path
-                fill="#FFFFFF"
-                d="M246,128c0,49.2-39.9,89-89,89H99c-49.2,0-89-39.9-89-89l0,0c0-49.2,39.9-89,89-89H157C206.1,39,246,78.8,246,128L246,128z"
-              />
-            </g>
-          </g>
-        </svg>
-      ),
-    },
-    {
-      type: CommonTypes.Type["process"],
-      icon: (
-        <svg
-          width={16}
-          height={16}
-          xmlns="http://www.w3.org/2000/svg"
-          xmlnsXlink="http://www.w3.org/1999/xlink"
-          version="1.1"
-          x="0px"
-          y="0px"
-          viewBox="0 0 100 100"
-          xmlSpace="preserve"
-        >
-          <path
-            fill="#FFFFFF"
-            className="st0"
-            d="M93.44,78.48H6.56V21.52h86.88V78.48z"
-          />
-        </svg>
-      ),
-    },
-    {
-      type: CommonTypes.Type["data"],
-      icon: (
-        <svg
-          width={16}
-          height={16}
-          xmlns="http://www.w3.org/2000/svg"
-          data-name="Layer 21"
-          viewBox="0 0 32 32"
-          x="0px"
-          y="0px"
-        >
-          <path
-            fill="#FFFFFF"
-            d="M30.387,5.683A.5.5,0,0,0,30,5.5H6a.5.5,0,0,0-.49.4l-4,20a.5.5,0,0,0,.49.6H26a.5.5,0,0,0,.49-.4l4-20A.5.5,0,0,0,30.387,5.683Z"
-          />
-        </svg>
-      ),
-    },
-    {
-      type: CommonTypes.Type["decision"],
-      icon: (
-        <svg
-          width={16}
-          height={16}
-          xmlns="http://www.w3.org/2000/svg"
-          xmlnsXlink="http://www.w3.org/1999/xlink"
-          version="1.1"
-          x="0px"
-          y="0px"
-          viewBox="0 0 64 64"
-          xmlSpace="preserve"
-        >
-          <rect
-            fill="#FFFFFF"
-            x="12.5545645"
-            y="12.5545635"
-            transform="matrix(0.7071068 -0.7071068 0.7071068 0.7071068 -13.2548332 32)"
-            width={"38.890873"}
-            height={"38.890873"}
-          />
-        </svg>
-      ),
-    },
-  ];
+    { shape: CommonTypes.Type["terminator"], icon: IconTypes.Type.ellipse },
+    { shape: CommonTypes.Type["process"], icon: IconTypes.Type.square },
+    { shape: CommonTypes.Type["data"], icon: IconTypes.Type.parallelogram },
+    { shape: CommonTypes.Type["decision"], icon: IconTypes.Type.dimond },
+  ].map((type) => ({
+    type: type.shape,
+    icon: (
+      <Icon type={type.icon} w={16} h={16} fill={tailwindColors.white["500"]} />
+    ),
+  }));
 
   return (
     <>
@@ -2872,18 +2792,29 @@ export default function ProcessPage() {
         <div className="justify-self-center">
           <div className="flex">
             {createShapeButtons.map((createShapeButton) => (
-              <button
-                tabIndex={-1}
+              <RoundButton
+                size={32}
                 className="mx-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
+                content={createShapeButton.icon}
                 onClick={(e) => {
                   onClickShapeButton(e, createShapeButton.type);
                 }}
-                onKeyDown={(event) => {
-                  event.preventDefault();
+                onKeyDown={(e) => {
+                  e.preventDefault();
                 }}
-              >
-                {createShapeButton.icon}
-              </button>
+              />
+
+              // <button
+              //   tabIndex={-1}
+              //   className="mx-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
+              //   onClick={(e) => {
+              //     onClickShapeButton(e, createShapeButton.type);
+              //   }}
+              //   onKeyDown={(event) => {
+              //     event.preventDefault();
+              //   }}
+              // >
+              // </button>
             ))}
           </div>
         </div>

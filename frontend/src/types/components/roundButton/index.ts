@@ -1,4 +1,4 @@
-import { MouseEventHandler, ReactNode } from "react";
+import { KeyboardEventHandler, MouseEventHandler, ReactNode } from "react";
 
 type Props = {
   id?: string;
@@ -7,7 +7,8 @@ type Props = {
   content?: ReactNode;
   size?: number;
   outerRing?: boolean;
-  onClick?: MouseEventHandler<HTMLDivElement>;
+  onClick?: MouseEventHandler<HTMLButtonElement>;
+  onKeyDown?: KeyboardEventHandler<HTMLButtonElement>;
 };
 
 export type { Props };

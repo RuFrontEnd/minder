@@ -12,13 +12,14 @@ const RoundButton = (props: RoundButtonTypes.Props) => {
   return (
     <>
       {props.outerRing ? (
-        <div
+        <button
           style={{
             width: props.size ? props.size : size.default,
             height: props.size ? props.size : size.default,
           }}
           className={`inline-flex items-center justify-center bg-white-500 flex-shrink-0 cursor-pointer rounded-full shadow-md ${props.className}`}
           onClick={props.onClick}
+          onKeyDown={props.onKeyDown}
         >
           <div
             style={{
@@ -33,9 +34,9 @@ const RoundButton = (props: RoundButtonTypes.Props) => {
           >
             {props.content}
           </div>
-        </div>
+        </button>
       ) : (
-        <div
+        <button
           style={{
             width: props.size ? props.size : size.default,
             height: props.size ? props.size : size.default,
@@ -44,7 +45,7 @@ const RoundButton = (props: RoundButtonTypes.Props) => {
           onClick={props.onClick}
         >
           {props.content}
-        </div>
+        </button>
       )}
     </>
   );
