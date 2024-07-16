@@ -33,6 +33,7 @@ const Modal = (props: ModalTypes.Props) => {
       <div className="relative p-6">
         {props.onClickX && (
           <RoundButton
+            outerRing
             className={"absolute top-[0px] right-[0px]"}
             onClick={props.onClickX}
             content={<Icon stroke={tailwindColors.white["500"]} />}

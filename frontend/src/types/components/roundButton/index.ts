@@ -6,6 +6,7 @@ type Props = {
   style?: Object;
   content?: ReactNode;
   size?: number;
+  outerRing?: boolean;
   onClick?: MouseEventHandler<HTMLDivElement>;
 };
 

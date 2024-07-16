@@ -2,27 +2,51 @@
 import * as RoundButtonTypes from "@/types/components/roundButton";
 
 const RoundButton = (props: RoundButtonTypes.Props) => {
-  const defaultSize = 24;
+  const size = {
+    default: 24,
+    differece: 6,
+  };
+
+  const coreClassName = `inline-flex items-center justify-center flex-shrink-0 cursor-pointer rounded-full shadow-md`;
 
   return (
-    <div
-      style={{
-        width: props.size ? props.size : defaultSize,
-        height: props.size ? props.size : defaultSize,
-      }}
-      className={`inline-flex items-center justify-center bg-white-500 flex-shrink-0 cursor-pointer rounded-full shadow-md ${props.className}`}
-      onClick={props.onClick}
-    >
-      <div
-        style={{
-          width: props.size ? props.size - 6 : defaultSize - 6,
-          height: props.size ? props.size - 6 : defaultSize - 6,
-        }}
-        className={`inline-flex items-center justify-center bg-primary-500 flex-shrink-0 cursor-pointer rounded-full`}
-      >
-        {props.content}
-      </div>
-    </div>
+    <>
+      {props.outerRing ? (
+        <div
+          style={{
+            width: props.size ? props.size : size.default,
+            height: props.size ? props.size : size.default,
+          }}
+          className={`inline-flex items-center justify-center bg-white-500 flex-shrink-0 cursor-pointer rounded-full shadow-md ${props.className}`}
+          onClick={props.onClick}
+        >
+          <div
+            style={{
+              width: props.size
+                ? props.size - size.differece
+                : size.default - size.differece,
+              height: props.size
+                ? props.size - size.differece
+                : size.default - size.differece,
+            }}
+            className={`${coreClassName} bg-primary-500`}
+          >
+            {props.content}
+          </div>
+        </div>
+      ) : (
+        <div
+          style={{
+            width: props.size ? props.size : size.default,
+            height: props.size ? props.size : size.default,
+          }}
+          className={`${coreClassName} bg-primary-500 ${props.className}`}
+          onClick={props.onClick}
+        >
+          {props.content}
+        </div>
+      )}
+    </>
   );
 };
 
