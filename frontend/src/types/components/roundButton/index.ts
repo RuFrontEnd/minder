@@ -4,6 +4,7 @@ type Props = {
   id?: string;
   className?: string;
   style?: Object;
+  tabIndex?: number;
   content?: ReactNode;
   size?: number;
   outerRing?: boolean;

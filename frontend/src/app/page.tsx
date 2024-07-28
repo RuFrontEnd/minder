@@ -828,10 +828,8 @@ export default function ProcessPage() {
   };
 
   const fetchProjects = async () => {
-    const res: AxiosResponse<
-      ProjectAPITypes.GetProjects["resData"],
-      any
-    > = await projectAPIs.getProjecs();
+    const res: AxiosResponse<ProjectAPITypes.GetProjects["resData"], any> =
+      await projectAPIs.getProjecs();
     setProjects(res.data);
   };
 
@@ -844,9 +842,8 @@ export default function ProcessPage() {
     const token = localStorage.getItem("Authorization");
 
     if (token) {
-      const res: AxiosResponse<
-        AuthTypes.JWTLogin["resData"]
-      > = await authAPIs.jwtLogin(token);
+      const res: AxiosResponse<AuthTypes.JWTLogin["resData"]> =
+        await authAPIs.jwtLogin(token);
 
       if (res.data.isPass) {
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
@@ -1499,9 +1496,8 @@ export default function ProcessPage() {
         pressing?.parent &&
         pressing?.direction
       ) {
-        const theCheckReceivingPointsBoundryD = shape.checkReceivingPointsBoundry(
-          p
-        );
+        const theCheckReceivingPointsBoundryD =
+          shape.checkReceivingPointsBoundry(p);
 
         const pressingShape = pressing.parent;
 
@@ -1983,10 +1979,8 @@ export default function ProcessPage() {
 
     setIsAuthorizing(true);
 
-    const res: AxiosResponse<
-      AuthTypes.Login["resData"],
-      any
-    > = await authAPIs.login(authInfo.account.value, authInfo.password.value);
+    const res: AxiosResponse<AuthTypes.Login["resData"], any> =
+      await authAPIs.login(authInfo.account.value, authInfo.password.value);
 
     if (res.status === 201) {
       axios.defaults.headers.common[
@@ -2082,14 +2076,12 @@ export default function ProcessPage() {
 
     setIsAuthorizing(true);
 
-    const res: AxiosResponse<
-      AuthTypes.Register["resData"],
-      any
-    > = await authAPIs.register(
-      authInfo.account.value,
-      authInfo.password.value,
-      authInfo.email.value
-    );
+    const res: AxiosResponse<AuthTypes.Register["resData"], any> =
+      await authAPIs.register(
+        authInfo.account.value,
+        authInfo.password.value,
+        authInfo.email.value
+      );
 
     if (res.status === 201) {
       setTimeout(() => {
@@ -2251,10 +2243,8 @@ export default function ProcessPage() {
   };
 
   const onClickConfrimProject = async (id: ProjectTypes.Project["id"]) => {
-    const res: AxiosResponse<
-      ProjectAPITypes.GetProject["resData"],
-      any
-    > = await projectAPIs.getProject(id);
+    const res: AxiosResponse<ProjectAPITypes.GetProject["resData"], any> =
+      await projectAPIs.getProject(id);
 
     setScale(1);
     offset = cloneDeep(init.offset);
@@ -2287,9 +2277,8 @@ export default function ProcessPage() {
     if (!$canvas || !ctx) return;
 
     try {
-      const res: AxiosResponse<
-        ProjectAPITypes.DeleteProject["resData"]
-      > = await projectAPIs.deleteProject(id);
+      const res: AxiosResponse<ProjectAPITypes.DeleteProject["resData"]> =
+        await projectAPIs.deleteProject(id);
 
       if (id === selectedProjectId) {
         shapes = [];
@@ -2311,14 +2300,11 @@ export default function ProcessPage() {
       return;
     }
     shapes = [];
-    const newProject: AxiosResponse<
-      ProjectAPITypes.CreateProject["resData"]
-    > = await projectAPIs.createProject();
+    const newProject: AxiosResponse<ProjectAPITypes.CreateProject["resData"]> =
+      await projectAPIs.createProject();
 
-    const res: AxiosResponse<
-      ProjectAPITypes.GetProjects["resData"],
-      any
-    > = await projectAPIs.getProjecs();
+    const res: AxiosResponse<ProjectAPITypes.GetProjects["resData"], any> =
+      await projectAPIs.getProjecs();
 
     setIsProjectsModalOpen(false);
     setProjects(res.data);
@@ -2357,9 +2343,9 @@ export default function ProcessPage() {
     }));
   };
 
-  const onClickSaveProjectNameButton: MouseEventHandler<HTMLButtonElement> = async (
-    e
-  ) => {
+  const onClickSaveProjectNameButton: MouseEventHandler<
+    HTMLButtonElement
+  > = async (e) => {
     if (!selectedProjectId) return;
     const res: AxiosResponse<
       ProjectAPITypes.UpdateProjectName["resData"],
@@ -2797,24 +2783,18 @@ export default function ProcessPage() {
                 className="mx-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
                 content={createShapeButton.icon}
                 onClick={(e) => {
+                  if ((e as any).key === " ") {
+                    // 确保只在按下空格键时阻止默认行为
+                    e.preventDefault();
+                    e.stopPropagation(); // 确保事件不传播
+                  }
                   onClickShapeButton(e, createShapeButton.type);
                 }}
                 onKeyDown={(e) => {
                   e.preventDefault();
+                  return false;
                 }}
               />
-
-              // <button
-              //   tabIndex={-1}
-              //   className="mx-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
-              //   onClick={(e) => {
-              //     onClickShapeButton(e, createShapeButton.type);
-              //   }}
-              //   onKeyDown={(event) => {
-              //     event.preventDefault();
-              //   }}
-              // >
-              // </button>
             ))}
           </div>
         </div>
