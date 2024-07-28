@@ -1,4 +1,4 @@
-// TODO: 支援多個 recieve set W 時, 跟隨錯誤 / 更換新增 shape icon / 取消 title 重名檢查 / 終點 terminator 要判斷是否沒有接收到其他 shape(要做錯誤題示) / core shape sendTo 搬遷至 curves sendTo / 雙擊 cp1 || cp2 可自動對位  / 處理 data shape SelectFrame 開關(點擊 frame 以外要關閉) / 尋找左側列 icons / 對齊功能
+// TODO: fix browser zoom and re calculate shape offset
 "use client";
 import axios, { AxiosResponse } from "axios";
 import Core from "@/shapes/core";
