@@ -5,6 +5,7 @@ import { Inter } from "next/font/google";
 import { Vec, Direction, Data as DataType } from "@/types/shapes/common";
 import * as CoreTypes from "@/types/shapes/core";
 import * as CommonTypes from "@/types/shapes/common";
+import * as CurveTypes from "@/types/shapes/curve";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -48,7 +49,7 @@ export default class Core {
     r: CoreTypes.SendCurve[];
     b: CoreTypes.SendCurve[];
   };
-  __selecting__: boolean;
+  private __selecting__: boolean;
   __receiving__: CoreTypes.Receiving;
   receiveFrom: {
     l: CoreTypes.ReceiveFrom[];
@@ -439,6 +440,23 @@ export default class Core {
     );
   }
 
+  checkCurvesBoundry(p: Vec) {
+    const withinRangeCurveIds: CurveTypes.Id[] = [];
+    const curveP = {
+      x: p.x - this?.getScreenP().x,
+      y: p.y - this?.getScreenP().y,
+    };
+
+    ds.forEach((d) => {
+      this.curves[d].forEach((curve) => {
+        if (!curve.shape.checkBoundry(curveP)) return;
+        withinRangeCurveIds.push(curve.shape.id);
+      });
+    });
+
+    return withinRangeCurveIds;
+  }
+
   checkVertexesBoundry(p: Vec) {
     const edge = this.getEdge();
 
@@ -550,6 +568,16 @@ export default class Core {
         return Direction[d];
       }
     }
+  }
+
+  setIsCurveSelected(curveId: CurveTypes.Id, _selecting: boolean) {
+    ds.forEach((d) => {
+      const targetCurve = this.curves[d].find(
+        (curve) => curve.shape.id === curveId
+      )?.shape;
+      if (!targetCurve) return;
+      targetCurve.selecting = _selecting;
+    });
   }
 
   connect(

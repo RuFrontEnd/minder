@@ -25,7 +25,7 @@ export default class Curve {
   cp1: Vec;
   __cp2__: Vec;
   arrow: null | Arrow;
-  selecting: boolean;
+  private __selecting__: boolean;
   __offset__: Vec;
   __scale__: number;
 
@@ -57,9 +57,17 @@ export default class Curve {
       Math.atan2(this.__p2__.y - this.cp2.y, this.__p2__.x - this.cp2.x) +
         90 * (Math.PI / 180)
     );
-    this.selecting = false;
+    this.__selecting__ = false;
     this.__offset__ = this.initOffset;
     this.__scale__ = this.initScale;
+  }
+
+  get selecting() {
+    return this.__selecting__;
+  }
+
+  set selecting(val) {
+    this.__selecting__ = val;
   }
 
   get p2() {

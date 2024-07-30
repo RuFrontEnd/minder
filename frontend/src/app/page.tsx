@@ -93,9 +93,10 @@ let useEffected = false,
   ctx_screenshot: CanvasRenderingContext2D | null | undefined = null,
   shapes: (Terminal | Process | Data | Desicion)[] = [],
   pressing: null | {
-    parent: null | Terminal | Process | Data | Desicion;
-    shape: null | Terminal | Process | Data | Desicion | Curve;
-    direction: null | CommonTypes.Direction;
+    parent: Terminal | Process | Data | Desicion; // TODO: should be replaced by shape
+    shape: Terminal | Process | Data | Desicion; // TODO: should remove Curve
+    curveId?: null | CurveTypes.Id;
+    direction: any; // TODO: should be removed in the future
     target:
       | null
       | CoreTypes.PressingTarget
@@ -931,14 +932,14 @@ export default function ProcessPage() {
         }
 
         if (_target) {
-          pressing = {
-            parent: null,
-            shape: null,
-            target: _target,
-            direction: null,
-            dx: 0,
-            dy: 0,
-          };
+          // pressing = {
+          //   parent: null,
+          //   shape: null,
+          //   target: _target,
+          //   direction: null,
+          //   dx: 0,
+          //   dy: 0,
+          // }; // TODO
         } else {
           select = {
             start: {
@@ -969,132 +970,153 @@ export default function ProcessPage() {
             );
           }
 
+          const withinRangeCurveIds = shape.checkCurvesBoundry(p);
+
+          if (withinRangeCurveIds.length > 0) {
+            pressing = {
+              parent: shape,
+              shape: shape,
+              curveId: withinRangeCurveIds[0],
+              target: null,
+              direction: null,
+              dx: 0,
+              dy: 0,
+            };
+          } else if (shape.checkBoundry(p)) {
+            pressing = {
+              parent: shape,
+              shape: shape,
+              curveId: null,
+              target: null,
+              direction: null,
+              dx: 0,
+              dy: 0,
+            };
+          }
+
           // drag curve
-          ds.forEach((d) => {
-            shape.curves[d].forEach((curveInShape) => {
-              const theCurve = curveInShape.shape;
+          // ds.forEach((d) => {
+          //   shape.curves[d].forEach((curveInShape) => {
+          //     const theCurve = curveInShape.shape;
 
-              const curveP = {
-                x: p.x - shape?.getScreenP().x,
-                y: p.y - shape?.getScreenP().y,
-              };
+          //     const curveP = {
+          //       x: p.x - shape?.getScreenP().x,
+          //       y: p.y - shape?.getScreenP().y,
+          //     };
 
-              if (!theCurve) return;
-              if (
-                theCurve.checkBoundry(curveP) ||
-                theCurve.checkControlPointsBoundry(curveP)
-              ) {
-                if (theCurve.checkBoundry(curveP)) {
-                  pressing = {
-                    parent: shape,
-                    shape: theCurve,
-                    target: null,
-                    direction: d,
-                    dx: 0,
-                    dy: 0,
-                  };
-                }
+          //     if (!theCurve) return;
+          //     if (
+          //       theCurve.checkBoundry(curveP) ||
+          //       theCurve.checkControlPointsBoundry(curveP)
+          //     ) {
+          //       if (theCurve.checkBoundry(curveP)) {
+          //         pressing = {
+          //           parent: shape,
+          //           shape: theCurve,
+          //           target: null,
+          //           direction: d,
+          //           dx: 0,
+          //           dy: 0,
+          //         };
+          //       }
 
-                if (theCurve.checkControlPointsBoundry(curveP)) {
-                  pressing = {
-                    parent: shape,
-                    shape: theCurve,
-                    target: theCurve.checkControlPointsBoundry(curveP),
-                    direction: d,
-                    dx: 0,
-                    dy: 0,
-                  };
-                }
-              } else {
-                theCurve.selecting = false;
-              }
-            });
-          });
+          //       if (theCurve.checkControlPointsBoundry(curveP)) {
+          //         pressing = {
+          //           parent: shape,
+          //           shape: theCurve,
+          //           target: theCurve.checkControlPointsBoundry(curveP),
+          //           direction: d,
+          //           dx: 0,
+          //           dy: 0,
+          //         };
+          //       }
+          //     } else {
+          //       theCurve.selecting = false;
+          //     }
+          //   });
+          // });
         });
 
         // if has already selected curve, never select any other shapes
-        if (!(pressing?.shape instanceof Curve)) {
-          // onMouseDown shape conditions
-          shapes.forEach((shape) => {
-            if (!$canvas) return;
-
-            // onMouseDown shape
-            if (shape.checkBoundry(p) && select.shapes.length === 0) {
-              pressing = {
-                parent: null,
-                shape: shape,
-                target: CoreTypes.PressingTarget.m,
-                direction: null,
-                dx: (p.x - dragP.x) * (1 / scale) - shape?.getScreenP().x,
-                dy: (p.y - dragP.y) * (1 / scale) - shape?.getScreenP().y,
-              };
-            }
-
-            // onMouseDown corner point and create curve
-            const theCheckShapeVertexesBoundry = shape.checkVertexesBoundry(p);
-            if (theCheckShapeVertexesBoundry && select.shapes.length <= 1) {
-              pressing = {
-                parent: null,
-                shape: shape,
-                target: theCheckShapeVertexesBoundry,
-                direction: null,
-                dx:
-                  (p.x - dragP.x) * (1 / scale) -
-                  shape?.getEdge()[
-                    theCheckShapeVertexesBoundry[0] as CommonTypes.Direction
-                  ],
-                dy:
-                  (p.y - dragP.y) * (1 / scale) -
-                  shape?.getEdge()[
-                    theCheckShapeVertexesBoundry[1] as CommonTypes.Direction
-                  ],
-              };
-            }
-          });
+        if (pressing && pressing.curveId) {
+          pressing.shape?.setIsCurveSelected(pressing.curveId, true);
+        } else if (pressing && !pressing.curveId) {
+          pressing.shape.selecting = true;
+          // // onMouseDown shape conditions
+          // shapes.forEach((shape) => {
+          //   if (!$canvas) return;
+          //   // onMouseDown shape
+          //   if (shape.checkBoundry(p) && select.shapes.length === 0) {
+          //     pressing = {
+          //       parent: null,
+          //       shape: shape,
+          //       target: CoreTypes.PressingTarget.m,
+          //       direction: null,
+          //       dx: (p.x - dragP.x) * (1 / scale) - shape?.getScreenP().x,
+          //       dy: (p.y - dragP.y) * (1 / scale) - shape?.getScreenP().y,
+          //     };
+          //   }
+          //   // onMouseDown corner point and create curve
+          //   const theCheckShapeVertexesBoundry = shape.checkVertexesBoundry(p);
+          //   if (theCheckShapeVertexesBoundry && select.shapes.length <= 1) {
+          //     pressing = {
+          //       parent: null,
+          //       shape: shape,
+          //       target: theCheckShapeVertexesBoundry,
+          //       direction: null,
+          //       dx:
+          //         (p.x - dragP.x) * (1 / scale) -
+          //         shape?.getEdge()[
+          //           theCheckShapeVertexesBoundry[0] as CommonTypes.Direction
+          //         ],
+          //       dy:
+          //         (p.y - dragP.y) * (1 / scale) -
+          //         shape?.getEdge()[
+          //           theCheckShapeVertexesBoundry[1] as CommonTypes.Direction
+          //         ],
+          //     };
+          //   }
+          // });
         }
       }
 
       // close selected status when click the blank area
 
-      shapes.forEach((shape) => {
-        if (pressing?.shape instanceof Curve) {
-          // click curve
-          shape.selecting = false;
+      // shapes.forEach((shape) => {
+      //   if (pressing?.shape instanceof Curve) {
+      //     // click curve
+      //     shape.selecting = false;
 
-          ds.forEach((d) => {
-            for (const curveInShape of shape.curves[d]) {
-              const theCurve = curveInShape.shape;
-              if (theCurve && theCurve?.id !== pressing?.shape?.id) {
-                theCurve.selecting = false;
-              }
-            }
-          });
-        } else {
-          // click shape or blank area
-          ds.forEach((d) => {
-            for (const curveInShape of shape.curves[d]) {
-              const theCurve = curveInShape.shape;
-              if (theCurve) {
-                theCurve.selecting = false;
-              }
-            }
+      //     ds.forEach((d) => {
+      //       for (const curveInShape of shape.curves[d]) {
+      //         const theCurve = curveInShape.shape;
+      //         if (theCurve && theCurve?.id !== pressing?.shape?.id) {
+      //           theCurve.selecting = false;
+      //         }
+      //       }
+      //     });
+      //   } else {
+      //     // click shape or blank area
+      //     ds.forEach((d) => {
+      //       for (const curveInShape of shape.curves[d]) {
+      //         const theCurve = curveInShape.shape;
+      //         if (theCurve) {
+      //           theCurve.selecting = false;
+      //         }
+      //       }
 
-            if (shape.id !== pressing?.shape?.id) {
-              shape.selecting = false;
-            }
-          });
-        }
-      });
+      //       if (shape.id !== pressing?.shape?.id) {
+      //         shape.selecting = false;
+      //       }
+      //     });
+      //   }
+      // }); //TODO
 
-      if (pressing?.shape) {
-        pressing.shape.selecting = true;
-      } else {
-        if (select.shapes.length > 0 && isPInMultiSelectArea) return;
-        selectAreaP = {
-          start: p,
-          end: p,
-        };
-      }
+      if (select.shapes.length > 0 && isPInMultiSelectArea) return;
+      selectAreaP = {
+        start: p,
+        end: p,
+      };
     }
 
     drawCanvas();
@@ -1148,42 +1170,43 @@ export default function ProcessPage() {
         ) {
           pressing.shape.move(p, dragP);
         }
-      } else if (pressing.shape instanceof Curve) {
-        if (
-          pressing?.target === CurveTypes.PressingTarget.p2 &&
-          pressing?.parent &&
-          pressing?.direction
-        ) {
-          pressing.parent.disConnect(pressing.parent, [pressing.shape.id]);
-
-          shapes.forEach((shape) => {
-            if (!ctx) return;
-            const theEdge = shape.getEdge(),
-              threshold = 20,
-              isNearShape =
-                p.x >= theEdge.l - threshold &&
-                p.y >= theEdge.t - threshold &&
-                p.x <= theEdge.r + threshold &&
-                p.y <= theEdge.b + threshold;
-
-            for (const d of ds) {
-              shape.receiving[d] = isNearShape;
-            }
-          });
-        }
-        if (
-          (pressing.target !== CurveTypes.PressingTarget.cp1 &&
-            pressing.target !== CurveTypes.PressingTarget.cp2 &&
-            pressing.target !== CurveTypes.PressingTarget.p2) ||
-          !pressing.parent
-        )
-          return;
-        const curveP = {
-          x: p.x - pressing.parent?.getScreenP().x,
-          y: p.y - pressing.parent?.getScreenP().y,
-        };
-        pressing.shape.moveHandler(pressing.target, curveP);
       }
+      // else if (pressing.shape instanceof Curve) {
+      //   if (
+      //     pressing?.target === CurveTypes.PressingTarget.p2 &&
+      //     pressing?.parent &&
+      //     pressing?.direction
+      //   ) {
+      //     pressing.parent.disConnect(pressing.parent, [pressing.shape.id]);
+
+      //     shapes.forEach((shape) => {
+      //       if (!ctx) return;
+      //       const theEdge = shape.getEdge(),
+      //         threshold = 20,
+      //         isNearShape =
+      //           p.x >= theEdge.l - threshold &&
+      //           p.y >= theEdge.t - threshold &&
+      //           p.x <= theEdge.r + threshold &&
+      //           p.y <= theEdge.b + threshold;
+
+      //       for (const d of ds) {
+      //         shape.receiving[d] = isNearShape;
+      //       }
+      //     });
+      //   }
+      //   if (
+      //     (pressing.target !== CurveTypes.PressingTarget.cp1 &&
+      //       pressing.target !== CurveTypes.PressingTarget.cp2 &&
+      //       pressing.target !== CurveTypes.PressingTarget.p2) ||
+      //     !pressing.parent
+      //   )
+      //     return;
+      //   const curveP = {
+      //     x: p.x - pressing.parent?.getScreenP().x,
+      //     y: p.y - pressing.parent?.getScreenP().y,
+      //   };
+      //   pressing.shape.moveHandler(pressing.target, curveP);
+      // } // TODO
     } else if (select.shapes.length > 0) {
       // multi select
       if (space && leftMouseBtn) {
@@ -1551,12 +1574,12 @@ export default function ProcessPage() {
           return;
         })();
 
-        pressingShape.connect(
-          shape,
-          theCheckReceivingPointsBoundryD,
-          pressing.shape.id,
-          relocateP2
-        );
+        // pressingShape.connect(
+        //   shape,
+        //   theCheckReceivingPointsBoundryD,
+        //   pressing.shape.id,
+        //   relocateP2
+        // ); // TODO
       }
 
       shape.receiving = {
