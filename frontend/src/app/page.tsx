@@ -959,7 +959,7 @@ export default function ProcessPage() {
       } else {
         // when single select shape
         shapes.forEach((shape) => {
-          if (!$canvas) return;
+          if (!!pressing) return;
 
           const curveTriggerD = shape.getCurveTriggerDirection(p);
           if (curveTriggerD) {
@@ -1032,7 +1032,9 @@ export default function ProcessPage() {
               dy: 0,
             };
           }
+        });
 
+        shapes.forEach((shape) => {
           shape.getCurveIds().map((curveId) => {
             shape.setIsCurveSelected(curveId, false);
           });
@@ -1167,6 +1169,9 @@ export default function ProcessPage() {
       ) {
         if (pressing?.target === CurveTypes.PressingTarget.p2) {
           pressing.shape.disConnect([pressing.curveId]);
+          shapes.forEach((shape) => {
+            shape.setReceiving(ds, shape.checkBoundry(p, 20));
+          });
         }
         pressing.shape.moveCurveHandler(
           pressing.direction,
@@ -1174,10 +1179,6 @@ export default function ProcessPage() {
           pressing.target,
           p
         );
-
-        shapes.forEach((shape) => {
-          shape.setReceiving(ds, shape.checkBoundry(p, 20));
-        });
       } // TODO:
     }
     // else if (select.shapes.length > 0) {
@@ -1544,8 +1545,6 @@ export default function ProcessPage() {
               }
             };
           }
-
-          return;
         })();
 
         pressingShape.connect(
@@ -1553,16 +1552,14 @@ export default function ProcessPage() {
           theCheckReceivingPointsBoundryD,
           pressing.curveId,
           relocateP2
-        ); // TODO:
+        );
       }
-
-      // shape.receiving = {
-      //   l: false,
-      //   t: false,
-      //   r: false,
-      //   b: false,
-      // }; // TODO:
     });
+
+
+    shapes.forEach((shape) => {
+      shape.setReceiving(ds, false);
+    })
 
     checkData(shapes);
     checkGroups();
