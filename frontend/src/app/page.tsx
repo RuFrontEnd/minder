@@ -989,7 +989,7 @@ export default function ProcessPage() {
               shape: shape,
               curveId: firstDetectedCurve.id,
               target: CurveTypes.PressingTarget.p2,
-              direction: null,
+              direction: firstDetectedCurve.d,
               dx: 0,
               dy: 0,
             };
@@ -999,7 +999,7 @@ export default function ProcessPage() {
               shape: shape,
               curveId: firstDetectedCurve.id,
               target: firstDetectedCurve.target,
-              direction: null,
+              direction: firstDetectedCurve.d,
               dx: 0,
               dy: 0,
             };
@@ -1212,13 +1212,16 @@ export default function ProcessPage() {
             pressing?.target === CurveTypes.PressingTarget.cp2 ||
             pressing?.target === CurveTypes.PressingTarget.p2)
         ) {
-          pressing.shape.moveCurveHandler(pressing.curveId, pressing.target, p);
-          //   if (
-          //     pressing?.target === CurveTypes.PressingTarget.p2 &&
-          //     pressing?.parent &&
-          //     pressing?.direction
-          //   ) {
-          //     pressing.parent.disConnect(pressing.parent, [pressing.shape.id]);
+          if (pressing?.target === CurveTypes.PressingTarget.p2) {
+            pressing.shape.disConnect([pressing.curveId]);
+          }
+          pressing.shape.moveCurveHandler(
+            pressing.direction,
+            pressing.curveId,
+            pressing.target,
+            p
+          );
+
 
           //     shapes.forEach((shape) => {
           //       if (!ctx) return;

@@ -462,6 +462,7 @@ export default class Core {
       id: CurveTypes.Id;
       target: CurveTypes.PressingTarget;
       isSelecting: boolean;
+      d: Direction;
     }[] = [];
     const curveP = {
       x: p.x - this?.getScreenP().x,
@@ -476,6 +477,7 @@ export default class Core {
           id: curve.shape.id,
           target: pressingHandler,
           isSelecting: curve.shape.selecting,
+          d: d,
         });
       });
     });
@@ -601,7 +603,7 @@ export default class Core {
       const targetCurve = this.curves[d].find(
         (curve) => curve.shape.id === curveId
       )?.shape;
-      
+
       if (!targetCurve) return;
       targetCurve.selecting = _selecting;
     });
@@ -671,7 +673,7 @@ export default class Core {
     }
   }
 
-  disConnect(shape: Core, curveIds: string[]) {
+  disConnect(curveIds: string[]) {
     const curveIdsMapping = (() => {
       const mapping: { [curveId: string]: boolean } = {};
 
@@ -788,6 +790,7 @@ export default class Core {
   }
 
   moveCurveHandler(
+    d: Direction,
     curveId: CurveTypes.Id,
     pressingTarget: CurveTypes.PressingTarget,
     p: Vec
@@ -796,14 +799,13 @@ export default class Core {
       x: p.x - this?.getScreenP().x,
       y: p.y - this?.getScreenP().y,
     };
-    ds.forEach((d) => {
-      const targetCurve = this.curves[d].find(
-        (curve) => curve.shape.id === curveId
-      )?.shape;
 
-      if (!targetCurve) return;
-      targetCurve.moveHandler(pressingTarget, curveP);
-    });
+    const targetCurve = this.curves[d].find(
+      (curve) => curve.shape.id === curveId
+    )?.shape;
+
+    if (!targetCurve) return;
+    targetCurve.moveHandler(pressingTarget, curveP);
   }
 
   resize(offset: Vec, vertex: CoreTypes.PressingTarget) {
