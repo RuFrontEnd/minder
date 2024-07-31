@@ -1170,7 +1170,7 @@ export default function ProcessPage() {
         if (pressing?.target === CurveTypes.PressingTarget.p2) {
           pressing.shape.disConnect([pressing.curveId]);
           shapes.forEach((shape) => {
-            shape.setReceiving(ds, shape.checkBoundry(p, 20));
+            shape.setReceiving(ds, shape.checkBoundry(p, 20) && pressing?.shape !== shape);
           });
         }
         pressing.shape.moveCurveHandler(
@@ -1179,7 +1179,7 @@ export default function ProcessPage() {
           pressing.target,
           p
         );
-      } // TODO:
+      }
     }
     // else if (select.shapes.length > 0) {
     //   // multi select
