@@ -93,8 +93,8 @@ let useEffected = false,
   ctx_screenshot: CanvasRenderingContext2D | null | undefined = null,
   shapes: (Terminal | Process | Data | Desicion)[] = [],
   pressing: null | {
-    parent: Terminal | Process | Data | Desicion; // TODO: should be replaced by shape
-    shape: Terminal | Process | Data | Desicion; // TODO: should remove Curve
+    parent: null | Terminal | Process | Data | Desicion; // TODO: should be replaced by shape
+    shape: null | Terminal | Process | Data | Desicion; // TODO: should remove Curve
     curveId?: null | CurveTypes.Id;
     direction: any; // TODO: should be removed in the future
     target:
@@ -916,15 +916,9 @@ export default function ProcessPage() {
           | "selectArea_rb"
           | "selectArea_lb" = null;
 
-        select.shapes.forEach((shape) => {
-          if (!$canvas) return;
-
-          if (shape.checkBoundry(p)) {
-            _target = "selectArea_m";
-          }
-        });
-
-        if (pInSelectArea_lt) {
+        if (pInSelectArea) {
+          _target = "selectArea_m";
+        } else if (pInSelectArea_lt) {
           _target = "selectArea_lt";
         } else if (pInSelectArea_rt) {
           _target = "selectArea_rt";
@@ -935,26 +929,16 @@ export default function ProcessPage() {
         }
 
         if (_target) {
-          // pressing = {
-          //   parent: null,
-          //   shape: null,
-          //   target: _target,
-          //   direction: null,
-          //   dx: 0,
-          //   dy: 0,
-          // }; // TODO
+          pressing = {
+            parent: null,
+            shape: null,
+            target: _target,
+            direction: null,
+            dx: 0,
+            dy: 0,
+          }; // TODO
         } else {
-          select = {
-            start: {
-              x: -1,
-              y: -1,
-            },
-            end: {
-              x: -1,
-              y: -1,
-            },
-            shapes: [],
-          };
+          select = cloneDeep(init.select);
         }
       } else {
         // when single select shape
@@ -1044,7 +1028,7 @@ export default function ProcessPage() {
         // if has already selected curve, never select any other shapes
         if (pressing && pressing.shape && !!pressing.curveId) {
           pressing.shape?.setIsCurveSelected(pressing.curveId, true);
-        } else if (pressing && !pressing.curveId) {
+        } else if (pressing && pressing.shape && !pressing.curveId) {
           pressing.shape.selecting = true;
           // // onMouseDown shape conditions
           // shapes.forEach((shape) => {
@@ -1116,11 +1100,12 @@ export default function ProcessPage() {
       //   }
       // }); //TODO
 
-      if (select.shapes.length > 0 && isPInMultiSelectArea) return;
-      selectAreaP = {
-        start: p,
-        end: p,
-      };
+      if (!pressing) {
+        selectAreaP = {
+          start: p,
+          end: p,
+        };
+      }
     }
 
     drawCanvas();
@@ -1151,6 +1136,218 @@ export default function ProcessPage() {
       shapes.forEach((shape) => {
         shape.offset = offset;
       });
+      if (select.shapes.length > 0) {
+        select.start.x += offsetP.x;
+        select.start.y += offsetP.y;
+        select.end.x += offsetP.x;
+        select.end.y += offsetP.y;
+      }
+    } else if (select.shapes.length > 0) {
+      // multi select
+
+      const theSelect = {
+        w: Math.abs(select.end.x - select.start.x),
+        h: Math.abs(select.end.y - select.start.y),
+      };
+
+      if (pressing?.target === "selectArea_m") {
+        select.shapes.forEach((shape) => {
+          shape.move(p, dragP);
+        });
+
+        select.start.x += offsetP.x;
+        select.start.y += offsetP.y;
+        select.end.x += offsetP.x;
+        select.end.y += offsetP.y;
+      } else if (pressing?.target === "selectArea_lt") {
+        const canResize = {
+          x: theSelect.w - offsetP.x > 0 || offsetP.x < 0,
+          y: theSelect.h - offsetP.y > 0 || offsetP.y < 0,
+        };
+
+        select.shapes.forEach((shape) => {
+          const ratioW = shape.getScaleSize().w / theSelect.w,
+            unitW = offsetP.x * ratioW;
+
+          if (canResize.x) {
+            shape.w = shape.w - unitW / scale;
+
+            const dx = Math.abs(shape.getScreenP().x - select.end.x),
+              ratioX = dx / theSelect.w,
+              unitX = offsetP.x * ratioX;
+
+            shape.p = {
+              ...shape.p,
+              x: shape.p.x + unitX / scale,
+            };
+          }
+
+          const ratioH = shape.getScaleSize().h / theSelect.h,
+            unitH = offsetP.y * ratioH;
+
+          if (canResize.y) {
+            shape.h = shape.h - unitH / scale;
+
+            const dy = Math.abs(shape.getScreenP().y - select.end.y),
+              ratioY = dy / theSelect.h,
+              unitY = offsetP.y * ratioY;
+
+            shape.p = {
+              ...shape.p,
+              y: shape.p.y + unitY / scale,
+            };
+          }
+        });
+
+        if (canResize.x) {
+          select.start.x += offsetP.x;
+        }
+
+        if (canResize.y) {
+          select.start.y += offsetP.y;
+        }
+      } else if (pressing?.target === "selectArea_rt") {
+        const canResize = {
+          x: theSelect.w + offsetP.x > 0 || offsetP.x > 0,
+          y: theSelect.h - offsetP.y > 0 || offsetP.y < 0,
+        };
+
+        select.shapes.forEach((shape) => {
+          const ratioW = shape.getScaleSize().w / theSelect.w,
+            unitW = offsetP.x * ratioW;
+
+          if (canResize.x) {
+            shape.w = shape.w + unitW / scale;
+
+            const dx = Math.abs(shape.getScreenP().x - select.start.x),
+              ratioX = dx / theSelect.w,
+              unitX = offsetP.x * ratioX;
+
+            shape.p = {
+              ...shape.p,
+              x: shape.p.x + unitX / scale,
+            };
+          }
+
+          const ratioH = shape.h / theSelect.h,
+            unitH = offsetP.y * ratioH;
+
+          if (canResize.y) {
+            shape.h = shape.getScaleSize().h - unitH / scale;
+
+            const dy = Math.abs(shape.getScreenP().y - select.end.y),
+              ratioY = dy / theSelect.h,
+              unitY = offsetP.y * ratioY;
+
+            shape.p = {
+              ...shape.p,
+              y: shape.p.y + unitY / scale,
+            };
+          }
+        });
+
+        if (canResize.x) {
+          select.end.x += offsetP.x;
+        }
+
+        if (canResize.y) {
+          select.start.y += offsetP.y;
+        }
+      } else if (pressing?.target === "selectArea_rb") {
+        const canResize = {
+          x: theSelect.w + offsetP.x > 0 || offsetP.x > 0,
+          y: theSelect.h + offsetP.y > 0 || offsetP.y > 0,
+        };
+
+        select.shapes.forEach((shape) => {
+          const ratioW = shape.getScaleSize().w / theSelect.w,
+            unitW = offsetP.x * ratioW;
+
+          if (canResize.x) {
+            shape.w = shape.w + unitW / scale;
+
+            const dx = Math.abs(shape.getScreenP().x - select.start.x),
+              ratioX = dx / theSelect.w,
+              unitX = offsetP.x * ratioX;
+
+            shape.p = {
+              ...shape.p,
+              x: shape.p.x + unitX / scale,
+            };
+          }
+
+          const ratioH = shape.getScaleSize().h / theSelect.h,
+            unitH = offsetP.y * ratioH;
+
+          if (canResize.y) {
+            shape.h = shape.h + unitH / scale;
+
+            const dy = Math.abs(shape.getScreenP().y - select.start.y),
+              ratioY = dy / theSelect.h,
+              unitY = offsetP.y * ratioY;
+
+            shape.p = {
+              ...shape.p,
+              y: shape.p.y + unitY / scale,
+            };
+          }
+        });
+
+        if (canResize.x) {
+          select.end.x += offsetP.x;
+        }
+
+        if (canResize.y) {
+          select.end.y += offsetP.y;
+        }
+      } else if (pressing?.target === "selectArea_lb") {
+        const canResize = {
+          x: theSelect.w - offsetP.x > 0 || offsetP.x < 0,
+          y: theSelect.h + offsetP.y > 0 || offsetP.y > 0,
+        };
+
+        select.shapes.forEach((shape) => {
+          const ratioW = shape.getScaleSize().w / theSelect.w,
+            unitW = offsetP.x * ratioW;
+
+          if (canResize.x) {
+            shape.w = shape.w - unitW / scale;
+
+            const dx = Math.abs(shape.getScreenP().x - select.end.x),
+              ratioX = dx / theSelect.w,
+              unitX = offsetP.x * ratioX;
+
+            shape.p = {
+              ...shape.p,
+              x: shape.p.x + unitX / scale,
+            };
+          }
+
+          const ratioH = shape.getScaleSize().h / theSelect.h,
+            unitH = offsetP.y * ratioH;
+
+          if (canResize.y) {
+            shape.h = shape.h + unitH / scale;
+
+            const dy = Math.abs(shape.getScreenP().y - select.start.y),
+              ratioY = dy / theSelect.h,
+              unitY = offsetP.y * ratioY;
+
+            shape.p = {
+              ...shape.p,
+              y: shape.p.y + unitY / scale,
+            };
+          }
+        });
+
+        if (canResize.x) {
+          select.start.x += offsetP.x;
+        }
+
+        if (canResize.y) {
+          select.end.y += offsetP.y;
+        }
+      }
     } else if (pressing?.target && pressing?.shape) {
       if (
         pressing?.target === CoreTypes.PressingTarget.lt ||
@@ -1170,7 +1367,10 @@ export default function ProcessPage() {
         if (pressing?.target === CurveTypes.PressingTarget.p2) {
           pressing.shape.disConnect([pressing.curveId]);
           shapes.forEach((shape) => {
-            shape.setReceiving(ds, shape.checkBoundry(p, 20) && pressing?.shape !== shape);
+            shape.setReceiving(
+              ds,
+              shape.checkBoundry(p, 20) && pressing?.shape !== shape
+            );
           });
         }
         pressing.shape.moveCurveHandler(
@@ -1181,219 +1381,6 @@ export default function ProcessPage() {
         );
       }
     }
-    // else if (select.shapes.length > 0) {
-    //   // multi select
-    //   if (space && leftMouseBtn) {
-    //     select.start.x += offsetP.x;
-    //     select.start.y += offsetP.y;
-    //     select.end.x += offsetP.x;
-    //     select.end.y += offsetP.y;
-    //   } else {
-    //     const theSelect = {
-    //       w: Math.abs(select.end.x - select.start.x),
-    //       h: Math.abs(select.end.y - select.start.y),
-    //     };
-
-    //     if (pressing?.target === "selectArea_m") {
-    //       select.shapes.forEach((shape) => {
-    //         shape.move(p, dragP);
-    //       });
-
-    //       select.start.x += offsetP.x;
-    //       select.start.y += offsetP.y;
-    //       select.end.x += offsetP.x;
-    //       select.end.y += offsetP.y;
-    //     } else if (pressing?.target === "selectArea_lt") {
-    //       const canResize = {
-    //         x: theSelect.w - offsetP.x > 0 || offsetP.x < 0,
-    //         y: theSelect.h - offsetP.y > 0 || offsetP.y < 0,
-    //       };
-
-    //       select.shapes.forEach((shape) => {
-    //         const ratioW = shape.getScaleSize().w / theSelect.w,
-    //           unitW = offsetP.x * ratioW;
-
-    //         if (canResize.x) {
-    //           shape.w = shape.w - unitW / scale;
-
-    //           const dx = Math.abs(shape.getScreenP().x - select.end.x),
-    //             ratioX = dx / theSelect.w,
-    //             unitX = offsetP.x * ratioX;
-
-    //           shape.p = {
-    //             ...shape.p,
-    //             x: shape.p.x + unitX / scale,
-    //           };
-    //         }
-
-    //         const ratioH = shape.getScaleSize().h / theSelect.h,
-    //           unitH = offsetP.y * ratioH;
-
-    //         if (canResize.y) {
-    //           shape.h = shape.h - unitH / scale;
-
-    //           const dy = Math.abs(shape.getScreenP().y - select.end.y),
-    //             ratioY = dy / theSelect.h,
-    //             unitY = offsetP.y * ratioY;
-
-    //           shape.p = {
-    //             ...shape.p,
-    //             y: shape.p.y + unitY / scale,
-    //           };
-    //         }
-    //       });
-
-    //       if (canResize.x) {
-    //         select.start.x += offsetP.x;
-    //       }
-
-    //       if (canResize.y) {
-    //         select.start.y += offsetP.y;
-    //       }
-    //     } else if (pressing?.target === "selectArea_rt") {
-    //       const canResize = {
-    //         x: theSelect.w + offsetP.x > 0 || offsetP.x > 0,
-    //         y: theSelect.h - offsetP.y > 0 || offsetP.y < 0,
-    //       };
-
-    //       select.shapes.forEach((shape) => {
-    //         const ratioW = shape.getScaleSize().w / theSelect.w,
-    //           unitW = offsetP.x * ratioW;
-
-    //         if (canResize.x) {
-    //           shape.w = shape.w + unitW / scale;
-
-    //           const dx = Math.abs(shape.getScreenP().x - select.start.x),
-    //             ratioX = dx / theSelect.w,
-    //             unitX = offsetP.x * ratioX;
-
-    //           shape.p = {
-    //             ...shape.p,
-    //             x: shape.p.x + unitX / scale,
-    //           };
-    //         }
-
-    //         const ratioH = shape.h / theSelect.h,
-    //           unitH = offsetP.y * ratioH;
-
-    //         if (canResize.y) {
-    //           shape.h = shape.getScaleSize().h - unitH / scale;
-
-    //           const dy = Math.abs(shape.getScreenP().y - select.end.y),
-    //             ratioY = dy / theSelect.h,
-    //             unitY = offsetP.y * ratioY;
-
-    //           shape.p = {
-    //             ...shape.p,
-    //             y: shape.p.y + unitY / scale,
-    //           };
-    //         }
-    //       });
-
-    //       if (canResize.x) {
-    //         select.end.x += offsetP.x;
-    //       }
-
-    //       if (canResize.y) {
-    //         select.start.y += offsetP.y;
-    //       }
-    //     } else if (pressing?.target === "selectArea_rb") {
-    //       const canResize = {
-    //         x: theSelect.w + offsetP.x > 0 || offsetP.x > 0,
-    //         y: theSelect.h + offsetP.y > 0 || offsetP.y > 0,
-    //       };
-
-    //       select.shapes.forEach((shape) => {
-    //         const ratioW = shape.getScaleSize().w / theSelect.w,
-    //           unitW = offsetP.x * ratioW;
-
-    //         if (canResize.x) {
-    //           shape.w = shape.w + unitW / scale;
-
-    //           const dx = Math.abs(shape.getScreenP().x - select.start.x),
-    //             ratioX = dx / theSelect.w,
-    //             unitX = offsetP.x * ratioX;
-
-    //           shape.p = {
-    //             ...shape.p,
-    //             x: shape.p.x + unitX / scale,
-    //           };
-    //         }
-
-    //         const ratioH = shape.getScaleSize().h / theSelect.h,
-    //           unitH = offsetP.y * ratioH;
-
-    //         if (canResize.y) {
-    //           shape.h = shape.h + unitH / scale;
-
-    //           const dy = Math.abs(shape.getScreenP().y - select.start.y),
-    //             ratioY = dy / theSelect.h,
-    //             unitY = offsetP.y * ratioY;
-
-    //           shape.p = {
-    //             ...shape.p,
-    //             y: shape.p.y + unitY / scale,
-    //           };
-    //         }
-    //       });
-
-    //       if (canResize.x) {
-    //         select.end.x += offsetP.x;
-    //       }
-
-    //       if (canResize.y) {
-    //         select.end.y += offsetP.y;
-    //       }
-    //     } else if (pressing?.target === "selectArea_lb") {
-    //       const canResize = {
-    //         x: theSelect.w - offsetP.x > 0 || offsetP.x < 0,
-    //         y: theSelect.h + offsetP.y > 0 || offsetP.y > 0,
-    //       };
-
-    //       select.shapes.forEach((shape) => {
-    //         const ratioW = shape.getScaleSize().w / theSelect.w,
-    //           unitW = offsetP.x * ratioW;
-
-    //         if (canResize.x) {
-    //           shape.w = shape.w - unitW / scale;
-
-    //           const dx = Math.abs(shape.getScreenP().x - select.end.x),
-    //             ratioX = dx / theSelect.w,
-    //             unitX = offsetP.x * ratioX;
-
-    //           shape.p = {
-    //             ...shape.p,
-    //             x: shape.p.x + unitX / scale,
-    //           };
-    //         }
-
-    //         const ratioH = shape.getScaleSize().h / theSelect.h,
-    //           unitH = offsetP.y * ratioH;
-
-    //         if (canResize.y) {
-    //           shape.h = shape.h + unitH / scale;
-
-    //           const dy = Math.abs(shape.getScreenP().y - select.start.y),
-    //             ratioY = dy / theSelect.h,
-    //             unitY = offsetP.y * ratioY;
-
-    //           shape.p = {
-    //             ...shape.p,
-    //             y: shape.p.y + unitY / scale,
-    //           };
-    //         }
-    //       });
-
-    //       if (canResize.x) {
-    //         select.start.x += offsetP.x;
-    //       }
-
-    //       if (canResize.y) {
-    //         select.end.y += offsetP.y;
-    //       }
-    //     }
-    //   }
-    // } // TODO:
 
     if (dbClickedShape) {
       setDataFrame({
@@ -1401,12 +1388,12 @@ export default function ProcessPage() {
       });
     }
 
-    // if (selectAreaP && !space) {
-    //   selectAreaP = {
-    //     ...selectAreaP,
-    //     end: p,
-    //   };
-    // } // TODO:
+    if (selectAreaP && !space) {
+      selectAreaP = {
+        ...selectAreaP,
+        end: p,
+      };
+    }
 
     dragP = p;
 
@@ -1556,10 +1543,9 @@ export default function ProcessPage() {
       }
     });
 
-
     shapes.forEach((shape) => {
       shape.setReceiving(ds, false);
-    })
+    });
 
     checkData(shapes);
     checkGroups();
