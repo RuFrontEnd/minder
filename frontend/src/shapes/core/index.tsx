@@ -50,7 +50,7 @@ export default class Core {
     b: CoreTypes.SendCurve[];
   };
   private __selecting__: boolean;
-  __receiving__: CoreTypes.Receiving;
+  protected __receiving__: CoreTypes.Receiving;
   receiveFrom: {
     l: CoreTypes.ReceiveFrom[];
     t: CoreTypes.ReceiveFrom[];
@@ -330,14 +330,6 @@ export default class Core {
     return this.__selecting__;
   }
 
-  set receiving(_receiving: CoreTypes.Receiving) {
-    this.__receiving__ = _receiving;
-  }
-
-  get receiving() {
-    return this.__receiving__;
-  }
-
   getScreenP() {
     return {
       x: (this.p.x + this.offset.x) * this.scale,
@@ -429,14 +421,14 @@ export default class Core {
     };
   }
 
-  checkBoundry(p: Vec) {
+  checkBoundry(p: Vec, threshold: number = 0) {
     const edge = this.getEdge();
 
     return (
-      p.x > edge.l - this.anchor.size.fill &&
-      p.y > edge.t - this.anchor.size.fill &&
-      p.x < edge.r + this.anchor.size.fill &&
-      p.y < edge.b + this.anchor.size.fill
+      p.x > edge.l - this.anchor.size.fill - threshold &&
+      p.y > edge.t - this.anchor.size.fill - threshold &&
+      p.x < edge.r + this.anchor.size.fill + threshold &&
+      p.y < edge.b + this.anchor.size.fill + threshold
     );
   }
 
@@ -544,7 +536,7 @@ export default class Core {
     dy = center.m.y - p.y;
 
     if (
-      this.receiving.l &&
+      this.__receiving__.l &&
       dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill
     ) {
       return Direction.l;
@@ -554,7 +546,7 @@ export default class Core {
     dy = edge.t - p.y;
 
     if (
-      this.receiving.t &&
+      this.__receiving__.t &&
       dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill
     ) {
       return Direction.t;
@@ -564,7 +556,7 @@ export default class Core {
     dy = center.m.y - p.y;
 
     if (
-      this.receiving.r &&
+      this.__receiving__.r &&
       dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill
     ) {
       return Direction.r;
@@ -574,7 +566,7 @@ export default class Core {
     dy = p.y - edge.b;
 
     if (
-      this.receiving.b &&
+      this.__receiving__.b &&
       dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill
     ) {
       return Direction.b;
@@ -606,6 +598,12 @@ export default class Core {
 
       if (!targetCurve) return;
       targetCurve.selecting = _selecting;
+    });
+  }
+
+  setReceiving(ds: Direction[], _receiving: boolean) {
+    ds.forEach((d) => {
+      this.__receiving__[d] = _receiving;
     });
   }
 
@@ -765,10 +763,10 @@ export default class Core {
 
   getIsReceiving() {
     return (
-      !this.receiving.l &&
-      !this.receiving.t &&
-      !this.receiving.r &&
-      !this.receiving.b
+      !this.__receiving__.l &&
+      !this.__receiving__.t &&
+      !this.__receiving__.r &&
+      !this.__receiving__.b
     );
   }
 
@@ -1270,7 +1268,7 @@ export default class Core {
     ctx.lineWidth = this.anchor.size.stroke;
 
     // left
-    if (this.receiving.l) {
+    if (this.__receiving__.l) {
       ctx.beginPath();
       ctx.arc(
         -this.getScaleSize().w / 2,
@@ -1286,7 +1284,7 @@ export default class Core {
     }
 
     // top
-    if (this.receiving.t) {
+    if (this.__receiving__.t) {
       ctx.beginPath();
       ctx.arc(
         0,
@@ -1302,7 +1300,7 @@ export default class Core {
     }
 
     // right
-    if (this.receiving.r) {
+    if (this.__receiving__.r) {
       ctx.beginPath();
       ctx.arc(
         this.getScaleSize().w / 2,
@@ -1318,7 +1316,7 @@ export default class Core {
     }
 
     // bottom
-    if (this.receiving.b) {
+    if (this.__receiving__.b) {
       ctx.beginPath();
       ctx.arc(
         0,

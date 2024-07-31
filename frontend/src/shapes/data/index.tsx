@@ -273,7 +273,7 @@ export default class Data extends Core {
     dy = center.m.y - p.y;
 
     if (
-      this.receiving.l &&
+      this.__receiving__.l &&
       dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill
     ) {
       return CommonTypes.Direction.l;
@@ -283,7 +283,7 @@ export default class Data extends Core {
     dy = edge.t - p.y;
 
     if (
-      this.receiving.t &&
+      this.__receiving__.t &&
       dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill
     ) {
       return CommonTypes.Direction.t;
@@ -294,7 +294,7 @@ export default class Data extends Core {
     dy = center.m.y - p.y;
 
     if (
-      this.receiving.r &&
+      this.__receiving__.r &&
       dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill
     ) {
       return CommonTypes.Direction.r;
@@ -304,7 +304,7 @@ export default class Data extends Core {
     dy = p.y - edge.b;
 
     if (
-      this.receiving.b &&
+      this.__receiving__.b &&
       dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill
     ) {
       return CommonTypes.Direction.b;
@@ -396,7 +396,7 @@ export default class Data extends Core {
     const corners = this.getCorner().scale;
 
     // left
-    if (this.receiving.l) {
+    if (this.__receiving__.l) {
       ctx.beginPath();
       ctx.arc(
         -this.getScaleSize().w / 2 + Math.abs(corners.tl.x - corners.bl.x) / 2,
@@ -412,7 +412,7 @@ export default class Data extends Core {
     }
 
     // top
-    if (this.receiving.t) {
+    if (this.__receiving__.t) {
       ctx.beginPath();
       ctx.arc(
         0,
@@ -428,7 +428,7 @@ export default class Data extends Core {
     }
 
     // right
-    if (this.receiving.r) {
+    if (this.__receiving__.r) {
       ctx.beginPath();
       ctx.arc(
         this.getScaleSize().w / 2 - Math.abs(corners.tr.x - corners.br.x) / 2,
@@ -444,7 +444,7 @@ export default class Data extends Core {
     }
 
     // bottom
-    if (this.receiving.b) {
+    if (this.__receiving__.b) {
       ctx.beginPath();
       ctx.arc(
         0,

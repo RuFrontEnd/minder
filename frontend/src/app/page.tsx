@@ -1192,61 +1192,34 @@ export default function ProcessPage() {
       });
     } else if (pressing?.target && pressing?.shape) {
       if (
-        pressing.shape instanceof Terminal ||
-        pressing.shape instanceof Process ||
-        pressing.shape instanceof Data ||
-        pressing.shape instanceof Desicion
+        pressing?.target === CoreTypes.PressingTarget.lt ||
+        pressing?.target === CoreTypes.PressingTarget.rt ||
+        pressing?.target === CoreTypes.PressingTarget.rb ||
+        pressing?.target === CoreTypes.PressingTarget.lb
       ) {
-        if (
-          pressing?.target === CoreTypes.PressingTarget.lt ||
-          pressing?.target === CoreTypes.PressingTarget.rt ||
-          pressing?.target === CoreTypes.PressingTarget.rb ||
-          pressing?.target === CoreTypes.PressingTarget.lb
-        ) {
-          pressing.shape.resize(offsetP, pressing.target);
-        } else if (pressing?.target === CoreTypes.PressingTarget.m) {
-          pressing.shape.move(p, dragP);
-        } else if (
-          !!pressing.curveId &&
-          (pressing?.target === CurveTypes.PressingTarget.cp1 ||
-            pressing?.target === CurveTypes.PressingTarget.cp2 ||
-            pressing?.target === CurveTypes.PressingTarget.p2)
-        ) {
-          if (pressing?.target === CurveTypes.PressingTarget.p2) {
-            pressing.shape.disConnect([pressing.curveId]);
-          }
-          pressing.shape.moveCurveHandler(
-            pressing.direction,
-            pressing.curveId,
-            pressing.target,
-            p
-          );
+        pressing.shape.resize(offsetP, pressing.target);
+      } else if (pressing?.target === CoreTypes.PressingTarget.m) {
+        pressing.shape.move(p, dragP);
+      } else if (
+        !!pressing.curveId &&
+        (pressing?.target === CurveTypes.PressingTarget.cp1 ||
+          pressing?.target === CurveTypes.PressingTarget.cp2 ||
+          pressing?.target === CurveTypes.PressingTarget.p2)
+      ) {
+        if (pressing?.target === CurveTypes.PressingTarget.p2) {
+          pressing.shape.disConnect([pressing.curveId]);
+        }
+        pressing.shape.moveCurveHandler(
+          pressing.direction,
+          pressing.curveId,
+          pressing.target,
+          p
+        );
 
-
-          //     shapes.forEach((shape) => {
-          //       if (!ctx) return;
-          //       const theEdge = shape.getEdge(),
-          //         threshold = 20,
-          //         isNearShape =
-          //           p.x >= theEdge.l - threshold &&
-          //           p.y >= theEdge.t - threshold &&
-          //           p.x <= theEdge.r + threshold &&
-          //           p.y <= theEdge.b + threshold;
-
-          //       for (const d of ds) {
-          //         shape.receiving[d] = isNearShape;
-          //       }
-          //     });
-          //   }
-          //   if (
-          //     (pressing.target !== CurveTypes.PressingTarget.cp1 &&
-          //       pressing.target !== CurveTypes.PressingTarget.cp2 &&
-          //       pressing.target !== CurveTypes.PressingTarget.p2) ||
-          //     !pressing.parent
-          //   )
-          //     return;
-        } // TODO:
-      }
+        shapes.forEach((shape) => {
+          shape.setReceiving(ds, shape.checkBoundry(p, 20));
+        });
+      } // TODO:
     }
     // else if (select.shapes.length > 0) {
     //   // multi select
@@ -1621,15 +1594,15 @@ export default function ProcessPage() {
         //   theCheckReceivingPointsBoundryD,
         //   pressing.shape.id,
         //   relocateP2
-        // ); // TODO
+        // ); // TODO:
       }
 
-      shape.receiving = {
-        l: false,
-        t: false,
-        r: false,
-        b: false,
-      };
+      // shape.receiving = {
+      //   l: false,
+      //   t: false,
+      //   r: false,
+      //   b: false,
+      // }; // TODO:
     });
 
     checkData(shapes);
