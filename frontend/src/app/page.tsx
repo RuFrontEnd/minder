@@ -961,8 +961,6 @@ export default function ProcessPage() {
         shapes.forEach((shape) => {
           if (!$canvas) return;
 
-          // onMouseDown curve trigger point and create curve
-
           const curveTriggerD = shape.getCurveTriggerDirection(p);
           if (curveTriggerD) {
             shape.selecting = false;
@@ -1035,50 +1033,10 @@ export default function ProcessPage() {
             };
           }
 
-          // drag curve
-          // ds.forEach((d) => {
-          //   shape.curves[d].forEach((curveInShape) => {
-          //     const theCurve = curveInShape.shape;
-
-          //     const curveP = {
-          //       x: p.x - shape?.getScreenP().x,
-          //       y: p.y - shape?.getScreenP().y,
-          //     };
-
-          //     if (!theCurve) return;
-          //     if (
-          //       theCurve.checkBoundry(curveP) ||
-          //       theCurve.checkControlPointsBoundry(curveP)
-          //     ) {
-          //       if (theCurve.checkBoundry(curveP)) {
-          //         pressing = {
-          //           parent: shape,
-          //           shape: theCurve,
-          //           target: null,
-          //           direction: d,
-          //           dx: 0,
-          //           dy: 0,
-          //         };
-          //       }
-
-          //       if (theCurve.checkControlPointsBoundry(curveP)) {
-          //         pressing = {
-          //           parent: shape,
-          //           shape: theCurve,
-          //           target: theCurve.checkControlPointsBoundry(curveP),
-          //           direction: d,
-          //           dx: 0,
-          //           dy: 0,
-          //         };
-          //       }
-          //     } else {
-          //       theCurve.selecting = false;
-          //     }
-          //   });
-          // });
+          shape.getCurveIds().map((curveId) => {
+            shape.setIsCurveSelected(curveId, false);
+          });
         });
-
-        console.log("pressing", pressing);
 
         // if has already selected curve, never select any other shapes
         if (pressing && pressing.shape && !!pressing.curveId) {
@@ -1528,7 +1486,7 @@ export default function ProcessPage() {
     shapes.forEach((shape) => {
       if (
         pressing?.shape &&
-        pressing.shape instanceof Curve &&
+        !!pressing?.curveId &&
         pressing?.target &&
         pressing?.parent &&
         pressing?.direction
@@ -1589,12 +1547,12 @@ export default function ProcessPage() {
           return;
         })();
 
-        // pressingShape.connect(
-        //   shape,
-        //   theCheckReceivingPointsBoundryD,
-        //   pressing.shape.id,
-        //   relocateP2
-        // ); // TODO:
+        pressingShape.connect(
+          shape,
+          theCheckReceivingPointsBoundryD,
+          pressing.curveId,
+          relocateP2
+        ); // TODO:
       }
 
       // shape.receiving = {

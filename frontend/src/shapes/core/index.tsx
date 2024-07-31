@@ -48,7 +48,7 @@ export default class Core {
     t: CoreTypes.SendCurve[];
     r: CoreTypes.SendCurve[];
     b: CoreTypes.SendCurve[];
-  };
+  }; // TODO: should be protected
   private __selecting__: boolean;
   protected __receiving__: CoreTypes.Receiving;
   receiveFrom: {
@@ -330,6 +330,18 @@ export default class Core {
     return this.__selecting__;
   }
 
+  getCurveIds(){
+    let curveIds: string[] = [];
+
+    ds.forEach((d) => {
+      this.curves[d].forEach((curve) => {
+        curveIds.push(curve.shape.id);
+      });
+    });
+
+    return curveIds;
+  }
+
   getScreenP() {
     return {
       x: (this.p.x + this.offset.x) * this.scale,
@@ -600,6 +612,15 @@ export default class Core {
       targetCurve.selecting = _selecting;
     });
   }
+
+  // setAllCurvesSelected(_selecting: boolean) {
+  //   ds.forEach((d) => {
+  //     this.curves[d].forEach((curve)=>{
+  //       curve.shape.selecting = _selecting;
+  //     })
+      
+  //   });
+  // }
 
   setReceiving(ds: Direction[], _receiving: boolean) {
     ds.forEach((d) => {
