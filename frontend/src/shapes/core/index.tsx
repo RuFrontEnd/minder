@@ -457,6 +457,32 @@ export default class Core {
     return withinRangeCurveIds;
   }
 
+  checkCurveControlPointsBoundry(p: Vec) {
+    const withinRangeCurveIds: {
+      id: CurveTypes.Id;
+      target: CurveTypes.PressingTarget;
+      isSelecting: boolean;
+    }[] = [];
+    const curveP = {
+      x: p.x - this?.getScreenP().x,
+      y: p.y - this?.getScreenP().y,
+    };
+
+    ds.forEach((d) => {
+      this.curves[d].forEach((curve) => {
+        const pressingHandler = curve.shape.checkControlPointsBoundry(curveP);
+        if (!pressingHandler) return;
+        withinRangeCurveIds.push({
+          id: curve.shape.id,
+          target: pressingHandler,
+          isSelecting: curve.shape.selecting,
+        });
+      });
+    });
+
+    return withinRangeCurveIds;
+  }
+
   checkVertexesBoundry(p: Vec) {
     const edge = this.getEdge();
 
@@ -575,6 +601,7 @@ export default class Core {
       const targetCurve = this.curves[d].find(
         (curve) => curve.shape.id === curveId
       )?.shape;
+      
       if (!targetCurve) return;
       targetCurve.selecting = _selecting;
     });
@@ -758,6 +785,25 @@ export default class Core {
       x: this.p.x + xOffset,
       y: this.p.y + yOffset,
     };
+  }
+
+  moveCurveHandler(
+    curveId: CurveTypes.Id,
+    pressingTarget: CurveTypes.PressingTarget,
+    p: Vec
+  ) {
+    const curveP = {
+      x: p.x - this?.getScreenP().x,
+      y: p.y - this?.getScreenP().y,
+    };
+    ds.forEach((d) => {
+      const targetCurve = this.curves[d].find(
+        (curve) => curve.shape.id === curveId
+      )?.shape;
+
+      if (!targetCurve) return;
+      targetCurve.moveHandler(pressingTarget, curveP);
+    });
   }
 
   resize(offset: Vec, vertex: CoreTypes.PressingTarget) {

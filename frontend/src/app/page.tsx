@@ -829,8 +829,10 @@ export default function ProcessPage() {
   };
 
   const fetchProjects = async () => {
-    const res: AxiosResponse<ProjectAPITypes.GetProjects["resData"], any> =
-      await projectAPIs.getProjecs();
+    const res: AxiosResponse<
+      ProjectAPITypes.GetProjects["resData"],
+      any
+    > = await projectAPIs.getProjecs();
     setProjects(res.data);
   };
 
@@ -843,8 +845,9 @@ export default function ProcessPage() {
     const token = localStorage.getItem("Authorization");
 
     if (token) {
-      const res: AxiosResponse<AuthTypes.JWTLogin["resData"]> =
-        await authAPIs.jwtLogin(token);
+      const res: AxiosResponse<
+        AuthTypes.JWTLogin["resData"]
+      > = await authAPIs.jwtLogin(token);
 
       if (res.data.isPass) {
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
@@ -960,19 +963,47 @@ export default function ProcessPage() {
 
           // onMouseDown curve trigger point and create curve
 
-          const triggerD = shape.getCurveTriggerDirection(p);
-          if (triggerD) {
+          const curveTriggerD = shape.getCurveTriggerDirection(p);
+          if (curveTriggerD) {
             shape.selecting = false;
 
             shape.initializeCurve(
               `curve_${Date.now()}`,
-              CommonTypes.Direction[triggerD]
+              CommonTypes.Direction[curveTriggerD]
             );
           }
 
+          const withinHandlerRangeCurves = shape.checkCurveControlPointsBoundry(
+            p
+          );
+          const firstDetectedCurve = withinHandlerRangeCurves[0];
           const withinRangeCurveIds = shape.checkCurvesBoundry(p);
+          const vertex = shape.checkVertexesBoundry(p);
 
-          if (withinRangeCurveIds.length > 0) {
+          if (
+            firstDetectedCurve &&
+            firstDetectedCurve.target === CurveTypes.PressingTarget.p2
+          ) {
+            pressing = {
+              parent: shape,
+              shape: shape,
+              curveId: firstDetectedCurve.id,
+              target: CurveTypes.PressingTarget.p2,
+              direction: null,
+              dx: 0,
+              dy: 0,
+            };
+          } else if (firstDetectedCurve && firstDetectedCurve.isSelecting) {
+            pressing = {
+              parent: shape,
+              shape: shape,
+              curveId: firstDetectedCurve.id,
+              target: firstDetectedCurve.target,
+              direction: null,
+              dx: 0,
+              dy: 0,
+            };
+          } else if (withinRangeCurveIds.length > 0) {
             pressing = {
               parent: shape,
               shape: shape,
@@ -982,12 +1013,22 @@ export default function ProcessPage() {
               dx: 0,
               dy: 0,
             };
+          } else if (shape.selecting && vertex) {
+            pressing = {
+              parent: shape,
+              shape: shape,
+              curveId: null,
+              target: vertex,
+              direction: null,
+              dx: 0,
+              dy: 0,
+            };
           } else if (shape.checkBoundry(p)) {
             pressing = {
               parent: shape,
               shape: shape,
               curveId: null,
-              target: null,
+              target: CoreTypes.PressingTarget.m,
               direction: null,
               dx: 0,
               dy: 0,
@@ -1037,8 +1078,10 @@ export default function ProcessPage() {
           // });
         });
 
+        console.log("pressing", pressing);
+
         // if has already selected curve, never select any other shapes
-        if (pressing && pressing.curveId) {
+        if (pressing && pressing.shape && !!pressing.curveId) {
           pressing.shape?.setIsCurveSelected(pressing.curveId, true);
         } else if (pressing && !pressing.curveId) {
           pressing.shape.selecting = true;
@@ -1147,279 +1190,274 @@ export default function ProcessPage() {
       shapes.forEach((shape) => {
         shape.offset = offset;
       });
-    }
-
-    if (pressing?.target && pressing?.shape) {
+    } else if (pressing?.target && pressing?.shape) {
       if (
         pressing.shape instanceof Terminal ||
         pressing.shape instanceof Process ||
         pressing.shape instanceof Data ||
         pressing.shape instanceof Desicion
       ) {
-        if (pressing?.target === CoreTypes.PressingTarget.lt) {
-          pressing.shape.resize(offsetP, CoreTypes.PressingTarget.lt);
-        } else if (pressing?.target === CoreTypes.PressingTarget.rt) {
-          pressing.shape.resize(offsetP, CoreTypes.PressingTarget.rt);
-        } else if (pressing?.target === CoreTypes.PressingTarget.rb) {
-          pressing.shape.resize(offsetP, CoreTypes.PressingTarget.rb);
-        } else if (pressing?.target === CoreTypes.PressingTarget.lb) {
-          pressing.shape.resize(offsetP, CoreTypes.PressingTarget.lb);
-        } else if (
-          pressing?.target === CoreTypes.PressingTarget.m &&
-          select.shapes.length === 0
+        if (
+          pressing?.target === CoreTypes.PressingTarget.lt ||
+          pressing?.target === CoreTypes.PressingTarget.rt ||
+          pressing?.target === CoreTypes.PressingTarget.rb ||
+          pressing?.target === CoreTypes.PressingTarget.lb
         ) {
+          pressing.shape.resize(offsetP, pressing.target);
+        } else if (pressing?.target === CoreTypes.PressingTarget.m) {
           pressing.shape.move(p, dragP);
-        }
-      }
-      // else if (pressing.shape instanceof Curve) {
-      //   if (
-      //     pressing?.target === CurveTypes.PressingTarget.p2 &&
-      //     pressing?.parent &&
-      //     pressing?.direction
-      //   ) {
-      //     pressing.parent.disConnect(pressing.parent, [pressing.shape.id]);
+        } else if (
+          !!pressing.curveId &&
+          (pressing?.target === CurveTypes.PressingTarget.cp1 ||
+            pressing?.target === CurveTypes.PressingTarget.cp2 ||
+            pressing?.target === CurveTypes.PressingTarget.p2)
+        ) {
+          pressing.shape.moveCurveHandler(pressing.curveId, pressing.target, p);
+          //   if (
+          //     pressing?.target === CurveTypes.PressingTarget.p2 &&
+          //     pressing?.parent &&
+          //     pressing?.direction
+          //   ) {
+          //     pressing.parent.disConnect(pressing.parent, [pressing.shape.id]);
 
-      //     shapes.forEach((shape) => {
-      //       if (!ctx) return;
-      //       const theEdge = shape.getEdge(),
-      //         threshold = 20,
-      //         isNearShape =
-      //           p.x >= theEdge.l - threshold &&
-      //           p.y >= theEdge.t - threshold &&
-      //           p.x <= theEdge.r + threshold &&
-      //           p.y <= theEdge.b + threshold;
+          //     shapes.forEach((shape) => {
+          //       if (!ctx) return;
+          //       const theEdge = shape.getEdge(),
+          //         threshold = 20,
+          //         isNearShape =
+          //           p.x >= theEdge.l - threshold &&
+          //           p.y >= theEdge.t - threshold &&
+          //           p.x <= theEdge.r + threshold &&
+          //           p.y <= theEdge.b + threshold;
 
-      //       for (const d of ds) {
-      //         shape.receiving[d] = isNearShape;
-      //       }
-      //     });
-      //   }
-      //   if (
-      //     (pressing.target !== CurveTypes.PressingTarget.cp1 &&
-      //       pressing.target !== CurveTypes.PressingTarget.cp2 &&
-      //       pressing.target !== CurveTypes.PressingTarget.p2) ||
-      //     !pressing.parent
-      //   )
-      //     return;
-      //   const curveP = {
-      //     x: p.x - pressing.parent?.getScreenP().x,
-      //     y: p.y - pressing.parent?.getScreenP().y,
-      //   };
-      //   pressing.shape.moveHandler(pressing.target, curveP);
-      // } // TODO
-    } else if (select.shapes.length > 0) {
-      // multi select
-      if (space && leftMouseBtn) {
-        select.start.x += offsetP.x;
-        select.start.y += offsetP.y;
-        select.end.x += offsetP.x;
-        select.end.y += offsetP.y;
-      } else {
-        const theSelect = {
-          w: Math.abs(select.end.x - select.start.x),
-          h: Math.abs(select.end.y - select.start.y),
-        };
-
-        if (pressing?.target === "selectArea_m") {
-          select.shapes.forEach((shape) => {
-            shape.move(p, dragP);
-          });
-
-          select.start.x += offsetP.x;
-          select.start.y += offsetP.y;
-          select.end.x += offsetP.x;
-          select.end.y += offsetP.y;
-        } else if (pressing?.target === "selectArea_lt") {
-          const canResize = {
-            x: theSelect.w - offsetP.x > 0 || offsetP.x < 0,
-            y: theSelect.h - offsetP.y > 0 || offsetP.y < 0,
-          };
-
-          select.shapes.forEach((shape) => {
-            const ratioW = shape.getScaleSize().w / theSelect.w,
-              unitW = offsetP.x * ratioW;
-
-            if (canResize.x) {
-              shape.w = shape.w - unitW / scale;
-
-              const dx = Math.abs(shape.getScreenP().x - select.end.x),
-                ratioX = dx / theSelect.w,
-                unitX = offsetP.x * ratioX;
-
-              shape.p = {
-                ...shape.p,
-                x: shape.p.x + unitX / scale,
-              };
-            }
-
-            const ratioH = shape.getScaleSize().h / theSelect.h,
-              unitH = offsetP.y * ratioH;
-
-            if (canResize.y) {
-              shape.h = shape.h - unitH / scale;
-
-              const dy = Math.abs(shape.getScreenP().y - select.end.y),
-                ratioY = dy / theSelect.h,
-                unitY = offsetP.y * ratioY;
-
-              shape.p = {
-                ...shape.p,
-                y: shape.p.y + unitY / scale,
-              };
-            }
-          });
-
-          if (canResize.x) {
-            select.start.x += offsetP.x;
-          }
-
-          if (canResize.y) {
-            select.start.y += offsetP.y;
-          }
-        } else if (pressing?.target === "selectArea_rt") {
-          const canResize = {
-            x: theSelect.w + offsetP.x > 0 || offsetP.x > 0,
-            y: theSelect.h - offsetP.y > 0 || offsetP.y < 0,
-          };
-
-          select.shapes.forEach((shape) => {
-            const ratioW = shape.getScaleSize().w / theSelect.w,
-              unitW = offsetP.x * ratioW;
-
-            if (canResize.x) {
-              shape.w = shape.w + unitW / scale;
-
-              const dx = Math.abs(shape.getScreenP().x - select.start.x),
-                ratioX = dx / theSelect.w,
-                unitX = offsetP.x * ratioX;
-
-              shape.p = {
-                ...shape.p,
-                x: shape.p.x + unitX / scale,
-              };
-            }
-
-            const ratioH = shape.h / theSelect.h,
-              unitH = offsetP.y * ratioH;
-
-            if (canResize.y) {
-              shape.h = shape.getScaleSize().h - unitH / scale;
-
-              const dy = Math.abs(shape.getScreenP().y - select.end.y),
-                ratioY = dy / theSelect.h,
-                unitY = offsetP.y * ratioY;
-
-              shape.p = {
-                ...shape.p,
-                y: shape.p.y + unitY / scale,
-              };
-            }
-          });
-
-          if (canResize.x) {
-            select.end.x += offsetP.x;
-          }
-
-          if (canResize.y) {
-            select.start.y += offsetP.y;
-          }
-        } else if (pressing?.target === "selectArea_rb") {
-          const canResize = {
-            x: theSelect.w + offsetP.x > 0 || offsetP.x > 0,
-            y: theSelect.h + offsetP.y > 0 || offsetP.y > 0,
-          };
-
-          select.shapes.forEach((shape) => {
-            const ratioW = shape.getScaleSize().w / theSelect.w,
-              unitW = offsetP.x * ratioW;
-
-            if (canResize.x) {
-              shape.w = shape.w + unitW / scale;
-
-              const dx = Math.abs(shape.getScreenP().x - select.start.x),
-                ratioX = dx / theSelect.w,
-                unitX = offsetP.x * ratioX;
-
-              shape.p = {
-                ...shape.p,
-                x: shape.p.x + unitX / scale,
-              };
-            }
-
-            const ratioH = shape.getScaleSize().h / theSelect.h,
-              unitH = offsetP.y * ratioH;
-
-            if (canResize.y) {
-              shape.h = shape.h + unitH / scale;
-
-              const dy = Math.abs(shape.getScreenP().y - select.start.y),
-                ratioY = dy / theSelect.h,
-                unitY = offsetP.y * ratioY;
-
-              shape.p = {
-                ...shape.p,
-                y: shape.p.y + unitY / scale,
-              };
-            }
-          });
-
-          if (canResize.x) {
-            select.end.x += offsetP.x;
-          }
-
-          if (canResize.y) {
-            select.end.y += offsetP.y;
-          }
-        } else if (pressing?.target === "selectArea_lb") {
-          const canResize = {
-            x: theSelect.w - offsetP.x > 0 || offsetP.x < 0,
-            y: theSelect.h + offsetP.y > 0 || offsetP.y > 0,
-          };
-
-          select.shapes.forEach((shape) => {
-            const ratioW = shape.getScaleSize().w / theSelect.w,
-              unitW = offsetP.x * ratioW;
-
-            if (canResize.x) {
-              shape.w = shape.w - unitW / scale;
-
-              const dx = Math.abs(shape.getScreenP().x - select.end.x),
-                ratioX = dx / theSelect.w,
-                unitX = offsetP.x * ratioX;
-
-              shape.p = {
-                ...shape.p,
-                x: shape.p.x + unitX / scale,
-              };
-            }
-
-            const ratioH = shape.getScaleSize().h / theSelect.h,
-              unitH = offsetP.y * ratioH;
-
-            if (canResize.y) {
-              shape.h = shape.h + unitH / scale;
-
-              const dy = Math.abs(shape.getScreenP().y - select.start.y),
-                ratioY = dy / theSelect.h,
-                unitY = offsetP.y * ratioY;
-
-              shape.p = {
-                ...shape.p,
-                y: shape.p.y + unitY / scale,
-              };
-            }
-          });
-
-          if (canResize.x) {
-            select.start.x += offsetP.x;
-          }
-
-          if (canResize.y) {
-            select.end.y += offsetP.y;
-          }
-        }
+          //       for (const d of ds) {
+          //         shape.receiving[d] = isNearShape;
+          //       }
+          //     });
+          //   }
+          //   if (
+          //     (pressing.target !== CurveTypes.PressingTarget.cp1 &&
+          //       pressing.target !== CurveTypes.PressingTarget.cp2 &&
+          //       pressing.target !== CurveTypes.PressingTarget.p2) ||
+          //     !pressing.parent
+          //   )
+          //     return;
+        } // TODO:
       }
     }
+    // else if (select.shapes.length > 0) {
+    //   // multi select
+    //   if (space && leftMouseBtn) {
+    //     select.start.x += offsetP.x;
+    //     select.start.y += offsetP.y;
+    //     select.end.x += offsetP.x;
+    //     select.end.y += offsetP.y;
+    //   } else {
+    //     const theSelect = {
+    //       w: Math.abs(select.end.x - select.start.x),
+    //       h: Math.abs(select.end.y - select.start.y),
+    //     };
+
+    //     if (pressing?.target === "selectArea_m") {
+    //       select.shapes.forEach((shape) => {
+    //         shape.move(p, dragP);
+    //       });
+
+    //       select.start.x += offsetP.x;
+    //       select.start.y += offsetP.y;
+    //       select.end.x += offsetP.x;
+    //       select.end.y += offsetP.y;
+    //     } else if (pressing?.target === "selectArea_lt") {
+    //       const canResize = {
+    //         x: theSelect.w - offsetP.x > 0 || offsetP.x < 0,
+    //         y: theSelect.h - offsetP.y > 0 || offsetP.y < 0,
+    //       };
+
+    //       select.shapes.forEach((shape) => {
+    //         const ratioW = shape.getScaleSize().w / theSelect.w,
+    //           unitW = offsetP.x * ratioW;
+
+    //         if (canResize.x) {
+    //           shape.w = shape.w - unitW / scale;
+
+    //           const dx = Math.abs(shape.getScreenP().x - select.end.x),
+    //             ratioX = dx / theSelect.w,
+    //             unitX = offsetP.x * ratioX;
+
+    //           shape.p = {
+    //             ...shape.p,
+    //             x: shape.p.x + unitX / scale,
+    //           };
+    //         }
+
+    //         const ratioH = shape.getScaleSize().h / theSelect.h,
+    //           unitH = offsetP.y * ratioH;
+
+    //         if (canResize.y) {
+    //           shape.h = shape.h - unitH / scale;
+
+    //           const dy = Math.abs(shape.getScreenP().y - select.end.y),
+    //             ratioY = dy / theSelect.h,
+    //             unitY = offsetP.y * ratioY;
+
+    //           shape.p = {
+    //             ...shape.p,
+    //             y: shape.p.y + unitY / scale,
+    //           };
+    //         }
+    //       });
+
+    //       if (canResize.x) {
+    //         select.start.x += offsetP.x;
+    //       }
+
+    //       if (canResize.y) {
+    //         select.start.y += offsetP.y;
+    //       }
+    //     } else if (pressing?.target === "selectArea_rt") {
+    //       const canResize = {
+    //         x: theSelect.w + offsetP.x > 0 || offsetP.x > 0,
+    //         y: theSelect.h - offsetP.y > 0 || offsetP.y < 0,
+    //       };
+
+    //       select.shapes.forEach((shape) => {
+    //         const ratioW = shape.getScaleSize().w / theSelect.w,
+    //           unitW = offsetP.x * ratioW;
+
+    //         if (canResize.x) {
+    //           shape.w = shape.w + unitW / scale;
+
+    //           const dx = Math.abs(shape.getScreenP().x - select.start.x),
+    //             ratioX = dx / theSelect.w,
+    //             unitX = offsetP.x * ratioX;
+
+    //           shape.p = {
+    //             ...shape.p,
+    //             x: shape.p.x + unitX / scale,
+    //           };
+    //         }
+
+    //         const ratioH = shape.h / theSelect.h,
+    //           unitH = offsetP.y * ratioH;
+
+    //         if (canResize.y) {
+    //           shape.h = shape.getScaleSize().h - unitH / scale;
+
+    //           const dy = Math.abs(shape.getScreenP().y - select.end.y),
+    //             ratioY = dy / theSelect.h,
+    //             unitY = offsetP.y * ratioY;
+
+    //           shape.p = {
+    //             ...shape.p,
+    //             y: shape.p.y + unitY / scale,
+    //           };
+    //         }
+    //       });
+
+    //       if (canResize.x) {
+    //         select.end.x += offsetP.x;
+    //       }
+
+    //       if (canResize.y) {
+    //         select.start.y += offsetP.y;
+    //       }
+    //     } else if (pressing?.target === "selectArea_rb") {
+    //       const canResize = {
+    //         x: theSelect.w + offsetP.x > 0 || offsetP.x > 0,
+    //         y: theSelect.h + offsetP.y > 0 || offsetP.y > 0,
+    //       };
+
+    //       select.shapes.forEach((shape) => {
+    //         const ratioW = shape.getScaleSize().w / theSelect.w,
+    //           unitW = offsetP.x * ratioW;
+
+    //         if (canResize.x) {
+    //           shape.w = shape.w + unitW / scale;
+
+    //           const dx = Math.abs(shape.getScreenP().x - select.start.x),
+    //             ratioX = dx / theSelect.w,
+    //             unitX = offsetP.x * ratioX;
+
+    //           shape.p = {
+    //             ...shape.p,
+    //             x: shape.p.x + unitX / scale,
+    //           };
+    //         }
+
+    //         const ratioH = shape.getScaleSize().h / theSelect.h,
+    //           unitH = offsetP.y * ratioH;
+
+    //         if (canResize.y) {
+    //           shape.h = shape.h + unitH / scale;
+
+    //           const dy = Math.abs(shape.getScreenP().y - select.start.y),
+    //             ratioY = dy / theSelect.h,
+    //             unitY = offsetP.y * ratioY;
+
+    //           shape.p = {
+    //             ...shape.p,
+    //             y: shape.p.y + unitY / scale,
+    //           };
+    //         }
+    //       });
+
+    //       if (canResize.x) {
+    //         select.end.x += offsetP.x;
+    //       }
+
+    //       if (canResize.y) {
+    //         select.end.y += offsetP.y;
+    //       }
+    //     } else if (pressing?.target === "selectArea_lb") {
+    //       const canResize = {
+    //         x: theSelect.w - offsetP.x > 0 || offsetP.x < 0,
+    //         y: theSelect.h + offsetP.y > 0 || offsetP.y > 0,
+    //       };
+
+    //       select.shapes.forEach((shape) => {
+    //         const ratioW = shape.getScaleSize().w / theSelect.w,
+    //           unitW = offsetP.x * ratioW;
+
+    //         if (canResize.x) {
+    //           shape.w = shape.w - unitW / scale;
+
+    //           const dx = Math.abs(shape.getScreenP().x - select.end.x),
+    //             ratioX = dx / theSelect.w,
+    //             unitX = offsetP.x * ratioX;
+
+    //           shape.p = {
+    //             ...shape.p,
+    //             x: shape.p.x + unitX / scale,
+    //           };
+    //         }
+
+    //         const ratioH = shape.getScaleSize().h / theSelect.h,
+    //           unitH = offsetP.y * ratioH;
+
+    //         if (canResize.y) {
+    //           shape.h = shape.h + unitH / scale;
+
+    //           const dy = Math.abs(shape.getScreenP().y - select.start.y),
+    //             ratioY = dy / theSelect.h,
+    //             unitY = offsetP.y * ratioY;
+
+    //           shape.p = {
+    //             ...shape.p,
+    //             y: shape.p.y + unitY / scale,
+    //           };
+    //         }
+    //       });
+
+    //       if (canResize.x) {
+    //         select.start.x += offsetP.x;
+    //       }
+
+    //       if (canResize.y) {
+    //         select.end.y += offsetP.y;
+    //       }
+    //     }
+    //   }
+    // } // TODO:
 
     if (dbClickedShape) {
       setDataFrame({
@@ -1427,12 +1465,12 @@ export default function ProcessPage() {
       });
     }
 
-    if (selectAreaP && !space) {
-      selectAreaP = {
-        ...selectAreaP,
-        end: p,
-      };
-    }
+    // if (selectAreaP && !space) {
+    //   selectAreaP = {
+    //     ...selectAreaP,
+    //     end: p,
+    //   };
+    // } // TODO:
 
     dragP = p;
 
@@ -1519,8 +1557,9 @@ export default function ProcessPage() {
         pressing?.parent &&
         pressing?.direction
       ) {
-        const theCheckReceivingPointsBoundryD =
-          shape.checkReceivingPointsBoundry(p);
+        const theCheckReceivingPointsBoundryD = shape.checkReceivingPointsBoundry(
+          p
+        );
 
         const pressingShape = pressing.parent;
 
@@ -2002,8 +2041,10 @@ export default function ProcessPage() {
 
     setIsAuthorizing(true);
 
-    const res: AxiosResponse<AuthTypes.Login["resData"], any> =
-      await authAPIs.login(authInfo.account.value, authInfo.password.value);
+    const res: AxiosResponse<
+      AuthTypes.Login["resData"],
+      any
+    > = await authAPIs.login(authInfo.account.value, authInfo.password.value);
 
     if (res.status === 201) {
       axios.defaults.headers.common[
@@ -2099,12 +2140,14 @@ export default function ProcessPage() {
 
     setIsAuthorizing(true);
 
-    const res: AxiosResponse<AuthTypes.Register["resData"], any> =
-      await authAPIs.register(
-        authInfo.account.value,
-        authInfo.password.value,
-        authInfo.email.value
-      );
+    const res: AxiosResponse<
+      AuthTypes.Register["resData"],
+      any
+    > = await authAPIs.register(
+      authInfo.account.value,
+      authInfo.password.value,
+      authInfo.email.value
+    );
 
     if (res.status === 201) {
       setTimeout(() => {
@@ -2266,8 +2309,10 @@ export default function ProcessPage() {
   };
 
   const onClickConfrimProject = async (id: ProjectTypes.Project["id"]) => {
-    const res: AxiosResponse<ProjectAPITypes.GetProject["resData"], any> =
-      await projectAPIs.getProject(id);
+    const res: AxiosResponse<
+      ProjectAPITypes.GetProject["resData"],
+      any
+    > = await projectAPIs.getProject(id);
 
     setScale(1);
     offset = cloneDeep(init.offset);
@@ -2300,8 +2345,9 @@ export default function ProcessPage() {
     if (!$canvas || !ctx) return;
 
     try {
-      const res: AxiosResponse<ProjectAPITypes.DeleteProject["resData"]> =
-        await projectAPIs.deleteProject(id);
+      const res: AxiosResponse<
+        ProjectAPITypes.DeleteProject["resData"]
+      > = await projectAPIs.deleteProject(id);
 
       if (id === selectedProjectId) {
         shapes = [];
@@ -2323,11 +2369,14 @@ export default function ProcessPage() {
       return;
     }
     shapes = [];
-    const newProject: AxiosResponse<ProjectAPITypes.CreateProject["resData"]> =
-      await projectAPIs.createProject();
+    const newProject: AxiosResponse<
+      ProjectAPITypes.CreateProject["resData"]
+    > = await projectAPIs.createProject();
 
-    const res: AxiosResponse<ProjectAPITypes.GetProjects["resData"], any> =
-      await projectAPIs.getProjecs();
+    const res: AxiosResponse<
+      ProjectAPITypes.GetProjects["resData"],
+      any
+    > = await projectAPIs.getProjecs();
 
     setIsProjectsModalOpen(false);
     setProjects(res.data);
@@ -2366,9 +2415,9 @@ export default function ProcessPage() {
     }));
   };
 
-  const onClickSaveProjectNameButton: MouseEventHandler<
-    HTMLButtonElement
-  > = async (e) => {
+  const onClickSaveProjectNameButton: MouseEventHandler<HTMLButtonElement> = async (
+    e
+  ) => {
     if (!selectedProjectId) return;
     const res: AxiosResponse<
       ProjectAPITypes.UpdateProjectName["resData"],
