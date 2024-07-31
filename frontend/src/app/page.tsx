@@ -1036,6 +1036,7 @@ export default function ProcessPage() {
           shape.getCurveIds().map((curveId) => {
             shape.setIsCurveSelected(curveId, false);
           });
+          shape.selecting = false;
         });
 
         // if has already selected curve, never select any other shapes
