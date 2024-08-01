@@ -360,6 +360,20 @@ export default class Core {
     return this.curveTrigger.d * this.scale;
   }
 
+  getCurveP = (target: CurveTypes.PressingTarget, curveId: CurveTypes.Id) => {
+    const targetCurve = (() => {
+      for (const d of ds) {
+        const curve = this.curves[d].find(
+          (curve) => curve.shape.id === curveId
+        );
+        if (curve) return curve;
+      }
+    })();
+
+    if (!targetCurve) return;
+    return targetCurve.shape[target];
+  };
+
   getEdge() {
     return {
       l: this.getScreenP().x - this.getScaleSize().w / 2,
@@ -628,11 +642,7 @@ export default class Core {
     });
   }
 
-  connect(
-    targetShape: Core,
-    targetShapeReceiveD: Direction,
-    bridgeId: string,
-  ) {
+  connect(targetShape: Core, targetShapeReceiveD: Direction, bridgeId: string) {
     const bridge = (() => {
       for (const d of ds) {
         const curve = this.curves[d].find(
@@ -823,6 +833,31 @@ export default class Core {
 
     if (!targetCurve) return;
     targetCurve.moveHandler(pressingTarget, offset);
+  }
+
+  locateCurveHandler(
+    curveId: CurveTypes.Id,
+    target: CurveTypes.PressingTarget,
+    p: Vec
+  ) {
+    const targetCurve = (() => {
+      for (const d of ds) {
+        const curve = this.curves[d].find(
+          (curve) => curve.shape.id === curveId
+        );
+        if (curve) return curve;
+      }
+    })();
+
+    if (!targetCurve) return;
+
+    // console.log(p.x / this.__scale__ - this.p.x *this.__scale__)
+    console.log(p.x / this.__scale__ - this.p.x / this.__scale__);
+
+    targetCurve.shape.locateHandler(target, {
+      x: p.x / this.__scale__ - this.p.x / this.__scale__,
+      y: p.y / this.__scale__ - this.p.y / this.__scale__,
+    });
   }
 
   resize(offset: Vec, vertex: CoreTypes.PressingTarget) {

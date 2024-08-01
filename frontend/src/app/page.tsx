@@ -1396,7 +1396,12 @@ export default function ProcessPage() {
 
         const pressingShape = pressing.shape;
 
-        if (!theCheckReceivingPointsBoundryD || !pressingShape) return;
+        if (
+          !theCheckReceivingPointsBoundryD ||
+          !pressingShape ||
+          pressing.target !== CurveTypes.PressingTarget.p2
+        )
+          return;
 
         // const relocateP2 = (() => {
         //   if (targetShape instanceof Data) {
@@ -1470,8 +1475,46 @@ export default function ProcessPage() {
           // pressingShape.moveCurve(pressing.curveId, {
           //   x: targetShape.p.x,
           //   y: targetShape.p.y,
-          // }); //TODO: 
+          // }); //TODO:
         } else {
+          // pressingShape.locateCurveHandler(
+          //   pressing.curveId,
+          //   CurveTypes.PressingTarget.p2,
+          //   { x: targetShape.p.x-, y: p.y }
+          // );
+
+          if (theCheckReceivingPointsBoundryD === CommonTypes.Direction.l) {
+            pressingShape.locateCurveHandler(
+              pressing.curveId,
+              CurveTypes.PressingTarget.p2,
+              {
+                x: targetShape.p.x - pressingShape.p.x - targetShape.w / 2 - 6,
+                y: targetShape.p.y - pressingShape.p.y,
+              }
+            );
+          }
+          // else if (theCheckReceivingPointsBoundryD === CommonTypes.Direction.t) {
+          //   bridge.curve.shape.p2 = {
+          //     x: relocateP.x - this.p.x,
+          //     y: relocateP.y - this.p.y - targetShape.h / 2 - 6,
+          //   };
+          // } else if (theCheckReceivingPointsBoundryD === CommonTypes.Direction.r) {
+          //   bridge.curve.shape.p2 = {
+          //     x: relocateP.x - this.p.x + targetShape.w / 2 + 6,
+          //     y: relocateP.y - this.p.y,
+          //   };
+          // } else if (theCheckReceivingPointsBoundryD === CommonTypes.Direction.b) {
+          //   bridge.curve.shape.p2 = {
+          //     x: relocateP.x - this.p.x,
+          //     y: relocateP.y - this.p.y + targetShape.h / 2 + 6,
+          //   };
+          // }
+
+          // pressingShape.locateCurveHandler(
+          //   pressing.curveId,
+          //   CurveTypes.PressingTarget.cp2,
+          //   p
+          // );
         }
       }
     });

@@ -135,10 +135,6 @@ export default class Curve {
   }
 
   getScaleCurveW = () => {
-    // console.log("this.id", this.id);
-    // console.log("this.curve.w", this.curve.w);
-    // console.log("this.__scale__", this.__scale__);
-    // console.log('this.curve.w * this.__scale__', this.curve.w * this.__scale__)
     return this.curve.w * this.__scale__;
   };
 
@@ -264,12 +260,16 @@ export default class Curve {
     if (this.arrow && this.p2 && this.cp2) {
       this.arrow.p = { x: this.getScreenP().p2.x, y: this.getScreenP().p2.y }; // TODO: arrow should add offset and scale and calculate inside Arrow class
       this.arrow.deg =
-        Math.atan2(
-          this.p2.y - this.cp2.y,
-          this.p2.x - this.cp2.x
-        ) +
+        Math.atan2(this.p2.y - this.cp2.y, this.p2.x - this.cp2.x) +
         90 * (Math.PI / 180);
     }
+  }
+
+  locateHandler(target: CurveTypes.PressingTarget, p: Vec) {
+    this[target] = {
+      x: p.x,
+      y: p.y,
+    };
   }
 
   draw(ctx: CanvasRenderingContext2D) {
