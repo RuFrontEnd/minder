@@ -93,8 +93,7 @@ let useEffected = false,
   ctx_screenshot: CanvasRenderingContext2D | null | undefined = null,
   shapes: (Terminal | Process | Data | Desicion)[] = [],
   pressing: null | {
-    parent: null | Terminal | Process | Data | Desicion; // TODO: should be replaced by shape
-    shape: null | Terminal | Process | Data | Desicion; // TODO: should remove Curve
+    shape: null | Terminal | Process | Data | Desicion;
     curveId?: null | CurveTypes.Id;
     direction: any; // TODO: should be removed in the future
     target:
@@ -112,19 +111,6 @@ let useEffected = false,
   offset: CommonTypes.Vec = cloneDeep(init.offset),
   offset_center: CommonTypes.Vec = cloneDeep(init.offset),
   lastP: CommonTypes.Vec = { x: 0, y: 0 },
-  moveP: null | {
-    originalX: number;
-    originalY: number;
-    x: number;
-    y: number;
-  } = null,
-  alignment: {
-    offset: number;
-    p: null | CommonTypes.Vec;
-  } = {
-    offset: 5,
-    p: null,
-  },
   selectAreaP: null | {
     start: CommonTypes.Vec;
     end: CommonTypes.Vec;
@@ -608,8 +594,6 @@ export default function ProcessPage() {
     [isRenameFrameOpen, setIsRenameFrameOpen] = useState(false),
     [isProfileFrameOpen, setIsProfileFrameOpen] = useState(false),
     [steps, setSteps] = useState<PageTypes.Steps>({}),
-    [procedures, setProcedures] = useState<PageTypes.Procedures>({}),
-    [otherStepIds, setOtherStepIds] = useState<PageTypes.OtherStepIds>([]),
     [dataFrameWarning, setDataFrameWarning] = useState<DataFrameTypes.Warning>(
       init.dataFrameWarning
     ),
@@ -896,7 +880,7 @@ export default function ProcessPage() {
         p.y > select.end.y - selectAnchor.size.fill &&
         p.x < select.start.x + selectAnchor.size.fill &&
         p.y < select.end.y + selectAnchor.size.fill,
-      isPInMultiSelectArea =
+      isPInMultiSelectArea = // TODO: check if should be removed
         pInSelectArea ||
         pInSelectArea_lt ||
         pInSelectArea_rt ||
@@ -930,7 +914,6 @@ export default function ProcessPage() {
 
         if (_target) {
           pressing = {
-            parent: null,
             shape: null,
             target: _target,
             direction: null,
@@ -967,7 +950,6 @@ export default function ProcessPage() {
             firstDetectedCurve.target === CurveTypes.PressingTarget.p2
           ) {
             pressing = {
-              parent: shape,
               shape: shape,
               curveId: firstDetectedCurve.id,
               target: CurveTypes.PressingTarget.p2,
@@ -977,7 +959,6 @@ export default function ProcessPage() {
             };
           } else if (firstDetectedCurve && firstDetectedCurve.isSelecting) {
             pressing = {
-              parent: shape,
               shape: shape,
               curveId: firstDetectedCurve.id,
               target: firstDetectedCurve.target,
@@ -987,7 +968,6 @@ export default function ProcessPage() {
             };
           } else if (withinRangeCurveIds.length > 0) {
             pressing = {
-              parent: shape,
               shape: shape,
               curveId: withinRangeCurveIds[0],
               target: null,
@@ -997,7 +977,6 @@ export default function ProcessPage() {
             };
           } else if (shape.selecting && vertex) {
             pressing = {
-              parent: shape,
               shape: shape,
               curveId: null,
               target: vertex,
@@ -1007,7 +986,6 @@ export default function ProcessPage() {
             };
           } else if (shape.checkBoundry(p)) {
             pressing = {
-              parent: shape,
               shape: shape,
               curveId: null,
               target: CoreTypes.PressingTarget.m,
@@ -1410,14 +1388,13 @@ export default function ProcessPage() {
         pressing?.shape &&
         !!pressing?.curveId &&
         pressing?.target &&
-        pressing?.parent &&
         pressing?.direction
       ) {
         const theCheckReceivingPointsBoundryD = shape.checkReceivingPointsBoundry(
           p
         );
 
-        const pressingShape = pressing.parent;
+        const pressingShape = pressing.shape;
 
         if (!theCheckReceivingPointsBoundryD || !pressingShape) return;
 
@@ -1485,7 +1462,6 @@ export default function ProcessPage() {
 
     selectAreaP = null;
     pressing = null;
-    moveP = null;
 
     drawCanvas();
   };
@@ -1823,7 +1799,7 @@ export default function ProcessPage() {
         ctx?.closePath();
       }
     },
-    [otherStepIds]
+    []
   );
 
   const drawCanvas = () => {
@@ -2342,7 +2318,7 @@ export default function ProcessPage() {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, [dataFrame, dbClickedShape, space, steps, procedures, otherStepIds]);
+  }, [dataFrame, dbClickedShape, space, steps]);
 
   const createShapeButtons = [
     { shape: CommonTypes.Type["terminator"], icon: IconTypes.Type.ellipse },

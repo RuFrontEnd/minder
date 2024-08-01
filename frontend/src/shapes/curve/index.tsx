@@ -276,11 +276,6 @@ export default class Curve {
     if (!this.p1 || !this.p2 || !this.cp1 || !this.cp2) return;
     // curve
     ctx.lineWidth = this.curve.w * this.__scale__;
-    // console.log("this.id", this.id);
-
-    // console.log("this.__scale__", this.__scale__);
-
-    // console.log("this.getScaleCurveW()", this.getScaleCurveW());
     ctx.strokeStyle = this.curve.c;
 
     ctx.beginPath();
