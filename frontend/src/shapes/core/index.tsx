@@ -632,13 +632,6 @@ export default class Core {
     targetShape: Core,
     targetShapeReceiveD: Direction,
     bridgeId: string,
-    handleAfterConnect?: (
-      bridge: {
-        d: CommonTypes.Direction;
-        curve: CoreTypes.SendCurve;
-      },
-      targetShapeReceiveD: CommonTypes.Direction
-    ) => void
   ) {
     const bridge = (() => {
       for (const d of ds) {
@@ -665,31 +658,27 @@ export default class Core {
       bridgeId: bridgeId,
     });
 
-    if (handleAfterConnect) {
-      return handleAfterConnect(bridge, targetShapeReceiveD);
-    }
-
-    if (targetShapeReceiveD === Direction.l) {
-      bridge.curve.shape.p2 = {
-        x: targetShape.p.x - this.p.x - targetShape.w / 2 - 6,
-        y: targetShape.p.y - this.p.y,
-      };
-    } else if (targetShapeReceiveD === Direction.t) {
-      bridge.curve.shape.p2 = {
-        x: targetShape.p.x - this.p.x,
-        y: targetShape.p.y - this.p.y - targetShape.h / 2 - 6,
-      };
-    } else if (targetShapeReceiveD === Direction.r) {
-      bridge.curve.shape.p2 = {
-        x: targetShape.p.x - this.p.x + targetShape.w / 2 + 6,
-        y: targetShape.p.y - this.p.y,
-      };
-    } else if (targetShapeReceiveD === Direction.b) {
-      bridge.curve.shape.p2 = {
-        x: targetShape.p.x - this.p.x,
-        y: targetShape.p.y - this.p.y + targetShape.h / 2 + 6,
-      };
-    }
+    // if (targetShapeReceiveD === Direction.l) {
+    //   bridge.curve.shape.p2 = {
+    //     x: relocateP.x - this.p.x - targetShape.w / 2 - 6,
+    //     y: relocateP.y - this.p.y,
+    //   };
+    // } else if (targetShapeReceiveD === Direction.t) {
+    //   bridge.curve.shape.p2 = {
+    //     x: relocateP.x - this.p.x,
+    //     y: relocateP.y - this.p.y - targetShape.h / 2 - 6,
+    //   };
+    // } else if (targetShapeReceiveD === Direction.r) {
+    //   bridge.curve.shape.p2 = {
+    //     x: relocateP.x - this.p.x + targetShape.w / 2 + 6,
+    //     y: relocateP.y - this.p.y,
+    //   };
+    // } else if (targetShapeReceiveD === Direction.b) {
+    //   bridge.curve.shape.p2 = {
+    //     x: relocateP.x - this.p.x,
+    //     y: relocateP.y - this.p.y + targetShape.h / 2 + 6,
+    //   };
+    // }
   }
 
   disConnect(curveIds: string[]) {
@@ -806,6 +795,20 @@ export default class Core {
       x: this.p.x + xOffset,
       y: this.p.y + yOffset,
     };
+  }
+
+  moveCurve(curveId: CurveTypes.Id, p: Vec) {
+    const targetCurve = (() => {
+      for (const d of ds) {
+        const curve = this.curves[d].find(
+          (curve) => curve.shape.id === curveId
+        );
+        if (curve) return curve;
+      }
+    })();
+
+    if (!targetCurve) return;
+    targetCurve.shape.move(p);
   }
 
   moveCurveHandler(
