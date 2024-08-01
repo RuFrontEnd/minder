@@ -330,7 +330,7 @@ export default class Core {
     return this.__selecting__;
   }
 
-  getCurveIds(){
+  getCurveIds() {
     let curveIds: string[] = [];
 
     ds.forEach((d) => {
@@ -618,7 +618,7 @@ export default class Core {
   //     this.curves[d].forEach((curve)=>{
   //       curve.shape.selecting = _selecting;
   //     })
-      
+
   //   });
   // }
 
@@ -798,9 +798,9 @@ export default class Core {
     this.curves[d].splice(targetI, 1);
   }
 
-  move(p: Vec, dragP: Vec) {
-    let xOffset = (p.x - dragP.x) / this.scale,
-      yOffset = (p.y - dragP.y) / this.scale;
+  move(offset: Vec) {
+    let xOffset = offset.x / this.scale,
+      yOffset = offset.y / this.scale;
 
     this.p = {
       x: this.p.x + xOffset,
@@ -812,19 +812,14 @@ export default class Core {
     d: Direction,
     curveId: CurveTypes.Id,
     pressingTarget: CurveTypes.PressingTarget,
-    p: Vec
+    offset: Vec
   ) {
-    const curveP = {
-      x: p.x - this?.getScreenP().x,
-      y: p.y - this?.getScreenP().y,
-    };
-
     const targetCurve = this.curves[d].find(
       (curve) => curve.shape.id === curveId
     )?.shape;
 
     if (!targetCurve) return;
-    targetCurve.moveHandler(pressingTarget, curveP);
+    targetCurve.moveHandler(pressingTarget, offset);
   }
 
   resize(offset: Vec, vertex: CoreTypes.PressingTarget) {

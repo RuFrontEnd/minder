@@ -111,7 +111,7 @@ let useEffected = false,
   } = null,
   offset: CommonTypes.Vec = cloneDeep(init.offset),
   offset_center: CommonTypes.Vec = cloneDeep(init.offset),
-  dragP: CommonTypes.Vec = { x: 0, y: 0 },
+  lastP: CommonTypes.Vec = { x: 0, y: 0 },
   moveP: null | {
     originalX: number;
     originalY: number;
@@ -904,7 +904,7 @@ export default function ProcessPage() {
         pInSelectArea_lb;
 
     if (space) {
-      dragP = p;
+      lastP = p;
     } else {
       if (select.shapes.length > 1) {
         // when multi select shapes
@@ -936,7 +936,7 @@ export default function ProcessPage() {
             direction: null,
             dx: 0,
             dy: 0,
-          }; // TODO
+          };
         } else {
           select = cloneDeep(init.select);
         }
@@ -1030,75 +1030,8 @@ export default function ProcessPage() {
           pressing.shape?.setIsCurveSelected(pressing.curveId, true);
         } else if (pressing && pressing.shape && !pressing.curveId) {
           pressing.shape.selecting = true;
-          // // onMouseDown shape conditions
-          // shapes.forEach((shape) => {
-          //   if (!$canvas) return;
-          //   // onMouseDown shape
-          //   if (shape.checkBoundry(p) && select.shapes.length === 0) {
-          //     pressing = {
-          //       parent: null,
-          //       shape: shape,
-          //       target: CoreTypes.PressingTarget.m,
-          //       direction: null,
-          //       dx: (p.x - dragP.x) * (1 / scale) - shape?.getScreenP().x,
-          //       dy: (p.y - dragP.y) * (1 / scale) - shape?.getScreenP().y,
-          //     };
-          //   }
-          //   // onMouseDown corner point and create curve
-          //   const theCheckShapeVertexesBoundry = shape.checkVertexesBoundry(p);
-          //   if (theCheckShapeVertexesBoundry && select.shapes.length <= 1) {
-          //     pressing = {
-          //       parent: null,
-          //       shape: shape,
-          //       target: theCheckShapeVertexesBoundry,
-          //       direction: null,
-          //       dx:
-          //         (p.x - dragP.x) * (1 / scale) -
-          //         shape?.getEdge()[
-          //           theCheckShapeVertexesBoundry[0] as CommonTypes.Direction
-          //         ],
-          //       dy:
-          //         (p.y - dragP.y) * (1 / scale) -
-          //         shape?.getEdge()[
-          //           theCheckShapeVertexesBoundry[1] as CommonTypes.Direction
-          //         ],
-          //     };
-          //   }
-          // });
         }
       }
-
-      // close selected status when click the blank area
-
-      // shapes.forEach((shape) => {
-      //   if (pressing?.shape instanceof Curve) {
-      //     // click curve
-      //     shape.selecting = false;
-
-      //     ds.forEach((d) => {
-      //       for (const curveInShape of shape.curves[d]) {
-      //         const theCurve = curveInShape.shape;
-      //         if (theCurve && theCurve?.id !== pressing?.shape?.id) {
-      //           theCurve.selecting = false;
-      //         }
-      //       }
-      //     });
-      //   } else {
-      //     // click shape or blank area
-      //     ds.forEach((d) => {
-      //       for (const curveInShape of shape.curves[d]) {
-      //         const theCurve = curveInShape.shape;
-      //         if (theCurve) {
-      //           theCurve.selecting = false;
-      //         }
-      //       }
-
-      //       if (shape.id !== pressing?.shape?.id) {
-      //         shape.selecting = false;
-      //       }
-      //     });
-      //   }
-      // }); //TODO
 
       if (!pressing) {
         selectAreaP = {
@@ -1119,12 +1052,12 @@ export default function ProcessPage() {
         y: e.nativeEvent.offsetY,
       },
       offsetP = {
-        x: p.x - dragP.x,
-        y: p.y - dragP.y,
+        x: p.x - lastP.x,
+        y: p.y - lastP.y,
       },
       screenOffsetP = {
-        x: (p.x - dragP.x) * (1 / scale),
-        y: (p.y - dragP.y) * (1 / scale),
+        x: (p.x - lastP.x) * (1 / scale),
+        y: (p.y - lastP.y) * (1 / scale),
       };
 
     const movingCanvas = space && leftMouseBtn;
@@ -1152,7 +1085,7 @@ export default function ProcessPage() {
 
       if (pressing?.target === "selectArea_m") {
         select.shapes.forEach((shape) => {
-          shape.move(p, dragP);
+          shape.move({ x: p.x - lastP.x, y: p.y - lastP.y });
         });
 
         select.start.x += offsetP.x;
@@ -1357,7 +1290,7 @@ export default function ProcessPage() {
       ) {
         pressing.shape.resize(offsetP, pressing.target);
       } else if (pressing?.target === CoreTypes.PressingTarget.m) {
-        pressing.shape.move(p, dragP);
+        pressing.shape.move({ x: p.x - lastP.x, y: p.y - lastP.y });
       } else if (
         !!pressing.curveId &&
         (pressing?.target === CurveTypes.PressingTarget.cp1 ||
@@ -1377,7 +1310,7 @@ export default function ProcessPage() {
           pressing.direction,
           pressing.curveId,
           pressing.target,
-          p
+          { x: p.x - lastP.x, y: p.y - lastP.y }
         );
       }
     }
@@ -1395,7 +1328,7 @@ export default function ProcessPage() {
       };
     }
 
-    dragP = p;
+    lastP = p;
 
     drawCanvas();
     drawScreenshot();
