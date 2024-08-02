@@ -427,148 +427,148 @@ const getScreenshotShapes = (
   return screenshotShapes;
 };
 
-const Editor = (props: { className: string; shape: Core }) => {
-  const [title, setTitle] = useState<CommonTypes.Title>(""),
-    [selections, setSelections] = useState<DataFrameTypes.Selections>({}),
-    [data, setData] = useState<CommonTypes.Data>([]);
+// const Editor = (props: { className: string; shape: Core }) => {
+//   const [title, setTitle] = useState<CommonTypes.Title>(""),
+//     [selections, setSelections] = useState<DataFrameTypes.Selections>({}),
+//     [data, setData] = useState<CommonTypes.Data>([]);
 
-  const onChangeTitle = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setTitle(e.currentTarget.value);
-  };
+//   const onChangeTitle = (e: React.ChangeEvent<HTMLInputElement>) => {
+//     setTitle(e.currentTarget.value);
+//   };
 
-  const onClickCheckedBox = (DataText: CommonTypes.DataItem["text"]) => {
-    const _selections: DataFrameTypes.Selections = cloneDeep(selections);
+//   const onClickCheckedBox = (DataText: CommonTypes.DataItem["text"]) => {
+//     const _selections: DataFrameTypes.Selections = cloneDeep(selections);
 
-    _selections[DataText] = !_selections[DataText];
+//     _selections[DataText] = !_selections[DataText];
 
-    setSelections(_selections);
-  };
+//     setSelections(_selections);
+//   };
 
-  const onClickPlus = () => {
-    const _data = cloneDeep(data);
-    _data.push({ id: uuidv4(), text: "" });
-    setData(_data);
-  };
+//   const onClickPlus = () => {
+//     const _data = cloneDeep(data);
+//     _data.push({ id: uuidv4(), text: "" });
+//     setData(_data);
+//   };
 
-  const onClickMinus = (id: string) => {
-    const _data = cloneDeep(data).filter((datdItem) => datdItem.id !== id);
-    setData(_data);
-  };
+//   const onClickMinus = (id: string) => {
+//     const _data = cloneDeep(data).filter((datdItem) => datdItem.id !== id);
+//     setData(_data);
+//   };
 
-  const onChangeData = (e: React.ChangeEvent<HTMLInputElement>, i: number) => {
-    const _data = cloneDeep(data);
-    _data[i].text = e.currentTarget.value;
-    setData(_data);
-  };
+//   const onChangeData = (e: React.ChangeEvent<HTMLInputElement>, i: number) => {
+//     const _data = cloneDeep(data);
+//     _data[i].text = e.currentTarget.value;
+//     setData(_data);
+//   };
 
-  const onClickConfirm = () => {
-    const selectedData = (() => {
-      const data: CommonTypes.Data = [];
+//   const onClickConfirm = () => {
+//     const selectedData = (() => {
+//       const data: CommonTypes.Data = [];
 
-      props.shape.options.forEach((option) => {
-        if (selections[option.text]) {
-          data.push(option);
-        }
-      });
+//       props.shape.options.forEach((option) => {
+//         if (selections[option.text]) {
+//           data.push(option);
+//         }
+//       });
 
-      props.shape.redundancies.forEach((option) => {
-        if (selections[option.text]) {
-          data.push(option);
-        }
-      });
+//       props.shape.redundancies.forEach((option) => {
+//         if (selections[option.text]) {
+//           data.push(option);
+//         }
+//       });
 
-      return data;
-    })();
+//       return data;
+//     })();
 
-    // onConfirm(title, data, selectedData);
-  };
+//     // onConfirm(title, data, selectedData);
+//   };
 
-  useEffect(() => {
-    setTitle(props.shape.title);
+//   useEffect(() => {
+//     setTitle(props.shape.title);
 
-    const _selections: DataFrameTypes.Selections = (() => {
-      const output: DataFrameTypes.Selections = {};
+//     const _selections: DataFrameTypes.Selections = (() => {
+//       const output: DataFrameTypes.Selections = {};
 
-      props.shape.options.forEach((option) => {
-        output[option.text] = false;
-      });
+//       props.shape.options.forEach((option) => {
+//         output[option.text] = false;
+//       });
 
-      props.shape.selectedData.forEach((selectedDataItem) => {
-        output[selectedDataItem.text] = true;
-      });
+//       props.shape.selectedData.forEach((selectedDataItem) => {
+//         output[selectedDataItem.text] = true;
+//       });
 
-      return output;
-    })();
+//       return output;
+//     })();
 
-    setSelections(_selections);
+//     setSelections(_selections);
 
-    if (props.shape instanceof Data) {
-      setData(props.shape.data);
-    }
-  }, [props.shape]);
+//     if (props.shape instanceof Data) {
+//       setData(props.shape.data);
+//     }
+//   }, [props.shape]);
 
-  return (
-    <div className={props.className && props.className}>
-      <div>
-        {props.shape instanceof Data && (
-          <div>
-            <p className="mb-1">Data</p>
-            {/* <div
-              className="w-6 h-6 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
-              onClick={onClickScalePlusIcon}
-            >
-              +
-            </div> */}
-            <ul className="ps-2">
-              {props.shape.data.map((dataItem) => (
-                <li className="mb-1"> · {dataItem.text}</li>
-              ))}
-            </ul>
-          </div>
-        )}
-        {(props.shape instanceof Process ||
-          props.shape instanceof Data ||
-          props.shape instanceof Desicion) && (
-          <>
-            <div>
-              <p className="mb-1">Data Usage</p>
-              <ul className="ps-2">
-                {props.shape.options.map((option) => (
-                  <li className="mb-1">
-                    <span className="bg-indigo-100 text-indigo-500 w-4 h-4 rounded-full inline-flex items-center justify-center">
-                      {selections[option.text] && (
-                        <svg
-                          fill="none"
-                          stroke="currentColor"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="3"
-                          className="w-3 h-3"
-                          viewBox="0 0 24 24"
-                        >
-                          <path d="M20 6L9 17l-5-5"></path>
-                        </svg>
-                      )}
-                    </span>
-                    {option.text}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <div className="mb-1">Redundancies</div>
-              <ul className="ps-2">
-                {props.shape.redundancies.map((redundancy) => (
-                  <li className="mb-1"> · {redundancy.text}</li>
-                ))}
-              </ul>
-            </div>
-          </>
-        )}
-      </div>
-    </div>
-  );
-};
+//   return (
+//     <div className={props.className && props.className}>
+//       <div>
+//         {props.shape instanceof Data && (
+//           <div>
+//             <p className="mb-1">Data</p>
+//             {/* <div
+//               className="w-6 h-6 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
+//               onClick={onClickScalePlusIcon}
+//             >
+//               +
+//             </div> */}
+//             <ul className="ps-2">
+//               {props.shape.data.map((dataItem) => (
+//                 <li className="mb-1"> · {dataItem.text}</li>
+//               ))}
+//             </ul>
+//           </div>
+//         )}
+//         {(props.shape instanceof Process ||
+//           props.shape instanceof Data ||
+//           props.shape instanceof Desicion) && (
+//           <>
+//             <div>
+//               <p className="mb-1">Data Usage</p>
+//               <ul className="ps-2">
+//                 {props.shape.options.map((option) => (
+//                   <li className="mb-1">
+//                     <span className="bg-indigo-100 text-indigo-500 w-4 h-4 rounded-full inline-flex items-center justify-center">
+//                       {selections[option.text] && (
+//                         <svg
+//                           fill="none"
+//                           stroke="currentColor"
+//                           strokeLinecap="round"
+//                           strokeLinejoin="round"
+//                           strokeWidth="3"
+//                           className="w-3 h-3"
+//                           viewBox="0 0 24 24"
+//                         >
+//                           <path d="M20 6L9 17l-5-5"></path>
+//                         </svg>
+//                       )}
+//                     </span>
+//                     {option.text}
+//                   </li>
+//                 ))}
+//               </ul>
+//             </div>
+//             <div>
+//               <div className="mb-1">Redundancies</div>
+//               <ul className="ps-2">
+//                 {props.shape.redundancies.map((redundancy) => (
+//                   <li className="mb-1"> · {redundancy.text}</li>
+//                 ))}
+//               </ul>
+//             </div>
+//           </>
+//         )}
+//       </div>
+//     </div>
+//   );
+// }; TODO: open after content is added
 
 export default function ProcessPage() {
   let { current: $canvas } = useRef<HTMLCanvasElement | null>(null);
@@ -2637,14 +2637,13 @@ export default function ProcessPage() {
             return (
               <li key={stepId}>
                 <Accordion
-                  showArrow={!(step.shape instanceof Terminal)}
+                  showArrow={false}
                   title={step.shape.title}
                   hoverRender={
                     <div className="h-full justify-end items-center">
                       <div
                         onClick={(e) => {
                           e.stopPropagation();
-                          onClickStep(step.shape.p);
                         }}
                       >
                         <svg
@@ -2671,10 +2670,11 @@ export default function ProcessPage() {
                   open={step.open}
                   onClick={(e) => {
                     e.stopPropagation();
-                    onClickaAccordionArrow(stepId);
+                    onClickStep(step.shape.p);
+                    // onClickaAccordionArrow(stepId); // TODO: open after content is added
                   }}
                 >
-                  <Editor className="ps-6" shape={step.shape} />
+                  {/* <Editor className="ps-6" shape={step.shape} /> TODO: open after content is added */}
                 </Accordion>
               </li>
             );
