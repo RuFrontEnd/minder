@@ -105,8 +105,6 @@ let useEffected = false,
       | "selectArea_rt"
       | "selectArea_rb"
       | "selectArea_lb";
-    dx: number; // distance between event px & pressing shape px
-    dy: number; // distance between event py & pressing shape py
   } = null,
   offset: CommonTypes.Vec = cloneDeep(init.offset),
   offset_center: CommonTypes.Vec = cloneDeep(init.offset),
@@ -917,8 +915,6 @@ export default function ProcessPage() {
             shape: null,
             target: _target,
             direction: null,
-            dx: 0,
-            dy: 0,
           };
         } else {
           select = cloneDeep(init.select);
@@ -954,8 +950,6 @@ export default function ProcessPage() {
               curveId: firstDetectedCurve.id,
               target: CurveTypes.PressingTarget.p2,
               direction: firstDetectedCurve.d,
-              dx: 0,
-              dy: 0,
             };
           } else if (firstDetectedCurve && firstDetectedCurve.isSelecting) {
             pressing = {
@@ -963,8 +957,6 @@ export default function ProcessPage() {
               curveId: firstDetectedCurve.id,
               target: firstDetectedCurve.target,
               direction: firstDetectedCurve.d,
-              dx: 0,
-              dy: 0,
             };
           } else if (withinRangeCurveIds.length > 0) {
             pressing = {
@@ -972,8 +964,6 @@ export default function ProcessPage() {
               curveId: withinRangeCurveIds[0],
               target: null,
               direction: null,
-              dx: 0,
-              dy: 0,
             };
           } else if (shape.selecting && vertex) {
             pressing = {
@@ -981,8 +971,6 @@ export default function ProcessPage() {
               curveId: null,
               target: vertex,
               direction: null,
-              dx: 0,
-              dy: 0,
             };
           } else if (shape.checkBoundry(p)) {
             pressing = {
@@ -990,8 +978,6 @@ export default function ProcessPage() {
               curveId: null,
               target: CoreTypes.PressingTarget.m,
               direction: null,
-              dx: 0,
-              dy: 0,
             };
           }
         });
