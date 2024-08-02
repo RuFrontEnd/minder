@@ -851,13 +851,7 @@ export default class Core {
 
     if (!targetCurve) return;
 
-    // console.log(p.x / this.__scale__ - this.p.x *this.__scale__)
-    console.log(p.x / this.__scale__ - this.p.x / this.__scale__);
-
-    targetCurve.shape.locateHandler(target, {
-      x: p.x / this.__scale__ - this.p.x / this.__scale__,
-      y: p.y / this.__scale__ - this.p.y / this.__scale__,
-    });
+    targetCurve.shape.locateHandler(target, p);
   }
 
   resize(offset: Vec, vertex: CoreTypes.PressingTarget) {
