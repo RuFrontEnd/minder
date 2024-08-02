@@ -95,16 +95,12 @@ let useEffected = false,
   pressing: null | {
     shape: null | Terminal | Process | Data | Desicion;
     curveId?: null | CurveTypes.Id;
-    direction: any; // TODO: should be removed in the future
+    direction: null | CommonTypes.Direction; // TODO: should be removed in the future
     target:
       | null
       | CoreTypes.PressingTarget
       | CurveTypes.PressingTarget
-      | "selectArea_m"
-      | "selectArea_lt"
-      | "selectArea_rt"
-      | "selectArea_rb"
-      | "selectArea_lb";
+      | CommonTypes.SelectAreaTarget;
   } = null,
   offset: CommonTypes.Vec = cloneDeep(init.offset),
   offset_center: CommonTypes.Vec = cloneDeep(init.offset),
@@ -747,6 +743,7 @@ export default function ProcessPage() {
       y: number;
     }
   ) => {
+    const $canvas = document.querySelector("canvas");
     if (!$canvas) return;
     const scaleAmount = -delta / 500;
     const _scale = scale * (1 + scaleAmount);
@@ -877,37 +874,25 @@ export default function ProcessPage() {
         p.x > select.start.x - selectAnchor.size.fill &&
         p.y > select.end.y - selectAnchor.size.fill &&
         p.x < select.start.x + selectAnchor.size.fill &&
-        p.y < select.end.y + selectAnchor.size.fill,
-      isPInMultiSelectArea = // TODO: check if should be removed
-        pInSelectArea ||
-        pInSelectArea_lt ||
-        pInSelectArea_rt ||
-        pInSelectArea_rb ||
-        pInSelectArea_lb;
+        p.y < select.end.y + selectAnchor.size.fill;
 
     if (space) {
       lastP = p;
     } else {
       if (select.shapes.length > 1) {
         // when multi select shapes
-        let _target:
-          | null
-          | "selectArea_m"
-          | "selectArea_lt"
-          | "selectArea_rt"
-          | "selectArea_rb"
-          | "selectArea_lb" = null;
+        let _target: null | CommonTypes.SelectAreaTarget = null;
 
         if (pInSelectArea) {
-          _target = "selectArea_m";
+          _target = CommonTypes.SelectAreaTarget.m;
         } else if (pInSelectArea_lt) {
-          _target = "selectArea_lt";
+          _target = CommonTypes.SelectAreaTarget.lt;
         } else if (pInSelectArea_rt) {
-          _target = "selectArea_rt";
+          _target = CommonTypes.SelectAreaTarget.rt;
         } else if (pInSelectArea_rb) {
-          _target = "selectArea_rb";
+          _target = CommonTypes.SelectAreaTarget.rb;
         } else if (pInSelectArea_lb) {
-          _target = "selectArea_lb";
+          _target = CommonTypes.SelectAreaTarget.lb;
         }
 
         if (_target) {
@@ -922,8 +907,6 @@ export default function ProcessPage() {
       } else {
         // when single select shape
         shapes.forEach((shape) => {
-          if (!!pressing) return;
-
           const curveTriggerD = shape.getCurveTriggerDirection(p);
           if (curveTriggerD) {
             shape.selecting = false;
@@ -1047,7 +1030,7 @@ export default function ProcessPage() {
         h: Math.abs(select.end.y - select.start.y),
       };
 
-      if (pressing?.target === "selectArea_m") {
+      if (pressing?.target === CommonTypes.SelectAreaTarget.m) {
         select.shapes.forEach((shape) => {
           shape.move({ x: p.x - lastP.x, y: p.y - lastP.y });
         });
@@ -1056,7 +1039,7 @@ export default function ProcessPage() {
         select.start.y += offsetP.y;
         select.end.x += offsetP.x;
         select.end.y += offsetP.y;
-      } else if (pressing?.target === "selectArea_lt") {
+      } else if (pressing?.target === CommonTypes.SelectAreaTarget.lt) {
         const canResize = {
           x: theSelect.w - offsetP.x > 0 || offsetP.x < 0,
           y: theSelect.h - offsetP.y > 0 || offsetP.y < 0,
@@ -1103,7 +1086,7 @@ export default function ProcessPage() {
         if (canResize.y) {
           select.start.y += offsetP.y;
         }
-      } else if (pressing?.target === "selectArea_rt") {
+      } else if (pressing?.target === CommonTypes.SelectAreaTarget.rt) {
         const canResize = {
           x: theSelect.w + offsetP.x > 0 || offsetP.x > 0,
           y: theSelect.h - offsetP.y > 0 || offsetP.y < 0,
@@ -1150,7 +1133,7 @@ export default function ProcessPage() {
         if (canResize.y) {
           select.start.y += offsetP.y;
         }
-      } else if (pressing?.target === "selectArea_rb") {
+      } else if (pressing?.target === CommonTypes.SelectAreaTarget.rb) {
         const canResize = {
           x: theSelect.w + offsetP.x > 0 || offsetP.x > 0,
           y: theSelect.h + offsetP.y > 0 || offsetP.y > 0,
@@ -1197,7 +1180,7 @@ export default function ProcessPage() {
         if (canResize.y) {
           select.end.y += offsetP.y;
         }
-      } else if (pressing?.target === "selectArea_lb") {
+      } else if (pressing?.target === CommonTypes.SelectAreaTarget.lb) {
         const canResize = {
           x: theSelect.w - offsetP.x > 0 || offsetP.x < 0,
           y: theSelect.h + offsetP.y > 0 || offsetP.y > 0,
@@ -1257,6 +1240,7 @@ export default function ProcessPage() {
         pressing.shape.move({ x: p.x - lastP.x, y: p.y - lastP.y });
       } else if (
         !!pressing.curveId &&
+        pressing.direction &&
         (pressing?.target === CurveTypes.PressingTarget.cp1 ||
           pressing?.target === CurveTypes.PressingTarget.cp2 ||
           pressing?.target === CurveTypes.PressingTarget.p2)

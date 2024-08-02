@@ -26,8 +26,8 @@ export default class Curve {
   __cp2__: Vec;
   arrow: null | Arrow;
   private __selecting__: boolean;
-  __offset__: Vec;
-  __scale__: number;
+  protected __offset__: Vec;
+  protected __scale__: number;
 
   constructor(id: string, p1: Vec, cp1: Vec, cp2: Vec, p2: Vec) {
     this.id = id;

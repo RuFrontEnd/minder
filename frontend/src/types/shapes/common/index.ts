@@ -34,5 +34,13 @@ enum Type {
   decision = "decision",
 }
 
+enum SelectAreaTarget {
+  m = "m",
+  lt = "lt",
+  rt = "rt",
+  rb = "rb",
+  lb = "lb",
+}
+
 export type { Id, W, H, C, Vec, Shapes, Title, DataItem, Data };
-export { Direction, Type };
+export { Direction, Type, SelectAreaTarget };
