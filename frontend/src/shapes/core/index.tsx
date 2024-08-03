@@ -50,7 +50,7 @@ export default class Core {
     b: CoreTypes.SendCurve[];
   }; // TODO: should be protected
   private __selecting__: boolean;
-  protected __receiving__: CoreTypes.Receiving;
+  protected __receivePoint__: CoreTypes.ReceivePoint;
   receiveFrom: {
     l: CoreTypes.ReceiveFrom[];
     t: CoreTypes.ReceiveFrom[];
@@ -86,11 +86,11 @@ export default class Core {
       b: [],
     };
     this.__selecting__ = false;
-    this.__receiving__ = {
-      l: false,
-      t: false,
-      r: false,
-      b: false,
+    this.__receivePoint__ = {
+      l: { visible: false, activate: false },
+      t: { visible: false, activate: false },
+      r: { visible: false, activate: false },
+      b: { visible: false, activate: false },
     };
     this.receiveFrom = {
       l: [],
@@ -542,7 +542,7 @@ export default class Core {
   checkReceivingBoundry(p: Vec) {
     const edge = this.getEdge();
 
-    const receivingBoundryOffset = 75;
+    const receivingBoundryOffset = 10;
 
     return (
       p.x > edge.l - receivingBoundryOffset &&
@@ -562,7 +562,7 @@ export default class Core {
     dy = center.m.y - p.y;
 
     if (
-      this.__receiving__.l &&
+      this.__receivePoint__.l.visible &&
       dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill
     ) {
       return Direction.l;
@@ -572,7 +572,7 @@ export default class Core {
     dy = edge.t - p.y;
 
     if (
-      this.__receiving__.t &&
+      this.__receivePoint__.t.visible &&
       dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill
     ) {
       return Direction.t;
@@ -582,7 +582,7 @@ export default class Core {
     dy = center.m.y - p.y;
 
     if (
-      this.__receiving__.r &&
+      this.__receivePoint__.r.visible &&
       dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill
     ) {
       return Direction.r;
@@ -592,7 +592,7 @@ export default class Core {
     dy = p.y - edge.b;
 
     if (
-      this.__receiving__.b &&
+      this.__receivePoint__.b.visible &&
       dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill
     ) {
       return Direction.b;
@@ -636,10 +636,12 @@ export default class Core {
   //   });
   // }
 
-  setReceiving(ds: Direction[], _receiving: boolean) {
-    ds.forEach((d) => {
-      this.__receiving__[d] = _receiving;
-    });
+  setReceivePointVisible(d: Direction, _visible: boolean) {
+    this.__receivePoint__[d].visible = _visible;
+  }
+
+  setReceivePointActivate(d: Direction, _actviate: boolean) {
+    this.__receivePoint__[d].activate = _actviate;
   }
 
   connect(targetShape: Core, targetShapeReceiveD: Direction, bridgeId: string) {
@@ -783,10 +785,10 @@ export default class Core {
 
   getIsReceiving() {
     return (
-      !this.__receiving__.l &&
-      !this.__receiving__.t &&
-      !this.__receiving__.r &&
-      !this.__receiving__.b
+      !this.__receivePoint__.l.visible &&
+      !this.__receivePoint__.t.visible &&
+      !this.__receivePoint__.r.visible &&
+      !this.__receivePoint__.b.visible
     );
   }
 
@@ -1311,12 +1313,17 @@ export default class Core {
     ctx.save();
     ctx.translate(this.getScreenP().x, this.getScreenP().y);
     // draw receiving points
-    ctx.fillStyle = "white";
+    ctx.fillStyle = tailwindColors.white["500"];
     ctx.strokeStyle = "DeepSkyBlue";
     ctx.lineWidth = this.anchor.size.stroke;
 
     // left
-    if (this.__receiving__.l) {
+    if (this.__receivePoint__.l.visible) {
+      if (this.__receivePoint__.l.activate) {
+        ctx.fillStyle = "DeepSkyBlue";
+      } else {
+        ctx.fillStyle = tailwindColors.white["500"];
+      }
       ctx.beginPath();
       ctx.arc(
         -this.getScaleSize().w / 2,
@@ -1332,7 +1339,12 @@ export default class Core {
     }
 
     // top
-    if (this.__receiving__.t) {
+    if (this.__receivePoint__.t.visible) {
+      if (this.__receivePoint__.t.activate) {
+        ctx.fillStyle = "DeepSkyBlue";
+      } else {
+        ctx.fillStyle = tailwindColors.white["500"];
+      }
       ctx.beginPath();
       ctx.arc(
         0,
@@ -1348,7 +1360,12 @@ export default class Core {
     }
 
     // right
-    if (this.__receiving__.r) {
+    if (this.__receivePoint__.r.visible) {
+      if (this.__receivePoint__.r.activate) {
+        ctx.fillStyle = "DeepSkyBlue";
+      } else {
+        ctx.fillStyle = tailwindColors.white["500"];
+      }
       ctx.beginPath();
       ctx.arc(
         this.getScaleSize().w / 2,
@@ -1364,7 +1381,12 @@ export default class Core {
     }
 
     // bottom
-    if (this.__receiving__.b) {
+    if (this.__receivePoint__.b.visible) {
+      if (this.__receivePoint__.b.activate) {
+        ctx.fillStyle = "DeepSkyBlue";
+      } else {
+        ctx.fillStyle = tailwindColors.white["500"];
+      }
       ctx.beginPath();
       ctx.arc(
         0,
