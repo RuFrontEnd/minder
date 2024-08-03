@@ -904,6 +904,7 @@ export default function ProcessPage() {
       } else {
         // when single select shape
         shapes.forEach((shape) => {
+          if (!!pressing) return;
           const curveTriggerD = shape.getCurveTriggerDirection(p);
           if (curveTriggerD) {
             shape.selecting = false;

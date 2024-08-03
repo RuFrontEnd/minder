@@ -669,28 +669,6 @@ export default class Core {
       d: bridge.d,
       bridgeId: bridgeId,
     });
-
-    // if (targetShapeReceiveD === Direction.l) {
-    //   bridge.curve.shape.p2 = {
-    //     x: relocateP.x - this.p.x - targetShape.w / 2 - 6,
-    //     y: relocateP.y - this.p.y,
-    //   };
-    // } else if (targetShapeReceiveD === Direction.t) {
-    //   bridge.curve.shape.p2 = {
-    //     x: relocateP.x - this.p.x,
-    //     y: relocateP.y - this.p.y - targetShape.h / 2 - 6,
-    //   };
-    // } else if (targetShapeReceiveD === Direction.r) {
-    //   bridge.curve.shape.p2 = {
-    //     x: relocateP.x - this.p.x + targetShape.w / 2 + 6,
-    //     y: relocateP.y - this.p.y,
-    //   };
-    // } else if (targetShapeReceiveD === Direction.b) {
-    //   bridge.curve.shape.p2 = {
-    //     x: relocateP.x - this.p.x,
-    //     y: relocateP.y - this.p.y + targetShape.h / 2 + 6,
-    //   };
-    // }
   }
 
   disConnect(curveIds: string[]) {
