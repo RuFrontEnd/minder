@@ -1036,8 +1036,9 @@ export default class Core {
     lineHeight: number,
     scale: number
   ) => {
-    const words = text.split(""),
-      lines: string[] = [];
+    const words = text.split("");
+    const lines: string[] = [];
+    const padding = 32;
     let line = "";
 
     for (const word of words) {
@@ -1045,7 +1046,7 @@ export default class Core {
         metrics = ctx.measureText(testLine),
         testWidth = metrics.width;
 
-      if (testWidth > maxWidth - 32 * scale) {
+      if (testWidth > maxWidth - padding * scale) {
         lines.push(line);
         line = word;
       } else {
@@ -1055,20 +1056,45 @@ export default class Core {
 
     lines.push(line);
 
+    // 计算最大行数
+    const maxLines = Math.floor(((this.h - padding) * this.scale) / lineHeight);
+
+    // 确保绘制的行数不超过最大行数
+    const totalLines = Math.min(lines.length, maxLines);
+
+    // 计算最后一行的宽度，并检查是否需要加上省略号
+    if (totalLines < lines.length) {
+      const lastLine = lines[totalLines - 1] || "";
+      const ellipsis = "...";
+      const metricsEllipsis = ctx.measureText(ellipsis);
+      const maxTextWidth = maxWidth - 32 * scale - metricsEllipsis.width;
+
+      let truncatedLine = "";
+      for (const char of lastLine) {
+        const testLine = truncatedLine + char;
+        const metricsTestLine = ctx.measureText(testLine);
+        if (metricsTestLine.width > maxTextWidth) {
+          break;
+        }
+        truncatedLine = testLine;
+      }
+      lines[totalLines - 1] = truncatedLine + ellipsis;
+    }
+
     const offsetYs: number[] = [];
     let offsetY =
-      lines.length % 2 === 0
-        ? lineHeight * (1 / 2 + lines.length / 2 - 1)
-        : lineHeight * Math.floor(lines.length / 2);
+      totalLines % 2 === 0
+        ? lineHeight * (1 / 2 + totalLines / 2 - 1)
+        : lineHeight * Math.floor(totalLines / 2);
 
-    lines.forEach((line) => {
+    for (let i = 0; i < totalLines; i++) {
       offsetYs.push(offsetY);
       offsetY -= lineHeight;
-    });
+    }
 
-    lines.forEach((line, lineI) => {
-      ctx.fillText(line, x, y - offsetYs[lineI]);
-    });
+    for (let i = 0; i < totalLines; i++) {
+      ctx.fillText(lines[i], x, y - offsetYs[i]);
+    }
   };
 
   draw(ctx: CanvasRenderingContext2D, drawShapePath: () => void) {
@@ -1191,7 +1217,7 @@ export default class Core {
       0,
       0,
       this.getScaleSize().w,
-      16,
+      20,
       this.scale
     );
 
