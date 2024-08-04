@@ -5,9 +5,9 @@ import * as AuthTypes from "../types/auth";
 import { ResultSetHeader, FieldPacket, Types } from "mysql2";
 
 export default class Project {
-  async getProjects(user: string) {
+  async getProjects(userId: AuthTypes.UserId) {
     const [rows] = await pool.query("SELECT * FROM projects WHERE user = ?", [
-      user,
+      userId,
     ]);
     return rows as ProjectTypes.Projects;
   }

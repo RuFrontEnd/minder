@@ -12,7 +12,7 @@ const Modal = (props: ModalTypes.Props) => {
       isOpen={props.isOpen}
       style={{
         overlay: {
-          backgroundColor: "rgba(0, 0, 0, 0.5)",
+          backgroundColor: props.mask ? "rgba(0, 0, 0, 0.5)" : "none",
           zIndex: props.zIndex || "1000",
         },
         content: {
@@ -44,6 +44,10 @@ const Modal = (props: ModalTypes.Props) => {
       </div>
     </ReactModal>
   );
+};
+
+Modal.defaultProps = {
+  mask: true,
 };
 
 export default Modal;
