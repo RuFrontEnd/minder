@@ -1,4 +1,4 @@
-// TODO: fix browser zoom and re calculate shape offset
+// TODO: fix browser zoom and re calculate shape offset / multi select resize in scale
 "use client";
 import axios, { AxiosResponse } from "axios";
 import { useParams, useRouter } from "next/navigation";
@@ -592,8 +592,9 @@ export default function IdPage() {
   const [isRenameFrameOpen, setIsRenameFrameOpen] = useState(false);
   const [isProfileFrameOpen, setIsProfileFrameOpen] = useState(false);
   const [steps, setSteps] = useState<PageTypes.Steps>({});
-  const [dataFrameWarning, setDataFrameWarning] =
-    useState<DataFrameTypes.Warning>(init.dataFrameWarning);
+  const [dataFrameWarning, setDataFrameWarning] = useState<
+    DataFrameTypes.Warning
+  >(init.dataFrameWarning);
   const [isProjectsModalOpen, setIsProjectsModalOpen] = useState(false);
   const [authInfo, setAuthInfo] = useState<{
     account: {
@@ -803,8 +804,10 @@ export default function IdPage() {
   };
 
   const fetchProjects = async () => {
-    const res: AxiosResponse<ProjectAPITypes.GetProjects["resData"], any> =
-      await projectAPIs.getProjecs();
+    const res: AxiosResponse<
+      ProjectAPITypes.GetProjects["resData"],
+      any
+    > = await projectAPIs.getProjecs();
     setProjects(res.data);
   };
 
@@ -812,8 +815,9 @@ export default function IdPage() {
     const token = localStorage.getItem("Authorization");
 
     if (token) {
-      const res: AxiosResponse<AuthTypes.JWTLogin["resData"]> =
-        await authAPIs.jwtLogin(token);
+      const res: AxiosResponse<
+        AuthTypes.JWTLogin["resData"]
+      > = await authAPIs.jwtLogin(token);
 
       if (res.data.isPass) {
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
@@ -889,65 +893,77 @@ export default function IdPage() {
         }
       } else {
         // when single select shape
-        shapes.forEach((shape) => {
-          if (!!pressing) return;
-          const curveTriggerD = shape.getCurveTriggerDirection(p);
-          if (curveTriggerD) {
-            shape.selecting = false;
+        if (!pressing) {
+          shapes.forEach((shape) => {
+            const curveTriggerD = shape.getCurveTriggerDirection(p);
+            if (curveTriggerD) {
+              shape.selecting = false;
 
-            shape.initializeCurve(
-              `curve_${Date.now()}`,
-              CommonTypes.Direction[curveTriggerD]
+              shape.initializeCurve(
+                `curve_${Date.now()}`,
+                CommonTypes.Direction[curveTriggerD]
+              );
+            }
+
+            if (!!pressing) return;
+
+            const withinHandlerRangeCurves = shape.checkCurveControlPointsBoundry(
+              p
             );
-          }
+            const firstDetectedCurve = withinHandlerRangeCurves[0];
+            const withinRangeCurveIds = shape.checkCurvesBoundry(p);
 
-          const withinHandlerRangeCurves =
-            shape.checkCurveControlPointsBoundry(p);
-          const firstDetectedCurve = withinHandlerRangeCurves[0];
-          const withinRangeCurveIds = shape.checkCurvesBoundry(p);
-          const vertex = shape.checkVertexesBoundry(p);
+            if (
+              firstDetectedCurve &&
+              firstDetectedCurve.target === CurveTypes.PressingTarget.p2
+            ) {
+              pressing = {
+                shape: shape,
+                curveId: firstDetectedCurve.id,
+                target: CurveTypes.PressingTarget.p2,
+                direction: firstDetectedCurve.d,
+              };
+            } else if (firstDetectedCurve && firstDetectedCurve.isSelecting) {
+              pressing = {
+                shape: shape,
+                curveId: firstDetectedCurve.id,
+                target: firstDetectedCurve.target,
+                direction: firstDetectedCurve.d,
+              };
+            } else if (withinRangeCurveIds.length > 0) {
+              pressing = {
+                shape: shape,
+                curveId: withinRangeCurveIds[0],
+                target: null,
+                direction: null,
+              };
+            }
+          });
+        }
 
-          if (
-            firstDetectedCurve &&
-            firstDetectedCurve.target === CurveTypes.PressingTarget.p2
-          ) {
-            pressing = {
-              shape: shape,
-              curveId: firstDetectedCurve.id,
-              target: CurveTypes.PressingTarget.p2,
-              direction: firstDetectedCurve.d,
-            };
-          } else if (firstDetectedCurve && firstDetectedCurve.isSelecting) {
-            pressing = {
-              shape: shape,
-              curveId: firstDetectedCurve.id,
-              target: firstDetectedCurve.target,
-              direction: firstDetectedCurve.d,
-            };
-          } else if (withinRangeCurveIds.length > 0) {
-            pressing = {
-              shape: shape,
-              curveId: withinRangeCurveIds[0],
-              target: null,
-              direction: null,
-            };
-          } else if (shape.selecting && vertex) {
-            pressing = {
-              shape: shape,
-              curveId: null,
-              target: vertex,
-              direction: null,
-            };
-          } else if (shape.checkBoundry(p)) {
-            pressing = {
-              shape: shape,
-              curveId: null,
-              target: CoreTypes.PressingTarget.m,
-              direction: null,
-            };
-          }
-        });
+        if (!pressing) {
+          shapes.forEach((shape) => {
+            if (!!pressing) return;
+            const vertex = shape.checkVertexesBoundry(p);
+            if (shape.selecting && vertex) {
+              pressing = {
+                shape: shape,
+                curveId: null,
+                target: vertex,
+                direction: null,
+              };
+            } else if (shape.checkBoundry(p)) {
+              pressing = {
+                shape: shape,
+                curveId: null,
+                target: CoreTypes.PressingTarget.m,
+                direction: null,
+              };
+            }
+          });
+        }
 
+        // reset select status
         shapes.forEach((shape) => {
           shape.getCurveIds().map((curveId) => {
             shape.setIsCurveSelected(curveId, false);
@@ -1349,8 +1365,9 @@ export default function IdPage() {
         pressing?.target &&
         pressing?.direction
       ) {
-        const theCheckReceivingPointsBoundryD =
-          targetShape.checkReceivingPointsBoundry(p);
+        const theCheckReceivingPointsBoundryD = targetShape.checkReceivingPointsBoundry(
+          p
+        );
 
         const pressingShape = pressing.shape;
 
@@ -1947,8 +1964,10 @@ export default function IdPage() {
 
   const initProject = async (id: ProjectTypes.Project["id"]) => {
     try {
-      const res: AxiosResponse<ProjectAPITypes.GetProject["resData"], any> =
-        await projectAPIs.getProject(id);
+      const res: AxiosResponse<
+        ProjectAPITypes.GetProject["resData"],
+        any
+      > = await projectAPIs.getProject(id);
 
       const projectData = res.data as ProjectAPITypes.ProjectData;
 
@@ -1991,8 +2010,9 @@ export default function IdPage() {
     if (!$canvas || !ctx) return;
 
     try {
-      const res: AxiosResponse<ProjectAPITypes.DeleteProject["resData"]> =
-        await projectAPIs.deleteProject(id);
+      const res: AxiosResponse<
+        ProjectAPITypes.DeleteProject["resData"]
+      > = await projectAPIs.deleteProject(id);
 
       if (id === selectedProjectId) {
         shapes = [];
@@ -2014,11 +2034,14 @@ export default function IdPage() {
       return;
     }
     shapes = [];
-    const newProject: AxiosResponse<ProjectAPITypes.CreateProject["resData"]> =
-      await projectAPIs.createProject();
+    const newProject: AxiosResponse<
+      ProjectAPITypes.CreateProject["resData"]
+    > = await projectAPIs.createProject();
 
-    const res: AxiosResponse<ProjectAPITypes.GetProjects["resData"], any> =
-      await projectAPIs.getProjecs();
+    const res: AxiosResponse<
+      ProjectAPITypes.GetProjects["resData"],
+      any
+    > = await projectAPIs.getProjecs();
 
     setIsProjectsModalOpen(false);
     setProjects(res.data);
@@ -2046,9 +2069,9 @@ export default function IdPage() {
     }));
   };
 
-  const onClickSaveProjectNameButton: MouseEventHandler<
-    HTMLButtonElement
-  > = async (e) => {
+  const onClickSaveProjectNameButton: MouseEventHandler<HTMLButtonElement> = async (
+    e
+  ) => {
     if (!selectedProjectId) return;
     const res: AxiosResponse<
       ProjectAPITypes.UpdateProjectName["resData"],
