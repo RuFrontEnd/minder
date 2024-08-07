@@ -77,7 +77,7 @@ export default class Curve {
   set p2(value: Vec) {
     this.__p2__ = value;
     if (this.arrow && value && this.cp2) {
-      this.arrow.p = { x: this.getScreenP().p2.x, y: this.getScreenP().p2.y };
+      this.arrow.p = value;
     }
   }
 
@@ -98,7 +98,8 @@ export default class Curve {
     this.__offset__ = value;
 
     if (this.arrow && value && this.cp2) {
-      this.arrow.p = { x: this.getScreenP().p2.x, y: this.getScreenP().p2.y };
+      this.arrow.offset = value;
+      this.arrow.p = value;
     }
   }
 
@@ -107,9 +108,10 @@ export default class Curve {
     this.__scale__ = value;
 
     if (this.arrow && value && this.cp2) {
-      this.arrow.p = { x: this.getScreenP().p2.x, y: this.getScreenP().p2.y };
-      this.arrow.w = this.arrow.w * magnification;
-      this.arrow.h = this.arrow.h * magnification;
+      // this.arrow.p = { x: this.getScreenP().p2.x, y: this.getScreenP().p2.y };
+      // this.arrow.w = this.arrow.w * magnification;
+      // this.arrow.h = this.arrow.h * magnification;
+      this.arrow.scale = value;
     }
   }
 
@@ -258,7 +260,7 @@ export default class Curve {
     }
 
     if (this.arrow && this.p2 && this.cp2) {
-      this.arrow.p = { x: this.getScreenP().p2.x, y: this.getScreenP().p2.y }; // TODO: arrow should add offset and scale and calculate inside Arrow class
+      this.arrow.p = this.p2; // TODO: arrow should add offset and scale and calculate inside Arrow class
       this.arrow.deg =
         Math.atan2(this.p2.y - this.cp2.y, this.p2.x - this.cp2.x) +
         90 * (Math.PI / 180);
