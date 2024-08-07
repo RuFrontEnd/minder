@@ -61,12 +61,10 @@ export default class Arrow {
     ctx.save();
     ctx.translate(this.getScreenP().x, this.getScreenP().y);
     ctx.rotate(this.deg);
-    ctx.moveTo(0, 0);
-    ctx.lineTo(0, scaleSize.h / 2);
-    ctx.lineTo(scaleSize.w / 2, scaleSize.h / 2);
-    ctx.lineTo(0, -scaleSize.h / 2);
-    ctx.lineTo(-scaleSize.w / 2, scaleSize.h / 2);
-    ctx.lineTo(0, scaleSize.h / 2);
+    ctx.moveTo(-scaleSize.w / 2, 0);
+    ctx.lineTo(0, -scaleSize.h);
+    ctx.lineTo(scaleSize.w / 2, 0);
+    ctx.lineTo(-scaleSize.w / 2, 0);
     ctx.fill();
     ctx.restore();
     ctx.closePath();
