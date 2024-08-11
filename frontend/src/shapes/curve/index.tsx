@@ -263,10 +263,10 @@ export default class Curve {
     }
   }
 
-  locateHandler(target: CurveTypes.PressingTarget, p: Vec) {
+  locateHandler(target: CurveTypes.PressingTarget, screenP: Vec) {
     this[target] = {
-      x: p.x,
-      y: p.y,
+      x: screenP.x / this.__scale__ - this.__offset__.x,
+      y: screenP.y / this.__scale__ - this.__offset__.y,
     };
   }
 

@@ -458,12 +458,8 @@ export default class Core {
     );
   }
 
-  checkQuarterArea(p: Vec) {
+  checkQuarterArea(screenP: Vec) {
     const center = this.getCenter();
-    const screenP = {
-      x: p.x * this.scale - this.offset.x,
-      y: p.y * this.scale - this.offset.y,
-    };
 
     // 定义四个方向的三角形边向量
     const quarterVecs = {
@@ -920,7 +916,7 @@ export default class Core {
   locateCurveHandler(
     curveId: CurveTypes.Id,
     target: CurveTypes.PressingTarget,
-    p: Vec
+    screenP: Vec
   ) {
     const targetCurve = (() => {
       for (const d of ds) {
@@ -933,7 +929,10 @@ export default class Core {
 
     if (!targetCurve) return;
 
-    targetCurve.shape.locateHandler(target, p);
+    targetCurve.shape.locateHandler(target, {
+      x: screenP.x - this.getScreenP().x,
+      y: screenP.y - this.getScreenP().y,
+    });
   }
 
   resize(offset: Vec, vertex: CoreTypes.PressingTarget) {

@@ -1239,29 +1239,52 @@ export default function IdPage() {
           pressing?.target === CurveTypes.PressingTarget.cp2 ||
           pressing?.target === CurveTypes.PressingTarget.p2)
       ) {
+        let sticking: {
+          shape: null | Terminal | Process | Data | Desicion;
+          quarterD: null | CoreTypes.Direction;
+        } = {
+          shape: null,
+          quarterD: null,
+        };
+
         if (pressing?.target === CurveTypes.PressingTarget.p2) {
           pressing.shape.disConnect([pressing.curveId]);
+
           shapes.forEach((shape) => {
+            const _quarterD = shape.checkQuarterArea(p);
+
+            if (_quarterD) {
+              sticking.quarterD = _quarterD;
+              sticking.shape = shape;
+            }
+
             ds.forEach((d) => {
               shape.setReceivePointActivate(
                 d,
-                d === shape.checkReceivingPointsBoundry(p)
+                d === shape.checkReceivingPointsBoundry(p) ||
+                  d === sticking.quarterD
               );
               shape.setReceivePointVisible(
                 d,
                 shape.checkBoundry(p, 20) && pressing?.shape !== shape
               );
             });
-            // if (shape.checkQuarterArea(p)) {
-            // }
           });
         }
-        pressing.shape.moveCurveHandler(
-          pressing.direction,
-          pressing.curveId,
-          pressing.target,
-          { x: p.x - lastP.x, y: p.y - lastP.y }
-        );
+
+        if (sticking.quarterD && sticking.shape) {
+          pressing.shape.locateCurveHandler(
+            pressing.curveId,
+            CurveTypes.PressingTarget.p2,
+            sticking.shape.getCenter().receivingPoints[sticking.quarterD]
+          );
+        } else {
+          pressing.shape.locateCurveHandler(
+            pressing.curveId,
+            pressing.target,
+            p
+          );
+        }
       }
     }
 
@@ -1385,64 +1408,52 @@ export default function IdPage() {
           case CommonTypes.Direction.l:
             if (targetShape instanceof Data) {
               relocateP = {
-                x:
-                  targetShape.p.x -
-                  pressingShape.p.x +
-                  (targetShape.getCorner().normal.tl.x +
-                    targetShape.getCorner().normal.bl.x) /
-                    2 -
-                  6,
-                y: targetShape.p.y - pressingShape.p.y,
+                x: targetShape.getCenter().receivingPoints.l.x - 6,
+                y: targetShape.getCenter().receivingPoints.l.y,
               };
             } else {
               relocateP = {
-                x: targetShape.p.x - pressingShape.p.x - targetShape.w / 2 - 6,
-                y: targetShape.p.y - pressingShape.p.y,
+                x: targetShape.getCenter().receivingPoints.l.x - 6,
+                y: targetShape.getCenter().receivingPoints.l.y,
               };
             }
             break;
           case CommonTypes.Direction.t:
             if (targetShape instanceof Data) {
               relocateP = {
-                x: targetShape.p.x - pressingShape.p.x,
-                y: targetShape.p.y - pressingShape.p.y - targetShape.h / 2 - 6,
+                x: targetShape.getCenter().receivingPoints.t.x,
+                y: targetShape.getCenter().receivingPoints.t.y - 6,
               };
             } else {
               relocateP = {
-                x: targetShape.p.x - pressingShape.p.x,
-                y: targetShape.p.y - pressingShape.p.y - targetShape.h / 2 - 6,
+                x: targetShape.getCenter().receivingPoints.t.x,
+                y: targetShape.getCenter().receivingPoints.t.y - 6,
               };
             }
             break;
           case CommonTypes.Direction.r:
             if (targetShape instanceof Data) {
               relocateP = {
-                x:
-                  targetShape.p.x -
-                  pressingShape.p.x -
-                  (targetShape.getCorner().normal.tl.x +
-                    targetShape.getCorner().normal.bl.x) /
-                    2 +
-                  6,
-                y: targetShape.p.y - pressingShape.p.y,
+                x: targetShape.getCenter().receivingPoints.r.x - 6,
+                y: targetShape.getCenter().receivingPoints.r.y,
               };
             } else {
               relocateP = {
-                x: targetShape.p.x - pressingShape.p.x + targetShape.w / 2 + 6,
-                y: targetShape.p.y - pressingShape.p.y,
+                x: targetShape.getCenter().receivingPoints.r.x + 6,
+                y: targetShape.getCenter().receivingPoints.r.y,
               };
             }
             break;
           case CommonTypes.Direction.b:
             if (targetShape instanceof Data) {
               relocateP = {
-                x: targetShape.p.x - pressingShape.p.x,
-                y: targetShape.p.y - pressingShape.p.y + targetShape.h / 2 + 6,
+                x: targetShape.getCenter().receivingPoints.b.x,
+                y: targetShape.getCenter().receivingPoints.b.y + 6,
               };
             } else {
               relocateP = {
-                x: targetShape.p.x - pressingShape.p.x,
-                y: targetShape.p.y - pressingShape.p.y + targetShape.h / 2 + 6,
+                x: targetShape.getCenter().receivingPoints.b.x,
+                y: targetShape.getCenter().receivingPoints.b.y + 6,
               };
             }
             break;
