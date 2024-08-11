@@ -121,7 +121,8 @@ let useEffected = false,
       fill: 4,
       stroke: 2,
     },
-  };
+  },
+  stickingD: null | CoreTypes.Direction;
 
 const ds = [
   CommonTypes.Direction.l,
@@ -1239,29 +1240,59 @@ export default function IdPage() {
           pressing?.target === CurveTypes.PressingTarget.cp2 ||
           pressing?.target === CurveTypes.PressingTarget.p2)
       ) {
+        let target: {
+          shape: null | Terminal | Process | Data | Desicion;
+          quarter: null | CoreTypes.Direction;
+        } = { shape: null, quarter: null };
+
         if (pressing?.target === CurveTypes.PressingTarget.p2) {
           pressing.shape.disConnect([pressing.curveId]);
+
           shapes.forEach((shape) => {
             ds.forEach((d) => {
               shape.setReceivePointActivate(
                 d,
-                d === shape.checkReceivingPointsBoundry(p)
+                d === shape.checkReceivingPointsBoundry(p) ||
+                  d === shape.checkQuarterArea(p)
               );
               shape.setReceivePointVisible(
                 d,
                 shape.checkBoundry(p, 20) && pressing?.shape !== shape
               );
             });
-            // if (shape.checkQuarterArea(p)) {
-            // }
+            const _quarter = shape.checkQuarterArea(p);
+            if (!!_quarter) {
+              target = { shape: shape, quarter: _quarter };
+              stickingD = _quarter;
+            } else {
+              stickingD = null;
+            }
           });
         }
+
+        // if (!!target.shape && !!target.quarter) {
+        //   console.log(
+        //     target.shape.getNormalCenter().receivingPoints[target.quarter]
+        //   );
+        //   pressing.shape.locateCurveHandler(
+        //     pressing.curveId,
+        //     pressing.target,
+        //     target.shape.getNormalCenter().receivingPoints[target.quarter]
+        //   );
+        // } else if (!!stickingD) {
+        //   pressing.shape.locateCurveHandler(
+        //     pressing.curveId,
+        //     pressing.target,
+        //     pressing.shape.getNormalCenter().receivingPoints[stickingD]
+        //   );
+        // } else {
         pressing.shape.moveCurveHandler(
           pressing.direction,
           pressing.curveId,
           pressing.target,
           { x: p.x - lastP.x, y: p.y - lastP.y }
         );
+        // }
       }
     }
 
@@ -1363,98 +1394,128 @@ export default function IdPage() {
         pressing?.direction
       ) {
         const pressingShape = pressing.shape;
-        const theCheckReceivingPointsBoundryD =
+        const targetCheckReceivingPointsBoundryD =
           targetShape.checkReceivingPointsBoundry(p);
         const theQuarterD = targetShape.checkQuarterArea(p);
 
         if (!pressingShape || pressing.target !== CurveTypes.PressingTarget.p2)
           return;
 
-        if (!!theCheckReceivingPointsBoundryD) {
+        if (!!targetCheckReceivingPointsBoundryD) {
           pressingShape.connect(
             targetShape,
-            theCheckReceivingPointsBoundryD,
+            targetCheckReceivingPointsBoundryD,
             pressing.curveId
           );
         } else if (!!theQuarterD) {
           pressingShape.connect(targetShape, theQuarterD, pressing.curveId);
         }
 
-        let relocateP: null | CommonTypes.Vec = null;
-        switch (theCheckReceivingPointsBoundryD || theQuarterD) {
+        // let relocateP: null | CommonTypes.Vec = null;
+        // switch (targetCheckReceivingPointsBoundryD || theQuarterD) {
+        //   case CommonTypes.Direction.l:
+        //     if (targetShape instanceof Data) {
+        //       relocateP = {
+        //         x:
+        //           targetShape.p.x -
+        //           pressingShape.p.x +
+        //           (targetShape.getCorner().normal.tl.x +
+        //             targetShape.getCorner().normal.bl.x) /
+        //             2 -
+        //           6,
+        //         y: targetShape.p.y - pressingShape.p.y,
+        //       };
+        //     } else {
+        //       relocateP = {
+        //         x: targetShape.p.x - pressingShape.p.x - targetShape.w / 2 - 6,
+        //         y: targetShape.p.y - pressingShape.p.y,
+        //       };
+        //     }
+        //     break;
+        //   case CommonTypes.Direction.t:
+        //     if (targetShape instanceof Data) {
+        //       relocateP = {
+        //         x: targetShape.p.x - pressingShape.p.x,
+        //         y: targetShape.p.y - pressingShape.p.y - targetShape.h / 2 - 6,
+        //       };
+        //     } else {
+        //       relocateP = {
+        //         x: targetShape.p.x - pressingShape.p.x,
+        //         y: targetShape.p.y - pressingShape.p.y - targetShape.h / 2 - 6,
+        //       };
+        //     }
+        //     break;
+        //   case CommonTypes.Direction.r:
+        //     if (targetShape instanceof Data) {
+        //       relocateP = {
+        //         x:
+        //           targetShape.p.x -
+        //           pressingShape.p.x -
+        //           (targetShape.getCorner().normal.tl.x +
+        //             targetShape.getCorner().normal.bl.x) /
+        //             2 +
+        //           6,
+        //         y: targetShape.p.y - pressingShape.p.y,
+        //       };
+        //     } else {
+        //       relocateP = {
+        //         x: targetShape.p.x - pressingShape.p.x + targetShape.w / 2 + 6,
+        //         y: targetShape.p.y - pressingShape.p.y,
+        //       };
+        //     }
+        //     break;
+        //   case CommonTypes.Direction.b:
+        //     if (targetShape instanceof Data) {
+        //       relocateP = {
+        //         x: targetShape.p.x - pressingShape.p.x,
+        //         y: targetShape.p.y - pressingShape.p.y + targetShape.h / 2 + 6,
+        //       };
+        //     } else {
+        //       relocateP = {
+        //         x: targetShape.p.x - pressingShape.p.x,
+        //         y: targetShape.p.y - pressingShape.p.y + targetShape.h / 2 + 6,
+        //       };
+        //     }
+        //     break;
+        // }
+
+        let connectP: null | CommonTypes.Vec = null;
+        let connectOffset = 0;
+
+        switch (targetCheckReceivingPointsBoundryD) {
           case CommonTypes.Direction.l:
-            if (targetShape instanceof Data) {
-              relocateP = {
-                x:
-                  targetShape.p.x -
-                  pressingShape.p.x +
-                  (targetShape.getCorner().normal.tl.x +
-                    targetShape.getCorner().normal.bl.x) /
-                    2 -
-                  6,
-                y: targetShape.p.y - pressingShape.p.y,
-              };
-            } else {
-              relocateP = {
-                x: targetShape.p.x - pressingShape.p.x - targetShape.w / 2 - 6,
-                y: targetShape.p.y - pressingShape.p.y,
-              };
-            }
+            connectP = targetShape.getCenter().receivingPoints.l;
             break;
+
           case CommonTypes.Direction.t:
-            if (targetShape instanceof Data) {
-              relocateP = {
-                x: targetShape.p.x - pressingShape.p.x,
-                y: targetShape.p.y - pressingShape.p.y - targetShape.h / 2 - 6,
-              };
-            } else {
-              relocateP = {
-                x: targetShape.p.x - pressingShape.p.x,
-                y: targetShape.p.y - pressingShape.p.y - targetShape.h / 2 - 6,
-              };
-            }
+            connectP = targetShape.getCenter().receivingPoints.t;
             break;
+
           case CommonTypes.Direction.r:
-            if (targetShape instanceof Data) {
-              relocateP = {
-                x:
-                  targetShape.p.x -
-                  pressingShape.p.x -
-                  (targetShape.getCorner().normal.tl.x +
-                    targetShape.getCorner().normal.bl.x) /
-                    2 +
-                  6,
-                y: targetShape.p.y - pressingShape.p.y,
-              };
-            } else {
-              relocateP = {
-                x: targetShape.p.x - pressingShape.p.x + targetShape.w / 2 + 6,
-                y: targetShape.p.y - pressingShape.p.y,
-              };
-            }
+            connectP = targetShape.getCenter().receivingPoints.r;
             break;
+
           case CommonTypes.Direction.b:
-            if (targetShape instanceof Data) {
-              relocateP = {
-                x: targetShape.p.x - pressingShape.p.x,
-                y: targetShape.p.y - pressingShape.p.y + targetShape.h / 2 + 6,
-              };
-            } else {
-              relocateP = {
-                x: targetShape.p.x - pressingShape.p.x,
-                y: targetShape.p.y - pressingShape.p.y + targetShape.h / 2 + 6,
-              };
-            }
+            connectP = targetShape.getCenter().receivingPoints.b;
             break;
         }
 
-        if (!!relocateP) {
-          pressingShape.locateCurveHandler(
-            pressing.curveId,
-            CurveTypes.PressingTarget.p2,
-            relocateP
-          );
+        if (targetShape instanceof Data) {
+          connectOffset = 6;
+        } else {
+          connectOffset = 12;
         }
+
+        if (!connectP || !connectOffset || !targetCheckReceivingPointsBoundryD)
+          return;
+
+        pressingShape.locateCurveHandler(
+          pressing.curveId,
+          CurveTypes.PressingTarget.p2,
+          connectP,
+          targetCheckReceivingPointsBoundryD,
+          connectOffset
+        );
       }
     });
 

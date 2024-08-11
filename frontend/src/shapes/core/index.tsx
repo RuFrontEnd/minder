@@ -374,12 +374,85 @@ export default class Core {
     return targetCurve.shape[target];
   };
 
+  getNormalEdge() {
+    return {
+      l: this.p.x - this.w / 2,
+      t: this.p.y - this.h / 2,
+      r: this.p.x + this.w / 2,
+      b: this.p.y + this.h / 2,
+    };
+  }
+
   getEdge() {
     return {
       l: this.getScreenP().x - this.getScaleSize().w / 2,
       t: this.getScreenP().y - this.getScaleSize().h / 2,
       r: this.getScreenP().x + this.getScaleSize().w / 2,
       b: this.getScreenP().y + this.getScaleSize().h / 2,
+    };
+  }
+
+  getNormalCenter() {
+    const edge = this.getNormalEdge();
+    const pivot = {
+      x: this.p.x,
+      y: this.p.y,
+    };
+
+    return {
+      m: pivot,
+      lt: {
+        x: edge.l,
+        y: edge.t,
+      },
+      rt: {
+        x: edge.r,
+        y: edge.t,
+      },
+      rb: {
+        x: edge.r,
+        y: edge.b,
+      },
+      lb: {
+        x: edge.l,
+        y: edge.b,
+      },
+      curveTrigger: {
+        l: {
+          x: edge.l - this.curveTrigger.d,
+          y: pivot.y,
+        },
+        t: {
+          x: pivot.x,
+          y: edge.t - this.curveTrigger.d,
+        },
+        r: {
+          x: edge.r + this.curveTrigger.d,
+          y: pivot.y,
+        },
+        b: {
+          x: pivot.x,
+          y: edge.b + this.curveTrigger.d,
+        },
+      },
+      receivingPoints: {
+        l: {
+          x: pivot.x - this.w / 2,
+          y: pivot.y,
+        },
+        t: {
+          x: pivot.x,
+          y: pivot.y - this.h / 2,
+        },
+        r: {
+          x: pivot.x + this.w / 2,
+          y: pivot.y,
+        },
+        b: {
+          x: pivot.x,
+          y: pivot.y + this.h / 2,
+        },
+      },
     };
   }
 
@@ -920,20 +993,56 @@ export default class Core {
   locateCurveHandler(
     curveId: CurveTypes.Id,
     target: CurveTypes.PressingTarget,
-    p: Vec
+    p: Vec,
+    d: Direction,
+    offset: number
   ) {
     const targetCurve = (() => {
       for (const d of ds) {
         const curve = this.curves[d].find(
           (curve) => curve.shape.id === curveId
         );
-        if (curve) return curve;
+        if (curve) {
+          return curve;
+        }
       }
     })();
 
     if (!targetCurve) return;
 
-    targetCurve.shape.locateHandler(target, p);
+    let relativeP = { x: 0, y: 0 };
+
+    switch (d) {
+      case Direction.l:
+        relativeP = {
+          x: p.x / this.scale - this.offset.x - this.p.x - offset,
+          y: p.y / this.scale - this.offset.y - this.p.y,
+        };
+        break;
+
+      case Direction.t:
+        relativeP = {
+          x: p.x / this.scale - this.offset.x - this.p.x,
+          y: p.y / this.scale - this.offset.y - this.p.y - offset,
+        };
+        break;
+
+      case Direction.r:
+        relativeP = {
+          x: p.x / this.scale - this.offset.x - this.p.x + offset,
+          y: p.y / this.scale - this.offset.y - this.p.y,
+        };
+        break;
+
+      case Direction.b:
+        relativeP = {
+          x: p.x / this.scale - this.offset.x - this.p.x,
+          y: p.y / this.scale - this.offset.y - this.p.y + offset,
+        };
+        break;
+    }
+
+    targetCurve.shape.locateHandler(target, relativeP);
   }
 
   resize(offset: Vec, vertex: CoreTypes.PressingTarget) {
