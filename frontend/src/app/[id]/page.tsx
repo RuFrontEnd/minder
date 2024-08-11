@@ -592,9 +592,8 @@ export default function IdPage() {
   const [isRenameFrameOpen, setIsRenameFrameOpen] = useState(false);
   const [isProfileFrameOpen, setIsProfileFrameOpen] = useState(false);
   const [steps, setSteps] = useState<PageTypes.Steps>({});
-  const [dataFrameWarning, setDataFrameWarning] = useState<
-    DataFrameTypes.Warning
-  >(init.dataFrameWarning);
+  const [dataFrameWarning, setDataFrameWarning] =
+    useState<DataFrameTypes.Warning>(init.dataFrameWarning);
   const [isProjectsModalOpen, setIsProjectsModalOpen] = useState(false);
   const [authInfo, setAuthInfo] = useState<{
     account: {
@@ -804,10 +803,8 @@ export default function IdPage() {
   };
 
   const fetchProjects = async () => {
-    const res: AxiosResponse<
-      ProjectAPITypes.GetProjects["resData"],
-      any
-    > = await projectAPIs.getProjecs();
+    const res: AxiosResponse<ProjectAPITypes.GetProjects["resData"], any> =
+      await projectAPIs.getProjecs();
     setProjects(res.data);
   };
 
@@ -815,9 +812,8 @@ export default function IdPage() {
     const token = localStorage.getItem("Authorization");
 
     if (token) {
-      const res: AxiosResponse<
-        AuthTypes.JWTLogin["resData"]
-      > = await authAPIs.jwtLogin(token);
+      const res: AxiosResponse<AuthTypes.JWTLogin["resData"]> =
+        await authAPIs.jwtLogin(token);
 
       if (res.data.isPass) {
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
@@ -907,9 +903,8 @@ export default function IdPage() {
 
             if (!!pressing) return;
 
-            const withinHandlerRangeCurves = shape.checkCurveControlPointsBoundry(
-              p
-            );
+            const withinHandlerRangeCurves =
+              shape.checkCurveControlPointsBoundry(p);
             const firstDetectedCurve = withinHandlerRangeCurves[0];
             const withinRangeCurveIds = shape.checkCurvesBoundry(p);
 
@@ -1006,9 +1001,9 @@ export default function IdPage() {
         y: (p.y - lastP.y) * (1 / scale),
       };
 
-    const movingCanvas = space && leftMouseBtn;
+    const movingViewport = space && leftMouseBtn;
 
-    if (movingCanvas) {
+    if (movingViewport) {
       setDataFrame(undefined);
       offset.x += screenOffsetP.x;
       offset.y += screenOffsetP.y;
@@ -1257,6 +1252,8 @@ export default function IdPage() {
                 shape.checkBoundry(p, 20) && pressing?.shape !== shape
               );
             });
+            // if (shape.checkQuarterArea(p)) {
+            // }
           });
         }
         pressing.shape.moveCurveHandler(
@@ -1365,28 +1362,26 @@ export default function IdPage() {
         pressing?.target &&
         pressing?.direction
       ) {
-        const theCheckReceivingPointsBoundryD = targetShape.checkReceivingPointsBoundry(
-          p
-        );
-
         const pressingShape = pressing.shape;
+        const theCheckReceivingPointsBoundryD =
+          targetShape.checkReceivingPointsBoundry(p);
+        const theQuarterD = targetShape.checkQuarterArea(p);
 
-        if (
-          !theCheckReceivingPointsBoundryD ||
-          !pressingShape ||
-          pressing.target !== CurveTypes.PressingTarget.p2
-        )
+        if (!pressingShape || pressing.target !== CurveTypes.PressingTarget.p2)
           return;
 
-        pressingShape.connect(
-          targetShape,
-          theCheckReceivingPointsBoundryD,
-          pressing.curveId
-        );
+        if (!!theCheckReceivingPointsBoundryD) {
+          pressingShape.connect(
+            targetShape,
+            theCheckReceivingPointsBoundryD,
+            pressing.curveId
+          );
+        } else if (!!theQuarterD) {
+          pressingShape.connect(targetShape, theQuarterD, pressing.curveId);
+        }
 
         let relocateP: null | CommonTypes.Vec = null;
-
-        switch (theCheckReceivingPointsBoundryD) {
+        switch (theCheckReceivingPointsBoundryD || theQuarterD) {
           case CommonTypes.Direction.l:
             if (targetShape instanceof Data) {
               relocateP = {
@@ -1406,7 +1401,6 @@ export default function IdPage() {
               };
             }
             break;
-
           case CommonTypes.Direction.t:
             if (targetShape instanceof Data) {
               relocateP = {
@@ -1419,9 +1413,7 @@ export default function IdPage() {
                 y: targetShape.p.y - pressingShape.p.y - targetShape.h / 2 - 6,
               };
             }
-
             break;
-
           case CommonTypes.Direction.r:
             if (targetShape instanceof Data) {
               relocateP = {
@@ -1440,9 +1432,7 @@ export default function IdPage() {
                 y: targetShape.p.y - pressingShape.p.y,
               };
             }
-
             break;
-
           case CommonTypes.Direction.b:
             if (targetShape instanceof Data) {
               relocateP = {
@@ -1964,10 +1954,8 @@ export default function IdPage() {
 
   const initProject = async (id: ProjectTypes.Project["id"]) => {
     try {
-      const res: AxiosResponse<
-        ProjectAPITypes.GetProject["resData"],
-        any
-      > = await projectAPIs.getProject(id);
+      const res: AxiosResponse<ProjectAPITypes.GetProject["resData"], any> =
+        await projectAPIs.getProject(id);
 
       const projectData = res.data as ProjectAPITypes.ProjectData;
 
@@ -2010,9 +1998,8 @@ export default function IdPage() {
     if (!$canvas || !ctx) return;
 
     try {
-      const res: AxiosResponse<
-        ProjectAPITypes.DeleteProject["resData"]
-      > = await projectAPIs.deleteProject(id);
+      const res: AxiosResponse<ProjectAPITypes.DeleteProject["resData"]> =
+        await projectAPIs.deleteProject(id);
 
       if (id === selectedProjectId) {
         shapes = [];
@@ -2034,14 +2021,11 @@ export default function IdPage() {
       return;
     }
     shapes = [];
-    const newProject: AxiosResponse<
-      ProjectAPITypes.CreateProject["resData"]
-    > = await projectAPIs.createProject();
+    const newProject: AxiosResponse<ProjectAPITypes.CreateProject["resData"]> =
+      await projectAPIs.createProject();
 
-    const res: AxiosResponse<
-      ProjectAPITypes.GetProjects["resData"],
-      any
-    > = await projectAPIs.getProjecs();
+    const res: AxiosResponse<ProjectAPITypes.GetProjects["resData"], any> =
+      await projectAPIs.getProjecs();
 
     setIsProjectsModalOpen(false);
     setProjects(res.data);
@@ -2069,9 +2053,9 @@ export default function IdPage() {
     }));
   };
 
-  const onClickSaveProjectNameButton: MouseEventHandler<HTMLButtonElement> = async (
-    e
-  ) => {
+  const onClickSaveProjectNameButton: MouseEventHandler<
+    HTMLButtonElement
+  > = async (e) => {
     if (!selectedProjectId) return;
     const res: AxiosResponse<
       ProjectAPITypes.UpdateProjectName["resData"],

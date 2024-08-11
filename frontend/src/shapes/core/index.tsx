@@ -458,6 +458,108 @@ export default class Core {
     );
   }
 
+  checkQuarterArea(p: Vec) {
+    const center = this.getCenter();
+    const screenP = {
+      x: p.x * this.scale - this.offset.x,
+      y: p.y * this.scale - this.offset.y,
+    };
+
+    // 定义四个方向的三角形边向量
+    const quarterVecs = {
+      l: {
+        lt_m: { x: center.m.x - center.lt.x, y: center.m.y - center.lt.y },
+        m_lb: { x: center.lb.x - center.m.x, y: center.lb.y - center.m.y },
+        lb_lt: { x: center.lt.x - center.lb.x, y: center.lt.y - center.lb.y },
+      },
+      t: {
+        lt_rt: { x: center.rt.x - center.lt.x, y: center.rt.y - center.lt.y },
+        rt_m: { x: center.m.x - center.rt.x, y: center.m.y - center.rt.y },
+        m_lt: { x: center.lt.x - center.m.x, y: center.lt.y - center.m.y },
+      },
+      r: {
+        rt_rb: { x: center.rb.x - center.rt.x, y: center.rb.y - center.rt.y },
+        rb_m: { x: center.m.x - center.rb.x, y: center.m.y - center.rb.y },
+        m_rt: { x: center.rt.x - center.m.x, y: center.rt.y - center.m.y },
+      },
+      b: {
+        rb_lb: { x: center.lb.x - center.rb.x, y: center.lb.y - center.rb.y },
+        m_rb: { x: center.rb.x - center.m.x, y: center.rb.y - center.m.y },
+        lb_m: { x: center.m.x - center.lb.x, y: center.m.y - center.lb.y },
+      },
+    };
+
+    // 定义目标点相对于三角形顶点的向量
+    const targetVecs = {
+      l: {
+        lt_p: { x: screenP.x - center.lt.x, y: screenP.y - center.lt.y },
+        m_p: { x: screenP.x - center.m.x, y: screenP.y - center.m.y },
+        lb_p: { x: screenP.x - center.lb.x, y: screenP.y - center.lb.y },
+      },
+      t: {
+        lt_p: { x: screenP.x - center.lt.x, y: screenP.y - center.lt.y },
+        rt_p: { x: screenP.x - center.rt.x, y: screenP.y - center.rt.y },
+        m_p: { x: screenP.x - center.m.x, y: screenP.y - center.m.y },
+      },
+      r: {
+        rt_p: { x: screenP.x - center.rt.x, y: screenP.y - center.rt.y },
+        rb_p: { x: screenP.x - center.rb.x, y: screenP.y - center.rb.y },
+        m_p: { x: screenP.x - center.m.x, y: screenP.y - center.m.y },
+      },
+      b: {
+        lb_p: { x: screenP.x - center.lb.x, y: screenP.y - center.lb.y },
+        rb_p: { x: screenP.x - center.rb.x, y: screenP.y - center.rb.y },
+        m_p: { x: screenP.x - center.m.x, y: screenP.y - center.m.y },
+      },
+    };
+
+    const checkInsideTriangle = (
+      vecs: [Vec, Vec, Vec],
+      target: [Vec, Vec, Vec]
+    ) => {
+      const cross1 = vecs[0].x * target[0].y - vecs[0].y * target[0].x;
+      const cross2 = vecs[1].x * target[1].y - vecs[1].y * target[1].x;
+      const cross3 = vecs[2].x * target[2].y - vecs[2].y * target[2].x;
+
+      return (
+        (cross1 > 0 && cross2 > 0 && cross3 > 0) ||
+        (cross1 < 0 && cross2 < 0 && cross3 < 0)
+      );
+    };
+
+    if (
+      checkInsideTriangle(
+        [quarterVecs.l.lt_m, quarterVecs.l.m_lb, quarterVecs.l.lb_lt],
+        [targetVecs.l.lt_p, targetVecs.l.m_p, targetVecs.l.lb_p]
+      )
+    ) {
+      return Direction.l;
+    } else if (
+      checkInsideTriangle(
+        [quarterVecs.t.lt_rt, quarterVecs.t.rt_m, quarterVecs.t.m_lt],
+        [targetVecs.t.lt_p, targetVecs.t.rt_p, targetVecs.t.m_p]
+      )
+    ) {
+      return Direction.t;
+    } else if (
+      checkInsideTriangle(
+        [quarterVecs.r.rt_rb, quarterVecs.r.rb_m, quarterVecs.r.m_rt],
+        [targetVecs.r.rt_p, targetVecs.r.rb_p, targetVecs.r.m_p]
+      )
+    ) {
+      return Direction.r;
+    } else if (
+      checkInsideTriangle(
+        [quarterVecs.b.rb_lb, quarterVecs.b.m_rb, quarterVecs.b.lb_m],
+        [targetVecs.b.lb_p, targetVecs.b.rb_p, targetVecs.b.m_p]
+      )
+    ) {
+      return Direction.b;
+    }
+
+    return null;
+  }
+
   checkCurvesBoundry(p: Vec) {
     const withinRangeCurveIds: CurveTypes.Id[] = [];
     const curveP = {
