@@ -25,9 +25,9 @@ export default class Curve {
   cp1: Vec;
   __cp2__: Vec;
   arrow: null | Arrow;
-  selecting: boolean;
-  __offset__: Vec;
-  __scale__: number;
+  private __selecting__: boolean;
+  protected __offset__: Vec;
+  protected __scale__: number;
 
   constructor(id: string, p1: Vec, cp1: Vec, cp2: Vec, p2: Vec) {
     this.id = id;
@@ -57,9 +57,17 @@ export default class Curve {
       Math.atan2(this.__p2__.y - this.cp2.y, this.__p2__.x - this.cp2.x) +
         90 * (Math.PI / 180)
     );
-    this.selecting = false;
+    this.__selecting__ = false;
     this.__offset__ = this.initOffset;
     this.__scale__ = this.initScale;
+  }
+
+  get selecting() {
+    return this.__selecting__;
+  }
+
+  set selecting(val) {
+    this.__selecting__ = val;
   }
 
   get p2() {
@@ -69,7 +77,7 @@ export default class Curve {
   set p2(value: Vec) {
     this.__p2__ = value;
     if (this.arrow && value && this.cp2) {
-      this.arrow.p = { x: this.getScreenP().p2.x, y: this.getScreenP().p2.y };
+      this.arrow.p = value;
     }
   }
 
@@ -90,18 +98,16 @@ export default class Curve {
     this.__offset__ = value;
 
     if (this.arrow && value && this.cp2) {
-      this.arrow.p = { x: this.getScreenP().p2.x, y: this.getScreenP().p2.y };
+      this.arrow.offset = value;
+      this.arrow.p = value;
     }
   }
 
   set scale(value: number) {
-    const magnification = value / this.__scale__;
     this.__scale__ = value;
 
     if (this.arrow && value && this.cp2) {
-      this.arrow.p = { x: this.getScreenP().p2.x, y: this.getScreenP().p2.y };
-      this.arrow.w = this.arrow.w * magnification;
-      this.arrow.h = this.arrow.h * magnification;
+      this.arrow.scale = value;
     }
   }
 
@@ -127,10 +133,6 @@ export default class Curve {
   }
 
   getScaleCurveW = () => {
-    // console.log("this.id", this.id);
-    // console.log("this.curve.w", this.curve.w);
-    // console.log("this.__scale__", this.__scale__);
-    // console.log('this.curve.w * this.__scale__', this.curve.w * this.__scale__)
     return this.curve.w * this.__scale__;
   };
 
@@ -241,79 +243,37 @@ export default class Curve {
     };
   }
 
-  moveHandler(pressingTarget: CurveTypes.PressingTarget, p: Vec) {
-    // TODO: temporary closed
-    // if (pressingTarget === CurveTypes.PressingTarget.p1 && this.p1 !== null && this.cp1 !== null) {
-    //   const offset = {
-    //     x: p.x - this.getScreenP().p1.x,
-    //     y: p.y - this.getScreenP().p1.y,
-    //   };
+  moveHandler(pressingTarget: CurveTypes.PressingTarget, offset: Vec) {
+    const offsetX = offset.x / this.__scale__;
+    const offsetY = offset.y / this.__scale__;
 
-    //   this.p1 = {
-    //     x: p.x / this.__scale__ - this.__offset__.x - this.p1.x,
-    //     y: p.y / this.__scale__ - this.__offset__.y - this.p1.y,
-    //   };
+    this[pressingTarget].x += offsetX;
+    this[pressingTarget].y += offsetY;
 
-    //   this.cp1.x += offset.x;
-    //   this.cp1.y += offset.y;
-    // } else
-    if (
-      pressingTarget === CurveTypes.PressingTarget.cp1 &&
-      this.cp1?.x !== null &&
-      this.cp1?.y !== null
-    ) {
-      this.cp1 = {
-        x: p.x / this.__scale__ - this.__offset__.x,
-        y: p.y / this.__scale__ - this.__offset__.y,
-      };
-    } else if (
-      pressingTarget === CurveTypes.PressingTarget.cp2 &&
-      this.cp2?.x !== null &&
-      this.cp2?.y !== null
-    ) {
-      this.cp2 = {
-        x: p.x / this.__scale__ - this.__offset__.x,
-        y: p.y / this.__scale__ - this.__offset__.y,
-      };
-    } else if (
-      pressingTarget === CurveTypes.PressingTarget.p2 &&
-      this.p2 !== null &&
-      this.cp2 !== null
-    ) {
-      const offset = {
-        x: p.x / this.__scale__ - this.__offset__.x - this.p2.x,
-        y: p.y / this.__scale__ - this.__offset__.y - this.p2.y,
-      };
-
-      this.p2 = {
-        x: p.x / this.__scale__ - this.__offset__.x,
-        y: p.y / this.__scale__ - this.__offset__.y,
-      };
-
-      this.cp2.x += offset.x;
-      this.cp2.y += offset.y;
+    if (pressingTarget === CurveTypes.PressingTarget.p2) {
+      this.cp2.x += offsetX;
+      this.cp2.y += offsetY;
     }
 
     if (this.arrow && this.p2 && this.cp2) {
-      this.arrow.p = { x: this.getScreenP().p2.x, y: this.getScreenP().p2.y };
-      // this.arrow.deg =
-      //   Math.atan2(
-      //     this.getScreenP().p2.y - this.getScreenP().cp2.y,
-      //     this.getScreenP().p2.x - this.getScreenP().cp2.x
-      //   ) +
-      //   90 * (Math.PI / 180);
+      this.arrow.p = this.p2; // TODO: arrow should add offset and scale and calculate inside Arrow class
+      this.arrow.deg =
+        Math.atan2(this.p2.y - this.cp2.y, this.p2.x - this.cp2.x) +
+        90 * (Math.PI / 180);
     }
+  }
+
+  locateHandler(target: CurveTypes.PressingTarget, p: Vec) {
+    this[target] = {
+      x: p.x,
+      y: p.y,
+    };
   }
 
   draw(ctx: CanvasRenderingContext2D) {
     if (!this.p1 || !this.p2 || !this.cp1 || !this.cp2) return;
     // curve
     ctx.lineWidth = this.curve.w * this.__scale__;
-    // console.log("this.id", this.id);
-
-    // console.log("this.__scale__", this.__scale__);
-
-    // console.log("this.getScaleCurveW()", this.getScaleCurveW());
     ctx.strokeStyle = this.curve.c;
 
     ctx.beginPath();

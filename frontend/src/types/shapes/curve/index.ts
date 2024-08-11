@@ -1,3 +1,5 @@
+type Id = string;
+
 type Line = {
   w: number;
   c: string;
@@ -11,4 +13,4 @@ enum PressingTarget {
 }
 
 export { PressingTarget };
-export type { Line };
+export type { Id, Line };

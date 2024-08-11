@@ -15,8 +15,8 @@ export default function Accordion(props: AccordionTypes.Props) {
     <div className={className} onClick={onClick}>
       <div className="px-4 py-2 cursor-pointer hover:bg-grey-5 hover:bg-opacity-50 group">
         <div className="flex flex-1">
-          <div className="mt-[2px] w-6 h-6">
-            {showArrow && (
+          {showArrow && (
+            <div className="mt-[2px] w-6 h-6">
               <svg
                 className={`${
                   open ? "rotate-0" : "rotate-[-90deg]"
@@ -36,8 +36,8 @@ export default function Accordion(props: AccordionTypes.Props) {
                   d="m8 10 4 4 4-4"
                 />
               </svg>
-            )}
-          </div>
+            </div>
+          )}
           <p className="text-primary-500 text-lg flex-1 break-all">{title}</p>
           <div className="flex items-center">
             <div className="opacity-0 group-hover:opacity-100">

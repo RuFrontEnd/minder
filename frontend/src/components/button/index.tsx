@@ -16,7 +16,7 @@ const Button = (props: ButtonTypes.Props) => {
   return (
     <button
       id={props.id}
-      className={`${statusStyle} flex justify-center items-center text-white-500 border-0 py-2 px-6 focus:outline-none rounded text-md ease-in-out duration-300 ${
+      className={`${statusStyle} whitespace-nowrap flex justify-center items-center text-white-500 border-0 py-2 px-6 focus:outline-none rounded text-md ease-in-out duration-300 break-keep ${
         props.className && props.className
       }`}
       onClick={props.loading ? undefined : props.onClick}

@@ -5,26 +5,41 @@ A data-verification flowchart application
 
 ## Features
 FT
-- [x] rendering terminator shape 
-- [x] rendering process shape 
-- [x] rendering data shape
-- [x] rendering decision shape
-- [x] draging shapes
-- [x] resizing shapes
-- [x] removing shapes
-- [x] connecting shapes by curves
-- [x] importing data in each data shape
-- [x] defining data usage
-- [x] verifing data
+- [x] render terminator shape 
+- [x] render process shape 
+- [x] render data shape
+- [x] render decision shape
+- [x] drag shapes
+- [x] resize shapes
+- [x] remove shapes
+- [x] connect shapes by curves
+- [x] import data in each data shape
+- [x] define data usage
+- [x] verify data
+- [x] suspend data delivery
 - [x] infinite whiteboard
 - [x] zoom in / out
-- [x] validating required fields
-- [X] verifing repeated data name
-- [X] register
-- [X] login
+- [x] validate required fields
+- [x] verify repeated data name
+- [x] register
+- [x] login
+- [x] logout
+- [x] view project list
+- [x] create project
+- [x] delete project
+- [ ] one-click remove redundancies
+- [ ] modulize steps
+- [ ] data remark
+- [ ] auto calculate curve position
+- [ ] align shapes
+- [ ] forget password
+- [ ] third-party sign in
+- [ ] copy
 - [ ] undo
 - [ ] redo
 - [ ] optimizing UI
+- [ ] branding page
+- [ ] payment
 
 BK
 - [X] register

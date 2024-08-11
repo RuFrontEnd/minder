@@ -1,6 +1,7 @@
 "use client";
 import Core from "@/shapes/core";
 import Curve from "@/shapes/curve";
+import { tailwindColors } from "@/variables/colors";
 import { Direction } from "@/types/shapes/common";
 import * as CommonTypes from "@/types/shapes/common";
 
@@ -273,7 +274,7 @@ export default class Data extends Core {
     dy = center.m.y - p.y;
 
     if (
-      this.receiving.l &&
+      this.__receivePoint__.l.visible &&
       dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill
     ) {
       return CommonTypes.Direction.l;
@@ -283,7 +284,7 @@ export default class Data extends Core {
     dy = edge.t - p.y;
 
     if (
-      this.receiving.t &&
+      this.__receivePoint__.t.visible &&
       dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill
     ) {
       return CommonTypes.Direction.t;
@@ -294,7 +295,7 @@ export default class Data extends Core {
     dy = center.m.y - p.y;
 
     if (
-      this.receiving.r &&
+      this.__receivePoint__.r.visible &&
       dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill
     ) {
       return CommonTypes.Direction.r;
@@ -304,7 +305,7 @@ export default class Data extends Core {
     dy = p.y - edge.b;
 
     if (
-      this.receiving.b &&
+      this.__receivePoint__.b &&
       dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill
     ) {
       return CommonTypes.Direction.b;
@@ -312,64 +313,6 @@ export default class Data extends Core {
 
     return null;
   }
-
-  // connect(receiveD: CommonTypes.Direction, connectTarget: CoreTypes.ConnectTarget) {
-  //   // TODO: curve 相關
-  //   if (
-  //     !this.receiving[receiveD] ||
-  //     this.receiveFrom[receiveD]?.shape ||
-  //     this.curves[receiveD]?.shape
-  //   )
-  //     return;
-
-  //   const senderCurve =
-  //     connectTarget.shape.curves[connectTarget.direction].shape;
-  //   if (!senderCurve) return;
-  //   // receiver
-  //   this.receiveFrom[receiveD] = {
-  //     shape: connectTarget.shape,
-  //     sendD: connectTarget.direction,
-  //   };
-  //   // connectTarget
-  //   connectTarget.shape.curves[connectTarget.direction].sendTo = {
-  //     shape: this,
-  //     receiveD: receiveD,
-  //   };
-
-  //   // define receive curve P2 position
-  //   if (receiveD === CommonTypes.Direction.l) {
-  //     senderCurve.p2 = {
-  //       x:
-  //         this.p.x -
-  //         connectTarget.shape.p.x -
-  //         this.w / 2 -
-  //         this.thershold +
-  //         this.frameOffset / 2,
-  //       y: this.p.y - connectTarget.shape.p.y,
-  //     };
-  //   } else if (receiveD === CommonTypes.Direction.t) {
-  //     senderCurve.p2 = {
-  //       x: this.p.x - connectTarget.shape.p.x,
-  //       y: this.p.y - connectTarget.shape.p.y - this.h / 2 - this.thershold,
-  //     };
-  //   } else if (receiveD === CommonTypes.Direction.r) {
-  //     senderCurve.p2 = {
-  //       x:
-  //         this.p.x -
-  //         connectTarget.shape.p.x +
-  //         this.w / 2 +
-  //         this.thershold -
-  //         this.frameOffset / 2,
-  //       y: this.p.y - connectTarget.shape.p.y,
-  //     };
-  //   } else if (receiveD === CommonTypes.Direction.b) {
-  //     senderCurve.p2 = {
-  //       x: this.p.x - connectTarget.shape.p.x,
-
-  //       y: this.p.y - connectTarget.shape.p.y + this.h / 2 + this.thershold,
-  //     };
-  //   }
-  // }
 
   draw(ctx: CanvasRenderingContext2D) {
     super.draw(ctx, () => {
@@ -396,7 +339,12 @@ export default class Data extends Core {
     const corners = this.getCorner().scale;
 
     // left
-    if (this.receiving.l) {
+    if (this.__receivePoint__.l.visible) {
+      if (this.__receivePoint__.l.activate) {
+        ctx.fillStyle = "DeepSkyBlue";
+      } else {
+        ctx.fillStyle = tailwindColors.white["500"];
+      }
       ctx.beginPath();
       ctx.arc(
         -this.getScaleSize().w / 2 + Math.abs(corners.tl.x - corners.bl.x) / 2,
@@ -412,7 +360,12 @@ export default class Data extends Core {
     }
 
     // top
-    if (this.receiving.t) {
+    if (this.__receivePoint__.t.visible) {
+      if (this.__receivePoint__.t.activate) {
+        ctx.fillStyle = "DeepSkyBlue";
+      } else {
+        ctx.fillStyle = tailwindColors.white["500"];
+      }
       ctx.beginPath();
       ctx.arc(
         0,
@@ -428,7 +381,12 @@ export default class Data extends Core {
     }
 
     // right
-    if (this.receiving.r) {
+    if (this.__receivePoint__.r.visible) {
+      if (this.__receivePoint__.r.activate) {
+        ctx.fillStyle = "DeepSkyBlue";
+      } else {
+        ctx.fillStyle = tailwindColors.white["500"];
+      }
       ctx.beginPath();
       ctx.arc(
         this.getScaleSize().w / 2 - Math.abs(corners.tr.x - corners.br.x) / 2,
@@ -444,7 +402,12 @@ export default class Data extends Core {
     }
 
     // bottom
-    if (this.receiving.b) {
+    if (this.__receivePoint__.b.visible) {
+      if (this.__receivePoint__.b.activate) {
+        ctx.fillStyle = "DeepSkyBlue";
+      } else {
+        ctx.fillStyle = tailwindColors.white["500"];
+      }
       ctx.beginPath();
       ctx.arc(
         0,

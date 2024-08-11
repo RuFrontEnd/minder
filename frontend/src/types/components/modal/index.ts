@@ -1,4 +1,5 @@
 import { MouseEventHandler, ReactNode } from "react";
+import * as RoundButtonTypes from "@/types/components/roundButton";
 
 type Props = {
   id?: string;
@@ -8,7 +9,8 @@ type Props = {
   children?: ReactNode;
   width?: string;
   zIndex?: string;
-  onClickX?: MouseEventHandler<HTMLDivElement>;
+  mask?: boolean;
+  onClickX?: RoundButtonTypes.Props['onClick'];
 };
 
 export type { Props };

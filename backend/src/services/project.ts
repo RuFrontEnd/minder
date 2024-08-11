@@ -5,8 +5,8 @@ import { Project as ProjectModel } from "../models";
 export default class Project {
   private projectModel = new ProjectModel();
 
-  async getProjects(user: string) {
-    const projects = await this.projectModel.getProjects(user);
+  async getProjects(userId: AuthTypes.UserId) {
+    const projects = await this.projectModel.getProjects(userId);
     return projects.map((project) => ({
       id: project.id,
       name: project.name,

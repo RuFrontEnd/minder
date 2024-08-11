@@ -1,5 +1,6 @@
 import * as ProjectTypes from "@/types/project";
 import * as CommonTypes from "@/types/shapes/common";
+import * as APICommonTypes from "@/types/apis/common";
 import * as DecisionTypes from "@/types/shapes/decision";
 
 type GetProjects = {
@@ -89,8 +90,13 @@ type ProjectData = {
   img: string;
 };
 
+type ProjectIsNotBelongToTheCurrentUserData = {
+  status: APICommonTypes.Status.fail;
+  message: "The project is not belong to the current user.";
+};
+
 type GetProject = {
-  resData: ProjectData;
+  resData: ProjectData | ProjectIsNotBelongToTheCurrentUserData;
 };
 
 type UpdateProject = {
@@ -112,6 +118,8 @@ type UpdateProjectName = {
 };
 
 export type {
+  ProjectData,
+  ProjectIsNotBelongToTheCurrentUserData,
   GetProjects,
   GetProject,
   CreateProject,
