@@ -1273,15 +1273,12 @@ export default function IdPage() {
         }
 
         if (sticking.quarterD && sticking.shape) {
-          console.log(sticking.quarterD)
-          console.log(sticking.shape)
           pressing.shape.locateCurveHandler(
             pressing.curveId,
             CurveTypes.PressingTarget.p2,
             sticking.shape.getCenter().receivingPoints[sticking.quarterD]
           );
         } else {
-          console.log('A')
           pressing.shape.locateCurveHandler(
             pressing.curveId,
             pressing.target,
