@@ -523,11 +523,56 @@ export default class Core {
       );
     };
 
+    const checkOnTriangle = (edgePoints: [Vec, Vec, Vec], p: Vec) => {
+      const isRatio1Match =
+        edgePoints[0].x -
+          edgePoints[0].x / edgePoints[1].x -
+          edgePoints[1].x ===
+        edgePoints[0].x - edgePoints[0].x / p.x - p.x;
+
+      const isPInSideEdgePoint1 =
+        Math.max(edgePoints[0].x, edgePoints[1].x) >= p.x &&
+        Math.max(edgePoints[0].y, edgePoints[1].y) >= p.y &&
+        Math.max(edgePoints[0].x, edgePoints[1].x) <= p.x &&
+        Math.max(edgePoints[0].y, edgePoints[1].y) <= p.y;
+
+      const isRatio2Match =
+        edgePoints[1].x -
+          edgePoints[2].x / edgePoints[1].x -
+          edgePoints[2].x ===
+        edgePoints[1].x - edgePoints[1].x / p.x - p.x;
+
+      const isPInSideEdgePoint2 =
+        Math.max(edgePoints[1].x, edgePoints[2].x) >= p.x &&
+        Math.max(edgePoints[1].y, edgePoints[2].y) >= p.y &&
+        Math.max(edgePoints[1].x, edgePoints[2].x) <= p.x &&
+        Math.max(edgePoints[1].y, edgePoints[2].y) <= p.y;
+
+      const isRatio3Match =
+        edgePoints[2].x -
+          edgePoints[0].x / edgePoints[2].x -
+          edgePoints[0].x ===
+        edgePoints[2].x - edgePoints[2].x / p.x - p.x;
+
+      const isPInSideEdgePoint3 =
+        Math.max(edgePoints[2].x, edgePoints[0].x) >= p.x &&
+        Math.max(edgePoints[2].y, edgePoints[0].y) >= p.y &&
+        Math.max(edgePoints[2].x, edgePoints[0].x) <= p.x &&
+        Math.max(edgePoints[2].y, edgePoints[0].y) <= p.y;
+
+      return (
+        (isRatio1Match && isPInSideEdgePoint1) ||
+        (isRatio2Match && isPInSideEdgePoint2) ||
+        (isRatio3Match && isPInSideEdgePoint3)
+      );
+    };
+
     if (
       checkInsideTriangle(
         [quarterVecs.l.lt_m, quarterVecs.l.m_lb, quarterVecs.l.lb_lt],
         [targetVecs.l.lt_p, targetVecs.l.m_p, targetVecs.l.lb_p]
-      )
+      ) ||
+      checkOnTriangle([center.lt, center.m, center.lb], screenP)
     ) {
       return Direction.l;
     } else if (
@@ -540,7 +585,8 @@ export default class Core {
     } else if (
       checkInsideTriangle(
         [quarterVecs.r.rt_rb, quarterVecs.r.rb_m, quarterVecs.r.m_rt],
-        [targetVecs.r.rt_p, targetVecs.r.rb_p, targetVecs.r.m_p]
+        [targetVecs.r.rt_p, targetVecs.r.rb_p, targetVecs.r.m_p] ||
+          checkOnTriangle([center.rt, center.m, center.rb], screenP)
       )
     ) {
       return Direction.r;
