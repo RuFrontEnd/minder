@@ -108,6 +108,7 @@ let useEffected = false,
   offset: CommonTypes.Vec = cloneDeep(init.offset),
   offset_center: CommonTypes.Vec = cloneDeep(init.offset),
   lastP: CommonTypes.Vec = { x: 0, y: 0 },
+  relativeCurveCp2: CommonTypes.Vec = { x: 0, y: 0 },
   selectAreaP: null | {
     start: CommonTypes.Vec;
     end: CommonTypes.Vec;
@@ -901,6 +902,35 @@ export default function IdPage() {
                 CommonTypes.Direction[curveTriggerD]
               );
             }
+            switch (curveTriggerD) {
+              case CommonTypes.Direction.l:
+                relativeCurveCp2 = {
+                  x: (-shape.curveTrigger.d * 1) / 3,
+                  y: 0,
+                };
+                break;
+
+              case CommonTypes.Direction.t:
+                relativeCurveCp2 = {
+                  x: 0,
+                  y: (-shape.curveTrigger.d * 1) / 3,
+                };
+                break;
+
+              case CommonTypes.Direction.r:
+                relativeCurveCp2 = {
+                  x: (shape.curveTrigger.d * 1) / 3,
+                  y: 0,
+                };
+                break;
+
+              case CommonTypes.Direction.b:
+                relativeCurveCp2 = {
+                  x: 0,
+                  y: (shape.curveTrigger.d * 1) / 3,
+                };
+                break;
+            }
 
             if (!!pressing) return;
 
@@ -1236,9 +1266,43 @@ export default function IdPage() {
       } else if (
         !!pressing.curveId &&
         pressing.direction &&
-        (pressing?.target === CurveTypes.PressingTarget.cp1 ||
-          pressing?.target === CurveTypes.PressingTarget.cp2 ||
-          pressing?.target === CurveTypes.PressingTarget.p2)
+        pressing?.target === CurveTypes.PressingTarget.cp1
+      ) {
+        pressing.shape.locateCurveHandler(
+          pressing.curveId,
+          CurveTypes.PressingTarget.cp1,
+          p
+        );
+      } else if (
+        !!pressing.curveId &&
+        pressing.direction &&
+        pressing?.target === CurveTypes.PressingTarget.cp2
+      ) {
+        pressing.shape.locateCurveHandler(
+          pressing.curveId,
+          CurveTypes.PressingTarget.cp2,
+          p
+        );
+
+        const curveP2 = pressing.shape.getCurveP(
+          CurveTypes.PressingTarget.p2,
+          pressing.curveId
+        );
+        const curveCp2 = pressing.shape.getCurveP(
+          CurveTypes.PressingTarget.cp2,
+          pressing.curveId
+        );
+
+        if (!curveP2 || !curveCp2) return;
+
+        relativeCurveCp2 = {
+          x: curveP2.x - curveCp2.x,
+          y: curveP2.y - curveCp2.y,
+        };
+      } else if (
+        !!pressing.curveId &&
+        pressing.direction &&
+        pressing?.target === CurveTypes.PressingTarget.p2
       ) {
         let sticking: {
           shape: null | Terminal | Process | Data | Desicion;
@@ -1248,59 +1312,58 @@ export default function IdPage() {
           quarterD: null,
         };
 
-        if (pressing?.target === CurveTypes.PressingTarget.p2) {
-          pressing.shape.disConnect([pressing.curveId]);
+        pressing.shape.disConnect([pressing.curveId]);
 
-          shapes.forEach((shape) => {
-            const _quarterD = shape.checkQuarterArea(p);
+        shapes.forEach((shape) => {
+          const _quarterD = shape.checkQuarterArea(p);
 
-            if (_quarterD && shape !== pressing?.shape) {
-              sticking.quarterD = _quarterD;
-              sticking.shape = shape;
-            }
+          if (_quarterD && shape !== pressing?.shape) {
+            sticking.quarterD = _quarterD;
+            sticking.shape = shape;
+          }
 
-            ds.forEach((d) => {
-              shape.setReceivePointActivate(
-                d,
-                d === shape.checkReceivingPointsBoundry(p) ||
-                  d === sticking.quarterD
-              );
-              shape.setReceivePointVisible(
-                d,
-                shape.checkBoundry(p, 20) && pressing?.shape !== shape
-              );
-            });
+          ds.forEach((d) => {
+            shape.setReceivePointActivate(
+              d,
+              d === shape.checkReceivingPointsBoundry(p) ||
+                d === sticking.quarterD
+            );
+            shape.setReceivePointVisible(
+              d,
+              shape.checkBoundry(p, 20) && pressing?.shape !== shape
+            );
           });
-        }
+        });
+
+        const getLocateCurveHandler = (
+          pressingShape: PageIdTypes.Pressing["shape"],
+          curveId: PageIdTypes.Pressing["curveId"]
+        ) => {
+          return (p2: CommonTypes.Vec, cp2: CommonTypes.Vec) => {
+            if (!pressingShape || !curveId) return;
+            pressingShape.locateCurveHandler(
+              curveId,
+              CurveTypes.PressingTarget.p2,
+              p2
+            );
+            pressingShape.locateCurveHandler(
+              curveId,
+              CurveTypes.PressingTarget.cp2,
+              cp2
+            );
+          };
+        };
+
+        const locateCurveHandler = getLocateCurveHandler(
+          pressing.shape,
+          pressing.curveId
+        );
 
         if (sticking.quarterD && sticking.shape) {
-          const getLocateCurveHandler = (
-            pressingShape: PageIdTypes.Pressing["shape"],
-            curveId: PageIdTypes.Pressing["curveId"]
-          ) => {
-            return (p2: CommonTypes.Vec, cp2: CommonTypes.Vec) => {
-              if (!pressingShape || !curveId) return;
-              pressingShape.locateCurveHandler(
-                curveId,
-                CurveTypes.PressingTarget.p2,
-                p2
-              );
-              pressingShape.locateCurveHandler(
-                curveId,
-                CurveTypes.PressingTarget.cp2,
-                cp2
-              );
-            };
-          };
-
           const offset_p2 = 12 * scale;
           const offset_cp2 = offset_p2 * 3;
           const stickingReceivingPoint =
             sticking.shape.getCenter().receivingPoints[sticking.quarterD];
-          const locateCurveHandler = getLocateCurveHandler(
-            pressing.shape,
-            pressing.curveId
-          );
 
           switch (sticking.quarterD) {
             case CommonTypes.Direction.l:
@@ -1356,11 +1419,10 @@ export default function IdPage() {
               break;
           }
         } else {
-          pressing.shape.locateCurveHandler(
-            pressing.curveId,
-            pressing.target,
-            p
-          );
+          locateCurveHandler(p, {
+            x: p.x - relativeCurveCp2.x * scale,
+            y: p.y - relativeCurveCp2.y * scale,
+          });
         }
       }
     }

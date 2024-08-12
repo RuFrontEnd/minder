@@ -20,7 +20,7 @@ export default class Core {
       stroke: 2,
     },
   };
-  curveTrigger: {
+  protected __curveTrigger__: {
     d: number;
     size: {
       fill: number;
@@ -330,6 +330,10 @@ export default class Core {
     return this.__selecting__;
   }
 
+  get curveTrigger() {
+    return this.__curveTrigger__;
+  }
+
   getCurveIds() {
     let curveIds: string[] = [];
 
@@ -357,7 +361,7 @@ export default class Core {
   }
 
   getScaleCurveTriggerDistance() {
-    return this.curveTrigger.d * this.scale;
+    return this.__curveTrigger__.d * this.scale;
   }
 
   getCurveP = (target: CurveTypes.PressingTarget, curveId: CurveTypes.Id) => {
@@ -408,7 +412,7 @@ export default class Core {
         x: edge.l,
         y: edge.b,
       },
-      curveTrigger: {
+      __curveTrigger__: {
         l: {
           x: edge.l - this.getScaleCurveTriggerDistance(),
           y: pivot.y,
@@ -751,9 +755,11 @@ export default class Core {
 
     for (const d of ds) {
       if (
-        (p.x - center.curveTrigger[d].x) * (p.x - center.curveTrigger[d].x) +
-          (p.y - center.curveTrigger[d].y) * (p.y - center.curveTrigger[d].y) <
-        this.curveTrigger.size.fill * this.curveTrigger.size.fill
+        (p.x - center.__curveTrigger__[d].x) *
+          (p.x - center.__curveTrigger__[d].x) +
+          (p.y - center.__curveTrigger__[d].y) *
+            (p.y - center.__curveTrigger__[d].y) <
+        this.__curveTrigger__.size.fill * this.__curveTrigger__.size.fill
       ) {
         return Direction[d];
       }
@@ -1076,15 +1082,15 @@ export default class Core {
           y: 0,
         },
         {
-          x: -this.w / 2 + (-this.curveTrigger.d * 1) / 3,
+          x: -this.w / 2 + (-this.__curveTrigger__.d * 1) / 3,
           y: 0,
         },
         {
-          x: -this.w / 2 + (-this.curveTrigger.d * 2) / 3,
+          x: -this.w / 2 + (-this.__curveTrigger__.d * 2) / 3,
           y: 0,
         },
         {
-          x: -this.w / 2 - this.curveTrigger.d,
+          x: -this.w / 2 - this.__curveTrigger__.d,
           y: 0,
         }
       );
@@ -1097,15 +1103,15 @@ export default class Core {
         },
         {
           x: 0,
-          y: -this.h / 2 + (-this.curveTrigger.d * 1) / 3,
+          y: -this.h / 2 + (-this.__curveTrigger__.d * 1) / 3,
         },
         {
           x: 0,
-          y: -this.h / 2 + (-this.curveTrigger.d * 2) / 3,
+          y: -this.h / 2 + (-this.__curveTrigger__.d * 2) / 3,
         },
         {
           x: 0,
-          y: -this.h / 2 - this.curveTrigger.d,
+          y: -this.h / 2 - this.__curveTrigger__.d,
         }
       );
     } else if (_d === Direction.r) {
@@ -1116,15 +1122,15 @@ export default class Core {
           y: 0,
         },
         {
-          x: this.w / 2 + (this.curveTrigger.d * 1) / 3,
+          x: this.w / 2 + (this.__curveTrigger__.d * 1) / 3,
           y: 0,
         },
         {
-          x: this.w / 2 + (this.curveTrigger.d * 2) / 3,
+          x: this.w / 2 + (this.__curveTrigger__.d * 2) / 3,
           y: 0,
         },
         {
-          x: this.w / 2 + this.curveTrigger.d,
+          x: this.w / 2 + this.__curveTrigger__.d,
           y: 0,
         }
       );
@@ -1137,15 +1143,15 @@ export default class Core {
         },
         {
           x: 0,
-          y: this.h / 2 + (this.curveTrigger.d * 1) / 3,
+          y: this.h / 2 + (this.__curveTrigger__.d * 1) / 3,
         },
         {
           x: 0,
-          y: this.h / 2 + (this.curveTrigger.d * 2) / 3,
+          y: this.h / 2 + (this.__curveTrigger__.d * 2) / 3,
         },
         {
           x: 0,
-          y: this.h / 2 + this.curveTrigger.d,
+          y: this.h / 2 + this.__curveTrigger__.d,
         }
       );
     }
@@ -1448,7 +1454,7 @@ export default class Core {
     ctx.arc(
       0,
       this.getScaleSize().h / 2 + this.getScaleCurveTriggerDistance(),
-      this.curveTrigger.size.fill,
+      this.__curveTrigger__.size.fill,
       0,
       2 * Math.PI,
       false
