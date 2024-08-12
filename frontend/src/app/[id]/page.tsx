@@ -41,6 +41,7 @@ import * as AuthTypes from "@/types/apis/auth";
 import * as ProjectAPITypes from "@/types/apis/project";
 import * as ProjectTypes from "@/types/project";
 import * as APICommonTypes from "@/types/apis/common";
+import * as PageIdTypes from "@/types/app/pageId";
 
 axios.defaults.baseURL = process.env.BASE_URL || "http://localhost:5000/api";
 
@@ -1273,11 +1274,87 @@ export default function IdPage() {
         }
 
         if (sticking.quarterD && sticking.shape) {
-          pressing.shape.locateCurveHandler(
-            pressing.curveId,
-            CurveTypes.PressingTarget.p2,
-            sticking.shape.getCenter().receivingPoints[sticking.quarterD]
+          const getLocateCurveHandler = (
+            pressingShape: PageIdTypes.Pressing["shape"],
+            curveId: PageIdTypes.Pressing["curveId"]
+          ) => {
+            return (p2: CommonTypes.Vec, cp2: CommonTypes.Vec) => {
+              if (!pressingShape || !curveId) return;
+              pressingShape.locateCurveHandler(
+                curveId,
+                CurveTypes.PressingTarget.p2,
+                p2
+              );
+              pressingShape.locateCurveHandler(
+                curveId,
+                CurveTypes.PressingTarget.cp2,
+                cp2
+              );
+            };
+          };
+
+          const offset_p2 = 12 * scale;
+          const offset_cp2 = offset_p2 * 3;
+          const stickingReceivingPoint =
+            sticking.shape.getCenter().receivingPoints[sticking.quarterD];
+          const locateCurveHandler = getLocateCurveHandler(
+            pressing.shape,
+            pressing.curveId
           );
+
+          switch (sticking.quarterD) {
+            case CommonTypes.Direction.l:
+              locateCurveHandler(
+                {
+                  x: stickingReceivingPoint.x - offset_p2,
+                  y: stickingReceivingPoint.y,
+                },
+                {
+                  x: stickingReceivingPoint.x - offset_cp2,
+                  y: stickingReceivingPoint.y,
+                }
+              );
+              break;
+
+            case CommonTypes.Direction.t:
+              locateCurveHandler(
+                {
+                  x: stickingReceivingPoint.x,
+                  y: stickingReceivingPoint.y - offset_p2,
+                },
+                {
+                  x: stickingReceivingPoint.x,
+                  y: stickingReceivingPoint.y - offset_cp2,
+                }
+              );
+              break;
+
+            case CommonTypes.Direction.r:
+              locateCurveHandler(
+                {
+                  x: stickingReceivingPoint.x + offset_p2,
+                  y: stickingReceivingPoint.y,
+                },
+                {
+                  x: stickingReceivingPoint.x + offset_cp2,
+                  y: stickingReceivingPoint.y,
+                }
+              );
+              break;
+
+            case CommonTypes.Direction.b:
+              locateCurveHandler(
+                {
+                  x: stickingReceivingPoint.x,
+                  y: stickingReceivingPoint.y + offset_p2,
+                },
+                {
+                  x: stickingReceivingPoint.x,
+                  y: stickingReceivingPoint.y + offset_cp2,
+                }
+              );
+              break;
+          }
         } else {
           pressing.shape.locateCurveHandler(
             pressing.curveId,

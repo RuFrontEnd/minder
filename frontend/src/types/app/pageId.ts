@@ -1,0 +1,20 @@
+import Core from "@/shapes/core";
+import Terminal from "@/shapes/terminal";
+import Process from "@/shapes/process";
+import Data from "@/shapes/data";
+import Desicion from "@/shapes/decision";
+import * as CommonTypes from "@/types/shapes/common";
+import * as CoreTypes from "@/types/shapes/core";
+import * as CurveTypes from "@/types/shapes/curve";
+
+type Pressing = {
+  shape: null | Terminal | Process | Data | Desicion;
+  curveId?: null | CurveTypes.Id;
+  direction: null | CommonTypes.Direction; // TODO: should be removed in the future
+  target:
+    | null
+    | CoreTypes.PressingTarget
+    | CurveTypes.PressingTarget
+    | CommonTypes.SelectAreaTarget;
+};
+export type { Pressing };
