@@ -1,3 +1,9 @@
+// TODO: 
+// 1. create arrow checkboundry
+// 2. create arrow check point
+// 3. when move curve p2, calculate cp2 in curve(move from page into curve)
+// 4. when arrow control point moves, moves curve p2(then cp2 should move as well)
+
 "use client";
 import Arrow from "@/shapes/arrow";
 import { Vec } from "@/types/shapes/common";
