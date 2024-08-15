@@ -606,11 +606,11 @@ export default class Core {
     return null;
   }
 
-  checkCurvesBoundry(p: Vec) {
+  checkCurvesBoundry(screenP: Vec) {
     const withinRangeCurveIds: CurveTypes.Id[] = [];
     const curveP = {
-      x: p.x - this?.getScreenP().x,
-      y: p.y - this?.getScreenP().y,
+      x: screenP.x - this?.getScreenP().x,
+      y: screenP.y - this?.getScreenP().y,
     };
 
     ds.forEach((d) => {
