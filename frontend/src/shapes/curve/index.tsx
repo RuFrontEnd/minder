@@ -46,7 +46,7 @@ export default class Curve {
       c: "#333333",
     };
     this.controlPoint = {
-      c: tailwindColors?.white['500'],
+      c: tailwindColors?.white["500"],
       strokeC: tailwindColors?.info["500"],
       r: 5,
     };
@@ -141,6 +141,13 @@ export default class Curve {
     };
   }
 
+  getRelativeScreenP(screenP: Vec) {
+    return {
+      x: screenP.x - (this.p1.x + this.__offset__.x) * this.__scale__,
+      y: screenP.y - (this.p1.y + this.__offset__.y) * this.__scale__,
+    };
+  }
+
   getScaleCurveW = () => {
     return this.curve.w * this.__scale__;
   };
@@ -173,7 +180,7 @@ export default class Curve {
     for (let t = 0; t <= 1; t += 0.01) {
       if (!this.p1 || !this.cp1 || !this.cp2 || !this.p2) return false;
       const bezierPoint = this.getBezierPoint(t, [
-        this.getScreenP().p1,
+        { x: 0, y: 0 },
         this.getScreenP().cp1,
         this.getScreenP().cp2,
         this.getScreenP().p2,
@@ -187,13 +194,19 @@ export default class Curve {
     return false;
   }
 
-  checkControlPointsBoundry(p: Vec) {
+  checkControlPointsBoundry(screenP: Vec) {
     if (!this.p1 || !this.p2 || !this.cp1 || !this.cp2) return null;
-
     let dx, dy;
 
-    dx = this.getScreenP().p2.x - p.x;
-    dy = this.getScreenP().p2.y - p.y;
+    const relativeScreenP = {
+      p: this.getRelativeScreenP(screenP),
+      p2: this.getRelativeScreenP(this.getScreenP().p2),
+      cp1: this.getRelativeScreenP(this.getScreenP().cp1),
+      cp2: this.getRelativeScreenP(this.getScreenP().cp2),
+    };
+
+    dx = relativeScreenP.p2.x - relativeScreenP.p.x;
+    dy = relativeScreenP.p2.y - relativeScreenP.p.y;
 
     const scope = this.controlPoint.r * this.controlPoint.r;
 
@@ -201,19 +214,30 @@ export default class Curve {
       return CurveTypes.PressingTarget.p2;
     }
 
-    dx = this.getScreenP().cp2.x - p.x;
-    dy = this.getScreenP().cp2.y - p.y;
+    dx = relativeScreenP.cp2.x - relativeScreenP.p.x;
+    dy = relativeScreenP.cp2.y - relativeScreenP.p.y;
 
     if (dx * dx + dy * dy < scope) {
       return CurveTypes.PressingTarget.cp2;
     }
 
-    dx = this.getScreenP().cp1.x - p.x;
-    dy = this.getScreenP().cp1.y - p.y;
+    dx = relativeScreenP.cp1.x - relativeScreenP.p.x;
+    dy = relativeScreenP.cp1.y - relativeScreenP.p.y;
 
     if (dx * dx + dy * dy < scope) {
       return CurveTypes.PressingTarget.cp1;
     }
+
+    const arrowP = {
+      x: relativeScreenP.p.x - relativeScreenP.p2.x,
+      y: relativeScreenP.p.y - relativeScreenP.p2.y,
+    };
+
+    // console.log(this.arrow?.checkControlPointsBoundry(arrowP));
+
+    // if (this.arrow?.checkControlPointsBoundry(screenP)) {
+    //   console.log("AA");
+    // }
 
     // TODO: keep p1 checking but not using.
     // dx = this.p1.x - p.x;
@@ -227,7 +251,6 @@ export default class Curve {
   }
 
   checkBoundry(screenP: Vec) {
-    console.log("this.arrow?.checkBoundry(screenP)", this.arrow?.checkBoundry(screenP));
     return (
       this.getIsPointNearBezierCurve(screenP, threshold) ||
       this.arrow?.checkBoundry(screenP)
@@ -282,57 +305,64 @@ export default class Curve {
 
   draw(ctx: CanvasRenderingContext2D) {
     if (!this.p1 || !this.p2 || !this.cp1 || !this.cp2) return;
-    // curve
+
     ctx.lineWidth = this.curve.w * this.__scale__;
     ctx.strokeStyle = this.curve.c;
 
+    const relativeScreenP = {
+      p1: this.getRelativeScreenP(this.getScreenP().p1),
+      cp1: this.getRelativeScreenP(this.getScreenP().cp1),
+      cp2: this.getRelativeScreenP(this.getScreenP().cp2),
+      p2: this.getRelativeScreenP(this.getScreenP().p2),
+    };
+
+    ctx.save();
+    ctx.translate(this.getScreenP().p1.x, this.getScreenP().p1.y);
+
     ctx.beginPath();
-    ctx.moveTo(this.getScreenP().p1.x, this.getScreenP().p1.y);
+    // curve
+    ctx.moveTo(0, 0);
     if (this.cp2) {
       ctx.bezierCurveTo(
-        this.getScreenP().cp1.x,
-        this.getScreenP().cp1.y,
-        this.getScreenP().cp2.x,
-        this.getScreenP().cp2.y,
-        this.getScreenP().p2.x,
-        this.getScreenP().p2.y
+        relativeScreenP.cp1.x,
+        relativeScreenP.cp1.y,
+        relativeScreenP.cp2.x,
+        relativeScreenP.cp2.y,
+        relativeScreenP.p2.x,
+        relativeScreenP.p2.y
       );
     } else {
       ctx.quadraticCurveTo(
-        this.getScreenP().cp1.x,
-        this.getScreenP().cp1.y,
-        this.getScreenP().p2.x,
-        this.getScreenP().p2.y
+        relativeScreenP.cp1.x,
+        relativeScreenP.cp1.y,
+        relativeScreenP.p2.x,
+        relativeScreenP.p2.y
       );
     }
     ctx.stroke();
     ctx.closePath();
 
-    if (this.arrow) {
-      this.arrow.draw(ctx);
-    }
-
     if (this.selecting) {
-      //   // control lines
+      // control lines
       ctx.lineWidth = this.cpline.w;
       ctx.strokeStyle = this.cpline.c;
       ctx.fillStyle = this.cpline.c;
 
       ctx.beginPath();
-      ctx.moveTo(this.getScreenP().p1.x, this.getScreenP().p1.y);
-      ctx.lineTo(this.getScreenP().cp1.x, this.getScreenP().cp1.y);
+      ctx.moveTo(0, 0);
+      ctx.lineTo(relativeScreenP.cp1.x, relativeScreenP.cp1.y);
       ctx.stroke();
       ctx.closePath();
 
       if (this.cp2) {
         ctx.beginPath();
-        ctx.moveTo(this.getScreenP().p2.x, this.getScreenP().p2.y);
-        ctx.lineTo(this.getScreenP().cp2.x, this.getScreenP().cp2.y);
+        ctx.moveTo(relativeScreenP.p2.x, relativeScreenP.p2.y);
+        ctx.lineTo(relativeScreenP.cp2.x, relativeScreenP.cp2.y);
         ctx.stroke();
         ctx.closePath();
       } else {
         ctx.beginPath();
-        ctx.lineTo(this.getScreenP().p2.x, this.getScreenP().p2.y);
+        ctx.lineTo(relativeScreenP.p2.x, relativeScreenP.p2.y);
         ctx.stroke();
         ctx.closePath();
       }
@@ -343,15 +373,15 @@ export default class Curve {
 
       //   // TODO: keep p1 rendering but not using.
       //   // ctx.beginPath();
-      //   // ctx.arc(this.getScreenP().p1.x, this.getScreenP().p1.y, this.this.controlPoint.r(), 0, 2 * Math.PI, true); // p1 control point
+      //   // ctx.arc(relativeScreenP.p1.x, relativeScreenP.p1.y, this.this.controlPoint.r(), 0, 2 * Math.PI, true); // p1 control point
       //   // ctx.fill();
       //   // ctx.stroke();
       //   // ctx.closePath();
 
       ctx.beginPath();
       ctx.arc(
-        this.getScreenP().cp1.x,
-        this.getScreenP().cp1.y,
+        relativeScreenP.cp1.x,
+        relativeScreenP.cp1.y,
         this.controlPoint.r,
         0,
         2 * Math.PI,
@@ -363,8 +393,8 @@ export default class Curve {
 
       ctx.beginPath();
       ctx.arc(
-        this.getScreenP().cp2.x,
-        this.getScreenP().cp2.y,
+        relativeScreenP.cp2.x,
+        relativeScreenP.cp2.y,
         this.controlPoint.r,
         0,
         2 * Math.PI,
@@ -376,8 +406,8 @@ export default class Curve {
 
       ctx.beginPath();
       ctx.arc(
-        this.getScreenP().p2.x,
-        this.getScreenP().p2.y,
+        relativeScreenP.p2.x,
+        relativeScreenP.p2.y,
         this.controlPoint.r,
         0,
         2 * Math.PI,
@@ -387,5 +417,13 @@ export default class Curve {
       ctx.stroke();
       ctx.closePath();
     }
+
+    // ctx.moveTo(0, 0);
+
+    ctx.restore();
+
+    // if (this.arrow) {
+    //   this.arrow.draw(ctx);
+    // }
   }
 }

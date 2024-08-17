@@ -1,4 +1,5 @@
 import { Vec } from "@/types/shapes/common";
+import * as ArrowTypes from "@/types/shapes/arrow";
 import { tailwindColors } from "@/variables/colors";
 
 export default class Arrow {
@@ -45,13 +46,6 @@ export default class Arrow {
     };
   }
 
-  getScaleSize() {
-    return {
-      w: this.w * this.__scale__,
-      h: this.h * this.__scale__,
-    };
-  }
-
   getPToOriginP(p: Vec) {
     return {
       x: p.x - this.p.x,
@@ -66,15 +60,98 @@ export default class Arrow {
     };
   }
 
-  getRotateP(p: Vec) {
-    function rotate(p: Vec, deg: number) {
-      return {
-        x: p.x * Math.cos(deg) - p.y * Math.sin(deg),
-        y: p.x * Math.sin(deg) + p.y * Math.cos(deg),
-      };
-    }
+  rotate(p: Vec) {
+    return {
+      x: p.x * Math.cos(this.deg) - p.y * Math.sin(this.deg),
+      y: p.x * Math.sin(this.deg) + p.y * Math.cos(this.deg),
+    };
+  }
 
-    return this.getOriginPToP(rotate(this.getPToOriginP(p), this.deg));
+  getRotateP(p: Vec) {
+    return this.getOriginPToP(this.rotate(this.getPToOriginP(p)));
+  }
+
+  getRotateVertex() {
+    return {
+      t: this.getOriginPToP(
+        this.rotate(
+          this.getPToOriginP({
+            x: this.p.x,
+            y: this.p.y - this.h,
+          })
+        )
+      ),
+      l: this.getOriginPToP(
+        this.rotate(
+          this.getPToOriginP({
+            x: this.p.x - this.w / 2,
+            y: this.p.y,
+          })
+        )
+      ),
+      r: this.getOriginPToP(
+        this.rotate(
+          this.getPToOriginP({
+            x: this.p.x + this.w / 2,
+            y: this.p.y,
+          })
+        )
+      ),
+    };
+  }
+
+  getRotateScreenP() {
+    const rotateP = this.getRotateP({
+      x: this.p.x + this.__offset__.x,
+      y: this.p.y + this.__offset__.y,
+    });
+    return {
+      x: rotateP.x * this.__scale__,
+      y: rotateP.y * this.__scale__,
+    };
+  }
+
+  getScaleSize() {
+    return {
+      w: this.w * this.__scale__,
+      h: this.h * this.__scale__,
+    };
+  }
+
+  getScreenVertex() {
+    return {
+      t: {
+        x: (this.p.x + this.__offset__.x) * this.__scale__,
+        y: (this.p.y - this.h + this.__offset__.y) * this.__scale__,
+      },
+      l: {
+        x: (this.p.x - this.w / 2) * this.__scale__,
+        y: (this.p.y + this.__offset__.y) * this.__scale__,
+      },
+      r: {
+        x: (this.p.x + this.w / 2) * this.__scale__,
+        y: (this.p.y + this.__offset__.y) * this.__scale__,
+      },
+    };
+  }
+
+  getRotateScreenVertex() {
+    const rotateVertex = this.getRotateVertex();
+
+    return {
+      t: {
+        x: (rotateVertex.t.x + this.__offset__.x) * this.__scale__,
+        y: (rotateVertex.t.x + this.__offset__.y) * this.__scale__,
+      },
+      l: {
+        x: (rotateVertex.l.x + this.__offset__.x) * this.__scale__,
+        y: (rotateVertex.l.x + this.__offset__.y) * this.__scale__,
+      },
+      r: {
+        x: (rotateVertex.r.x + this.__offset__.x) * this.__scale__,
+        y: (rotateVertex.r.x + this.__offset__.y) * this.__scale__,
+      },
+    };
   }
 
   checkBoundry(screenP: Vec) {
@@ -128,19 +205,48 @@ export default class Arrow {
     );
   }
 
+  checkControlPointsBoundry(screenP: Vec) {
+    const rotateScreenVertex = this.getRotateScreenVertex();
+
+    if (
+      Math.pow(screenP.x - rotateScreenVertex.t.x, 2) +
+        Math.pow(screenP.y - rotateScreenVertex.t.y, 2) <
+      Math.pow(5, 2)
+    ) {
+      return ArrowTypes.Vertex.t;
+    }
+
+    return null;
+  }
+
   draw(ctx: CanvasRenderingContext2D) {
     const scaleSize = this.getScaleSize();
-    ctx.beginPath();
-    ctx.fillStyle = this.c;
+
     ctx.save();
     ctx.translate(this.getScreenP().x, this.getScreenP().y);
+
+    ctx.beginPath();
+    ctx.fillStyle = this.c;
     ctx.rotate(this.deg);
     ctx.moveTo(-scaleSize.w / 2, 0);
     ctx.lineTo(0, -scaleSize.h);
     ctx.lineTo(scaleSize.w / 2, 0);
     ctx.lineTo(-scaleSize.w / 2, 0);
     ctx.fill();
-    ctx.restore();
     ctx.closePath();
+
+    if (this.__selecting__) {
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = tailwindColors?.info["500"];
+      ctx.fillStyle = tailwindColors?.white["500"];
+
+      ctx.beginPath();
+      ctx.arc(0, -scaleSize.h, 5, 0, 2 * Math.PI, true); // cp1 control point
+      ctx.fill();
+      ctx.stroke();
+      ctx.closePath();
+    }
+
+    ctx.restore();
   }
 }

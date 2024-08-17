@@ -1090,7 +1090,7 @@ export default class Core {
           y: 0,
         },
         {
-          x: -this.w / 2 - this.__curveTrigger__.d,
+          x: -this.w / 2 + (-this.__curveTrigger__.d * 3) / 3,
           y: 0,
         }
       );
@@ -1103,15 +1103,15 @@ export default class Core {
         },
         {
           x: 0,
-          y: -this.h / 2 + (-this.__curveTrigger__.d * 1) / 3,
+          y: -this.h / 2 - (this.__curveTrigger__.d * 1) / 3,
         },
         {
           x: 0,
-          y: -this.h / 2 + (-this.__curveTrigger__.d * 2) / 3,
+          y: -this.h / 2 - (this.__curveTrigger__.d * 2) / 3,
         },
         {
           x: 0,
-          y: -this.h / 2 - this.__curveTrigger__.d,
+          y: -this.h / 2 - (this.__curveTrigger__.d * 3) / 3,
         }
       );
     } else if (_d === Direction.r) {
@@ -1130,7 +1130,7 @@ export default class Core {
           y: 0,
         },
         {
-          x: this.w / 2 + this.__curveTrigger__.d,
+          x: this.w / 2 + (this.__curveTrigger__.d * 3) / 3,
           y: 0,
         }
       );
@@ -1151,7 +1151,7 @@ export default class Core {
         },
         {
           x: 0,
-          y: this.h / 2 + this.__curveTrigger__.d,
+          y: this.h / 2 + (this.__curveTrigger__.d * 3) / 3,
         }
       );
     }
@@ -1385,19 +1385,6 @@ export default class Core {
     ctx.restore();
   }
 
-  drawCurve(ctx: CanvasRenderingContext2D) {
-    ctx.save();
-    ctx.translate(this.getScreenP().x, this.getScreenP().y);
-
-    ds.forEach((d) => {
-      this.curves[d].forEach((curve) => {
-        curve.shape.draw(ctx);
-      });
-    });
-
-    ctx.restore();
-  }
-
   drawSendingPoint(ctx: CanvasRenderingContext2D) {
     if (!ctx) return;
     ctx.save();
@@ -1557,6 +1544,23 @@ export default class Core {
       ctx.fill();
       ctx.closePath();
     }
+
+    ctx.restore();
+  }
+
+  drawCurve(ctx: CanvasRenderingContext2D) {
+    ctx.save();
+    ctx.translate(this.getScreenP().x, this.getScreenP().y);
+
+    // ctx.moveTo(0, 0);
+    // ctx.fillStyle = "red";
+    // ctx.fillRect(0, 0, 10, 10);
+
+    ds.forEach((d) => {
+      this.curves[d].forEach((curve) => {
+        curve.shape.draw(ctx);
+      });
+    });
 
     ctx.restore();
   }
