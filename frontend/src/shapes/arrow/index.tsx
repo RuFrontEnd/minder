@@ -59,52 +59,39 @@ export default class Arrow {
     };
   }
 
-  getRotateP(p: Vec) {
-    return {
-      x: p.x * Math.cos(this.deg) - p.y * Math.sin(this.deg),
-      y: p.x * Math.sin(this.deg) + p.y * Math.cos(this.deg),
-    };
-  }
-
   getOriginPToP(p: Vec) {
     return {
       x: p.x + this.p.x,
-      y: p.x + this.p.y,
+      y: p.y + this.p.y,
     };
   }
 
-  checkBoundry(screenP: Vec) {
-    // console.log(Math.sin(this.deg));
-    console.log(this.deg);
-    // TODO: rotate condition should be considered
+  getRotateP(p: Vec) {
+    function rotate(p: Vec, deg: number) {
+      return {
+        x: p.x * Math.cos(deg) - p.y * Math.sin(deg),
+        y: p.x * Math.sin(deg) + p.y * Math.cos(deg),
+      };
+    }
 
-    // move to origin
-    const originP0 = this.getPToOriginP({
+    return this.getOriginPToP(rotate(this.getPToOriginP(p), this.deg));
+  }
+
+  checkBoundry(screenP: Vec) {
+    const p0 = this.getRotateP({
       x: this.p.x,
       y: this.p.y - this.h,
     });
 
-    const originP1 = this.getPToOriginP({
+    const p1 = this.getRotateP({
       x: this.p.x + this.w / 2,
       y: this.p.y,
     });
 
-    const originP2 = this.getPToOriginP({
+    const p2 = this.getRotateP({
       x: this.p.x - this.w / 2,
       y: this.p.y,
     });
-
-    const p0 = this.getRotateP(originP0);
-    p0.x = p0.x + this.p.x;
-    p0.y = p0.y + this.p.y;
-
-    const p1 = this.getRotateP(originP1);
-    p1.x = p1.x + this.p.x;
-    p1.y = p1.y + this.p.y;
-
-    const p2 = this.getRotateP(originP2);
-    p2.x = p2.x + this.p.x;
-    p2.y = p2.y + this.p.y;
 
     const vecs = [
       { x: p1.x - p0.x, y: p1.y - p0.y },
@@ -131,17 +118,9 @@ export default class Arrow {
       },
     ];
 
-    // console.log("this.__scale__", this.__scale__);
-    // console.log("normalP", normalP);
-    // console.log("target", target);
-
     const cross1 = vecs[0].x * target[0].y - vecs[0].y * target[0].x;
     const cross2 = vecs[1].x * target[1].y - vecs[1].y * target[1].x;
     const cross3 = vecs[2].x * target[2].y - vecs[2].y * target[2].x;
-
-    // console.log("cross1", cross1);
-    // console.log("cross2", cross2);
-    // console.log("cross3", cross3);
 
     return (
       (cross1 > 0 && cross2 > 0 && cross3 > 0) ||
