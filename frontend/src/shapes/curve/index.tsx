@@ -59,7 +59,10 @@ export default class Curve {
       12,
       12,
       "#333333",
-      { x: this.__p2__.x, y: this.__p2__.y },
+      {
+        x: this.getRelativeP(this.__p2__).x,
+        y: this.getRelativeP(this.__p2__).y,
+      },
       Math.atan2(this.__p2__.y - this.cp2.y, this.__p2__.x - this.cp2.x) +
         90 * (Math.PI / 180)
     );
@@ -86,7 +89,7 @@ export default class Curve {
   set p2(value: Vec) {
     this.__p2__ = value;
     if (this.arrow && value && this.cp2) {
-      this.arrow.p = value;
+      this.arrow.p = this.getRelativeP(value);
     }
   }
 
@@ -141,10 +144,29 @@ export default class Curve {
     };
   }
 
+  getRelativeP(p: Vec) {
+    return {
+      x: p.x - this.p1.x,
+      y: p.y - this.p1.y,
+    };
+  }
+
   getRelativeScreenP(screenP: Vec) {
     return {
       x: screenP.x - (this.p1.x + this.__offset__.x) * this.__scale__,
       y: screenP.y - (this.p1.y + this.__offset__.y) * this.__scale__,
+    };
+  }
+
+  getArrowP(screenP: Vec) {
+    const relativeScreenP = {
+      p: this.getRelativeScreenP(screenP),
+      p1: this.getRelativeScreenP(this.getScreenP().p1),
+    };
+
+    return {
+      x: relativeScreenP.p.x - relativeScreenP.p1.x,
+      y: relativeScreenP.p.y - relativeScreenP.p1.y,
     };
   }
 
@@ -228,16 +250,8 @@ export default class Curve {
       return CurveTypes.PressingTarget.cp1;
     }
 
-    const arrowP = {
-      x: relativeScreenP.p.x - relativeScreenP.p2.x,
-      y: relativeScreenP.p.y - relativeScreenP.p2.y,
-    };
-
-    // console.log(this.arrow?.checkControlPointsBoundry(arrowP));
-
-    // if (this.arrow?.checkControlPointsBoundry(screenP)) {
-    //   console.log("AA");
-    // }
+    if (this.arrow?.checkControlPointsBoundry(this.getArrowP(screenP))) {
+    }
 
     // TODO: keep p1 checking but not using.
     // dx = this.p1.x - p.x;
@@ -253,7 +267,7 @@ export default class Curve {
   checkBoundry(screenP: Vec) {
     return (
       this.getIsPointNearBezierCurve(screenP, threshold) ||
-      this.arrow?.checkBoundry(screenP)
+      this.arrow?.checkBoundry(this.getArrowP(screenP))
     );
   }
 
@@ -342,6 +356,10 @@ export default class Curve {
     ctx.stroke();
     ctx.closePath();
 
+    if (this.arrow) {
+      this.arrow.draw(ctx);
+    }
+
     if (this.selecting) {
       // control lines
       ctx.lineWidth = this.cpline.w;
@@ -418,12 +436,6 @@ export default class Curve {
       ctx.closePath();
     }
 
-    // ctx.moveTo(0, 0);
-
     ctx.restore();
-
-    // if (this.arrow) {
-    //   this.arrow.draw(ctx);
-    // }
   }
 }

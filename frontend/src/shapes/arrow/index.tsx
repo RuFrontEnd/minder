@@ -39,78 +39,6 @@ export default class Arrow {
     this.__selecting__ = value;
   }
 
-  getScreenP() {
-    return {
-      x: (this.p.x + this.__offset__.x) * this.__scale__,
-      y: (this.p.y + this.__offset__.y) * this.__scale__,
-    };
-  }
-
-  getPToOriginP(p: Vec) {
-    return {
-      x: p.x - this.p.x,
-      y: p.y - this.p.y,
-    };
-  }
-
-  getOriginPToP(p: Vec) {
-    return {
-      x: p.x + this.p.x,
-      y: p.y + this.p.y,
-    };
-  }
-
-  rotate(p: Vec) {
-    return {
-      x: p.x * Math.cos(this.deg) - p.y * Math.sin(this.deg),
-      y: p.x * Math.sin(this.deg) + p.y * Math.cos(this.deg),
-    };
-  }
-
-  getRotateP(p: Vec) {
-    return this.getOriginPToP(this.rotate(this.getPToOriginP(p)));
-  }
-
-  getRotateVertex() {
-    return {
-      t: this.getOriginPToP(
-        this.rotate(
-          this.getPToOriginP({
-            x: this.p.x,
-            y: this.p.y - this.h,
-          })
-        )
-      ),
-      l: this.getOriginPToP(
-        this.rotate(
-          this.getPToOriginP({
-            x: this.p.x - this.w / 2,
-            y: this.p.y,
-          })
-        )
-      ),
-      r: this.getOriginPToP(
-        this.rotate(
-          this.getPToOriginP({
-            x: this.p.x + this.w / 2,
-            y: this.p.y,
-          })
-        )
-      ),
-    };
-  }
-
-  getRotateScreenP() {
-    const rotateP = this.getRotateP({
-      x: this.p.x + this.__offset__.x,
-      y: this.p.y + this.__offset__.y,
-    });
-    return {
-      x: rotateP.x * this.__scale__,
-      y: rotateP.y * this.__scale__,
-    };
-  }
-
   getScaleSize() {
     return {
       w: this.w * this.__scale__,
@@ -118,80 +46,104 @@ export default class Arrow {
     };
   }
 
-  getScreenVertex() {
+  getScreenP() {
     return {
-      t: {
-        x: (this.p.x + this.__offset__.x) * this.__scale__,
-        y: (this.p.y - this.h + this.__offset__.y) * this.__scale__,
-      },
-      l: {
-        x: (this.p.x - this.w / 2) * this.__scale__,
-        y: (this.p.y + this.__offset__.y) * this.__scale__,
-      },
-      r: {
-        x: (this.p.x + this.w / 2) * this.__scale__,
-        y: (this.p.y + this.__offset__.y) * this.__scale__,
-      },
+      x: (this.p.x + this.__offset__.x) * this.__scale__,
+      y: (this.p.y + this.__offset__.y) * this.__scale__,
     };
   }
 
-  getRotateScreenVertex() {
-    const rotateVertex = this.getRotateVertex();
+  getRelativeP(p: Vec) {
+    return {
+      x: p.x - this.p.x,
+      y: p.y - this.p.y,
+    };
+  }
+
+  // first
+  relativify(p: Vec, isScreened: boolean) {
+    // normal p or screen p
+
+    if (isScreened) {
+      p.x = p.x / this.__scale__ - this.__offset__.x;
+      p.y = p.y / this.__scale__ - this.__offset__.y;
+    }
 
     return {
+      x: p.x - this.p.x,
+      y: p.y - this.p.y,
+    };
+  }
+
+  // second
+  rotate(relativeP: Vec) {
+    return {
+      x: relativeP.x * Math.cos(this.deg) - relativeP.y * Math.sin(this.deg),
+      y: relativeP.x * Math.sin(this.deg) + relativeP.y * Math.cos(this.deg),
+    };
+  }
+
+  // third
+  screenfy(normalP: Vec) {
+    return {
+      x: (normalP.x + this.__offset__.x) * this.__scale__,
+      y: (normalP.y + this.__offset__.y) * this.__scale__,
+    };
+  }
+
+  getVertex() {
+    return {
       t: {
-        x: (rotateVertex.t.x + this.__offset__.x) * this.__scale__,
-        y: (rotateVertex.t.x + this.__offset__.y) * this.__scale__,
+        x: this.p.x,
+        y: this.p.y - this.h,
       },
       l: {
-        x: (rotateVertex.l.x + this.__offset__.x) * this.__scale__,
-        y: (rotateVertex.l.x + this.__offset__.y) * this.__scale__,
+        x: this.p.x - this.w / 2,
+        y: this.p.y,
       },
       r: {
-        x: (rotateVertex.r.x + this.__offset__.x) * this.__scale__,
-        y: (rotateVertex.r.x + this.__offset__.y) * this.__scale__,
+        x: this.p.x + this.w / 2,
+        y: this.p.y,
       },
     };
   }
 
   checkBoundry(screenP: Vec) {
-    const p0 = this.getRotateP({
-      x: this.p.x,
-      y: this.p.y - this.h,
-    });
-
-    const p1 = this.getRotateP({
-      x: this.p.x + this.w / 2,
-      y: this.p.y,
-    });
-
-    const p2 = this.getRotateP({
-      x: this.p.x - this.w / 2,
-      y: this.p.y,
-    });
+    const relativeScreenP = this.screenfy(this.relativify(screenP, true));
+    const vertex = this.getVertex();
+    const relativeRotateScreenVertex = {
+      t: this.screenfy(this.rotate(this.relativify(vertex.t, false))),
+      l: this.screenfy(this.rotate(this.relativify(vertex.l, false))),
+      r: this.screenfy(this.rotate(this.relativify(vertex.r, false))),
+    };
 
     const vecs = [
-      { x: p1.x - p0.x, y: p1.y - p0.y },
-      { x: p2.x - p1.x, y: p2.y - p1.y },
-      { x: p0.x - p2.x, y: p0.y - p2.y },
+      {
+        x: relativeRotateScreenVertex.r.x - relativeRotateScreenVertex.t.x,
+        y: relativeRotateScreenVertex.r.y - relativeRotateScreenVertex.t.y,
+      },
+      {
+        x: relativeRotateScreenVertex.l.x - relativeRotateScreenVertex.r.x,
+        y: relativeRotateScreenVertex.l.y - relativeRotateScreenVertex.r.y,
+      },
+      {
+        x: relativeRotateScreenVertex.t.x - relativeRotateScreenVertex.l.x,
+        y: relativeRotateScreenVertex.t.y - relativeRotateScreenVertex.l.y,
+      },
     ];
 
-    const normalP = {
-      x: screenP.x / this.__scale__ - this.__offset__.x,
-      y: screenP.y / this.__scale__ - this.__offset__.y,
-    };
     const target = [
       {
-        x: normalP.x - p0.x,
-        y: normalP.y - p0.y,
+        x: relativeScreenP.x - relativeRotateScreenVertex.t.x,
+        y: relativeScreenP.y - relativeRotateScreenVertex.t.y,
       },
       {
-        x: normalP.x - p1.x,
-        y: normalP.y - p1.y,
+        x: relativeScreenP.x - relativeRotateScreenVertex.r.x,
+        y: relativeScreenP.y - relativeRotateScreenVertex.r.y,
       },
       {
-        x: normalP.x - p2.x,
-        y: normalP.y - p2.y,
+        x: relativeScreenP.x - relativeRotateScreenVertex.l.x,
+        y: relativeScreenP.y - relativeRotateScreenVertex.l.y,
       },
     ];
 
@@ -206,11 +158,15 @@ export default class Arrow {
   }
 
   checkControlPointsBoundry(screenP: Vec) {
-    const rotateScreenVertex = this.getRotateScreenVertex();
+    const relativeP = this.relativify(screenP, true);
+    const vertex = this.getVertex();
+    const relativeRotateVertex = {
+      t: this.rotate(this.relativify(vertex.t, false)),
+    };
 
     if (
-      Math.pow(screenP.x - rotateScreenVertex.t.x, 2) +
-        Math.pow(screenP.y - rotateScreenVertex.t.y, 2) <
+      Math.pow(relativeP.x - relativeRotateVertex.t.x, 2) +
+        Math.pow(relativeP.y - relativeRotateVertex.t.y, 2) <
       Math.pow(5, 2)
     ) {
       return ArrowTypes.Vertex.t;
@@ -222,8 +178,10 @@ export default class Arrow {
   draw(ctx: CanvasRenderingContext2D) {
     const scaleSize = this.getScaleSize();
 
+    const screenP = this.screenfy(this.p);
+
     ctx.save();
-    ctx.translate(this.getScreenP().x, this.getScreenP().y);
+    ctx.translate(screenP.x, screenP.y);
 
     ctx.beginPath();
     ctx.fillStyle = this.c;
