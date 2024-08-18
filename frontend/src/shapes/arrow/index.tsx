@@ -39,25 +39,8 @@ export default class Arrow {
     this.__selecting__ = value;
   }
 
-  getScaleSize() {
-    return {
-      w: this.w * this.__scale__,
-      h: this.h * this.__scale__,
-    };
-  }
-
-  getScreenP() {
-    return {
-      x: (this.p.x + this.__offset__.x) * this.__scale__,
-      y: (this.p.y + this.__offset__.y) * this.__scale__,
-    };
-  }
-
-  getRelativeP(p: Vec) {
-    return {
-      x: p.x - this.p.x,
-      y: p.y - this.p.y,
-    };
+  scalify(val: number) {
+    return val * this.__scale__;
   }
 
   // first
@@ -176,8 +159,11 @@ export default class Arrow {
   }
 
   draw(ctx: CanvasRenderingContext2D) {
-    const scaleSize = this.getScaleSize();
-
+    const scaleSize = {
+      w: this.scalify(this.w),
+      h: this.scalify(this.h),
+    };
+    
     const screenP = this.screenfy(this.p);
 
     ctx.save();

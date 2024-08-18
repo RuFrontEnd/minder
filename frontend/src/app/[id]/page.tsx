@@ -902,7 +902,7 @@ export default function IdPage() {
                 CommonTypes.Direction[curveTriggerD]
               );
             }
-            
+
             switch (curveTriggerD) {
               case CommonTypes.Direction.l:
                 relativeCurveCp2 = {
@@ -919,7 +919,6 @@ export default function IdPage() {
                 break;
 
               case CommonTypes.Direction.r:
-                console.log("A");
                 relativeCurveCp2 = {
                   x: (shape.curveTrigger.d * 1) / 3,
                   y: 0,
@@ -933,8 +932,6 @@ export default function IdPage() {
                 };
                 break;
             }
-
-            console.log("relativeCurveCp2", relativeCurveCp2);
 
             if (!!pressing) return;
 
@@ -1001,9 +998,29 @@ export default function IdPage() {
           shape.selecting = false;
         });
 
+        console.log("pressing", pressing);
+
         // if has already selected curve, never select any other shapes
         if (pressing && pressing.shape && !!pressing.curveId) {
           pressing.shape?.setIsCurveSelected(pressing.curveId, true);
+
+          if (pressing.target === CurveTypes.PressingTarget.arrow_t) {
+            const curveArrowTopP = pressing.shape.getCurveP(
+              CurveTypes.PressingTarget.arrow_t,
+              pressing.curveId
+            );
+            const curveCp2 = pressing.shape.getCurveP(
+              CurveTypes.PressingTarget.cp2,
+              pressing.curveId
+            );
+
+            if (!curveArrowTopP || !curveCp2) return;
+
+            relativeCurveCp2 = {
+              x: curveArrowTopP.x - curveCp2.x,
+              y: curveArrowTopP.y - curveCp2.y,
+            };
+          }
         } else if (pressing && pressing.shape && !pressing.curveId) {
           pressing.shape.selecting = true;
         }

@@ -385,7 +385,7 @@ export default class Core {
     ) {
       return targetCurve.shape[pressingTarget];
     } else if (pressingTarget === CurveTypes.PressingTarget.arrow_t) {
-      return targetCurve.shape.arrow?.getVertex().t;
+      return targetCurve.shape.getArrowVertex()?.t;
     }
   };
 

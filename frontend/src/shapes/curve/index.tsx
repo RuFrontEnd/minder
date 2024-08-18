@@ -335,7 +335,9 @@ export default class Curve {
       };
     } else if (target === CurveTypes.PressingTarget.arrow_t) {
       const arrowTopP = this.arrow?.getVertex().t;
+
       if (!arrowTopP) return;
+      
       const corrctedArrowTopP = this.correct(arrowTopP);
       const relativeP = {
         x: corrctedArrowTopP.x - this.__p2__.x,
@@ -347,6 +349,18 @@ export default class Curve {
         y: screenP.y / this.__scale__ - this.__offset__.y - relativeP.y,
       };
     }
+  }
+
+  getArrowVertex() {
+    const arrowVertex = this.arrow?.getVertex();
+
+    if (!arrowVertex) return null;
+
+    return {
+      t: this.correct(arrowVertex?.t),
+      l: this.correct(arrowVertex?.l),
+      r: this.correct(arrowVertex?.r),
+    };
   }
 
   draw(ctx: CanvasRenderingContext2D) {
