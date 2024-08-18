@@ -170,9 +170,16 @@ export default class Curve {
     };
   }
 
-  getScaleCurveW = () => {
+  getScaleCurveW() {
     return this.curve.w * this.__scale__;
-  };
+  }
+
+  correct(normalP: Vec) {
+    return {
+      x: normalP.x + this.p1.x,
+      y: normalP.y + this.p1.y,
+    };
+  }
 
   getBezierPoint(t: number, controlPoints: Vec[]) {
     const x =
@@ -227,14 +234,14 @@ export default class Curve {
       cp2: this.getRelativeScreenP(this.getScreenP().cp2),
     };
 
-    dx = relativeScreenP.p2.x - relativeScreenP.p.x;
-    dy = relativeScreenP.p2.y - relativeScreenP.p.y;
+    // dx = relativeScreenP.p2.x - relativeScreenP.p.x;
+    // dy = relativeScreenP.p2.y - relativeScreenP.p.y; // TODO: temporarily closed
 
     const scope = this.controlPoint.r * this.controlPoint.r;
 
-    if (dx * dx + dy * dy < scope) {
-      return CurveTypes.PressingTarget.p2;
-    }
+    // if (dx * dx + dy * dy < scope) {
+    //   return CurveTypes.PressingTarget.p2;
+    // } // TODO: temporarily closed
 
     dx = relativeScreenP.cp2.x - relativeScreenP.p.x;
     dy = relativeScreenP.cp2.y - relativeScreenP.p.y;
@@ -251,6 +258,7 @@ export default class Curve {
     }
 
     if (this.arrow?.checkControlPointsBoundry(this.getArrowP(screenP))) {
+      return CurveTypes.PressingTarget.arrow_t;
     }
 
     // TODO: keep p1 checking but not using.
@@ -291,30 +299,54 @@ export default class Curve {
   }
 
   moveHandler(pressingTarget: CurveTypes.PressingTarget, offset: Vec) {
-    const offsetX = offset.x / this.__scale__;
-    const offsetY = offset.y / this.__scale__;
+    if (
+      pressingTarget === CurveTypes.PressingTarget.cp1 ||
+      pressingTarget === CurveTypes.PressingTarget.cp2
+    ) {
+      const offsetX = offset.x / this.__scale__;
+      const offsetY = offset.y / this.__scale__;
 
-    this[pressingTarget].x += offsetX;
-    this[pressingTarget].y += offsetY;
+      this[pressingTarget].x += offsetX;
+      this[pressingTarget].y += offsetY;
 
-    if (pressingTarget === CurveTypes.PressingTarget.p2) {
-      this.cp2.x += offsetX;
-      this.cp2.y += offsetY;
-    }
-
-    if (this.arrow && this.p2 && this.cp2) {
-      this.arrow.p = this.p2; // TODO: arrow should add offset and scale and calculate inside Arrow class
-      this.arrow.deg =
-        Math.atan2(this.p2.y - this.cp2.y, this.p2.x - this.cp2.x) +
-        90 * (Math.PI / 180);
+      if (this.arrow && this.p2 && this.cp2) {
+        this.arrow.p = this.p2; // TODO: arrow should add offset and scale and calculate inside Arrow class
+        this.arrow.deg =
+          Math.atan2(this.p2.y - this.cp2.y, this.p2.x - this.cp2.x) +
+          90 * (Math.PI / 180);
+      }
+    } else if (pressingTarget === CurveTypes.PressingTarget.arrow_t) {
+      // TODO: do sth...
+      // if (pressingTarget === CurveTypes.PressingTarget.p2) {
+      //   this.cp2.x += offsetX;
+      //   this.cp2.y += offsetY;
+      // }
     }
   }
 
   locateHandler(target: CurveTypes.PressingTarget, screenP: Vec) {
-    this[target] = {
-      x: screenP.x / this.__scale__ - this.__offset__.x,
-      y: screenP.y / this.__scale__ - this.__offset__.y,
-    };
+    if (
+      target === CurveTypes.PressingTarget.cp1 ||
+      target === CurveTypes.PressingTarget.cp2
+    ) {
+      this[target] = {
+        x: screenP.x / this.__scale__ - this.__offset__.x,
+        y: screenP.y / this.__scale__ - this.__offset__.y,
+      };
+    } else if (target === CurveTypes.PressingTarget.arrow_t) {
+      const arrowTopP = this.arrow?.getVertex().t;
+      if (!arrowTopP) return;
+      const corrctedArrowTopP = this.correct(arrowTopP);
+      const relativeP = {
+        x: corrctedArrowTopP.x - this.__p2__.x,
+        y: corrctedArrowTopP.y - this.__p2__.y,
+      };
+
+      this.p2 = {
+        x: screenP.x / this.__scale__ - this.__offset__.x - relativeP.x,
+        y: screenP.y / this.__scale__ - this.__offset__.y - relativeP.y,
+      };
+    }
   }
 
   draw(ctx: CanvasRenderingContext2D) {
@@ -389,7 +421,7 @@ export default class Curve {
       ctx.strokeStyle = this.controlPoint.strokeC;
       ctx.fillStyle = this.controlPoint.c;
 
-      //   // TODO: keep p1 rendering but not using.
+      //   // TODO: temporarily close p1.
       //   // ctx.beginPath();
       //   // ctx.arc(relativeScreenP.p1.x, relativeScreenP.p1.y, this.this.controlPoint.r(), 0, 2 * Math.PI, true); // p1 control point
       //   // ctx.fill();
@@ -422,18 +454,19 @@ export default class Curve {
       ctx.stroke();
       ctx.closePath();
 
-      ctx.beginPath();
-      ctx.arc(
-        relativeScreenP.p2.x,
-        relativeScreenP.p2.y,
-        this.controlPoint.r,
-        0,
-        2 * Math.PI,
-        true
-      ); // p2 control point
-      ctx.fill();
-      ctx.stroke();
-      ctx.closePath();
+      // TODO: temporarily close p2.
+      // ctx.beginPath();
+      // ctx.arc(
+      //   relativeScreenP.p2.x,
+      //   relativeScreenP.p2.y,
+      //   this.controlPoint.r,
+      //   0,
+      //   2 * Math.PI,
+      //   true
+      // ); // p2 control point
+      // ctx.fill();
+      // ctx.stroke();
+      // ctx.closePath();
     }
 
     ctx.restore();

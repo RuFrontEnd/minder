@@ -902,6 +902,7 @@ export default function IdPage() {
                 CommonTypes.Direction[curveTriggerD]
               );
             }
+            
             switch (curveTriggerD) {
               case CommonTypes.Direction.l:
                 relativeCurveCp2 = {
@@ -918,6 +919,7 @@ export default function IdPage() {
                 break;
 
               case CommonTypes.Direction.r:
+                console.log("A");
                 relativeCurveCp2 = {
                   x: (shape.curveTrigger.d * 1) / 3,
                   y: 0,
@@ -932,6 +934,8 @@ export default function IdPage() {
                 break;
             }
 
+            console.log("relativeCurveCp2", relativeCurveCp2);
+
             if (!!pressing) return;
 
             const withinHandlerRangeCurves =
@@ -941,12 +945,12 @@ export default function IdPage() {
 
             if (
               firstDetectedCurve &&
-              firstDetectedCurve.target === CurveTypes.PressingTarget.p2
+              firstDetectedCurve.target === CurveTypes.PressingTarget.arrow_t
             ) {
               pressing = {
                 shape: shape,
                 curveId: firstDetectedCurve.id,
-                target: CurveTypes.PressingTarget.p2,
+                target: CurveTypes.PressingTarget.arrow_t,
                 direction: firstDetectedCurve.d,
               };
             } else if (firstDetectedCurve && firstDetectedCurve.isSelecting) {
@@ -1284,8 +1288,8 @@ export default function IdPage() {
           p
         );
 
-        const curveP2 = pressing.shape.getCurveP(
-          CurveTypes.PressingTarget.p2,
+        const curveArrowTopP = pressing.shape.getCurveP(
+          CurveTypes.PressingTarget.arrow_t,
           pressing.curveId
         );
         const curveCp2 = pressing.shape.getCurveP(
@@ -1293,16 +1297,16 @@ export default function IdPage() {
           pressing.curveId
         );
 
-        if (!curveP2 || !curveCp2) return;
+        if (!curveArrowTopP || !curveCp2) return;
 
         relativeCurveCp2 = {
-          x: curveP2.x - curveCp2.x,
-          y: curveP2.y - curveCp2.y,
+          x: curveArrowTopP.x - curveCp2.x,
+          y: curveArrowTopP.y - curveCp2.y,
         };
       } else if (
         !!pressing.curveId &&
         pressing.direction &&
-        pressing?.target === CurveTypes.PressingTarget.p2
+        pressing?.target === CurveTypes.PressingTarget.arrow_t
       ) {
         let sticking: {
           shape: null | Terminal | Process | Data | Desicion;
@@ -1343,18 +1347,18 @@ export default function IdPage() {
           pressingShape: PageIdTypes.Pressing["shape"],
           curveId: PageIdTypes.Pressing["curveId"]
         ) => {
-          return (p2: CommonTypes.Vec, cp2: CommonTypes.Vec) => {
+          return (arrowTopP: CommonTypes.Vec, cp2: CommonTypes.Vec) => {
             if (!pressingShape || !curveId) return;
             pressingShape.locateCurveHandler(
               curveId,
-              CurveTypes.PressingTarget.p2,
-              p2
+              CurveTypes.PressingTarget.arrow_t,
+              arrowTopP
             );
             pressingShape.locateCurveHandler(
               curveId,
               CurveTypes.PressingTarget.cp2,
               cp2
-            );
+            ); // TODO: temporarily close
           };
         };
 
@@ -1533,7 +1537,10 @@ export default function IdPage() {
           targetShape.checkReceivingPointsBoundry(p);
         const theQuarterD = targetShape.checkQuarterArea(p);
 
-        if (!pressingShape || pressing.target !== CurveTypes.PressingTarget.p2)
+        if (
+          !pressingShape ||
+          pressing.target !== CurveTypes.PressingTarget.arrow_t
+        )
           return;
 
         if (!!theCheckReceivingPointsBoundryD) {
@@ -1605,7 +1612,7 @@ export default function IdPage() {
         if (!!relocateP) {
           pressingShape.locateCurveHandler(
             pressing.curveId,
-            CurveTypes.PressingTarget.p2,
+            CurveTypes.PressingTarget.arrow_t,
             relocateP
           );
         }

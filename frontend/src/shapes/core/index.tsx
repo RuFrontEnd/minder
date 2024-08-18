@@ -364,7 +364,10 @@ export default class Core {
     return this.__curveTrigger__.d * this.scale;
   }
 
-  getCurveP = (target: CurveTypes.PressingTarget, curveId: CurveTypes.Id) => {
+  getCurveP = (
+    pressingTarget: CurveTypes.PressingTarget,
+    curveId: CurveTypes.Id
+  ) => {
     const targetCurve = (() => {
       for (const d of ds) {
         const curve = this.curves[d].find(
@@ -374,8 +377,16 @@ export default class Core {
       }
     })();
 
-    if (!targetCurve) return;
-    return targetCurve.shape[target];
+    if (!targetCurve) return null;
+
+    if (
+      pressingTarget === CurveTypes.PressingTarget.cp1 ||
+      pressingTarget === CurveTypes.PressingTarget.cp2
+    ) {
+      return targetCurve.shape[pressingTarget];
+    } else if (pressingTarget === CurveTypes.PressingTarget.arrow_t) {
+      return targetCurve.shape.arrow?.getVertex().t;
+    }
   };
 
   getEdge() {
@@ -981,10 +992,12 @@ export default class Core {
 
     if (!targetCurve) return;
 
-    targetCurve.shape.locateHandler(target, {
+    const curveP = {
       x: screenP.x - this.getScreenP().x,
       y: screenP.y - this.getScreenP().y,
-    });
+    };
+
+    targetCurve.shape.locateHandler(target, curveP);
   }
 
   resize(offset: Vec, vertex: CoreTypes.PressingTarget) {
