@@ -69,8 +69,8 @@ export default class Arrow {
   // third
   screenfy(normalP: Vec) {
     return {
-      x: (normalP.x + this.__offset__.x) * this.__scale__,
-      y: (normalP.y + this.__offset__.y) * this.__scale__,
+      x: this.scalify(normalP.x + this.__offset__.x),
+      y: this.scalify(normalP.y + this.__offset__.y),
     };
   }
 
@@ -163,7 +163,7 @@ export default class Arrow {
       w: this.scalify(this.w),
       h: this.scalify(this.h),
     };
-    
+
     const screenP = this.screenfy(this.p);
 
     ctx.save();
