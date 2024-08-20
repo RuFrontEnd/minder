@@ -122,6 +122,10 @@ export default class Arrow {
     this.__selecting__ = value;
   }
 
+  get vertex() {
+    return this.__vertex__;
+  }
+
   scalify(val: number) {
     return val * this.__scale__;
   }
@@ -188,7 +192,6 @@ export default class Arrow {
   }
 
   checkBoundry(screenP: Vec) {
-
     const relativeP = this.relativify(this.deScreenfy(screenP));
     const relativeVertex = {
       t: this.relativify(this.__vertex__.t),

@@ -20,11 +20,11 @@ export default class Curve {
     r: number;
   };
   radius: number;
-  p1: Vec;
-  __p2__: Vec;
-  cp1: Vec;
-  __cp2__: Vec;
-  arrow: null | Arrow;
+  private __p1__: Vec;
+  private __cp1__: Vec;
+  private __cp2__: Vec;
+  private __p2__: Vec;
+  private arrow: null | Arrow;
   private __selecting__: boolean;
   protected __offset__: Vec;
   protected __scale__: number;
@@ -45,8 +45,8 @@ export default class Curve {
       r: 5,
     };
     this.radius = 10;
-    this.p1 = p1;
-    this.cp1 = cp1;
+    this.__p1__ = p1;
+    this.__cp1__ = cp1;
     this.__cp2__ = cp2;
     this.__p2__ = p2;
     this.arrow = new Arrow(
@@ -77,19 +77,12 @@ export default class Curve {
     }
   }
 
-  get p2() {
-    return this.__p2__;
+  get p1() {
+    return this.__p1__;
   }
 
-  set p2(value: Vec) {
-    this.__p2__ = value;
-    if (this.arrow && value && this.cp2) {
-      this.arrow.p = this.getRelativeP(value);
-    }
-  }
-
-  get cp2() {
-    return this.__cp2__;
+  get cp1() {
+    return this.__cp1__;
   }
 
   set cp2(value: Vec) {
@@ -98,6 +91,21 @@ export default class Curve {
       this.arrow.deg =
         Math.atan2(this.cp2.y - this.p2.y, this.cp2.x - this.p2.x) -
         90 * (Math.PI / 180);
+    }
+  }
+
+  get cp2() {
+    return this.__cp2__;
+  }
+
+  get p2() {
+    return this.__p2__;
+  }
+
+  set p2(value: Vec) {
+    this.__p2__ = value;
+    if (this.arrow && value && this.cp2) {
+      this.arrow.p = this.getRelativeP(value);
     }
   }
 
@@ -118,15 +126,51 @@ export default class Curve {
     }
   }
 
+  scalify(val: number) {
+    return val * this.__scale__;
+  }
+
+  deScalify(val: number) {
+    return val / this.__scale__;
+  }
+
+  relativify(p: Vec) {
+    return {
+      x: p.x - this.__p1__.x,
+      y: p.y - this.__p1__.y,
+    };
+  }
+
+  correct(p: Vec) {
+    return {
+      x: p.x + this.__p1__.x,
+      y: p.y + this.__p1__.y,
+    };
+  }
+
+  screenfy(normalP: Vec) {
+    return {
+      x: this.scalify(normalP.x + this.__offset__.x),
+      y: this.scalify(normalP.y + this.__offset__.y),
+    };
+  }
+
+  deScreenfy(screenP: Vec) {
+    return {
+      x: this.deScalify(screenP.x) - this.__offset__.x,
+      y: this.deScalify(screenP.y) - this.__offset__.y,
+    };
+  }
+
   getScreenP() {
     return {
       p1: {
-        x: (this.p1.x + this.__offset__.x) * this.__scale__,
-        y: (this.p1.y + this.__offset__.y) * this.__scale__,
+        x: (this.__p1__.x + this.__offset__.x) * this.__scale__,
+        y: (this.__p1__.y + this.__offset__.y) * this.__scale__,
       },
       cp1: {
-        x: (this.cp1.x + this.__offset__.x) * this.__scale__,
-        y: (this.cp1.y + this.__offset__.y) * this.__scale__,
+        x: (this.__cp1__.x + this.__offset__.x) * this.__scale__,
+        y: (this.__cp1__.y + this.__offset__.y) * this.__scale__,
       },
       cp2: {
         x: (this.cp2.x + this.__offset__.x) * this.__scale__,
@@ -141,15 +185,15 @@ export default class Curve {
 
   getRelativeP(p: Vec) {
     return {
-      x: p.x - this.p1.x,
-      y: p.y - this.p1.y,
+      x: p.x - this.__p1__.x,
+      y: p.y - this.__p1__.y,
     };
   }
 
   getRelativeScreenP(screenP: Vec) {
     return {
-      x: screenP.x - (this.p1.x + this.__offset__.x) * this.__scale__,
-      y: screenP.y - (this.p1.y + this.__offset__.y) * this.__scale__,
+      x: screenP.x - (this.__p1__.x + this.__offset__.x) * this.__scale__,
+      y: screenP.y - (this.__p1__.y + this.__offset__.y) * this.__scale__,
     };
   }
 
@@ -167,13 +211,6 @@ export default class Curve {
 
   getScaleCurveW() {
     return this.curve.w * this.__scale__;
-  }
-
-  correct(normalP: Vec) {
-    return {
-      x: normalP.x + this.p1.x,
-      y: normalP.y + this.p1.y,
-    };
   }
 
   getBezierPoint(t: number, controlPoints: Vec[]) {
@@ -202,7 +239,7 @@ export default class Curve {
   // Check if a point is close to the Bezier curve
   getIsPointNearBezierCurve(point: Vec, threshold: number) {
     for (let t = 0; t <= 1; t += 0.01) {
-      if (!this.p1 || !this.cp1 || !this.cp2 || !this.p2) return false;
+      if (!this.__p1__ || !this.__cp1__ || !this.cp2 || !this.p2) return false;
       const bezierPoint = this.getBezierPoint(t, [
         { x: 0, y: 0 },
         this.getScreenP().cp1,
@@ -219,7 +256,7 @@ export default class Curve {
   }
 
   checkControlPointsBoundry(screenP: Vec) {
-    if (!this.p1 || !this.p2 || !this.cp1 || !this.cp2) return null;
+    if (!this.__p1__ || !this.p2 || !this.__cp1__ || !this.cp2) return null;
     let dx, dy;
 
     const relativeScreenP = {
@@ -257,8 +294,8 @@ export default class Curve {
     }
 
     // TODO: keep p1 checking but not using.
-    // dx = this.p1.x - p.x;
-    // dy = this.p1.y - p.y;
+    // dx = this.__p1__.x - p.x;
+    // dy = this.__p1__.y - p.y;
 
     // if (dx * dx + dy * dy < scope) {
     //   return CurveTypes.PressingTarget.p1
@@ -275,13 +312,13 @@ export default class Curve {
   }
 
   move(offset: Vec) {
-    this.p1 = {
-      x: this.p1.x + offset.x,
-      y: this.p1.y + offset.y,
+    this.__p1__ = {
+      x: this.__p1__.x + offset.x,
+      y: this.__p1__.y + offset.y,
     };
-    this.cp1 = {
-      x: this.cp1.x + offset.x,
-      y: this.cp1.y + offset.y,
+    this.__cp1__ = {
+      x: this.__cp1__.x + offset.x,
+      y: this.__cp1__.y + offset.y,
     };
     this.cp2 = {
       x: this.cp2.x + offset.x,
@@ -301,8 +338,8 @@ export default class Curve {
       const offsetX = offset.x / this.__scale__;
       const offsetY = offset.y / this.__scale__;
 
-      this[pressingTarget].x += offsetX;
-      this[pressingTarget].y += offsetY;
+      this[`__${pressingTarget}__`].x += offsetX;
+      this[`__${pressingTarget}__`].y += offsetY;
 
       if (this.arrow && this.p2 && this.cp2) {
         this.arrow.p = this.p2; // TODO: arrow should add offset and scale and calculate inside Arrow class
@@ -319,16 +356,16 @@ export default class Curve {
     }
   }
 
-  locateHandler(target: CurveTypes.PressingTarget, screenP: Vec) {
+  locateHandler(pressingTarget: CurveTypes.PressingTarget, screenP: Vec) {
     if (
-      target === CurveTypes.PressingTarget.cp1 ||
-      target === CurveTypes.PressingTarget.cp2
+      pressingTarget === CurveTypes.PressingTarget.cp1 ||
+      pressingTarget === CurveTypes.PressingTarget.cp2
     ) {
-      this[target] = {
+      this[`__${pressingTarget}__`] = {
         x: screenP.x / this.__scale__ - this.__offset__.x,
         y: screenP.y / this.__scale__ - this.__offset__.y,
       };
-    } else if (target === CurveTypes.PressingTarget.arrow_t) {
+    } else if (pressingTarget === CurveTypes.PressingTarget.arrow_t) {
       const arrowTopP = this.arrow?.getVertex().t;
 
       if (!arrowTopP) return;
@@ -359,20 +396,22 @@ export default class Curve {
   }
 
   draw(ctx: CanvasRenderingContext2D) {
-    if (!this.p1 || !this.p2 || !this.cp1 || !this.cp2) return;
+    if (!this.__p1__ || !this.p2 || !this.__cp1__ || !this.cp2) return;
 
     ctx.lineWidth = this.curve.w * this.__scale__;
     ctx.strokeStyle = this.curve.c;
 
-    const relativeScreenP = {
-      p1: this.getRelativeScreenP(this.getScreenP().p1),
-      cp1: this.getRelativeScreenP(this.getScreenP().cp1),
-      cp2: this.getRelativeScreenP(this.getScreenP().cp2),
-      p2: this.getRelativeScreenP(this.getScreenP().p2),
-    };
+    const screenP = this.screenfy(this.__p1__);
 
     ctx.save();
-    ctx.translate(this.getScreenP().p1.x, this.getScreenP().p1.y);
+    ctx.translate(screenP.x, screenP.y);
+
+    const relativeScreenP = {
+      p1: this.screenfy(this.relativify(this.__p1__)),
+      cp1: this.screenfy(this.relativify(this.__cp1__)),
+      cp2: this.screenfy(this.relativify(this.__cp2__)),
+      p2: this.screenfy(this.relativify(this.__p2__)),
+    };
 
     ctx.beginPath();
     // curve
