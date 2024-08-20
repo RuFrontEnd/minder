@@ -7,6 +7,7 @@ import Terminal from "@/shapes/terminal";
 import Process from "@/shapes/process";
 import Data from "@/shapes/data";
 import Curve from "@/shapes/curve";
+import Arrow from "@/shapes/arrow";
 import Desicion from "@/shapes/decision";
 import DataFrame from "@/components/dataFrame";
 import SidePanel from "@/components/sidePanel";
@@ -95,6 +96,7 @@ let useEffected = false,
   ctx: CanvasRenderingContext2D | null | undefined = null,
   ctx_screenshot: CanvasRenderingContext2D | null | undefined = null,
   shapes: (Terminal | Process | Data | Desicion)[] = [],
+  tests: any[] = [], // TODO: should be deleted
   pressing: null | {
     shape: null | Terminal | Process | Data | Desicion;
     curveId?: null | CurveTypes.Id;
@@ -594,8 +596,9 @@ export default function IdPage() {
   const [isRenameFrameOpen, setIsRenameFrameOpen] = useState(false);
   const [isProfileFrameOpen, setIsProfileFrameOpen] = useState(false);
   const [steps, setSteps] = useState<PageTypes.Steps>({});
-  const [dataFrameWarning, setDataFrameWarning] =
-    useState<DataFrameTypes.Warning>(init.dataFrameWarning);
+  const [dataFrameWarning, setDataFrameWarning] = useState<
+    DataFrameTypes.Warning
+  >(init.dataFrameWarning);
   const [isProjectsModalOpen, setIsProjectsModalOpen] = useState(false);
   const [authInfo, setAuthInfo] = useState<{
     account: {
@@ -805,8 +808,10 @@ export default function IdPage() {
   };
 
   const fetchProjects = async () => {
-    const res: AxiosResponse<ProjectAPITypes.GetProjects["resData"], any> =
-      await projectAPIs.getProjecs();
+    const res: AxiosResponse<
+      ProjectAPITypes.GetProjects["resData"],
+      any
+    > = await projectAPIs.getProjecs();
     setProjects(res.data);
   };
 
@@ -814,8 +819,9 @@ export default function IdPage() {
     const token = localStorage.getItem("Authorization");
 
     if (token) {
-      const res: AxiosResponse<AuthTypes.JWTLogin["resData"]> =
-        await authAPIs.jwtLogin(token);
+      const res: AxiosResponse<
+        AuthTypes.JWTLogin["resData"]
+      > = await authAPIs.jwtLogin(token);
 
       if (res.data.isPass) {
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
@@ -860,6 +866,10 @@ export default function IdPage() {
         p.y > select.end.y - selectAnchor.size.fill &&
         p.x < select.start.x + selectAnchor.size.fill &&
         p.y < select.end.y + selectAnchor.size.fill;
+
+    tests.forEach((test) => {
+      console.log(test.checkBoundry(p));
+    });
 
     if (space) {
       lastP = p;
@@ -935,8 +945,9 @@ export default function IdPage() {
 
             if (!!pressing) return;
 
-            const withinHandlerRangeCurves =
-              shape.checkCurveControlPointsBoundry(p);
+            const withinHandlerRangeCurves = shape.checkCurveControlPointsBoundry(
+              p
+            );
             const firstDetectedCurve = withinHandlerRangeCurves[0];
             const withinRangeCurveIds = shape.checkCurvesBoundry(p);
 
@@ -997,8 +1008,6 @@ export default function IdPage() {
           });
           shape.selecting = false;
         });
-
-        console.log("pressing", pressing);
 
         // if has already selected curve, never select any other shapes
         if (pressing && pressing.shape && !!pressing.curveId) {
@@ -1387,8 +1396,8 @@ export default function IdPage() {
         if (sticking.d && sticking.shape) {
           const offset_p2 = 12 * scale;
           const offset_cp2 = offset_p2 * 3;
-          const stickingReceivingPoint =
-            sticking.shape.getCenter().receivingPoints[sticking.d];
+          const stickingReceivingPoint = sticking.shape.getCenter()
+            .receivingPoints[sticking.d];
 
           switch (sticking.d) {
             case CommonTypes.Direction.l:
@@ -1550,8 +1559,9 @@ export default function IdPage() {
         pressing?.direction
       ) {
         const pressingShape = pressing.shape;
-        const theCheckReceivingPointsBoundryD =
-          targetShape.checkReceivingPointsBoundry(p);
+        const theCheckReceivingPointsBoundryD = targetShape.checkReceivingPointsBoundry(
+          p
+        );
         const theQuarterD = targetShape.checkQuarterArea(p);
 
         if (
@@ -1855,7 +1865,12 @@ export default function IdPage() {
       ctx?.fillRect(0, 0, window.innerWidth, window.innerHeight);
       ctx?.closePath();
 
-      // draw shapes
+      tests.forEach((test) => {
+        test.draw(ctx);
+      });
+
+      //TODO: wait ot open
+      // // draw shapes
       shapes.forEach((shape) => {
         if (!ctx) return;
         shape.draw(ctx);
@@ -2132,8 +2147,10 @@ export default function IdPage() {
 
   const initProject = async (id: ProjectTypes.Project["id"]) => {
     try {
-      const res: AxiosResponse<ProjectAPITypes.GetProject["resData"], any> =
-        await projectAPIs.getProject(id);
+      const res: AxiosResponse<
+        ProjectAPITypes.GetProject["resData"],
+        any
+      > = await projectAPIs.getProject(id);
 
       const projectData = res.data as ProjectAPITypes.ProjectData;
 
@@ -2176,8 +2193,9 @@ export default function IdPage() {
     if (!$canvas || !ctx) return;
 
     try {
-      const res: AxiosResponse<ProjectAPITypes.DeleteProject["resData"]> =
-        await projectAPIs.deleteProject(id);
+      const res: AxiosResponse<
+        ProjectAPITypes.DeleteProject["resData"]
+      > = await projectAPIs.deleteProject(id);
 
       if (id === selectedProjectId) {
         shapes = [];
@@ -2199,11 +2217,14 @@ export default function IdPage() {
       return;
     }
     shapes = [];
-    const newProject: AxiosResponse<ProjectAPITypes.CreateProject["resData"]> =
-      await projectAPIs.createProject();
+    const newProject: AxiosResponse<
+      ProjectAPITypes.CreateProject["resData"]
+    > = await projectAPIs.createProject();
 
-    const res: AxiosResponse<ProjectAPITypes.GetProjects["resData"], any> =
-      await projectAPIs.getProjecs();
+    const res: AxiosResponse<
+      ProjectAPITypes.GetProjects["resData"],
+      any
+    > = await projectAPIs.getProjecs();
 
     setIsProjectsModalOpen(false);
     setProjects(res.data);
@@ -2231,9 +2252,9 @@ export default function IdPage() {
     }));
   };
 
-  const onClickSaveProjectNameButton: MouseEventHandler<
-    HTMLButtonElement
-  > = async (e) => {
+  const onClickSaveProjectNameButton: MouseEventHandler<HTMLButtonElement> = async (
+    e
+  ) => {
     if (!selectedProjectId) return;
     const res: AxiosResponse<
       ProjectAPITypes.UpdateProjectName["resData"],
@@ -2271,6 +2292,35 @@ export default function IdPage() {
       await verifyToken();
       await fetchProjects();
       await initProject(Number(params.id));
+
+      const arrow = new Arrow(
+        100,
+        100,
+        "#000",
+        { x: 500, y: 500 },
+        (90 / 360) * Math.PI
+      );
+      const curve = new Curve(
+        "curve_01",
+        {
+          x: window.innerWidth / 2 + 200,
+          y: window.innerHeight / 2,
+        },
+        {
+          x: window.innerWidth / 2 + 200,
+          y: window.innerHeight / 2 - 100,
+        },
+        {
+          x: window.innerWidth / 2 + 200,
+          y: window.innerHeight / 2 - 200,
+        },
+        {
+          x: window.innerWidth / 2 + 200,
+          y: window.innerHeight / 2 - 300,
+        }
+      );
+      tests.push(arrow);
+      // tests.push(curve);
 
       drawCanvas();
       drawScreenshot();

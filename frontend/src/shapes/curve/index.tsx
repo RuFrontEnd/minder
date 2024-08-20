@@ -402,9 +402,9 @@ export default class Curve {
     ctx.stroke();
     ctx.closePath();
 
-    if (this.arrow) {
-      this.arrow.draw(ctx);
-    }
+    // if (this.arrow) {
+    //   this.arrow.draw(ctx);
+    // }
 
     if (this.selecting) {
       // control lines

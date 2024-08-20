@@ -10,21 +10,94 @@ export default class Arrow {
   w: number;
   h: number;
   c: string;
-  p: Vec;
-  deg: number;
+  private __p__: Vec;
+  private __deg__: number;
+  private __vertex__: {
+    t: Vec;
+    l: Vec;
+    r: Vec;
+  };
   protected __offset__: Vec;
   protected __scale__: number;
   protected __selecting__: boolean; // TODO: not be used yet
 
   constructor(w: number, h: number, c: string, p: Vec, deg: number) {
+    // TODO: add id
     this.w = w;
     this.h = h;
     this.c = c;
-    this.p = p;
-    this.deg = deg;
+    this.__p__ = p;
+    this.__vertex__ = {
+      t: this.getVtx({ x: p.x, y: p.y - h }, deg),
+      l: this.getVtx(
+        {
+          x: p.x - w / 2,
+          y: p.y,
+        },
+        deg
+      ),
+      r: this.getVtx(
+        {
+          x: p.x + w / 2,
+          y: p.y,
+        },
+        deg
+      ),
+    };
+    this.__deg__ = deg;
     this.__offset__ = this.initOffset;
     this.__scale__ = 1;
     this.__selecting__ = false;
+  }
+
+  set p(val: Vec) {
+    this.__p__ = val;
+    this.__vertex__.t = this.getVtx(
+      {
+        x: val.x - this.h,
+        y: val.y,
+      },
+      this.__deg__
+    );
+    this.__vertex__.l = this.getVtx(
+      {
+        x: val.x - this.w / 2,
+        y: val.y,
+      },
+      this.__deg__
+    );
+    this.__vertex__.r = this.getVtx(
+      {
+        x: val.x + this.w / 2,
+        y: val.y,
+      },
+      this.__deg__
+    );
+  }
+
+  set deg(val: number) {
+    this.__deg__ = val;
+    this.__vertex__.t = this.getVtx(
+      {
+        x: this.__p__.x - this.h,
+        y: this.__p__.y,
+      },
+      val
+    );
+    this.__vertex__.l = this.getVtx(
+      {
+        x: this.__p__.x - this.w / 2,
+        y: this.__p__.y,
+      },
+      val
+    );
+    this.__vertex__.r = this.getVtx(
+      {
+        x: this.__p__.x + this.w / 2,
+        y: this.__p__.y,
+      },
+      val
+    );
   }
 
   set offset(value: Vec) {
@@ -44,25 +117,25 @@ export default class Arrow {
   }
 
   // first
-  relativify(p: Vec, isScreened: boolean) {
-    // normal p or screen p
-
-    if (isScreened) {
-      p.x = p.x / this.__scale__ - this.__offset__.x;
-      p.y = p.y / this.__scale__ - this.__offset__.y;
-    }
-
+  relativify(p: Vec) {
     return {
-      x: p.x - this.p.x,
-      y: p.y - this.p.y,
+      x: p.x - this.__p__.x,
+      y: p.y - this.__p__.y,
+    };
+  }
+
+  correct(p: Vec) {
+    return {
+      x: p.x + this.__p__.x,
+      y: p.y + this.__p__.y,
     };
   }
 
   // second
-  rotate(relativeP: Vec) {
+  rotate(relativeP: Vec, deg: number) {
     return {
-      x: relativeP.x * Math.cos(this.deg) - relativeP.y * Math.sin(this.deg),
-      y: relativeP.x * Math.sin(this.deg) + relativeP.y * Math.cos(this.deg),
+      x: relativeP.x * Math.cos(deg) - relativeP.y * Math.sin(deg),
+      y: relativeP.x * Math.sin(deg) + relativeP.y * Math.cos(deg),
     };
   }
 
@@ -77,56 +150,59 @@ export default class Arrow {
   getVertex() {
     return {
       t: {
-        x: this.p.x,
-        y: this.p.y - this.h,
+        x: this.__p__.x,
+        y: this.__p__.y - this.h,
       },
       l: {
-        x: this.p.x - this.w / 2,
-        y: this.p.y,
+        x: this.__p__.x - this.w / 2,
+        y: this.__p__.y,
       },
       r: {
-        x: this.p.x + this.w / 2,
-        y: this.p.y,
+        x: this.__p__.x + this.w / 2,
+        y: this.__p__.y,
       },
     };
   }
 
+  getVtx(p: Vec, deg: number) {
+    return this.correct(this.rotate(this.relativify(p), deg));
+  }
+
   checkBoundry(screenP: Vec) {
-    const relativeScreenP = this.screenfy(this.relativify(screenP, true));
-    const vertex = this.getVertex();
-    const relativeRotateScreenVertex = {
-      t: this.screenfy(this.rotate(this.relativify(vertex.t, false))),
-      l: this.screenfy(this.rotate(this.relativify(vertex.l, false))),
-      r: this.screenfy(this.rotate(this.relativify(vertex.r, false))),
+    const relativeScreenP = this.screenfy(this.relativify(screenP));
+    const relativeScreenVertex = {
+      t: this.screenfy(this.relativify(this.__vertex__.t)),
+      l: this.screenfy(this.relativify(this.__vertex__.l)),
+      r: this.screenfy(this.relativify(this.__vertex__.r)),
     };
 
     const vecs = [
       {
-        x: relativeRotateScreenVertex.r.x - relativeRotateScreenVertex.t.x,
-        y: relativeRotateScreenVertex.r.y - relativeRotateScreenVertex.t.y,
+        x: relativeScreenVertex.r.x - relativeScreenVertex.t.x,
+        y: relativeScreenVertex.r.y - relativeScreenVertex.t.y,
       },
       {
-        x: relativeRotateScreenVertex.l.x - relativeRotateScreenVertex.r.x,
-        y: relativeRotateScreenVertex.l.y - relativeRotateScreenVertex.r.y,
+        x: relativeScreenVertex.l.x - relativeScreenVertex.r.x,
+        y: relativeScreenVertex.l.y - relativeScreenVertex.r.y,
       },
       {
-        x: relativeRotateScreenVertex.t.x - relativeRotateScreenVertex.l.x,
-        y: relativeRotateScreenVertex.t.y - relativeRotateScreenVertex.l.y,
+        x: relativeScreenVertex.t.x - relativeScreenVertex.l.x,
+        y: relativeScreenVertex.t.y - relativeScreenVertex.l.y,
       },
     ];
 
     const target = [
       {
-        x: relativeScreenP.x - relativeRotateScreenVertex.t.x,
-        y: relativeScreenP.y - relativeRotateScreenVertex.t.y,
+        x: relativeScreenP.x - relativeScreenVertex.t.x,
+        y: relativeScreenP.y - relativeScreenVertex.t.y,
       },
       {
-        x: relativeScreenP.x - relativeRotateScreenVertex.r.x,
-        y: relativeScreenP.y - relativeRotateScreenVertex.r.y,
+        x: relativeScreenP.x - relativeScreenVertex.r.x,
+        y: relativeScreenP.y - relativeScreenVertex.r.y,
       },
       {
-        x: relativeScreenP.x - relativeRotateScreenVertex.l.x,
-        y: relativeScreenP.y - relativeRotateScreenVertex.l.y,
+        x: relativeScreenP.x - relativeScreenVertex.l.x,
+        y: relativeScreenP.y - relativeScreenVertex.l.y,
       },
     ];
 
@@ -141,10 +217,10 @@ export default class Arrow {
   }
 
   checkControlPointsBoundry(screenP: Vec) {
-    const relativeP = this.relativify(screenP, true);
+    const relativeP = this.relativify(screenP);
     const vertex = this.getVertex();
     const relativeRotateVertex = {
-      t: this.rotate(this.relativify(vertex.t, false)),
+      t: this.rotate(this.relativify(vertex.t), this.__deg__),
     };
 
     if (
@@ -164,14 +240,14 @@ export default class Arrow {
       h: this.scalify(this.h),
     };
 
-    const screenP = this.screenfy(this.p);
+    const screenP = this.screenfy(this.__p__);
 
     ctx.save();
     ctx.translate(screenP.x, screenP.y);
 
     ctx.beginPath();
     ctx.fillStyle = this.c;
-    ctx.rotate(this.deg);
+    ctx.rotate(this.__deg__);
     ctx.moveTo(-scaleSize.w / 2, 0);
     ctx.lineTo(0, -scaleSize.h);
     ctx.lineTo(scaleSize.w / 2, 0);
