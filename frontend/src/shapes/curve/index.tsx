@@ -1,9 +1,3 @@
-// TODO:
-// 1. create arrow checkboundry
-// 2. create arrow check point
-// 3. when move curve p2, calculate cp2 in curve(move from page into curve)
-// 4. when arrow control point moves, moves curve p2(then cp2 should move as well)
-
 "use client";
 import Arrow from "@/shapes/arrow";
 import { Vec } from "@/types/shapes/common";
@@ -56,6 +50,7 @@ export default class Curve {
     this.__cp2__ = cp2;
     this.__p2__ = p2;
     this.arrow = new Arrow(
+      `arrow_${Date.now()}`,
       12,
       12,
       "#333333",
@@ -337,7 +332,7 @@ export default class Curve {
       const arrowTopP = this.arrow?.getVertex().t;
 
       if (!arrowTopP) return;
-      
+
       const corrctedArrowTopP = this.correct(arrowTopP);
       const relativeP = {
         x: corrctedArrowTopP.x - this.__p2__.x,

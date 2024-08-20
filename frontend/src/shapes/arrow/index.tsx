@@ -1,15 +1,13 @@
+"use client";
 import { Vec } from "@/types/shapes/common";
-import * as ArrowTypes from "@/types/shapes/arrow";
 import { tailwindColors } from "@/variables/colors";
-
+import * as ArrowTypes from "@/types/shapes/arrow";
 export default class Arrow {
-  private initOffset = {
-    x: 0,
-    y: 0,
-  };
-  w: number;
-  h: number;
-  c: string;
+  private __id__: string;
+  private __w__: number;
+  private __h__: number;
+  private __c__: string;
+  private __lineWidth__: number;
   private __p__: Vec;
   private __deg__: number;
   private __vertex__: {
@@ -21,11 +19,20 @@ export default class Arrow {
   protected __scale__: number;
   protected __selecting__: boolean; // TODO: not be used yet
 
-  constructor(w: number, h: number, c: string, p: Vec, deg: number) {
+  constructor(
+    id: string,
+    w: number,
+    h: number,
+    c: string,
+    p: Vec,
+    deg: number
+  ) {
     // TODO: add id
-    this.w = w;
-    this.h = h;
-    this.c = c;
+    this.__id__ = id;
+    this.__w__ = w;
+    this.__h__ = h;
+    this.__c__ = c;
+    this.__lineWidth__ = 1;
     this.__p__ = p;
     this.__vertex__ = {
       t: this.getVtx({ x: p.x, y: p.y - h }, deg),
@@ -45,7 +52,10 @@ export default class Arrow {
       ),
     };
     this.__deg__ = deg;
-    this.__offset__ = this.initOffset;
+    this.__offset__ = {
+      x: 0,
+      y: 0,
+    };
     this.__scale__ = 1;
     this.__selecting__ = false;
   }
@@ -54,21 +64,21 @@ export default class Arrow {
     this.__p__ = val;
     this.__vertex__.t = this.getVtx(
       {
-        x: val.x - this.h,
+        x: val.x - this.__h__,
         y: val.y,
       },
       this.__deg__
     );
     this.__vertex__.l = this.getVtx(
       {
-        x: val.x - this.w / 2,
+        x: val.x - this.__w__ / 2,
         y: val.y,
       },
       this.__deg__
     );
     this.__vertex__.r = this.getVtx(
       {
-        x: val.x + this.w / 2,
+        x: val.x + this.__w__ / 2,
         y: val.y,
       },
       this.__deg__
@@ -79,21 +89,21 @@ export default class Arrow {
     this.__deg__ = val;
     this.__vertex__.t = this.getVtx(
       {
-        x: this.__p__.x - this.h,
+        x: this.__p__.x - this.__h__,
         y: this.__p__.y,
       },
       val
     );
     this.__vertex__.l = this.getVtx(
       {
-        x: this.__p__.x - this.w / 2,
+        x: this.__p__.x - this.__w__ / 2,
         y: this.__p__.y,
       },
       val
     );
     this.__vertex__.r = this.getVtx(
       {
-        x: this.__p__.x + this.w / 2,
+        x: this.__p__.x + this.__w__ / 2,
         y: this.__p__.y,
       },
       val
@@ -116,7 +126,10 @@ export default class Arrow {
     return val * this.__scale__;
   }
 
-  // first
+  deScalify(val: number) {
+    return val / this.__scale__;
+  }
+
   relativify(p: Vec) {
     return {
       x: p.x - this.__p__.x,
@@ -131,7 +144,6 @@ export default class Arrow {
     };
   }
 
-  // second
   rotate(relativeP: Vec, deg: number) {
     return {
       x: relativeP.x * Math.cos(deg) - relativeP.y * Math.sin(deg),
@@ -139,7 +151,6 @@ export default class Arrow {
     };
   }
 
-  // third
   screenfy(normalP: Vec) {
     return {
       x: this.scalify(normalP.x + this.__offset__.x),
@@ -147,62 +158,71 @@ export default class Arrow {
     };
   }
 
+  deScreenfy(screenP: Vec) {
+    return {
+      x: this.deScalify(screenP.x) - this.__offset__.x,
+      y: this.deScalify(screenP.y) - this.__offset__.y,
+    };
+  }
+
   getVertex() {
     return {
       t: {
         x: this.__p__.x,
-        y: this.__p__.y - this.h,
+        y: this.__p__.y - this.__h__,
       },
       l: {
-        x: this.__p__.x - this.w / 2,
+        x: this.__p__.x - this.__w__ / 2,
         y: this.__p__.y,
       },
       r: {
-        x: this.__p__.x + this.w / 2,
+        x: this.__p__.x + this.__w__ / 2,
         y: this.__p__.y,
       },
     };
-  }
+  } // TOOD: should be replaced by getVtx
 
   getVtx(p: Vec, deg: number) {
+    // move to origin and rotate then put back to original position
     return this.correct(this.rotate(this.relativify(p), deg));
   }
 
   checkBoundry(screenP: Vec) {
-    const relativeScreenP = this.screenfy(this.relativify(screenP));
-    const relativeScreenVertex = {
-      t: this.screenfy(this.relativify(this.__vertex__.t)),
-      l: this.screenfy(this.relativify(this.__vertex__.l)),
-      r: this.screenfy(this.relativify(this.__vertex__.r)),
+
+    const relativeP = this.relativify(this.deScreenfy(screenP));
+    const relativeVertex = {
+      t: this.relativify(this.__vertex__.t),
+      l: this.relativify(this.__vertex__.l),
+      r: this.relativify(this.__vertex__.r),
     };
 
     const vecs = [
       {
-        x: relativeScreenVertex.r.x - relativeScreenVertex.t.x,
-        y: relativeScreenVertex.r.y - relativeScreenVertex.t.y,
+        x: relativeVertex.r.x - relativeVertex.t.x,
+        y: relativeVertex.r.y - relativeVertex.t.y,
       },
       {
-        x: relativeScreenVertex.l.x - relativeScreenVertex.r.x,
-        y: relativeScreenVertex.l.y - relativeScreenVertex.r.y,
+        x: relativeVertex.l.x - relativeVertex.r.x,
+        y: relativeVertex.l.y - relativeVertex.r.y,
       },
       {
-        x: relativeScreenVertex.t.x - relativeScreenVertex.l.x,
-        y: relativeScreenVertex.t.y - relativeScreenVertex.l.y,
+        x: relativeVertex.t.x - relativeVertex.l.x,
+        y: relativeVertex.t.y - relativeVertex.l.y,
       },
     ];
 
     const target = [
       {
-        x: relativeScreenP.x - relativeScreenVertex.t.x,
-        y: relativeScreenP.y - relativeScreenVertex.t.y,
+        x: relativeP.x - relativeVertex.t.x,
+        y: relativeP.y - relativeVertex.t.y,
       },
       {
-        x: relativeScreenP.x - relativeScreenVertex.r.x,
-        y: relativeScreenP.y - relativeScreenVertex.r.y,
+        x: relativeP.x - relativeVertex.r.x,
+        y: relativeP.y - relativeVertex.r.y,
       },
       {
-        x: relativeScreenP.x - relativeScreenVertex.l.x,
-        y: relativeScreenP.y - relativeScreenVertex.l.y,
+        x: relativeP.x - relativeVertex.l.x,
+        y: relativeP.y - relativeVertex.l.y,
       },
     ];
 
@@ -217,15 +237,17 @@ export default class Arrow {
   }
 
   checkControlPointsBoundry(screenP: Vec) {
-    const relativeP = this.relativify(screenP);
-    const vertex = this.getVertex();
-    const relativeRotateVertex = {
-      t: this.rotate(this.relativify(vertex.t), this.__deg__),
+    if (!this.__selecting__) return null;
+    const relativeP = this.relativify(this.deScreenfy(screenP));
+    const relativeVertex = {
+      t: this.relativify(this.__vertex__.t),
+      l: this.relativify(this.__vertex__.l),
+      r: this.relativify(this.__vertex__.r),
     };
 
     if (
-      Math.pow(relativeP.x - relativeRotateVertex.t.x, 2) +
-        Math.pow(relativeP.y - relativeRotateVertex.t.y, 2) <
+      Math.pow(relativeP.x - relativeVertex.t.x, 2) +
+        Math.pow(relativeP.y - relativeVertex.t.y, 2) <
       Math.pow(5, 2)
     ) {
       return ArrowTypes.Vertex.t;
@@ -236,8 +258,8 @@ export default class Arrow {
 
   draw(ctx: CanvasRenderingContext2D) {
     const scaleSize = {
-      w: this.scalify(this.w),
-      h: this.scalify(this.h),
+      w: this.scalify(this.__w__),
+      h: this.scalify(this.__h__),
     };
 
     const screenP = this.screenfy(this.__p__);
@@ -246,7 +268,7 @@ export default class Arrow {
     ctx.translate(screenP.x, screenP.y);
 
     ctx.beginPath();
-    ctx.fillStyle = this.c;
+    ctx.fillStyle = this.__c__;
     ctx.rotate(this.__deg__);
     ctx.moveTo(-scaleSize.w / 2, 0);
     ctx.lineTo(0, -scaleSize.h);
@@ -256,7 +278,7 @@ export default class Arrow {
     ctx.closePath();
 
     if (this.__selecting__) {
-      ctx.lineWidth = 1;
+      ctx.lineWidth = this.__lineWidth__;
       ctx.strokeStyle = tailwindColors?.info["500"];
       ctx.fillStyle = tailwindColors?.white["500"];
 

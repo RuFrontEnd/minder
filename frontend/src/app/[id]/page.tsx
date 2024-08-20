@@ -596,9 +596,8 @@ export default function IdPage() {
   const [isRenameFrameOpen, setIsRenameFrameOpen] = useState(false);
   const [isProfileFrameOpen, setIsProfileFrameOpen] = useState(false);
   const [steps, setSteps] = useState<PageTypes.Steps>({});
-  const [dataFrameWarning, setDataFrameWarning] = useState<
-    DataFrameTypes.Warning
-  >(init.dataFrameWarning);
+  const [dataFrameWarning, setDataFrameWarning] =
+    useState<DataFrameTypes.Warning>(init.dataFrameWarning);
   const [isProjectsModalOpen, setIsProjectsModalOpen] = useState(false);
   const [authInfo, setAuthInfo] = useState<{
     account: {
@@ -808,10 +807,8 @@ export default function IdPage() {
   };
 
   const fetchProjects = async () => {
-    const res: AxiosResponse<
-      ProjectAPITypes.GetProjects["resData"],
-      any
-    > = await projectAPIs.getProjecs();
+    const res: AxiosResponse<ProjectAPITypes.GetProjects["resData"], any> =
+      await projectAPIs.getProjecs();
     setProjects(res.data);
   };
 
@@ -819,9 +816,8 @@ export default function IdPage() {
     const token = localStorage.getItem("Authorization");
 
     if (token) {
-      const res: AxiosResponse<
-        AuthTypes.JWTLogin["resData"]
-      > = await authAPIs.jwtLogin(token);
+      const res: AxiosResponse<AuthTypes.JWTLogin["resData"]> =
+        await authAPIs.jwtLogin(token);
 
       if (res.data.isPass) {
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
@@ -868,7 +864,8 @@ export default function IdPage() {
         p.y < select.end.y + selectAnchor.size.fill;
 
     tests.forEach((test) => {
-      console.log(test.checkBoundry(p));
+      // console.log(test.checkControlPointsBoundry(p));
+      // console.log(test.checkBoundry(p));
     });
 
     if (space) {
@@ -945,9 +942,8 @@ export default function IdPage() {
 
             if (!!pressing) return;
 
-            const withinHandlerRangeCurves = shape.checkCurveControlPointsBoundry(
-              p
-            );
+            const withinHandlerRangeCurves =
+              shape.checkCurveControlPointsBoundry(p);
             const firstDetectedCurve = withinHandlerRangeCurves[0];
             const withinRangeCurveIds = shape.checkCurvesBoundry(p);
 
@@ -1396,8 +1392,8 @@ export default function IdPage() {
         if (sticking.d && sticking.shape) {
           const offset_p2 = 12 * scale;
           const offset_cp2 = offset_p2 * 3;
-          const stickingReceivingPoint = sticking.shape.getCenter()
-            .receivingPoints[sticking.d];
+          const stickingReceivingPoint =
+            sticking.shape.getCenter().receivingPoints[sticking.d];
 
           switch (sticking.d) {
             case CommonTypes.Direction.l:
@@ -1559,9 +1555,8 @@ export default function IdPage() {
         pressing?.direction
       ) {
         const pressingShape = pressing.shape;
-        const theCheckReceivingPointsBoundryD = targetShape.checkReceivingPointsBoundry(
-          p
-        );
+        const theCheckReceivingPointsBoundryD =
+          targetShape.checkReceivingPointsBoundry(p);
         const theQuarterD = targetShape.checkQuarterArea(p);
 
         if (
@@ -2147,10 +2142,8 @@ export default function IdPage() {
 
   const initProject = async (id: ProjectTypes.Project["id"]) => {
     try {
-      const res: AxiosResponse<
-        ProjectAPITypes.GetProject["resData"],
-        any
-      > = await projectAPIs.getProject(id);
+      const res: AxiosResponse<ProjectAPITypes.GetProject["resData"], any> =
+        await projectAPIs.getProject(id);
 
       const projectData = res.data as ProjectAPITypes.ProjectData;
 
@@ -2193,9 +2186,8 @@ export default function IdPage() {
     if (!$canvas || !ctx) return;
 
     try {
-      const res: AxiosResponse<
-        ProjectAPITypes.DeleteProject["resData"]
-      > = await projectAPIs.deleteProject(id);
+      const res: AxiosResponse<ProjectAPITypes.DeleteProject["resData"]> =
+        await projectAPIs.deleteProject(id);
 
       if (id === selectedProjectId) {
         shapes = [];
@@ -2217,14 +2209,11 @@ export default function IdPage() {
       return;
     }
     shapes = [];
-    const newProject: AxiosResponse<
-      ProjectAPITypes.CreateProject["resData"]
-    > = await projectAPIs.createProject();
+    const newProject: AxiosResponse<ProjectAPITypes.CreateProject["resData"]> =
+      await projectAPIs.createProject();
 
-    const res: AxiosResponse<
-      ProjectAPITypes.GetProjects["resData"],
-      any
-    > = await projectAPIs.getProjecs();
+    const res: AxiosResponse<ProjectAPITypes.GetProjects["resData"], any> =
+      await projectAPIs.getProjecs();
 
     setIsProjectsModalOpen(false);
     setProjects(res.data);
@@ -2252,9 +2241,9 @@ export default function IdPage() {
     }));
   };
 
-  const onClickSaveProjectNameButton: MouseEventHandler<HTMLButtonElement> = async (
-    e
-  ) => {
+  const onClickSaveProjectNameButton: MouseEventHandler<
+    HTMLButtonElement
+  > = async (e) => {
     if (!selectedProjectId) return;
     const res: AxiosResponse<
       ProjectAPITypes.UpdateProjectName["resData"],
@@ -2294,33 +2283,38 @@ export default function IdPage() {
       await initProject(Number(params.id));
 
       const arrow = new Arrow(
+        `arrow_${Date.now()}`,
         100,
         100,
         "#000",
         { x: 500, y: 500 },
         (90 / 360) * Math.PI
       );
+      arrow.selecting = true;
+      arrow.scale = 1.5;
+      arrow.offset = { x: 100, y: 100 };
+
       const curve = new Curve(
         "curve_01",
         {
-          x: window.innerWidth / 2 + 200,
+          x: window.innerWidth / 2,
           y: window.innerHeight / 2,
         },
         {
-          x: window.innerWidth / 2 + 200,
+          x: window.innerWidth / 2,
           y: window.innerHeight / 2 - 100,
         },
         {
-          x: window.innerWidth / 2 + 200,
+          x: window.innerWidth / 2,
           y: window.innerHeight / 2 - 200,
         },
         {
-          x: window.innerWidth / 2 + 200,
+          x: window.innerWidth / 2,
           y: window.innerHeight / 2 - 300,
         }
       );
-      tests.push(arrow);
-      // tests.push(curve);
+      // tests.push(arrow);
+      tests.push(curve);
 
       drawCanvas();
       drawScreenshot();
