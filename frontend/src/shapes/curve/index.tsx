@@ -130,7 +130,7 @@ export default class Curve {
     return val * this.__scale__;
   }
 
-  deScalify(val: number) {
+  deScale(val: number) {
     return val / this.__scale__;
   }
 
@@ -148,6 +148,20 @@ export default class Curve {
     };
   }
 
+  offsetfy(p: Vec) {
+    return {
+      x: p.x + this.__offset__.x,
+      y: p.y + this.__offset__.y,
+    };
+  }
+
+  deOffset(p: Vec) {
+    return {
+      x: p.x - this.__offset__.x,
+      y: p.y - this.__offset__.y,
+    };
+  }
+
   screenfy(normalP: Vec) {
     return {
       x: this.scalify(normalP.x + this.__offset__.x),
@@ -157,8 +171,8 @@ export default class Curve {
 
   deScreenfy(screenP: Vec) {
     return {
-      x: this.deScalify(screenP.x) - this.__offset__.x,
-      y: this.deScalify(screenP.y) - this.__offset__.y,
+      x: this.deScale(screenP.x) - this.__offset__.x,
+      y: this.deScale(screenP.y) - this.__offset__.y,
     };
   }
 
@@ -256,34 +270,40 @@ export default class Curve {
   }
 
   checkControlPointsBoundry(screenP: Vec) {
+    // console.log("screenP", screenP);
     if (!this.__p1__ || !this.p2 || !this.__cp1__ || !this.cp2) return null;
     let dx, dy;
 
-    const relativeScreenP = {
-      p: this.getRelativeScreenP(screenP),
-      p2: this.getRelativeScreenP(this.getScreenP().p2),
-      cp1: this.getRelativeScreenP(this.getScreenP().cp1),
-      cp2: this.getRelativeScreenP(this.getScreenP().cp2),
+    const relativeP = {
+      p: this.relativify(
+        this.deOffset({
+          x: this.deScale(screenP.x),
+          y: this.deScale(screenP.y),
+        })
+      ),
+      p2: this.relativify(this.p2),
+      cp1: this.relativify(this.cp1),
+      cp2: this.relativify(this.cp2),
     };
 
-    // dx = relativeScreenP.p2.x - relativeScreenP.p.x;
-    // dy = relativeScreenP.p2.y - relativeScreenP.p.y; // TODO: temporarily closed
+    // dx = relativeP.p2.x - relativeP.p.x;
+    // dy = relativeP.p2.y - relativeP.p.y; // TODO: temporarily closed
 
-    const scope = this.controlPoint.r * this.controlPoint.r;
+    const scope = Math.pow(this.controlPoint.r, 2);
 
     // if (dx * dx + dy * dy < scope) {
     //   return CurveTypes.PressingTarget.p2;
     // } // TODO: temporarily closed
 
-    dx = relativeScreenP.cp2.x - relativeScreenP.p.x;
-    dy = relativeScreenP.cp2.y - relativeScreenP.p.y;
+    dx = relativeP.cp2.x - relativeP.p.x;
+    dy = relativeP.cp2.y - relativeP.p.y;
 
     if (dx * dx + dy * dy < scope) {
       return CurveTypes.PressingTarget.cp2;
     }
 
-    dx = relativeScreenP.cp1.x - relativeScreenP.p.x;
-    dy = relativeScreenP.cp1.y - relativeScreenP.p.y;
+    dx = relativeP.cp1.x - relativeP.p.x;
+    dy = relativeP.cp1.y - relativeP.p.y;
 
     if (dx * dx + dy * dy < scope) {
       return CurveTypes.PressingTarget.cp1;
@@ -398,24 +418,59 @@ export default class Curve {
   draw(ctx: CanvasRenderingContext2D) {
     if (!this.__p1__ || !this.p2 || !this.__cp1__ || !this.cp2) return;
 
-    ctx.lineWidth = this.curve.w * this.__scale__;
+    ctx.lineWidth = this.scalify(this.curve.w);
     ctx.strokeStyle = this.curve.c;
 
-    const screenP = this.screenfy(this.__p1__);
+    const offsetP = this.offsetfy(this.__p1__);
+    const screenP = { x: this.scalify(offsetP.x), y: this.scalify(offsetP.y) };
 
     ctx.save();
     ctx.translate(screenP.x, screenP.y);
 
     const relativeScreenP = {
-      p1: this.screenfy(this.relativify(this.__p1__)),
-      cp1: this.screenfy(this.relativify(this.__cp1__)),
-      cp2: this.screenfy(this.relativify(this.__cp2__)),
-      p2: this.screenfy(this.relativify(this.__p2__)),
+      cp1: {
+        x: this.scalify(this.relativify(this.__cp1__).x),
+        y: this.scalify(this.relativify(this.__cp1__).y),
+      },
+      cp2: {
+        x: this.scalify(this.relativify(this.__cp2__).x),
+        y: this.scalify(this.relativify(this.__cp2__).y),
+      },
+      p2: {
+        x: this.scalify(this.relativify(this.__p2__).x),
+        y: this.scalify(this.relativify(this.__p2__).y),
+      },
     };
 
     ctx.beginPath();
     // curve
     ctx.moveTo(0, 0);
+    ctx.fillStyle = "red";
+    ctx.fillText(
+      `p1 x:${this.screenfy(this.p1).x} y:${this.screenfy(this.p1).y}`,
+      0,
+      0
+    );
+    ctx.fillText(
+      `cp1 x:${this.screenfy(this.__cp1__).x} y:${
+        this.screenfy(this.__cp1__).y
+      }`,
+      relativeScreenP.cp1.x,
+      relativeScreenP.cp1.y
+    );
+    ctx.fillText(
+      `cp2 x:${this.screenfy(this.__cp2__).x} y:${
+        this.screenfy(this.__cp2__).y
+      }`,
+      relativeScreenP.cp2.x,
+      relativeScreenP.cp2.y
+    );
+    ctx.fillText(
+      `p2 x:${this.screenfy(this.__p2__).x} y:${this.screenfy(this.__p2__).y}`,
+      relativeScreenP.p2.x,
+      relativeScreenP.p2.y
+    );
+
     if (this.cp2) {
       ctx.bezierCurveTo(
         relativeScreenP.cp1.x,

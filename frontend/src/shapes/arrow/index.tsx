@@ -130,7 +130,7 @@ export default class Arrow {
     return val * this.__scale__;
   }
 
-  deScalify(val: number) {
+  deScale(val: number) {
     return val / this.__scale__;
   }
 
@@ -155,17 +155,17 @@ export default class Arrow {
     };
   }
 
-  screenfy(normalP: Vec) {
+  offsetfy(p: Vec) {
     return {
-      x: this.scalify(normalP.x + this.__offset__.x),
-      y: this.scalify(normalP.y + this.__offset__.y),
+      x: p.x + this.__offset__.x,
+      y: p.y + this.__offset__.y,
     };
   }
 
-  deScreenfy(screenP: Vec) {
+  deOffset(p: Vec) {
     return {
-      x: this.deScalify(screenP.x) - this.__offset__.x,
-      y: this.deScalify(screenP.y) - this.__offset__.y,
+      x: p.x - this.__offset__.x,
+      y: p.y - this.__offset__.y,
     };
   }
 
@@ -192,7 +192,13 @@ export default class Arrow {
   }
 
   checkBoundry(screenP: Vec) {
-    const relativeP = this.relativify(this.deScreenfy(screenP));
+    const deScaleP = {
+      x: this.deScale(screenP.x),
+      y: this.deScale(screenP.y),
+    };
+
+    const relativeP = this.relativify(this.deOffset(deScaleP));
+
     const relativeVertex = {
       t: this.relativify(this.__vertex__.t),
       l: this.relativify(this.__vertex__.l),
@@ -241,7 +247,12 @@ export default class Arrow {
 
   checkControlPointsBoundry(screenP: Vec) {
     if (!this.__selecting__) return null;
-    const relativeP = this.relativify(this.deScreenfy(screenP));
+
+    const deScaleP = {
+      x: this.deScale(screenP.x),
+      y: this.deScale(screenP.y),
+    };
+    const relativeP = this.relativify(this.deOffset(deScaleP));
     const relativeVertex = {
       t: this.relativify(this.__vertex__.t),
       l: this.relativify(this.__vertex__.l),
@@ -265,7 +276,11 @@ export default class Arrow {
       h: this.scalify(this.__h__),
     };
 
-    const screenP = this.screenfy(this.__p__);
+    const offsetP = this.offsetfy(this.__p__);
+    const screenP = {
+      x: this.scalify(offsetP.x),
+      y: this.scalify(offsetP.y),
+    };
 
     ctx.save();
     ctx.translate(screenP.x, screenP.y);
