@@ -223,10 +223,6 @@ export default class Curve {
     };
   }
 
-  getScaleCurveW() {
-    return this.curve.w * this.__scale__;
-  }
-
   getBezierPoint(t: number, controlPoints: Vec[]) {
     const x =
       Math.pow(1 - t, 3) * controlPoints[0].x +
@@ -244,21 +240,21 @@ export default class Curve {
   }
 
   // Get the distance between two points
-  getDistance(point1: Vec, point2: Vec) {
-    const dx = point2.x - point1.x;
-    const dy = point2.y - point1.y;
+  getDistance(p1: Vec, p2: Vec) {
+    const dx = p2.x - p1.x;
+    const dy = p2.y - p1.y;
     return Math.sqrt(dx * dx + dy * dy);
-  }
+  } // checked
 
   // Check if a point is close to the Bezier curve
   getIsPointNearBezierCurve(point: Vec, threshold: number) {
     for (let t = 0; t <= 1; t += 0.01) {
       if (!this.__p1__ || !this.__cp1__ || !this.cp2 || !this.p2) return false;
       const bezierPoint = this.getBezierPoint(t, [
-        { x: 0, y: 0 },
-        this.getScreenP().cp1,
-        this.getScreenP().cp2,
-        this.getScreenP().p2,
+        this.relativify(this.__p1__),
+        this.relativify(this.__cp1__),
+        this.relativify(this.__cp2__),
+        this.relativify(this.__p2__),
       ]);
       const distance = this.getDistance(point, bezierPoint);
 
@@ -267,7 +263,7 @@ export default class Curve {
       }
     }
     return false;
-  }
+  } // checked
 
   checkControlPointsBoundry(screenP: Vec) {
     // console.log("screenP", screenP);
@@ -325,8 +321,14 @@ export default class Curve {
   }
 
   checkBoundry(screenP: Vec) {
+    const relativeP = this.relativify(
+      this.deOffset({
+        x: this.deScale(screenP.x),
+        y: this.deScale(screenP.y),
+      })
+    );
     return (
-      this.getIsPointNearBezierCurve(screenP, threshold) ||
+      this.getIsPointNearBezierCurve(relativeP, threshold) || // checked
       this.arrow?.checkBoundry(this.getArrowP(screenP))
     );
   }
@@ -355,11 +357,8 @@ export default class Curve {
       pressingTarget === CurveTypes.PressingTarget.cp1 ||
       pressingTarget === CurveTypes.PressingTarget.cp2
     ) {
-      const offsetX = offset.x / this.__scale__;
-      const offsetY = offset.y / this.__scale__;
-
-      this[`__${pressingTarget}__`].x += offsetX;
-      this[`__${pressingTarget}__`].y += offsetY;
+      this[`__${pressingTarget}__`].x += this.deScale(offset.x);
+      this[`__${pressingTarget}__`].y += this.deScale(offset.y);
 
       if (this.arrow && this.p2 && this.cp2) {
         this.arrow.p = this.p2; // TODO: arrow should add offset and scale and calculate inside Arrow class
@@ -374,7 +373,7 @@ export default class Curve {
       //   this.cp2.y += offsetY;
       // }
     }
-  }
+  } // checked
 
   locateHandler(pressingTarget: CurveTypes.PressingTarget, screenP: Vec) {
     if (
@@ -491,9 +490,9 @@ export default class Curve {
     ctx.stroke();
     ctx.closePath();
 
-    // if (this.arrow) {
-    //   this.arrow.draw(ctx);
-    // }
+    if (this.arrow) {
+      this.arrow.draw(ctx);
+    }
 
     if (this.selecting) {
       // control lines

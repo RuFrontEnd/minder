@@ -863,13 +863,6 @@ export default function IdPage() {
         p.x < select.start.x + selectAnchor.size.fill &&
         p.y < select.end.y + selectAnchor.size.fill;
 
-    console.log("p", p);
-
-    tests.forEach((test) => {
-      console.log(test.checkControlPointsBoundry(p));
-      // console.log(test.checkBoundry(p));
-    });
-
     if (space) {
       lastP = p;
     } else {
@@ -1862,11 +1855,11 @@ export default function IdPage() {
       ctx?.fillRect(0, 0, window.innerWidth, window.innerHeight);
       ctx?.closePath();
 
-      tests.forEach((test) => {
-        test.draw(ctx);
-      });
+      // tests.forEach((test) => {
+      //   test.draw(ctx);
+      // });
 
-      //TODO: wait ot open
+  
       // // draw shapes
       shapes.forEach((shape) => {
         if (!ctx) return;
@@ -2149,7 +2142,7 @@ export default function IdPage() {
 
       const projectData = res.data as ProjectAPITypes.ProjectData;
 
-      setScale(2); // TODO: change back to 1
+      setScale(1);
       setSelectedProjectId(id);
       offset = cloneDeep(init.offset);
       offset_center = cloneDeep(init.offset);
@@ -2284,44 +2277,44 @@ export default function IdPage() {
       await fetchProjects();
       await initProject(Number(params.id));
 
-      offset = { x: 0, y: 0 };
+      // offset = { x: 0, y: 0 };
 
-      const arrow = new Arrow(
-        `arrow_${Date.now()}`,
-        100,
-        100,
-        "#000",
-        { x: 500, y: 500 },
-        (0 / 360) * Math.PI
-      );
-      arrow.selecting = true;
-      arrow.scale = 1;
-      arrow.offset = { x: 0, y: 0 };
+      // const arrow = new Arrow(
+      //   `arrow_${Date.now()}`,
+      //   100,
+      //   100,
+      //   "#000",
+      //   { x: 500, y: 500 },
+      //   (0 / 360) * Math.PI
+      // );
+      // arrow.selecting = true;
+      // arrow.scale = 1;
+      // arrow.offset = { x: 0, y: 0 };
 
-      const curve = new Curve(
-        "curve_01",
-        {
-          x: 500,
-          y: 500,
-        },
-        {
-          x: 500,
-          y: 400,
-        },
-        {
-          x: 500,
-          y: 300,
-        },
-        {
-          x: 500,
-          y: 200,
-        }
-      );
-      curve.selecting = true;
-      curve.scale = 1.5;
-      curve.offset = { x: 50, y: 50 };
+      // const curve = new Curve(
+      //   "curve_01",
+      //   {
+      //     x: 500,
+      //     y: 500,
+      //   },
+      //   {
+      //     x: 500,
+      //     y: 400,
+      //   },
+      //   {
+      //     x: 500,
+      //     y: 300,
+      //   },
+      //   {
+      //     x: 500,
+      //     y: 200,
+      //   }
+      // );
+      // curve.selecting = true;
+      // curve.scale = 1.5;
+      // curve.offset = { x: 50, y: 50 };
       // tests.push(arrow);
-      tests.push(curve);
+      // tests.push(curve);
 
       drawCanvas();
       drawScreenshot();
