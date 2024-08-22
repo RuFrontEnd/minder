@@ -1086,48 +1086,54 @@ export default class Core {
 
   initializeCurve(id: string, _d: Direction) {
     let newCurve = null;
+    let startP: Vec = { x: 0, y: 0 };
+    let endP: Vec = { x: 0, y: 0 };
 
-    if (_d === Direction.l) {
-      const startP = {
-        x: -this.w / 2,
-        y: 0,
-      };
-      const endP = {
-        x: -this.w / 2 - this.__curveTrigger__.d,
-        y: 0,
-      };
-      newCurve = new Curve(id, startP, endP, startP, endP);
-    } else if (_d === Direction.t) {
-      const startP = {
-        x: 0,
-        y: -this.h / 2,
-      };
-      const endP = {
-        x: 0,
-        y: -this.h / 2 - this.__curveTrigger__.d,
-      };
-      newCurve = new Curve(id, startP, endP, startP, endP);
-    } else if (_d === Direction.r) {
-      const startP = {
-        x: this.w / 2,
-        y: 0,
-      };
-      const endP = {
-        x: this.w / 2 + this.__curveTrigger__.d,
-        y: 0,
-      };
-      newCurve = new Curve(id, startP, endP, startP, endP);
-    } else if (_d === Direction.b) {
-      const startP = {
-        x: 0,
-        y: this.h / 2,
-      };
-      const endP = {
-        x: 0,
-        y: this.h / 2 + this.__curveTrigger__.d,
-      };
-      newCurve = new Curve(id, startP, endP, startP, endP);
+    switch (_d) {
+      case Direction.l:
+        startP = {
+          x: -this.w / 2,
+          y: 0,
+        };
+        endP = {
+          x: -this.w / 2 - this.__curveTrigger__.d,
+          y: 0,
+        };
+        break;
+
+      case Direction.t:
+        startP = {
+          x: 0,
+          y: -this.h / 2,
+        };
+        endP = {
+          x: 0,
+          y: -this.h / 2 - this.__curveTrigger__.d,
+        };
+        break;
+      case Direction.r:
+        startP = {
+          x: this.w / 2,
+          y: 0,
+        };
+        endP = {
+          x: this.w / 2 + this.__curveTrigger__.d,
+          y: 0,
+        };
+        break;
+      case Direction.b:
+        startP = {
+          x: 0,
+          y: this.h / 2,
+        };
+        endP = {
+          x: 0,
+          y: this.h / 2 + this.__curveTrigger__.d,
+        };
+        break;
     }
+
+    newCurve = new Curve(id, startP, endP, startP, endP);
 
     if (!newCurve) return;
     newCurve.scale = this.scale;
