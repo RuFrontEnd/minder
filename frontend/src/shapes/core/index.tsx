@@ -1088,85 +1088,45 @@ export default class Core {
     let newCurve = null;
 
     if (_d === Direction.l) {
-      newCurve = new Curve(
-        id,
-        {
-          x: -this.w / 2,
-          y: 0,
-        },
-        {
-          x: -this.w / 2 + (-this.__curveTrigger__.d * 1) / 3,
-          y: 0,
-        },
-        {
-          x: -this.w / 2 + (-this.__curveTrigger__.d * 2) / 3,
-          y: 0,
-        },
-        {
-          x: -this.w / 2 + (-this.__curveTrigger__.d * 3) / 3,
-          y: 0,
-        }
-      );
+      const startP = {
+        x: -this.w / 2,
+        y: 0,
+      };
+      const endP = {
+        x: -this.w / 2 - this.__curveTrigger__.d,
+        y: 0,
+      };
+      newCurve = new Curve(id, startP, endP, startP, endP);
     } else if (_d === Direction.t) {
-      newCurve = new Curve(
-        id,
-        {
-          x: 0,
-          y: -this.h / 2,
-        },
-        {
-          x: 0,
-          y: -this.h / 2 - (this.__curveTrigger__.d * 1) / 3,
-        },
-        {
-          x: 0,
-          y: -this.h / 2 - (this.__curveTrigger__.d * 2) / 3,
-        },
-        {
-          x: 0,
-          y: -this.h / 2 - (this.__curveTrigger__.d * 3) / 3,
-        }
-      );
+      const startP = {
+        x: 0,
+        y: -this.h / 2,
+      };
+      const endP = {
+        x: 0,
+        y: -this.h / 2 - this.__curveTrigger__.d,
+      };
+      newCurve = new Curve(id, startP, endP, startP, endP);
     } else if (_d === Direction.r) {
-      newCurve = new Curve(
-        id,
-        {
-          x: this.w / 2,
-          y: 0,
-        },
-        {
-          x: this.w / 2 + (this.__curveTrigger__.d * 1) / 3,
-          y: 0,
-        },
-        {
-          x: this.w / 2 + (this.__curveTrigger__.d * 2) / 3,
-          y: 0,
-        },
-        {
-          x: this.w / 2 + (this.__curveTrigger__.d * 3) / 3,
-          y: 0,
-        }
-      );
+      const startP = {
+        x: this.w / 2,
+        y: 0,
+      };
+      const endP = {
+        x: this.w / 2 + this.__curveTrigger__.d,
+        y: 0,
+      };
+      newCurve = new Curve(id, startP, endP, startP, endP);
     } else if (_d === Direction.b) {
-      newCurve = new Curve(
-        id,
-        {
-          x: 0,
-          y: this.h / 2,
-        },
-        {
-          x: 0,
-          y: this.h / 2 + (this.__curveTrigger__.d * 1) / 3,
-        },
-        {
-          x: 0,
-          y: this.h / 2 + (this.__curveTrigger__.d * 2) / 3,
-        },
-        {
-          x: 0,
-          y: this.h / 2 + (this.__curveTrigger__.d * 3) / 3,
-        }
-      );
+      const startP = {
+        x: 0,
+        y: this.h / 2,
+      };
+      const endP = {
+        x: 0,
+        y: this.h / 2 + this.__curveTrigger__.d,
+      };
+      newCurve = new Curve(id, startP, endP, startP, endP);
     }
 
     if (!newCurve) return;

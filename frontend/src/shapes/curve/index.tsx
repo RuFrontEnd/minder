@@ -24,6 +24,11 @@ export default class Curve {
   private __cp1__: Vec;
   private __cp2__: Vec;
   private __p2__: Vec;
+  private __arrowAttr__: {
+    w: number;
+    h: number;
+    c: string;
+  };
   private arrow: null | Arrow;
   private __selecting__: boolean;
   protected __offset__: Vec;
@@ -45,15 +50,28 @@ export default class Curve {
       r: 5,
     };
     this.radius = 10;
+    this.__arrowAttr__ = {
+      w: 12,
+      h: 12,
+      c: tailwindColors.grey["1"],
+    };
     this.__p1__ = p1;
+    this.__p2__ = (() => {
+      const v = { x: p2.x - this.__p1__.x, y: p2.y - this.__p1__.y };
+      const len = Math.sqrt(
+        Math.pow(p2.x - this.__p1__.x, 2) + Math.pow(p2.y - this.__p1__.y, 2)
+      );
+      const ratio = (len - this.__arrowAttr__.h) / len;
+
+      return { x: this.__p1__.x + v.x * ratio, y: this.__p1__.y + v.y * ratio };
+    })();
     this.__cp1__ = cp1;
     this.__cp2__ = cp2;
-    this.__p2__ = p2;
     this.arrow = new Arrow(
       `arrow_${Date.now()}`,
-      12,
-      12,
-      "#333333",
+      this.__arrowAttr__.w,
+      this.__arrowAttr__.h,
+      this.__arrowAttr__.c,
       {
         x: this.getRelativeP(this.__p2__).x,
         y: this.getRelativeP(this.__p2__).y,
@@ -446,26 +464,30 @@ export default class Curve {
     ctx.moveTo(0, 0);
     ctx.fillStyle = "red";
     ctx.fillText(
-      `p1 x:${this.screenfy(this.p1).x} y:${this.screenfy(this.p1).y}`,
+      `p1 x:${this.screenfy(this.p1).x.toFixed(1)} y:${this.screenfy(
+        this.p1
+      ).y.toFixed(1)}`,
       0,
       0
     );
     ctx.fillText(
-      `cp1 x:${this.screenfy(this.__cp1__).x} y:${
-        this.screenfy(this.__cp1__).y
-      }`,
+      `cp1 x:${this.screenfy(this.__cp1__).x.toFixed(1)} y:${this.screenfy(
+        this.__cp1__
+      ).y.toFixed(1)}`,
       relativeScreenP.cp1.x,
       relativeScreenP.cp1.y
     );
     ctx.fillText(
-      `cp2 x:${this.screenfy(this.__cp2__).x} y:${
-        this.screenfy(this.__cp2__).y
-      }`,
+      `cp2 x:${this.screenfy(this.__cp2__).x.toFixed(1)} y:${this.screenfy(
+        this.__cp2__
+      ).y.toFixed(1)}`,
       relativeScreenP.cp2.x,
       relativeScreenP.cp2.y
     );
     ctx.fillText(
-      `p2 x:${this.screenfy(this.__p2__).x} y:${this.screenfy(this.__p2__).y}`,
+      `p2 x:${this.screenfy(this.__p2__).x.toFixed(1)} y:${this.screenfy(
+        this.__p2__
+      ).y.toFixed(1)}`,
       relativeScreenP.p2.x,
       relativeScreenP.p2.y
     );
