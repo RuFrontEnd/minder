@@ -899,10 +899,14 @@ export default function IdPage() {
             if (curveTriggerD) {
               shape.selecting = false;
 
+              const initCurveId = `curve_${Date.now()}`;
+
               shape.initializeCurve(
-                `curve_${Date.now()}`,
+                initCurveId,
                 CommonTypes.Direction[curveTriggerD]
               );
+
+              shape.setIsCurveSelected(initCurveId, true);
             }
 
             switch (curveTriggerD) {
@@ -1005,11 +1009,11 @@ export default function IdPage() {
           pressing.shape?.setIsCurveSelected(pressing.curveId, true);
 
           if (pressing.target === CurveTypes.PressingTarget.arrow_t) {
-            const curveArrowTopP = pressing.shape.getCurveP(
+            const curveArrowTopP = pressing.shape.getPressingCurveP(
               CurveTypes.PressingTarget.arrow_t,
               pressing.curveId
             );
-            const curveCp2 = pressing.shape.getCurveP(
+            const curveCp2 = pressing.shape.getPressingCurveP(
               CurveTypes.PressingTarget.cp2,
               pressing.curveId
             );
@@ -1305,11 +1309,11 @@ export default function IdPage() {
           p
         );
 
-        const curveArrowTopP = pressing.shape.getCurveP(
+        const curveArrowTopP = pressing.shape.getPressingCurveP(
           CurveTypes.PressingTarget.arrow_t,
           pressing.curveId
         );
-        const curveCp2 = pressing.shape.getCurveP(
+        const curveCp2 = pressing.shape.getPressingCurveP(
           CurveTypes.PressingTarget.cp2,
           pressing.curveId
         );
@@ -1859,7 +1863,6 @@ export default function IdPage() {
       //   test.draw(ctx);
       // });
 
-  
       // // draw shapes
       shapes.forEach((shape) => {
         if (!ctx) return;

@@ -230,14 +230,13 @@ export default class Curve {
   }
 
   getArrowP(screenP: Vec) {
-    const relativeScreenP = {
-      p: this.getRelativeScreenP(screenP),
-      p1: this.getRelativeScreenP(this.getScreenP().p1),
-    };
+    const relativeP = this.relativify(
+      this.deOffset({ x: this.deScale(screenP.x), y: this.deScale(screenP.y) })
+    );
 
     return {
-      x: relativeScreenP.p.x - relativeScreenP.p1.x,
-      y: relativeScreenP.p.y - relativeScreenP.p1.y,
+      x: this.scalify(relativeP.x),
+      y: this.scalify(relativeP.y),
     };
   }
 
@@ -281,10 +280,9 @@ export default class Curve {
       }
     }
     return false;
-  } // checked
+  } // checkedrelativeP
 
   checkControlPointsBoundry(screenP: Vec) {
-    // console.log("screenP", screenP);
     if (!this.__p1__ || !this.p2 || !this.__cp1__ || !this.cp2) return null;
     let dx, dy;
 
@@ -309,11 +307,8 @@ export default class Curve {
     //   return CurveTypes.PressingTarget.p2;
     // } // TODO: temporarily closed
 
-    dx = relativeP.cp2.x - relativeP.p.x;
-    dy = relativeP.cp2.y - relativeP.p.y;
-
-    if (dx * dx + dy * dy < scope) {
-      return CurveTypes.PressingTarget.cp2;
+    if (this.arrow?.checkControlPointsBoundry(this.getArrowP(screenP))) {
+      return CurveTypes.PressingTarget.arrow_t;
     }
 
     dx = relativeP.cp1.x - relativeP.p.x;
@@ -323,8 +318,11 @@ export default class Curve {
       return CurveTypes.PressingTarget.cp1;
     }
 
-    if (this.arrow?.checkControlPointsBoundry(this.getArrowP(screenP))) {
-      return CurveTypes.PressingTarget.arrow_t;
+    dx = relativeP.cp2.x - relativeP.p.x;
+    dy = relativeP.cp2.y - relativeP.p.y;
+
+    if (dx * dx + dy * dy < scope) {
+      return CurveTypes.PressingTarget.cp2;
     }
 
     // TODO: keep p1 checking but not using.

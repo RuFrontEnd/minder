@@ -64,8 +64,8 @@ export default class Arrow {
     this.__p__ = val;
     this.__vertex__.t = this.getVtx(
       {
-        x: val.x - this.__h__,
-        y: val.y,
+        x: val.x,
+        y: val.y - this.__h__,
       },
       this.__deg__
     );
@@ -89,8 +89,8 @@ export default class Arrow {
     this.__deg__ = val;
     this.__vertex__.t = this.getVtx(
       {
-        x: this.__p__.x - this.__h__,
-        y: this.__p__.y,
+        x: this.__p__.x,
+        y: this.__p__.y - this.__h__,
       },
       val
     );

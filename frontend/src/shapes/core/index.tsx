@@ -334,6 +334,56 @@ export default class Core {
     return this.__curveTrigger__;
   }
 
+  scalify(val: number) {
+    return val * this.__scale__;
+  }
+
+  deScale(val: number) {
+    return val / this.__scale__;
+  }
+
+  relativify(p: Vec) {
+    return {
+      x: p.x - this.__p__.x,
+      y: p.y - this.__p__.y,
+    };
+  }
+
+  correct(p: Vec) {
+    return {
+      x: p.x + this.__p__.x,
+      y: p.y + this.__p__.y,
+    };
+  }
+
+  offsetfy(p: Vec) {
+    return {
+      x: p.x + this.__offset__.x,
+      y: p.y + this.__offset__.y,
+    };
+  }
+
+  deOffset(p: Vec) {
+    return {
+      x: p.x - this.__offset__.x,
+      y: p.y - this.__offset__.y,
+    };
+  }
+
+  screenfy(normalP: Vec) {
+    return {
+      x: this.scalify(normalP.x + this.__offset__.x),
+      y: this.scalify(normalP.y + this.__offset__.y),
+    };
+  }
+
+  deScreenfy(screenP: Vec) {
+    return {
+      x: this.deScale(screenP.x) - this.__offset__.x,
+      y: this.deScale(screenP.y) - this.__offset__.y,
+    };
+  }
+
   getCurveIds() {
     let curveIds: string[] = [];
 
@@ -364,7 +414,7 @@ export default class Core {
     return this.__curveTrigger__.d * this.scale;
   }
 
-  getCurveP = (
+  getPressingCurveP = (
     pressingTarget: CurveTypes.PressingTarget,
     curveId: CurveTypes.Id
   ) => {
@@ -388,6 +438,17 @@ export default class Core {
       return targetCurve.shape.getArrowVertex()?.t;
     }
   };
+
+  getCurveP(screenP: Vec) {
+    const relativeP = this.relativify(
+      this.deOffset({ x: this.deScale(screenP.x), y: this.deScale(screenP.y) })
+    );
+
+    return {
+      x: this.scalify(relativeP.x),
+      y: this.scalify(relativeP.y),
+    };
+  }
 
   getEdge() {
     return {
@@ -634,17 +695,14 @@ export default class Core {
     return withinRangeCurveIds;
   }
 
-  checkCurveControlPointsBoundry(p: Vec) {
+  checkCurveControlPointsBoundry(screenP: Vec) {
     const withinRangeCurveIds: {
       id: CurveTypes.Id;
       target: CurveTypes.PressingTarget;
       isSelecting: boolean;
       d: Direction;
     }[] = [];
-    const curveP = {
-      x: p.x - this?.getScreenP().x,
-      y: p.y - this?.getScreenP().y,
-    };
+    const curveP = this.getCurveP(screenP);
 
     ds.forEach((d) => {
       this.curves[d].forEach((curve) => {
