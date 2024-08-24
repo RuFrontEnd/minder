@@ -139,9 +139,9 @@ export default class Core {
             sendCurve.sendTo?.shape.id === this.id &&
             !senderCurvesMapping[sendCurve.shape.id]
           ) {
-            sendCurve.shape.p2 = {
-              x: sendCurve.shape.p2.x + offest.x,
-              y: sendCurve.shape.p2.y + offest.y,
+            sendCurve.shape.tipP = {
+              x: sendCurve.shape.tipP.x + offest.x,
+              y: sendCurve.shape.tipP.y + offest.y,
             };
             sendCurve.shape.cp2.x += offest.x;
             sendCurve.shape.cp2.y += offest.y;
@@ -158,9 +158,9 @@ export default class Core {
           sendToShape = sendCurve.sendTo;
 
         if (senderCurve && sendToShape) {
-          senderCurve.p2 = {
-            x: senderCurve.p2.x - offest.x,
-            y: senderCurve.p2.y - offest.y,
+          senderCurve.tipP = {
+            x: senderCurve.tipP.x - offest.x,
+            y: senderCurve.tipP.y - offest.y,
           };
           senderCurve.cp2.x -= offest.x;
           senderCurve.cp2.y -= offest.y;
@@ -184,9 +184,9 @@ export default class Core {
 
       if (sendCurve.sendTo) return;
 
-      sendCurve.shape.p2 = {
-        ...sendCurve.shape.p2,
-        x: sendCurve.shape.p2.x + offset,
+      sendCurve.shape.tipP = {
+        ...sendCurve.shape.tipP,
+        x: sendCurve.shape.tipP.x + offset,
       };
       sendCurve.shape.cp2.x += offset;
     });
@@ -197,9 +197,9 @@ export default class Core {
 
       if (sendCurve.sendTo) return;
 
-      sendCurve.shape.p2 = {
-        ...sendCurve.shape.p2,
-        x: sendCurve.shape.p2.x - offset,
+      sendCurve.shape.tipP = {
+        ...sendCurve.shape.tipP,
+        x: sendCurve.shape.tipP.x - offset,
       };
       sendCurve.shape.cp2.x -= offset;
     });
@@ -212,9 +212,9 @@ export default class Core {
       );
 
       if (!bridge) return;
-      bridge.shape.p2 = {
-        ...bridge.shape.p2,
-        x: bridge.shape.p2.x + offset,
+      bridge.shape.tipP = {
+        ...bridge.shape.tipP,
+        x: bridge.shape.tipP.x + offset,
       };
       bridge.shape.cp2.x += offset;
     });
@@ -225,9 +225,9 @@ export default class Core {
       );
 
       if (!bridge) return;
-      bridge.shape.p2 = {
-        ...bridge.shape.p2,
-        x: bridge.shape.p2.x - offset,
+      bridge.shape.tipP = {
+        ...bridge.shape.tipP,
+        x: bridge.shape.tipP.x - offset,
       };
       bridge.shape.cp2.x -= offset;
     });
@@ -248,9 +248,9 @@ export default class Core {
 
       if (sendCurve.sendTo) return;
 
-      sendCurve.shape.p2 = {
-        ...sendCurve.shape.p2,
-        y: sendCurve.shape.p2.y + offset,
+      sendCurve.shape.tipP = {
+        ...sendCurve.shape.tipP,
+        y: sendCurve.shape.tipP.y + offset,
       };
       sendCurve.shape.cp2.y += offset;
     });
@@ -261,9 +261,9 @@ export default class Core {
 
       if (sendCurve.sendTo) return;
 
-      sendCurve.shape.p2 = {
-        ...sendCurve.shape.p2,
-        y: sendCurve.shape.p2.y - offset,
+      sendCurve.shape.tipP = {
+        ...sendCurve.shape.tipP,
+        y: sendCurve.shape.tipP.y - offset,
       };
       sendCurve.shape.cp2.y -= offset;
     });
@@ -275,9 +275,9 @@ export default class Core {
       );
 
       if (!bridge) return;
-      bridge.shape.p2 = {
-        ...bridge.shape.p2,
-        y: bridge.shape.p2.y + offset,
+      bridge.shape.tipP = {
+        ...bridge.shape.tipP,
+        y: bridge.shape.tipP.y + offset,
       };
       bridge.shape.cp2.y += offset;
     });
@@ -288,9 +288,9 @@ export default class Core {
       );
 
       if (!bridge) return;
-      bridge.shape.p2 = {
-        ...bridge.shape.p2,
-        y: bridge.shape.p2.y - offset,
+      bridge.shape.tipP = {
+        ...bridge.shape.tipP,
+        y: bridge.shape.tipP.y - offset,
       };
       bridge.shape.cp2.y -= offset;
     });
@@ -847,15 +847,6 @@ export default class Core {
     });
   }
 
-  // setAllCurvesSelected(_selecting: boolean) {
-  //   ds.forEach((d) => {
-  //     this.curves[d].forEach((curve)=>{
-  //       curve.shape.selecting = _selecting;
-  //     })
-
-  //   });
-  // }
-
   setReceivePointVisible(d: Direction, _visible: boolean) {
     this.__receivePoint__[d].visible = _visible;
   }
@@ -1051,12 +1042,34 @@ export default class Core {
       this.getCurveP(screenP)
     );
 
-    if (target.d === Direction.l) {
-      target.curve.locateHandler(CurveTypes.PressingTarget.cp2, {
-        x: (this.getCurveP(screenP).x + target.curve.p1.x) / 2,
-        y: 0,
-      });
+    let cp2 = {
+      x: 0,
+      y: 0,
+    };
+
+    switch (target.d) {
+      case Direction.l:
+        cp2.x = (this.getCurveP(screenP).x + target.curve.p1.x) / 2;
+        cp2.y = 0;
+        break;
+
+      case Direction.t:
+        cp2.x = 0;
+        cp2.y = (this.getCurveP(screenP).y + target.curve.p1.y) / 2;
+        break;
+
+      case Direction.r:
+        cp2.x = (this.getCurveP(screenP).x + target.curve.p1.x) / 2;
+        cp2.y = 0;
+        break;
+
+      case Direction.b:
+        cp2.x = 0;
+        cp2.y = (this.getCurveP(screenP).y + target.curve.p1.y) / 2;
+        break;
     }
+
+    target.curve.locateHandler(CurveTypes.PressingTarget.cp2, cp2);
   }
 
   resize(offset: Vec, vertex: CoreTypes.PressingTarget) {
@@ -1149,7 +1162,6 @@ export default class Core {
     let p2: Vec = { x: 0, y: 0 };
     let cp1: Vec = { x: 0, y: 0 };
     let cp2: Vec = { x: 0, y: 0 };
-    let endP: Vec = { x: 0, y: 0 };
 
     switch (_d) {
       case Direction.l:
@@ -1173,29 +1185,46 @@ export default class Core {
           x: 0,
           y: -this.h / 2,
         };
-        endP = {
+        p2 = {
           x: 0,
           y: -this.h / 2 - this.__curveTrigger__.d,
         };
+        cp1 = p1;
+        cp2 = {
+          x: 0,
+          y: (p1.y + p2.y) / 2,
+        };
         break;
+
       case Direction.r:
         p1 = {
           x: this.w / 2,
           y: 0,
         };
-        endP = {
+        p2 = {
           x: this.w / 2 + this.__curveTrigger__.d,
           y: 0,
         };
+        cp1 = p1;
+        cp2 = {
+          x: (p1.x + p2.x) / 2,
+          y: 0,
+        };
         break;
+
       case Direction.b:
         p1 = {
           x: 0,
           y: this.h / 2,
         };
-        endP = {
+        p2 = {
           x: 0,
           y: this.h / 2 + this.__curveTrigger__.d,
+        };
+        cp1 = p1;
+        cp2 = {
+          x: 0,
+          y: (p1.y + p2.y) / 2,
         };
         break;
     }

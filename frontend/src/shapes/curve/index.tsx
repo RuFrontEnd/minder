@@ -135,7 +135,6 @@ export default class Curve {
   }
 
   set tipP(val: Vec) {
-    console.log("val", val);
     this.__tipP__ = val;
     this.p2 = (() => {
       const v = { x: val.x - this.__p1__.x, y: val.y - this.__p1__.y };
@@ -149,7 +148,6 @@ export default class Curve {
 
       return { x: this.__p1__.x + v.x * ratio, y: this.__p1__.y + v.y * ratio };
     })();
-    console.log("this.p2", this.p2);
   }
 
   get tipP() {
@@ -424,17 +422,10 @@ export default class Curve {
         y: this.deScale(screenP.y),
       });
 
-      console.log("screenP", screenP);
-      console.log("normalP", normalP);
-
       this.tipP = {
         x: normalP.x,
         y: normalP.y,
       };
-
-      console.log(this.tipP);
-
-      console.log("this.getArrowP(this.tipP)", this.getArrowP(this.tipP));
     }
   }
 
