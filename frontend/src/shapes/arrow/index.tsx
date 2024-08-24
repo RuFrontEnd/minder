@@ -118,6 +118,10 @@ export default class Arrow {
     this.__scale__ = value;
   }
 
+  get scale() {
+    return this.__scale__;
+  }
+
   set selecting(value: boolean) {
     this.__selecting__ = value;
   }

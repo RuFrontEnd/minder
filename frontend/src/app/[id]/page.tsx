@@ -1448,7 +1448,6 @@ export default function IdPage() {
               break;
           }
         } else {
-          console.log("relativeCurveCp2", relativeCurveCp2);
           locateCurveHandler(p, {
             x: p.x - relativeCurveCp2.x * scale,
             y: p.y - relativeCurveCp2.y * scale,

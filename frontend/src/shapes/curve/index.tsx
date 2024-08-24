@@ -130,22 +130,15 @@ export default class Curve {
         ).toFixed(2)
       );
       const ratio = (len - this.__arrowAttr__.h) / len;
-      console.log("v", v);
-      console.log("len", len);
-      console.log("this.__p1__.x", this.__p1__.x);
-      console.log("this.__p1__.y", this.__p1__.y);
-      console.log("ratio", ratio);
-      console.log("coo", {
-        x: this.__p1__.x + v.x * ratio,
-        y: this.__p1__.y + v.y * ratio,
-      });
-      console.log("---");
 
       return { x: this.__p1__.x + v.x * ratio, y: this.__p1__.y + v.y * ratio };
     })(val);
 
     if (this.arrow && val && this.cp2) {
-      this.arrow.p = this.getArrowP(this.__p2__);
+      this.arrow.p = this.relativify(this.p2);
+      this.arrow.deg =
+        Math.atan2(this.p2.y - this.cp2.y, this.p2.x - this.cp2.x) +
+        90 * (Math.PI / 180);
     }
   }
 
@@ -417,15 +410,15 @@ export default class Curve {
         y: this.deScale(screenP.y),
       });
 
+      console.log("screenP", screenP);
+      console.log("normalP", normalP);
+
       this.p2 = {
         x: normalP.x,
         y: normalP.y,
       };
-    }
-    if (this.arrow) {
-      this.arrow.deg =
-        Math.atan2(this.p2.y - this.cp2.y, this.p2.x - this.cp2.x) +
-        90 * (Math.PI / 180);
+
+      console.log("this.getArrowP(this.p2)", this.getArrowP(this.p2));
     }
   }
 

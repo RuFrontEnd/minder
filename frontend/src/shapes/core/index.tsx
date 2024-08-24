@@ -1050,44 +1050,14 @@ export default class Core {
       CurveTypes.PressingTarget.arrow_t,
       this.getCurveP(screenP)
     );
-
-    let _x = 0;
-    let _y = 0;
-
-    switch (target.d) {
-      case Direction.l:
-        _x = (target.curve.p1.x + target.curve.p2.x) / 2;
-        _y = target.curve.p1.y;
-        break;
-
-      default:
-        break;
-    }
-
-    target.curve.locateHandler(CurveTypes.PressingTarget.cp2, {
-      x: _x,
-      y: _y,
-    });
+    // target.curve.locateHandler(
+    //   CurveTypes.PressingTarget.cp2,
+    //   {
+    //     x:target.curve.
+    //     y:
+    //   }
+    // );
   }
-
-  // locateCurveHandler(
-  //   curveId: CurveTypes.Id,
-  //   target: CurveTypes.PressingTarget,
-  //   screenP: Vec
-  // ) {
-  //   const targetCurve = (() => {
-  //     for (const d of ds) {
-  //       const curve = this.curves[d].find(
-  //         (curve) => curve.shape.id === curveId
-  //       );
-  //       if (curve) return curve;
-  //     }
-  //   })();
-
-  //   if (!targetCurve) return;
-
-  //   targetCurve.shape.locateHandler(target, this.getCurveP(screenP));
-  // }
 
   resize(offset: Vec, vertex: CoreTypes.PressingTarget) {
     if (
