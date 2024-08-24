@@ -72,10 +72,7 @@ export default class Curve {
       this.__arrowAttr__.w,
       this.__arrowAttr__.h,
       this.__arrowAttr__.c,
-      {
-        x: this.getRelativeP(this.__p2__).x,
-        y: this.getRelativeP(this.__p2__).y,
-      },
+      this.relativify(this.__p2__),
       Math.atan2(this.__p2__.y - this.cp2.y, this.__p2__.x - this.cp2.x) +
         90 * (Math.PI / 180)
     );
@@ -99,17 +96,21 @@ export default class Curve {
     return this.__p1__;
   }
 
+  set cp1(val: Vec) {
+    this.__cp1__ = val;
+  }
+
   get cp1() {
     return this.__cp1__;
   }
 
-  set cp2(value: Vec) {
-    this.__cp2__ = value;
-    if (this.arrow && value && this.cp2) {
-      this.arrow.deg =
-        Math.atan2(this.cp2.y - this.p2.y, this.cp2.x - this.p2.x) -
-        90 * (Math.PI / 180);
-    }
+  set cp2(val: Vec) {
+    this.__cp2__ = val;
+    // if (this.arrow && val && this.cp2) {
+    //   this.arrow.deg =
+    //     Math.atan2(this.cp2.y - this.p2.y, this.cp2.x - this.p2.x) -
+    //     90 * (Math.PI / 180);
+    // }
   }
 
   get cp2() {
@@ -120,10 +121,31 @@ export default class Curve {
     return this.__p2__;
   }
 
-  set p2(value: Vec) {
-    this.__p2__ = value;
-    if (this.arrow && value && this.cp2) {
-      this.arrow.p = this.getRelativeP(value);
+  set p2(val: Vec) {
+    this.__p2__ = ((p2: Vec) => {
+      const v = { x: p2.x - this.__p1__.x, y: p2.y - this.__p1__.y };
+      const len = Number(
+        Math.sqrt(
+          Math.pow(p2.x - this.__p1__.x, 2) + Math.pow(p2.y - this.__p1__.y, 2)
+        ).toFixed(2)
+      );
+      const ratio = (len - this.__arrowAttr__.h) / len;
+      console.log("v", v);
+      console.log("len", len);
+      console.log("this.__p1__.x", this.__p1__.x);
+      console.log("this.__p1__.y", this.__p1__.y);
+      console.log("ratio", ratio);
+      console.log("coo", {
+        x: this.__p1__.x + v.x * ratio,
+        y: this.__p1__.y + v.y * ratio,
+      });
+      console.log("---");
+
+      return { x: this.__p1__.x + v.x * ratio, y: this.__p1__.y + v.y * ratio };
+    })(val);
+
+    if (this.arrow && val && this.cp2) {
+      this.arrow.p = this.getArrowP(this.__p2__);
     }
   }
 
@@ -191,27 +213,6 @@ export default class Curve {
     return {
       x: this.deScale(screenP.x) - this.__offset__.x,
       y: this.deScale(screenP.y) - this.__offset__.y,
-    };
-  }
-
-  getScreenP() {
-    return {
-      p1: {
-        x: (this.__p1__.x + this.__offset__.x) * this.__scale__,
-        y: (this.__p1__.y + this.__offset__.y) * this.__scale__,
-      },
-      cp1: {
-        x: (this.__cp1__.x + this.__offset__.x) * this.__scale__,
-        y: (this.__cp1__.y + this.__offset__.y) * this.__scale__,
-      },
-      cp2: {
-        x: (this.cp2.x + this.__offset__.x) * this.__scale__,
-        y: (this.cp2.y + this.__offset__.y) * this.__scale__,
-      },
-      p2: {
-        x: (this.__p2__.x + this.__offset__.x) * this.__scale__,
-        y: (this.__p2__.y + this.__offset__.y) * this.__scale__,
-      },
     };
   }
 
@@ -396,25 +397,32 @@ export default class Curve {
       pressingTarget === CurveTypes.PressingTarget.cp1 ||
       pressingTarget === CurveTypes.PressingTarget.cp2
     ) {
-      this[`__${pressingTarget}__`] = {
-        x: screenP.x / this.__scale__ - this.__offset__.x,
-        y: screenP.y / this.__scale__ - this.__offset__.y,
+      const normalP = this.deOffset({
+        x: this.deScale(screenP.x),
+        y: this.deScale(screenP.y),
+      });
+
+      this[pressingTarget] = {
+        x: normalP.x,
+        y: normalP.y,
       };
     } else if (pressingTarget === CurveTypes.PressingTarget.arrow_t) {
-      const arrowTopP = this.arrow?.getVertex().t;
+      const normalP = this.deOffset({
+        x: this.deScale(screenP.x),
+        y: this.deScale(screenP.y),
+      });
 
-      if (!arrowTopP) return;
-
-      const corrctedArrowTopP = this.correct(arrowTopP);
-      const relativeP = {
-        x: corrctedArrowTopP.x - this.__p2__.x,
-        y: corrctedArrowTopP.y - this.__p2__.y,
-      };
+      console.log("normalP", normalP);
 
       this.p2 = {
-        x: screenP.x / this.__scale__ - this.__offset__.x - relativeP.x,
-        y: screenP.y / this.__scale__ - this.__offset__.y - relativeP.y,
+        x: normalP.x,
+        y: normalP.y,
       };
+      if (this.arrow) {
+        this.arrow.deg =
+          Math.atan2(this.p2.y - this.cp2.y, this.p2.x - this.cp2.x) +
+          90 * (Math.PI / 180);
+      }
     }
   }
 
@@ -431,7 +439,7 @@ export default class Curve {
   }
 
   draw(ctx: CanvasRenderingContext2D) {
-    if (!this.__p1__ || !this.p2 || !this.__cp1__ || !this.cp2) return;
+    if (!this.__p1__ || !this.__p2__ || !this.__cp1__ || !this.cp2) return;
 
     ctx.lineWidth = this.scalify(this.curve.w);
     ctx.strokeStyle = this.curve.c;
@@ -461,52 +469,68 @@ export default class Curve {
     // curve
     ctx.moveTo(0, 0);
     ctx.fillStyle = "red";
+    // ctx.fillText(
+    //   `p1 x:${this.screenfy(this.p1).x.toFixed(1)} y:${this.screenfy(
+    //     this.p1
+    //   ).y.toFixed(1)}`,
+    //   0,
+    //   0
+    // );
+    // ctx.fillText(
+    //   `cp1 x:${this.screenfy(this.__cp1__).x.toFixed(1)} y:${this.screenfy(
+    //     this.__cp1__
+    //   ).y.toFixed(1)}`,
+    //   relativeScreenP.cp1.x,
+    //   relativeScreenP.cp1.y
+    // );
+    // ctx.fillText(
+    //   `cp2 x:${this.screenfy(this.__cp2__).x.toFixed(1)} y:${this.screenfy(
+    //     this.__cp2__
+    //   ).y.toFixed(1)}`,
+    //   relativeScreenP.cp2.x,
+    //   relativeScreenP.cp2.y
+    // );
+    // ctx.fillText(
+    //   `p2 x:${this.screenfy(this.__p2__).x.toFixed(1)} y:${this.screenfy(
+    //     this.__p2__
+    //   ).y.toFixed(1)}`,
+    //   relativeScreenP.p2.x,
+    //   relativeScreenP.p2.y
+    // );
+
+    const c = this.screenfy({
+      x: this.__p2__.x + this.__p1__.x / 2,
+      y: this.__p2__.y + this.__p1__.y / 2,
+    });
+
+    const rc = this.relativify({
+      x: (this.__p1__.x + this.__p2__.x) / 2,
+      y: (this.__p1__.y + this.__p2__.y) / 2,
+    });
+
     ctx.fillText(
-      `p1 x:${this.screenfy(this.p1).x.toFixed(1)} y:${this.screenfy(
-        this.p1
-      ).y.toFixed(1)}`,
-      0,
-      0
+      `c x:${c.x.toFixed(1)} y:${c.y.toFixed(1)}`,
+     rc.x,
+     rc.y
     );
-    ctx.fillText(
-      `cp1 x:${this.screenfy(this.__cp1__).x.toFixed(1)} y:${this.screenfy(
-        this.__cp1__
-      ).y.toFixed(1)}`,
+
+    // if (this.cp2) {
+    //   ctx.bezierCurveTo(
+    //     relativeScreenP.cp1.x,
+    //     relativeScreenP.cp1.y,
+    //     relativeScreenP.cp2.x,
+    //     relativeScreenP.cp2.y,
+    //     relativeScreenP.p2.x,
+    //     relativeScreenP.p2.y
+    //   );
+    // } else {
+    ctx.quadraticCurveTo(
       relativeScreenP.cp1.x,
-      relativeScreenP.cp1.y
-    );
-    ctx.fillText(
-      `cp2 x:${this.screenfy(this.__cp2__).x.toFixed(1)} y:${this.screenfy(
-        this.__cp2__
-      ).y.toFixed(1)}`,
-      relativeScreenP.cp2.x,
-      relativeScreenP.cp2.y
-    );
-    ctx.fillText(
-      `p2 x:${this.screenfy(this.__p2__).x.toFixed(1)} y:${this.screenfy(
-        this.__p2__
-      ).y.toFixed(1)}`,
+      relativeScreenP.cp1.y,
       relativeScreenP.p2.x,
       relativeScreenP.p2.y
     );
-
-    if (this.cp2) {
-      ctx.bezierCurveTo(
-        relativeScreenP.cp1.x,
-        relativeScreenP.cp1.y,
-        relativeScreenP.cp2.x,
-        relativeScreenP.cp2.y,
-        relativeScreenP.p2.x,
-        relativeScreenP.p2.y
-      );
-    } else {
-      ctx.quadraticCurveTo(
-        relativeScreenP.cp1.x,
-        relativeScreenP.cp1.y,
-        relativeScreenP.p2.x,
-        relativeScreenP.p2.y
-      );
-    }
+    // }
     ctx.stroke();
     ctx.closePath();
 
@@ -520,28 +544,34 @@ export default class Curve {
       ctx.strokeStyle = this.cpline.c;
       ctx.fillStyle = this.cpline.c;
 
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.lineTo(relativeScreenP.cp1.x, relativeScreenP.cp1.y);
-      ctx.stroke();
-      ctx.closePath();
+      // ctx.beginPath();
+      // ctx.moveTo(0, 0);
+      // ctx.lineTo(relativeScreenP.cp1.x, relativeScreenP.cp1.y);
+      // ctx.stroke();
+      // ctx.closePath();
 
-      if (this.cp2) {
-        ctx.beginPath();
-        ctx.moveTo(relativeScreenP.p2.x, relativeScreenP.p2.y);
-        ctx.lineTo(relativeScreenP.cp2.x, relativeScreenP.cp2.y);
-        ctx.stroke();
-        ctx.closePath();
-      } else {
-        ctx.beginPath();
-        ctx.lineTo(relativeScreenP.p2.x, relativeScreenP.p2.y);
-        ctx.stroke();
-        ctx.closePath();
-      }
+      // if (this.cp2) {
+      //   ctx.beginPath();
+      //   ctx.moveTo(relativeScreenP.p2.x, relativeScreenP.p2.y);
+      //   ctx.lineTo(relativeScreenP.cp2.x, relativeScreenP.cp2.y);
+      //   ctx.stroke();
+      //   ctx.closePath();
+      // } else {
+      //   ctx.beginPath();
+      //   ctx.lineTo(relativeScreenP.p2.x, relativeScreenP.p2.y);
+      //   ctx.stroke();
+      //   ctx.closePath();
+      // }
 
       // control points
-      ctx.strokeStyle = this.controlPoint.strokeC;
-      ctx.fillStyle = this.controlPoint.c;
+      // ctx.strokeStyle = this.controlPoint.strokeC;
+      // ctx.fillStyle = this.controlPoint.c;
+
+      // ctx.beginPath();
+      // ctx.arc(c.x, c.y, this.controlPoint.r, 0, 2 * Math.PI, true); // cp1 control point
+      // ctx.fill();
+      // ctx.stroke();
+      // ctx.closePath();
 
       //   // TODO: temporarily close p1.
       //   // ctx.beginPath();
@@ -550,31 +580,31 @@ export default class Curve {
       //   // ctx.stroke();
       //   // ctx.closePath();
 
-      ctx.beginPath();
-      ctx.arc(
-        relativeScreenP.cp1.x,
-        relativeScreenP.cp1.y,
-        this.controlPoint.r,
-        0,
-        2 * Math.PI,
-        true
-      ); // cp1 control point
-      ctx.fill();
-      ctx.stroke();
-      ctx.closePath();
+      // ctx.beginPath();
+      // ctx.arc(
+      //   relativeScreenP.cp1.x,
+      //   relativeScreenP.cp1.y,
+      //   this.controlPoint.r,
+      //   0,
+      //   2 * Math.PI,
+      //   true
+      // ); // cp1 control point
+      // ctx.fill();
+      // ctx.stroke();
+      // ctx.closePath();
 
-      ctx.beginPath();
-      ctx.arc(
-        relativeScreenP.cp2.x,
-        relativeScreenP.cp2.y,
-        this.controlPoint.r,
-        0,
-        2 * Math.PI,
-        true
-      ); // cp2 control point
-      ctx.fill();
-      ctx.stroke();
-      ctx.closePath();
+      // ctx.beginPath();
+      // ctx.arc(
+      //   relativeScreenP.cp2.x,
+      //   relativeScreenP.cp2.y,
+      //   this.controlPoint.r,
+      //   0,
+      //   2 * Math.PI,
+      //   true
+      // ); // cp2 control point
+      // ctx.fill();
+      // ctx.stroke();
+      // ctx.closePath();
 
       // TODO: temporarily close p2.
       // ctx.beginPath();
@@ -589,6 +619,15 @@ export default class Curve {
       // ctx.fill();
       // ctx.stroke();
       // ctx.closePath();
+
+      ctx.strokeStyle = this.controlPoint.strokeC;
+      ctx.fillStyle = this.controlPoint.c;
+
+      ctx.beginPath();
+      ctx.arc(rc.x, rc.y, this.controlPoint.r, 0, 2 * Math.PI, true); // cp1 control point
+      ctx.fill();
+      ctx.stroke();
+      ctx.closePath();
     }
 
     ctx.restore();

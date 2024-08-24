@@ -1309,6 +1309,7 @@ export default function IdPage() {
           p
         );
 
+        // get cp2 relative to p2 poistion
         const curveArrowTopP = pressing.shape.getPressingCurveP(
           CurveTypes.PressingTarget.arrow_t,
           pressing.curveId
@@ -1375,11 +1376,11 @@ export default function IdPage() {
               CurveTypes.PressingTarget.arrow_t,
               arrowTopP
             );
-            pressingShape.locateCurveHandler(
-              curveId,
-              CurveTypes.PressingTarget.cp2,
-              cp2
-            ); // TODO: temporarily close
+            // pressingShape.locateCurveHandler(
+            //   curveId,
+            //   CurveTypes.PressingTarget.cp2,
+            //   cp2
+            // ); // TODO: temporarily close
           };
         };
 
@@ -1448,6 +1449,7 @@ export default function IdPage() {
               break;
           }
         } else {
+          console.log('relativeCurveCp2', relativeCurveCp2)
           locateCurveHandler(p, {
             x: p.x - relativeCurveCp2.x * scale,
             y: p.y - relativeCurveCp2.y * scale,

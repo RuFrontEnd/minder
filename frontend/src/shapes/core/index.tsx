@@ -702,11 +702,12 @@ export default class Core {
       isSelecting: boolean;
       d: Direction;
     }[] = [];
-    const curveP = this.getCurveP(screenP);
-
+    
     ds.forEach((d) => {
       this.curves[d].forEach((curve) => {
-        const pressingHandler = curve.shape.checkControlPointsBoundry(curveP);
+        const pressingHandler = curve.shape.checkControlPointsBoundry(
+          this.getCurveP(screenP)
+        );
         if (!pressingHandler) return;
         withinRangeCurveIds.push({
           id: curve.shape.id,
@@ -1050,12 +1051,7 @@ export default class Core {
 
     if (!targetCurve) return;
 
-    const curveP = {
-      x: screenP.x - this.getScreenP().x,
-      y: screenP.y - this.getScreenP().y,
-    };
-
-    targetCurve.shape.locateHandler(target, curveP);
+    targetCurve.shape.locateHandler(target, this.getCurveP(screenP));
   }
 
   resize(offset: Vec, vertex: CoreTypes.PressingTarget) {
