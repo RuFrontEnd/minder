@@ -1050,13 +1050,13 @@ export default class Core {
       CurveTypes.PressingTarget.arrow_t,
       this.getCurveP(screenP)
     );
-    // target.curve.locateHandler(
-    //   CurveTypes.PressingTarget.cp2,
-    //   {
-    //     x:target.curve.
-    //     y:
-    //   }
-    // );
+
+    if (target.d === Direction.l) {
+      target.curve.locateHandler(CurveTypes.PressingTarget.cp2, {
+        x: (this.getCurveP(screenP).x + target.curve.p1.x) / 2,
+        y: 0,
+      });
+    }
   }
 
   resize(offset: Vec, vertex: CoreTypes.PressingTarget) {

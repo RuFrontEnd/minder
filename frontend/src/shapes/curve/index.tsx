@@ -24,6 +24,7 @@ export default class Curve {
   private __cp1__: Vec;
   private __cp2__: Vec;
   private __p2__: Vec;
+  private __tipP__: Vec;
   private __arrowAttr__: {
     w: number;
     h: number;
@@ -34,7 +35,7 @@ export default class Curve {
   protected __offset__: Vec;
   protected __scale__: number;
 
-  constructor(id: string, p1: Vec, cp1: Vec, cp2: Vec, p2: Vec) {
+  constructor(id: string, p1: Vec, cp1: Vec, cp2: Vec, tipP: Vec) {
     this.id = id;
     this.cpline = {
       w: 1,
@@ -57,14 +58,16 @@ export default class Curve {
     };
     this.__p1__ = p1;
     this.__p2__ = (() => {
-      const v = { x: p2.x - this.__p1__.x, y: p2.y - this.__p1__.y };
+      const v = { x: tipP.x - this.__p1__.x, y: tipP.y - this.__p1__.y };
       const len = Math.sqrt(
-        Math.pow(p2.x - this.__p1__.x, 2) + Math.pow(p2.y - this.__p1__.y, 2)
+        Math.pow(tipP.x - this.__p1__.x, 2) +
+          Math.pow(tipP.y - this.__p1__.y, 2)
       );
       const ratio = (len - this.__arrowAttr__.h) / len;
 
       return { x: this.__p1__.x + v.x * ratio, y: this.__p1__.y + v.y * ratio };
     })();
+    this.__tipP__ = tipP;
     this.__cp1__ = cp1;
     this.__cp2__ = cp2;
     this.arrow = new Arrow(
@@ -121,25 +124,36 @@ export default class Curve {
     return this.__p2__;
   }
 
-  set p2(val: Vec) {
-    this.__p2__ = ((p2: Vec) => {
-      const v = { x: p2.x - this.__p1__.x, y: p2.y - this.__p1__.y };
-      const len = Number(
-        Math.sqrt(
-          Math.pow(p2.x - this.__p1__.x, 2) + Math.pow(p2.y - this.__p1__.y, 2)
-        ).toFixed(2)
-      );
-      const ratio = (len - this.__arrowAttr__.h) / len;
-
-      return { x: this.__p1__.x + v.x * ratio, y: this.__p1__.y + v.y * ratio };
-    })(val);
-
+  private set p2(val: Vec) {
+    this.__p2__ = val;
     if (this.arrow && val && this.cp2) {
       this.arrow.p = this.relativify(this.p2);
       this.arrow.deg =
         Math.atan2(this.p2.y - this.cp2.y, this.p2.x - this.cp2.x) +
         90 * (Math.PI / 180);
     }
+  }
+
+  set tipP(val: Vec) {
+    console.log("val", val);
+    this.__tipP__ = val;
+    this.p2 = (() => {
+      const v = { x: val.x - this.__p1__.x, y: val.y - this.__p1__.y };
+      const len = Number(
+        Math.sqrt(
+          Math.pow(val.x - this.__p1__.x, 2) +
+            Math.pow(val.y - this.__p1__.y, 2)
+        ).toFixed(2)
+      );
+      const ratio = (len - this.__arrowAttr__.h) / len;
+
+      return { x: this.__p1__.x + v.x * ratio, y: this.__p1__.y + v.y * ratio };
+    })();
+    console.log("this.p2", this.p2);
+  }
+
+  get tipP() {
+    return this.__tipP__;
   }
 
   set offset(value: Vec) {
@@ -361,9 +375,9 @@ export default class Curve {
       x: this.cp2.x + offset.x,
       y: this.cp2.y + offset.y,
     };
-    this.p2 = {
-      x: this.p2.x + offset.x,
-      y: this.p2.y + offset.y,
+    this.tipP = {
+      x: this.tipP.x + offset.x,
+      y: this.tipP.y + offset.y,
     };
   }
 
@@ -375,10 +389,10 @@ export default class Curve {
       this[`__${pressingTarget}__`].x += this.deScale(offset.x);
       this[`__${pressingTarget}__`].y += this.deScale(offset.y);
 
-      if (this.arrow && this.p2 && this.cp2) {
-        this.arrow.p = this.p2; // TODO: arrow should add offset and scale and calculate inside Arrow class
+      if (this.arrow && this.tipP && this.cp2) {
+        this.arrow.p = this.tipP; // TODO: arrow should add offset and scale and calculate inside Arrow class
         this.arrow.deg =
-          Math.atan2(this.p2.y - this.cp2.y, this.p2.x - this.cp2.x) +
+          Math.atan2(this.tipP.y - this.cp2.y, this.tipP.x - this.cp2.x) +
           90 * (Math.PI / 180);
       }
     } else if (pressingTarget === CurveTypes.PressingTarget.arrow_t) {
@@ -413,12 +427,14 @@ export default class Curve {
       console.log("screenP", screenP);
       console.log("normalP", normalP);
 
-      this.p2 = {
+      this.tipP = {
         x: normalP.x,
         y: normalP.y,
       };
 
-      console.log("this.getArrowP(this.p2)", this.getArrowP(this.p2));
+      console.log(this.tipP);
+
+      console.log("this.getArrowP(this.tipP)", this.getArrowP(this.tipP));
     }
   }
 
