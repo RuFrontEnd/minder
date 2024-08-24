@@ -702,7 +702,7 @@ export default class Core {
       isSelecting: boolean;
       d: Direction;
     }[] = [];
-    
+
     ds.forEach((d) => {
       this.curves[d].forEach((curve) => {
         const pressingHandler = curve.shape.checkControlPointsBoundry(
@@ -1035,24 +1035,59 @@ export default class Core {
     targetCurve.moveHandler(pressingTarget, offset);
   }
 
-  locateCurveHandler(
-    curveId: CurveTypes.Id,
-    target: CurveTypes.PressingTarget,
-    screenP: Vec
-  ) {
-    const targetCurve = (() => {
-      for (const d of ds) {
-        const curve = this.curves[d].find(
+  locateCurveHandler(curveId: CurveTypes.Id, screenP: Vec) {
+    const target = (() => {
+      for (const _d of ds) {
+        const _curve = this.curves[_d].find(
           (curve) => curve.shape.id === curveId
         );
-        if (curve) return curve;
+        if (_curve) return { d: _d, curve: _curve.shape, send: _curve.sendTo };
       }
     })();
 
-    if (!targetCurve) return;
+    if (!target) return;
+    target.curve.locateHandler(
+      CurveTypes.PressingTarget.arrow_t,
+      this.getCurveP(screenP)
+    );
 
-    targetCurve.shape.locateHandler(target, this.getCurveP(screenP));
+    let _x = 0;
+    let _y = 0;
+
+    switch (target.d) {
+      case Direction.l:
+        _x = (target.curve.p1.x + target.curve.p2.x) / 2;
+        _y = target.curve.p1.y;
+        break;
+
+      default:
+        break;
+    }
+
+    target.curve.locateHandler(CurveTypes.PressingTarget.cp2, {
+      x: _x,
+      y: _y,
+    });
   }
+
+  // locateCurveHandler(
+  //   curveId: CurveTypes.Id,
+  //   target: CurveTypes.PressingTarget,
+  //   screenP: Vec
+  // ) {
+  //   const targetCurve = (() => {
+  //     for (const d of ds) {
+  //       const curve = this.curves[d].find(
+  //         (curve) => curve.shape.id === curveId
+  //       );
+  //       if (curve) return curve;
+  //     }
+  //   })();
+
+  //   if (!targetCurve) return;
+
+  //   targetCurve.shape.locateHandler(target, this.getCurveP(screenP));
+  // }
 
   resize(offset: Vec, vertex: CoreTypes.PressingTarget) {
     if (
@@ -1140,23 +1175,31 @@ export default class Core {
 
   initializeCurve(id: string, _d: Direction) {
     let newCurve = null;
-    let startP: Vec = { x: 0, y: 0 };
+    let p1: Vec = { x: 0, y: 0 };
+    let p2: Vec = { x: 0, y: 0 };
+    let cp1: Vec = { x: 0, y: 0 };
+    let cp2: Vec = { x: 0, y: 0 };
     let endP: Vec = { x: 0, y: 0 };
 
     switch (_d) {
       case Direction.l:
-        startP = {
+        p1 = {
           x: -this.w / 2,
           y: 0,
         };
-        endP = {
+        p2 = {
           x: -this.w / 2 - this.__curveTrigger__.d,
+          y: 0,
+        };
+        cp1 = p1;
+        cp2 = {
+          x: (p1.x + p2.x) / 2,
           y: 0,
         };
         break;
 
       case Direction.t:
-        startP = {
+        p1 = {
           x: 0,
           y: -this.h / 2,
         };
@@ -1166,7 +1209,7 @@ export default class Core {
         };
         break;
       case Direction.r:
-        startP = {
+        p1 = {
           x: this.w / 2,
           y: 0,
         };
@@ -1176,7 +1219,7 @@ export default class Core {
         };
         break;
       case Direction.b:
-        startP = {
+        p1 = {
           x: 0,
           y: this.h / 2,
         };
@@ -1187,7 +1230,7 @@ export default class Core {
         break;
     }
 
-    newCurve = new Curve(id, startP, endP, startP, endP);
+    newCurve = new Curve(id, p1, cp1, cp2, p2);
 
     if (!newCurve) return;
     newCurve.scale = this.scale;

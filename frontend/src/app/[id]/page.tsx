@@ -1288,44 +1288,47 @@ export default function IdPage() {
         pressing.shape.resize(offsetP, pressing.target);
       } else if (pressing?.target === CoreTypes.PressingTarget.m) {
         pressing.shape.move({ x: p.x - lastP.x, y: p.y - lastP.y });
-      } else if (
-        !!pressing.curveId &&
-        pressing.direction &&
-        pressing?.target === CurveTypes.PressingTarget.cp1
-      ) {
-        pressing.shape.locateCurveHandler(
-          pressing.curveId,
-          CurveTypes.PressingTarget.cp1,
-          p
-        );
-      } else if (
-        !!pressing.curveId &&
-        pressing.direction &&
-        pressing?.target === CurveTypes.PressingTarget.cp2
-      ) {
-        pressing.shape.locateCurveHandler(
-          pressing.curveId,
-          CurveTypes.PressingTarget.cp2,
-          p
-        );
+      }
+      // else if (
+      //   !!pressing.curveId &&
+      //   pressing.direction &&
+      //   pressing?.target === CurveTypes.PressingTarget.cp1
+      // ) {
+      //   pressing.shape.locateCurveHandler(
+      //     pressing.curveId,
+      //     CurveTypes.PressingTarget.cp1,
+      //     p
+      //   );
+      // }
+      // else if (
+      //   !!pressing.curveId &&
+      //   pressing.direction &&
+      //   pressing?.target === CurveTypes.PressingTarget.cp2
+      // ) {
+      //   pressing.shape.locateCurveHandler(
+      //     pressing.curveId,
+      //     CurveTypes.PressingTarget.cp2,
+      //     p
+      //   );
 
-        // get cp2 relative to p2 poistion
-        const curveArrowTopP = pressing.shape.getPressingCurveP(
-          CurveTypes.PressingTarget.arrow_t,
-          pressing.curveId
-        );
-        const curveCp2 = pressing.shape.getPressingCurveP(
-          CurveTypes.PressingTarget.cp2,
-          pressing.curveId
-        );
+      //   // get cp2 relative to p2 poistion
+      //   const curveArrowTopP = pressing.shape.getPressingCurveP(
+      //     CurveTypes.PressingTarget.arrow_t,
+      //     pressing.curveId
+      //   );
+      //   const curveCp2 = pressing.shape.getPressingCurveP(
+      //     CurveTypes.PressingTarget.cp2,
+      //     pressing.curveId
+      //   );
 
-        if (!curveArrowTopP || !curveCp2) return;
+      //   if (!curveArrowTopP || !curveCp2) return;
 
-        relativeCurveCp2 = {
-          x: curveArrowTopP.x - curveCp2.x,
-          y: curveArrowTopP.y - curveCp2.y,
-        };
-      } else if (
+      //   relativeCurveCp2 = {
+      //     x: curveArrowTopP.x - curveCp2.x,
+      //     y: curveArrowTopP.y - curveCp2.y,
+      //   };
+      // }
+      else if (
         !!pressing.curveId &&
         pressing.direction &&
         pressing?.target === CurveTypes.PressingTarget.arrow_t
@@ -1371,11 +1374,7 @@ export default function IdPage() {
         ) => {
           return (arrowTopP: CommonTypes.Vec, cp2: CommonTypes.Vec) => {
             if (!pressingShape || !curveId) return;
-            pressingShape.locateCurveHandler(
-              curveId,
-              CurveTypes.PressingTarget.arrow_t,
-              arrowTopP
-            );
+            pressingShape.locateCurveHandler(curveId, arrowTopP);
             // pressingShape.locateCurveHandler(
             //   curveId,
             //   CurveTypes.PressingTarget.cp2,
@@ -1449,7 +1448,7 @@ export default function IdPage() {
               break;
           }
         } else {
-          console.log('relativeCurveCp2', relativeCurveCp2)
+          console.log("relativeCurveCp2", relativeCurveCp2);
           locateCurveHandler(p, {
             x: p.x - relativeCurveCp2.x * scale,
             y: p.y - relativeCurveCp2.y * scale,
@@ -1632,13 +1631,13 @@ export default function IdPage() {
             break;
         }
 
-        if (!!relocateP) {
-          pressingShape.locateCurveHandler(
-            pressing.curveId,
-            CurveTypes.PressingTarget.arrow_t,
-            relocateP
-          );
-        }
+        // if (!!relocateP) {
+        //   pressingShape.locateCurveHandler(
+        //     pressing.curveId,
+        //     CurveTypes.PressingTarget.arrow_t,
+        //     relocateP
+        //   );
+        // } // TODO: temprarily closed
       }
     });
 

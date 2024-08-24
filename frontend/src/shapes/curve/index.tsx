@@ -241,21 +241,23 @@ export default class Curve {
     };
   }
 
-  getBezierPoint(t: number, controlPoints: Vec[]) {
+  getBezierP(t: number, controlPs: Vec[]) {
     const x =
-      Math.pow(1 - t, 3) * controlPoints[0].x +
-      3 * Math.pow(1 - t, 2) * t * controlPoints[1].x +
-      3 * (1 - t) * Math.pow(t, 2) * controlPoints[2].x +
-      Math.pow(t, 3) * controlPoints[3].x;
+      Math.pow(1 - t, 3) * controlPs[0].x +
+      3 * Math.pow(1 - t, 2) * t * controlPs[1].x +
+      3 * (1 - t) * Math.pow(t, 2) * controlPs[2].x +
+      Math.pow(t, 3) * controlPs[3].x;
 
     const y =
-      Math.pow(1 - t, 3) * controlPoints[0].y +
-      3 * Math.pow(1 - t, 2) * t * controlPoints[1].y +
-      3 * (1 - t) * Math.pow(t, 2) * controlPoints[2].y +
-      Math.pow(t, 3) * controlPoints[3].y;
+      Math.pow(1 - t, 3) * controlPs[0].y +
+      3 * Math.pow(1 - t, 2) * t * controlPs[1].y +
+      3 * (1 - t) * Math.pow(t, 2) * controlPs[2].y +
+      Math.pow(t, 3) * controlPs[3].y;
 
     return { x, y };
   }
+
+  getBezierMidP = (controlPs: Vec[]) => this.getBezierP(0.5, controlPs);
 
   // Get the distance between two points
   getDistance(p1: Vec, p2: Vec) {
@@ -265,16 +267,25 @@ export default class Curve {
   } // checked
 
   // Check if a point is close to the Bezier curve
-  getIsPointNearBezierCurve(point: Vec, threshold: number) {
+  getIsPNearBezierCurve(screenP: Vec, threshold: number) {
+    const relativeP = this.relativify(
+      this.deOffset({
+        x: this.deScale(screenP.x),
+        y: this.deScale(screenP.y),
+      })
+    );
+
     for (let t = 0; t <= 1; t += 0.01) {
       if (!this.__p1__ || !this.__cp1__ || !this.cp2 || !this.p2) return false;
-      const bezierPoint = this.getBezierPoint(t, [
-        this.relativify(this.__p1__),
-        this.relativify(this.__cp1__),
-        this.relativify(this.__cp2__),
-        this.relativify(this.__p2__),
-      ]);
-      const distance = this.getDistance(point, bezierPoint);
+      const bezierP = this.relativify(
+        this.getBezierP(t, [
+          this.__p1__,
+          this.__cp1__,
+          this.__cp2__,
+          this.__p2__,
+        ])
+      );
+      const distance = this.getDistance(relativeP, bezierP);
 
       if (distance < threshold) {
         return true;
@@ -338,14 +349,8 @@ export default class Curve {
   }
 
   checkBoundry(screenP: Vec) {
-    const relativeP = this.relativify(
-      this.deOffset({
-        x: this.deScale(screenP.x),
-        y: this.deScale(screenP.y),
-      })
-    );
     return (
-      this.getIsPointNearBezierCurve(relativeP, threshold) || // checked
+      this.getIsPNearBezierCurve(screenP, threshold) || // checked
       this.arrow?.checkBoundry(this.getArrowP(screenP))
     );
   }
@@ -412,17 +417,15 @@ export default class Curve {
         y: this.deScale(screenP.y),
       });
 
-      console.log("normalP", normalP);
-
       this.p2 = {
         x: normalP.x,
         y: normalP.y,
       };
-      if (this.arrow) {
-        this.arrow.deg =
-          Math.atan2(this.p2.y - this.cp2.y, this.p2.x - this.cp2.x) +
-          90 * (Math.PI / 180);
-      }
+    }
+    if (this.arrow) {
+      this.arrow.deg =
+        Math.atan2(this.p2.y - this.cp2.y, this.p2.x - this.cp2.x) +
+        90 * (Math.PI / 180);
     }
   }
 
@@ -508,29 +511,25 @@ export default class Curve {
       y: (this.__p1__.y + this.__p2__.y) / 2,
     });
 
-    ctx.fillText(
-      `c x:${c.x.toFixed(1)} y:${c.y.toFixed(1)}`,
-     rc.x,
-     rc.y
-    );
+    // ctx.fillText(`c x:${c.x.toFixed(1)} y:${c.y.toFixed(1)}`, rc.x, rc.y);
 
-    // if (this.cp2) {
-    //   ctx.bezierCurveTo(
-    //     relativeScreenP.cp1.x,
-    //     relativeScreenP.cp1.y,
-    //     relativeScreenP.cp2.x,
-    //     relativeScreenP.cp2.y,
-    //     relativeScreenP.p2.x,
-    //     relativeScreenP.p2.y
-    //   );
-    // } else {
-    ctx.quadraticCurveTo(
-      relativeScreenP.cp1.x,
-      relativeScreenP.cp1.y,
-      relativeScreenP.p2.x,
-      relativeScreenP.p2.y
-    );
-    // }
+    if (this.cp2) {
+      ctx.bezierCurveTo(
+        relativeScreenP.cp1.x,
+        relativeScreenP.cp1.y,
+        relativeScreenP.cp2.x,
+        relativeScreenP.cp2.y,
+        relativeScreenP.p2.x,
+        relativeScreenP.p2.y
+      );
+    } else {
+      ctx.quadraticCurveTo(
+        relativeScreenP.cp1.x,
+        relativeScreenP.cp1.y,
+        relativeScreenP.p2.x,
+        relativeScreenP.p2.y
+      );
+    }
     ctx.stroke();
     ctx.closePath();
 
@@ -544,28 +543,28 @@ export default class Curve {
       ctx.strokeStyle = this.cpline.c;
       ctx.fillStyle = this.cpline.c;
 
-      // ctx.beginPath();
-      // ctx.moveTo(0, 0);
-      // ctx.lineTo(relativeScreenP.cp1.x, relativeScreenP.cp1.y);
-      // ctx.stroke();
-      // ctx.closePath();
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(relativeScreenP.cp1.x, relativeScreenP.cp1.y);
+      ctx.stroke();
+      ctx.closePath();
 
-      // if (this.cp2) {
-      //   ctx.beginPath();
-      //   ctx.moveTo(relativeScreenP.p2.x, relativeScreenP.p2.y);
-      //   ctx.lineTo(relativeScreenP.cp2.x, relativeScreenP.cp2.y);
-      //   ctx.stroke();
-      //   ctx.closePath();
-      // } else {
-      //   ctx.beginPath();
-      //   ctx.lineTo(relativeScreenP.p2.x, relativeScreenP.p2.y);
-      //   ctx.stroke();
-      //   ctx.closePath();
-      // }
+      if (this.cp2) {
+        ctx.beginPath();
+        ctx.moveTo(relativeScreenP.p2.x, relativeScreenP.p2.y);
+        ctx.lineTo(relativeScreenP.cp2.x, relativeScreenP.cp2.y);
+        ctx.stroke();
+        ctx.closePath();
+      } else {
+        ctx.beginPath();
+        ctx.lineTo(relativeScreenP.p2.x, relativeScreenP.p2.y);
+        ctx.stroke();
+        ctx.closePath();
+      }
 
       // control points
-      // ctx.strokeStyle = this.controlPoint.strokeC;
-      // ctx.fillStyle = this.controlPoint.c;
+      ctx.strokeStyle = this.controlPoint.strokeC;
+      ctx.fillStyle = this.controlPoint.c;
 
       // ctx.beginPath();
       // ctx.arc(c.x, c.y, this.controlPoint.r, 0, 2 * Math.PI, true); // cp1 control point
@@ -580,31 +579,31 @@ export default class Curve {
       //   // ctx.stroke();
       //   // ctx.closePath();
 
-      // ctx.beginPath();
-      // ctx.arc(
-      //   relativeScreenP.cp1.x,
-      //   relativeScreenP.cp1.y,
-      //   this.controlPoint.r,
-      //   0,
-      //   2 * Math.PI,
-      //   true
-      // ); // cp1 control point
-      // ctx.fill();
-      // ctx.stroke();
-      // ctx.closePath();
+      ctx.beginPath();
+      ctx.arc(
+        relativeScreenP.cp1.x,
+        relativeScreenP.cp1.y,
+        this.controlPoint.r,
+        0,
+        2 * Math.PI,
+        true
+      ); // cp1 control point
+      ctx.fill();
+      ctx.stroke();
+      ctx.closePath();
 
-      // ctx.beginPath();
-      // ctx.arc(
-      //   relativeScreenP.cp2.x,
-      //   relativeScreenP.cp2.y,
-      //   this.controlPoint.r,
-      //   0,
-      //   2 * Math.PI,
-      //   true
-      // ); // cp2 control point
-      // ctx.fill();
-      // ctx.stroke();
-      // ctx.closePath();
+      ctx.beginPath();
+      ctx.arc(
+        relativeScreenP.cp2.x,
+        relativeScreenP.cp2.y,
+        this.controlPoint.r,
+        0,
+        2 * Math.PI,
+        true
+      ); // cp2 control point
+      ctx.fill();
+      ctx.stroke();
+      ctx.closePath();
 
       // TODO: temporarily close p2.
       // ctx.beginPath();
@@ -620,14 +619,14 @@ export default class Curve {
       // ctx.stroke();
       // ctx.closePath();
 
-      ctx.strokeStyle = this.controlPoint.strokeC;
-      ctx.fillStyle = this.controlPoint.c;
+      // ctx.strokeStyle = this.controlPoint.strokeC;
+      // ctx.fillStyle = this.controlPoint.c;
 
-      ctx.beginPath();
-      ctx.arc(rc.x, rc.y, this.controlPoint.r, 0, 2 * Math.PI, true); // cp1 control point
-      ctx.fill();
-      ctx.stroke();
-      ctx.closePath();
+      // ctx.beginPath();
+      // ctx.arc(rc.x, rc.y, this.controlPoint.r, 0, 2 * Math.PI, true)
+      // ctx.fill();
+      // ctx.stroke();
+      // ctx.closePath();
     }
 
     ctx.restore();
