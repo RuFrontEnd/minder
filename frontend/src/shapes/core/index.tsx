@@ -42,7 +42,7 @@ export default class Core {
   __w__: number;
   __h__: number;
   title: CommonTypes.Title;
-  __p__: Vec;
+  private __p__: Vec;
   curves: {
     l: CoreTypes.SendCurve[];
     t: CoreTypes.SendCurve[];
@@ -434,7 +434,7 @@ export default class Core {
       pressingTarget === CurveTypes.PressingTarget.cp2
     ) {
       return targetCurve.shape[pressingTarget];
-    } else if (pressingTarget === CurveTypes.PressingTarget.arrow_t) {
+    } else if (pressingTarget === CurveTypes.PressingTarget.tipP) {
       return targetCurve.shape.getArrowVertex()?.t;
     }
   };
@@ -1026,7 +1026,43 @@ export default class Core {
     targetCurve.moveHandler(pressingTarget, offset);
   }
 
-  locateCurveHandler(curveId: CurveTypes.Id, screenP: Vec) {
+  stick(bridgeId: CurveTypes.Id, fromScreenP: Vec, toScreenP: Vec) {
+    const target = (() => {
+      for (const _d of ds) {
+        const _curve = this.curves[_d].find(
+          (curve) => curve.shape.id === bridgeId
+        );
+        if (_curve) return { d: _d, curve: _curve.shape, send: _curve.sendTo };
+      }
+    })();
+
+    if (!target) return;
+
+    target.curve.locateHandler(
+      CurveTypes.PressingTarget.tipP,
+      this.getCurveP(toScreenP)
+    );
+    target.curve.locateHandler(
+      CurveTypes.PressingTarget.cp2,
+      this.getCurveP({
+        x: fromScreenP.x,
+        y: toScreenP.y,
+      })
+    );
+    target.curve.locateHandler(
+      CurveTypes.PressingTarget.cp1,
+      this.getCurveP({
+        x: toScreenP.x,
+        y: fromScreenP.y,
+      })
+    );
+  }
+
+  locateCurveHandler(
+    curveId: CurveTypes.Id,
+    pressingTarget: CurveTypes.PressingTarget,
+    screenP: Vec
+  ) {
     const target = (() => {
       for (const _d of ds) {
         const _curve = this.curves[_d].find(
@@ -1037,39 +1073,82 @@ export default class Core {
     })();
 
     if (!target) return;
-    target.curve.locateHandler(
-      CurveTypes.PressingTarget.arrow_t,
-      this.getCurveP(screenP)
-    );
 
-    let cp2 = {
-      x: 0,
-      y: 0,
-    };
+    switch (pressingTarget) {
+      case CurveTypes.PressingTarget.tipP:
+        target.curve.locateHandler(
+          CurveTypes.PressingTarget.tipP,
+          this.getCurveP(screenP)
+        );
 
-    switch (target.d) {
-      case Direction.l:
-        cp2.x = (this.getCurveP(screenP).x + target.curve.p1.x) / 2;
-        cp2.y = 0;
+        let cp2 = {
+          x: 0,
+          y: 0,
+        };
+
+        switch (target.d) {
+          case Direction.l:
+            cp2.x = (this.getCurveP(screenP).x + target.curve.p1.x) / 2;
+            cp2.y = 0;
+            break;
+
+          case Direction.t:
+            cp2.x = 0;
+            cp2.y = (this.getCurveP(screenP).y + target.curve.p1.y) / 2;
+            break;
+
+          case Direction.r:
+            cp2.x = (this.getCurveP(screenP).x + target.curve.p1.x) / 2;
+            cp2.y = 0;
+            break;
+
+          case Direction.b:
+            cp2.x = 0;
+            cp2.y = (this.getCurveP(screenP).y + target.curve.p1.y) / 2;
+            break;
+        }
+
+        target.curve.locateHandler(CurveTypes.PressingTarget.cp2, cp2);
+
+        let cp1 = {
+          x: 0,
+          y: 0,
+        };
+
+        switch (target.d) {
+          case Direction.l:
+            cp1.x = this.scalify(this.offsetfy(target.curve.p1).x);
+            cp1.y = 0;
+            break;
+
+          case Direction.t:
+            cp1.x = 0;
+            cp1.y = 0;
+            break;
+
+          case Direction.r:
+            cp1.x = this.scalify(this.offsetfy(target.curve.p1).x);
+            cp1.y = 0;
+            break;
+
+          case Direction.b:
+            cp1.x = 0;
+            cp1.y = 0;
+            break;
+        }
+
+        target.curve
+          .stick(CurveTypes.PressingTarget.cp1)
+          .to(CurveTypes.PressingTarget.p1);
         break;
 
-      case Direction.t:
-        cp2.x = 0;
-        cp2.y = (this.getCurveP(screenP).y + target.curve.p1.y) / 2;
-        break;
-
-      case Direction.r:
-        cp2.x = (this.getCurveP(screenP).x + target.curve.p1.x) / 2;
-        cp2.y = 0;
-        break;
-
-      case Direction.b:
-        cp2.x = 0;
-        cp2.y = (this.getCurveP(screenP).y + target.curve.p1.y) / 2;
+      case CurveTypes.PressingTarget.cp2:
+        target.curve.locateHandler(
+          CurveTypes.PressingTarget.cp2,
+          this.getCurveP(screenP)
+        );
         break;
     }
-
-    target.curve.locateHandler(CurveTypes.PressingTarget.cp2, cp2);
   }
 
   resize(offset: Vec, vertex: CoreTypes.PressingTarget) {

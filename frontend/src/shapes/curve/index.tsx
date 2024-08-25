@@ -109,11 +109,11 @@ export default class Curve {
 
   set cp2(val: Vec) {
     this.__cp2__ = val;
-    // if (this.arrow && val && this.cp2) {
-    //   this.arrow.deg =
-    //     Math.atan2(this.cp2.y - this.p2.y, this.cp2.x - this.p2.x) -
-    //     90 * (Math.PI / 180);
-    // }
+    if (this.arrow && val && this.cp2) {
+      this.arrow.deg =
+        Math.atan2(this.cp2.y - this.p2.y, this.cp2.x - this.p2.x) -
+        90 * (Math.PI / 180);
+    }
   }
 
   get cp2() {
@@ -137,16 +137,15 @@ export default class Curve {
   set tipP(val: Vec) {
     this.__tipP__ = val;
     this.p2 = (() => {
-      const v = { x: val.x - this.__p1__.x, y: val.y - this.__p1__.y };
+      const v = { x: val.x - this.cp2.x, y: val.y - this.cp2.y };
       const len = Number(
         Math.sqrt(
-          Math.pow(val.x - this.__p1__.x, 2) +
-            Math.pow(val.y - this.__p1__.y, 2)
+          Math.pow(val.x - this.cp2.x, 2) + Math.pow(val.y - this.cp2.y, 2)
         ).toFixed(2)
       );
       const ratio = (len - this.__arrowAttr__.h) / len;
 
-      return { x: this.__p1__.x + v.x * ratio, y: this.__p1__.y + v.y * ratio };
+      return { x: this.cp2.x + v.x * ratio, y: this.cp2.y + v.y * ratio };
     })();
   }
 
@@ -325,7 +324,7 @@ export default class Curve {
     // } // TODO: temporarily closed
 
     if (this.arrow?.checkControlPointsBoundry(this.getArrowP(screenP))) {
-      return CurveTypes.PressingTarget.arrow_t;
+      return CurveTypes.PressingTarget.tipP;
     }
 
     dx = relativeP.cp1.x - relativeP.p.x;
@@ -393,7 +392,7 @@ export default class Curve {
           Math.atan2(this.tipP.y - this.cp2.y, this.tipP.x - this.cp2.x) +
           90 * (Math.PI / 180);
       }
-    } else if (pressingTarget === CurveTypes.PressingTarget.arrow_t) {
+    } else if (pressingTarget === CurveTypes.PressingTarget.tipP) {
       // TODO: do sth...
       // if (pressingTarget === CurveTypes.PressingTarget.p2) {
       //   this.cp2.x += offsetX;
@@ -416,7 +415,7 @@ export default class Curve {
         x: normalP.x,
         y: normalP.y,
       };
-    } else if (pressingTarget === CurveTypes.PressingTarget.arrow_t) {
+    } else if (pressingTarget === CurveTypes.PressingTarget.tipP) {
       const normalP = this.deOffset({
         x: this.deScale(screenP.x),
         y: this.deScale(screenP.y),
@@ -438,6 +437,20 @@ export default class Curve {
       t: this.correct(arrowVertex?.t),
       l: this.correct(arrowVertex?.l),
       r: this.correct(arrowVertex?.r),
+    };
+  }
+
+  stick(
+    from:
+      | CurveTypes.PressingTarget.cp1
+      | CurveTypes.PressingTarget.cp2
+      | CurveTypes.PressingTarget.p2
+      | CurveTypes.PressingTarget.tipP
+  ) {
+    return {
+      to: (to: CurveTypes.PressingTarget) => {
+        this[from] = this[to];
+      },
     };
   }
 
@@ -500,18 +513,6 @@ export default class Curve {
     //   relativeScreenP.p2.x,
     //   relativeScreenP.p2.y
     // );
-
-    const c = this.screenfy({
-      x: this.__p2__.x + this.__p1__.x / 2,
-      y: this.__p2__.y + this.__p1__.y / 2,
-    });
-
-    const rc = this.relativify({
-      x: (this.__p1__.x + this.__p2__.x) / 2,
-      y: (this.__p1__.y + this.__p2__.y) / 2,
-    });
-
-    // ctx.fillText(`c x:${c.x.toFixed(1)} y:${c.y.toFixed(1)}`, rc.x, rc.y);
 
     if (this.cp2) {
       ctx.bezierCurveTo(

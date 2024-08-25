@@ -948,12 +948,12 @@ export default function IdPage() {
 
             if (
               firstDetectedCurve &&
-              firstDetectedCurve.target === CurveTypes.PressingTarget.arrow_t
+              firstDetectedCurve.target === CurveTypes.PressingTarget.tipP
             ) {
               pressing = {
                 shape: shape,
                 curveId: firstDetectedCurve.id,
-                target: CurveTypes.PressingTarget.arrow_t,
+                target: CurveTypes.PressingTarget.tipP,
                 direction: firstDetectedCurve.d,
               };
             } else if (firstDetectedCurve && firstDetectedCurve.isSelecting) {
@@ -1008,9 +1008,9 @@ export default function IdPage() {
         if (pressing && pressing.shape && !!pressing.curveId) {
           pressing.shape?.setIsCurveSelected(pressing.curveId, true);
 
-          if (pressing.target === CurveTypes.PressingTarget.arrow_t) {
+          if (pressing.target === CurveTypes.PressingTarget.tipP) {
             const curveArrowTopP = pressing.shape.getPressingCurveP(
-              CurveTypes.PressingTarget.arrow_t,
+              CurveTypes.PressingTarget.tipP,
               pressing.curveId
             );
             const curveCp2 = pressing.shape.getPressingCurveP(
@@ -1313,7 +1313,7 @@ export default function IdPage() {
 
       //   // get cp2 relative to p2 poistion
       //   const curveArrowTopP = pressing.shape.getPressingCurveP(
-      //     CurveTypes.PressingTarget.arrow_t,
+      //     CurveTypes.PressingTarget.tipP,
       //     pressing.curveId
       //   );
       //   const curveCp2 = pressing.shape.getPressingCurveP(
@@ -1331,14 +1331,28 @@ export default function IdPage() {
       else if (
         !!pressing.curveId &&
         pressing.direction &&
-        pressing?.target === CurveTypes.PressingTarget.arrow_t
+        pressing?.target === CurveTypes.PressingTarget.tipP
       ) {
         let sticking: {
-          shape: null | Terminal | Process | Data | Desicion;
-          d: null | CoreTypes.Direction;
+          bridgeId: null | CurveTypes.Id;
+          from: {
+            d: null | CommonTypes.Direction;
+            shape: null | Terminal | Process | Data | Desicion;
+          };
+          to: {
+            d: null | CommonTypes.Direction;
+            shape: null | Terminal | Process | Data | Desicion;
+          };
         } = {
-          shape: null,
-          d: null,
+          bridgeId: null,
+          from: {
+            d: null,
+            shape: null,
+          },
+          to: {
+            d: null,
+            shape: null,
+          },
         };
 
         pressing.shape.disConnect([pressing.curveId]);
@@ -1356,102 +1370,49 @@ export default function IdPage() {
               d,
               shape.checkBoundry(p, 20) && pressing?.shape !== shape
             );
-            if (d === receivingPointsBoundryD && shape !== pressing?.shape) {
-              sticking.d = receivingPointsBoundryD;
-              sticking.shape = shape;
+            if (
+              !!pressing?.curveId &&
+              !!pressing?.direction &&
+              !!pressing.shape &&
+              (d === receivingPointsBoundryD || d === quarterD) &&
+              shape !== pressing?.shape
+            ) {
+              sticking.bridgeId = pressing?.curveId;
+              sticking.from.d = pressing?.direction;
+              sticking.from.shape = pressing?.shape;
+              sticking.to.d = d;
+              sticking.to.shape = shape;
             }
           });
-
-          if (quarterD && shape !== pressing?.shape) {
-            sticking.d = quarterD;
-            sticking.shape = shape;
-          }
         });
 
-        const getLocateCurveHandler = (
-          pressingShape: PageIdTypes.Pressing["shape"],
-          curveId: PageIdTypes.Pressing["curveId"]
-        ) => {
-          return (arrowTopP: CommonTypes.Vec, cp2: CommonTypes.Vec) => {
-            if (!pressingShape || !curveId) return;
-            pressingShape.locateCurveHandler(curveId, arrowTopP);
-            // pressingShape.locateCurveHandler(
-            //   curveId,
-            //   CurveTypes.PressingTarget.cp2,
-            //   cp2
-            // ); // TODO: temporarily close
-          };
-        };
-
-        const locateCurveHandler = getLocateCurveHandler(
-          pressing.shape,
-          pressing.curveId
-        );
-
-        if (sticking.d && sticking.shape) {
-          const offset_p2 = 12 * scale;
-          const offset_cp2 = offset_p2 * 3;
-          const stickingReceivingPoint =
-            sticking.shape.getCenter().receivingPoints[sticking.d];
-
-          switch (sticking.d) {
-            case CommonTypes.Direction.l:
-              locateCurveHandler(
-                {
-                  x: stickingReceivingPoint.x - offset_p2,
-                  y: stickingReceivingPoint.y,
-                },
-                {
-                  x: stickingReceivingPoint.x - offset_cp2,
-                  y: stickingReceivingPoint.y,
-                }
-              );
-              break;
-
-            case CommonTypes.Direction.t:
-              locateCurveHandler(
-                {
-                  x: stickingReceivingPoint.x,
-                  y: stickingReceivingPoint.y - offset_p2,
-                },
-                {
-                  x: stickingReceivingPoint.x,
-                  y: stickingReceivingPoint.y - offset_cp2,
-                }
-              );
-              break;
-
-            case CommonTypes.Direction.r:
-              locateCurveHandler(
-                {
-                  x: stickingReceivingPoint.x + offset_p2,
-                  y: stickingReceivingPoint.y,
-                },
-                {
-                  x: stickingReceivingPoint.x + offset_cp2,
-                  y: stickingReceivingPoint.y,
-                }
-              );
-              break;
-
-            case CommonTypes.Direction.b:
-              locateCurveHandler(
-                {
-                  x: stickingReceivingPoint.x,
-                  y: stickingReceivingPoint.y + offset_p2,
-                },
-                {
-                  x: stickingReceivingPoint.x,
-                  y: stickingReceivingPoint.y + offset_cp2,
-                }
-              );
-              break;
+        if (
+          !!sticking?.bridgeId &&
+          !!sticking?.from.d &&
+          !!sticking?.from.shape &&
+          !!sticking?.to.d &&
+          !!sticking?.to.shape
+        ) {
+          if (
+            sticking?.from?.d === CommonTypes.Direction.r &&
+            sticking?.to?.d === CommonTypes.Direction.l
+          ) {
+            sticking.from.shape.stick(
+              sticking.bridgeId,
+              sticking.from.shape.getCenter().receivingPoints[
+                CommonTypes.Direction.r
+              ],
+              sticking.to.shape.getCenter().receivingPoints[
+                CommonTypes.Direction.l
+              ]
+            );
           }
         } else {
-          locateCurveHandler(p, {
-            x: p.x - relativeCurveCp2.x * scale,
-            y: p.y - relativeCurveCp2.y * scale,
-          });
+          pressing.shape.locateCurveHandler(
+            pressing.curveId,
+            CurveTypes.PressingTarget.tipP,
+            p
+          );
         }
       }
     }
@@ -1560,7 +1521,7 @@ export default function IdPage() {
 
         if (
           !pressingShape ||
-          pressing.target !== CurveTypes.PressingTarget.arrow_t
+          pressing.target !== CurveTypes.PressingTarget.tipP
         )
           return;
 
@@ -1633,7 +1594,7 @@ export default function IdPage() {
         // if (!!relocateP) {
         //   pressingShape.locateCurveHandler(
         //     pressing.curveId,
-        //     CurveTypes.PressingTarget.arrow_t,
+        //     CurveTypes.PressingTarget.tipP,
         //     relocateP
         //   );
         // } // TODO: temprarily closed

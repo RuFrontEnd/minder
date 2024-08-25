@@ -130,7 +130,7 @@ export default class Desicion extends Core {
       curve_l.shape?.p2 &&
       this.text.l
     ) {
-      const bezierPoint = curve_l.shape.getBezierPoint(0.5, [
+      const bezierPoint = curve_l.shape.getBezierP(0.5, [
         curve_l.shape.p1,
         curve_l.shape.cp1,
         curve_l.shape.cp2,
@@ -164,7 +164,7 @@ export default class Desicion extends Core {
       curve_t.shape?.p2 &&
       this.text.t
     ) {
-      const bezierPoint = curve_t.shape.getBezierPoint(0.5, [
+      const bezierPoint = curve_t.shape.getBezierP(0.5, [
         curve_t.shape.p1,
         curve_t.shape.cp1,
         curve_t.shape.cp2,
@@ -198,7 +198,7 @@ export default class Desicion extends Core {
       curve_r.shape?.p2 &&
       this.text.r
     ) {
-      const bezierPoint = curve_r.shape.getBezierPoint(0.5, [
+      const bezierPoint = curve_r.shape.getBezierP(0.5, [
         curve_r.shape.p1,
         curve_r.shape.cp1,
         curve_r.shape.cp2,
@@ -232,7 +232,7 @@ export default class Desicion extends Core {
       curve_b.shape?.p2 &&
       this.text.b
     ) {
-      const bezierPoint = curve_b.shape.getBezierPoint(0.5, [
+      const bezierPoint = curve_b.shape.getBezierP(0.5, [
         curve_b.shape.p1,
         curve_b.shape.cp1,
         curve_b.shape.cp2,

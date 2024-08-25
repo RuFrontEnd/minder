@@ -6,11 +6,11 @@ type Line = {
 };
 
 enum PressingTarget {
-  // p1 = "p1", // TODO: temporary closed
+  p1 = "p1",
   cp1 = "cp1",
-  // p2 = "p2", // TODO: temporary closed
+  p2 = "p2",
   cp2 = "cp2",
-  arrow_t = "arrow_t",
+  tipP = "tipP",
 }
 
 export { PressingTarget };
