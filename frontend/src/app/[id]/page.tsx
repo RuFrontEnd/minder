@@ -421,7 +421,7 @@ const getScreenshotShapes = (
           curve.shape.id + suffix,
           d,
           curve.shape.p1,
-          curve.shape.p2,
+          curve.shape.tipP,
           curve.shape.cp1,
           curve.shape.cp2,
           curve.sendTo
@@ -2045,7 +2045,7 @@ export default function IdPage() {
 
               modifyData.curves[curve.shape?.id] = {
                 p1: curve.shape.p1,
-                p2: curve.shape.p2,
+                p2: curve.shape.tipP,
                 cp1: curve.shape.cp1,
                 cp2: curve.shape.cp2,
                 sendTo: curve.sendTo
