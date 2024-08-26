@@ -23,8 +23,7 @@ export default class Curve {
   private __p1__: Vec;
   private __cp1__: Vec;
   private __cp2__: Vec;
-  // private __p2__: Vec;
-  private __tipP__: Vec;
+  private __p2__: Vec;
   private __arrowAttr__: {
     w: number;
     h: number;
@@ -35,7 +34,7 @@ export default class Curve {
   protected __offset__: Vec;
   protected __scale__: number;
 
-  constructor(id: string, p1: Vec, cp1: Vec, cp2: Vec, tipP: Vec) {
+  constructor(id: string, p1: Vec, cp1: Vec, cp2: Vec, p2: Vec) {
     this.id = id;
     this.cpline = {
       w: 1,
@@ -57,17 +56,7 @@ export default class Curve {
       c: tailwindColors.grey["1"],
     };
     this.__p1__ = p1;
-    // this.__p2__ = (() => {
-    //   const v = { x: tipP.x - this.__p1__.x, y: tipP.y - this.__p1__.y };
-    //   const len = Math.sqrt(
-    //     Math.pow(tipP.x - this.__p1__.x, 2) +
-    //       Math.pow(tipP.y - this.__p1__.y, 2)
-    //   );
-    //   const ratio = (len - this.__arrowAttr__.h) / len;
-
-    //   return { x: this.__p1__.x + v.x * ratio, y: this.__p1__.y + v.y * ratio };
-    // })();
-    this.__tipP__ = tipP;
+    this.__p2__ = p2;
     this.__cp1__ = cp1;
     this.__cp2__ = cp2;
     this.arrow = new Arrow(
@@ -75,9 +64,8 @@ export default class Curve {
       this.__arrowAttr__.w,
       this.__arrowAttr__.h,
       this.__arrowAttr__.c,
-      this.relativify(this.__tipP__),
-      Math.atan2(tipP.y - this.cp2.y, tipP.x - this.cp2.x) +
-        90 * (Math.PI / 180)
+      this.relativify(p2),
+      Math.atan2(p2.y - this.cp2.y, p2.x - this.cp2.x) + 90 * (Math.PI / 180)
     );
     this.__selecting__ = false;
     this.__offset__ = this.initOffset;
@@ -111,7 +99,7 @@ export default class Curve {
     this.__cp2__ = val;
     if (this.arrow && val && this.cp2) {
       this.arrow.deg =
-        Math.atan2(this.cp2.y - this.tipP.y, this.cp2.x - this.tipP.x) -
+        Math.atan2(this.cp2.y - this.p2.y, this.cp2.x - this.p2.x) -
         90 * (Math.PI / 180);
     }
   }
@@ -120,43 +108,15 @@ export default class Curve {
     return this.__cp2__;
   }
 
-  // get p2() {
-  //   return this.__p2__;
-  // }
-
-  // private set p2(val: Vec) {
-  //   this.__p2__ = val;
-  //   if (this.arrow && val && this.cp2) {
-  //     this.arrow.p = this.relativify(this.p2);
-  //     this.arrow.deg =
-  //       Math.atan2(this.p2.y - this.cp2.y, this.p2.x - this.cp2.x) +
-  //       90 * (Math.PI / 180);
-  //   }
-  // }
-
-  set tipP(val: Vec) {
-    this.__tipP__ = val;
-    // this.p2 = (() => {
-    //   const v = { x: val.x - this.cp2.x, y: val.y - this.cp2.y };
-    //   const len = Number(
-    //     Math.sqrt(
-    //       Math.pow(val.x - this.cp2.x, 2) + Math.pow(val.y - this.cp2.y, 2)
-    //     ).toFixed(2)
-    //   );
-    //   const ratio = (len - this.__arrowAttr__.h) / len;
-
-    //   return { x: this.cp2.x + v.x * ratio, y: this.cp2.y + v.y * ratio };
-    // })();
+  set p2(val: Vec) {
+    this.__p2__ = val;
     if (this.arrow && val && this.cp2) {
       this.arrow.p = this.relativify(val);
-      // this.arrow.deg =
-      //   Math.atan2(val.y - this.cp2.y, val.x - this.cp2.x) +
-      //   90 * (Math.PI / 180);
     }
   }
 
-  get tipP() {
-    return this.__tipP__;
+  get p2() {
+    return this.__p2__;
   }
 
   set offset(value: Vec) {
@@ -286,10 +246,9 @@ export default class Curve {
     );
 
     for (let t = 0; t <= 1; t += 0.01) {
-      if (!this.__p1__ || !this.__cp1__ || !this.cp2 || !this.tipP)
-        return false;
+      if (!this.__p1__ || !this.__cp1__ || !this.cp2 || !this.p2) return false;
       const bezierP = this.relativify(
-        this.getBezierP(t, [this.__p1__, this.__cp1__, this.__cp2__, this.tipP])
+        this.getBezierP(t, [this.__p1__, this.__cp1__, this.__cp2__, this.p2])
       );
       const distance = this.getDistance(relativeP, bezierP);
 
@@ -301,7 +260,7 @@ export default class Curve {
   } // checkedrelativeP
 
   checkControlPointsBoundry(screenP: Vec) {
-    if (!this.__p1__ || !this.tipP || !this.__cp1__ || !this.cp2) return null;
+    if (!this.__p1__ || !this.p2 || !this.__cp1__ || !this.cp2) return null;
     let dx, dy;
 
     const relativeP = {
@@ -311,7 +270,7 @@ export default class Curve {
           y: this.deScale(screenP.y),
         })
       ),
-      tipP: this.relativify(this.tipP),
+      p2: this.relativify(this.p2),
       cp1: this.relativify(this.cp1),
       cp2: this.relativify(this.cp2),
     };
@@ -326,7 +285,7 @@ export default class Curve {
     // } // TODO: temporarily closed
 
     if (this.arrow?.checkControlPointsBoundry(this.getArrowP(screenP))) {
-      return CurveTypes.PressingTarget.tipP;
+      return CurveTypes.PressingTarget.p2;
     }
 
     dx = relativeP.cp1.x - relativeP.p.x;
@@ -374,9 +333,9 @@ export default class Curve {
       x: this.cp2.x + offset.x,
       y: this.cp2.y + offset.y,
     };
-    this.tipP = {
-      x: this.tipP.x + offset.x,
-      y: this.tipP.y + offset.y,
+    this.p2 = {
+      x: this.p2.x + offset.x,
+      y: this.p2.y + offset.y,
     };
   }
 
@@ -388,13 +347,13 @@ export default class Curve {
       this[`__${pressingTarget}__`].x += this.deScale(offset.x);
       this[`__${pressingTarget}__`].y += this.deScale(offset.y);
 
-      if (this.arrow && this.tipP && this.cp2) {
-        this.arrow.p = this.tipP; // TODO: arrow should add offset and scale and calculate inside Arrow class
+      if (this.arrow && this.p2 && this.cp2) {
+        this.arrow.p = this.p2; // TODO: arrow should add offset and scale and calculate inside Arrow class
         this.arrow.deg =
-          Math.atan2(this.tipP.y - this.cp2.y, this.tipP.x - this.cp2.x) +
+          Math.atan2(this.p2.y - this.cp2.y, this.p2.x - this.cp2.x) +
           90 * (Math.PI / 180);
       }
-    } else if (pressingTarget === CurveTypes.PressingTarget.tipP) {
+    } else if (pressingTarget === CurveTypes.PressingTarget.p2) {
       // TODO: do sth...
       // if (pressingTarget === CurveTypes.PressingTarget.p2) {
       //   this.cp2.x += offsetX;
@@ -417,16 +376,22 @@ export default class Curve {
         x: normalP.x,
         y: normalP.y,
       };
-    } else if (pressingTarget === CurveTypes.PressingTarget.tipP) {
+    } else if (pressingTarget === CurveTypes.PressingTarget.p2) {
       const normalP = this.deOffset({
         x: this.deScale(screenP.x),
         y: this.deScale(screenP.y),
       });
 
-      this.tipP = {
-        x: normalP.x,
-        y: normalP.y,
-      };
+      this.p2 = (() => {
+        const v = { x: normalP.x - this.cp2.x, y: normalP.y - this.cp2.y };
+        const len = Math.sqrt(
+          Math.pow(normalP.x - this.cp2.x, 2) +
+            Math.pow(normalP.y - this.cp2.y, 2)
+        );
+        const ratio = (len - this.__arrowAttr__.h) / len;
+
+        return { x: this.cp2.x + v.x * ratio, y: this.cp2.y + v.y * ratio };
+      })();
     }
   }
 
@@ -446,8 +411,7 @@ export default class Curve {
     from:
       | CurveTypes.PressingTarget.cp1
       | CurveTypes.PressingTarget.cp2
-      // | CurveTypes.PressingTarget.p2
-      | CurveTypes.PressingTarget.tipP
+      | CurveTypes.PressingTarget.p2
   ) {
     return {
       to: (
@@ -455,8 +419,7 @@ export default class Curve {
           | CurveTypes.PressingTarget.p1
           | CurveTypes.PressingTarget.cp1
           | CurveTypes.PressingTarget.cp2
-          // | CurveTypes.PressingTarget.p2
-          | CurveTypes.PressingTarget.tipP
+          | CurveTypes.PressingTarget.p2
       ) => {
         this[from] = this[to];
       },
@@ -464,7 +427,7 @@ export default class Curve {
   }
 
   draw(ctx: CanvasRenderingContext2D) {
-    if (!this.__p1__ || !this.tipP || !this.__cp1__ || !this.cp2) return;
+    if (!this.__p1__ || !this.p2 || !this.__cp1__ || !this.cp2) return;
 
     ctx.lineWidth = this.scalify(this.curve.w);
     ctx.strokeStyle = this.curve.c;
@@ -484,13 +447,9 @@ export default class Curve {
         x: this.scalify(this.relativify(this.__cp2__).x),
         y: this.scalify(this.relativify(this.__cp2__).y),
       },
-      // p2: {
-      //   x: this.scalify(this.relativify(this.__p2__).x),
-      //   y: this.scalify(this.relativify(this.__p2__).y),
-      // },
-      tipP: {
-        x: this.scalify(this.relativify(this.tipP).x),
-        y: this.scalify(this.relativify(this.tipP).y),
+      p2: {
+        x: this.scalify(this.relativify(this.p2).x),
+        y: this.scalify(this.relativify(this.p2).y),
       },
     };
 
@@ -533,15 +492,15 @@ export default class Curve {
         relativeScreenP.cp1.y,
         relativeScreenP.cp2.x,
         relativeScreenP.cp2.y,
-        relativeScreenP.tipP.x,
-        relativeScreenP.tipP.y
+        relativeScreenP.p2.x,
+        relativeScreenP.p2.y
       );
     } else {
       ctx.quadraticCurveTo(
         relativeScreenP.cp1.x,
         relativeScreenP.cp1.y,
-        relativeScreenP.tipP.x,
-        relativeScreenP.tipP.y
+        relativeScreenP.p2.x,
+        relativeScreenP.p2.y
       );
     }
     ctx.stroke();
@@ -565,13 +524,13 @@ export default class Curve {
 
       if (this.cp2) {
         ctx.beginPath();
-        ctx.moveTo(relativeScreenP.tipP.x, relativeScreenP.tipP.y);
+        ctx.moveTo(relativeScreenP.p2.x, relativeScreenP.p2.y);
         ctx.lineTo(relativeScreenP.cp2.x, relativeScreenP.cp2.y);
         ctx.stroke();
         ctx.closePath();
       } else {
         ctx.beginPath();
-        ctx.lineTo(relativeScreenP.tipP.x, relativeScreenP.tipP.y);
+        ctx.lineTo(relativeScreenP.p2.x, relativeScreenP.p2.y);
         ctx.stroke();
         ctx.closePath();
       }

@@ -421,7 +421,7 @@ const getScreenshotShapes = (
           curve.shape.id + suffix,
           d,
           curve.shape.p1,
-          curve.shape.tipP,
+          curve.shape.p2,
           curve.shape.cp1,
           curve.shape.cp2,
           curve.sendTo
@@ -948,12 +948,12 @@ export default function IdPage() {
 
             if (
               firstDetectedCurve &&
-              firstDetectedCurve.target === CurveTypes.PressingTarget.tipP
+              firstDetectedCurve.target === CurveTypes.PressingTarget.p2
             ) {
               pressing = {
                 shape: shape,
                 curveId: firstDetectedCurve.id,
-                target: CurveTypes.PressingTarget.tipP,
+                target: CurveTypes.PressingTarget.p2,
                 direction: firstDetectedCurve.d,
               };
             } else if (firstDetectedCurve && firstDetectedCurve.isSelecting) {
@@ -1008,9 +1008,9 @@ export default function IdPage() {
         if (pressing && pressing.shape && !!pressing.curveId) {
           pressing.shape?.setIsCurveSelected(pressing.curveId, true);
 
-          if (pressing.target === CurveTypes.PressingTarget.tipP) {
+          if (pressing.target === CurveTypes.PressingTarget.p2) {
             const curveArrowTopP = pressing.shape.getPressingCurveP(
-              CurveTypes.PressingTarget.tipP,
+              CurveTypes.PressingTarget.p2,
               pressing.curveId
             );
             const curveCp2 = pressing.shape.getPressingCurveP(
@@ -1313,7 +1313,7 @@ export default function IdPage() {
 
       //   // get cp2 relative to p2 poistion
       //   const curveArrowTopP = pressing.shape.getPressingCurveP(
-      //     CurveTypes.PressingTarget.tipP,
+      //     CurveTypes.PressingTarget.p2,
       //     pressing.curveId
       //   );
       //   const curveCp2 = pressing.shape.getPressingCurveP(
@@ -1331,7 +1331,7 @@ export default function IdPage() {
       else if (
         !!pressing.curveId &&
         pressing.direction &&
-        pressing?.target === CurveTypes.PressingTarget.tipP
+        pressing?.target === CurveTypes.PressingTarget.p2
       ) {
         let sticking: {
           bridgeId: null | CurveTypes.Id;
@@ -1410,7 +1410,7 @@ export default function IdPage() {
         } else {
           pressing.shape.locateCurveHandler(
             pressing.curveId,
-            CurveTypes.PressingTarget.tipP,
+            CurveTypes.PressingTarget.p2,
             p
           );
         }
@@ -1521,7 +1521,7 @@ export default function IdPage() {
 
         if (
           !pressingShape ||
-          pressing.target !== CurveTypes.PressingTarget.tipP
+          pressing.target !== CurveTypes.PressingTarget.p2
         )
           return;
 
@@ -1594,7 +1594,7 @@ export default function IdPage() {
         // if (!!relocateP) {
         //   pressingShape.locateCurveHandler(
         //     pressing.curveId,
-        //     CurveTypes.PressingTarget.tipP,
+        //     CurveTypes.PressingTarget.p2,
         //     relocateP
         //   );
         // } // TODO: temprarily closed
@@ -2045,7 +2045,7 @@ export default function IdPage() {
 
               modifyData.curves[curve.shape?.id] = {
                 p1: curve.shape.p1,
-                p2: curve.shape.tipP,
+                p2: curve.shape.p2,
                 cp1: curve.shape.cp1,
                 cp2: curve.shape.cp2,
                 sendTo: curve.sendTo
