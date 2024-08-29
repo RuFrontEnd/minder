@@ -139,12 +139,20 @@ export default class Core {
             sendCurve.sendTo?.shape.id === this.id &&
             !senderCurvesMapping[sendCurve.shape.id]
           ) {
+            console.log(sendCurve.shape);
             sendCurve.shape.p2 = {
               x: sendCurve.shape.p2.x + offest.x,
               y: sendCurve.shape.p2.y + offest.y,
             };
-            sendCurve.shape.cp2.x += offest.x;
-            sendCurve.shape.cp2.y += offest.y;
+            sendCurve.shape.cp1.x =
+              sendCurve.shape.p1.x +
+              Math.abs(sendCurve.shape.p2.x - sendCurve.shape.p1.x);
+            sendCurve.shape.cp1.y = sendCurve.shape.p1.y;
+            sendCurve.shape.cp2.x = sendCurve.shape.p1.x;
+            sendCurve.shape.cp2.y = sendCurve.shape.p2.y;
+
+            console.log(sendCurve.shape.p2.x);
+
             senderCurvesMapping[sendCurve.shape.id] = true;
           }
         });
@@ -162,8 +170,12 @@ export default class Core {
             x: senderCurve.p2.x - offest.x,
             y: senderCurve.p2.y - offest.y,
           };
-          senderCurve.cp2.x -= offest.x;
-          senderCurve.cp2.y -= offest.y;
+          sendCurve.shape.cp1.x =
+            sendCurve.shape.p1.x +
+            Math.abs(sendCurve.shape.p2.x - sendCurve.shape.p1.x);
+          sendCurve.shape.cp1.y = sendCurve.shape.p1.y;
+          sendCurve.shape.cp2.x = sendCurve.shape.p1.x;
+          sendCurve.shape.cp2.y = sendCurve.shape.p2.y;
         }
       });
     });
