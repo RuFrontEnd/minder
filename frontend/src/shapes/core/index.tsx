@@ -133,26 +133,199 @@ export default class Core {
 
     senders.forEach((sender) => {
       ds.forEach((d) => {
-        sender?.shape.curves[d].forEach((sendCurve) => {
+        sender?.shape.curves[d].forEach((bridge) => {
           if (
             d === sender.d &&
-            sendCurve.sendTo?.shape.id === this.id &&
-            !senderCurvesMapping[sendCurve.shape.id]
+            bridge.sendTo?.shape.id === this.id &&
+            !senderCurvesMapping[bridge.shape.id]
           ) {
-            sendCurve.shape.p2 = {
-              x: sendCurve.shape.p2.x + offest.x,
-              y: sendCurve.shape.p2.y + offest.y,
-            };
-            sendCurve.shape.cp1.x =
-              sendCurve.shape.p1.x +
-              Math.abs(sendCurve.shape.p2.x - sendCurve.shape.p1.x) / 2;
-            sendCurve.shape.cp1.y = sendCurve.shape.p1.y;
-            sendCurve.shape.cp2.x =
-              sendCurve.shape.p2.x -
-              Math.abs(sendCurve.shape.p2.x - sendCurve.shape.p1.x) / 2;
-            sendCurve.shape.cp2.y = sendCurve.shape.p2.y;
+            const fromD = sender.d;
+            const toD = bridge.sendTo.d;
 
-            senderCurvesMapping[sendCurve.shape.id] = true;
+            bridge.shape.p2 = {
+              x: bridge.shape.p2.x + offest.x,
+              y: bridge.shape.p2.y + offest.y,
+            };
+
+            console.log("fromD", fromD);
+            console.log("toD", toD);
+
+            const distance = {
+              x: Math.abs(bridge.shape.p2.x - bridge.shape.p1.x) / 2,
+              y: Math.abs(bridge.shape.p2.y - bridge.shape.p1.y) / 2,
+            };
+
+            const handlers = {
+              l: (
+                fromD: CommonTypes.Direction,
+                toD: CommonTypes.Direction,
+                bridge: Curve
+              ) => {
+                if (fromD !== CommonTypes.Direction.l) return false;
+
+                switch (toD) {
+                  case CommonTypes.Direction.l:
+                    bridge.cp1.x = bridge.p1.x - distance.x;
+                    bridge.cp1.y = bridge.p1.y;
+                    bridge.cp2.x = bridge.p2.x - distance.x;
+                    bridge.cp2.y = bridge.p2.y;
+                    break;
+
+                  case CommonTypes.Direction.t:
+                    bridge.cp1.x = bridge.p1.x - distance.x;
+                    bridge.cp1.y = bridge.p1.y;
+                    bridge.cp2.x = bridge.p2.x;
+                    bridge.cp2.y = bridge.p2.y - distance.y;
+                    break;
+
+                  case CommonTypes.Direction.r:
+                    bridge.cp1.x = bridge.p1.x - distance.x;
+                    bridge.cp1.y = bridge.p1.y;
+                    bridge.cp2.x = bridge.p2.x + distance.x;
+                    bridge.cp2.y = bridge.p2.y;
+                    break;
+
+                  case CommonTypes.Direction.b:
+                    bridge.cp1.x = bridge.p1.x - distance.x;
+                    bridge.cp1.y = bridge.p1.y;
+                    bridge.cp2.x = bridge.p2.x;
+                    bridge.cp2.y = bridge.p2.y + distance.y;
+                    break;
+                }
+
+                return true;
+              },
+              t: (
+                fromD: CommonTypes.Direction,
+                toD: CommonTypes.Direction,
+                bridge: Curve
+              ) => {
+                if (fromD !== CommonTypes.Direction.t) return false;
+
+                switch (toD) {
+                  case CommonTypes.Direction.l:
+                    bridge.cp1.x = bridge.p1.x;
+                    bridge.cp1.y = bridge.p1.y - distance.y;
+                    bridge.cp2.x = bridge.p2.x - distance.x;
+                    bridge.cp2.y = bridge.p2.y;
+                    break;
+
+                  case CommonTypes.Direction.t:
+                    bridge.cp1.x = bridge.p1.x;
+                    bridge.cp1.y = bridge.p1.y - distance.y;
+                    bridge.cp2.x = bridge.p2.x;
+                    bridge.cp2.y = bridge.p2.y - distance.y;
+                    break;
+
+                  case CommonTypes.Direction.r:
+                    bridge.cp1.x = bridge.p1.x;
+                    bridge.cp1.y = bridge.p1.y - distance.y;
+                    bridge.cp2.x = bridge.p2.x + distance.x;
+                    bridge.cp2.y = bridge.p2.y;
+                    break;
+
+                  case CommonTypes.Direction.b:
+                    bridge.cp1.x = bridge.p1.x;
+                    bridge.cp1.y = bridge.p1.y - distance.y;
+                    bridge.cp2.x = bridge.p2.x;
+                    bridge.cp2.y = bridge.p2.y + distance.y;
+                    break;
+                }
+
+                return true;
+              },
+              r: (
+                fromD: CommonTypes.Direction,
+                toD: CommonTypes.Direction,
+                bridge: Curve
+              ) => {
+                if (fromD !== CommonTypes.Direction.r) return false;
+
+                switch (toD) {
+                  case CommonTypes.Direction.l:
+                    bridge.cp1.x = bridge.p1.x + distance.x;
+                    bridge.cp1.y = bridge.p1.y;
+                    bridge.cp2.x = bridge.p2.x - distance.x;
+                    bridge.cp2.y = bridge.p2.y;
+                    break;
+
+                  case CommonTypes.Direction.t:
+                    bridge.cp1.x = bridge.p1.x + distance.x;
+                    bridge.cp1.y = bridge.p1.y;
+                    bridge.cp2.x = bridge.p2.x;
+                    bridge.cp2.y = bridge.p2.y - distance.y;
+                    break;
+
+                  case CommonTypes.Direction.r:
+                    bridge.cp1.x = bridge.p1.x + distance.x;
+                    bridge.cp1.y = bridge.p1.y;
+                    bridge.cp2.x = bridge.p2.x + distance.x;
+                    bridge.cp2.y = bridge.p2.y;
+                    break;
+
+                  case CommonTypes.Direction.b:
+                    bridge.cp1.x = bridge.p1.x + distance.x;
+                    bridge.cp1.y = bridge.p1.y;
+                    bridge.cp2.x = bridge.p2.x;
+                    bridge.cp2.y = bridge.p2.y + distance.y;
+                    break;
+                }
+
+                return true;
+              },
+              b: (
+                fromD: CommonTypes.Direction,
+                toD: CommonTypes.Direction,
+                bridge: Curve
+              ) => {
+                if (fromD !== CommonTypes.Direction.b) return false;
+
+                switch (toD) {
+                  case CommonTypes.Direction.l:
+                    bridge.cp1.x = bridge.p1.x;
+                    bridge.cp1.y = bridge.p1.y + distance.y;
+                    bridge.cp2.x = bridge.p2.x - distance.x;
+                    bridge.cp2.y = bridge.p2.y;
+                    break;
+
+                  case CommonTypes.Direction.t:
+                    bridge.cp1.x = bridge.p1.x;
+                    bridge.cp1.y = bridge.p1.y + distance.y;
+                    bridge.cp2.x = bridge.p2.x;
+                    bridge.cp2.y = bridge.p2.y - distance.y;
+                    break;
+
+                  case CommonTypes.Direction.r:
+                    bridge.cp1.x = bridge.p1.x;
+                    bridge.cp1.y = bridge.p1.y + distance.y;
+                    bridge.cp2.x = bridge.p2.x + distance.x;
+                    bridge.cp2.y = bridge.p2.y;
+                    break;
+
+                  case CommonTypes.Direction.b:
+                    bridge.cp1.x = bridge.p1.x;
+                    bridge.cp1.y = bridge.p1.y + distance.y;
+                    bridge.cp2.x = bridge.p2.x;
+                    bridge.cp2.y = bridge.p2.y + distance.y;
+                    break;
+                }
+
+                return true;
+              },
+            };
+
+            const handlerChain = [
+              handlers.l,
+              handlers.t,
+              handlers.r,
+              handlers.b,
+            ];
+
+            for (const handler of handlerChain) {
+              if (handler(fromD, toD, bridge.shape)) break;
+            }
+
+            senderCurvesMapping[bridge.shape.id] = true;
           }
         });
       });
