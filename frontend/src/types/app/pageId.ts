@@ -17,4 +17,17 @@ type Pressing = {
     | CurveTypes.PressingTarget
     | CommonTypes.SelectAreaTarget;
 };
-export type { Pressing };
+
+type Sticking = {
+  bridgeId: null | CurveTypes.Id;
+  from: {
+    d: null | CommonTypes.Direction;
+    shape: null | Terminal | Process | Data | Desicion;
+  };
+  to: {
+    d: null | CommonTypes.Direction;
+    shape: null | Terminal | Process | Data | Desicion;
+  };
+};
+
+export type { Pressing, Sticking };

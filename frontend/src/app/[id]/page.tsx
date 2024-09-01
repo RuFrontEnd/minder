@@ -592,30 +592,13 @@ export default function IdPage() {
   const [space, setSpace] = useState(false);
   const [scale, setScale] = useState(1);
   const [leftMouseBtn, setLeftMouseBtn] = useState(false);
-  const [isDataSidePanelOpen, setIsDataSidePanelOpen] = useState(true);
+  const [isDataSidePanelOpen, setIsDataSidePanelOpen] = useState(false);
   const [isRenameFrameOpen, setIsRenameFrameOpen] = useState(false);
   const [isProfileFrameOpen, setIsProfileFrameOpen] = useState(false);
   const [steps, setSteps] = useState<PageTypes.Steps>({});
   const [dataFrameWarning, setDataFrameWarning] =
     useState<DataFrameTypes.Warning>(init.dataFrameWarning);
   const [isProjectsModalOpen, setIsProjectsModalOpen] = useState(false);
-  const [authInfo, setAuthInfo] = useState<{
-    account: {
-      value: undefined | string;
-      status: InputTypes.Status;
-      comment: undefined | string;
-    };
-    password: {
-      value: undefined | string;
-      status: InputTypes.Status;
-      comment: undefined | string;
-    };
-    email: {
-      value: undefined | string;
-      status: InputTypes.Status;
-      comment: undefined | string;
-    };
-  }>(init.authInfo);
   const [projects, setProjects] = useState<
     ProjectAPITypes.GetProjects["resData"]
   >([]);
@@ -1333,17 +1316,7 @@ export default function IdPage() {
         pressing.direction &&
         pressing?.target === CurveTypes.PressingTarget.p2
       ) {
-        let sticking: {
-          bridgeId: null | CurveTypes.Id;
-          from: {
-            d: null | CommonTypes.Direction;
-            shape: null | Terminal | Process | Data | Desicion;
-          };
-          to: {
-            d: null | CommonTypes.Direction;
-            shape: null | Terminal | Process | Data | Desicion;
-          };
-        } = {
+        let sticking: PageIdTypes.Sticking = {
           bridgeId: null,
           from: {
             d: null,
@@ -1393,19 +1366,213 @@ export default function IdPage() {
           !!sticking?.to.d &&
           !!sticking?.to.shape
         ) {
-          if (
-            sticking?.from?.d === CommonTypes.Direction.r &&
-            sticking?.to?.d === CommonTypes.Direction.l
-          ) {
-            sticking.from.shape.stick(
-              sticking.bridgeId,
-              sticking.from.shape.getCenter().receivingPoints[
-                CommonTypes.Direction.r
-              ],
-              sticking.to.shape.getCenter().receivingPoints[
-                CommonTypes.Direction.l
-              ]
-            );
+          const handlers = {
+            l: (
+              sticking: PageIdTypes.Sticking,
+              fromP: CommonTypes.Vec,
+              toP: CommonTypes.Vec
+            ) => {
+              if (
+                !sticking.from.shape ||
+                !sticking.bridgeId ||
+                sticking?.from?.d !== CommonTypes.Direction.l
+              )
+                return false;
+
+              const cp1 = {
+                x: fromP.x - Math.abs(fromP.x - toP.x) / 2,
+                y: fromP.y,
+              };
+
+              switch (sticking?.to?.d) {
+                case CommonTypes.Direction.l:
+                  sticking.from.shape.stick(sticking.bridgeId, toP, cp1, {
+                    x: toP.x - Math.abs(fromP.x - toP.x) / 2,
+                    y: toP.y,
+                  });
+                  break;
+
+                case CommonTypes.Direction.t:
+                  sticking.from.shape.stick(sticking.bridgeId, toP, cp1, {
+                    x: toP.x,
+                    y: toP.y - Math.abs(fromP.y - toP.y) / 2,
+                  });
+                  break;
+
+                case CommonTypes.Direction.r:
+                  sticking.from.shape.stick(sticking.bridgeId, toP, cp1, {
+                    x: toP.x + Math.abs(fromP.x - toP.x) / 2,
+                    y: toP.y,
+                  });
+                  break;
+
+                case CommonTypes.Direction.b:
+                  sticking.from.shape.stick(sticking.bridgeId, toP, cp1, {
+                    x: toP.x,
+                    y: toP.y + Math.abs(fromP.y - toP.y) / 2,
+                  });
+                  break;
+              }
+              return true; // 已处理，返回 true
+            },
+            t: (
+              sticking: PageIdTypes.Sticking,
+              fromP: CommonTypes.Vec,
+              toP: CommonTypes.Vec
+            ) => {
+              if (
+                !sticking.from.shape ||
+                !sticking.bridgeId ||
+                sticking?.from?.d !== CommonTypes.Direction.t
+              )
+                return false;
+
+              const cp1 = {
+                x: fromP.x,
+                y: fromP.y - Math.abs(fromP.y - toP.y) / 2,
+              };
+
+              switch (sticking?.to?.d) {
+                case CommonTypes.Direction.l:
+                  sticking.from.shape.stick(sticking.bridgeId, toP, cp1, {
+                    x: toP.x - Math.abs(fromP.x - toP.x) / 2,
+                    y: toP.y,
+                  });
+                  break;
+
+                case CommonTypes.Direction.t:
+                  sticking.from.shape.stick(sticking.bridgeId, toP, cp1, {
+                    x: toP.x,
+                    y: toP.y - Math.abs(fromP.y - toP.y) / 2,
+                  });
+                  break;
+
+                case CommonTypes.Direction.r:
+                  sticking.from.shape.stick(sticking.bridgeId, toP, cp1, {
+                    x: toP.x + Math.abs(fromP.x - toP.x) / 2,
+                    y: toP.y,
+                  });
+                  break;
+
+                case CommonTypes.Direction.b:
+                  sticking.from.shape.stick(sticking.bridgeId, toP, cp1, {
+                    x: toP.x,
+                    y: toP.y + Math.abs(fromP.y - toP.y) / 2,
+                  });
+                  break;
+              }
+
+              return true;
+            },
+            r: (
+              sticking: PageIdTypes.Sticking,
+              fromP: CommonTypes.Vec,
+              toP: CommonTypes.Vec
+            ) => {
+              if (
+                !sticking.from.shape ||
+                !sticking.bridgeId ||
+                sticking?.from?.d !== CommonTypes.Direction.r
+              )
+                return false;
+
+              const cp1 = {
+                x: fromP.x + Math.abs(fromP.x - toP.x) / 2,
+                y: fromP.y,
+              };
+
+              switch (sticking?.to?.d) {
+                case CommonTypes.Direction.l:
+                  sticking.from.shape.stick(sticking.bridgeId, toP, cp1, {
+                    x: toP.x - Math.abs(fromP.x - toP.x) / 2,
+                    y: toP.y,
+                  });
+                  break;
+
+                case CommonTypes.Direction.t:
+                  sticking.from.shape.stick(sticking.bridgeId, toP, cp1, {
+                    x: toP.x,
+                    y: toP.y - Math.abs(fromP.y - toP.y) / 2,
+                  });
+                  break;
+
+                case CommonTypes.Direction.r:
+                  sticking.from.shape.stick(sticking.bridgeId, toP, cp1, {
+                    x: toP.x + Math.abs(fromP.x - toP.x) / 2,
+                    y: toP.y,
+                  });
+                  break;
+
+                case CommonTypes.Direction.b:
+                  sticking.from.shape.stick(sticking.bridgeId, toP, cp1, {
+                    x: toP.x,
+                    y: toP.y + Math.abs(fromP.y - toP.y) / 2,
+                  });
+                  break;
+              }
+
+              return true;
+            },
+            b: (
+              sticking: PageIdTypes.Sticking,
+              fromP: CommonTypes.Vec,
+              toP: CommonTypes.Vec
+            ) => {
+              if (
+                !sticking.from.shape ||
+                !sticking.bridgeId ||
+                sticking?.from?.d !== CommonTypes.Direction.b
+              )
+                return false;
+
+              const cp1 = {
+                x: fromP.x,
+                y: fromP.y + Math.abs(fromP.y - toP.y) / 2,
+              };
+
+              switch (sticking?.to?.d) {
+                case CommonTypes.Direction.l:
+                  sticking.from.shape.stick(sticking.bridgeId, toP, cp1, {
+                    x: toP.x - Math.abs(fromP.x - toP.x) / 2,
+                    y: toP.y,
+                  });
+                  break;
+
+                case CommonTypes.Direction.t:
+                  sticking.from.shape.stick(sticking.bridgeId, toP, cp1, {
+                    x: toP.x,
+                    y: toP.y - Math.abs(fromP.y - toP.y) / 2,
+                  });
+                  break;
+
+                case CommonTypes.Direction.r:
+                  sticking.from.shape.stick(sticking.bridgeId, toP, cp1, {
+                    x: toP.x + Math.abs(fromP.x - toP.x) / 2,
+                    y: toP.y,
+                  });
+                  break;
+
+                case CommonTypes.Direction.b:
+                  sticking.from.shape.stick(sticking.bridgeId, toP, cp1, {
+                    x: toP.x,
+                    y: toP.y + Math.abs(fromP.y - toP.y) / 2,
+                  });
+                  break;
+              }
+
+              return true;
+            },
+          };
+
+          const fromP =
+            sticking.from.shape.getCenter().receivingPoints[sticking?.from?.d];
+          const toP =
+            sticking.to.shape.getCenter().receivingPoints[sticking?.to?.d];
+
+          const handlerChain = [handlers.l, handlers.t, handlers.r, handlers.b];
+
+          for (const handler of handlerChain) {
+            if (handler(sticking, fromP, toP)) break;
           }
         } else {
           pressing.shape.locateCurveHandler(
@@ -1519,10 +1686,7 @@ export default function IdPage() {
           targetShape.checkReceivingPointsBoundry(p);
         const theQuarterD = targetShape.checkQuarterArea(p);
 
-        if (
-          !pressingShape ||
-          pressing.target !== CurveTypes.PressingTarget.p2
-        )
+        if (!pressingShape || pressing.target !== CurveTypes.PressingTarget.p2)
           return;
 
         if (!!theCheckReceivingPointsBoundryD) {

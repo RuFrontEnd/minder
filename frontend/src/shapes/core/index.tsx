@@ -139,19 +139,18 @@ export default class Core {
             sendCurve.sendTo?.shape.id === this.id &&
             !senderCurvesMapping[sendCurve.shape.id]
           ) {
-            console.log(sendCurve.shape);
             sendCurve.shape.p2 = {
               x: sendCurve.shape.p2.x + offest.x,
               y: sendCurve.shape.p2.y + offest.y,
             };
             sendCurve.shape.cp1.x =
               sendCurve.shape.p1.x +
-              Math.abs(sendCurve.shape.p2.x - sendCurve.shape.p1.x);
+              Math.abs(sendCurve.shape.p2.x - sendCurve.shape.p1.x) / 2;
             sendCurve.shape.cp1.y = sendCurve.shape.p1.y;
-            sendCurve.shape.cp2.x = sendCurve.shape.p1.x;
+            sendCurve.shape.cp2.x =
+              sendCurve.shape.p2.x -
+              Math.abs(sendCurve.shape.p2.x - sendCurve.shape.p1.x) / 2;
             sendCurve.shape.cp2.y = sendCurve.shape.p2.y;
-
-            console.log(sendCurve.shape.p2.x);
 
             senderCurvesMapping[sendCurve.shape.id] = true;
           }
@@ -172,9 +171,11 @@ export default class Core {
           };
           sendCurve.shape.cp1.x =
             sendCurve.shape.p1.x +
-            Math.abs(sendCurve.shape.p2.x - sendCurve.shape.p1.x);
+            Math.abs(sendCurve.shape.p2.x - sendCurve.shape.p1.x) / 2;
           sendCurve.shape.cp1.y = sendCurve.shape.p1.y;
-          sendCurve.shape.cp2.x = sendCurve.shape.p1.x;
+          sendCurve.shape.cp2.x =
+            sendCurve.shape.p2.x -
+            Math.abs(sendCurve.shape.p2.x - sendCurve.shape.p1.x) / 2;
           sendCurve.shape.cp2.y = sendCurve.shape.p2.y;
         }
       });
@@ -1038,7 +1039,7 @@ export default class Core {
     targetCurve.moveHandler(pressingTarget, offset);
   }
 
-  stick(bridgeId: CurveTypes.Id, fromScreenP: Vec, toScreenP: Vec) {
+  stick(bridgeId: CurveTypes.Id, p2: Vec, cp1: Vec, cp2: Vec) {
     const target = (() => {
       for (const _d of ds) {
         const _curve = this.curves[_d].find(
@@ -1052,21 +1053,15 @@ export default class Core {
 
     target.curve.locateHandler(
       CurveTypes.PressingTarget.p2,
-      this.getCurveP(toScreenP)
-    );
-    target.curve.locateHandler(
-      CurveTypes.PressingTarget.cp2,
-      this.getCurveP({
-        x: fromScreenP.x,
-        y: toScreenP.y,
-      })
+      this.getCurveP(p2)
     );
     target.curve.locateHandler(
       CurveTypes.PressingTarget.cp1,
-      this.getCurveP({
-        x: toScreenP.x,
-        y: fromScreenP.y,
-      })
+      this.getCurveP(cp1)
+    );
+    target.curve.locateHandler(
+      CurveTypes.PressingTarget.cp2,
+      this.getCurveP(cp2)
     );
   }
 
