@@ -1391,6 +1391,76 @@ export default class Core {
     });
   };
 
+  renderEllipsisText = (
+    ctx: CanvasRenderingContext2D,
+    text: string,
+    x: number,
+    y: number,
+    maxWidth: number,
+    lineHeight: number,
+    scale: number
+  ) => {
+    const words = text.split("");
+    const lines: string[] = [];
+    const padding = 32;
+    let line = "";
+
+    for (const word of words) {
+      const testLine = line + word,
+        metrics = ctx.measureText(testLine),
+        testWidth = metrics.width;
+
+      if (testWidth > maxWidth - padding * scale) {
+        lines.push(line);
+        line = word;
+      } else {
+        line = testLine;
+      }
+    }
+
+    lines.push(line);
+
+    // calculate the maximum number of lines
+    const maxLines = Math.floor(((this.h - padding) * this.scale) / lineHeight);
+
+    // make sure the number of lines to be rendered does not exceed the maximum number of lines
+    const totalLines = Math.min(lines.length, maxLines);
+
+    // calculate the width of the last line and check if ellipsis needs to be added
+    if (totalLines < lines.length) {
+      const lastLine = lines[totalLines - 1] || "";
+      const ellipsis = "...";
+      const metricsEllipsis = ctx.measureText(ellipsis);
+      const maxTextWidth = maxWidth - 32 * scale - metricsEllipsis.width;
+
+      let truncatedLine = "";
+      for (const char of lastLine) {
+        const testLine = truncatedLine + char;
+        const metricsTestLine = ctx.measureText(testLine);
+        if (metricsTestLine.width > maxTextWidth) {
+          break;
+        }
+        truncatedLine = testLine;
+      }
+      lines[totalLines - 1] = truncatedLine + ellipsis;
+    }
+
+    const offsetYs: number[] = [];
+    let offsetY =
+      totalLines % 2 === 0
+        ? lineHeight * (1 / 2 + totalLines / 2 - 1)
+        : lineHeight * Math.floor(totalLines / 2);
+
+    for (let i = 0; i < totalLines; i++) {
+      offsetYs.push(offsetY);
+      offsetY -= lineHeight;
+    }
+
+    for (let i = 0; i < totalLines; i++) {
+      ctx.fillText(lines[i], x, y - offsetYs[i]);
+    }
+  };
+
   draw(ctx: CanvasRenderingContext2D, drawShapePath: () => void) {
     const edge = this.getEdge(),
       fillRectParams = {
@@ -1525,76 +1595,6 @@ export default class Core {
 
     ctx.restore();
   }
-
-  renderEllipsisText = (
-    ctx: CanvasRenderingContext2D,
-    text: string,
-    x: number,
-    y: number,
-    maxWidth: number,
-    lineHeight: number,
-    scale: number
-  ) => {
-    const words = text.split("");
-    const lines: string[] = [];
-    const padding = 32;
-    let line = "";
-
-    for (const word of words) {
-      const testLine = line + word,
-        metrics = ctx.measureText(testLine),
-        testWidth = metrics.width;
-
-      if (testWidth > maxWidth - padding * scale) {
-        lines.push(line);
-        line = word;
-      } else {
-        line = testLine;
-      }
-    }
-
-    lines.push(line);
-
-    // calculate the maximum number of lines
-    const maxLines = Math.floor(((this.h - padding) * this.scale) / lineHeight);
-
-    // make sure the number of lines to be rendered does not exceed the maximum number of lines
-    const totalLines = Math.min(lines.length, maxLines);
-
-    // calculate the width of the last line and check if ellipsis needs to be added
-    if (totalLines < lines.length) {
-      const lastLine = lines[totalLines - 1] || "";
-      const ellipsis = "...";
-      const metricsEllipsis = ctx.measureText(ellipsis);
-      const maxTextWidth = maxWidth - 32 * scale - metricsEllipsis.width;
-
-      let truncatedLine = "";
-      for (const char of lastLine) {
-        const testLine = truncatedLine + char;
-        const metricsTestLine = ctx.measureText(testLine);
-        if (metricsTestLine.width > maxTextWidth) {
-          break;
-        }
-        truncatedLine = testLine;
-      }
-      lines[totalLines - 1] = truncatedLine + ellipsis;
-    }
-
-    const offsetYs: number[] = [];
-    let offsetY =
-      totalLines % 2 === 0
-        ? lineHeight * (1 / 2 + totalLines / 2 - 1)
-        : lineHeight * Math.floor(totalLines / 2);
-
-    for (let i = 0; i < totalLines; i++) {
-      offsetYs.push(offsetY);
-      offsetY -= lineHeight;
-    }
-
-    for (let i = 0; i < totalLines; i++) {
-      ctx.fillText(lines[i], x, y - offsetYs[i]);
-    }
-  };
 
   drawSendingPoint(ctx: CanvasRenderingContext2D) {
     if (!ctx) return;
