@@ -388,9 +388,12 @@ export default class Curve {
           Math.pow(normalP.x - this.cp2.x, 2) +
             Math.pow(normalP.y - this.cp2.y, 2)
         );
+
         const ratio = (len - this.__arrowAttr__.h) / len;
 
-        return { x: this.cp2.x + v.x * ratio, y: this.cp2.y + v.y * ratio };
+        return ratio <= 0
+          ? this.cp2
+          : { x: this.cp2.x + v.x * ratio, y: this.cp2.y + v.y * ratio };
       })();
     }
   }

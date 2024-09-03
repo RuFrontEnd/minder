@@ -64,6 +64,7 @@ export default class Core {
   __offset__: Vec;
   __scale__: number;
   status: CoreTypes.Status;
+  private __minCurveHandlerDistance__: number;
 
   constructor(
     id: string,
@@ -105,6 +106,7 @@ export default class Core {
     this.__offset__ = this.initOffset;
     this.__scale__ = this.initScale;
     this.status = CoreTypes.Status.normal;
+    this.__minCurveHandlerDistance__ = 60;
   }
 
   set p(value: Vec) {
@@ -123,12 +125,22 @@ export default class Core {
         x: Math.abs(bridgeCurve.p2.x - bridgeCurve.p1.x) / 2,
         y: Math.abs(bridgeCurve.p2.y - bridgeCurve.p1.y) / 2,
       };
+      const margin = {
+        x:
+          distance.x <= this.minCurveHandlerDistance
+            ? this.minCurveHandlerDistance
+            : distance.x,
+        y:
+          distance.y <= this.minCurveHandlerDistance
+            ? this.minCurveHandlerDistance
+            : distance.y,
+      };
 
       const directionAdjustments = {
-        l: { x: -distance.x, y: 0 },
-        r: { x: distance.x, y: 0 },
-        t: { x: 0, y: -distance.y },
-        b: { x: 0, y: distance.y },
+        l: { x: -margin.x, y: 0 },
+        r: { x: margin.x, y: 0 },
+        t: { x: 0, y: -margin.y },
+        b: { x: 0, y: margin.y },
       };
 
       const updateControlPoints = (
@@ -350,6 +362,10 @@ export default class Core {
 
   get curveTrigger() {
     return this.__curveTrigger__;
+  }
+
+  get minCurveHandlerDistance() {
+    return this.__minCurveHandlerDistance__;
   }
 
   scalify(val: number) {
@@ -1044,30 +1060,93 @@ export default class Core {
     targetCurve.moveHandler(pressingTarget, offset);
   }
 
-  stick(bridgeId: CurveTypes.Id, p2: Vec, cp1: Vec, cp2: Vec) {
+  stick(
+    bridgeId: CurveTypes.Id,
+    p2: Vec,
+    cp1: Vec,
+    cp2: Vec,
+    _toD: CommonTypes.Direction
+  ) {
     const target = (() => {
-      for (const _d of ds) {
-        const _curve = this.curves[_d].find(
+      for (const _fromD of ds) {
+        const _curve = this.curves[_fromD].find(
           (curve) => curve.shape.id === bridgeId
         );
-        if (_curve) return { d: _d, curve: _curve.shape, send: _curve.sendTo };
+        if (_curve) return { fromD: _fromD, toD: _toD, curve: _curve.shape };
       }
     })();
 
     if (!target) return;
 
-    target.curve.locateHandler(
-      CurveTypes.PressingTarget.p2,
-      this.getCurveP(p2)
+    const curveCp1 = this.getCurveP(cp1);
+    const curveCp2 = this.getCurveP(cp2);
+    const curvep2 = this.getCurveP(p2);
+
+    const distance = Math.sqrt(
+      Math.pow(p2.x - cp2.x, 2) + Math.pow(p2.y - cp2.y, 2)
     );
-    target.curve.locateHandler(
-      CurveTypes.PressingTarget.cp1,
-      this.getCurveP(cp1)
-    );
-    target.curve.locateHandler(
-      CurveTypes.PressingTarget.cp2,
-      this.getCurveP(cp2)
-    );
+
+    if (this.deScale(distance) <= this.minCurveHandlerDistance) {
+      const scaleMinCurveHandlerDistance = this.scalify(
+        this.minCurveHandlerDistance
+      );
+
+      switch (target.fromD) {
+        case Direction.l:
+          {
+            curveCp1.x -= scaleMinCurveHandlerDistance;
+          }
+          break;
+
+        case Direction.t:
+          {
+            curveCp1.y -= scaleMinCurveHandlerDistance;
+          }
+          break;
+
+        case Direction.r:
+          {
+            curveCp1.x += scaleMinCurveHandlerDistance;
+          }
+          break;
+
+        case Direction.b:
+          {
+            curveCp1.y += scaleMinCurveHandlerDistance;
+          }
+          break;
+      }
+
+      switch (target.toD) {
+        case Direction.l:
+          {
+            curveCp2.x -= scaleMinCurveHandlerDistance;
+          }
+          break;
+
+        case Direction.t:
+          {
+            curveCp2.y -= scaleMinCurveHandlerDistance;
+          }
+          break;
+
+        case Direction.r:
+          {
+            curveCp2.x += scaleMinCurveHandlerDistance;
+          }
+          break;
+
+        case Direction.b:
+          {
+            curveCp2.y += scaleMinCurveHandlerDistance;
+          }
+          break;
+      }
+    }
+
+    target.curve.locateHandler(CurveTypes.PressingTarget.cp1, curveCp1);
+    target.curve.locateHandler(CurveTypes.PressingTarget.cp2, curveCp2);
+    target.curve.locateHandler(CurveTypes.PressingTarget.p2, curvep2);
   }
 
   locateCurveHandler(
@@ -1581,7 +1660,7 @@ export default class Core {
       0,
       0,
       this.getScaleSize().w,
-      20,
+      20
       // this.scale
     );
 

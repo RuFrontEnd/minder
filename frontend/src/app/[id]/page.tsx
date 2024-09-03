@@ -1386,31 +1386,55 @@ export default function IdPage() {
 
               switch (sticking?.to?.d) {
                 case CommonTypes.Direction.l:
-                  sticking.from.shape.stick(sticking.bridgeId, toP, cp1, {
-                    x: toP.x - Math.abs(fromP.x - toP.x) / 2,
-                    y: toP.y,
-                  });
+                  sticking.from.shape.stick(
+                    sticking.bridgeId,
+                    toP,
+                    cp1,
+                    {
+                      x: toP.x - Math.abs(fromP.x - toP.x) / 2,
+                      y: toP.y,
+                    },
+                    sticking?.to?.d
+                  );
                   break;
 
                 case CommonTypes.Direction.t:
-                  sticking.from.shape.stick(sticking.bridgeId, toP, cp1, {
-                    x: toP.x,
-                    y: toP.y - Math.abs(fromP.y - toP.y) / 2,
-                  });
+                  sticking.from.shape.stick(
+                    sticking.bridgeId,
+                    toP,
+                    cp1,
+                    {
+                      x: toP.x,
+                      y: toP.y - Math.abs(fromP.y - toP.y) / 2,
+                    },
+                    sticking?.to?.d
+                  );
                   break;
 
                 case CommonTypes.Direction.r:
-                  sticking.from.shape.stick(sticking.bridgeId, toP, cp1, {
-                    x: toP.x + Math.abs(fromP.x - toP.x) / 2,
-                    y: toP.y,
-                  });
+                  sticking.from.shape.stick(
+                    sticking.bridgeId,
+                    toP,
+                    cp1,
+                    {
+                      x: toP.x + Math.abs(fromP.x - toP.x) / 2,
+                      y: toP.y,
+                    },
+                    sticking?.to?.d
+                  );
                   break;
 
                 case CommonTypes.Direction.b:
-                  sticking.from.shape.stick(sticking.bridgeId, toP, cp1, {
-                    x: toP.x,
-                    y: toP.y + Math.abs(fromP.y - toP.y) / 2,
-                  });
+                  sticking.from.shape.stick(
+                    sticking.bridgeId,
+                    toP,
+                    cp1,
+                    {
+                      x: toP.x,
+                      y: toP.y + Math.abs(fromP.y - toP.y) / 2,
+                    },
+                    sticking?.to?.d
+                  );
                   break;
               }
               return true; // 已处理，返回 true
@@ -1434,31 +1458,55 @@ export default function IdPage() {
 
               switch (sticking?.to?.d) {
                 case CommonTypes.Direction.l:
-                  sticking.from.shape.stick(sticking.bridgeId, toP, cp1, {
-                    x: toP.x - Math.abs(fromP.x - toP.x) / 2,
-                    y: toP.y,
-                  });
+                  sticking.from.shape.stick(
+                    sticking.bridgeId,
+                    toP,
+                    cp1,
+                    {
+                      x: toP.x - Math.abs(fromP.x - toP.x) / 2,
+                      y: toP.y,
+                    },
+                    sticking?.to?.d
+                  );
                   break;
 
                 case CommonTypes.Direction.t:
-                  sticking.from.shape.stick(sticking.bridgeId, toP, cp1, {
-                    x: toP.x,
-                    y: toP.y - Math.abs(fromP.y - toP.y) / 2,
-                  });
+                  sticking.from.shape.stick(
+                    sticking.bridgeId,
+                    toP,
+                    cp1,
+                    {
+                      x: toP.x,
+                      y: toP.y - Math.abs(fromP.y - toP.y) / 2,
+                    },
+                    sticking?.to?.d
+                  );
                   break;
 
                 case CommonTypes.Direction.r:
-                  sticking.from.shape.stick(sticking.bridgeId, toP, cp1, {
-                    x: toP.x + Math.abs(fromP.x - toP.x) / 2,
-                    y: toP.y,
-                  });
+                  sticking.from.shape.stick(
+                    sticking.bridgeId,
+                    toP,
+                    cp1,
+                    {
+                      x: toP.x + Math.abs(fromP.x - toP.x) / 2,
+                      y: toP.y,
+                    },
+                    sticking?.to?.d
+                  );
                   break;
 
                 case CommonTypes.Direction.b:
-                  sticking.from.shape.stick(sticking.bridgeId, toP, cp1, {
-                    x: toP.x,
-                    y: toP.y + Math.abs(fromP.y - toP.y) / 2,
-                  });
+                  sticking.from.shape.stick(
+                    sticking.bridgeId,
+                    toP,
+                    cp1,
+                    {
+                      x: toP.x,
+                      y: toP.y + Math.abs(fromP.y - toP.y) / 2,
+                    },
+                    sticking?.to?.d
+                  );
                   break;
               }
 
@@ -1486,28 +1534,32 @@ export default function IdPage() {
                   sticking.from.shape.stick(sticking.bridgeId, toP, cp1, {
                     x: toP.x - Math.abs(fromP.x - toP.x) / 2,
                     y: toP.y,
-                  });
+                  },
+                  sticking?.to?.d);
                   break;
 
                 case CommonTypes.Direction.t:
                   sticking.from.shape.stick(sticking.bridgeId, toP, cp1, {
                     x: toP.x,
                     y: toP.y - Math.abs(fromP.y - toP.y) / 2,
-                  });
+                  },
+                  sticking?.to?.d);
                   break;
 
                 case CommonTypes.Direction.r:
                   sticking.from.shape.stick(sticking.bridgeId, toP, cp1, {
                     x: toP.x + Math.abs(fromP.x - toP.x) / 2,
                     y: toP.y,
-                  });
+                  },
+                  sticking?.to?.d);
                   break;
 
                 case CommonTypes.Direction.b:
                   sticking.from.shape.stick(sticking.bridgeId, toP, cp1, {
                     x: toP.x,
                     y: toP.y + Math.abs(fromP.y - toP.y) / 2,
-                  });
+                  },
+                  sticking?.to?.d);
                   break;
               }
 
@@ -1535,28 +1587,32 @@ export default function IdPage() {
                   sticking.from.shape.stick(sticking.bridgeId, toP, cp1, {
                     x: toP.x - Math.abs(fromP.x - toP.x) / 2,
                     y: toP.y,
-                  });
+                  },
+                  sticking?.to?.d);
                   break;
 
                 case CommonTypes.Direction.t:
                   sticking.from.shape.stick(sticking.bridgeId, toP, cp1, {
                     x: toP.x,
                     y: toP.y - Math.abs(fromP.y - toP.y) / 2,
-                  });
+                  },
+                  sticking?.to?.d);
                   break;
 
                 case CommonTypes.Direction.r:
                   sticking.from.shape.stick(sticking.bridgeId, toP, cp1, {
                     x: toP.x + Math.abs(fromP.x - toP.x) / 2,
                     y: toP.y,
-                  });
+                  },
+                  sticking?.to?.d);
                   break;
 
                 case CommonTypes.Direction.b:
                   sticking.from.shape.stick(sticking.bridgeId, toP, cp1, {
                     x: toP.x,
                     y: toP.y + Math.abs(fromP.y - toP.y) / 2,
-                  });
+                  },
+                  sticking?.to?.d);
                   break;
               }
 
