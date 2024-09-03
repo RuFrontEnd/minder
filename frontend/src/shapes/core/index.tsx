@@ -114,243 +114,75 @@ export default class Core {
     };
     this.__p__ = value;
 
+    const moveBridgeCurve = (
+      fromD: CommonTypes.Direction,
+      toD: CommonTypes.Direction,
+      bridgeCurve: Curve
+    ) => {
+      const distance = {
+        x: Math.abs(bridgeCurve.p2.x - bridgeCurve.p1.x) / 2,
+        y: Math.abs(bridgeCurve.p2.y - bridgeCurve.p1.y) / 2,
+      };
+
+      const directionAdjustments = {
+        l: { x: -distance.x, y: 0 },
+        r: { x: distance.x, y: 0 },
+        t: { x: 0, y: -distance.y },
+        b: { x: 0, y: distance.y },
+      };
+
+      const updateControlPoints = (
+        fromD: CommonTypes.Direction,
+        toD: CommonTypes.Direction,
+        bridgeCurve: Curve
+      ) => {
+        const cp1 = { ...bridgeCurve.p1 };
+        const cp2 = { ...bridgeCurve.p2 };
+
+        const fromAdjustment = directionAdjustments[fromD];
+        const toAdjustment = directionAdjustments[toD];
+
+        cp1.x += fromAdjustment.x;
+        cp1.y += fromAdjustment.y;
+        cp2.x += toAdjustment.x;
+        cp2.y += toAdjustment.y;
+
+        bridgeCurve.cp1 = cp1;
+        bridgeCurve.cp2 = cp2;
+      };
+
+      updateControlPoints(fromD, toD, bridgeCurve);
+    };
+
     // when receiver shape move, sender curve follows the receiver shape
     const senderCurvesMapping: { [curveId: string]: boolean } = {};
 
-    const senders = (() => {
-      const _senders: CoreTypes.ReceiveFrom[] = [];
+    ds.forEach((d) => {
+      this.receiveFrom[d]?.forEach((from) => {
+        from.shape.curves[from.d].forEach((bridge) => {
+          if (senderCurvesMapping[bridge.shape.id] || !bridge.sendTo?.d) return;
+          bridge.shape.p2 = {
+            x: bridge.shape.p2.x + offest.x,
+            y: bridge.shape.p2.y + offest.y,
+          };
 
-      ds.forEach((d) => {
-        const senders = this.receiveFrom[d];
-        if (!senders) return;
-        senders.forEach((sender) => {
-          _senders.push(sender);
-        });
-      });
-
-      return _senders;
-    })();
-
-    senders.forEach((sender) => {
-      ds.forEach((d) => {
-        sender?.shape.curves[d].forEach((bridge) => {
-          if (
-            d === sender.d &&
-            bridge.sendTo?.shape.id === this.id &&
-            !senderCurvesMapping[bridge.shape.id]
-          ) {
-            const fromD = sender.d;
-            const toD = bridge.sendTo.d;
-
-            bridge.shape.p2 = {
-              x: bridge.shape.p2.x + offest.x,
-              y: bridge.shape.p2.y + offest.y,
-            };
-
-            console.log("fromD", fromD);
-            console.log("toD", toD);
-
-            const distance = {
-              x: Math.abs(bridge.shape.p2.x - bridge.shape.p1.x) / 2,
-              y: Math.abs(bridge.shape.p2.y - bridge.shape.p1.y) / 2,
-            };
-
-            const handlers = {
-              l: (
-                fromD: CommonTypes.Direction,
-                toD: CommonTypes.Direction,
-                bridge: Curve
-              ) => {
-                if (fromD !== CommonTypes.Direction.l) return false;
-
-                switch (toD) {
-                  case CommonTypes.Direction.l:
-                    bridge.cp1.x = bridge.p1.x - distance.x;
-                    bridge.cp1.y = bridge.p1.y;
-                    bridge.cp2.x = bridge.p2.x - distance.x;
-                    bridge.cp2.y = bridge.p2.y;
-                    break;
-
-                  case CommonTypes.Direction.t:
-                    bridge.cp1.x = bridge.p1.x - distance.x;
-                    bridge.cp1.y = bridge.p1.y;
-                    bridge.cp2.x = bridge.p2.x;
-                    bridge.cp2.y = bridge.p2.y - distance.y;
-                    break;
-
-                  case CommonTypes.Direction.r:
-                    bridge.cp1.x = bridge.p1.x - distance.x;
-                    bridge.cp1.y = bridge.p1.y;
-                    bridge.cp2.x = bridge.p2.x + distance.x;
-                    bridge.cp2.y = bridge.p2.y;
-                    break;
-
-                  case CommonTypes.Direction.b:
-                    bridge.cp1.x = bridge.p1.x - distance.x;
-                    bridge.cp1.y = bridge.p1.y;
-                    bridge.cp2.x = bridge.p2.x;
-                    bridge.cp2.y = bridge.p2.y + distance.y;
-                    break;
-                }
-
-                return true;
-              },
-              t: (
-                fromD: CommonTypes.Direction,
-                toD: CommonTypes.Direction,
-                bridge: Curve
-              ) => {
-                if (fromD !== CommonTypes.Direction.t) return false;
-
-                switch (toD) {
-                  case CommonTypes.Direction.l:
-                    bridge.cp1.x = bridge.p1.x;
-                    bridge.cp1.y = bridge.p1.y - distance.y;
-                    bridge.cp2.x = bridge.p2.x - distance.x;
-                    bridge.cp2.y = bridge.p2.y;
-                    break;
-
-                  case CommonTypes.Direction.t:
-                    bridge.cp1.x = bridge.p1.x;
-                    bridge.cp1.y = bridge.p1.y - distance.y;
-                    bridge.cp2.x = bridge.p2.x;
-                    bridge.cp2.y = bridge.p2.y - distance.y;
-                    break;
-
-                  case CommonTypes.Direction.r:
-                    bridge.cp1.x = bridge.p1.x;
-                    bridge.cp1.y = bridge.p1.y - distance.y;
-                    bridge.cp2.x = bridge.p2.x + distance.x;
-                    bridge.cp2.y = bridge.p2.y;
-                    break;
-
-                  case CommonTypes.Direction.b:
-                    bridge.cp1.x = bridge.p1.x;
-                    bridge.cp1.y = bridge.p1.y - distance.y;
-                    bridge.cp2.x = bridge.p2.x;
-                    bridge.cp2.y = bridge.p2.y + distance.y;
-                    break;
-                }
-
-                return true;
-              },
-              r: (
-                fromD: CommonTypes.Direction,
-                toD: CommonTypes.Direction,
-                bridge: Curve
-              ) => {
-                if (fromD !== CommonTypes.Direction.r) return false;
-
-                switch (toD) {
-                  case CommonTypes.Direction.l:
-                    bridge.cp1.x = bridge.p1.x + distance.x;
-                    bridge.cp1.y = bridge.p1.y;
-                    bridge.cp2.x = bridge.p2.x - distance.x;
-                    bridge.cp2.y = bridge.p2.y;
-                    break;
-
-                  case CommonTypes.Direction.t:
-                    bridge.cp1.x = bridge.p1.x + distance.x;
-                    bridge.cp1.y = bridge.p1.y;
-                    bridge.cp2.x = bridge.p2.x;
-                    bridge.cp2.y = bridge.p2.y - distance.y;
-                    break;
-
-                  case CommonTypes.Direction.r:
-                    bridge.cp1.x = bridge.p1.x + distance.x;
-                    bridge.cp1.y = bridge.p1.y;
-                    bridge.cp2.x = bridge.p2.x + distance.x;
-                    bridge.cp2.y = bridge.p2.y;
-                    break;
-
-                  case CommonTypes.Direction.b:
-                    bridge.cp1.x = bridge.p1.x + distance.x;
-                    bridge.cp1.y = bridge.p1.y;
-                    bridge.cp2.x = bridge.p2.x;
-                    bridge.cp2.y = bridge.p2.y + distance.y;
-                    break;
-                }
-
-                return true;
-              },
-              b: (
-                fromD: CommonTypes.Direction,
-                toD: CommonTypes.Direction,
-                bridge: Curve
-              ) => {
-                if (fromD !== CommonTypes.Direction.b) return false;
-
-                switch (toD) {
-                  case CommonTypes.Direction.l:
-                    bridge.cp1.x = bridge.p1.x;
-                    bridge.cp1.y = bridge.p1.y + distance.y;
-                    bridge.cp2.x = bridge.p2.x - distance.x;
-                    bridge.cp2.y = bridge.p2.y;
-                    break;
-
-                  case CommonTypes.Direction.t:
-                    bridge.cp1.x = bridge.p1.x;
-                    bridge.cp1.y = bridge.p1.y + distance.y;
-                    bridge.cp2.x = bridge.p2.x;
-                    bridge.cp2.y = bridge.p2.y - distance.y;
-                    break;
-
-                  case CommonTypes.Direction.r:
-                    bridge.cp1.x = bridge.p1.x;
-                    bridge.cp1.y = bridge.p1.y + distance.y;
-                    bridge.cp2.x = bridge.p2.x + distance.x;
-                    bridge.cp2.y = bridge.p2.y;
-                    break;
-
-                  case CommonTypes.Direction.b:
-                    bridge.cp1.x = bridge.p1.x;
-                    bridge.cp1.y = bridge.p1.y + distance.y;
-                    bridge.cp2.x = bridge.p2.x;
-                    bridge.cp2.y = bridge.p2.y + distance.y;
-                    break;
-                }
-
-                return true;
-              },
-            };
-
-            const handlerChain = [
-              handlers.l,
-              handlers.t,
-              handlers.r,
-              handlers.b,
-            ];
-
-            for (const handler of handlerChain) {
-              if (handler(fromD, toD, bridge.shape)) break;
-            }
-
-            senderCurvesMapping[bridge.shape.id] = true;
-          }
+          moveBridgeCurve(from.d, bridge.sendTo.d, bridge.shape);
+          senderCurvesMapping[bridge.shape.id] = true;
         });
       });
     });
 
     // when sender shape move, receiver curve follows the sender shape
-    ds.forEach((d) => {
-      this.curves[d].forEach((sendCurve) => {
-        const senderCurve = sendCurve.shape,
-          sendToShape = sendCurve.sendTo;
 
-        if (senderCurve && sendToShape) {
-          senderCurve.p2 = {
-            x: senderCurve.p2.x - offest.x,
-            y: senderCurve.p2.y - offest.y,
-          };
-          sendCurve.shape.cp1.x =
-            sendCurve.shape.p1.x +
-            Math.abs(sendCurve.shape.p2.x - sendCurve.shape.p1.x) / 2;
-          sendCurve.shape.cp1.y = sendCurve.shape.p1.y;
-          sendCurve.shape.cp2.x =
-            sendCurve.shape.p2.x -
-            Math.abs(sendCurve.shape.p2.x - sendCurve.shape.p1.x) / 2;
-          sendCurve.shape.cp2.y = sendCurve.shape.p2.y;
-        }
+    ds.forEach((fromD) => {
+      this.curves[fromD].forEach((bridge) => {
+        if (!bridge.sendTo?.d) return;
+        bridge.shape.p2 = {
+          x: bridge.shape.p2.x - offest.x,
+          y: bridge.shape.p2.y - offest.y,
+        };
+
+        moveBridgeCurve(fromD, bridge.sendTo?.d, bridge.shape);
       });
     });
   }
