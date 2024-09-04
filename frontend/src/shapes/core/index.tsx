@@ -122,18 +122,18 @@ export default class Core {
       bridgeCurve: Curve
     ) => {
       const distance = {
-        x: Math.abs(bridgeCurve.p2.x - bridgeCurve.p1.x) / 2,
-        y: Math.abs(bridgeCurve.p2.y - bridgeCurve.p1.y) / 2,
+        x: Math.abs(bridgeCurve.p2.x - bridgeCurve.p1.x),
+        y: Math.abs(bridgeCurve.p2.y - bridgeCurve.p1.y),
       };
       const margin = {
         x:
           distance.x <= this.minCurveHandlerDistance
             ? this.minCurveHandlerDistance
-            : distance.x,
+            : distance.x / 2,
         y:
           distance.y <= this.minCurveHandlerDistance
             ? this.minCurveHandlerDistance
-            : distance.y,
+            : distance.y / 2,
       };
 
       const directionAdjustments = {
@@ -1461,17 +1461,17 @@ export default class Core {
     lines.push(line);
 
     const offsetYs: number[] = [];
+    const scaleLineHeight = this.scalify(lineHeight);
+
     let offsetY =
       lines.length % 2 === 0
-        ? lineHeight * (1 / 2 + lines.length / 2 - 1)
-        : lineHeight * Math.floor(lines.length / 2);
+        ? scaleLineHeight * (1 / 2 + lines.length / 2 - 1)
+        : scaleLineHeight * Math.floor(lines.length / 2);
 
-    lines.forEach((line) => {
+    lines.forEach(() => {
       offsetYs.push(offsetY);
-      offsetY -= lineHeight;
+      offsetY -= scaleLineHeight;
     });
-
-    // console.log('lines', lines)
 
     lines.forEach((line, lineI) => {
       ctx.fillText(line, x, y - offsetYs[lineI]);
@@ -1662,15 +1662,7 @@ export default class Core {
     ctx.fillStyle = "white";
     ctx.font = `${16 * this.scale}px ${inter.style.fontFamily}`;
 
-    this.renderText(
-      ctx,
-      this.title,
-      0,
-      0,
-      this.getScaleSize().w,
-      20
-      // this.scale
-    );
+    this.renderText(ctx, this.title, 0, 0, this.getScaleSize().w, 20);
 
     // draw id text
     // ctx.textAlign = "start";
