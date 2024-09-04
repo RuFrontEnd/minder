@@ -137,10 +137,18 @@ export default class Core {
       };
 
       const directionAdjustments = {
-        l: { x: -margin.x, y: 0 },
-        r: { x: margin.x, y: 0 },
-        t: { x: 0, y: -margin.y },
-        b: { x: 0, y: margin.y },
+        from: {
+          l: { x: -margin.x, y: 0 },
+          r: { x: margin.x, y: 0 },
+          t: { x: 0, y: -margin.y },
+          b: { x: 0, y: margin.y },
+        },
+        to: {
+          l: { x: -margin.x + bridgeCurve.arrowAttr.h, y: 0 },
+          r: { x: margin.x - bridgeCurve.arrowAttr.h, y: 0 },
+          t: { x: 0, y: -margin.y + bridgeCurve.arrowAttr.h },
+          b: { x: 0, y: margin.y - bridgeCurve.arrowAttr.h },
+        },
       };
 
       const updateControlPoints = (
@@ -151,8 +159,8 @@ export default class Core {
         const cp1 = { ...bridgeCurve.p1 };
         const cp2 = { ...bridgeCurve.p2 };
 
-        const fromAdjustment = directionAdjustments[fromD];
-        const toAdjustment = directionAdjustments[toD];
+        const fromAdjustment = directionAdjustments.from[fromD];
+        const toAdjustment = directionAdjustments.to[toD];
 
         cp1.x += fromAdjustment.x;
         cp1.y += fromAdjustment.y;

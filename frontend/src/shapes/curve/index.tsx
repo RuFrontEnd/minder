@@ -136,6 +136,10 @@ export default class Curve {
     }
   }
 
+  get arrowAttr() {
+    return this.__arrowAttr__;
+  }
+
   scalify(val: number) {
     return val * this.__scale__;
   }
