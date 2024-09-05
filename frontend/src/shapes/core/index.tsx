@@ -127,13 +127,15 @@ export default class Core {
       };
       const margin = {
         x:
-          distance.x <= this.minCurveHandlerDistance
-            ? this.minCurveHandlerDistance
-            : distance.x / 2,
+          // distance.x <= this.minCurveHandlerDistance
+          //   ? this.minCurveHandlerDistance
+          //   :  // TODO: temp
+          distance.x / 2,
         y:
-          distance.y <= this.minCurveHandlerDistance
-            ? this.minCurveHandlerDistance
-            : distance.y / 2,
+          // distance.y <= this.minCurveHandlerDistance
+          //   ? this.minCurveHandlerDistance
+          //   :  // TODO: temp
+          distance.y / 2,
       };
 
       const directionAdjustments = {
@@ -143,12 +145,18 @@ export default class Core {
           t: { x: 0, y: -margin.y },
           b: { x: 0, y: margin.y },
         },
+        // to: {
+        //   l: { x: -margin.x + bridgeCurve.arrowAttr.h, y: 0 },
+        //   r: { x: margin.x - bridgeCurve.arrowAttr.h, y: 0 },
+        //   t: { x: 0, y: -margin.y + bridgeCurve.arrowAttr.h },
+        //   b: { x: 0, y: margin.y - bridgeCurve.arrowAttr.h },
+        // }, // TODO: temp
         to: {
-          l: { x: -margin.x + bridgeCurve.arrowAttr.h, y: 0 },
-          r: { x: margin.x - bridgeCurve.arrowAttr.h, y: 0 },
-          t: { x: 0, y: -margin.y + bridgeCurve.arrowAttr.h },
-          b: { x: 0, y: margin.y - bridgeCurve.arrowAttr.h },
-        },
+          l: { x: -margin.x, y: 0 },
+          r: { x: margin.x, y: 0 },
+          t: { x: 0, y: -margin.y },
+          b: { x: 0, y: margin.y },
+        }, // TODO: temp
       };
 
       const updateControlPoints = (
@@ -1094,63 +1102,64 @@ export default class Core {
       Math.pow(p2.x - cp2.x, 2) + Math.pow(p2.y - cp2.y, 2)
     );
 
-    if (this.deScale(distance) <= this.minCurveHandlerDistance) {
-      const scaleMinCurveHandlerDistance = this.scalify(
-        this.minCurveHandlerDistance
-      );
+    // TODO: temp
+    // if (this.deScale(distance) <= this.minCurveHandlerDistance) {
+    //   const scaleMinCurveHandlerDistance = this.scalify(
+    //     this.minCurveHandlerDistance
+    //   );
 
-      switch (target.fromD) {
-        case Direction.l:
-          {
-            curveCp1.x -= scaleMinCurveHandlerDistance;
-          }
-          break;
+    //   switch (target.fromD) {
+    //     case Direction.l:
+    //       {
+    //         curveCp1.x -= scaleMinCurveHandlerDistance;
+    //       }
+    //       break;
 
-        case Direction.t:
-          {
-            curveCp1.y -= scaleMinCurveHandlerDistance;
-          }
-          break;
+    //     case Direction.t:
+    //       {
+    //         curveCp1.y -= scaleMinCurveHandlerDistance;
+    //       }
+    //       break;
 
-        case Direction.r:
-          {
-            curveCp1.x += scaleMinCurveHandlerDistance;
-          }
-          break;
+    //     case Direction.r:
+    //       {
+    //         curveCp1.x += scaleMinCurveHandlerDistance;
+    //       }
+    //       break;
 
-        case Direction.b:
-          {
-            curveCp1.y += scaleMinCurveHandlerDistance;
-          }
-          break;
-      }
+    //     case Direction.b:
+    //       {
+    //         curveCp1.y += scaleMinCurveHandlerDistance;
+    //       }
+    //       break;
+    //   }
 
-      switch (target.toD) {
-        case Direction.l:
-          {
-            curveCp2.x -= scaleMinCurveHandlerDistance;
-          }
-          break;
+    //   switch (target.toD) {
+    //     case Direction.l:
+    //       {
+    //         curveCp2.x -= scaleMinCurveHandlerDistance;
+    //       }
+    //       break;
 
-        case Direction.t:
-          {
-            curveCp2.y -= scaleMinCurveHandlerDistance;
-          }
-          break;
+    //     case Direction.t:
+    //       {
+    //         curveCp2.y -= scaleMinCurveHandlerDistance;
+    //       }
+    //       break;
 
-        case Direction.r:
-          {
-            curveCp2.x += scaleMinCurveHandlerDistance;
-          }
-          break;
+    //     case Direction.r:
+    //       {
+    //         curveCp2.x += scaleMinCurveHandlerDistance;
+    //       }
+    //       break;
 
-        case Direction.b:
-          {
-            curveCp2.y += scaleMinCurveHandlerDistance;
-          }
-          break;
-      }
-    }
+    //     case Direction.b:
+    //       {
+    //         curveCp2.y += scaleMinCurveHandlerDistance;
+    //       }
+    //       break;
+    //   }
+    // }
 
     target.curve.locateHandler(CurveTypes.PressingTarget.cp1, curveCp1);
     target.curve.locateHandler(CurveTypes.PressingTarget.cp2, curveCp2);

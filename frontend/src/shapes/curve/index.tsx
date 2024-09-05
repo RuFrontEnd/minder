@@ -67,7 +67,7 @@ export default class Curve {
       this.relativify(p2),
       Math.atan2(p2.y - this.cp2.y, p2.x - this.cp2.x) + 90 * (Math.PI / 180)
     );
-    this.__selecting__ = false;
+    this.__selecting__ = true; // TODO: temp
     this.__offset__ = this.initOffset;
     this.__scale__ = this.initScale;
   }
@@ -77,9 +77,9 @@ export default class Curve {
   }
 
   set selecting(val) {
-    this.__selecting__ = val;
+    this.__selecting__ = true; // TODO: temp
     if (this.arrow) {
-      this.arrow.selecting = val;
+      this.arrow.selecting = true; // TODO: temp
     }
   }
 
@@ -394,11 +394,16 @@ export default class Curve {
         );
 
         const ratio = (len - this.__arrowAttr__.h) / len;
+        // if < 0, change this.__arrowAttr__.h to denominator
 
-        return ratio <= 0
+        return ratio === 0
           ? this.cp2
           : { x: this.cp2.x + v.x * ratio, y: this.cp2.y + v.y * ratio };
       })();
+
+      console.log('this.p2', this.p2)
+      console.log('this.cp1', this.cp1)
+      console.log('this.cp2', this.cp2)
     }
   }
 
