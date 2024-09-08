@@ -877,7 +877,8 @@ export default function IdPage() {
       } else {
         // when single select shape
         if (!pressing) {
-          shapes.forEach((shape) => {
+          shapes.forEach((_, shapeI, shapes) => {
+            const shape = shapes[shapes.length - 1 - shapeI];
             const curveTriggerD = shape.getCurveTriggerDirection(p);
             if (curveTriggerD) {
               shape.selecting = false;
@@ -958,7 +959,8 @@ export default function IdPage() {
         }
 
         if (!pressing) {
-          shapes.forEach((shape) => {
+          shapes.forEach((_, shapeI, shapes) => {
+            const shape = shapes[shapes.length - 1 - shapeI];
             if (!!pressing) return;
             const vertex = shape.checkVertexesBoundry(p);
             if (shape.selecting && vertex) {
