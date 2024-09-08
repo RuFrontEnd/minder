@@ -1377,55 +1377,10 @@ export default class Core {
     maxWidth: number,
     lineHeight: number
   ) => {
-    const words = text.split(""),
-      lines: string[] = [];
-    let line = "";
-
-    for (const word of words) {
-      const testLine = line + word,
-        metrics = ctx.measureText(testLine),
-        testWidth = metrics.width;
-
-      if (testWidth > maxWidth - 32 * this.scale) {
-        lines.push(line);
-        line = word;
-      } else {
-        line = testLine;
-      }
-    }
-
-    lines.push(line);
-
-    const offsetYs: number[] = [];
-    const scaleLineHeight = this.scalify(lineHeight);
-
-    let offsetY =
-      lines.length % 2 === 0
-        ? scaleLineHeight * (1 / 2 + lines.length / 2 - 1)
-        : scaleLineHeight * Math.floor(lines.length / 2);
-
-    lines.forEach(() => {
-      offsetYs.push(offsetY);
-      offsetY -= scaleLineHeight;
-    });
-
-    lines.forEach((line, lineI) => {
-      ctx.fillText(line, x, y - offsetYs[lineI]);
-    });
-  };
-
-  renderEllipsisText = (
-    ctx: CanvasRenderingContext2D,
-    text: string,
-    x: number,
-    y: number,
-    maxWidth: number,
-    lineHeight: number,
-    scale: number
-  ) => {
     const words = text.split("");
     const lines: string[] = [];
     const padding = 32;
+    const lineH = this.scalify(lineHeight);
     let line = "";
 
     for (const word of words) {
@@ -1433,7 +1388,7 @@ export default class Core {
         metrics = ctx.measureText(testLine),
         testWidth = metrics.width;
 
-      if (testWidth > maxWidth - padding * scale) {
+      if (testWidth > maxWidth - this.scalify(padding)) {
         lines.push(line);
         line = word;
       } else {
@@ -1444,7 +1399,7 @@ export default class Core {
     lines.push(line);
 
     // calculate the maximum number of lines
-    const maxLines = Math.floor(((this.h - padding) * this.scale) / lineHeight);
+    const maxLines = Math.floor(this.scalify(this.h - padding) / lineH);
 
     // make sure the number of lines to be rendered does not exceed the maximum number of lines
     const totalLines = Math.min(lines.length, maxLines);
@@ -1454,7 +1409,7 @@ export default class Core {
       const lastLine = lines[totalLines - 1] || "";
       const ellipsis = "...";
       const metricsEllipsis = ctx.measureText(ellipsis);
-      const maxTextWidth = maxWidth - 32 * scale - metricsEllipsis.width;
+      const maxTextWidth = maxWidth - 32 * this.scale - metricsEllipsis.width;
 
       let truncatedLine = "";
       for (const char of lastLine) {
@@ -1471,12 +1426,12 @@ export default class Core {
     const offsetYs: number[] = [];
     let offsetY =
       totalLines % 2 === 0
-        ? lineHeight * (1 / 2 + totalLines / 2 - 1)
-        : lineHeight * Math.floor(totalLines / 2);
+        ? lineH * (1 / 2 + totalLines / 2 - 1)
+        : lineH * Math.floor(totalLines / 2);
 
     for (let i = 0; i < totalLines; i++) {
       offsetYs.push(offsetY);
-      offsetY -= lineHeight;
+      offsetY -= lineH;
     }
 
     for (let i = 0; i < totalLines; i++) {
