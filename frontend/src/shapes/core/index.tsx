@@ -126,37 +126,23 @@ export default class Core {
         y: Math.abs(bridgeCurve.p2.y - bridgeCurve.p1.y),
       };
       const margin = {
-        x:
-          // distance.x <= this.minCurveHandlerDistance
-          //   ? this.minCurveHandlerDistance
-          //   :  // TODO: temp
-          distance.x / 2,
-        y:
-          // distance.y <= this.minCurveHandlerDistance
-          //   ? this.minCurveHandlerDistance
-          //   :  // TODO: temp
-          distance.y / 2,
+        x: distance.x / 2,
+        y: distance.y / 2,
       };
 
       const directionAdjustments = {
         from: {
           l: { x: -margin.x, y: 0 },
           r: { x: margin.x, y: 0 },
-          t: { x: 0, y: -margin.y },
-          b: { x: 0, y: margin.y },
+          t: { x: 0, y: -margin.x },
+          b: { x: 0, y: margin.x },
         },
-        // to: {
-        //   l: { x: -margin.x + bridgeCurve.arrowAttr.h, y: 0 },
-        //   r: { x: margin.x - bridgeCurve.arrowAttr.h, y: 0 },
-        //   t: { x: 0, y: -margin.y + bridgeCurve.arrowAttr.h },
-        //   b: { x: 0, y: margin.y - bridgeCurve.arrowAttr.h },
-        // }, // TODO: temp
         to: {
           l: { x: -margin.x, y: 0 },
           r: { x: margin.x, y: 0 },
-          t: { x: 0, y: -margin.y },
-          b: { x: 0, y: margin.y },
-        }, // TODO: temp
+          t: { x: 0, y: -margin.x },
+          b: { x: 0, y: margin.x },
+        },
       };
 
       const updateControlPoints = (
@@ -188,7 +174,12 @@ export default class Core {
     ds.forEach((d) => {
       this.receiveFrom[d]?.forEach((from) => {
         from.shape.curves[from.d].forEach((bridge) => {
-          if (senderCurvesMapping[bridge.shape.id] || !bridge.sendTo?.d) return;
+          if (
+            bridge.sendTo?.shape.id !== this.id ||
+            senderCurvesMapping[bridge.shape.id] ||
+            !bridge.sendTo?.d
+          )
+            return;
           bridge.shape.p2 = {
             x: bridge.shape.p2.x + offest.x,
             y: bridge.shape.p2.y + offest.y,
@@ -201,7 +192,6 @@ export default class Core {
     });
 
     // when sender shape move, receiver curve follows the sender shape
-
     ds.forEach((fromD) => {
       this.curves[fromD].forEach((bridge) => {
         if (!bridge.sendTo?.d) return;
@@ -1096,74 +1086,11 @@ export default class Core {
 
     const curveCp1 = this.getCurveP(cp1);
     const curveCp2 = this.getCurveP(cp2);
-    const curvep2 = this.getCurveP(p2);
-
-    const distance = Math.sqrt(
-      Math.pow(p2.x - cp2.x, 2) + Math.pow(p2.y - cp2.y, 2)
-    );
-
-    // TODO: temp
-    // if (this.deScale(distance) <= this.minCurveHandlerDistance) {
-    //   const scaleMinCurveHandlerDistance = this.scalify(
-    //     this.minCurveHandlerDistance
-    //   );
-
-    //   switch (target.fromD) {
-    //     case Direction.l:
-    //       {
-    //         curveCp1.x -= scaleMinCurveHandlerDistance;
-    //       }
-    //       break;
-
-    //     case Direction.t:
-    //       {
-    //         curveCp1.y -= scaleMinCurveHandlerDistance;
-    //       }
-    //       break;
-
-    //     case Direction.r:
-    //       {
-    //         curveCp1.x += scaleMinCurveHandlerDistance;
-    //       }
-    //       break;
-
-    //     case Direction.b:
-    //       {
-    //         curveCp1.y += scaleMinCurveHandlerDistance;
-    //       }
-    //       break;
-    //   }
-
-    //   switch (target.toD) {
-    //     case Direction.l:
-    //       {
-    //         curveCp2.x -= scaleMinCurveHandlerDistance;
-    //       }
-    //       break;
-
-    //     case Direction.t:
-    //       {
-    //         curveCp2.y -= scaleMinCurveHandlerDistance;
-    //       }
-    //       break;
-
-    //     case Direction.r:
-    //       {
-    //         curveCp2.x += scaleMinCurveHandlerDistance;
-    //       }
-    //       break;
-
-    //     case Direction.b:
-    //       {
-    //         curveCp2.y += scaleMinCurveHandlerDistance;
-    //       }
-    //       break;
-    //   }
-    // }
+    const curveP2 = this.getCurveP(p2);
 
     target.curve.locateHandler(CurveTypes.PressingTarget.cp1, curveCp1);
     target.curve.locateHandler(CurveTypes.PressingTarget.cp2, curveCp2);
-    target.curve.locateHandler(CurveTypes.PressingTarget.p2, curvep2);
+    target.curve.locateHandler(CurveTypes.PressingTarget.p2, curveP2);
   }
 
   locateCurveHandler(

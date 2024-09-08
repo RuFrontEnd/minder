@@ -386,24 +386,17 @@ export default class Curve {
         y: this.deScale(screenP.y),
       });
 
+      const v = { x: this.cp2.x - normalP.x, y: this.cp2.y - normalP.y };
+      const len = Math.sqrt(
+        Math.pow(normalP.x - this.cp2.x, 2) +
+          Math.pow(normalP.y - this.cp2.y, 2)
+      );
+
+      const ratio = this.__arrowAttr__.h / len;
+
       this.p2 = (() => {
-        const v = { x: normalP.x - this.cp2.x, y: normalP.y - this.cp2.y };
-        const len = Math.sqrt(
-          Math.pow(normalP.x - this.cp2.x, 2) +
-            Math.pow(normalP.y - this.cp2.y, 2)
-        );
-
-        const ratio = (len - this.__arrowAttr__.h) / len;
-        // if < 0, change this.__arrowAttr__.h to denominator
-
-        return ratio === 0
-          ? this.cp2
-          : { x: this.cp2.x + v.x * ratio, y: this.cp2.y + v.y * ratio };
+        return { x: normalP.x + v.x * ratio, y: normalP.y + v.y * ratio };
       })();
-
-      console.log('this.p2', this.p2)
-      console.log('this.cp1', this.cp1)
-      console.log('this.cp2', this.cp2)
     }
   }
 

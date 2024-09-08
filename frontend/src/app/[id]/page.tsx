@@ -1366,258 +1366,100 @@ export default function IdPage() {
           !!sticking?.to.d &&
           !!sticking?.to.shape
         ) {
-          const handlers = {
-            l: (
-              sticking: PageIdTypes.Sticking,
-              fromP: CommonTypes.Vec,
-              toP: CommonTypes.Vec
-            ) => {
-              if (
-                !sticking.from.shape ||
-                !sticking.bridgeId ||
-                sticking?.from?.d !== CommonTypes.Direction.l
-              )
-                return false;
+          const directionAdjustments = {
+            l: { cp1: { x: -0.5, y: 0 }, cp2: { x: -0.5, y: 0 } },
+            t: { cp1: { x: 0, y: -0.5 }, cp2: { x: 0, y: -0.5 } },
+            r: { cp1: { x: 0.5, y: 0 }, cp2: { x: 0.5, y: 0 } },
+            b: { cp1: { x: 0, y: 0.5 }, cp2: { x: 0, y: 0.5 } },
+          };
 
-              const cp1 = {
-                x: fromP.x - Math.abs(fromP.x - toP.x) / 2,
-                y: fromP.y,
+          const updateControlPoints = (
+            fromD: CommonTypes.Direction,
+            toD: CommonTypes.Direction,
+            fromP: CommonTypes.Vec,
+            toP: CommonTypes.Vec
+          ) => {
+            let cp1, cp2;
+
+            if (
+              fromD === CommonTypes.Direction.t ||
+              fromD === CommonTypes.Direction.b
+            ) {
+              cp1 = {
+                x:
+                  fromP.x +
+                  directionAdjustments[fromD].cp1.x * Math.abs(fromP.x - toP.x),
+                y:
+                  fromP.y +
+                  directionAdjustments[fromD].cp1.y * Math.abs(fromP.x - toP.x),
               };
-
-              switch (sticking?.to?.d) {
-                case CommonTypes.Direction.l:
-                  sticking.from.shape.stick(
-                    sticking.bridgeId,
-                    toP,
-                    cp1,
-                    {
-                      x: toP.x - Math.abs(fromP.x - toP.x) / 2,
-                      y: toP.y,
-                    },
-                    sticking?.to?.d
-                  );
-                  break;
-
-                case CommonTypes.Direction.t:
-                  sticking.from.shape.stick(
-                    sticking.bridgeId,
-                    toP,
-                    cp1,
-                    {
-                      x: toP.x,
-                      y: toP.y - Math.abs(fromP.y - toP.y) / 2,
-                    },
-                    sticking?.to?.d
-                  );
-                  break;
-
-                case CommonTypes.Direction.r:
-                  sticking.from.shape.stick(
-                    sticking.bridgeId,
-                    toP,
-                    cp1,
-                    {
-                      x: toP.x + Math.abs(fromP.x - toP.x) / 2,
-                      y: toP.y,
-                    },
-                    sticking?.to?.d
-                  );
-                  break;
-
-                case CommonTypes.Direction.b:
-                  sticking.from.shape.stick(
-                    sticking.bridgeId,
-                    toP,
-                    cp1,
-                    {
-                      x: toP.x,
-                      y: toP.y + Math.abs(fromP.y - toP.y) / 2,
-                    },
-                    sticking?.to?.d
-                  );
-                  break;
-              }
-              return true; // 已处理，返回 true
-            },
-            t: (
-              sticking: PageIdTypes.Sticking,
-              fromP: CommonTypes.Vec,
-              toP: CommonTypes.Vec
-            ) => {
-              if (
-                !sticking.from.shape ||
-                !sticking.bridgeId ||
-                sticking?.from?.d !== CommonTypes.Direction.t
-              )
-                return false;
-
-              const cp1 = {
-                x: fromP.x,
-                y: fromP.y - Math.abs(fromP.y - toP.y) / 2,
+            } else {
+              cp1 = {
+                x:
+                  fromP.x +
+                  directionAdjustments[fromD].cp1.x * Math.abs(fromP.x - toP.x),
+                y:
+                  fromP.y +
+                  directionAdjustments[fromD].cp1.y * Math.abs(fromP.y - toP.y),
               };
+            }
 
-              switch (sticking?.to?.d) {
-                case CommonTypes.Direction.l:
-                  sticking.from.shape.stick(
-                    sticking.bridgeId,
-                    toP,
-                    cp1,
-                    {
-                      x: toP.x - Math.abs(fromP.x - toP.x) / 2,
-                      y: toP.y,
-                    },
-                    sticking?.to?.d
-                  );
-                  break;
-
-                case CommonTypes.Direction.t:
-                  sticking.from.shape.stick(
-                    sticking.bridgeId,
-                    toP,
-                    cp1,
-                    {
-                      x: toP.x,
-                      y: toP.y - Math.abs(fromP.y - toP.y) / 2,
-                    },
-                    sticking?.to?.d
-                  );
-                  break;
-
-                case CommonTypes.Direction.r:
-                  sticking.from.shape.stick(
-                    sticking.bridgeId,
-                    toP,
-                    cp1,
-                    {
-                      x: toP.x + Math.abs(fromP.x - toP.x) / 2,
-                      y: toP.y,
-                    },
-                    sticking?.to?.d
-                  );
-                  break;
-
-                case CommonTypes.Direction.b:
-                  sticking.from.shape.stick(
-                    sticking.bridgeId,
-                    toP,
-                    cp1,
-                    {
-                      x: toP.x,
-                      y: toP.y + Math.abs(fromP.y - toP.y) / 2,
-                    },
-                    sticking?.to?.d
-                  );
-                  break;
-              }
-
-              return true;
-            },
-            r: (
-              sticking: PageIdTypes.Sticking,
-              fromP: CommonTypes.Vec,
-              toP: CommonTypes.Vec
-            ) => {
-              if (
-                !sticking.from.shape ||
-                !sticking.bridgeId ||
-                sticking?.from?.d !== CommonTypes.Direction.r
-              )
-                return false;
-
-              const cp1 = {
-                x: fromP.x + Math.abs(fromP.x - toP.x) / 2,
-                y: fromP.y,
+            if (
+              toD === CommonTypes.Direction.t ||
+              toD === CommonTypes.Direction.b
+            ) {
+              cp2 = {
+                x:
+                  toP.x +
+                  directionAdjustments[toD].cp2.x * Math.abs(fromP.x - toP.x),
+                y:
+                  toP.y +
+                  directionAdjustments[toD].cp2.y * Math.abs(fromP.x - toP.x),
               };
-
-              switch (sticking?.to?.d) {
-                case CommonTypes.Direction.l:
-                  sticking.from.shape.stick(sticking.bridgeId, toP, cp1, {
-                    x: toP.x - Math.abs(fromP.x - toP.x) / 2,
-                    y: toP.y,
-                  },
-                  sticking?.to?.d);
-                  break;
-
-                case CommonTypes.Direction.t:
-                  sticking.from.shape.stick(sticking.bridgeId, toP, cp1, {
-                    x: toP.x,
-                    y: toP.y - Math.abs(fromP.y - toP.y) / 2,
-                  },
-                  sticking?.to?.d);
-                  break;
-
-                case CommonTypes.Direction.r:
-                  sticking.from.shape.stick(sticking.bridgeId, toP, cp1, {
-                    x: toP.x + Math.abs(fromP.x - toP.x) / 2,
-                    y: toP.y,
-                  },
-                  sticking?.to?.d);
-                  break;
-
-                case CommonTypes.Direction.b:
-                  sticking.from.shape.stick(sticking.bridgeId, toP, cp1, {
-                    x: toP.x,
-                    y: toP.y + Math.abs(fromP.y - toP.y) / 2,
-                  },
-                  sticking?.to?.d);
-                  break;
-              }
-
-              return true;
-            },
-            b: (
-              sticking: PageIdTypes.Sticking,
-              fromP: CommonTypes.Vec,
-              toP: CommonTypes.Vec
-            ) => {
-              if (
-                !sticking.from.shape ||
-                !sticking.bridgeId ||
-                sticking?.from?.d !== CommonTypes.Direction.b
-              )
-                return false;
-
-              const cp1 = {
-                x: fromP.x,
-                y: fromP.y + Math.abs(fromP.y - toP.y) / 2,
+            } else {
+              cp2 = {
+                x:
+                  toP.x +
+                  directionAdjustments[toD].cp2.x * Math.abs(fromP.x - toP.x),
+                y:
+                  toP.y +
+                  directionAdjustments[toD].cp2.y * Math.abs(fromP.y - toP.y),
               };
+            }
 
-              switch (sticking?.to?.d) {
-                case CommonTypes.Direction.l:
-                  sticking.from.shape.stick(sticking.bridgeId, toP, cp1, {
-                    x: toP.x - Math.abs(fromP.x - toP.x) / 2,
-                    y: toP.y,
-                  },
-                  sticking?.to?.d);
-                  break;
+            return { cp1, cp2 };
+          };
 
-                case CommonTypes.Direction.t:
-                  sticking.from.shape.stick(sticking.bridgeId, toP, cp1, {
-                    x: toP.x,
-                    y: toP.y - Math.abs(fromP.y - toP.y) / 2,
-                  },
-                  sticking?.to?.d);
-                  break;
+          const handleStick = (
+            sticking: PageIdTypes.Sticking,
+            fromP: CommonTypes.Vec,
+            toP: CommonTypes.Vec
+          ) => {
+            if (
+              !sticking.from.shape ||
+              !sticking.bridgeId ||
+              sticking.from.d == null ||
+              sticking.to.d == null
+            ) {
+              return;
+            }
 
-                case CommonTypes.Direction.r:
-                  sticking.from.shape.stick(sticking.bridgeId, toP, cp1, {
-                    x: toP.x + Math.abs(fromP.x - toP.x) / 2,
-                    y: toP.y,
-                  },
-                  sticking?.to?.d);
-                  break;
+            const { cp1, cp2 } = updateControlPoints(
+              sticking.from.d,
+              sticking.to.d,
+              fromP,
+              toP
+            );
 
-                case CommonTypes.Direction.b:
-                  sticking.from.shape.stick(sticking.bridgeId, toP, cp1, {
-                    x: toP.x,
-                    y: toP.y + Math.abs(fromP.y - toP.y) / 2,
-                  },
-                  sticking?.to?.d);
-                  break;
-              }
+            sticking.from.shape.stick(
+              sticking.bridgeId,
+              toP,
+              cp1,
+              cp2,
+              sticking.to.d
+            );
 
-              return true;
-            },
+            return true;
           };
 
           const fromP =
@@ -1625,11 +1467,7 @@ export default function IdPage() {
           const toP =
             sticking.to.shape.getCenter().receivingPoints[sticking?.to?.d];
 
-          const handlerChain = [handlers.l, handlers.t, handlers.r, handlers.b];
-
-          for (const handler of handlerChain) {
-            if (handler(sticking, fromP, toP)) break;
-          }
+          handleStick(sticking, fromP, toP);
         } else {
           pressing.shape.locateCurveHandler(
             pressing.curveId,
@@ -2040,9 +1878,9 @@ export default function IdPage() {
       ctx?.fillRect(0, 0, window.innerWidth, window.innerHeight);
       ctx?.closePath();
 
-      // tests.forEach((test) => {
-      //   test.draw(ctx);
-      // });
+      tests.forEach((test) => {
+        test.draw(ctx);
+      });
 
       // // draw shapes
       shapes.forEach((shape) => {
