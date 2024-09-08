@@ -1573,6 +1573,7 @@ export default function IdPage() {
     shapes.forEach((targetShape) => {
       if (
         pressing?.shape &&
+        pressing?.shape?.id !== targetShape.id &&
         !!pressing?.curveId &&
         pressing?.target &&
         pressing?.direction
