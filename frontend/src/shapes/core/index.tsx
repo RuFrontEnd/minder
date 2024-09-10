@@ -121,6 +121,7 @@ export default class Core {
       toD: CommonTypes.Direction,
       bridgeCurve: Curve
     ) => {
+      // TODO: change to calculate from shape & to shape p1 p2
       const distance = {
         x: Math.abs(bridgeCurve.p2.x - bridgeCurve.p1.x),
         y: Math.abs(bridgeCurve.p2.y - bridgeCurve.p1.y),
