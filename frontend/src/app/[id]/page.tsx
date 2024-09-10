@@ -1379,7 +1379,7 @@ export default function IdPage() {
             fromD: CommonTypes.Direction,
             toD: CommonTypes.Direction,
             fromP: CommonTypes.Vec,
-            toP: CommonTypes.Vec
+            toP: CommonTypes.Vec,
           ) => {
             let cp1, cp2;
 
@@ -1438,10 +1438,11 @@ export default function IdPage() {
             toP: CommonTypes.Vec
           ) => {
             if (
-              !sticking.from.shape ||
               !sticking.bridgeId ||
               sticking.from.d == null ||
-              sticking.to.d == null
+              sticking.to.d == null ||
+              !sticking.from.shape ||
+              !sticking.to.shape
             ) {
               return;
             }
@@ -1450,7 +1451,7 @@ export default function IdPage() {
               sticking.from.d,
               sticking.to.d,
               fromP,
-              toP
+              toP,
             );
 
             sticking.from.shape.stick(
@@ -1466,8 +1467,25 @@ export default function IdPage() {
 
           const fromP =
             sticking.from.shape.getCenter().receivingPoints[sticking?.from?.d];
-          const toP =
-            sticking.to.shape.getCenter().receivingPoints[sticking?.to?.d];
+
+          const toP = (() => {
+            const toReceivingP =
+              sticking.to.shape.getCenter().receivingPoints[sticking?.to?.d];
+
+            let margin = 0;
+            if (sticking.to.shape instanceof Data) {
+              if (sticking.to.d === CommonTypes.Direction.l) {
+                margin = 7.5;
+              } else if (sticking.to.d === CommonTypes.Direction.r) {
+                margin = -7.5;
+              }
+            }
+
+            return {
+              x: toReceivingP.x + margin * scale,
+              y: toReceivingP.y,
+            };
+          })();
 
           handleStick(sticking, fromP, toP);
         } else {
