@@ -1069,29 +1069,60 @@ export default class Core {
 
   stick(
     bridgeId: CurveTypes.Id,
-    p2: Vec,
-    cp1: Vec,
-    cp2: Vec,
-    _toD: CommonTypes.Direction
+    toP: Vec,
+    fromD: CommonTypes.Direction,
+    toD: CommonTypes.Direction
   ) {
-    const target = (() => {
-      for (const _fromD of ds) {
-        const _curve = this.curves[_fromD].find(
-          (curve) => curve.shape.id === bridgeId
-        );
-        if (_curve) return { fromD: _fromD, toD: _toD, curve: _curve.shape };
+    const bridge = this.curves[fromD].find(
+      (curve) => curve.shape.id === bridgeId
+    )?.shape;
+
+    if (!bridge) return;
+
+    const startP = {
+      x: this.scalify(bridge.p1.x),
+      y: this.scalify(bridge.p1.y),
+    };
+
+    let cp1, cp2;
+
+    if (fromD === CommonTypes.Direction.l) {
+      if (toD === CommonTypes.Direction.l) {
       }
-    })();
+    } else if (fromD === CommonTypes.Direction.t) {
+      if (toD === CommonTypes.Direction.l) {
+      }
+    } else if (fromD === CommonTypes.Direction.r) {
+      if (toD === CommonTypes.Direction.l) {
+        const endP = this.getCurveP({
+          x: toP.x - this.scalify(bridge.arrowAttr.h),
+          y: toP.y,
+        });
+        const distance = Math.abs(startP.x - endP.x);
+        let margin = distance / 2;
 
-    if (!target) return;
+        cp1 = {
+          x: this.scalify(bridge.arrowAttr.h) + startP.x + margin,
+          y: startP.y,
+        };
 
-    const curveCp1 = this.getCurveP(cp1);
-    const curveCp2 = this.getCurveP(cp2);
-    const curveP2 = this.getCurveP(p2);
+        cp2 = {
+          x: -this.scalify(bridge.arrowAttr.h) + endP.x - margin,
+          y: endP.y,
+        };
+      }
+    } else if (fromD === CommonTypes.Direction.b) {
+      if (toD === CommonTypes.Direction.l) {
+      }
+    }
 
-    target.curve.locateHandler(CurveTypes.PressingTarget.cp1, curveCp1);
-    target.curve.locateHandler(CurveTypes.PressingTarget.cp2, curveCp2);
-    target.curve.locateHandler(CurveTypes.PressingTarget.p2, curveP2);
+    console.log(cp1, cp2);
+
+    if (!cp1 || !cp2) return;
+
+    bridge.locateHandler(CurveTypes.PressingTarget.cp1, cp1);
+    bridge.locateHandler(CurveTypes.PressingTarget.cp2, cp2);
+    bridge.locateHandler(CurveTypes.PressingTarget.p2, this.getCurveP(toP));
   }
 
   locateCurveHandler(

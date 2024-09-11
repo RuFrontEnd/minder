@@ -1379,7 +1379,7 @@ export default function IdPage() {
             fromD: CommonTypes.Direction,
             toD: CommonTypes.Direction,
             fromP: CommonTypes.Vec,
-            toP: CommonTypes.Vec,
+            toP: CommonTypes.Vec
           ) => {
             let cp1, cp2;
 
@@ -1451,15 +1451,7 @@ export default function IdPage() {
               sticking.from.d,
               sticking.to.d,
               fromP,
-              toP,
-            );
-
-            sticking.from.shape.stick(
-              sticking.bridgeId,
-              toP,
-              cp1,
-              cp2,
-              sticking.to.d
+              toP
             );
 
             return true;
@@ -1487,7 +1479,15 @@ export default function IdPage() {
             };
           })();
 
-          handleStick(sticking, fromP, toP);
+          // handleStick(sticking, fromP, toP);
+
+
+          sticking.from.shape.stick(
+            sticking.bridgeId,
+            toP,
+            sticking.from.d,
+            sticking.to.d
+          );
         } else {
           pressing.shape.locateCurveHandler(
             pressing.curveId,
