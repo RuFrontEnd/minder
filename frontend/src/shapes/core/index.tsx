@@ -116,57 +116,43 @@ export default class Core {
     };
     this.__p__ = value;
 
-    const moveBridgeCurve = (
+    const moveBridge = (
+      bridge: Curve,
       fromD: CommonTypes.Direction,
-      toD: CommonTypes.Direction,
-      bridgeCurve: Curve
+      toD: CommonTypes.Direction
     ) => {
-      // TODO: change to calculate from shape & to shape p1 p2
-      const distance = {
-        x: Math.abs(bridgeCurve.p2.x - bridgeCurve.p1.x),
-        y: Math.abs(bridgeCurve.p2.y - bridgeCurve.p1.y),
-      };
-      const margin = {
-        x: distance.x / 2,
-        y: distance.y / 2,
-      };
+      let cp1, cp2;
 
-      const directionAdjustments = {
-        from: {
-          l: { x: -margin.x, y: 0 },
-          r: { x: margin.x, y: 0 },
-          t: { x: 0, y: -margin.x },
-          b: { x: 0, y: margin.x },
-        },
-        to: {
-          l: { x: -margin.x, y: 0 },
-          r: { x: margin.x, y: 0 },
-          t: { x: 0, y: -margin.x },
-          b: { x: 0, y: margin.x },
-        },
-      };
+      if (fromD === CommonTypes.Direction.l) {
+        if (toD === CommonTypes.Direction.l) {
+        }
+      } else if (fromD === CommonTypes.Direction.t) {
+        if (toD === CommonTypes.Direction.l) {
+        }
+      } else if (fromD === CommonTypes.Direction.r) {
+        if (toD === CommonTypes.Direction.l) {
+          const distance = Math.abs(bridge.p2.x - bridge.p1.x);
+          const margin = distance / 2;
 
-      const updateControlPoints = (
-        fromD: CommonTypes.Direction,
-        toD: CommonTypes.Direction,
-        bridgeCurve: Curve
-      ) => {
-        const cp1 = { ...bridgeCurve.p1 };
-        const cp2 = { ...bridgeCurve.p2 };
+          cp1 = {
+            x: bridge.arrowAttr.h + bridge.p1.x + margin,
+            y: bridge.p1.y,
+          };
 
-        const fromAdjustment = directionAdjustments.from[fromD];
-        const toAdjustment = directionAdjustments.to[toD];
+          cp2 = {
+            x: -bridge.arrowAttr.h + bridge.p2.x - margin,
+            y: bridge.p2.y,
+          };
+        }
+      } else if (fromD === CommonTypes.Direction.b) {
+        if (toD === CommonTypes.Direction.l) {
+        }
+      }
 
-        cp1.x += fromAdjustment.x;
-        cp1.y += fromAdjustment.y;
-        cp2.x += toAdjustment.x;
-        cp2.y += toAdjustment.y;
+      if (!cp1 || !cp2) return;
 
-        bridgeCurve.cp1 = cp1;
-        bridgeCurve.cp2 = cp2;
-      };
-
-      updateControlPoints(fromD, toD, bridgeCurve);
+      bridge.cp1 = cp1;
+      bridge.cp2 = cp2;
     };
 
     // when receiver shape move, sender curve follows the receiver shape
@@ -181,27 +167,27 @@ export default class Core {
             !bridge.sendTo?.d
           )
             return;
+
           bridge.shape.p2 = {
             x: bridge.shape.p2.x + offest.x,
             y: bridge.shape.p2.y + offest.y,
           };
 
-          moveBridgeCurve(from.d, bridge.sendTo.d, bridge.shape);
+          moveBridge(bridge.shape, from.d, bridge.sendTo?.d);
           senderCurvesMapping[bridge.shape.id] = true;
         });
       });
-    });
 
-    // when sender shape move, receiver curve follows the sender shape
-    ds.forEach((fromD) => {
-      this.curves[fromD].forEach((bridge) => {
+      // when sender shape move, receiver curve follows the sender shape
+      this.curves[d].forEach((bridge) => {
         if (!bridge.sendTo?.d) return;
+
         bridge.shape.p2 = {
           x: bridge.shape.p2.x - offest.x,
           y: bridge.shape.p2.y - offest.y,
         };
 
-        moveBridgeCurve(fromD, bridge.sendTo?.d, bridge.shape);
+        moveBridge(bridge.shape, d, bridge.sendTo?.d);
       });
     });
   }
@@ -1099,7 +1085,7 @@ export default class Core {
           y: toP.y,
         });
         const distance = Math.abs(startP.x - endP.x);
-        let margin = distance / 2;
+        const margin = distance / 2;
 
         cp1 = {
           x: this.scalify(bridge.arrowAttr.h) + startP.x + margin,
