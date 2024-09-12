@@ -121,6 +121,11 @@ export default class Core {
       fromD: CommonTypes.Direction,
       toD: CommonTypes.Direction
     ) => {
+      const distance = {
+        x: Math.abs(bridge.p2.x - bridge.p1.x),
+        y: Math.abs(bridge.p2.y - bridge.p1.y),
+      };
+
       let cp1, cp2;
 
       if (fromD === CommonTypes.Direction.l) {
@@ -131,17 +136,34 @@ export default class Core {
         }
       } else if (fromD === CommonTypes.Direction.r) {
         if (toD === CommonTypes.Direction.l) {
-          const distance = Math.abs(bridge.p2.x - bridge.p1.x);
-          const margin = distance / 2;
+          const margin = {
+            x: distance.x / 2,
+            y: 0,
+          };
 
           cp1 = {
-            x: bridge.arrowAttr.h + bridge.p1.x + margin,
+            x: bridge.arrowAttr.h + bridge.p1.x + margin.x,
             y: bridge.p1.y,
           };
 
           cp2 = {
-            x: -bridge.arrowAttr.h + bridge.p2.x - margin,
+            x: -bridge.arrowAttr.h + bridge.p2.x - margin.x,
             y: bridge.p2.y,
+          };
+        } else if (toD === CommonTypes.Direction.t) {
+          const margin = {
+            x: distance.x / 2,
+            y: -distance.y / 2,
+          };
+
+          cp1 = {
+            x: bridge.arrowAttr.h + bridge.p1.x + margin.x,
+            y: bridge.p1.y,
+          };
+
+          cp2 = {
+            x: bridge.p2.x,
+            y: -bridge.arrowAttr.h + bridge.p2.y - margin.x,
           };
         }
       } else if (fromD === CommonTypes.Direction.b) {
@@ -1053,6 +1075,67 @@ export default class Core {
     targetCurve.moveHandler(pressingTarget, offset);
   }
 
+  // private stickBridge = {
+  //   from: {
+  //     l: {
+  //       to: {
+  //         l: () => {},
+  //         t: () => {},
+  //         r: () => {},
+  //         b: () => {},
+  //       },
+  //     },
+  //     t: {
+  //       to: {
+  //         l: () => {},
+  //         t: () => {},
+  //         r: () => {},
+  //         b: () => {},
+  //       },
+  //     },
+  //     r: {
+  //       to: {
+  //         l: (min: number, fromP: Vec, toP: Vec) => {
+  //           const endP = this.getCurveP({
+  //             x: toP.x - this.scalify(min),
+  //             y: toP.y,
+  //           });
+  //           const distance = {
+  //             x: Math.abs(fromP.x - toP.x),
+  //             y: Math.abs(fromP.y - toP.y),
+  //           };
+  //           const margin = {
+  //             x: distance.x / 2,
+  //             y: 0,
+  //           };
+
+  //           return [
+  //             {
+  //               x: this.scalify(min) + fromP.x + margin.x,
+  //               y: fromP.y,
+  //             },
+  //             {
+  //               x: -this.scalify(min) + endP.x - margin.x,
+  //               y: endP.y,
+  //             },
+  //           ];
+  //         },
+  //         t: () => {},
+  //         r: () => {},
+  //         b: () => {},
+  //       },
+  //     },
+  //     b: {
+  //       to: {
+  //         l: () => {},
+  //         t: () => {},
+  //         r: () => {},
+  //         b: () => {},
+  //       },
+  //     },
+  //   },
+  // }; // TODO: should tidy up
+
   stick(
     bridgeId: CurveTypes.Id,
     toP: Vec,
@@ -1072,6 +1155,8 @@ export default class Core {
 
     let cp1, cp2;
 
+    // this.stickBridge.from[fromD].to[toD](this.scalify(bridge.arrowAttr.h)); // TODO: should be used when stickBridge open
+
     if (fromD === CommonTypes.Direction.l) {
       if (toD === CommonTypes.Direction.l) {
       }
@@ -1084,17 +1169,47 @@ export default class Core {
           x: toP.x - this.scalify(bridge.arrowAttr.h),
           y: toP.y,
         });
-        const distance = Math.abs(startP.x - endP.x);
-        const margin = distance / 2;
+        const distance = {
+          x: Math.abs(startP.x - endP.x),
+          y: Math.abs(startP.y - endP.y),
+        };
+        const margin = {
+          x: distance.x / 2,
+          y: 0,
+        };
 
         cp1 = {
-          x: this.scalify(bridge.arrowAttr.h) + startP.x + margin,
+          x: this.scalify(bridge.arrowAttr.h) + startP.x + margin.x,
           y: startP.y,
         };
 
         cp2 = {
-          x: -this.scalify(bridge.arrowAttr.h) + endP.x - margin,
+          x: -this.scalify(bridge.arrowAttr.h) + endP.x - margin.x,
           y: endP.y,
+        };
+      } else if (toD === CommonTypes.Direction.t) {
+        const endP = this.getCurveP({
+          x: toP.x,
+          y: toP.y - this.scalify(bridge.arrowAttr.h),
+        });
+        const distance = {
+          x: Math.abs(startP.x - endP.x),
+          y: Math.abs(startP.y - endP.y),
+        };
+
+        const margin = {
+          x: distance.x / 2,
+          y: 0,
+        };
+
+        cp1 = {
+          x: this.scalify(bridge.arrowAttr.h) + startP.x + margin.x,
+          y: startP.y,
+        };
+
+        cp2 = {
+          x: endP.x,
+          y: -this.scalify(bridge.arrowAttr.h) + endP.y - margin.x,
         };
       }
     } else if (fromD === CommonTypes.Direction.b) {
