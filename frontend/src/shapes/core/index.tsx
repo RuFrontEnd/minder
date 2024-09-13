@@ -153,7 +153,7 @@ export default class Core {
         } else if (toD === CommonTypes.Direction.t) {
           const margin = {
             x: distance.x / 2,
-            y: -distance.y / 2,
+            y: 0,
           };
 
           cp1 = {
@@ -162,8 +162,23 @@ export default class Core {
           };
 
           cp2 = {
-            x: bridge.p2.x,
-            y: -bridge.arrowAttr.h + bridge.p2.y - margin.x,
+            x: bridge.arrowAttr.h + bridge.p2.x + margin.x,
+            y: bridge.p2.y,
+          };
+        } else if (toD === CommonTypes.Direction.r) {
+          const margin = {
+            x: distance.x / 2,
+            y: 0,
+          };
+
+          cp1 = {
+            x: bridge.arrowAttr.h + bridge.p1.x + margin.x,
+            y: bridge.p1.y,
+          };
+
+          cp2 = {
+            x: bridge.arrowAttr.h + bridge.p2.x + margin.x,
+            y: bridge.p2.y,
           };
         }
       } else if (fromD === CommonTypes.Direction.b) {
@@ -1210,6 +1225,29 @@ export default class Core {
         cp2 = {
           x: endP.x,
           y: -this.scalify(bridge.arrowAttr.h) + endP.y - margin.x,
+        };
+      } else if (toD === CommonTypes.Direction.r) {
+        const endP = this.getCurveP({
+          x: toP.x + this.scalify(bridge.arrowAttr.h),
+          y: toP.y,
+        });
+        const distance = {
+          x: Math.abs(startP.x - endP.x),
+          y: Math.abs(startP.y - endP.y),
+        };
+        const margin = {
+          x: distance.x / 2,
+          y: 0,
+        };
+
+        cp1 = {
+          x: this.scalify(bridge.arrowAttr.h) + startP.x + margin.x,
+          y: startP.y,
+        };
+
+        cp2 = {
+          x: this.scalify(bridge.arrowAttr.h) + endP.x + margin.x,
+          y: endP.y,
         };
       }
     } else if (fromD === CommonTypes.Direction.b) {
