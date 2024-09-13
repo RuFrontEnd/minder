@@ -1144,12 +1144,12 @@ export default class Core {
 
         return [
           {
-            x: this.scalify(bridge.arrowAttr.h) + startP.x + margin.x,
+            x: min + startP.x + margin.x,
             y: startP.y,
           },
           {
             x: endP.x,
-            y: -this.scalify(bridge.arrowAttr.h) + endP.y - margin.x,
+            y: -min + endP.y - margin.x,
           },
         ];
       } else if (toD === CommonTypes.Direction.r) {
@@ -1160,12 +1160,28 @@ export default class Core {
 
         return [
           {
-            x: this.scalify(bridge.arrowAttr.h) + startP.x + margin.x,
+            x: min + startP.x + margin.x,
             y: startP.y,
           },
           {
-            x: this.scalify(bridge.arrowAttr.h) + endP.x + margin.x,
+            x: min + endP.x + margin.x,
             y: endP.y,
+          },
+        ];
+      } else if (toD === CommonTypes.Direction.b) {
+        const margin = {
+          x: distance.x / 2,
+          y: 0,
+        };
+
+        return [
+          {
+            x: min + startP.x + margin.x,
+            y: startP.y,
+          },
+          {
+            x: endP.x,
+            y: min + endP.y + margin.x,
           },
         ];
       }
@@ -1219,6 +1235,11 @@ export default class Core {
         endP = this.getCurveP({
           x: toP.x + this.scalify(bridge.arrowAttr.h),
           y: toP.y,
+        });
+      } else if (toD === CommonTypes.Direction.b) {
+        endP = this.getCurveP({
+          x: toP.x,
+          y: toP.y + this.scalify(bridge.arrowAttr.h),
         });
       }
     } else if (fromD === CommonTypes.Direction.b) {
