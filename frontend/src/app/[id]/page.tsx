@@ -1368,99 +1368,7 @@ export default function IdPage() {
           !!sticking?.to.d &&
           !!sticking?.to.shape
         ) {
-          const directionAdjustments = {
-            l: { cp1: { x: -0.5, y: 0 }, cp2: { x: -0.5, y: 0 } },
-            t: { cp1: { x: 0, y: -0.5 }, cp2: { x: 0, y: -0.5 } },
-            r: { cp1: { x: 0.5, y: 0 }, cp2: { x: 0.5, y: 0 } },
-            b: { cp1: { x: 0, y: 0.5 }, cp2: { x: 0, y: 0.5 } },
-          };
-
-          const updateControlPoints = (
-            fromD: CommonTypes.Direction,
-            toD: CommonTypes.Direction,
-            fromP: CommonTypes.Vec,
-            toP: CommonTypes.Vec
-          ) => {
-            let cp1, cp2;
-
-            if (
-              fromD === CommonTypes.Direction.t ||
-              fromD === CommonTypes.Direction.b
-            ) {
-              cp1 = {
-                x:
-                  fromP.x +
-                  directionAdjustments[fromD].cp1.x * Math.abs(fromP.x - toP.x),
-                y:
-                  fromP.y +
-                  directionAdjustments[fromD].cp1.y * Math.abs(fromP.x - toP.x),
-              };
-            } else {
-              cp1 = {
-                x:
-                  fromP.x +
-                  directionAdjustments[fromD].cp1.x * Math.abs(fromP.x - toP.x),
-                y:
-                  fromP.y +
-                  directionAdjustments[fromD].cp1.y * Math.abs(fromP.y - toP.y),
-              };
-            }
-
-            if (
-              toD === CommonTypes.Direction.t ||
-              toD === CommonTypes.Direction.b
-            ) {
-              cp2 = {
-                x:
-                  toP.x +
-                  directionAdjustments[toD].cp2.x * Math.abs(fromP.x - toP.x),
-                y:
-                  toP.y +
-                  directionAdjustments[toD].cp2.y * Math.abs(fromP.x - toP.x),
-              };
-            } else {
-              cp2 = {
-                x:
-                  toP.x +
-                  directionAdjustments[toD].cp2.x * Math.abs(fromP.x - toP.x),
-                y:
-                  toP.y +
-                  directionAdjustments[toD].cp2.y * Math.abs(fromP.y - toP.y),
-              };
-            }
-
-            return { cp1, cp2 };
-          };
-
-          const handleStick = (
-            sticking: PageIdTypes.Sticking,
-            fromP: CommonTypes.Vec,
-            toP: CommonTypes.Vec
-          ) => {
-            if (
-              !sticking.bridgeId ||
-              sticking.from.d == null ||
-              sticking.to.d == null ||
-              !sticking.from.shape ||
-              !sticking.to.shape
-            ) {
-              return;
-            }
-
-            const { cp1, cp2 } = updateControlPoints(
-              sticking.from.d,
-              sticking.to.d,
-              fromP,
-              toP
-            );
-
-            return true;
-          };
-
-          const fromP =
-            sticking.from.shape.getCenter().receivingPoints[sticking?.from?.d];
-
-          const toP = (() => {
+          const endP = (() => {
             const toReceivingP =
               sticking.to.shape.getCenter().receivingPoints[sticking?.to?.d];
 
@@ -1479,12 +1387,9 @@ export default function IdPage() {
             };
           })();
 
-          // handleStick(sticking, fromP, toP);
-
-
           sticking.from.shape.stick(
             sticking.bridgeId,
-            toP,
+            endP,
             sticking.from.d,
             sticking.to.d
           );

@@ -1451,6 +1451,8 @@ export default class Core {
     let cp1: Vec = { x: 0, y: 0 };
     let cp2: Vec = { x: 0, y: 0 };
 
+    const arrow_h = 12;
+
     switch (_d) {
       case Direction.l:
         p1 = {
@@ -1458,7 +1460,7 @@ export default class Core {
           y: 0,
         };
         p2 = {
-          x: -this.w / 2 - this.__curveTrigger__.d + 12,
+          x: -this.w / 2 - this.__curveTrigger__.d + arrow_h,
           y: 0,
         };
         cp1 = p1;
@@ -1475,7 +1477,7 @@ export default class Core {
         };
         p2 = {
           x: 0,
-          y: -this.h / 2 - this.__curveTrigger__.d + 12,
+          y: -this.h / 2 - this.__curveTrigger__.d + arrow_h,
         };
         cp1 = p1;
         cp2 = {
@@ -1490,7 +1492,7 @@ export default class Core {
           y: 0,
         };
         p2 = {
-          x: this.w / 2 + this.__curveTrigger__.d - 12,
+          x: this.w / 2 + this.__curveTrigger__.d - arrow_h,
           y: 0,
         };
         cp1 = p1;
@@ -1507,7 +1509,7 @@ export default class Core {
         };
         p2 = {
           x: 0,
-          y: this.h / 2 + this.__curveTrigger__.d - 12,
+          y: this.h / 2 + this.__curveTrigger__.d - arrow_h,
         };
         cp1 = p1;
         cp2 = {

@@ -108,8 +108,6 @@ export default class Data extends Core {
     };
   }
 
-  stickyToConnectTarget() {}
-
   getCorner() {
     const frameThreshold = this.getFrameThreshold();
     return {
@@ -166,92 +164,81 @@ export default class Data extends Core {
 
   initializeCurve(id: string, _d: Direction) {
     let newCurve = null;
-    const horizentalCenterX = {
-      l: (-this.w / 2 + -this.w / 2 + this.w * this.thersholdRatio) / 2,
-      r: (this.w / 2 + this.w / 2 - this.w * this.thersholdRatio) / 2,
-    };
+    let p1: CommonTypes.Vec = { x: 0, y: 0 };
+    let p2: CommonTypes.Vec = { x: 0, y: 0 };
+    let cp1: CommonTypes.Vec = { x: 0, y: 0 };
+    let cp2: CommonTypes.Vec = { x: 0, y: 0 };
 
-    if (_d === Direction.l) {
-      newCurve = new Curve(
-        id,
-        {
-          x: horizentalCenterX.l,
+    const corner = this.getCorner().normal;
+    const arrow_h = 12;
+
+    switch (_d) {
+      case Direction.l:
+        p1 = {
+          x: -this.w / 2 + (corner.tl.x - corner.bl.x) / 2,
           y: 0,
-        },
-        {
-          x: horizentalCenterX.l - this.curveTrigger.d * (1 / 3),
+        };
+        p2 = {
+          x: -this.w / 2 - this.__curveTrigger__.d + arrow_h,
           y: 0,
-        },
-        {
-          x: -this.w / 2 + (-this.curveTrigger.d * 2) / 3,
+        };
+        cp1 = p1;
+        cp2 = {
+          x: (p1.x + p2.x) / 2,
           y: 0,
-        },
-        {
-          x: -this.w / 2 - this.curveTrigger.d,
-          y: 0,
-        }
-      );
-    } else if (_d === Direction.t) {
-      newCurve = new Curve(
-        id,
-        {
+        };
+        break;
+
+      case Direction.t:
+        p1 = {
           x: 0,
           y: -this.h / 2,
-        },
-        {
+        };
+        p2 = {
           x: 0,
-          y: -this.h / 2 + (-this.curveTrigger.d * 1) / 3,
-        },
-        {
+          y: -this.h / 2 - this.__curveTrigger__.d + arrow_h,
+        };
+        cp1 = p1;
+        cp2 = {
           x: 0,
-          y: -this.h / 2 + (-this.curveTrigger.d * 2) / 3,
-        },
-        {
-          x: 0,
-          y: -this.h / 2 - this.curveTrigger.d,
-        }
-      );
-    } else if (_d === Direction.r) {
-      newCurve = new Curve(
-        id,
-        {
-          x: horizentalCenterX.r,
+          y: (p1.y + p2.y) / 2,
+        };
+        break;
+
+      case Direction.r:
+        p1 = {
+          x: this.w / 2 - (corner.tl.x - corner.bl.x) / 2,
           y: 0,
-        },
-        {
-          x: horizentalCenterX.r + this.curveTrigger.d * (1 / 3),
+        };
+        p2 = {
+          x: this.w / 2 + this.__curveTrigger__.d - arrow_h,
           y: 0,
-        },
-        {
-          x: this.w / 2 + this.curveTrigger.d * (2 / 3),
+        };
+        cp1 = p1;
+        cp2 = {
+          x: (p1.x + p2.x) / 2,
           y: 0,
-        },
-        {
-          x: this.w / 2 + this.curveTrigger.d,
-          y: 0,
-        }
-      );
-    } else if (_d === Direction.b) {
-      newCurve = new Curve(
-        id,
-        {
+        };
+        break;
+
+      case Direction.b:
+        p1 = {
           x: 0,
           y: this.h / 2,
-        },
-        {
+        };
+        p2 = {
           x: 0,
-          y: this.h / 2 + this.curveTrigger.d * (1 / 3),
-        },
-        {
+          y: this.h / 2 + this.__curveTrigger__.d - arrow_h,
+        };
+        cp1 = p1;
+        cp2 = {
           x: 0,
-          y: this.h / 2 + this.curveTrigger.d * (2 / 3),
-        },
-        {
-          x: 0,
-          y: this.h / 2 + this.curveTrigger.d,
-        }
-      );
+          y: (p1.y + p2.y) / 2,
+        };
+        break;
     }
+
+    newCurve = new Curve(id, p1, cp1, cp2, p2);
 
     if (!newCurve) return;
     newCurve.scale = this.scale;
