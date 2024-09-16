@@ -1079,11 +1079,11 @@ export default class Core {
       } else if (toD === CommonTypes.Direction.r) {
         return [
           {
-            x: startP.x - 2 * min - margin.y,
+            x: startP.x - 2 * min - margin.x,
             y: startP.y,
           },
           {
-            x: min + endP.x + margin.y,
+            x: min + endP.x + margin.x,
             y: endP.y,
           },
         ];
@@ -1149,11 +1149,11 @@ export default class Core {
       if (toD === CommonTypes.Direction.l) {
         return [
           {
-            x: startP.x + 2 * min + margin.y,
+            x: startP.x + 2 * min + margin.x,
             y: startP.y,
           },
           {
-            x: endP.x - min - margin.y,
+            x: endP.x - min - margin.x,
             y: endP.y,
           },
         ];
