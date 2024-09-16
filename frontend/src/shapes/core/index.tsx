@@ -1055,39 +1055,51 @@ export default class Core {
 
     if (fromD === CommonTypes.Direction.l) {
       const cp1 = {
-        x: startP.x - 2 * min - margin.x,
+        x: startP.x - 2 * min - margin.x - margin.y,
         y: startP.y,
       };
       if (toD === CommonTypes.Direction.l) {
         return [
-          cp1,
           {
-            x: -min + endP.x - margin.x,
+            x: startP.x - 2 * min - margin.y,
+            y: startP.y,
+          },
+          {
+            x: -min + endP.x - margin.y,
             y: endP.y,
           },
         ];
       } else if (toD === CommonTypes.Direction.t) {
         return [
-          cp1,
+          {
+            x: startP.x - 2 * min - margin.x,
+            y: startP.y,
+          },
           {
             x: endP.x,
-            y: -min + endP.y - margin.x,
+            y: -min + endP.y - margin.y,
           },
         ];
       } else if (toD === CommonTypes.Direction.r) {
         return [
-          cp1,
           {
-            x: min + endP.x + margin.x,
+            x: startP.x - 2 * min - margin.y,
+            y: startP.y,
+          },
+          {
+            x: min + endP.x + margin.y,
             y: endP.y,
           },
         ];
       } else if (toD === CommonTypes.Direction.b) {
         return [
-          cp1,
+          {
+            x: startP.x - 2 * min - margin.x,
+            y: startP.y,
+          },
           {
             x: endP.x,
-            y: min + endP.y + margin.x,
+            y: min + endP.y + margin.y,
           },
         ];
       }
@@ -1130,40 +1142,48 @@ export default class Core {
         ];
       }
     } else if (fromD === CommonTypes.Direction.r) {
-      const cp1 = {
-        x: startP.x + 2 * min + margin.x,
-        y: startP.y,
-      };
       if (toD === CommonTypes.Direction.l) {
         return [
-          cp1,
           {
-            x: -min + endP.x - margin.x,
+            x: startP.x + 2 * min + margin.y,
+            y: startP.y,
+          },
+          {
+            x: endP.x - min - margin.y,
             y: endP.y,
           },
         ];
       } else if (toD === CommonTypes.Direction.t) {
         return [
-          cp1,
+          {
+            x: startP.x + 2 * min + margin.x,
+            y: startP.y,
+          },
           {
             x: endP.x,
-            y: -min + endP.y - margin.x,
+            y: endP.y - min - margin.y,
           },
         ];
       } else if (toD === CommonTypes.Direction.r) {
         return [
-          cp1,
           {
-            x: min + endP.x + margin.x,
+            x: startP.x + 2 * min + margin.y,
+            y: startP.y,
+          },
+          {
+            x: endP.x + min + margin.y,
             y: endP.y,
           },
         ];
       } else if (toD === CommonTypes.Direction.b) {
         return [
-          cp1,
+          {
+            x: startP.x + 2 * min + margin.x,
+            y: startP.y,
+          },
           {
             x: endP.x,
-            y: min + endP.y + margin.x,
+            y: min + endP.y + margin.y,
           },
         ];
       }
@@ -1176,7 +1196,7 @@ export default class Core {
         return [
           cp1,
           {
-            x: -min + endP.x - margin.x,
+            x: endP.x - min - margin.x,
             y: endP.y,
           },
         ];
@@ -1185,14 +1205,14 @@ export default class Core {
           cp1,
           {
             x: endP.x,
-            y: -min + endP.y - margin.x,
+            y: endP.y - min - margin.x,
           },
         ];
       } else if (toD === CommonTypes.Direction.r) {
         return [
           cp1,
           {
-            x: min + endP.x + margin.x,
+            x: endP.x + min + margin.x,
             y: endP.y,
           },
         ];
@@ -1201,7 +1221,7 @@ export default class Core {
           cp1,
           {
             x: endP.x,
-            y: min + endP.y + margin.x,
+            y: endP.y + min + margin.x,
           },
         ];
       }
