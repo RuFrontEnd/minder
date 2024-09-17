@@ -27,10 +27,10 @@ FT
 - [x] view project list
 - [x] create project
 - [x] delete project
+- [x] auto calculate curve position
 - [ ] one-click remove redundancies
 - [ ] modulize steps
 - [ ] data remark
-- [ ] auto calculate curve position
 - [ ] align shapes
 - [ ] forget password
 - [ ] third-party sign in
