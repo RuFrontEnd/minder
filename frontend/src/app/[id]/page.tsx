@@ -7,6 +7,7 @@ import Terminal from "@/shapes/terminal";
 import Process from "@/shapes/process";
 import Data from "@/shapes/data";
 import Curve from "@/shapes/curve";
+import Arrow from "@/shapes/arrow";
 import Desicion from "@/shapes/decision";
 import DataFrame from "@/components/dataFrame";
 import SidePanel from "@/components/sidePanel";
@@ -41,6 +42,7 @@ import * as AuthTypes from "@/types/apis/auth";
 import * as ProjectAPITypes from "@/types/apis/project";
 import * as ProjectTypes from "@/types/project";
 import * as APICommonTypes from "@/types/apis/common";
+import * as PageIdTypes from "@/types/app/pageId";
 
 axios.defaults.baseURL = process.env.BASE_URL || "http://localhost:5000/api";
 
@@ -94,6 +96,7 @@ let useEffected = false,
   ctx: CanvasRenderingContext2D | null | undefined = null,
   ctx_screenshot: CanvasRenderingContext2D | null | undefined = null,
   shapes: (Terminal | Process | Data | Desicion)[] = [],
+  tests: any[] = [], // TODO: should be deleted
   pressing: null | {
     shape: null | Terminal | Process | Data | Desicion;
     curveId?: null | CurveTypes.Id;
@@ -107,6 +110,7 @@ let useEffected = false,
   offset: CommonTypes.Vec = cloneDeep(init.offset),
   offset_center: CommonTypes.Vec = cloneDeep(init.offset),
   lastP: CommonTypes.Vec = { x: 0, y: 0 },
+  relativeCurveCp2: CommonTypes.Vec = { x: 0, y: 0 },
   selectAreaP: null | {
     start: CommonTypes.Vec;
     end: CommonTypes.Vec;
@@ -588,31 +592,13 @@ export default function IdPage() {
   const [space, setSpace] = useState(false);
   const [scale, setScale] = useState(1);
   const [leftMouseBtn, setLeftMouseBtn] = useState(false);
-  const [isDataSidePanelOpen, setIsDataSidePanelOpen] = useState(true);
+  const [isDataSidePanelOpen, setIsDataSidePanelOpen] = useState(false);
   const [isRenameFrameOpen, setIsRenameFrameOpen] = useState(false);
   const [isProfileFrameOpen, setIsProfileFrameOpen] = useState(false);
   const [steps, setSteps] = useState<PageTypes.Steps>({});
-  const [dataFrameWarning, setDataFrameWarning] = useState<
-    DataFrameTypes.Warning
-  >(init.dataFrameWarning);
+  const [dataFrameWarning, setDataFrameWarning] =
+    useState<DataFrameTypes.Warning>(init.dataFrameWarning);
   const [isProjectsModalOpen, setIsProjectsModalOpen] = useState(false);
-  const [authInfo, setAuthInfo] = useState<{
-    account: {
-      value: undefined | string;
-      status: InputTypes.Status;
-      comment: undefined | string;
-    };
-    password: {
-      value: undefined | string;
-      status: InputTypes.Status;
-      comment: undefined | string;
-    };
-    email: {
-      value: undefined | string;
-      status: InputTypes.Status;
-      comment: undefined | string;
-    };
-  }>(init.authInfo);
   const [projects, setProjects] = useState<
     ProjectAPITypes.GetProjects["resData"]
   >([]);
@@ -804,10 +790,8 @@ export default function IdPage() {
   };
 
   const fetchProjects = async () => {
-    const res: AxiosResponse<
-      ProjectAPITypes.GetProjects["resData"],
-      any
-    > = await projectAPIs.getProjecs();
+    const res: AxiosResponse<ProjectAPITypes.GetProjects["resData"], any> =
+      await projectAPIs.getProjecs();
     setProjects(res.data);
   };
 
@@ -815,9 +799,8 @@ export default function IdPage() {
     const token = localStorage.getItem("Authorization");
 
     if (token) {
-      const res: AxiosResponse<
-        AuthTypes.JWTLogin["resData"]
-      > = await authAPIs.jwtLogin(token);
+      const res: AxiosResponse<AuthTypes.JWTLogin["resData"]> =
+        await authAPIs.jwtLogin(token);
 
       if (res.data.isPass) {
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
@@ -894,22 +877,56 @@ export default function IdPage() {
       } else {
         // when single select shape
         if (!pressing) {
-          shapes.forEach((shape) => {
+          shapes.forEach((_, shapeI, shapes) => {
+            const shape = shapes[shapes.length - 1 - shapeI];
             const curveTriggerD = shape.getCurveTriggerDirection(p);
             if (curveTriggerD) {
               shape.selecting = false;
 
+              const initCurveId = `curve_${Date.now()}`;
+
               shape.initializeCurve(
-                `curve_${Date.now()}`,
+                initCurveId,
                 CommonTypes.Direction[curveTriggerD]
               );
+
+              shape.setIsCurveSelected(initCurveId, true);
+            }
+
+            switch (curveTriggerD) {
+              case CommonTypes.Direction.l:
+                relativeCurveCp2 = {
+                  x: (-shape.curveTrigger.d * 1) / 3,
+                  y: 0,
+                };
+                break;
+
+              case CommonTypes.Direction.t:
+                relativeCurveCp2 = {
+                  x: 0,
+                  y: (-shape.curveTrigger.d * 1) / 3,
+                };
+                break;
+
+              case CommonTypes.Direction.r:
+                relativeCurveCp2 = {
+                  x: (shape.curveTrigger.d * 1) / 3,
+                  y: 0,
+                };
+                break;
+
+              case CommonTypes.Direction.b:
+                relativeCurveCp2 = {
+                  x: 0,
+                  y: (shape.curveTrigger.d * 1) / 3,
+                };
+                break;
             }
 
             if (!!pressing) return;
 
-            const withinHandlerRangeCurves = shape.checkCurveControlPointsBoundry(
-              p
-            );
+            const withinHandlerRangeCurves =
+              shape.checkCurveControlPointsBoundry(p);
             const firstDetectedCurve = withinHandlerRangeCurves[0];
             const withinRangeCurveIds = shape.checkCurvesBoundry(p);
 
@@ -942,7 +959,8 @@ export default function IdPage() {
         }
 
         if (!pressing) {
-          shapes.forEach((shape) => {
+          shapes.forEach((_, shapeI, shapes) => {
+            const shape = shapes[shapes.length - 1 - shapeI];
             if (!!pressing) return;
             const vertex = shape.checkVertexesBoundry(p);
             if (shape.selecting && vertex) {
@@ -974,6 +992,24 @@ export default function IdPage() {
         // if has already selected curve, never select any other shapes
         if (pressing && pressing.shape && !!pressing.curveId) {
           pressing.shape?.setIsCurveSelected(pressing.curveId, true);
+
+          if (pressing.target === CurveTypes.PressingTarget.p2) {
+            const curveArrowTopP = pressing.shape.getPressingCurveP(
+              CurveTypes.PressingTarget.p2,
+              pressing.curveId
+            );
+            const curveCp2 = pressing.shape.getPressingCurveP(
+              CurveTypes.PressingTarget.cp2,
+              pressing.curveId
+            );
+
+            if (!curveArrowTopP || !curveCp2) return;
+
+            relativeCurveCp2 = {
+              x: curveArrowTopP.x - curveCp2.x,
+              y: curveArrowTopP.y - curveCp2.y,
+            };
+          }
         } else if (pressing && pressing.shape && !pressing.curveId) {
           pressing.shape.selecting = true;
         }
@@ -1006,9 +1042,9 @@ export default function IdPage() {
         y: (p.y - lastP.y) * (1 / scale),
       };
 
-    const movingCanvas = space && leftMouseBtn;
+    const movingViewport = space && leftMouseBtn;
 
-    if (movingCanvas) {
+    if (movingViewport) {
       setDataFrame(undefined);
       offset.x += screenOffsetP.x;
       offset.y += screenOffsetP.y;
@@ -1237,34 +1273,133 @@ export default function IdPage() {
         pressing.shape.resize(offsetP, pressing.target);
       } else if (pressing?.target === CoreTypes.PressingTarget.m) {
         pressing.shape.move({ x: p.x - lastP.x, y: p.y - lastP.y });
-      } else if (
+      }
+      // else if (
+      //   !!pressing.curveId &&
+      //   pressing.direction &&
+      //   pressing?.target === CurveTypes.PressingTarget.cp1
+      // ) {
+      //   pressing.shape.locateCurveHandler(
+      //     pressing.curveId,
+      //     CurveTypes.PressingTarget.cp1,
+      //     p
+      //   );
+      // }
+      // else if (
+      //   !!pressing.curveId &&
+      //   pressing.direction &&
+      //   pressing?.target === CurveTypes.PressingTarget.cp2
+      // ) {
+      //   pressing.shape.locateCurveHandler(
+      //     pressing.curveId,
+      //     CurveTypes.PressingTarget.cp2,
+      //     p
+      //   );
+
+      //   // get cp2 relative to p2 poistion
+      //   const curveArrowTopP = pressing.shape.getPressingCurveP(
+      //     CurveTypes.PressingTarget.p2,
+      //     pressing.curveId
+      //   );
+      //   const curveCp2 = pressing.shape.getPressingCurveP(
+      //     CurveTypes.PressingTarget.cp2,
+      //     pressing.curveId
+      //   );
+
+      //   if (!curveArrowTopP || !curveCp2) return;
+
+      //   relativeCurveCp2 = {
+      //     x: curveArrowTopP.x - curveCp2.x,
+      //     y: curveArrowTopP.y - curveCp2.y,
+      //   };
+      // }
+      else if (
         !!pressing.curveId &&
         pressing.direction &&
-        (pressing?.target === CurveTypes.PressingTarget.cp1 ||
-          pressing?.target === CurveTypes.PressingTarget.cp2 ||
-          pressing?.target === CurveTypes.PressingTarget.p2)
+        pressing?.target === CurveTypes.PressingTarget.p2
       ) {
-        if (pressing?.target === CurveTypes.PressingTarget.p2) {
-          pressing.shape.disConnect([pressing.curveId]);
-          shapes.forEach((shape) => {
-            ds.forEach((d) => {
-              shape.setReceivePointActivate(
-                d,
-                d === shape.checkReceivingPointsBoundry(p)
-              );
-              shape.setReceivePointVisible(
-                d,
-                shape.checkBoundry(p, 20) && pressing?.shape !== shape
-              );
-            });
+        let sticking: PageIdTypes.Sticking = {
+          bridgeId: null,
+          from: {
+            d: null,
+            shape: null,
+          },
+          to: {
+            d: null,
+            shape: null,
+          },
+        };
+
+        pressing.shape.disConnect([pressing.curveId]);
+
+        shapes.forEach((shape) => {
+          const quarterD = shape.checkQuarterArea(p);
+          const receivingPointsBoundryD = shape.checkReceivingPointsBoundry(p);
+
+          ds.forEach((d) => {
+            shape.setReceivePointActivate(
+              d,
+              d === receivingPointsBoundryD || d === quarterD
+            );
+            shape.setReceivePointVisible(
+              d,
+              shape.checkBoundry(p, 20) && pressing?.shape !== shape
+            );
+            if (
+              !!pressing?.curveId &&
+              !!pressing?.direction &&
+              !!pressing.shape &&
+              (d === receivingPointsBoundryD || d === quarterD) &&
+              shape !== pressing?.shape
+            ) {
+              sticking.bridgeId = pressing?.curveId;
+              sticking.from.d = pressing?.direction;
+              sticking.from.shape = pressing?.shape;
+              sticking.to.d = d;
+              sticking.to.shape = shape;
+            }
           });
+        });
+
+        if (
+          !!sticking?.bridgeId &&
+          !!sticking?.from.d &&
+          !!sticking?.from.shape &&
+          !!sticking?.to.d &&
+          !!sticking?.to.shape
+        ) {
+          const endP = (() => {
+            const toReceivingP =
+              sticking.to.shape.getCenter().receivingPoints[sticking?.to?.d];
+
+            let margin = 0;
+            if (sticking.to.shape instanceof Data) {
+              if (sticking.to.d === CommonTypes.Direction.l) {
+                margin = 7.5;
+              } else if (sticking.to.d === CommonTypes.Direction.r) {
+                margin = -7.5;
+              }
+            }
+
+            return {
+              x: toReceivingP.x + margin * scale,
+              y: toReceivingP.y,
+            };
+          })();
+
+          sticking.from.shape.stick(
+            sticking.bridgeId,
+            endP,
+            sticking.from.d,
+            sticking.to.d
+          );
+        } else {
+          pressing.shape.locateCurveHandler(
+            pressing.curveId,
+            CurveTypes.PressingTarget.p2,
+            p
+          );
         }
-        pressing.shape.moveCurveHandler(
-          pressing.direction,
-          pressing.curveId,
-          pressing.target,
-          { x: p.x - lastP.x, y: p.y - lastP.y }
-        );
       }
     }
 
@@ -1361,110 +1496,92 @@ export default function IdPage() {
     shapes.forEach((targetShape) => {
       if (
         pressing?.shape &&
+        pressing?.shape?.id !== targetShape.id &&
         !!pressing?.curveId &&
         pressing?.target &&
         pressing?.direction
       ) {
-        const theCheckReceivingPointsBoundryD = targetShape.checkReceivingPointsBoundry(
-          p
-        );
-
         const pressingShape = pressing.shape;
+        const theCheckReceivingPointsBoundryD =
+          targetShape.checkReceivingPointsBoundry(p);
+        const theQuarterD = targetShape.checkQuarterArea(p);
 
-        if (
-          !theCheckReceivingPointsBoundryD ||
-          !pressingShape ||
-          pressing.target !== CurveTypes.PressingTarget.p2
-        )
+        if (!pressingShape || pressing.target !== CurveTypes.PressingTarget.p2)
           return;
 
-        pressingShape.connect(
-          targetShape,
-          theCheckReceivingPointsBoundryD,
-          pressing.curveId
-        );
+        if (!!theCheckReceivingPointsBoundryD) {
+          pressingShape.connect(
+            targetShape,
+            theCheckReceivingPointsBoundryD,
+            pressing.curveId
+          );
+        } else if (!!theQuarterD) {
+          pressingShape.connect(targetShape, theQuarterD, pressing.curveId);
+        }
 
         let relocateP: null | CommonTypes.Vec = null;
-
-        switch (theCheckReceivingPointsBoundryD) {
+        switch (theCheckReceivingPointsBoundryD || theQuarterD) {
           case CommonTypes.Direction.l:
             if (targetShape instanceof Data) {
               relocateP = {
-                x:
-                  targetShape.p.x -
-                  pressingShape.p.x +
-                  (targetShape.getCorner().normal.tl.x +
-                    targetShape.getCorner().normal.bl.x) /
-                    2 -
-                  6,
-                y: targetShape.p.y - pressingShape.p.y,
+                x: targetShape.getCenter().receivingPoints.l.x - 6,
+                y: targetShape.getCenter().receivingPoints.l.y,
               };
             } else {
               relocateP = {
-                x: targetShape.p.x - pressingShape.p.x - targetShape.w / 2 - 6,
-                y: targetShape.p.y - pressingShape.p.y,
+                x: targetShape.getCenter().receivingPoints.l.x - 6,
+                y: targetShape.getCenter().receivingPoints.l.y,
               };
             }
             break;
-
           case CommonTypes.Direction.t:
             if (targetShape instanceof Data) {
               relocateP = {
-                x: targetShape.p.x - pressingShape.p.x,
-                y: targetShape.p.y - pressingShape.p.y - targetShape.h / 2 - 6,
+                x: targetShape.getCenter().receivingPoints.t.x,
+                y: targetShape.getCenter().receivingPoints.t.y - 6,
               };
             } else {
               relocateP = {
-                x: targetShape.p.x - pressingShape.p.x,
-                y: targetShape.p.y - pressingShape.p.y - targetShape.h / 2 - 6,
+                x: targetShape.getCenter().receivingPoints.t.x,
+                y: targetShape.getCenter().receivingPoints.t.y - 6,
               };
             }
-
             break;
-
           case CommonTypes.Direction.r:
             if (targetShape instanceof Data) {
               relocateP = {
-                x:
-                  targetShape.p.x -
-                  pressingShape.p.x -
-                  (targetShape.getCorner().normal.tl.x +
-                    targetShape.getCorner().normal.bl.x) /
-                    2 +
-                  6,
-                y: targetShape.p.y - pressingShape.p.y,
+                x: targetShape.getCenter().receivingPoints.r.x - 6,
+                y: targetShape.getCenter().receivingPoints.r.y,
               };
             } else {
               relocateP = {
-                x: targetShape.p.x - pressingShape.p.x + targetShape.w / 2 + 6,
-                y: targetShape.p.y - pressingShape.p.y,
+                x: targetShape.getCenter().receivingPoints.r.x + 6,
+                y: targetShape.getCenter().receivingPoints.r.y,
               };
             }
-
             break;
-
           case CommonTypes.Direction.b:
             if (targetShape instanceof Data) {
               relocateP = {
-                x: targetShape.p.x - pressingShape.p.x,
-                y: targetShape.p.y - pressingShape.p.y + targetShape.h / 2 + 6,
+                x: targetShape.getCenter().receivingPoints.b.x,
+                y: targetShape.getCenter().receivingPoints.b.y + 6,
               };
             } else {
               relocateP = {
-                x: targetShape.p.x - pressingShape.p.x,
-                y: targetShape.p.y - pressingShape.p.y + targetShape.h / 2 + 6,
+                x: targetShape.getCenter().receivingPoints.b.x,
+                y: targetShape.getCenter().receivingPoints.b.y + 6,
               };
             }
             break;
         }
 
-        if (!!relocateP) {
-          pressingShape.locateCurveHandler(
-            pressing.curveId,
-            CurveTypes.PressingTarget.p2,
-            relocateP
-          );
-        }
+        // if (!!relocateP) {
+        //   pressingShape.locateCurveHandler(
+        //     pressing.curveId,
+        //     CurveTypes.PressingTarget.p2,
+        //     relocateP
+        //   );
+        // } // TODO: temprarily closed
       }
     });
 
@@ -1687,7 +1804,11 @@ export default function IdPage() {
       ctx?.fillRect(0, 0, window.innerWidth, window.innerHeight);
       ctx?.closePath();
 
-      // draw shapes
+      tests.forEach((test) => {
+        test.draw(ctx);
+      });
+
+      // // draw shapes
       shapes.forEach((shape) => {
         if (!ctx) return;
         shape.draw(ctx);
@@ -1964,10 +2085,8 @@ export default function IdPage() {
 
   const initProject = async (id: ProjectTypes.Project["id"]) => {
     try {
-      const res: AxiosResponse<
-        ProjectAPITypes.GetProject["resData"],
-        any
-      > = await projectAPIs.getProject(id);
+      const res: AxiosResponse<ProjectAPITypes.GetProject["resData"], any> =
+        await projectAPIs.getProject(id);
 
       const projectData = res.data as ProjectAPITypes.ProjectData;
 
@@ -2010,9 +2129,8 @@ export default function IdPage() {
     if (!$canvas || !ctx) return;
 
     try {
-      const res: AxiosResponse<
-        ProjectAPITypes.DeleteProject["resData"]
-      > = await projectAPIs.deleteProject(id);
+      const res: AxiosResponse<ProjectAPITypes.DeleteProject["resData"]> =
+        await projectAPIs.deleteProject(id);
 
       if (id === selectedProjectId) {
         shapes = [];
@@ -2034,14 +2152,11 @@ export default function IdPage() {
       return;
     }
     shapes = [];
-    const newProject: AxiosResponse<
-      ProjectAPITypes.CreateProject["resData"]
-    > = await projectAPIs.createProject();
+    const newProject: AxiosResponse<ProjectAPITypes.CreateProject["resData"]> =
+      await projectAPIs.createProject();
 
-    const res: AxiosResponse<
-      ProjectAPITypes.GetProjects["resData"],
-      any
-    > = await projectAPIs.getProjecs();
+    const res: AxiosResponse<ProjectAPITypes.GetProjects["resData"], any> =
+      await projectAPIs.getProjecs();
 
     setIsProjectsModalOpen(false);
     setProjects(res.data);
@@ -2069,9 +2184,9 @@ export default function IdPage() {
     }));
   };
 
-  const onClickSaveProjectNameButton: MouseEventHandler<HTMLButtonElement> = async (
-    e
-  ) => {
+  const onClickSaveProjectNameButton: MouseEventHandler<
+    HTMLButtonElement
+  > = async (e) => {
     if (!selectedProjectId) return;
     const res: AxiosResponse<
       ProjectAPITypes.UpdateProjectName["resData"],
@@ -2109,6 +2224,45 @@ export default function IdPage() {
       await verifyToken();
       await fetchProjects();
       await initProject(Number(params.id));
+
+      // offset = { x: 0, y: 0 };
+
+      // const arrow = new Arrow(
+      //   `arrow_${Date.now()}`,
+      //   100,
+      //   100,
+      //   "#000",
+      //   { x: 500, y: 500 },
+      //   (0 / 360) * Math.PI
+      // );
+      // arrow.selecting = true;
+      // arrow.scale = 1;
+      // arrow.offset = { x: 0, y: 0 };
+
+      // const curve = new Curve(
+      //   "curve_01",
+      //   {
+      //     x: 500,
+      //     y: 500,
+      //   },
+      //   {
+      //     x: 500,
+      //     y: 400,
+      //   },
+      //   {
+      //     x: 500,
+      //     y: 300,
+      //   },
+      //   {
+      //     x: 500,
+      //     y: 200,
+      //   }
+      // );
+      // curve.selecting = true;
+      // curve.scale = 1.5;
+      // curve.offset = { x: 50, y: 50 };
+      // tests.push(arrow);
+      // tests.push(curve);
 
       drawCanvas();
       drawScreenshot();
