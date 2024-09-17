@@ -67,7 +67,7 @@ export default class Curve {
       this.relativify(p2),
       Math.atan2(p2.y - this.cp2.y, p2.x - this.cp2.x) + 90 * (Math.PI / 180)
     );
-    this.__selecting__ = true; // TODO: temp
+    this.__selecting__ = false;
     this.__offset__ = this.initOffset;
     this.__scale__ = this.initScale;
   }
@@ -77,9 +77,9 @@ export default class Curve {
   }
 
   set selecting(val) {
-    this.__selecting__ = true; // TODO: temp
+    this.__selecting__ = val;
     if (this.arrow) {
-      this.arrow.selecting = true; // TODO: temp
+      this.arrow.selecting = val;
     }
   }
 
