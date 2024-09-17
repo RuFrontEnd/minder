@@ -1,4 +1,6 @@
 import ReactModal from "react-modal";
+import RoundButton from "@/components/roundButton";
+import Icon from "@/components/icon";
 import * as ModalTypes from "@/types/components/modal";
 import { tailwindColors } from "@/variables/colors";
 
@@ -10,7 +12,7 @@ const Modal = (props: ModalTypes.Props) => {
       isOpen={props.isOpen}
       style={{
         overlay: {
-          backgroundColor: "rgba(0, 0, 0, 0.5)",
+          backgroundColor: props.mask ? "rgba(0, 0, 0, 0.5)" : "none",
           zIndex: props.zIndex || "1000",
         },
         content: {
@@ -28,39 +30,24 @@ const Modal = (props: ModalTypes.Props) => {
       }}
       contentLabel="Example Modal"
     >
-      <div className="relative p-7">
+      <div className="relative p-6">
         {props.onClickX && (
-          <div
-            className={`absolute top-[0px] right-[0px] w-7 h-7 inline-flex items-center justify-center bg-white-500 flex-shrink-0 cursor-pointer rounded-full shadow-md`}
-          >
-            <div
-              className={`w-5 h-5 inline-flex items-center justify-center  bg-primary-500 flex-shrink-0 cursor-pointer rounded-full`}
-              onClick={props.onClickX}
-            >
-              <svg
-                className="w-3 h-3"
-                aria-hidden="true"
-                xmlns="http://www.w3.org/2000/svg"
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke={`${tailwindColors.white["500"]}`}
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="4"
-                  d="M6 18 17.94 6M18 18 6.06 6"
-                />
-              </svg>
-            </div>
-          </div>
+          <RoundButton
+            outerRing
+            className={"absolute top-[0px] right-[0px]"}
+            onClick={props.onClickX}
+            content={<Icon stroke={tailwindColors.white["500"]} />}
+          />
         )}
 
         {props.children}
       </div>
     </ReactModal>
   );
+};
+
+Modal.defaultProps = {
+  mask: true,
 };
 
 export default Modal;

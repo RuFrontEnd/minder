@@ -1,4 +1,15 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {}
+const nextConfig = {
+  webpack: (config) => {
+    // Add rule for SVG files
+    config.module.rules.push({
+      test: /\.svg$/,
+      use: ["@svgr/webpack"],
+    });
 
-module.exports = nextConfig
+    return config;
+  },
+  reactStrictMode: true,
+};
+
+module.exports = nextConfig;
