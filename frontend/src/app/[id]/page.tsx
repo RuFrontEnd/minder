@@ -433,6 +433,72 @@ const getScreenshotShapes = (
   return screenshotShapes;
 };
 
+const getAlignLines = (
+  shapes: (Terminal | Process | Data | Desicion)[],
+  baseShape?: null | Terminal | Process | Data | Desicion
+) => {
+  if (!baseShape || shapes.length === 0) return [];
+  const lines: {
+    x: { from: number; to: number };
+    y: { from: number; to: number };
+  }[] = [];
+
+  const getRelativeD = (
+    shape: null | Terminal | Process | Data | Desicion,
+    baseShape: null | Terminal | Process | Data | Desicion
+  ) => {
+    const d: {
+      horizental: null | CommonTypes.Direction | "m";
+      vertical: null | CommonTypes.Direction | "m";
+    } = { horizental: null, vertical: null };
+    if (!shape || !baseShape) return d;
+
+    if (baseShape.p.x > shape.p.x) {
+      d.horizental = CommonTypes.Direction.l;
+    } else if (baseShape.p.x < shape.p.x) {
+      d.horizental = CommonTypes.Direction.r;
+    } else {
+      d.horizental = "m";
+    }
+
+    if (baseShape.p.y > shape.p.y) {
+      d.vertical = CommonTypes.Direction.t;
+    } else if (baseShape.p.x < shape.p.x) {
+      d.vertical = CommonTypes.Direction.b;
+    } else {
+      d.vertical = "m";
+    }
+
+    return d;
+  };
+
+  shapes.forEach((targetShape) => {
+    const edge = targetShape.getEdge();
+    const baseEdge = baseShape.getEdge();
+    const targetCenter = targetShape.getCenter();
+    const baseCenter = baseShape.getCenter();
+    const relativeD = getRelativeD(targetShape, baseShape);
+    if (targetShape === baseShape) return;
+
+    if (baseEdge.t === edge.t) {
+      if (relativeD.horizental === CommonTypes.Direction.l) {
+        lines.push({
+          x: {
+            from: targetCenter.m.x - targetShape.getScaleSize().w,
+            to: baseCenter.m.x + baseShape.getScaleSize().w,
+          },
+          y: {
+            from: targetCenter.m.y,
+            to: targetCenter.m.y,
+          },
+        });
+      }
+    }
+  });
+
+  return lines;
+};
+
 const getShapesInView = (shapes: (Terminal | Process | Data | Desicion)[]) => {
   const shapesInView: (Terminal | Process | Data | Desicion)[] = [];
   const viewport = {
@@ -456,6 +522,29 @@ const getShapesInView = (shapes: (Terminal | Process | Data | Desicion)[]) => {
   });
 
   return shapesInView;
+};
+
+const drawShapes = (
+  ctx: null | CanvasRenderingContext2D,
+  shapes: (Terminal | Process | Data | Desicion)[]
+) => {
+  if (!ctx) return;
+
+  shapes.forEach((shape) => {
+    if (!ctx) return;
+    shape.draw(ctx);
+  });
+};
+
+const drawAlignLines = (
+  ctx: null | CanvasRenderingContext2D,
+  shapes: (Terminal | Process | Data | Desicion)[],
+  targetShape?: null | Terminal | Process | Data | Desicion
+) => {
+  if (!ctx || !targetShape || shapes.length === 0) return;
+
+  // shapes.forEach((shape) => {
+  // });
 };
 
 // const Editor = (props: { className: string; shape: Core }) => {
@@ -1054,7 +1143,6 @@ export default function IdPage() {
     }
 
     drawCanvas();
-    console.log(getShapesInView(shapes));
   };
 
   const onMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -1304,47 +1392,7 @@ export default function IdPage() {
         pressing.shape.resize(offsetP, pressing.target);
       } else if (pressing?.target === CoreTypes.PressingTarget.m) {
         pressing.shape.move({ x: p.x - lastP.x, y: p.y - lastP.y });
-      }
-      // else if (
-      //   !!pressing.curveId &&
-      //   pressing.direction &&
-      //   pressing?.target === CurveTypes.PressingTarget.cp1
-      // ) {
-      //   pressing.shape.locateCurveHandler(
-      //     pressing.curveId,
-      //     CurveTypes.PressingTarget.cp1,
-      //     p
-      //   );
-      // }
-      // else if (
-      //   !!pressing.curveId &&
-      //   pressing.direction &&
-      //   pressing?.target === CurveTypes.PressingTarget.cp2
-      // ) {
-      //   pressing.shape.locateCurveHandler(
-      //     pressing.curveId,
-      //     CurveTypes.PressingTarget.cp2,
-      //     p
-      //   );
-
-      //   // get cp2 relative to p2 poistion
-      //   const curveArrowTopP = pressing.shape.getPressingCurveP(
-      //     CurveTypes.PressingTarget.p2,
-      //     pressing.curveId
-      //   );
-      //   const curveCp2 = pressing.shape.getPressingCurveP(
-      //     CurveTypes.PressingTarget.cp2,
-      //     pressing.curveId
-      //   );
-
-      //   if (!curveArrowTopP || !curveCp2) return;
-
-      //   relativeCurveCp2 = {
-      //     x: curveArrowTopP.x - curveCp2.x,
-      //     y: curveArrowTopP.y - curveCp2.y,
-      //   };
-      // }
-      else if (
+      } else if (
         !!pressing.curveId &&
         pressing.direction &&
         pressing?.target === CurveTypes.PressingTarget.p2
@@ -1841,11 +1889,9 @@ export default function IdPage() {
         test.draw(ctx);
       });
 
-      // // draw shapes
-      shapes.forEach((shape) => {
-        if (!ctx) return;
-        shape.draw(ctx);
-      });
+      // draw align lines
+      drawAlignLines(ctx, shapes, pressing?.shape);
+      drawShapes(ctx, shapes);
 
       if (!isScreenshot) {
         // draw sending point
