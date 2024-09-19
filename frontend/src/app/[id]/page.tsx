@@ -481,6 +481,10 @@ const getAlignLines = (
     // const relativeD = getRelativeD(targetShape, baseShape); // TODO: temp close
     if (targetShape === baseShape) return;
 
+    // TODO: for precise number problem
+    console.log("edge", edge);
+    console.log("baseEdge", baseEdge);
+
     if (baseEdge.t === edge.t || baseEdge.t === edge.b) {
       // if (relativeD.horizental === CommonTypes.Direction.l) { // TODO: temp close
       lines.push({
