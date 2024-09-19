@@ -17,6 +17,7 @@ const config: Config = {
         primary: { 500: "#233C53", hover: "#092C4C" },
         secondary: { 500: "#DF914C" },
         info: { 500: "#00BFFF" },
+        auxiliary: "red",
         success: { 500: "#27AE60" },
         warning: { 500: "#E2B93B" },
         error: {

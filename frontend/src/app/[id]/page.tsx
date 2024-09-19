@@ -125,7 +125,8 @@ let useEffected = false,
       fill: 4,
       stroke: 2,
     },
-  };
+  },
+  alginLines: { from: CommonTypes.Vec; to: CommonTypes.Vec }[] = [];
 
 const ds = [
   CommonTypes.Direction.l,
@@ -439,60 +440,60 @@ const getAlignLines = (
 ) => {
   if (!baseShape || shapes.length === 0) return [];
   const lines: {
-    x: { from: number; to: number };
-    y: { from: number; to: number };
+    from: CommonTypes.Vec;
+    to: CommonTypes.Vec;
   }[] = [];
 
-  const getRelativeD = (
-    shape: null | Terminal | Process | Data | Desicion,
-    baseShape: null | Terminal | Process | Data | Desicion
-  ) => {
-    const d: {
-      horizental: null | CommonTypes.Direction | "m";
-      vertical: null | CommonTypes.Direction | "m";
-    } = { horizental: null, vertical: null };
-    if (!shape || !baseShape) return d;
+  // const getRelativeD = (
+  //   shape: null | Terminal | Process | Data | Desicion,
+  //   baseShape: null | Terminal | Process | Data | Desicion
+  // ) => {
+  //   const d: {
+  //     horizental: null | CommonTypes.Direction | "m";
+  //     vertical: null | CommonTypes.Direction | "m";
+  //   } = { horizental: null, vertical: null };
+  //   if (!shape || !baseShape) return d;
 
-    if (baseShape.p.x > shape.p.x) {
-      d.horizental = CommonTypes.Direction.l;
-    } else if (baseShape.p.x < shape.p.x) {
-      d.horizental = CommonTypes.Direction.r;
-    } else {
-      d.horizental = "m";
-    }
+  //   if (baseShape.p.x > shape.p.x) {
+  //     d.horizental = CommonTypes.Direction.l;
+  //   } else if (baseShape.p.x < shape.p.x) {
+  //     d.horizental = CommonTypes.Direction.r;
+  //   } else {
+  //     d.horizental = "m";
+  //   }
 
-    if (baseShape.p.y > shape.p.y) {
-      d.vertical = CommonTypes.Direction.t;
-    } else if (baseShape.p.x < shape.p.x) {
-      d.vertical = CommonTypes.Direction.b;
-    } else {
-      d.vertical = "m";
-    }
+  //   if (baseShape.p.y > shape.p.y) {
+  //     d.vertical = CommonTypes.Direction.t;
+  //   } else if (baseShape.p.x < shape.p.x) {
+  //     d.vertical = CommonTypes.Direction.b;
+  //   } else {
+  //     d.vertical = "m";
+  //   }
 
-    return d;
-  };
+  //   return d;
+  // }; // TODO: temp close
 
   shapes.forEach((targetShape) => {
     const edge = targetShape.getEdge();
     const baseEdge = baseShape.getEdge();
     const targetCenter = targetShape.getCenter();
     const baseCenter = baseShape.getCenter();
-    const relativeD = getRelativeD(targetShape, baseShape);
+    // const relativeD = getRelativeD(targetShape, baseShape); // TODO: temp close
     if (targetShape === baseShape) return;
 
-    if (baseEdge.t === edge.t) {
-      if (relativeD.horizental === CommonTypes.Direction.l) {
-        lines.push({
-          x: {
-            from: targetCenter.m.x - targetShape.getScaleSize().w,
-            to: baseCenter.m.x + baseShape.getScaleSize().w,
-          },
-          y: {
-            from: targetCenter.m.y,
-            to: targetCenter.m.y,
-          },
-        });
-      }
+    if (baseEdge.t === edge.t || baseEdge.t === edge.b) {
+      // if (relativeD.horizental === CommonTypes.Direction.l) { // TODO: temp close
+      lines.push({
+        from: {
+          x: targetCenter.m.x,
+          y: baseEdge.t - 1,
+        },
+        to: {
+          x: baseCenter.m.x,
+          y: baseEdge.t - 1,
+        },
+      });
+      // }
     }
   });
 
@@ -538,13 +539,22 @@ const drawShapes = (
 
 const drawAlignLines = (
   ctx: null | CanvasRenderingContext2D,
-  shapes: (Terminal | Process | Data | Desicion)[],
-  targetShape?: null | Terminal | Process | Data | Desicion
+  alginLines: { from: CommonTypes.Vec; to: CommonTypes.Vec }[]
 ) => {
-  if (!ctx || !targetShape || shapes.length === 0) return;
+  if (!ctx || alginLines.length === 0) return;
 
-  // shapes.forEach((shape) => {
-  // });
+  alginLines.forEach((alginLine) => {
+    ctx.save();
+    ctx.strokeStyle = tailwindColors.auxiliary;
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(alginLine.from.x, alginLine.from.y);
+    ctx.lineTo(alginLine.to.x, alginLine.to.y);
+    ctx.stroke();
+    ctx.closePath();
+    ctx.restore();
+  });
 };
 
 // const Editor = (props: { className: string; shape: Core }) => {
@@ -1392,6 +1402,7 @@ export default function IdPage() {
         pressing.shape.resize(offsetP, pressing.target);
       } else if (pressing?.target === CoreTypes.PressingTarget.m) {
         pressing.shape.move({ x: p.x - lastP.x, y: p.y - lastP.y });
+        alginLines = getAlignLines(getShapesInView(shapes), pressing.shape);
       } else if (
         !!pressing.curveId &&
         pressing.direction &&
@@ -1677,6 +1688,7 @@ export default function IdPage() {
 
     selectAreaP = null;
     pressing = null;
+    alginLines = [];
 
     drawCanvas();
   };
@@ -1890,8 +1902,8 @@ export default function IdPage() {
       });
 
       // draw align lines
-      drawAlignLines(ctx, shapes, pressing?.shape);
       drawShapes(ctx, shapes);
+      drawAlignLines(ctx, alginLines);
 
       if (!isScreenshot) {
         // draw sending point
