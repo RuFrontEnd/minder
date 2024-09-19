@@ -126,7 +126,8 @@ let useEffected = false,
       stroke: 2,
     },
   },
-  alginLines: { from: CommonTypes.Vec; to: CommonTypes.Vec }[] = [];
+  alginLines: { from: CommonTypes.Vec; to: CommonTypes.Vec }[] = [],
+  alignY = 0;
 
 const ds = [
   CommonTypes.Direction.l,
@@ -434,6 +435,65 @@ const getScreenshotShapes = (
   return screenshotShapes;
 };
 
+const getAlignP = (
+  shapes: (Terminal | Process | Data | Desicion)[],
+  baseShape?: null | Terminal | Process | Data | Desicion
+) => {
+  if (!baseShape || shapes.length === 0) return null;
+
+  // console.log('shapes', shapes)
+  // console.log('baseShape', shapes)
+
+  // const getRelativeD = (
+  //   shape: null | Terminal | Process | Data | Desicion,
+  //   baseShape: null | Terminal | Process | Data | Desicion
+  // ) => {
+  //   const d: {
+  //     horizental: null | CommonTypes.Direction | "m";
+  //     vertical: null | CommonTypes.Direction | "m";
+  //   } = { horizental: null, vertical: null };
+  //   if (!shape || !baseShape) return d;
+
+  //   if (baseShape.p.x > shape.p.x) {
+  //     d.horizental = CommonTypes.Direction.l;
+  //   } else if (baseShape.p.x < shape.p.x) {
+  //     d.horizental = CommonTypes.Direction.r;
+  //   } else {
+  //     d.horizental = "m";
+  //   }
+
+  //   if (baseShape.p.y > shape.p.y) {
+  //     d.vertical = CommonTypes.Direction.t;
+  //   } else if (baseShape.p.x < shape.p.x) {
+  //     d.vertical = CommonTypes.Direction.b;
+  //   } else {
+  //     d.vertical = "m";
+  //   }
+
+  //   return d;
+  // }; // TODO: temp close
+
+  for (let i = 0; i < shapes.length; i++) {
+    const targetShape = shapes[i];
+    if (targetShape === baseShape) continue;
+
+    const targetEdge = targetShape.getEdge();
+    const baseEdge = baseShape.getEdge();
+
+    if (
+      (baseEdge.t >= targetEdge.t - 5 && baseEdge.t <= targetEdge.t + 5) ||
+      (baseEdge.t >= targetEdge.b - 5 && baseEdge.t <= targetEdge.b + 5)
+    ) {
+      return {
+        x: baseShape.p.x,
+        y: targetShape.p.y - Math.abs(baseShape.h - targetShape.h) / 2,
+      };
+    }
+  }
+
+  return null;
+};
+
 const getAlignLines = (
   shapes: (Terminal | Process | Data | Desicion)[],
   baseShape?: null | Terminal | Process | Data | Desicion
@@ -477,27 +537,26 @@ const getAlignLines = (
   // }; // TODO: temp close
 
   shapes.forEach((targetShape) => {
-    const edge = targetShape.getEdge();
+    if (targetShape === baseShape) return;
+    const targetEdge = targetShape.getEdge();
     const baseEdge = baseShape.getEdge();
     const targetCenter = targetShape.getCenter();
     const baseCenter = baseShape.getCenter();
     // const relativeD = getRelativeD(targetShape, baseShape); // TODO: temp close
-    if (targetShape === baseShape) return;
 
-    // TODO: for precise number problem
-    // console.log("edge", edge);
-    // console.log("baseEdge", baseEdge);
-
-    if (baseEdge.t === edge.t || baseEdge.t === edge.b) {
+    if (
+      (baseEdge.t >= targetEdge.t - 5 && baseEdge.t <= targetEdge.t + 5) ||
+      (baseEdge.t >= targetEdge.b - 5 && baseEdge.t <= targetEdge.b + 5)
+    ) {
       // if (relativeD.horizental === CommonTypes.Direction.l) { // TODO: temp close
       lines.push({
         from: {
           x: targetCenter.m.x,
-          y: baseEdge.t - 1,
+          y: targetEdge.t - 1,
         },
         to: {
           x: baseCenter.m.x,
-          y: baseEdge.t - 1,
+          y: targetEdge.t - 1,
         },
       });
       // }
@@ -515,7 +574,6 @@ const getShapesInView = (shapes: (Terminal | Process | Data | Desicion)[]) => {
     r: window.innerWidth,
     b: window.innerHeight,
   };
-
 
   shapes.forEach((shape) => {
     const edge = shape.getEdge();
@@ -1405,7 +1463,23 @@ export default function IdPage() {
         pressing.shape.resize(offsetP, pressing.target);
       } else if (pressing?.target === CoreTypes.PressingTarget.m) {
         pressing.shape.move({ x: p.x - lastP.x, y: p.y - lastP.y });
-        alginLines = getAlignLines(getShapesInView(shapes), pressing.shape);
+        const shapesInView = getShapesInView(shapes);
+        alginLines = getAlignLines(shapesInView, pressing.shape);
+
+        const alignP = getAlignP(shapesInView, pressing.shape);
+
+        if (alignP && alignY >= -10) {
+          pressing.shape.p = alignP;
+          alignY--;
+        } else if (alignY < -10) {
+          pressing.shape.move({
+            x: 0,
+            y: alignY,
+          });
+          alignY = 0;
+        }
+
+        console.log("alignY", alignY);
       } else if (
         !!pressing.curveId &&
         pressing.direction &&
