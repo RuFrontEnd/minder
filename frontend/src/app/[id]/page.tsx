@@ -444,6 +444,9 @@ const getAlignLines = (
     to: CommonTypes.Vec;
   }[] = [];
 
+  // console.log('shapes', shapes)
+  // console.log('baseShape', shapes)
+
   // const getRelativeD = (
   //   shape: null | Terminal | Process | Data | Desicion,
   //   baseShape: null | Terminal | Process | Data | Desicion
@@ -482,8 +485,8 @@ const getAlignLines = (
     if (targetShape === baseShape) return;
 
     // TODO: for precise number problem
-    console.log("edge", edge);
-    console.log("baseEdge", baseEdge);
+    // console.log("edge", edge);
+    // console.log("baseEdge", baseEdge);
 
     if (baseEdge.t === edge.t || baseEdge.t === edge.b) {
       // if (relativeD.horizental === CommonTypes.Direction.l) { // TODO: temp close
@@ -513,14 +516,15 @@ const getShapesInView = (shapes: (Terminal | Process | Data | Desicion)[]) => {
     b: window.innerHeight,
   };
 
+
   shapes.forEach((shape) => {
     const edge = shape.getEdge();
 
     if (
-      (edge.l >= viewport.l && edge.l <= viewport.r) ||
-      (edge.r >= viewport.l && edge.r <= viewport.r) ||
-      (edge.t >= viewport.t && edge.t <= viewport.b) ||
-      (edge.b >= viewport.t && edge.b <= viewport.b)
+      ((edge.l >= viewport.l && edge.l <= viewport.r) ||
+        (edge.r >= viewport.l && edge.r <= viewport.r)) &&
+      ((edge.t >= viewport.t && edge.t <= viewport.b) ||
+        (edge.b >= viewport.t && edge.b <= viewport.b))
     ) {
       shapesInView.push(shape);
     }
@@ -724,9 +728,8 @@ export default function IdPage() {
   const [isRenameFrameOpen, setIsRenameFrameOpen] = useState(false);
   const [isProfileFrameOpen, setIsProfileFrameOpen] = useState(false);
   const [steps, setSteps] = useState<PageTypes.Steps>({});
-  const [dataFrameWarning, setDataFrameWarning] = useState<
-    DataFrameTypes.Warning
-  >(init.dataFrameWarning);
+  const [dataFrameWarning, setDataFrameWarning] =
+    useState<DataFrameTypes.Warning>(init.dataFrameWarning);
   const [isProjectsModalOpen, setIsProjectsModalOpen] = useState(false);
   const [projects, setProjects] = useState<
     ProjectAPITypes.GetProjects["resData"]
@@ -919,10 +922,8 @@ export default function IdPage() {
   };
 
   const fetchProjects = async () => {
-    const res: AxiosResponse<
-      ProjectAPITypes.GetProjects["resData"],
-      any
-    > = await projectAPIs.getProjecs();
+    const res: AxiosResponse<ProjectAPITypes.GetProjects["resData"], any> =
+      await projectAPIs.getProjecs();
     setProjects(res.data);
   };
 
@@ -930,9 +931,8 @@ export default function IdPage() {
     const token = localStorage.getItem("Authorization");
 
     if (token) {
-      const res: AxiosResponse<
-        AuthTypes.JWTLogin["resData"]
-      > = await authAPIs.jwtLogin(token);
+      const res: AxiosResponse<AuthTypes.JWTLogin["resData"]> =
+        await authAPIs.jwtLogin(token);
 
       if (res.data.isPass) {
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
@@ -1057,9 +1057,8 @@ export default function IdPage() {
 
             if (!!pressing) return;
 
-            const withinHandlerRangeCurves = shape.checkCurveControlPointsBoundry(
-              p
-            );
+            const withinHandlerRangeCurves =
+              shape.checkCurveControlPointsBoundry(p);
             const firstDetectedCurve = withinHandlerRangeCurves[0];
             const withinRangeCurveIds = shape.checkCurvesBoundry(p);
 
@@ -1463,9 +1462,8 @@ export default function IdPage() {
           !!sticking?.to.shape
         ) {
           const endP = (() => {
-            const toReceivingP = sticking.to.shape.getCenter().receivingPoints[
-              sticking?.to?.d
-            ];
+            const toReceivingP =
+              sticking.to.shape.getCenter().receivingPoints[sticking?.to?.d];
 
             let margin = 0;
             if (sticking.to.shape instanceof Data) {
@@ -1597,9 +1595,8 @@ export default function IdPage() {
         pressing?.direction
       ) {
         const pressingShape = pressing.shape;
-        const theCheckReceivingPointsBoundryD = targetShape.checkReceivingPointsBoundry(
-          p
-        );
+        const theCheckReceivingPointsBoundryD =
+          targetShape.checkReceivingPointsBoundry(p);
         const theQuarterD = targetShape.checkQuarterArea(p);
 
         if (!pressingShape || pressing.target !== CurveTypes.PressingTarget.p2)
@@ -2180,10 +2177,8 @@ export default function IdPage() {
 
   const initProject = async (id: ProjectTypes.Project["id"]) => {
     try {
-      const res: AxiosResponse<
-        ProjectAPITypes.GetProject["resData"],
-        any
-      > = await projectAPIs.getProject(id);
+      const res: AxiosResponse<ProjectAPITypes.GetProject["resData"], any> =
+        await projectAPIs.getProject(id);
 
       const projectData = res.data as ProjectAPITypes.ProjectData;
 
@@ -2226,9 +2221,8 @@ export default function IdPage() {
     if (!$canvas || !ctx) return;
 
     try {
-      const res: AxiosResponse<
-        ProjectAPITypes.DeleteProject["resData"]
-      > = await projectAPIs.deleteProject(id);
+      const res: AxiosResponse<ProjectAPITypes.DeleteProject["resData"]> =
+        await projectAPIs.deleteProject(id);
 
       if (id === selectedProjectId) {
         shapes = [];
@@ -2250,14 +2244,11 @@ export default function IdPage() {
       return;
     }
     shapes = [];
-    const newProject: AxiosResponse<
-      ProjectAPITypes.CreateProject["resData"]
-    > = await projectAPIs.createProject();
+    const newProject: AxiosResponse<ProjectAPITypes.CreateProject["resData"]> =
+      await projectAPIs.createProject();
 
-    const res: AxiosResponse<
-      ProjectAPITypes.GetProjects["resData"],
-      any
-    > = await projectAPIs.getProjecs();
+    const res: AxiosResponse<ProjectAPITypes.GetProjects["resData"], any> =
+      await projectAPIs.getProjecs();
 
     setIsProjectsModalOpen(false);
     setProjects(res.data);
@@ -2285,9 +2276,9 @@ export default function IdPage() {
     }));
   };
 
-  const onClickSaveProjectNameButton: MouseEventHandler<HTMLButtonElement> = async (
-    e
-  ) => {
+  const onClickSaveProjectNameButton: MouseEventHandler<
+    HTMLButtonElement
+  > = async (e) => {
     if (!selectedProjectId) return;
     const res: AxiosResponse<
       ProjectAPITypes.UpdateProjectName["resData"],
