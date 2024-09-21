@@ -99,6 +99,7 @@ let useEffected = false,
   tests: any[] = [], // TODO: should be deleted
   pressing: null | {
     shape: null | Terminal | Process | Data | Desicion;
+    ghost: null | Terminal | Process | Data | Desicion;
     curveId?: null | CurveTypes.Id;
     direction: null | CommonTypes.Direction; // TODO: should be removed in the future
     target:
@@ -110,6 +111,10 @@ let useEffected = false,
   offset: CommonTypes.Vec = cloneDeep(init.offset),
   offset_center: CommonTypes.Vec = cloneDeep(init.offset),
   lastP: CommonTypes.Vec = { x: 0, y: 0 },
+  moveP: {
+    x: null | number;
+    y: null | number;
+  } = { x: null, y: null },
   relativeCurveCp2: CommonTypes.Vec = { x: 0, y: 0 },
   selectAreaP: null | {
     start: CommonTypes.Vec;
@@ -127,7 +132,11 @@ let useEffected = false,
     },
   },
   alginLines: { from: CommonTypes.Vec; to: CommonTypes.Vec }[] = [],
-  alignY = 0;
+  align: { d: null | CommonTypes.Direction; p: CommonTypes.Vec } = {
+    d: null,
+    p: { x: 0, y: 0 },
+  },
+  movingD: null | CommonTypes.Direction = null;
 
 const ds = [
   CommonTypes.Direction.l,
@@ -439,7 +448,8 @@ const getAlignP = (
   shapes: (Terminal | Process | Data | Desicion)[],
   baseShape?: null | Terminal | Process | Data | Desicion
 ) => {
-  if (!baseShape || shapes.length === 0) return null;
+  let output: { x: null | number; y: null | number } = { x: null, y: null };
+  if (!baseShape || shapes.length === 0) return output;
 
   // console.log('shapes', shapes)
   // console.log('baseShape', shapes)
@@ -481,17 +491,16 @@ const getAlignP = (
     const baseEdge = baseShape.getEdge();
 
     if (
-      (baseEdge.t >= targetEdge.t - 5 && baseEdge.t <= targetEdge.t + 5) ||
-      (baseEdge.t >= targetEdge.b - 5 && baseEdge.t <= targetEdge.b + 5)
+      baseEdge.t >= targetEdge.t - 10 &&
+      baseEdge.t <= targetEdge.t + 10
+      // ||
+      // (baseEdge.t >= targetEdge.b - 5 && baseEdge.t <= targetEdge.b + 5)
     ) {
-      return {
-        x: baseShape.p.x,
-        y: targetShape.p.y - Math.abs(baseShape.h - targetShape.h) / 2,
-      };
+      output.y = targetShape.p.y - Math.abs(baseShape.h - targetShape.h) / 2;
     }
   }
 
-  return null;
+  return output;
 };
 
 const getAlignLines = (
@@ -544,10 +553,7 @@ const getAlignLines = (
     const baseCenter = baseShape.getCenter();
     // const relativeD = getRelativeD(targetShape, baseShape); // TODO: temp close
 
-    if (
-      (baseEdge.t >= targetEdge.t - 5 && baseEdge.t <= targetEdge.t + 5) ||
-      (baseEdge.t >= targetEdge.b - 5 && baseEdge.t <= targetEdge.b + 5)
-    ) {
+    if (baseEdge.t === targetEdge.t || baseEdge.t === targetEdge.b) {
       // if (relativeD.horizental === CommonTypes.Direction.l) { // TODO: temp close
       lines.push({
         from: {
@@ -601,6 +607,8 @@ const drawShapes = (
     if (!ctx) return;
     shape.draw(ctx);
   });
+
+  // pressing?.ghost?.draw(ctx);
 };
 
 const drawAlignLines = (
@@ -1058,6 +1066,7 @@ export default function IdPage() {
         if (_target) {
           pressing = {
             shape: null,
+            ghost: null,
             target: _target,
             direction: null,
           };
@@ -1126,6 +1135,7 @@ export default function IdPage() {
             ) {
               pressing = {
                 shape: shape,
+                ghost: null,
                 curveId: firstDetectedCurve.id,
                 target: CurveTypes.PressingTarget.p2,
                 direction: firstDetectedCurve.d,
@@ -1133,6 +1143,7 @@ export default function IdPage() {
             } else if (firstDetectedCurve && firstDetectedCurve.isSelecting) {
               pressing = {
                 shape: shape,
+                ghost: null,
                 curveId: firstDetectedCurve.id,
                 target: firstDetectedCurve.target,
                 direction: firstDetectedCurve.d,
@@ -1140,6 +1151,7 @@ export default function IdPage() {
             } else if (withinRangeCurveIds.length > 0) {
               pressing = {
                 shape: shape,
+                ghost: null,
                 curveId: withinRangeCurveIds[0],
                 target: null,
                 direction: null,
@@ -1156,6 +1168,7 @@ export default function IdPage() {
             if (shape.selecting && vertex) {
               pressing = {
                 shape: shape,
+                ghost: null,
                 curveId: null,
                 target: vertex,
                 direction: null,
@@ -1163,6 +1176,7 @@ export default function IdPage() {
             } else if (shape.checkBoundry(p)) {
               pressing = {
                 shape: shape,
+                ghost: cloneDeep(shape),
                 curveId: null,
                 target: CoreTypes.PressingTarget.m,
                 direction: null,
@@ -1462,24 +1476,71 @@ export default function IdPage() {
       ) {
         pressing.shape.resize(offsetP, pressing.target);
       } else if (pressing?.target === CoreTypes.PressingTarget.m) {
-        pressing.shape.move({ x: p.x - lastP.x, y: p.y - lastP.y });
-        const shapesInView = getShapesInView(shapes);
+        // if (_p.y < 0) {
+        //   movingD = CommonTypes.Direction.t;
+        // } else if (_p.y > 0) {
+        //   movingD = CommonTypes.Direction.b;
+        // }
+
+        // if (_p.x < 0) {
+        //   movingD = CommonTypes.Direction.l;
+        // } else if (_p.x > 0) {
+        //   movingD = CommonTypes.Direction.r;
+        // }
+
+        const shapesInView = getShapesInView(
+          shapes.filter((shape) => shape.id !== pressing?.shape?.id)
+        );
         alginLines = getAlignLines(shapesInView, pressing.shape);
 
-        const alignP = getAlignP(shapesInView, pressing.shape);
+        const alignP = getAlignP(shapesInView, pressing.ghost);
 
-        if (alignP && alignY >= -10) {
-          pressing.shape.p = alignP;
-          alignY--;
-        } else if (alignY < -10) {
-          pressing.shape.move({
-            x: 0,
-            y: alignY,
-          });
-          alignY = 0;
+        console.log("alignP", alignP);
+        console.log("moveP", moveP);
+        console.log("p.y - lastP.y", p.y - lastP.y);
+
+        if (alignP) {
+          pressing.shape.locate(alignP);
         }
 
-        console.log("alignY", alignY);
+        if (alignP?.x && !alignP?.y) {
+          pressing.shape.move({
+            x: 0,
+            y: p.y - lastP.y,
+          });
+        }
+
+        if (!alignP?.x && alignP?.y) {
+          pressing.shape.move({
+            x: p.x - lastP.x,
+            y: 0,
+          });
+        }
+
+        if (!alignP?.x && !alignP?.y) {
+          if (pressing.ghost && pressing.shape.p.x !== pressing.ghost?.p.x) {
+            pressing.shape.locate({
+              x: pressing.ghost.p.x,
+              y: null,
+            });
+          }
+
+          if (pressing.ghost && pressing.shape.p.y !== pressing.ghost?.p.y) {
+            pressing.shape.locate({
+              x: null,
+              y: pressing.ghost.p.y,
+            });
+          }
+          pressing.shape.move({
+            x: p.x - lastP.x,
+            y: p.y - lastP.y,
+          });
+        }
+
+        pressing.ghost?.move({
+          x: p.x - lastP.x,
+          y: p.y - lastP.y,
+        });
       } else if (
         !!pressing.curveId &&
         pressing.direction &&

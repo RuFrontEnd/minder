@@ -1372,6 +1372,27 @@ export default class Core {
     bridge.locateHandler(CurveTypes.PressingTarget.p2, this.getCurveP(toP));
   }
 
+  locate(p: { x: null | number; y: null | number }) {
+    if (!p.x && !p.y) return;
+
+    if (!!p.x && !!p.y) {
+      this.p = {
+        x: p.x / this.scale - this.offset.x,
+        y: p.y / this.scale - this.offset.y,
+      };
+    } else if (!!p.x && !p.y) {
+      this.p = {
+        x: p.x / this.scale - this.offset.x,
+        y: this.p.y,
+      };
+    } else if (!!p.y && !p.x) {
+      this.p = {
+        x: this.p.x,
+        y: p.y / this.scale - this.offset.y,
+      };
+    }
+  }
+
   locateCurveHandler(
     curveId: CurveTypes.Id,
     pressingTarget: CurveTypes.PressingTarget,
