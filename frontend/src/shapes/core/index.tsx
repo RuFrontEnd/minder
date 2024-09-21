@@ -1752,6 +1752,7 @@ export default class Core {
 
     ctx.save();
     ctx.translate(this.getScreenP().x, this.getScreenP().y);
+    ctx.globalAlpha = 0.5;
 
     ctx.fillStyle = (() => {
       switch (this.status) {

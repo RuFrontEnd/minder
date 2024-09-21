@@ -496,7 +496,7 @@ const getAlignP = (
       // ||
       // (baseEdge.t >= targetEdge.b - 5 && baseEdge.t <= targetEdge.b + 5)
     ) {
-      output.y = targetShape.p.y - Math.abs(baseShape.h - targetShape.h) / 2;
+      output.y = targetEdge.t + baseShape.h / 2;
     }
   }
 
@@ -553,7 +553,7 @@ const getAlignLines = (
     const baseCenter = baseShape.getCenter();
     // const relativeD = getRelativeD(targetShape, baseShape); // TODO: temp close
 
-    if (baseEdge.t === targetEdge.t || baseEdge.t === targetEdge.b) {
+    if (baseEdge.t === targetEdge.t) {
       // if (relativeD.horizental === CommonTypes.Direction.l) { // TODO: temp close
       lines.push({
         from: {
@@ -608,7 +608,7 @@ const drawShapes = (
     shape.draw(ctx);
   });
 
-  // pressing?.ghost?.draw(ctx);
+  pressing?.ghost?.draw(ctx);
 };
 
 const drawAlignLines = (
@@ -1174,9 +1174,11 @@ export default function IdPage() {
                 direction: null,
               };
             } else if (shape.checkBoundry(p)) {
+              const gh = cloneDeep(shape);
+              gh.title = "ghost";
               pressing = {
                 shape: shape,
-                ghost: cloneDeep(shape),
+                ghost: gh,
                 curveId: null,
                 target: CoreTypes.PressingTarget.m,
                 direction: null,
@@ -1496,8 +1498,6 @@ export default function IdPage() {
         const alignP = getAlignP(shapesInView, pressing.ghost);
 
         console.log("alignP", alignP);
-        console.log("moveP", moveP);
-        console.log("p.y - lastP.y", p.y - lastP.y);
 
         if (alignP) {
           pressing.shape.locate(alignP);
@@ -1541,6 +1541,9 @@ export default function IdPage() {
           x: p.x - lastP.x,
           y: p.y - lastP.y,
         });
+
+        console.log("pressing.shpae", pressing.shape);
+        console.log("pressing.ghost", pressing.ghost);
       } else if (
         !!pressing.curveId &&
         pressing.direction &&
