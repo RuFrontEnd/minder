@@ -451,51 +451,14 @@ const getAlignP = (
   let output: { x: null | number; y: null | number } = { x: null, y: null };
   if (!baseShape || shapes.length === 0) return output;
 
-  // console.log('shapes', shapes)
-  // console.log('baseShape', shapes)
-
-  // const getRelativeD = (
-  //   shape: null | Terminal | Process | Data | Desicion,
-  //   baseShape: null | Terminal | Process | Data | Desicion
-  // ) => {
-  //   const d: {
-  //     horizental: null | CommonTypes.Direction | "m";
-  //     vertical: null | CommonTypes.Direction | "m";
-  //   } = { horizental: null, vertical: null };
-  //   if (!shape || !baseShape) return d;
-
-  //   if (baseShape.p.x > shape.p.x) {
-  //     d.horizental = CommonTypes.Direction.l;
-  //   } else if (baseShape.p.x < shape.p.x) {
-  //     d.horizental = CommonTypes.Direction.r;
-  //   } else {
-  //     d.horizental = "m";
-  //   }
-
-  //   if (baseShape.p.y > shape.p.y) {
-  //     d.vertical = CommonTypes.Direction.t;
-  //   } else if (baseShape.p.x < shape.p.x) {
-  //     d.vertical = CommonTypes.Direction.b;
-  //   } else {
-  //     d.vertical = "m";
-  //   }
-
-  //   return d;
-  // }; // TODO: temp close
-
   for (let i = 0; i < shapes.length; i++) {
     const targetShape = shapes[i];
-    if (targetShape === baseShape) continue;
+    if (targetShape.id === baseShape.id) continue;
 
     const targetEdge = targetShape.getEdge();
     const baseEdge = baseShape.getEdge();
 
-    if (
-      baseEdge.t >= targetEdge.t - 10 &&
-      baseEdge.t <= targetEdge.t + 10
-      // ||
-      // (baseEdge.t >= targetEdge.b - 5 && baseEdge.t <= targetEdge.b + 5)
-    ) {
+    if (baseEdge.t >= targetEdge.t - 10 && baseEdge.t <= targetEdge.t + 10) {
       output.y = targetEdge.t + baseShape.h / 2;
     }
   }
@@ -513,70 +476,20 @@ const getAlignLines = (
     to: CommonTypes.Vec;
   }[] = [];
 
-  // console.log('shapes', shapes)
-  // console.log('baseShape', shapes)
-
-  // const getRelativeD = (
-  //   shape: null | Terminal | Process | Data | Desicion,
-  //   baseShape: null | Terminal | Process | Data | Desicion
-  // ) => {
-  //   const d: {
-  //     horizental: null | CommonTypes.Direction | "m";
-  //     vertical: null | CommonTypes.Direction | "m";
-  //   } = { horizental: null, vertical: null };
-  //   if (!shape || !baseShape) return d;
-
-  //   if (baseShape.p.x > shape.p.x) {
-  //     d.horizental = CommonTypes.Direction.l;
-  //   } else if (baseShape.p.x < shape.p.x) {
-  //     d.horizental = CommonTypes.Direction.r;
-  //   } else {
-  //     d.horizental = "m";
-  //   }
-
-  //   if (baseShape.p.y > shape.p.y) {
-  //     d.vertical = CommonTypes.Direction.t;
-  //   } else if (baseShape.p.x < shape.p.x) {
-  //     d.vertical = CommonTypes.Direction.b;
-  //   } else {
-  //     d.vertical = "m";
-  //   }
-
-  //   return d;
-  // }; // TODO: temp close
-
-  const shapes_algin_t: {
-    min: Terminal | Process | Data | Desicion;
-    max: Terminal | Process | Data | Desicion;
-  } = {
-    min: baseShape,
-    max: baseShape,
-  };
-
   const baseEdge = baseShape.getEdge();
 
-  shapes.forEach((targetShape) => {
-    if (targetShape === baseShape) return;
-    const targetEdge = targetShape.getEdge();
-    const targetCenter = targetShape.getCenter();
+  const align_top_shapes = shapes
+    .filter((targetShape) => baseEdge.t === targetShape.getEdge().t)
+    .sort((a, b) => a.p.x - b.p.x);
 
-    if (baseEdge.t === targetEdge.t) {
-      if (targetCenter.m.x < shapes_algin_t.min.p.x) {
-        shapes_algin_t.min = targetShape;
-      } else if (targetCenter.m.x > shapes_algin_t.max.p.x) {
-        shapes_algin_t.max = targetShape;
-      }
-    }
-  });
-
-  if (shapes_algin_t.min.id !== shapes_algin_t.max.id) {
+  if (align_top_shapes[0] && align_top_shapes[align_top_shapes.length - 1]) {
     lines.push({
       from: {
-        x: shapes_algin_t.min.p.x,
+        x: align_top_shapes[0].p.x,
         y: baseEdge.t - 1,
       },
       to: {
-        x: shapes_algin_t.max.p.x,
+        x: align_top_shapes[align_top_shapes.length - 1].p.x,
         y: baseEdge.t - 1,
       },
     });
@@ -1491,26 +1404,10 @@ export default function IdPage() {
       ) {
         pressing.shape.resize(offsetP, pressing.target);
       } else if (pressing?.target === CoreTypes.PressingTarget.m) {
-        // if (_p.y < 0) {
-        //   movingD = CommonTypes.Direction.t;
-        // } else if (_p.y > 0) {
-        //   movingD = CommonTypes.Direction.b;
-        // }
-
-        // if (_p.x < 0) {
-        //   movingD = CommonTypes.Direction.l;
-        // } else if (_p.x > 0) {
-        //   movingD = CommonTypes.Direction.r;
-        // }
-
-        const shapesInView = getShapesInView(
-          shapes.filter((shape) => shape.id !== pressing?.shape?.id)
-        );
+        const shapesInView = getShapesInView(shapes);
         alginLines = getAlignLines(shapesInView, pressing.shape);
 
         const alignP = getAlignP(shapesInView, pressing.ghost);
-
-        console.log("alignP", alignP);
 
         if (alignP) {
           pressing.shape.locate(alignP);
@@ -1554,9 +1451,6 @@ export default function IdPage() {
           x: p.x - lastP.x,
           y: p.y - lastP.y,
         });
-
-        console.log("pressing.shpae", pressing.shape);
-        console.log("pressing.ghost", pressing.ghost);
       } else if (
         !!pressing.curveId &&
         pressing.direction &&
