@@ -545,29 +545,42 @@ const getAlignLines = (
   //   return d;
   // }; // TODO: temp close
 
+  const shapes_algin_t: {
+    min: Terminal | Process | Data | Desicion;
+    max: Terminal | Process | Data | Desicion;
+  } = {
+    min: baseShape,
+    max: baseShape,
+  };
+
+  const baseEdge = baseShape.getEdge();
+
   shapes.forEach((targetShape) => {
     if (targetShape === baseShape) return;
     const targetEdge = targetShape.getEdge();
-    const baseEdge = baseShape.getEdge();
     const targetCenter = targetShape.getCenter();
-    const baseCenter = baseShape.getCenter();
-    // const relativeD = getRelativeD(targetShape, baseShape); // TODO: temp close
 
     if (baseEdge.t === targetEdge.t) {
-      // if (relativeD.horizental === CommonTypes.Direction.l) { // TODO: temp close
-      lines.push({
-        from: {
-          x: targetCenter.m.x,
-          y: targetEdge.t - 1,
-        },
-        to: {
-          x: baseCenter.m.x,
-          y: targetEdge.t - 1,
-        },
-      });
-      // }
+      if (targetCenter.m.x < shapes_algin_t.min.p.x) {
+        shapes_algin_t.min = targetShape;
+      } else if (targetCenter.m.x > shapes_algin_t.max.p.x) {
+        shapes_algin_t.max = targetShape;
+      }
     }
   });
+
+  if (shapes_algin_t.min.id !== shapes_algin_t.max.id) {
+    lines.push({
+      from: {
+        x: shapes_algin_t.min.p.x,
+        y: baseEdge.t - 1,
+      },
+      to: {
+        x: shapes_algin_t.max.p.x,
+        y: baseEdge.t - 1,
+      },
+    });
+  }
 
   return lines;
 };
@@ -608,7 +621,7 @@ const drawShapes = (
     shape.draw(ctx);
   });
 
-  pressing?.ghost?.draw(ctx);
+  // pressing?.ghost?.draw(ctx);
 };
 
 const drawAlignLines = (
