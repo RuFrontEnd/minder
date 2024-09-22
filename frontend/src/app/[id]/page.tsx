@@ -451,6 +451,9 @@ const getAlignP = (
   let output: { x: null | number; y: null | number } = { x: null, y: null };
   if (!baseShape || shapes.length === 0) return output;
 
+  console.log("baseShape", baseShape);
+  console.log("shapes", shapes);
+
   for (let i = 0; i < shapes.length; i++) {
     const targetShape = shapes[i];
     if (targetShape.id === baseShape.id) continue;
@@ -1094,21 +1097,21 @@ export default function IdPage() {
           shapes.forEach((_, shapeI, shapes) => {
             const shape = shapes[shapes.length - 1 - shapeI];
             if (!!pressing) return;
+            const _ghost = cloneDeep(shape);
+            _ghost.title = "ghost";
             const vertex = shape.checkVertexesBoundry(p);
             if (shape.selecting && vertex) {
               pressing = {
                 shape: shape,
-                ghost: null,
+                ghost: _ghost,
                 curveId: null,
                 target: vertex,
                 direction: null,
               };
             } else if (shape.checkBoundry(p)) {
-              const gh = cloneDeep(shape);
-              gh.title = "ghost";
               pressing = {
                 shape: shape,
-                ghost: gh,
+                ghost: _ghost,
                 curveId: null,
                 target: CoreTypes.PressingTarget.m,
                 direction: null,
@@ -1406,14 +1409,91 @@ export default function IdPage() {
         pressing?.target === CoreTypes.PressingTarget.rb ||
         pressing?.target === CoreTypes.PressingTarget.lb
       ) {
-        pressing.shape.resize(offsetP, pressing.target);
+        // pressing.shape.resize(offsetP, pressing.target);
+        // const shapesInView = getShapesInView(shapes);
+        // console.log("shapesInView", shapesInView);
+
+        // alginLines = getAlignLines(shapesInView, pressing.shape);
+
+        // const alignP = getAlignP(shapesInView, pressing.ghost);
+
+        // console.log("alignP", alignP);
+
+        // if (alignP?.x || alignP?.y) {
+        //   pressing.shape.resize(offsetP, pressing.target);
+        // }
+
+        // if (alignP?.x && !alignP?.y) {
+        //   pressing.shape.resize(
+        //     {
+        //       x: offsetP.x,
+        //       y: 0,
+        //     },
+        //     pressing.target
+        //   );
+        // }
+
+        // if (!alignP?.x && alignP?.y) {
+          // pressing.shape.resize(
+          //   {
+          //     x: 0,
+          //     y: offsetP.y,
+          //   },
+          //   pressing.target
+          // );
+        // }
+
+        // if (!alignP?.x && !alignP?.y) {
+          pressing.shape.resize(offsetP, pressing.target);
+        // }
+
+        // pressing.ghost?.resize(offsetP, pressing.target);
+
+        // if (alignP?.x && !alignP?.y) {
+        //   pressing.shape.move({
+        //     x: 0,
+        //     y: p.y - lastP.y,
+        //   });
+        // }
+
+        // if (!alignP?.x && alignP?.y) {
+        //   pressing.shape.move({
+        //     x: p.x - lastP.x,
+        //     y: 0,
+        //   });
+        // }
+
+        // if (!alignP?.x && !alignP?.y) {
+        //   if (pressing.ghost && pressing.shape.p.x !== pressing.ghost?.p.x) {
+        //     pressing.shape.locate({
+        //       x: pressing.ghost.getCenter().m.x,
+        //       y: null,
+        //     });
+        //   }
+
+        //   if (pressing.ghost && pressing.shape.p.y !== pressing.ghost?.p.y) {
+        //     pressing.shape.locate({
+        //       x: null,
+        //       y: pressing.ghost.getCenter().m.y,
+        //     });
+        //   }
+        //   pressing.shape.move({
+        //     x: p.x - lastP.x,
+        //     y: p.y - lastP.y,
+        //   });
+        // }
+
+        // pressing.ghost?.move({
+        //   x: p.x - lastP.x,
+        //   y: p.y - lastP.y,
+        // });
       } else if (pressing?.target === CoreTypes.PressingTarget.m) {
         const shapesInView = getShapesInView(shapes);
         alginLines = getAlignLines(shapesInView, pressing.shape);
 
         const alignP = getAlignP(shapesInView, pressing.ghost);
 
-        if (alignP) {
+        if (alignP?.x || alignP?.y) {
           pressing.shape.locate(alignP);
         }
 
