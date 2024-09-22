@@ -459,7 +459,7 @@ const getAlignP = (
     const baseEdge = baseShape.getEdge();
 
     if (baseEdge.t >= targetEdge.t - 10 && baseEdge.t <= targetEdge.t + 10) {
-      output.y = targetEdge.t + baseShape.h / 2;
+      output.y = targetEdge.t + baseShape.getScaleSize().h / 2;
     }
   }
 
@@ -479,17 +479,21 @@ const getAlignLines = (
   const baseEdge = baseShape.getEdge();
 
   const align_top_shapes = shapes
-    .filter((targetShape) => baseEdge.t === targetShape.getEdge().t)
+    .filter(
+      (targetShape) =>
+        Number(baseEdge.t.toFixed(1)) ===
+        Number(targetShape.getEdge().t.toFixed(1))
+    )
     .sort((a, b) => a.p.x - b.p.x);
 
   if (align_top_shapes[0] && align_top_shapes[align_top_shapes.length - 1]) {
     lines.push({
       from: {
-        x: align_top_shapes[0].p.x,
+        x: align_top_shapes[0].getCenter().m.x,
         y: baseEdge.t - 1,
       },
       to: {
-        x: align_top_shapes[align_top_shapes.length - 1].p.x,
+        x: align_top_shapes[align_top_shapes.length - 1].getCenter().m.x,
         y: baseEdge.t - 1,
       },
     });
@@ -1430,7 +1434,7 @@ export default function IdPage() {
         if (!alignP?.x && !alignP?.y) {
           if (pressing.ghost && pressing.shape.p.x !== pressing.ghost?.p.x) {
             pressing.shape.locate({
-              x: pressing.ghost.p.x,
+              x: pressing.ghost.getCenter().m.x,
               y: null,
             });
           }
@@ -1438,7 +1442,7 @@ export default function IdPage() {
           if (pressing.ghost && pressing.shape.p.y !== pressing.ghost?.p.y) {
             pressing.shape.locate({
               x: null,
-              y: pressing.ghost.p.y,
+              y: pressing.ghost.getCenter().m.y,
             });
           }
           pressing.shape.move({
