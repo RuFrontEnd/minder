@@ -199,7 +199,7 @@ export default class Core {
     });
 
     this.curves[Direction.r].forEach((sendCurve) => {
-      sendCurve.shape.p1.x -= offset;
+      sendCurve.shape.p1.x = value / 2;
       sendCurve.shape.cp1.x -= offset;
 
       if (sendCurve.sendTo) return;
