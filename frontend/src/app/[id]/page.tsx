@@ -451,9 +451,6 @@ const getAlignP = (
   let output: { x: null | number; y: null | number } = { x: null, y: null };
   if (!baseShape || shapes.length === 0) return output;
 
-  console.log("baseShape", baseShape);
-  console.log("shapes", shapes);
-
   for (let i = 0; i < shapes.length; i++) {
     const targetShape = shapes[i];
     if (targetShape.id === baseShape.id) continue;
@@ -1434,17 +1431,17 @@ export default function IdPage() {
         // }
 
         // if (!alignP?.x && alignP?.y) {
-          // pressing.shape.resize(
-          //   {
-          //     x: 0,
-          //     y: offsetP.y,
-          //   },
-          //   pressing.target
-          // );
+        // pressing.shape.resize(
+        //   {
+        //     x: 0,
+        //     y: offsetP.y,
+        //   },
+        //   pressing.target
+        // );
         // }
 
         // if (!alignP?.x && !alignP?.y) {
-          pressing.shape.resize(offsetP, pressing.target);
+        pressing.shape.resize(offsetP, pressing.target);
         // }
 
         // pressing.ghost?.resize(offsetP, pressing.target);

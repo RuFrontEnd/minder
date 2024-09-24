@@ -199,21 +199,46 @@ export default class Core {
     });
 
     this.curves[Direction.r].forEach((sendCurve) => {
-      sendCurve.shape.p1.x = value / 2;
-      sendCurve.shape.cp1.x -= offset;
-
-      if (sendCurve.sendTo) return;
-
-      sendCurve.shape.p2 = {
-        ...sendCurve.shape.p2,
-        x: sendCurve.shape.p2.x - offset,
+      sendCurve.shape.p1 = {
+        ...sendCurve.shape.p1,
+        x: value / 2,
       };
-      sendCurve.shape.cp2.x -= offset;
+
+      // sendCurve.shape.cp1.x -= offset;
+
+      // if (sendCurve.sendTo) {
+      // console.log(" sendCurve.shape.p1", sendCurve.shape.p1);
+
+      // console.log(" sendCurve.shape.p2", sendCurve.shape.p2);
+
+      //   sendCurve.shape.p2 = sendCurve.shape.p2;
+
+      //   const [cp1, cp2] = this.moveBridgeCurve(
+      //     Direction.r,
+      //     sendCurve.sendTo.d,
+      //     sendCurve.shape.p1,
+      //     sendCurve.shape.p2,
+      //     sendCurve.shape.arrowAttr.h
+      //   );
+
+      //   if (!cp1 || !cp2) return;
+
+      //   sendCurve.shape.cp1 = cp1;
+      //   sendCurve.shape.cp2 = cp2;
+
+      //   console.log(" sendCurve.shape.p2", sendCurve.shape.p2);
+      // } else {
+      //   sendCurve.shape.p2 = {
+      //     ...sendCurve.shape.p2,
+      //     x: sendCurve.shape.p2.x - offset,
+      //   };
+      //   sendCurve.shape.cp2.x -= offset;
+      // }
     });
 
     // when receiver width changes, receiver curve follows the sender shape
 
-    this.receiveFrom.l?.forEach((receiveFromItem) => {
+    this.receiveFrom[Direction.l]?.forEach((receiveFromItem) => {
       const bridge = receiveFromItem.shape.curves[receiveFromItem.d].find(
         (sendCurve) => sendCurve.shape.id === receiveFromItem.bridgeId
       );
@@ -226,7 +251,7 @@ export default class Core {
       bridge.shape.cp2.x += offset;
     });
 
-    this.receiveFrom.r?.forEach((receiveFromItem) => {
+    this.receiveFrom[Direction.r]?.forEach((receiveFromItem) => {
       const bridge = receiveFromItem.shape.curves[receiveFromItem.d].find(
         (sendCurve) => sendCurve.shape.id === receiveFromItem.bridgeId
       );
@@ -1533,15 +1558,10 @@ export default class Core {
     //   }
     // } else
     if (vertex === CoreTypes.PressingTarget.rb) {
-      console.log("===");
-      console.log("offset", offset);
       const rw = this.w / this.h;
       const ow = (offset.x * 1 + offset.y * rw) / this.scale;
       const rh = this.h / this.w;
       const oh = (offset.x * rh + offset.y * 1) / this.scale;
-
-      console.log("rw", rw);
-      console.log("ow", ow);
 
       _w =
         // this.w + offset.x / this.scale <= 0
@@ -1575,8 +1595,6 @@ export default class Core {
       this.h = Math.abs(_h);
       // }
 
-      console.log("this.w", this.w);
-      console.log("this.h", this.h);
     }
     // else if (vertex === CoreTypes.PressingTarget.lb) {
     //   _w =
