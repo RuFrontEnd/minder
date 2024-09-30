@@ -1524,100 +1524,76 @@ export default class Core {
     let _w = this.w,
       _h = this.h;
 
-    // if (vertex === CoreTypes.PressingTarget.lt) {
-    //   _w =
-    //     this.w - offset.x / this.scale <= 0
-    //       ? 0
-    //       : this.w - offset.x / this.scale;
-    //   _h =
-    //     this.h - offset.y / this.scale <= 0
-    //       ? 0
-    //       : this.h - offset.y / this.scale;
-
-    //   if (_w > 0 || offset.x < 0) {
-    //     this.w = Math.abs(_w);
-    //   }
-    //   if (this.h > 0 || offset.y < 0) {
-    //     this.h = Math.abs(_h);
-    //   }
-    // } else if (vertex === CoreTypes.PressingTarget.rt) {
-    //   _w =
-    //     this.w + offset.x / this.scale <= 0
-    //       ? 0
-    //       : this.w + offset.x / this.scale;
-    //   _h =
-    //     this.h - offset.y / this.scale <= 0
-    //       ? 0
-    //       : this.h - offset.y / this.scale;
-
-    //   if (_w > 0 || offset.x > 0) {
-    //     this.w = Math.abs(_w);
-    //   }
-    //   if (this.h > 0 || offset.y < 0) {
-    //     this.h = Math.abs(_h);
-    //   }
-    // } else
-    if (vertex === CoreTypes.PressingTarget.rb) {
-      const rw = this.w / this.h;
-      const ow = (offset.x * 1 + offset.y * rw) / this.scale;
-      const rh = this.h / this.w;
-      const oh = (offset.x * rh + offset.y * 1) / this.scale;
-
+    if (vertex === CoreTypes.PressingTarget.lt) {
       _w =
-        // this.w + offset.x / this.scale <= 0
-        //   ? 0
-        //   :
-        this.w + ow;
+        this.w - offset.x / this.scale <= 0
+          ? 0
+          : this.w - offset.x / this.scale;
       _h =
-        // this.h + offset.y / this.scale <= 0
-        //   ? 0
-        //   :
-        this.h + oh;
+        this.h - offset.y / this.scale <= 0
+          ? 0
+          : this.h - offset.y / this.scale;
 
-      // console.log(
-      //   "+w",
-      //   ((offset.x * this.w) / (this.w + this.h) +
-      //     (offset.y * this.w) / (this.w + this.h)) /
-      //     this.scale
-      // );
+      if (_w > 0 || offset.x < 0) {
+        this.w = Math.abs(_w);
+      }
+      if (this.h > 0 || offset.y < 0) {
+        this.h = Math.abs(_h);
+      }
+    } else if (vertex === CoreTypes.PressingTarget.rt) {
+      _w =
+        this.w + offset.x / this.scale <= 0
+          ? 0
+          : this.w + offset.x / this.scale;
+      _h =
+        this.h - offset.y / this.scale <= 0
+          ? 0
+          : this.h - offset.y / this.scale;
 
-      // console.log(
-      //   "+h",
-      //   ((offset.x * this.h) / (this.w + this.h) +
-      //     (offset.y * this.h) / (this.w + this.h)) /
-      //     this.scale
-      // );
+      if (_w > 0 || offset.x > 0) {
+        this.w = Math.abs(_w);
+      }
+      if (this.h > 0 || offset.y < 0) {
+        this.h = Math.abs(_h);
+      }
+    } else if (vertex === CoreTypes.PressingTarget.rb) {
+      _w =
+        this.w + offset.x / this.scale <= 0
+          ? 0
+          : this.w + offset.x / this.scale;
+      _h =
+        this.h + offset.y / this.scale <= 0
+          ? 0
+          : this.h + offset.y / this.scale;
 
-      // if (_w > 0 || offset.x > 0) {
-      this.w = Math.abs(_w);
-      // }
-      // if (this.h > 0 || offset.y > 0) {
-      this.h = Math.abs(_h);
-      // }
+      if (_w > 0 || offset.x > 0) {
+        this.w = Math.abs(_w);
+      }
+      if (this.h > 0 || offset.y > 0) {
+        this.h = Math.abs(_h);
+      }
+    } else if (vertex === CoreTypes.PressingTarget.lb) {
+      _w =
+        this.w - offset.x / this.scale <= 0
+          ? 0
+          : this.w - offset.x / this.scale;
+      _h =
+        this.h + offset.y / this.scale <= 0
+          ? 0
+          : this.h + offset.y / this.scale;
 
+      if (_w > 0 || offset.x < 0) {
+        this.w = Math.abs(_w);
+      }
+      if (this.h > 0 || offset.y > 0) {
+        this.h = Math.abs(_h);
+      }
     }
-    // else if (vertex === CoreTypes.PressingTarget.lb) {
-    //   _w =
-    //     this.w - offset.x / this.scale <= 0
-    //       ? 0
-    //       : this.w - offset.x / this.scale;
-    //   _h =
-    //     this.h + offset.y / this.scale <= 0
-    //       ? 0
-    //       : this.h + offset.y / this.scale;
 
-    //   if (_w > 0 || offset.x < 0) {
-    //     this.w = Math.abs(_w);
-    //   }
-    //   if (this.h > 0 || offset.y > 0) {
-    //     this.h = Math.abs(_h);
-    //   }
-    // }
-
-    // this.p = {
-    //   x: _w > 0 ? this.p.x + offset.x / 2 / this.scale : this.p.x,
-    //   y: _h > 0 ? this.p.y + offset.y / 2 / this.scale : this.p.y,
-    // };
+    this.p = {
+      x: _w > 0 ? this.p.x + offset.x / 2 / this.scale : this.p.x,
+      y: _h > 0 ? this.p.y + offset.y / 2 / this.scale : this.p.y,
+    };
   }
 
   initializeCurve(id: string, _d: Direction) {
