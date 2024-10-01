@@ -460,11 +460,19 @@ const getAlignP = (
     const threshold = 10;
 
     if (
+      baseEdge.t >= targetEdge.t - threshold &&
+      baseEdge.t <= targetEdge.t + threshold
+    ) {
+      output.y = targetEdge.t + baseShape.getScaleSize().h / 2;
+    }
+
+    if (
       baseEdge.t >= targetEdge.b - threshold &&
       baseEdge.t <= targetEdge.b + threshold
     ) {
       output.y = targetEdge.b + baseShape.getScaleSize().h / 2;
     }
+
     if (
       baseEdge.b >= targetEdge.t - threshold &&
       baseEdge.b <= targetEdge.t + threshold
