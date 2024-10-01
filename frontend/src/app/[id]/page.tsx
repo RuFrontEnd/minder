@@ -456,37 +456,28 @@ const getAlignP = (
     if (targetShape.id === baseShape.id) continue;
 
     const targetEdge = targetShape.getEdge();
+    const targetCenter = targetShape.getCenter().m;
     const baseEdge = baseShape.getEdge();
+    const baseCenter = baseShape.getCenter().m;
     const threshold = 10;
 
+    // center x & center x
     if (
-      baseEdge.t >= targetEdge.t - threshold &&
-      baseEdge.t <= targetEdge.t + threshold
+      baseCenter.x >= targetCenter.x - threshold &&
+      baseCenter.x <= targetCenter.x + threshold
     ) {
-      output.y = targetEdge.t + baseShape.getScaleSize().h / 2;
+      output.x = targetCenter.x;
     }
 
+    // center y & center y
     if (
-      baseEdge.t >= targetEdge.b - threshold &&
-      baseEdge.t <= targetEdge.b + threshold
+      baseCenter.y >= targetCenter.y - threshold &&
+      baseCenter.y <= targetCenter.y + threshold
     ) {
-      output.y = targetEdge.b + baseShape.getScaleSize().h / 2;
+      output.y = targetCenter.y;
     }
 
-    if (
-      baseEdge.b >= targetEdge.t - threshold &&
-      baseEdge.b <= targetEdge.t + threshold
-    ) {
-      output.y = targetEdge.t - baseShape.getScaleSize().h / 2;
-    }
-
-    if (
-      baseEdge.b >= targetEdge.b - threshold &&
-      baseEdge.b <= targetEdge.b + threshold
-    ) {
-      output.y = targetEdge.b - baseShape.getScaleSize().h / 2;
-    }
-
+    // left & left
     if (
       baseEdge.l >= targetEdge.l - threshold &&
       baseEdge.l <= targetEdge.l + threshold
@@ -494,6 +485,7 @@ const getAlignP = (
       output.x = targetEdge.l + baseShape.getScaleSize().w / 2;
     }
 
+    // left & right
     if (
       baseEdge.l >= targetEdge.r - threshold &&
       baseEdge.l <= targetEdge.r + threshold
@@ -501,6 +493,23 @@ const getAlignP = (
       output.x = targetEdge.r + baseShape.getScaleSize().w / 2;
     }
 
+    // top & top
+    if (
+      baseEdge.t >= targetEdge.t - threshold &&
+      baseEdge.t <= targetEdge.t + threshold
+    ) {
+      output.y = targetEdge.t + baseShape.getScaleSize().h / 2;
+    }
+
+    // top & bottom
+    if (
+      baseEdge.t >= targetEdge.b - threshold &&
+      baseEdge.t <= targetEdge.b + threshold
+    ) {
+      output.y = targetEdge.b + baseShape.getScaleSize().h / 2;
+    }
+
+    // right & right
     if (
       baseEdge.r >= targetEdge.l - threshold &&
       baseEdge.r <= targetEdge.l + threshold
@@ -508,11 +517,28 @@ const getAlignP = (
       output.x = targetEdge.l - baseShape.getScaleSize().w / 2;
     }
 
+    // right & left
     if (
       baseEdge.r >= targetEdge.r - threshold &&
       baseEdge.r <= targetEdge.r + threshold
     ) {
       output.x = targetEdge.r - baseShape.getScaleSize().w / 2;
+    }
+
+    // bottom & bottom
+    if (
+      baseEdge.b >= targetEdge.b - threshold &&
+      baseEdge.b <= targetEdge.b + threshold
+    ) {
+      output.y = targetEdge.b - baseShape.getScaleSize().h / 2;
+    }
+
+    // bottom & top
+    if (
+      baseEdge.b >= targetEdge.t - threshold &&
+      baseEdge.b <= targetEdge.t + threshold
+    ) {
+      output.y = targetEdge.t - baseShape.getScaleSize().h / 2;
     }
   }
 
@@ -529,32 +555,65 @@ const getAlignLines = (
     to: CommonTypes.Vec;
   }[] = [];
 
-  const baseEdge = baseShape.getEdge();
+  const baseCenter = baseShape.getCenter().m;
 
-  // 顶部对齐顶部
-  const align_top_shapes = shapes
+  // center x & center x
+  const align_center_x_shapes = shapes
     .filter(
       (targetShape) =>
-        Number(baseEdge.t.toFixed(1)) ===
-          Number(targetShape.getEdge().t.toFixed(1)) ||
+        Number(baseCenter.x.toFixed(1)) ===
+          Number(targetShape.getCenter().m.x.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.x - b.p.x);
 
-  if (align_top_shapes[0] && align_top_shapes[align_top_shapes.length - 1]) {
+  if (
+    align_center_x_shapes[0] &&
+    align_center_x_shapes[align_center_x_shapes.length - 1]
+  ) {
     lines.push({
       from: {
-        x: align_top_shapes[0].getCenter().m.x,
-        y: baseEdge.t - 1,
+        x: baseCenter.x,
+        y: align_center_x_shapes[0].getCenter().m.y,
       },
       to: {
-        x: align_top_shapes[align_top_shapes.length - 1].getCenter().m.x,
-        y: baseEdge.t - 1,
+        x: baseCenter.x,
+        y: align_center_x_shapes[align_center_x_shapes.length - 1].getCenter().m
+          .y,
       },
     });
   }
 
-  // 左边对齐左边
+  // center y & center y
+  const align_center_y_shapes = shapes
+    .filter(
+      (targetShape) =>
+        Number(baseCenter.y.toFixed(1)) ===
+          Number(targetShape.getCenter().m.y.toFixed(1)) ||
+        targetShape.id === baseShape.id
+    )
+    .sort((a, b) => a.p.y - b.p.y);
+
+  if (
+    align_center_y_shapes[0] &&
+    align_center_y_shapes[align_center_y_shapes.length - 1]
+  ) {
+    lines.push({
+      from: {
+        x: align_center_y_shapes[0].getCenter().m.x,
+        y: baseCenter.y,
+      },
+      to: {
+        x: align_center_y_shapes[align_center_y_shapes.length - 1].getCenter().m
+          .x,
+        y: baseCenter.y,
+      },
+    });
+  }
+
+  const baseEdge = baseShape.getEdge();
+
+  // left & left
   const align_left_shapes = shapes
     .filter(
       (targetShape) =>
@@ -577,115 +636,7 @@ const getAlignLines = (
     });
   }
 
-  // 右边对齐右边
-  const align_right_shapes = shapes
-    .filter(
-      (targetShape) =>
-        Number(baseEdge.r.toFixed(1)) ===
-          Number(targetShape.getEdge().r.toFixed(1)) ||
-        targetShape.id === baseShape.id
-    )
-    .sort((a, b) => a.p.y - b.p.y);
-
-  if (
-    align_right_shapes[0] &&
-    align_right_shapes[align_right_shapes.length - 1]
-  ) {
-    lines.push({
-      from: {
-        x: baseEdge.r + 1,
-        y: align_right_shapes[0].getCenter().m.y,
-      },
-      to: {
-        x: baseEdge.r + 1,
-        y: align_right_shapes[align_right_shapes.length - 1].getCenter().m.y,
-      },
-    });
-  }
-
-  // 底部对齐底部
-  const align_bottom_shapes = shapes
-    .filter(
-      (targetShape) =>
-        Number(baseEdge.b.toFixed(1)) ===
-          Number(targetShape.getEdge().b.toFixed(1)) ||
-        targetShape.id === baseShape.id
-    )
-    .sort((a, b) => a.p.x - b.p.x);
-
-  if (
-    align_bottom_shapes[0] &&
-    align_bottom_shapes[align_bottom_shapes.length - 1]
-  ) {
-    lines.push({
-      from: {
-        x: align_bottom_shapes[0].getCenter().m.x,
-        y: baseEdge.b + 1,
-      },
-      to: {
-        x: align_bottom_shapes[align_bottom_shapes.length - 1].getCenter().m.x,
-        y: baseEdge.b + 1,
-      },
-    });
-  }
-
-  // 上对齐下
-  const align_top_to_bottom_shapes = shapes
-    .filter(
-      (targetShape) =>
-        Number(baseEdge.t.toFixed(1)) ===
-          Number(targetShape.getEdge().b.toFixed(1)) ||
-        targetShape.id === baseShape.id
-    )
-    .sort((a, b) => a.p.x - b.p.x);
-
-  if (
-    align_top_to_bottom_shapes[0] &&
-    align_top_to_bottom_shapes[align_top_to_bottom_shapes.length - 1]
-  ) {
-    lines.push({
-      from: {
-        x: align_top_to_bottom_shapes[0].getCenter().m.x,
-        y: baseEdge.t - 1,
-      },
-      to: {
-        x: align_top_to_bottom_shapes[
-          align_top_to_bottom_shapes.length - 1
-        ].getCenter().m.x,
-        y: baseEdge.t - 1,
-      },
-    });
-  }
-
-  // 下对齐上
-  const align_bottom_to_top_shapes = shapes
-    .filter(
-      (targetShape) =>
-        Number(baseEdge.b.toFixed(1)) ===
-          Number(targetShape.getEdge().t.toFixed(1)) ||
-        targetShape.id === baseShape.id
-    )
-    .sort((a, b) => a.p.x - b.p.x);
-
-  if (
-    align_bottom_to_top_shapes[0] &&
-    align_bottom_to_top_shapes[align_bottom_to_top_shapes.length - 1]
-  ) {
-    lines.push({
-      from: {
-        x: align_bottom_to_top_shapes[0].getCenter().m.x,
-        y: baseEdge.b + 1,
-      },
-      to: {
-        x: align_bottom_to_top_shapes[
-          align_bottom_to_top_shapes.length - 1
-        ].getCenter().m.x,
-        y: baseEdge.b + 1,
-      },
-    });
-  }
-
-  // 左对齐右
+  // left & right
   const align_left_to_right_shapes = shapes
     .filter((targetShape) => {
       return (
@@ -714,7 +665,84 @@ const getAlignLines = (
     });
   }
 
-  // 右对齐左
+  // top & top
+  const align_top_shapes = shapes
+    .filter(
+      (targetShape) =>
+        Number(baseEdge.t.toFixed(1)) ===
+          Number(targetShape.getEdge().t.toFixed(1)) ||
+        targetShape.id === baseShape.id
+    )
+    .sort((a, b) => a.p.x - b.p.x);
+
+  if (align_top_shapes[0] && align_top_shapes[align_top_shapes.length - 1]) {
+    lines.push({
+      from: {
+        x: align_top_shapes[0].getCenter().m.x,
+        y: baseEdge.t - 1,
+      },
+      to: {
+        x: align_top_shapes[align_top_shapes.length - 1].getCenter().m.x,
+        y: baseEdge.t - 1,
+      },
+    });
+  }
+
+  // top & bottom
+  const align_top_to_bottom_shapes = shapes
+    .filter(
+      (targetShape) =>
+        Number(baseEdge.t.toFixed(1)) ===
+          Number(targetShape.getEdge().b.toFixed(1)) ||
+        targetShape.id === baseShape.id
+    )
+    .sort((a, b) => a.p.x - b.p.x);
+
+  if (
+    align_top_to_bottom_shapes[0] &&
+    align_top_to_bottom_shapes[align_top_to_bottom_shapes.length - 1]
+  ) {
+    lines.push({
+      from: {
+        x: align_top_to_bottom_shapes[0].getCenter().m.x,
+        y: baseEdge.t - 1,
+      },
+      to: {
+        x: align_top_to_bottom_shapes[
+          align_top_to_bottom_shapes.length - 1
+        ].getCenter().m.x,
+        y: baseEdge.t - 1,
+      },
+    });
+  }
+
+  // right & right
+  const align_right_shapes = shapes
+    .filter(
+      (targetShape) =>
+        Number(baseEdge.r.toFixed(1)) ===
+          Number(targetShape.getEdge().r.toFixed(1)) ||
+        targetShape.id === baseShape.id
+    )
+    .sort((a, b) => a.p.y - b.p.y);
+
+  if (
+    align_right_shapes[0] &&
+    align_right_shapes[align_right_shapes.length - 1]
+  ) {
+    lines.push({
+      from: {
+        x: baseEdge.r + 1,
+        y: align_right_shapes[0].getCenter().m.y,
+      },
+      to: {
+        x: baseEdge.r + 1,
+        y: align_right_shapes[align_right_shapes.length - 1].getCenter().m.y,
+      },
+    });
+  }
+
+  // right & left
   const align_right_to_left_shapes = shapes
     .filter(
       (targetShape) =>
@@ -738,6 +766,60 @@ const getAlignLines = (
         y: align_right_to_left_shapes[
           align_right_to_left_shapes.length - 1
         ].getCenter().m.y,
+      },
+    });
+  }
+
+  // bottom & bottom
+  const align_bottom_shapes = shapes
+    .filter(
+      (targetShape) =>
+        Number(baseEdge.b.toFixed(1)) ===
+          Number(targetShape.getEdge().b.toFixed(1)) ||
+        targetShape.id === baseShape.id
+    )
+    .sort((a, b) => a.p.x - b.p.x);
+
+  if (
+    align_bottom_shapes[0] &&
+    align_bottom_shapes[align_bottom_shapes.length - 1]
+  ) {
+    lines.push({
+      from: {
+        x: align_bottom_shapes[0].getCenter().m.x,
+        y: baseEdge.b + 1,
+      },
+      to: {
+        x: align_bottom_shapes[align_bottom_shapes.length - 1].getCenter().m.x,
+        y: baseEdge.b + 1,
+      },
+    });
+  }
+
+  // bottom & top
+  const align_bottom_to_top_shapes = shapes
+    .filter(
+      (targetShape) =>
+        Number(baseEdge.b.toFixed(1)) ===
+          Number(targetShape.getEdge().t.toFixed(1)) ||
+        targetShape.id === baseShape.id
+    )
+    .sort((a, b) => a.p.x - b.p.x);
+
+  if (
+    align_bottom_to_top_shapes[0] &&
+    align_bottom_to_top_shapes[align_bottom_to_top_shapes.length - 1]
+  ) {
+    lines.push({
+      from: {
+        x: align_bottom_to_top_shapes[0].getCenter().m.x,
+        y: baseEdge.b + 1,
+      },
+      to: {
+        x: align_bottom_to_top_shapes[
+          align_bottom_to_top_shapes.length - 1
+        ].getCenter().m.x,
+        y: baseEdge.b + 1,
       },
     });
   }
