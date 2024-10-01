@@ -457,9 +457,54 @@ const getAlignP = (
 
     const targetEdge = targetShape.getEdge();
     const baseEdge = baseShape.getEdge();
+    const threshold = 10;
 
-    if (baseEdge.t >= targetEdge.t - 10 && baseEdge.t <= targetEdge.t + 10) {
-      output.y = targetEdge.t + baseShape.getScaleSize().h / 2;
+    if (
+      baseEdge.t >= targetEdge.b - threshold &&
+      baseEdge.t <= targetEdge.b + threshold
+    ) {
+      output.y = targetEdge.b + baseShape.getScaleSize().h / 2;
+    }
+    if (
+      baseEdge.b >= targetEdge.t - threshold &&
+      baseEdge.b <= targetEdge.t + threshold
+    ) {
+      output.y = targetEdge.t - baseShape.getScaleSize().h / 2;
+    }
+
+    if (
+      baseEdge.b >= targetEdge.b - threshold &&
+      baseEdge.b <= targetEdge.b + threshold
+    ) {
+      output.y = targetEdge.b - baseShape.getScaleSize().h / 2;
+    }
+
+    if (
+      baseEdge.l >= targetEdge.l - threshold &&
+      baseEdge.l <= targetEdge.l + threshold
+    ) {
+      output.x = targetEdge.l + baseShape.getScaleSize().w / 2;
+    }
+
+    if (
+      baseEdge.l >= targetEdge.r - threshold &&
+      baseEdge.l <= targetEdge.r + threshold
+    ) {
+      output.x = targetEdge.r + baseShape.getScaleSize().w / 2;
+    }
+
+    if (
+      baseEdge.r >= targetEdge.l - threshold &&
+      baseEdge.r <= targetEdge.l + threshold
+    ) {
+      output.x = targetEdge.l - baseShape.getScaleSize().w / 2;
+    }
+
+    if (
+      baseEdge.r >= targetEdge.r - threshold &&
+      baseEdge.r <= targetEdge.r + threshold
+    ) {
+      output.x = targetEdge.r - baseShape.getScaleSize().w / 2;
     }
   }
 
@@ -478,11 +523,13 @@ const getAlignLines = (
 
   const baseEdge = baseShape.getEdge();
 
+  // 顶部对齐顶部
   const align_top_shapes = shapes
     .filter(
       (targetShape) =>
         Number(baseEdge.t.toFixed(1)) ===
-        Number(targetShape.getEdge().t.toFixed(1))
+          Number(targetShape.getEdge().t.toFixed(1)) ||
+        targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.x - b.p.x);
 
@@ -495,6 +542,194 @@ const getAlignLines = (
       to: {
         x: align_top_shapes[align_top_shapes.length - 1].getCenter().m.x,
         y: baseEdge.t - 1,
+      },
+    });
+  }
+
+  // 左边对齐左边
+  const align_left_shapes = shapes
+    .filter(
+      (targetShape) =>
+        Number(baseEdge.l.toFixed(1)) ===
+          Number(targetShape.getEdge().l.toFixed(1)) ||
+        targetShape.id === baseShape.id
+    )
+    .sort((a, b) => a.p.y - b.p.y);
+
+  if (align_left_shapes[0] && align_left_shapes[align_left_shapes.length - 1]) {
+    lines.push({
+      from: {
+        x: baseEdge.l - 1,
+        y: align_left_shapes[0].getCenter().m.y,
+      },
+      to: {
+        x: baseEdge.l - 1,
+        y: align_left_shapes[align_left_shapes.length - 1].getCenter().m.y,
+      },
+    });
+  }
+
+  // 右边对齐右边
+  const align_right_shapes = shapes
+    .filter(
+      (targetShape) =>
+        Number(baseEdge.r.toFixed(1)) ===
+          Number(targetShape.getEdge().r.toFixed(1)) ||
+        targetShape.id === baseShape.id
+    )
+    .sort((a, b) => a.p.y - b.p.y);
+
+  if (
+    align_right_shapes[0] &&
+    align_right_shapes[align_right_shapes.length - 1]
+  ) {
+    lines.push({
+      from: {
+        x: baseEdge.r + 1,
+        y: align_right_shapes[0].getCenter().m.y,
+      },
+      to: {
+        x: baseEdge.r + 1,
+        y: align_right_shapes[align_right_shapes.length - 1].getCenter().m.y,
+      },
+    });
+  }
+
+  // 底部对齐底部
+  const align_bottom_shapes = shapes
+    .filter(
+      (targetShape) =>
+        Number(baseEdge.b.toFixed(1)) ===
+          Number(targetShape.getEdge().b.toFixed(1)) ||
+        targetShape.id === baseShape.id
+    )
+    .sort((a, b) => a.p.x - b.p.x);
+
+  if (
+    align_bottom_shapes[0] &&
+    align_bottom_shapes[align_bottom_shapes.length - 1]
+  ) {
+    lines.push({
+      from: {
+        x: align_bottom_shapes[0].getCenter().m.x,
+        y: baseEdge.b + 1,
+      },
+      to: {
+        x: align_bottom_shapes[align_bottom_shapes.length - 1].getCenter().m.x,
+        y: baseEdge.b + 1,
+      },
+    });
+  }
+
+  // 上对齐下
+  const align_top_to_bottom_shapes = shapes
+    .filter(
+      (targetShape) =>
+        Number(baseEdge.t.toFixed(1)) ===
+          Number(targetShape.getEdge().b.toFixed(1)) ||
+        targetShape.id === baseShape.id
+    )
+    .sort((a, b) => a.p.x - b.p.x);
+
+  if (
+    align_top_to_bottom_shapes[0] &&
+    align_top_to_bottom_shapes[align_top_to_bottom_shapes.length - 1]
+  ) {
+    lines.push({
+      from: {
+        x: align_top_to_bottom_shapes[0].getCenter().m.x,
+        y: baseEdge.t - 1,
+      },
+      to: {
+        x: align_top_to_bottom_shapes[
+          align_top_to_bottom_shapes.length - 1
+        ].getCenter().m.x,
+        y: baseEdge.t - 1,
+      },
+    });
+  }
+
+  // 下对齐上
+  const align_bottom_to_top_shapes = shapes
+    .filter(
+      (targetShape) =>
+        Number(baseEdge.b.toFixed(1)) ===
+          Number(targetShape.getEdge().t.toFixed(1)) ||
+        targetShape.id === baseShape.id
+    )
+    .sort((a, b) => a.p.x - b.p.x);
+
+  if (
+    align_bottom_to_top_shapes[0] &&
+    align_bottom_to_top_shapes[align_bottom_to_top_shapes.length - 1]
+  ) {
+    lines.push({
+      from: {
+        x: align_bottom_to_top_shapes[0].getCenter().m.x,
+        y: baseEdge.b + 1,
+      },
+      to: {
+        x: align_bottom_to_top_shapes[
+          align_bottom_to_top_shapes.length - 1
+        ].getCenter().m.x,
+        y: baseEdge.b + 1,
+      },
+    });
+  }
+
+  // 左对齐右
+  const align_left_to_right_shapes = shapes
+    .filter((targetShape) => {
+      return (
+        Number(baseEdge.l.toFixed(1)) ===
+          Number(targetShape.getEdge().r.toFixed(1)) ||
+        targetShape.id === baseShape.id
+      );
+    })
+    .sort((a, b) => a.p.y - b.p.y);
+
+  if (
+    align_left_to_right_shapes[0] &&
+    align_left_to_right_shapes[align_left_to_right_shapes.length - 1]
+  ) {
+    lines.push({
+      from: {
+        x: baseEdge.l - 1,
+        y: align_left_to_right_shapes[0].getCenter().m.y,
+      },
+      to: {
+        x: baseEdge.l - 1,
+        y: align_left_to_right_shapes[
+          align_left_to_right_shapes.length - 1
+        ].getCenter().m.y,
+      },
+    });
+  }
+
+  // 右对齐左
+  const align_right_to_left_shapes = shapes
+    .filter(
+      (targetShape) =>
+        Number(baseEdge.r.toFixed(1)) ===
+          Number(targetShape.getEdge().l.toFixed(1)) ||
+        targetShape.id === baseShape.id
+    )
+    .sort((a, b) => a.p.y - b.p.y);
+
+  if (
+    align_right_to_left_shapes[0] &&
+    align_right_to_left_shapes[align_right_to_left_shapes.length - 1]
+  ) {
+    lines.push({
+      from: {
+        x: baseEdge.r + 1,
+        y: align_right_to_left_shapes[0].getCenter().m.y,
+      },
+      to: {
+        x: baseEdge.r + 1,
+        y: align_right_to_left_shapes[
+          align_right_to_left_shapes.length - 1
+        ].getCenter().m.y,
       },
     });
   }
@@ -724,8 +959,9 @@ export default function IdPage() {
   const [isRenameFrameOpen, setIsRenameFrameOpen] = useState(false);
   const [isProfileFrameOpen, setIsProfileFrameOpen] = useState(false);
   const [steps, setSteps] = useState<PageTypes.Steps>({});
-  const [dataFrameWarning, setDataFrameWarning] =
-    useState<DataFrameTypes.Warning>(init.dataFrameWarning);
+  const [dataFrameWarning, setDataFrameWarning] = useState<
+    DataFrameTypes.Warning
+  >(init.dataFrameWarning);
   const [isProjectsModalOpen, setIsProjectsModalOpen] = useState(false);
   const [projects, setProjects] = useState<
     ProjectAPITypes.GetProjects["resData"]
@@ -918,8 +1154,10 @@ export default function IdPage() {
   };
 
   const fetchProjects = async () => {
-    const res: AxiosResponse<ProjectAPITypes.GetProjects["resData"], any> =
-      await projectAPIs.getProjecs();
+    const res: AxiosResponse<
+      ProjectAPITypes.GetProjects["resData"],
+      any
+    > = await projectAPIs.getProjecs();
     setProjects(res.data);
   };
 
@@ -927,8 +1165,9 @@ export default function IdPage() {
     const token = localStorage.getItem("Authorization");
 
     if (token) {
-      const res: AxiosResponse<AuthTypes.JWTLogin["resData"]> =
-        await authAPIs.jwtLogin(token);
+      const res: AxiosResponse<
+        AuthTypes.JWTLogin["resData"]
+      > = await authAPIs.jwtLogin(token);
 
       if (res.data.isPass) {
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
@@ -1054,8 +1293,9 @@ export default function IdPage() {
 
             if (!!pressing) return;
 
-            const withinHandlerRangeCurves =
-              shape.checkCurveControlPointsBoundry(p);
+            const withinHandlerRangeCurves = shape.checkCurveControlPointsBoundry(
+              p
+            );
             const firstDetectedCurve = withinHandlerRangeCurves[0];
             const withinRangeCurveIds = shape.checkCurvesBoundry(p);
 
@@ -1588,8 +1828,9 @@ export default function IdPage() {
           !!sticking?.to.shape
         ) {
           const endP = (() => {
-            const toReceivingP =
-              sticking.to.shape.getCenter().receivingPoints[sticking?.to?.d];
+            const toReceivingP = sticking.to.shape.getCenter().receivingPoints[
+              sticking?.to?.d
+            ];
 
             let margin = 0;
             if (sticking.to.shape instanceof Data) {
@@ -1721,8 +1962,9 @@ export default function IdPage() {
         pressing?.direction
       ) {
         const pressingShape = pressing.shape;
-        const theCheckReceivingPointsBoundryD =
-          targetShape.checkReceivingPointsBoundry(p);
+        const theCheckReceivingPointsBoundryD = targetShape.checkReceivingPointsBoundry(
+          p
+        );
         const theQuarterD = targetShape.checkQuarterArea(p);
 
         if (!pressingShape || pressing.target !== CurveTypes.PressingTarget.p2)
@@ -2303,8 +2545,10 @@ export default function IdPage() {
 
   const initProject = async (id: ProjectTypes.Project["id"]) => {
     try {
-      const res: AxiosResponse<ProjectAPITypes.GetProject["resData"], any> =
-        await projectAPIs.getProject(id);
+      const res: AxiosResponse<
+        ProjectAPITypes.GetProject["resData"],
+        any
+      > = await projectAPIs.getProject(id);
 
       const projectData = res.data as ProjectAPITypes.ProjectData;
 
@@ -2347,8 +2591,9 @@ export default function IdPage() {
     if (!$canvas || !ctx) return;
 
     try {
-      const res: AxiosResponse<ProjectAPITypes.DeleteProject["resData"]> =
-        await projectAPIs.deleteProject(id);
+      const res: AxiosResponse<
+        ProjectAPITypes.DeleteProject["resData"]
+      > = await projectAPIs.deleteProject(id);
 
       if (id === selectedProjectId) {
         shapes = [];
@@ -2370,11 +2615,14 @@ export default function IdPage() {
       return;
     }
     shapes = [];
-    const newProject: AxiosResponse<ProjectAPITypes.CreateProject["resData"]> =
-      await projectAPIs.createProject();
+    const newProject: AxiosResponse<
+      ProjectAPITypes.CreateProject["resData"]
+    > = await projectAPIs.createProject();
 
-    const res: AxiosResponse<ProjectAPITypes.GetProjects["resData"], any> =
-      await projectAPIs.getProjecs();
+    const res: AxiosResponse<
+      ProjectAPITypes.GetProjects["resData"],
+      any
+    > = await projectAPIs.getProjecs();
 
     setIsProjectsModalOpen(false);
     setProjects(res.data);
@@ -2402,9 +2650,9 @@ export default function IdPage() {
     }));
   };
 
-  const onClickSaveProjectNameButton: MouseEventHandler<
-    HTMLButtonElement
-  > = async (e) => {
+  const onClickSaveProjectNameButton: MouseEventHandler<HTMLButtonElement> = async (
+    e
+  ) => {
     if (!selectedProjectId) return;
     const res: AxiosResponse<
       ProjectAPITypes.UpdateProjectName["resData"],
