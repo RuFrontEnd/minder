@@ -2113,8 +2113,9 @@ export default function IdPage() {
           select.end.y += offsetP.y;
         }
       }
-    } else if (pressing?.target && pressing?.shape && pressing?.ghost) {
+    } else if (pressing?.target && pressing?.shape) {
       if (
+        pressing?.ghost &&
         pressing?.target === CoreTypes.PressingTarget.lt
         // ||
         // pressing?.target === CoreTypes.PressingTarget.rt ||
