@@ -562,13 +562,8 @@ const getVertexAlignLines = (
     )
     .sort((a, b) => a.x - b.x);
 
-  console.log("align_center_y_vertexes[0]", align_center_y_vertexes[0]);
-  console.log(
-    "align_center_y_vertexes[align_center_y_vertexes.length - 1]",
-    align_center_y_vertexes[align_center_y_vertexes.length - 1]
-  );
-
   if (
+    align_center_y_vertexes.length >= 2 &&
     align_center_y_vertexes[0] &&
     align_center_y_vertexes[align_center_y_vertexes.length - 1]
   ) {
@@ -587,30 +582,31 @@ const getVertexAlignLines = (
   }
 
   // align center x
-  // const align_center_y_shapes = shapes
-  //   .filter(
-  //     (targetShape) =>
-  //       Number(baseVertex.y.toFixed(1)) ===
-  //       Number(targetShape.getCenter().m.y.toFixed(1))
-  //   )
-  //   .sort((a, b) => a.p.y - b.p.y);
+  const align_center_x_vertexes = vertexes
+    .filter(
+      (vertex) =>
+        Number(baseVertex.x.toFixed(1)) === Number(vertex.x.toFixed(1))
+    )
+    .sort((a, b) => a.y - b.y);
 
-  // if (
-  //   align_center_y_shapes[0] &&
-  //   align_center_y_shapes[align_center_y_shapes.length - 1]
-  // ) {
-  //   lines.push({
-  //     from: {
-  //       x: align_center_y_shapes[0].getCenter().m.x,
-  //       y: baseVertex.y,
-  //     },
-  //     to: {
-  //       x: align_center_y_shapes[align_center_y_shapes.length - 1].getCenter().m
-  //         .x,
-  //       y: baseVertex.y,
-  //     },
-  //   });
-  // }
+  if (
+    align_center_x_vertexes.length >= 2 &&
+    align_center_x_vertexes[0] &&
+    align_center_x_vertexes[align_center_x_vertexes.length - 1]
+  ) {
+    lines.push({
+      from: {
+        x: baseVertex.x,
+        y: align_center_x_vertexes[0].y || baseVertex.y,
+      },
+      to: {
+        x: baseVertex.x,
+        y:
+          align_center_x_vertexes[align_center_x_vertexes.length - 1].y ||
+          baseVertex.y,
+      },
+    });
+  }
 
   // const baseEdge = baseShape.getEdge();
 
@@ -1247,7 +1243,7 @@ const drawShapes = (
     shape.draw(ctx);
   });
 
-  // pressing?.ghost?.draw(ctx);
+  pressing?.ghost?.draw(ctx);
 };
 
 const drawAlignLines = (
@@ -2122,61 +2118,38 @@ export default function IdPage() {
         // pressing?.target === CoreTypes.PressingTarget.rb ||
         // pressing?.target === CoreTypes.PressingTarget.lb
       ) {
-        // pressing.shape.resize(offsetP, pressing.target);
         const shapesInView = getShapesInView(
           shapes.filter((shape) => shape.id !== pressing?.shape?.id)
         );
-        // console.log("shapesInView", shapesInView);
 
-        alginLines = getVertexAlignLines(
+        const alignLines_t = getVertexAlignLines(
           shapesInView,
           pressing.shape.getCenter().t
         );
+
+        const alginLines_l = getVertexAlignLines(
+          shapesInView,
+          pressing.shape.getCenter().l
+        );
+
+        alginLines = alignLines_t.concat(alginLines_l);
 
         const alignVertixP = getAlignVertixP(
           shapesInView,
           pressing.ghost.getCenter().lt
         );
 
-        console.log("alignVertixP", alignVertixP);
-        console.log("alginLines", alginLines);
-
-        // if (alignP?.x || alignP?.y) {
-        //   pressing.shape.resize(offsetP, pressing.target);
-        // }
-
-        // if (alignP?.x && !alignP?.y) {
-        //   pressing.shape.resize(
-        //     {
-        //       x: offsetP.x,
-        //       y: 0,
-        //     },
-        //     pressing.target
-        //   );
-        // }
-
-        // if (!alignP?.x && alignP?.y) {
-        // pressing.shape.resize(
-        //   {
-        //     x: 0,
-        //     y: offsetP.y,
-        //   },
-        //   pressing.target
-        // );
-        // }
-
-        // if (!alignP?.x && !alignP?.y) {
         pressing.shape.resize(offsetP, pressing.target);
-        // }
 
-        // pressing.ghost?.resize(offsetP, pressing.target);
-
-        // if (alignP?.x && !alignP?.y) {
-        //   pressing.shape.move({
-        //     x: 0,
-        //     y: p.y - lastP.y,
-        //   });
-        // }
+        if (alignVertixP?.x && !alignVertixP?.y) {
+          pressing.shape.resize(
+            {
+              x: alignVertixP.x - pressing.shape.getCenter().lt.x,
+              y: 0,
+            },
+            pressing.target
+          );
+        }
 
         if (!alignVertixP?.x && alignVertixP?.y) {
           pressing.shape.resize(
@@ -2189,12 +2162,17 @@ export default function IdPage() {
         }
 
         if (!alignVertixP?.x && !alignVertixP?.y) {
-          // if (pressing.shape.p.x !== pressing.ghost?.p.x) {
-          //   pressing.shape.locate({
-          //     x: pressing.ghost.getCenter().m.x,
-          //     y: null,
-          //   });
-          // }
+          if (pressing.shape.p.x !== pressing.ghost?.p.x) {
+            pressing.shape.resize(
+              {
+                x:
+                  pressing.ghost.getCenter().lt.x -
+                  pressing.shape.getCenter().lt.x,
+                y: 0,
+              },
+              pressing.target
+            );
+          }
           if (pressing.shape.p.y !== pressing.ghost?.p.y) {
             pressing.shape.resize(
               {
@@ -2206,10 +2184,6 @@ export default function IdPage() {
               pressing.target
             );
           }
-          //   pressing.shape.move({
-          //     x: p.x - lastP.x,
-          //     y: p.y - lastP.y,
-          //   });
         }
 
         pressing.ghost.resize(offsetP, pressing.target);
