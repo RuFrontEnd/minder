@@ -457,7 +457,8 @@ const getAlignVertixP = (
     const targetEdge = targetShape.getEdge();
     const threshold = 10;
 
-    // center x & center x
+    // align center
+    // x
     if (
       baseVertex.x >= targetCenter.x - threshold &&
       baseVertex.x <= targetCenter.x + threshold
@@ -465,7 +466,7 @@ const getAlignVertixP = (
       output.x = targetCenter.x;
     }
 
-    // center y & center y
+    // y
     if (
       baseVertex.y >= targetCenter.y - threshold &&
       baseVertex.y <= targetCenter.y + threshold
@@ -473,7 +474,7 @@ const getAlignVertixP = (
       output.y = targetCenter.y;
     }
 
-    // left & left
+    // align left
     if (
       baseVertex.x >= targetEdge.l - threshold &&
       baseVertex.x <= targetEdge.l + threshold
@@ -481,7 +482,7 @@ const getAlignVertixP = (
       output.x = targetEdge.l;
     }
 
-    // left & right
+    // align right
     if (
       baseVertex.x >= targetEdge.r - threshold &&
       baseVertex.x <= targetEdge.r + threshold
@@ -489,7 +490,7 @@ const getAlignVertixP = (
       output.x = targetEdge.r;
     }
 
-    // top & top
+    // align top
     if (
       baseVertex.y >= targetEdge.t - threshold &&
       baseVertex.y <= targetEdge.t + threshold
@@ -497,45 +498,13 @@ const getAlignVertixP = (
       output.y = targetEdge.t;
     }
 
-    // top & bottom
+    // align bottom
     if (
       baseVertex.y >= targetEdge.b - threshold &&
       baseVertex.y <= targetEdge.b + threshold
     ) {
       output.y = targetEdge.b;
     }
-
-    // // right & right
-    // if (
-    //   baseEdge.r >= targetEdge.l - threshold &&
-    //   baseEdge.r <= targetEdge.l + threshold
-    // ) {
-    //   output.x = targetEdge.l - baseShape.getScaleSize().w / 2;
-    // }
-
-    // // right & left
-    // if (
-    //   baseEdge.r >= targetEdge.r - threshold &&
-    //   baseEdge.r <= targetEdge.r + threshold
-    // ) {
-    //   output.x = targetEdge.r - baseShape.getScaleSize().w / 2;
-    // }
-
-    // // bottom & bottom
-    // if (
-    //   baseEdge.b >= targetEdge.b - threshold &&
-    //   baseEdge.b <= targetEdge.b + threshold
-    // ) {
-    //   output.y = targetEdge.b - baseShape.getScaleSize().h / 2;
-    // }
-
-    // // bottom & top
-    // if (
-    //   baseEdge.b >= targetEdge.t - threshold &&
-    //   baseEdge.b <= targetEdge.t + threshold
-    // ) {
-    //   output.y = targetEdge.t - baseShape.getScaleSize().h / 2;
-    // }
   }
 
   return output;
