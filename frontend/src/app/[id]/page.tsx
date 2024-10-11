@@ -454,6 +454,7 @@ const getAlignVertixP = (
   for (let i = 0; i < shapes.length; i++) {
     const targetShape = shapes[i];
     const targetCenter = targetShape.getCenter().m;
+    const targetEdge = targetShape.getEdge();
     const threshold = 10;
 
     // center x & center x
@@ -472,13 +473,13 @@ const getAlignVertixP = (
       output.y = targetCenter.y;
     }
 
-    // // left & left
-    // if (
-    //   baseVertex.x >= targetEdge.l - threshold &&
-    //   baseVertex.x <= targetEdge.l + threshold
-    // ) {
-    //   output.x = targetEdge.l + baseShape.getScaleSize().w / 2;
-    // }
+    // left & left
+    if (
+      baseVertex.x >= targetEdge.l - threshold &&
+      baseVertex.x <= targetEdge.l + threshold
+    ) {
+      output.x = targetEdge.l;
+    }
 
     // // left & right
     // if (
@@ -550,12 +551,12 @@ const getVertexAlignLines = (
     to: CommonTypes.Vec;
   }[] = [];
 
-  const vertexes = shapes
+  const vertexes_m = shapes
     .map((targetShape) => targetShape.getCenter().m)
     .concat(baseVertex);
 
   // align center y
-  const align_center_y_vertexes = vertexes
+  const align_center_y_vertexes = vertexes_m
     .filter(
       (vertex) =>
         Number(baseVertex.y.toFixed(1)) === Number(vertex.y.toFixed(1))
@@ -582,7 +583,7 @@ const getVertexAlignLines = (
   }
 
   // align center x
-  const align_center_x_vertexes = vertexes
+  const align_center_x_vertexes = vertexes_m
     .filter(
       (vertex) =>
         Number(baseVertex.x.toFixed(1)) === Number(vertex.x.toFixed(1))
@@ -603,6 +604,69 @@ const getVertexAlignLines = (
         x: baseVertex.x,
         y:
           align_center_x_vertexes[align_center_x_vertexes.length - 1].y ||
+          baseVertex.y,
+      },
+    });
+  }
+  
+  
+  // align top
+  // const vertexes_t = shapes
+  //   .map((targetShape) => targetShape.getCenter().t)
+  //   .concat(baseVertex);
+  
+  // const align_top_y_vertexes = vertexes_t
+  //   .filter(
+  //     (vertex) =>
+  //       Number(baseVertex.y.toFixed(1)) === Number(vertex.y.toFixed(1))
+  //   )
+  //   .sort((a, b) => a.x - b.x);
+
+  // if (
+  //   align_top_y_vertexes.length >= 2 &&
+  //   align_top_y_vertexes[0] &&
+  //   align_top_y_vertexes[align_top_y_vertexes.length - 1]
+  // ) {
+  //   lines.push({
+  //     from: {
+  //       x: baseVertex.x,
+  //       y: align_top_y_vertexes[0].y || baseVertex.y,
+  //     },
+  //     to: {
+  //       x: baseVertex.x,
+  //       y:
+  //         align_top_y_vertexes[align_top_y_vertexes.length - 1].y ||
+  //         baseVertex.y,
+  //     },
+  //   });
+  // }
+
+  // align left
+    const vertexes_l = shapes
+    .map((targetShape) => targetShape.getCenter().l)
+    .concat(baseVertex);
+
+  const align_l_vertexes = vertexes_l
+    .filter(
+      (vertex) =>
+        Number(baseVertex.x.toFixed(1)) === Number(vertex.x.toFixed(1))
+    )
+    .sort((a, b) => a.y - b.y);
+
+  if (
+    align_l_vertexes.length >= 2 &&
+    align_l_vertexes[0] &&
+    align_l_vertexes[align_l_vertexes.length - 1]
+  ) {
+    lines.push({
+      from: {
+        x: baseVertex.x,
+        y: align_l_vertexes[0].y || baseVertex.y,
+      },
+      to: {
+        x: baseVertex.x,
+        y:
+          align_l_vertexes[align_l_vertexes.length - 1].y ||
           baseVertex.y,
       },
     });
