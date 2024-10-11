@@ -568,7 +568,7 @@ export default class Core {
     };
   }
 
-  getCenter() {
+  getCenter(): CoreTypes.GetCenterReturn {
     const edge = this.getEdge();
     const pivot = {
       x: this.getScreenP().x,
@@ -1524,7 +1524,6 @@ export default class Core {
     )
       return;
     // sender curves follows
-    const ratio = this.w / this.h;
     let _w = this.w,
       _h = this.h;
 

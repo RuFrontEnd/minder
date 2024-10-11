@@ -21,6 +21,13 @@ enum Direction {
   b = "b",
 }
 
+enum Corner {
+  lt = "lt",
+  rt = "rt",
+  rb = "rb",
+  lb = "lb",
+}
+
 type Title = string;
 
 type DataItem = { id: string; text: string };
@@ -43,4 +50,4 @@ enum SelectAreaTarget {
 }
 
 export type { Id, W, H, C, Vec, Shapes, Title, DataItem, Data };
-export { Direction, Type, SelectAreaTarget };
+export { Direction, Corner, Type, SelectAreaTarget };

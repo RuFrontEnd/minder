@@ -1140,6 +1140,111 @@ const drawAlignLines = (
   });
 };
 
+const resize = (
+  shapes: null | undefined | (Terminal | Process | Data | Desicion)[],
+  pressing: {
+    shape: null | undefined | Terminal | Process | Data | Desicion;
+    ghost: null | undefined | Terminal | Process | Data | Desicion;
+    target:
+      | null
+      | undefined
+      | CoreTypes.PressingTarget.lt
+      | CoreTypes.PressingTarget.rt
+      | CoreTypes.PressingTarget.rb
+      | CoreTypes.PressingTarget.lb;
+  },
+  offsetP: CommonTypes.Vec
+) => {
+  if (!shapes || !pressing.shape || !pressing.ghost || !pressing.target) return;
+
+  const shapesInView = getShapesInView(
+    shapes.filter((shape) => shape.id !== pressing?.shape?.id)
+  );
+
+  const directions = (() => {
+    switch (pressing.target) {
+      case CoreTypes.PressingTarget.lt:
+        return [CommonTypes.Direction.l, CommonTypes.Direction.t];
+
+      case CoreTypes.PressingTarget.rt:
+        return [CommonTypes.Direction.r, CommonTypes.Direction.t];
+
+      case CoreTypes.PressingTarget.rb:
+        return [CommonTypes.Direction.r, CommonTypes.Direction.b];
+
+      case CoreTypes.PressingTarget.lb:
+        return [CommonTypes.Direction.l, CommonTypes.Direction.b];
+    }
+  })();
+
+  if (!directions) return;
+
+  const center = {
+    shape: pressing.shape.getCenter(),
+    ghost: pressing.ghost.getCenter(),
+  };
+
+  const alignLines_vertical = getVertexAlignLines(
+    shapesInView,
+    center.shape[directions[0]]
+  );
+
+  const alginLines_horizental = getVertexAlignLines(
+    shapesInView,
+    center.shape[directions[1]]
+  );
+
+  alginLines = alignLines_vertical.concat(alginLines_horizental);
+
+  const alignVertixP = getAlignVertixP(
+    shapesInView,
+    center.ghost[pressing.target]
+  );
+
+  if (alignVertixP?.x && !alignVertixP?.y) {
+    pressing.shape.resize(
+      {
+        x: alignVertixP.x - center.shape[pressing.target].x,
+        y: 0,
+      },
+      pressing.target
+    );
+  }
+
+  if (!alignVertixP?.x && alignVertixP?.y) {
+    pressing.shape.resize(
+      {
+        x: 0,
+        y: alignVertixP.y - center.shape[pressing.target].y,
+      },
+      pressing.target
+    );
+  }
+
+  if (!alignVertixP?.x && !alignVertixP?.y) {
+    if (pressing.shape.p.x !== pressing.ghost?.p.x) {
+      pressing.shape.resize(
+        {
+          x: center.ghost[pressing.target].x - center.shape[pressing.target].x,
+          y: 0,
+        },
+        pressing.target
+      );
+    }
+    if (pressing.shape.p.y !== pressing.ghost?.p.y) {
+      pressing.shape.resize(
+        {
+          x: 0,
+          y: center.ghost[pressing.target].y - center.shape[pressing.target].y,
+        },
+        pressing.target
+      );
+    }
+  }
+
+  pressing.ghost.resize(offsetP, pressing.target);
+};
+
 // const Editor = (props: { className: string; shape: Core }) => {
 //   const [title, setTitle] = useState<CommonTypes.Title>(""),
 //     [selections, setSelections] = useState<DataFrameTypes.Selections>({}),
@@ -1983,85 +2088,23 @@ export default function IdPage() {
           select.end.y += offsetP.y;
         }
       }
+    } else if (
+      pressing?.target === CoreTypes.PressingTarget.lt ||
+      pressing?.target === CoreTypes.PressingTarget.rt ||
+      pressing?.target === CoreTypes.PressingTarget.rb ||
+      pressing?.target === CoreTypes.PressingTarget.lb
+    ) {
+      resize(
+        shapes,
+        {
+          shape: pressing.shape,
+          ghost: pressing.ghost,
+          target: pressing.target,
+        },
+        offsetP
+      );
     } else if (pressing?.target && pressing?.shape) {
-      if (
-        pressing?.ghost &&
-        pressing?.target === CoreTypes.PressingTarget.lt
-        // ||
-        // pressing?.target === CoreTypes.PressingTarget.rt ||
-        // pressing?.target === CoreTypes.PressingTarget.rb ||
-        // pressing?.target === CoreTypes.PressingTarget.lb
-      ) {
-        const shapesInView = getShapesInView(
-          shapes.filter((shape) => shape.id !== pressing?.shape?.id)
-        );
-
-        const alignLines_t = getVertexAlignLines(
-          shapesInView,
-          pressing.shape.getCenter().t
-        );
-
-        const alginLines_l = getVertexAlignLines(
-          shapesInView,
-          pressing.shape.getCenter().l
-        );
-
-        alginLines = alignLines_t.concat(alginLines_l);
-
-        const alignVertixP = getAlignVertixP(
-          shapesInView,
-          pressing.ghost.getCenter().lt
-        );
-
-        pressing.shape.resize(offsetP, pressing.target);
-
-        if (alignVertixP?.x && !alignVertixP?.y) {
-          pressing.shape.resize(
-            {
-              x: alignVertixP.x - pressing.shape.getCenter().lt.x,
-              y: 0,
-            },
-            pressing.target
-          );
-        }
-
-        if (!alignVertixP?.x && alignVertixP?.y) {
-          pressing.shape.resize(
-            {
-              x: 0,
-              y: alignVertixP.y - pressing.shape.getCenter().lt.y,
-            },
-            pressing.target
-          );
-        }
-
-        if (!alignVertixP?.x && !alignVertixP?.y) {
-          if (pressing.shape.p.x !== pressing.ghost?.p.x) {
-            pressing.shape.resize(
-              {
-                x:
-                  pressing.ghost.getCenter().lt.x -
-                  pressing.shape.getCenter().lt.x,
-                y: 0,
-              },
-              pressing.target
-            );
-          }
-          if (pressing.shape.p.y !== pressing.ghost?.p.y) {
-            pressing.shape.resize(
-              {
-                x: 0,
-                y:
-                  pressing.ghost.getCenter().lt.y -
-                  pressing.shape.getCenter().lt.y,
-              },
-              pressing.target
-            );
-          }
-        }
-
-        pressing.ghost.resize(offsetP, pressing.target);
-      } else if (pressing?.target === CoreTypes.PressingTarget.m) {
+      if (pressing?.target === CoreTypes.PressingTarget.m) {
         const shapesInView = getShapesInView(shapes);
         alginLines = getAlignLines(shapesInView, pressing.shape);
 
