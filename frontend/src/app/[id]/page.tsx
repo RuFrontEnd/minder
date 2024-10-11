@@ -481,13 +481,13 @@ const getAlignVertixP = (
       output.x = targetEdge.l;
     }
 
-    // // left & right
-    // if (
-    //   baseEdge.l >= targetEdge.r - threshold &&
-    //   baseEdge.l <= targetEdge.r + threshold
-    // ) {
-    //   output.x = targetEdge.r + baseShape.getScaleSize().w / 2;
-    // }
+    // left & right
+    if (
+      baseVertex.x >= targetEdge.r - threshold &&
+      baseVertex.x <= targetEdge.r + threshold
+    ) {
+      output.x = targetEdge.r;
+    }
 
     // // top & top
     // if (
@@ -608,13 +608,12 @@ const getVertexAlignLines = (
       },
     });
   }
-  
-  
+
   // align top
   // const vertexes_t = shapes
   //   .map((targetShape) => targetShape.getCenter().t)
   //   .concat(baseVertex);
-  
+
   // const align_top_y_vertexes = vertexes_t
   //   .filter(
   //     (vertex) =>
@@ -641,8 +640,9 @@ const getVertexAlignLines = (
   //   });
   // }
 
+  
   // align left
-    const vertexes_l = shapes
+  const vertexes_l = shapes
     .map((targetShape) => targetShape.getCenter().l)
     .concat(baseVertex);
 
@@ -665,9 +665,36 @@ const getVertexAlignLines = (
       },
       to: {
         x: baseVertex.x,
-        y:
-          align_l_vertexes[align_l_vertexes.length - 1].y ||
-          baseVertex.y,
+        y: align_l_vertexes[align_l_vertexes.length - 1].y || baseVertex.y,
+      },
+    });
+  }
+
+  // align right
+  const vertexes_r = shapes
+  .map((targetShape) => targetShape.getCenter().r)
+  .concat(baseVertex);
+
+  const align_r_vertexes = vertexes_r
+  .filter(
+    (vertex) =>
+      Number(baseVertex.x.toFixed(1)) === Number(vertex.x.toFixed(1))
+  )
+  .sort((a, b) => a.y - b.y);
+
+  if (
+    align_r_vertexes.length >= 2 &&
+    align_r_vertexes[0] &&
+    align_r_vertexes[align_r_vertexes.length - 1]
+  ) {
+    lines.push({
+      from: {
+        x: baseVertex.x,
+        y: align_r_vertexes[0].y || baseVertex.y,
+      },
+      to: {
+        x: baseVertex.x,
+        y: align_r_vertexes[align_r_vertexes.length - 1].y || baseVertex.y,
       },
     });
   }
