@@ -489,21 +489,21 @@ const getAlignVertixP = (
       output.x = targetEdge.r;
     }
 
-    // // top & top
-    // if (
-    //   baseEdge.t >= targetEdge.t - threshold &&
-    //   baseEdge.t <= targetEdge.t + threshold
-    // ) {
-    //   output.y = targetEdge.t + baseShape.getScaleSize().h / 2;
-    // }
+    // top & top
+    if (
+      baseVertex.y >= targetEdge.t - threshold &&
+      baseVertex.y <= targetEdge.t + threshold
+    ) {
+      output.y = targetEdge.t;
+    }
 
-    // // top & bottom
-    // if (
-    //   baseEdge.t >= targetEdge.b - threshold &&
-    //   baseEdge.t <= targetEdge.b + threshold
-    // ) {
-    //   output.y = targetEdge.b + baseShape.getScaleSize().h / 2;
-    // }
+    // top & bottom
+    if (
+      baseVertex.y >= targetEdge.b - threshold &&
+      baseVertex.y <= targetEdge.b + threshold
+    ) {
+      output.y = targetEdge.b;
+    }
 
     // // right & right
     // if (
@@ -551,11 +551,12 @@ const getVertexAlignLines = (
     to: CommonTypes.Vec;
   }[] = [];
 
+  // align center
   const vertexes_m = shapes
     .map((targetShape) => targetShape.getCenter().m)
     .concat(baseVertex);
 
-  // align center y
+  // y
   const align_center_y_vertexes = vertexes_m
     .filter(
       (vertex) =>
@@ -582,7 +583,7 @@ const getVertexAlignLines = (
     });
   }
 
-  // align center x
+  // x
   const align_center_x_vertexes = vertexes_m
     .filter(
       (vertex) =>
@@ -609,38 +610,6 @@ const getVertexAlignLines = (
     });
   }
 
-  // align top
-  // const vertexes_t = shapes
-  //   .map((targetShape) => targetShape.getCenter().t)
-  //   .concat(baseVertex);
-
-  // const align_top_y_vertexes = vertexes_t
-  //   .filter(
-  //     (vertex) =>
-  //       Number(baseVertex.y.toFixed(1)) === Number(vertex.y.toFixed(1))
-  //   )
-  //   .sort((a, b) => a.x - b.x);
-
-  // if (
-  //   align_top_y_vertexes.length >= 2 &&
-  //   align_top_y_vertexes[0] &&
-  //   align_top_y_vertexes[align_top_y_vertexes.length - 1]
-  // ) {
-  //   lines.push({
-  //     from: {
-  //       x: baseVertex.x,
-  //       y: align_top_y_vertexes[0].y || baseVertex.y,
-  //     },
-  //     to: {
-  //       x: baseVertex.x,
-  //       y:
-  //         align_top_y_vertexes[align_top_y_vertexes.length - 1].y ||
-  //         baseVertex.y,
-  //     },
-  //   });
-  // }
-
-  
   // align left
   const vertexes_l = shapes
     .map((targetShape) => targetShape.getCenter().l)
@@ -672,15 +641,15 @@ const getVertexAlignLines = (
 
   // align right
   const vertexes_r = shapes
-  .map((targetShape) => targetShape.getCenter().r)
-  .concat(baseVertex);
+    .map((targetShape) => targetShape.getCenter().r)
+    .concat(baseVertex);
 
   const align_r_vertexes = vertexes_r
-  .filter(
-    (vertex) =>
-      Number(baseVertex.x.toFixed(1)) === Number(vertex.x.toFixed(1))
-  )
-  .sort((a, b) => a.y - b.y);
+    .filter(
+      (vertex) =>
+        Number(baseVertex.x.toFixed(1)) === Number(vertex.x.toFixed(1))
+    )
+    .sort((a, b) => a.y - b.y);
 
   if (
     align_r_vertexes.length >= 2 &&
@@ -699,218 +668,63 @@ const getVertexAlignLines = (
     });
   }
 
-  // const baseEdge = baseShape.getEdge();
+  // align top
+  const vertexes_t = shapes
+    .map((targetShape) => targetShape.getCenter().t)
+    .concat(baseVertex);
 
-  // // left & left
-  // const align_left_shapes = shapes
-  //   .filter(
-  //     (targetShape) =>
-  //       Number(baseEdge.l.toFixed(1)) ===
-  //         Number(targetShape.getEdge().l.toFixed(1)) ||
-  //       targetShape.id === baseShape.id
-  //   )
-  //   .sort((a, b) => a.p.y - b.p.y);
+  const align_t_vertexes = vertexes_t
+    .filter(
+      (vertex) =>
+        Number(baseVertex.y.toFixed(1)) === Number(vertex.y.toFixed(1))
+    )
+    .sort((a, b) => a.x - b.x);
 
-  // if (align_left_shapes[0] && align_left_shapes[align_left_shapes.length - 1]) {
-  //   lines.push({
-  //     from: {
-  //       x: baseEdge.l - 1,
-  //       y: align_left_shapes[0].getCenter().m.y,
-  //     },
-  //     to: {
-  //       x: baseEdge.l - 1,
-  //       y: align_left_shapes[align_left_shapes.length - 1].getCenter().m.y,
-  //     },
-  //   });
-  // }
+  if (
+    align_t_vertexes.length >= 2 &&
+    align_t_vertexes[0] &&
+    align_t_vertexes[align_t_vertexes.length - 1]
+  ) {
+    lines.push({
+      from: {
+        x: align_t_vertexes[0].x || baseVertex.x,
+        y: baseVertex.y,
+      },
+      to: {
+        x: align_t_vertexes[align_t_vertexes.length - 1].x || baseVertex.x,
+        y: baseVertex.y,
+      },
+    });
+  }
 
-  // // left & right
-  // const align_left_to_right_shapes = shapes
-  //   .filter((targetShape) => {
-  //     return (
-  //       Number(baseEdge.l.toFixed(1)) ===
-  //         Number(targetShape.getEdge().r.toFixed(1)) ||
-  //       targetShape.id === baseShape.id
-  //     );
-  //   })
-  //   .sort((a, b) => a.p.y - b.p.y);
+  // align bottom
+  const vertexes_b = shapes
+    .map((targetShape) => targetShape.getCenter().b)
+    .concat(baseVertex);
 
-  // if (
-  //   align_left_to_right_shapes[0] &&
-  //   align_left_to_right_shapes[align_left_to_right_shapes.length - 1]
-  // ) {
-  //   lines.push({
-  //     from: {
-  //       x: baseEdge.l - 1,
-  //       y: align_left_to_right_shapes[0].getCenter().m.y,
-  //     },
-  //     to: {
-  //       x: baseEdge.l - 1,
-  //       y: align_left_to_right_shapes[
-  //         align_left_to_right_shapes.length - 1
-  //       ].getCenter().m.y,
-  //     },
-  //   });
-  // }
+  const align_b_vertexes = vertexes_b
+    .filter(
+      (vertex) =>
+        Number(baseVertex.y.toFixed(1)) === Number(vertex.y.toFixed(1))
+    )
+    .sort((a, b) => a.x - b.x);
 
-  // // top & top
-  // const align_top_shapes = shapes
-  //   .filter(
-  //     (targetShape) =>
-  //       Number(baseEdge.t.toFixed(1)) ===
-  //         Number(targetShape.getEdge().t.toFixed(1)) ||
-  //       targetShape.id === baseShape.id
-  //   )
-  //   .sort((a, b) => a.p.x - b.p.x);
-
-  // if (align_top_shapes[0] && align_top_shapes[align_top_shapes.length - 1]) {
-  //   lines.push({
-  //     from: {
-  //       x: align_top_shapes[0].getCenter().m.x,
-  //       y: baseEdge.t - 1,
-  //     },
-  //     to: {
-  //       x: align_top_shapes[align_top_shapes.length - 1].getCenter().m.x,
-  //       y: baseEdge.t - 1,
-  //     },
-  //   });
-  // }
-
-  // // top & bottom
-  // const align_top_to_bottom_shapes = shapes
-  //   .filter(
-  //     (targetShape) =>
-  //       Number(baseEdge.t.toFixed(1)) ===
-  //         Number(targetShape.getEdge().b.toFixed(1)) ||
-  //       targetShape.id === baseShape.id
-  //   )
-  //   .sort((a, b) => a.p.x - b.p.x);
-
-  // if (
-  //   align_top_to_bottom_shapes[0] &&
-  //   align_top_to_bottom_shapes[align_top_to_bottom_shapes.length - 1]
-  // ) {
-  //   lines.push({
-  //     from: {
-  //       x: align_top_to_bottom_shapes[0].getCenter().m.x,
-  //       y: baseEdge.t - 1,
-  //     },
-  //     to: {
-  //       x: align_top_to_bottom_shapes[
-  //         align_top_to_bottom_shapes.length - 1
-  //       ].getCenter().m.x,
-  //       y: baseEdge.t - 1,
-  //     },
-  //   });
-  // }
-
-  // // right & right
-  // const align_right_shapes = shapes
-  //   .filter(
-  //     (targetShape) =>
-  //       Number(baseEdge.r.toFixed(1)) ===
-  //         Number(targetShape.getEdge().r.toFixed(1)) ||
-  //       targetShape.id === baseShape.id
-  //   )
-  //   .sort((a, b) => a.p.y - b.p.y);
-
-  // if (
-  //   align_right_shapes[0] &&
-  //   align_right_shapes[align_right_shapes.length - 1]
-  // ) {
-  //   lines.push({
-  //     from: {
-  //       x: baseEdge.r + 1,
-  //       y: align_right_shapes[0].getCenter().m.y,
-  //     },
-  //     to: {
-  //       x: baseEdge.r + 1,
-  //       y: align_right_shapes[align_right_shapes.length - 1].getCenter().m.y,
-  //     },
-  //   });
-  // }
-
-  // // right & left
-  // const align_right_to_left_shapes = shapes
-  //   .filter(
-  //     (targetShape) =>
-  //       Number(baseEdge.r.toFixed(1)) ===
-  //         Number(targetShape.getEdge().l.toFixed(1)) ||
-  //       targetShape.id === baseShape.id
-  //   )
-  //   .sort((a, b) => a.p.y - b.p.y);
-
-  // if (
-  //   align_right_to_left_shapes[0] &&
-  //   align_right_to_left_shapes[align_right_to_left_shapes.length - 1]
-  // ) {
-  //   lines.push({
-  //     from: {
-  //       x: baseEdge.r + 1,
-  //       y: align_right_to_left_shapes[0].getCenter().m.y,
-  //     },
-  //     to: {
-  //       x: baseEdge.r + 1,
-  //       y: align_right_to_left_shapes[
-  //         align_right_to_left_shapes.length - 1
-  //       ].getCenter().m.y,
-  //     },
-  //   });
-  // }
-
-  // // bottom & bottom
-  // const align_bottom_shapes = shapes
-  //   .filter(
-  //     (targetShape) =>
-  //       Number(baseEdge.b.toFixed(1)) ===
-  //         Number(targetShape.getEdge().b.toFixed(1)) ||
-  //       targetShape.id === baseShape.id
-  //   )
-  //   .sort((a, b) => a.p.x - b.p.x);
-
-  // if (
-  //   align_bottom_shapes[0] &&
-  //   align_bottom_shapes[align_bottom_shapes.length - 1]
-  // ) {
-  //   lines.push({
-  //     from: {
-  //       x: align_bottom_shapes[0].getCenter().m.x,
-  //       y: baseEdge.b + 1,
-  //     },
-  //     to: {
-  //       x: align_bottom_shapes[align_bottom_shapes.length - 1].getCenter().m.x,
-  //       y: baseEdge.b + 1,
-  //     },
-  //   });
-  // }
-
-  // // bottom & top
-  // const align_bottom_to_top_shapes = shapes
-  //   .filter(
-  //     (targetShape) =>
-  //       Number(baseEdge.b.toFixed(1)) ===
-  //         Number(targetShape.getEdge().t.toFixed(1)) ||
-  //       targetShape.id === baseShape.id
-  //   )
-  //   .sort((a, b) => a.p.x - b.p.x);
-
-  // if (
-  //   align_bottom_to_top_shapes[0] &&
-  //   align_bottom_to_top_shapes[align_bottom_to_top_shapes.length - 1]
-  // ) {
-  //   lines.push({
-  //     from: {
-  //       x: align_bottom_to_top_shapes[0].getCenter().m.x,
-  //       y: baseEdge.b + 1,
-  //     },
-  //     to: {
-  //       x: align_bottom_to_top_shapes[
-  //         align_bottom_to_top_shapes.length - 1
-  //       ].getCenter().m.x,
-  //       y: baseEdge.b + 1,
-  //     },
-  //   });
-  // }
+  if (
+    align_b_vertexes.length >= 2 &&
+    align_b_vertexes[0] &&
+    align_b_vertexes[align_b_vertexes.length - 1]
+  ) {
+    lines.push({
+      from: {
+        x: align_b_vertexes[0].x || baseVertex.x,
+        y: baseVertex.y,
+      },
+      to: {
+        x: align_b_vertexes[align_b_vertexes.length - 1].x || baseVertex.x,
+        y: baseVertex.y,
+      },
+    });
+  }
 
   return lines;
 };
