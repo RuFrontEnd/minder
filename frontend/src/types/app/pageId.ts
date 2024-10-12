@@ -3,6 +3,7 @@ import Terminal from "@/shapes/terminal";
 import Process from "@/shapes/process";
 import Data from "@/shapes/data";
 import Desicion from "@/shapes/decision";
+import Stack from "@/dataStructure/stack";
 import * as CommonTypes from "@/types/common";
 import * as CoreTypes from "@/types/shapes/core";
 import * as CurveTypes from "@/types/shapes/curve";
@@ -30,4 +31,14 @@ type Sticking = {
   };
 };
 
-export type { Pressing, Sticking };
+type ActionTypes =
+  | { type: CommonTypes.Action.add }
+  | {
+      type: CommonTypes.Action.resize;
+      id: string;
+      origin: Terminal | Process | Data | Desicion;
+    };
+
+type Actions = Stack<ActionTypes>;
+
+export type { Pressing, Sticking, ActionTypes, Actions };

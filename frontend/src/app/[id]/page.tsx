@@ -97,6 +97,7 @@ let useEffected = false,
   shapes: (Terminal | Process | Data | Desicion)[] = [],
   tests: any[] = [], // TODO: should be deleted
   pressing: null | {
+    origin: null | Terminal | Process | Data | Desicion;
     shape: null | Terminal | Process | Data | Desicion;
     ghost: null | Terminal | Process | Data | Desicion;
     curveId?: null | CurveTypes.Id;
@@ -131,12 +132,7 @@ let useEffected = false,
     },
   },
   alginLines: { from: CommonTypes.Vec; to: CommonTypes.Vec }[] = [],
-  align: { d: null | CommonTypes.Direction; p: CommonTypes.Vec } = {
-    d: null,
-    p: { x: 0, y: 0 },
-  },
-  movingD: null | CommonTypes.Direction = null,
-  actions = new Stack<{ type: CommonTypes.Action }>();
+  actions = new Stack<PageIdTypes.ActionTypes>();
 
 const ds = [
   CommonTypes.Direction.l,
@@ -1420,18 +1416,22 @@ const resize = (
 
 const undo = (
   ctx: undefined | null | CanvasRenderingContext2D,
-  actions: Stack<{ type: CommonTypes.Action }>
+  actions: PageIdTypes.Actions,
+  shapes: null | (Terminal | Process | Data | Desicion)[]
 ) => {
-  if (!ctx) return;
+  if (!ctx || !shapes) return;
   console.log("undo");
 
-  const actionType = actions.peek()?.type;
+  const action = actions.peek();
 
-  switch (actionType) {
+  switch (action?.type) {
     case CommonTypes.Action.add:
-      shapes = cloneDeep(shapes).filter(
-        (_, shapeI) => shapeI !== shapes.length - 1
-      );
+      shapes.pop();
+      break;
+
+    case CommonTypes.Action.resize:
+      let i = shapes.findIndex((shape) => shape.id === action.id);
+      shapes[i] = action.origin;
       break;
   }
 
@@ -1882,6 +1882,7 @@ export default function IdPage() {
 
         if (_target) {
           pressing = {
+            origin: null,
             shape: null,
             ghost: null,
             target: _target,
@@ -1952,6 +1953,7 @@ export default function IdPage() {
               firstDetectedCurve.target === CurveTypes.PressingTarget.p2
             ) {
               pressing = {
+                origin: cloneDeep(shape),
                 shape: shape,
                 ghost: null,
                 curveId: firstDetectedCurve.id,
@@ -1960,6 +1962,7 @@ export default function IdPage() {
               };
             } else if (firstDetectedCurve && firstDetectedCurve.isSelecting) {
               pressing = {
+                origin: cloneDeep(shape),
                 shape: shape,
                 ghost: null,
                 curveId: firstDetectedCurve.id,
@@ -1968,6 +1971,7 @@ export default function IdPage() {
               };
             } else if (withinRangeCurveIds.length > 0) {
               pressing = {
+                origin: cloneDeep(shape),
                 shape: shape,
                 ghost: null,
                 curveId: withinRangeCurveIds[0],
@@ -1987,6 +1991,7 @@ export default function IdPage() {
             const vertex = shape.checkVertexesBoundry(p);
             if (shape.selecting && vertex) {
               pressing = {
+                origin: cloneDeep(shape),
                 shape: shape,
                 ghost: _ghost,
                 curveId: null,
@@ -1995,6 +2000,7 @@ export default function IdPage() {
               };
             } else if (shape.checkBoundry(p)) {
               pressing = {
+                origin: cloneDeep(shape),
                 shape: shape,
                 ghost: _ghost,
                 curveId: null,
@@ -2631,6 +2637,24 @@ export default function IdPage() {
       });
     });
 
+    if (
+      pressing?.target &&
+      pressing?.shape &&
+      pressing?.origin &&
+      (pressing?.target === CoreTypes.PressingTarget.lt ||
+        pressing?.target === CoreTypes.PressingTarget.rt ||
+        pressing?.target === CoreTypes.PressingTarget.rb ||
+        pressing?.target === CoreTypes.PressingTarget.lb) &&
+      (pressing?.shape?.p.x !== pressing?.origin?.p.x ||
+        pressing?.shape?.p.y !== pressing?.origin?.p.y)
+    ) {
+      actions.push({
+        type: CommonTypes.Action.resize,
+        id: pressing.shape.id,
+        origin: pressing.origin,
+      });
+    }
+
     checkData(shapes);
     checkGroups();
 
@@ -2669,13 +2693,11 @@ export default function IdPage() {
   );
 
   function handleKeyDown(this: Window, e: KeyboardEvent) {
-    // console.log('control', control)
-    // console.log('e.key', e.key)
     if (e.key === "Control") {
       setControl(true);
     }
     if (e.key === "z" && control) {
-      undo(ctx, actions);
+      undo(ctx, actions, shapes);
     }
     if (e.key === " " && !space) {
       setSpace(true);
@@ -2714,7 +2736,8 @@ export default function IdPage() {
 
   const onClickShapeButton = (
     e: React.MouseEvent<HTMLButtonElement>,
-    type: CommonTypes.Type
+    type: CommonTypes.Type,
+    actions: PageIdTypes.Actions
   ) => {
     e.stopPropagation();
     e.preventDefault();
@@ -2728,6 +2751,8 @@ export default function IdPage() {
     actions.push({
       type: CommonTypes.Action.add,
     });
+
+    console.log("actions", actions);
 
     checkData(shapes);
     checkGroups();
@@ -3160,7 +3185,7 @@ export default function IdPage() {
       drawScreenshot();
     })();
 
-    const resize = () => {
+    const resizeViewport = () => {
       const $canvas = document.querySelector("canvas");
       const $screenshot: HTMLCanvasElement | null = document.querySelector(
         "canvas[role='screenshot']"
@@ -3174,7 +3199,7 @@ export default function IdPage() {
       drawScreenshot();
     };
 
-    window.addEventListener("resize", resize);
+    window.addEventListener("resize", resizeViewport);
     window.addEventListener("beforeunload", function (e) {
       e.preventDefault();
       e.returnValue = "";
@@ -3183,7 +3208,7 @@ export default function IdPage() {
 
     return () => {
       if (!isBrowser) return;
-      window.removeEventListener("resize", resize);
+      window.removeEventListener("resize", resizeViewport);
     };
   }, []);
 
@@ -3474,7 +3499,7 @@ export default function IdPage() {
                 className="mx-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
                 content={createShapeButton.icon}
                 onClick={(e) => {
-                  onClickShapeButton(e, createShapeButton.type);
+                  onClickShapeButton(e, createShapeButton.type, actions);
                 }}
                 onKeyDown={(e) => {
                   e.preventDefault();
