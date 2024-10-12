@@ -49,5 +49,14 @@ enum SelectAreaTarget {
   lb = "lb",
 }
 
+enum Action {
+  add = "add",
+  remove = "remove",
+  connect = "connect",
+  disconnect = "disconnect",
+  move = "move",
+  reisze = "resize",
+}
+
 export type { Id, W, H, C, Vec, Shapes, Title, DataItem, Data };
-export { Direction, Corner, Type, SelectAreaTarget };
+export { Direction, Corner, Type, SelectAreaTarget, Action };

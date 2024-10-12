@@ -1,7 +1,7 @@
 "use client";
 import Core from "@/shapes/core";
 import * as TerminatorTypes from "@/types/shapes/terminator";
-import * as CommonTypes from "@/types/shapes/common";
+import * as CommonTypes from "@/types/common";
 
 export default class Terminal extends Core {
   constructor(

@@ -1,6 +1,6 @@
 "use client";
 import Arrow from "@/shapes/arrow";
-import { Vec } from "@/types/shapes/common";
+import { Vec } from "@/types/common";
 import { tailwindColors } from "@/variables/colors";
 import * as CurveTypes from "@/types/shapes/curve";
 

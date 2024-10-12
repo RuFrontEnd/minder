@@ -1,6 +1,6 @@
 "use client";
 import Core from "@/shapes/core";
-import * as CommonTypes from "@/types/shapes/common";
+import * as CommonTypes from "@/types/common";
 import * as DecisionTypes from "@/types/shapes/decision";
 
 const ds = [

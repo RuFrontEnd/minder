@@ -3,7 +3,7 @@ import Terminal from "@/shapes/terminal";
 import Process from "@/shapes/process";
 import Data from "@/shapes/data";
 import Desicion from "@/shapes/decision";
-import * as CommonTypes from "@/types/shapes/common";
+import * as CommonTypes from "@/types/common";
 import * as CoreTypes from "@/types/shapes/core";
 import * as CurveTypes from "@/types/shapes/curve";
 

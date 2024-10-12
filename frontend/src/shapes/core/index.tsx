@@ -2,9 +2,9 @@
 import Curve from "@/shapes/curve";
 import { tailwindColors } from "@/variables/colors";
 import { Inter } from "next/font/google";
-import { Vec, Direction, Data as DataType } from "@/types/shapes/common";
+import { Vec, Direction, Data as DataType } from "@/types/common";
 import * as CoreTypes from "@/types/shapes/core";
-import * as CommonTypes from "@/types/shapes/common";
+import * as CommonTypes from "@/types/common";
 import * as CurveTypes from "@/types/shapes/curve";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -1781,7 +1781,7 @@ export default class Core {
 
     ctx.save();
     ctx.translate(this.getScreenP().x, this.getScreenP().y);
-    ctx.globalAlpha = 0.5; // TODO: for testing ghost
+    // ctx.globalAlpha = 0.5; // TODO: for testing ghost
 
     ctx.fillStyle = (() => {
       switch (this.status) {

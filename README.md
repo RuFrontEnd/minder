@@ -28,10 +28,10 @@ FT
 - [x] create project
 - [x] delete project
 - [x] auto calculate curve position
+- [x] align shapes
 - [ ] one-click remove redundancies
 - [ ] modulize steps
 - [ ] data remark
-- [ ] align shapes
 - [ ] forget password
 - [ ] third-party sign in
 - [ ] copy

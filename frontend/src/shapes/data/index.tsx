@@ -2,8 +2,8 @@
 import Core from "@/shapes/core";
 import Curve from "@/shapes/curve";
 import { tailwindColors } from "@/variables/colors";
-import { Direction } from "@/types/shapes/common";
-import * as CommonTypes from "@/types/shapes/common";
+import { Direction } from "@/types/common";
+import * as CommonTypes from "@/types/common";
 
 export default class Data extends Core {
   isFrameOpen: boolean;

@@ -6,9 +6,8 @@ import Core from "@/shapes/core";
 import Terminal from "@/shapes/terminal";
 import Process from "@/shapes/process";
 import Data from "@/shapes/data";
-import Curve from "@/shapes/curve";
-import Arrow from "@/shapes/arrow";
 import Desicion from "@/shapes/decision";
+import Stack from "@/dataStructure/stack";
 import DataFrame from "@/components/dataFrame";
 import SidePanel from "@/components/sidePanel";
 import Accordion from "@/components/accordion";
@@ -32,7 +31,7 @@ import * as authAPIs from "@/apis/auth";
 import * as projectAPIs from "@/apis/project";
 import * as CoreTypes from "@/types/shapes/core";
 import * as CurveTypes from "@/types/shapes/curve";
-import * as CommonTypes from "@/types/shapes/common";
+import * as CommonTypes from "@/types/common";
 import * as PageTypes from "@/types/app/page";
 import * as DataFrameTypes from "@/types/components/dataFrame";
 import * as InputTypes from "@/types/components/input";
@@ -136,7 +135,8 @@ let useEffected = false,
     d: null,
     p: { x: 0, y: 0 },
   },
-  movingD: null | CommonTypes.Direction = null;
+  movingD: null | CommonTypes.Direction = null,
+  actions = new Stack<{ type: CommonTypes.Action }>();
 
 const ds = [
   CommonTypes.Direction.l,
@@ -1140,6 +1140,169 @@ const drawAlignLines = (
   });
 };
 
+const draw = (
+  $canvas: HTMLCanvasElement,
+  ctx: CanvasRenderingContext2D,
+  shapes: (Terminal | Process | Data | Desicion)[],
+  isScreenshot?: boolean
+) => {
+  if (!isBrowser) return;
+  $canvas.width = window.innerWidth;
+  $canvas.height = window.innerHeight;
+  ctx?.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+  // draw background
+  ctx?.beginPath();
+  ctx.fillStyle = "#F6F7FA";
+  ctx?.fillRect(0, 0, window.innerWidth, window.innerHeight);
+  ctx?.closePath();
+
+  tests.forEach((test) => {
+    test.draw(ctx);
+  });
+
+  // draw align lines
+  drawShapes(ctx, shapes);
+  drawAlignLines(ctx, alginLines);
+
+  if (!isScreenshot) {
+    // draw sending point
+    shapes.forEach((shape) => {
+      if (!ctx || !shape.selecting) return;
+      if (
+        shape instanceof Terminal ||
+        shape instanceof Process ||
+        shape instanceof Data ||
+        (shape instanceof Desicion && !(shape.getText().y && shape.getText().n))
+      ) {
+        shape.drawSendingPoint(ctx);
+      }
+    });
+  }
+
+  // draw curves in shapes
+  shapes.forEach((shape) => {
+    if (!ctx) return;
+
+    shape.drawCurve(ctx);
+  });
+
+  if (!isScreenshot) {
+    // draw selectArea
+    if (selectAreaP) {
+      ctx?.beginPath();
+
+      ctx.fillStyle = "#2436b155";
+      ctx.fillRect(
+        selectAreaP?.start.x,
+        selectAreaP?.start.y,
+        selectAreaP?.end.x - selectAreaP?.start.x,
+        selectAreaP?.end.y - selectAreaP?.start.y
+      );
+
+      ctx.strokeStyle = "#2436b1";
+      ctx.strokeRect(
+        selectAreaP?.start.x,
+        selectAreaP?.start.y,
+        selectAreaP?.end.x - selectAreaP?.start.x,
+        selectAreaP?.end.y - selectAreaP?.start.y
+      );
+
+      ctx?.closePath();
+    }
+  }
+
+  if (!isScreenshot) {
+    shapes.forEach((shape) => {
+      shape.drawRecievingPoint(ctx);
+    });
+  }
+
+  if (select.shapes.length > 1 && !isScreenshot) {
+    // draw select area
+    ctx?.beginPath();
+    ctx.strokeStyle = tailwindColors.info["500"];
+    ctx.lineWidth = 1;
+    ctx.strokeRect(
+      select.start.x,
+      select.start.y,
+      select.end.x - select.start.x,
+      select.end.y - select.start.y
+    );
+    ctx?.closePath();
+
+    // draw select area anchors
+    ctx.fillStyle = "white";
+    ctx.lineWidth = selectAnchor.size.stroke;
+
+    ctx?.beginPath();
+    ctx.arc(
+      select.start.x,
+      select.start.y,
+      selectAnchor.size.fill,
+      0,
+      2 * Math.PI,
+      false
+    ); // left, top
+    ctx.stroke();
+    ctx.fill();
+    ctx?.closePath();
+
+    ctx?.beginPath();
+    ctx.arc(
+      select.end.x,
+      select.start.y,
+      selectAnchor.size.fill,
+      0,
+      2 * Math.PI,
+      false
+    ); // right, top
+    ctx.stroke();
+    ctx.fill();
+    ctx?.closePath();
+
+    ctx?.beginPath();
+    ctx.arc(
+      select.end.x,
+      select.end.y,
+      selectAnchor.size.fill,
+      0,
+      2 * Math.PI,
+      false
+    ); // right, bottom
+    ctx.stroke();
+    ctx.fill();
+    ctx?.closePath();
+
+    ctx?.beginPath();
+    ctx.arc(
+      select.start.x,
+      select.end.y,
+      selectAnchor.size.fill,
+      0,
+      2 * Math.PI,
+      false
+    ); // left, bottom
+    ctx.stroke();
+    ctx.fill();
+    ctx?.closePath();
+  }
+};
+
+const drawCanvas = () => {
+  const $canvas = document.querySelector("canvas");
+  if (!$canvas || !ctx) return;
+  draw($canvas, ctx, shapes, false);
+};
+
+const drawScreenshot = () => {
+  const $screenshot: HTMLCanvasElement | null = document.querySelector(
+    "canvas[role='screenshot']"
+  );
+  if (!$screenshot || !ctx_screenshot) return;
+  draw($screenshot, ctx_screenshot, getScreenshotShapes(shapes), true);
+};
+
 const resize = (
   shapes: null | undefined | (Terminal | Process | Data | Desicion)[],
   pressing: {
@@ -1253,6 +1416,31 @@ const resize = (
   }
 
   pressing.ghost.resize(offsetP, pressing.target);
+};
+
+const undo = (
+  ctx: undefined | null | CanvasRenderingContext2D,
+  actions: Stack<{ type: CommonTypes.Action }>
+) => {
+  if (!ctx) return;
+  console.log("undo");
+
+  const actionType = actions.peek()?.type;
+
+  switch (actionType) {
+    case CommonTypes.Action.add:
+      shapes = cloneDeep(shapes).filter(
+        (_, shapeI) => shapeI !== shapes.length - 1
+      );
+      break;
+  }
+
+  actions.pop();
+
+  console.log(actions);
+
+  drawCanvas();
+  drawScreenshot();
 };
 
 // const Editor = (props: { className: string; shape: Core }) => {
@@ -1412,6 +1600,7 @@ export default function IdPage() {
     Terminal | Data | Process | Desicion | null
   >(null);
   const [space, setSpace] = useState(false);
+  const [control, setControl] = useState(false);
   const [scale, setScale] = useState(1);
   const [leftMouseBtn, setLeftMouseBtn] = useState(false);
   const [isDataSidePanelOpen, setIsDataSidePanelOpen] = useState(false);
@@ -2480,7 +2669,14 @@ export default function IdPage() {
   );
 
   function handleKeyDown(this: Window, e: KeyboardEvent) {
-    // space
+    // console.log('control', control)
+    // console.log('e.key', e.key)
+    if (e.key === "Control") {
+      setControl(true);
+    }
+    if (e.key === "z" && control) {
+      undo(ctx, actions);
+    }
     if (e.key === " " && !space) {
       setSpace(true);
     } else if (e.key === "Backspace" && !dataFrame && !dbClickedShape) {
@@ -2508,6 +2704,9 @@ export default function IdPage() {
   }
 
   function handleKeyUp(this: Window, e: KeyboardEvent) {
+    if (e.key === "Control") {
+      setControl(false);
+    }
     if (e.key === " " && space) {
       setSpace(false);
     }
@@ -2525,6 +2724,10 @@ export default function IdPage() {
     intiShape.offset = offset;
     intiShape.scale = scale;
     shapes.push(intiShape);
+
+    actions.push({
+      type: CommonTypes.Action.add,
+    });
 
     checkData(shapes);
     checkGroups();
@@ -2636,173 +2839,6 @@ export default function IdPage() {
     setIsProjectsModalOpen(true);
     setIsProfileFrameOpen(false);
     await fetchProjects();
-  };
-
-  const draw = useCallback(
-    (
-      $canvas: HTMLCanvasElement,
-      ctx: CanvasRenderingContext2D,
-      shapes: (Terminal | Process | Data | Desicion)[],
-      isScreenshot?: boolean
-    ) => {
-      if (!isBrowser) return;
-      $canvas.width = window.innerWidth;
-      $canvas.height = window.innerHeight;
-      ctx?.clearRect(0, 0, window.innerWidth, window.innerHeight);
-
-      // draw background
-      ctx?.beginPath();
-      ctx.fillStyle = "#F6F7FA";
-      ctx?.fillRect(0, 0, window.innerWidth, window.innerHeight);
-      ctx?.closePath();
-
-      tests.forEach((test) => {
-        test.draw(ctx);
-      });
-
-      // draw align lines
-      drawShapes(ctx, shapes);
-      drawAlignLines(ctx, alginLines);
-
-      if (!isScreenshot) {
-        // draw sending point
-        shapes.forEach((shape) => {
-          if (!ctx || !shape.selecting) return;
-          if (
-            shape instanceof Terminal ||
-            shape instanceof Process ||
-            shape instanceof Data ||
-            (shape instanceof Desicion &&
-              !(shape.getText().y && shape.getText().n))
-          ) {
-            shape.drawSendingPoint(ctx);
-          }
-        });
-      }
-
-      // draw curves in shapes
-      shapes.forEach((shape) => {
-        if (!ctx) return;
-
-        shape.drawCurve(ctx);
-      });
-
-      if (!isScreenshot) {
-        // draw selectArea
-        if (selectAreaP) {
-          ctx?.beginPath();
-
-          ctx.fillStyle = "#2436b155";
-          ctx.fillRect(
-            selectAreaP?.start.x,
-            selectAreaP?.start.y,
-            selectAreaP?.end.x - selectAreaP?.start.x,
-            selectAreaP?.end.y - selectAreaP?.start.y
-          );
-
-          ctx.strokeStyle = "#2436b1";
-          ctx.strokeRect(
-            selectAreaP?.start.x,
-            selectAreaP?.start.y,
-            selectAreaP?.end.x - selectAreaP?.start.x,
-            selectAreaP?.end.y - selectAreaP?.start.y
-          );
-
-          ctx?.closePath();
-        }
-      }
-
-      if (!isScreenshot) {
-        shapes.forEach((shape) => {
-          shape.drawRecievingPoint(ctx);
-        });
-      }
-
-      if (select.shapes.length > 1 && !isScreenshot) {
-        // draw select area
-        ctx?.beginPath();
-        ctx.strokeStyle = tailwindColors.info["500"];
-        ctx.lineWidth = 1;
-        ctx.strokeRect(
-          select.start.x,
-          select.start.y,
-          select.end.x - select.start.x,
-          select.end.y - select.start.y
-        );
-        ctx?.closePath();
-
-        // draw select area anchors
-        ctx.fillStyle = "white";
-        ctx.lineWidth = selectAnchor.size.stroke;
-
-        ctx?.beginPath();
-        ctx.arc(
-          select.start.x,
-          select.start.y,
-          selectAnchor.size.fill,
-          0,
-          2 * Math.PI,
-          false
-        ); // left, top
-        ctx.stroke();
-        ctx.fill();
-        ctx?.closePath();
-
-        ctx?.beginPath();
-        ctx.arc(
-          select.end.x,
-          select.start.y,
-          selectAnchor.size.fill,
-          0,
-          2 * Math.PI,
-          false
-        ); // right, top
-        ctx.stroke();
-        ctx.fill();
-        ctx?.closePath();
-
-        ctx?.beginPath();
-        ctx.arc(
-          select.end.x,
-          select.end.y,
-          selectAnchor.size.fill,
-          0,
-          2 * Math.PI,
-          false
-        ); // right, bottom
-        ctx.stroke();
-        ctx.fill();
-        ctx?.closePath();
-
-        ctx?.beginPath();
-        ctx.arc(
-          select.start.x,
-          select.end.y,
-          selectAnchor.size.fill,
-          0,
-          2 * Math.PI,
-          false
-        ); // left, bottom
-        ctx.stroke();
-        ctx.fill();
-        ctx?.closePath();
-      }
-    },
-    []
-  );
-
-  const drawCanvas = () => {
-    const $canvas = document.querySelector("canvas");
-    if (!$canvas || !ctx) return;
-    draw($canvas, ctx, shapes, false);
-  };
-
-  const drawScreenshot = () => {
-    const $screenshot: HTMLCanvasElement | null = document.querySelector(
-      "canvas[role='screenshot']"
-    );
-    if (!$screenshot || !ctx_screenshot) return;
-    draw($screenshot, ctx_screenshot, getScreenshotShapes(shapes), true);
   };
 
   const onClickStep = (shapeP: CommonTypes.Vec) => {
@@ -3161,7 +3197,7 @@ export default function IdPage() {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, [dataFrame, dbClickedShape, space, steps]);
+  }, [dataFrame, dbClickedShape, space, steps, control]);
 
   const createShapeButtons = [
     { shape: CommonTypes.Type["terminator"], icon: IconTypes.Type.ellipse },
@@ -3438,11 +3474,6 @@ export default function IdPage() {
                 className="mx-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
                 content={createShapeButton.icon}
                 onClick={(e) => {
-                  if ((e as any).key === " ") {
-                    // 确保只在按下空格键时阻止默认行为
-                    e.preventDefault();
-                    e.stopPropagation(); // 确保事件不传播
-                  }
                   onClickShapeButton(e, createShapeButton.type);
                 }}
                 onKeyDown={(e) => {
