@@ -64,8 +64,9 @@ export default class Curve {
       this.__arrowAttr__.w,
       this.__arrowAttr__.h,
       this.__arrowAttr__.c,
-      this.relativify(p2),
-      Math.atan2(p2.y - this.cp2.y, p2.x - this.cp2.x) + 90 * (Math.PI / 180)
+      this.relativify(this.p2),
+      Math.atan2(this.p2.y - this.cp2.y, this.p2.x - this.cp2.x) +
+        90 * (Math.PI / 180)
     );
     this.__selecting__ = false;
     this.__offset__ = this.initOffset;
@@ -80,6 +81,13 @@ export default class Curve {
     this.__selecting__ = val;
     if (this.arrow) {
       this.arrow.selecting = val;
+    }
+  }
+
+  set p1(val: Vec) {
+    this.__p1__ = val;
+    if (this.arrow && this.p2 && this.cp2) {
+      this.arrow.p = this.relativify(this.p2);
     }
   }
 

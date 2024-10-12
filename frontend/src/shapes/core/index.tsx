@@ -199,21 +199,46 @@ export default class Core {
     });
 
     this.curves[Direction.r].forEach((sendCurve) => {
-      sendCurve.shape.p1.x -= offset;
-      sendCurve.shape.cp1.x -= offset;
-
-      if (sendCurve.sendTo) return;
-
-      sendCurve.shape.p2 = {
-        ...sendCurve.shape.p2,
-        x: sendCurve.shape.p2.x - offset,
+      sendCurve.shape.p1 = {
+        ...sendCurve.shape.p1,
+        x: value / 2,
       };
-      sendCurve.shape.cp2.x -= offset;
+
+      // sendCurve.shape.cp1.x -= offset;
+
+      // if (sendCurve.sendTo) {
+      // console.log(" sendCurve.shape.p1", sendCurve.shape.p1);
+
+      // console.log(" sendCurve.shape.p2", sendCurve.shape.p2);
+
+      //   sendCurve.shape.p2 = sendCurve.shape.p2;
+
+      //   const [cp1, cp2] = this.moveBridgeCurve(
+      //     Direction.r,
+      //     sendCurve.sendTo.d,
+      //     sendCurve.shape.p1,
+      //     sendCurve.shape.p2,
+      //     sendCurve.shape.arrowAttr.h
+      //   );
+
+      //   if (!cp1 || !cp2) return;
+
+      //   sendCurve.shape.cp1 = cp1;
+      //   sendCurve.shape.cp2 = cp2;
+
+      //   console.log(" sendCurve.shape.p2", sendCurve.shape.p2);
+      // } else {
+      //   sendCurve.shape.p2 = {
+      //     ...sendCurve.shape.p2,
+      //     x: sendCurve.shape.p2.x - offset,
+      //   };
+      //   sendCurve.shape.cp2.x -= offset;
+      // }
     });
 
     // when receiver width changes, receiver curve follows the sender shape
 
-    this.receiveFrom.l?.forEach((receiveFromItem) => {
+    this.receiveFrom[Direction.l]?.forEach((receiveFromItem) => {
       const bridge = receiveFromItem.shape.curves[receiveFromItem.d].find(
         (sendCurve) => sendCurve.shape.id === receiveFromItem.bridgeId
       );
@@ -226,7 +251,7 @@ export default class Core {
       bridge.shape.cp2.x += offset;
     });
 
-    this.receiveFrom.r?.forEach((receiveFromItem) => {
+    this.receiveFrom[Direction.r]?.forEach((receiveFromItem) => {
       const bridge = receiveFromItem.shape.curves[receiveFromItem.d].find(
         (sendCurve) => sendCurve.shape.id === receiveFromItem.bridgeId
       );
@@ -461,6 +486,15 @@ export default class Core {
     };
   }
 
+  getNormalEdge() {
+    return {
+      l: this.p.x - this.w / 2,
+      t: this.p.y - this.h / 2,
+      r: this.p.x + this.w / 2,
+      b: this.p.y + this.h / 2,
+    };
+  }
+
   getEdge() {
     return {
       l: this.getScreenP().x - this.getScaleSize().w / 2,
@@ -470,7 +504,71 @@ export default class Core {
     };
   }
 
-  getCenter() {
+  getNormalCenter() {
+    const edge = this.getNormalEdge();
+    const pivot = {
+      x: this.p.x,
+      y: this.p.y,
+    };
+
+    return {
+      m: pivot,
+      lt: {
+        x: edge.l,
+        y: edge.t,
+      },
+      rt: {
+        x: edge.r,
+        y: edge.t,
+      },
+      rb: {
+        x: edge.r,
+        y: edge.b,
+      },
+      lb: {
+        x: edge.l,
+        y: edge.b,
+      },
+      __curveTrigger__: {
+        l: {
+          x: edge.l - this.__curveTrigger__.d,
+          y: pivot.y,
+        },
+        t: {
+          x: pivot.x,
+          y: edge.t - this.__curveTrigger__.d,
+        },
+        r: {
+          x: edge.r + this.__curveTrigger__.d,
+          y: pivot.y,
+        },
+        b: {
+          x: pivot.x,
+          y: edge.b + this.__curveTrigger__.d,
+        },
+      },
+      receivingPoints: {
+        l: {
+          x: pivot.x - this.w / 2,
+          y: pivot.y,
+        },
+        t: {
+          x: pivot.x,
+          y: pivot.y - this.h / 2,
+        },
+        r: {
+          x: pivot.x + this.w / 2,
+          y: pivot.y,
+        },
+        b: {
+          x: pivot.x,
+          y: pivot.y + this.h / 2,
+        },
+      },
+    };
+  }
+
+  getCenter(): CoreTypes.GetCenterReturn {
     const edge = this.getEdge();
     const pivot = {
       x: this.getScreenP().x,
@@ -479,6 +577,10 @@ export default class Core {
 
     return {
       m: pivot,
+      l: { x: edge.l, y: pivot.y },
+      t: { x: pivot.x, y: edge.t },
+      r: { x: edge.r, y: pivot.y },
+      b: { x: pivot.x, y: edge.b },
       lt: {
         x: edge.l,
         y: edge.t,
@@ -1299,6 +1401,27 @@ export default class Core {
     bridge.locateHandler(CurveTypes.PressingTarget.p2, this.getCurveP(toP));
   }
 
+  locate(p: { x: null | number; y: null | number }) {
+    if (!p.x && !p.y) return;
+
+    if (!!p.x && !!p.y) {
+      this.p = {
+        x: p.x / this.scale - this.offset.x,
+        y: p.y / this.scale - this.offset.y,
+      };
+    } else if (!!p.x && !p.y) {
+      this.p = {
+        x: p.x / this.scale - this.offset.x,
+        y: this.p.y,
+      };
+    } else if (!!p.y && !p.x) {
+      this.p = {
+        x: this.p.x,
+        y: p.y / this.scale - this.offset.y,
+      };
+    }
+  }
+
   locateCurveHandler(
     curveId: CurveTypes.Id,
     pressingTarget: CurveTypes.PressingTarget,
@@ -1658,6 +1781,7 @@ export default class Core {
 
     ctx.save();
     ctx.translate(this.getScreenP().x, this.getScreenP().y);
+    ctx.globalAlpha = 0.5; // TODO: for testing ghost
 
     ctx.fillStyle = (() => {
       switch (this.status) {
@@ -1940,10 +2064,6 @@ export default class Core {
   drawCurve(ctx: CanvasRenderingContext2D) {
     ctx.save();
     ctx.translate(this.getScreenP().x, this.getScreenP().y);
-
-    // ctx.moveTo(0, 0);
-    // ctx.fillStyle = "red";
-    // ctx.fillRect(0, 0, 10, 10);
 
     ds.forEach((d) => {
       this.curves[d].forEach((curve) => {
