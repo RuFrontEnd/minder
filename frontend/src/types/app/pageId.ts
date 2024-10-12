@@ -34,7 +34,7 @@ type Sticking = {
 type ActionTypes =
   | { type: CommonTypes.Action.add }
   | {
-      type: CommonTypes.Action.resize;
+      type: CommonTypes.Action.resize | CommonTypes.Action.move;
       id: string;
       origin: Terminal | Process | Data | Desicion;
     };

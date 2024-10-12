@@ -1420,19 +1420,35 @@ const undo = (
   shapes: null | (Terminal | Process | Data | Desicion)[]
 ) => {
   if (!ctx || !shapes) return;
-  console.log("undo");
 
+  console.log("undo");
   const action = actions.peek();
+  console.log("action", action);
+
+  const returnToOrigin = (
+    shapes: undefined | null | (Terminal | Process | Data | Desicion)[],
+    actionId: string,
+    origin: undefined | null | (Terminal | Process | Data | Desicion)
+  ) => {
+    if (!shapes || !origin) return;
+    const i = shapes.findIndex((shape) => shape.id === actionId);
+    shapes[i] = origin;
+  };
 
   switch (action?.type) {
     case CommonTypes.Action.add:
       shapes.pop();
       break;
 
-    case CommonTypes.Action.resize:
-      let i = shapes.findIndex((shape) => shape.id === action.id);
-      shapes[i] = action.origin;
+    case CommonTypes.Action.resize: {
+      returnToOrigin(shapes, action.id, action.origin);
       break;
+    }
+
+    case CommonTypes.Action.move: {
+      returnToOrigin(shapes, action.id, action.origin);
+      break;
+    }
   }
 
   actions.pop();
@@ -2564,70 +2580,6 @@ export default function IdPage() {
         } else if (!!theQuarterD) {
           pressingShape.connect(targetShape, theQuarterD, pressing.curveId);
         }
-
-        let relocateP: null | CommonTypes.Vec = null;
-        switch (theCheckReceivingPointsBoundryD || theQuarterD) {
-          case CommonTypes.Direction.l:
-            if (targetShape instanceof Data) {
-              relocateP = {
-                x: targetShape.getCenter().receivingPoints.l.x - 6,
-                y: targetShape.getCenter().receivingPoints.l.y,
-              };
-            } else {
-              relocateP = {
-                x: targetShape.getCenter().receivingPoints.l.x - 6,
-                y: targetShape.getCenter().receivingPoints.l.y,
-              };
-            }
-            break;
-          case CommonTypes.Direction.t:
-            if (targetShape instanceof Data) {
-              relocateP = {
-                x: targetShape.getCenter().receivingPoints.t.x,
-                y: targetShape.getCenter().receivingPoints.t.y - 6,
-              };
-            } else {
-              relocateP = {
-                x: targetShape.getCenter().receivingPoints.t.x,
-                y: targetShape.getCenter().receivingPoints.t.y - 6,
-              };
-            }
-            break;
-          case CommonTypes.Direction.r:
-            if (targetShape instanceof Data) {
-              relocateP = {
-                x: targetShape.getCenter().receivingPoints.r.x - 6,
-                y: targetShape.getCenter().receivingPoints.r.y,
-              };
-            } else {
-              relocateP = {
-                x: targetShape.getCenter().receivingPoints.r.x + 6,
-                y: targetShape.getCenter().receivingPoints.r.y,
-              };
-            }
-            break;
-          case CommonTypes.Direction.b:
-            if (targetShape instanceof Data) {
-              relocateP = {
-                x: targetShape.getCenter().receivingPoints.b.x,
-                y: targetShape.getCenter().receivingPoints.b.y + 6,
-              };
-            } else {
-              relocateP = {
-                x: targetShape.getCenter().receivingPoints.b.x,
-                y: targetShape.getCenter().receivingPoints.b.y + 6,
-              };
-            }
-            break;
-        }
-
-        // if (!!relocateP) {
-        //   pressingShape.locateCurveHandler(
-        //     pressing.curveId,
-        //     CurveTypes.PressingTarget.p2,
-        //     relocateP
-        //   );
-        // } // TODO: temprarily closed
       }
     });
 
@@ -2641,18 +2593,27 @@ export default function IdPage() {
       pressing?.target &&
       pressing?.shape &&
       pressing?.origin &&
-      (pressing?.target === CoreTypes.PressingTarget.lt ||
-        pressing?.target === CoreTypes.PressingTarget.rt ||
-        pressing?.target === CoreTypes.PressingTarget.rb ||
-        pressing?.target === CoreTypes.PressingTarget.lb) &&
       (pressing?.shape?.p.x !== pressing?.origin?.p.x ||
         pressing?.shape?.p.y !== pressing?.origin?.p.y)
     ) {
-      actions.push({
-        type: CommonTypes.Action.resize,
-        id: pressing.shape.id,
-        origin: pressing.origin,
-      });
+      if (
+        pressing?.target === CoreTypes.PressingTarget.lt ||
+        pressing?.target === CoreTypes.PressingTarget.rt ||
+        pressing?.target === CoreTypes.PressingTarget.rb ||
+        pressing?.target === CoreTypes.PressingTarget.lb
+      ) {
+        actions.push({
+          type: CommonTypes.Action.resize,
+          id: pressing.shape.id,
+          origin: pressing.origin,
+        });
+      } else if (pressing?.target === CoreTypes.PressingTarget.m) {
+        actions.push({
+          type: CommonTypes.Action.move,
+          id: pressing.shape.id,
+          origin: pressing.origin,
+        });
+      }
     }
 
     checkData(shapes);
