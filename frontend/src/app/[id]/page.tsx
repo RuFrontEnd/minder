@@ -99,6 +99,7 @@ let useEffected = false,
   tests: any[] = [], // TODO: should be deleted
   pressing: null | {
     shape: null | Terminal | Process | Data | Desicion;
+    ghost: null | Terminal | Process | Data | Desicion;
     curveId?: null | CurveTypes.Id;
     direction: null | CommonTypes.Direction; // TODO: should be removed in the future
     target:
@@ -110,6 +111,10 @@ let useEffected = false,
   offset: CommonTypes.Vec = cloneDeep(init.offset),
   offset_center: CommonTypes.Vec = cloneDeep(init.offset),
   lastP: CommonTypes.Vec = { x: 0, y: 0 },
+  moveP: {
+    x: null | number;
+    y: null | number;
+  } = { x: null, y: null },
   relativeCurveCp2: CommonTypes.Vec = { x: 0, y: 0 },
   selectAreaP: null | {
     start: CommonTypes.Vec;
@@ -125,7 +130,13 @@ let useEffected = false,
       fill: 4,
       stroke: 2,
     },
-  };
+  },
+  alginLines: { from: CommonTypes.Vec; to: CommonTypes.Vec }[] = [],
+  align: { d: null | CommonTypes.Direction; p: CommonTypes.Vec } = {
+    d: null,
+    p: { x: 0, y: 0 },
+  },
+  movingD: null | CommonTypes.Direction = null;
 
 const ds = [
   CommonTypes.Direction.l,
@@ -433,6 +444,817 @@ const getScreenshotShapes = (
   return screenshotShapes;
 };
 
+const getAlignVertixP = (
+  shapes: (Terminal | Process | Data | Desicion)[],
+  baseVertex?: CommonTypes.Vec
+) => {
+  let output: { x: null | number; y: null | number } = { x: null, y: null };
+  if (!baseVertex || shapes.length === 0) return output;
+
+  for (let i = 0; i < shapes.length; i++) {
+    const targetShape = shapes[i];
+    const targetCenter = targetShape.getCenter().m;
+    const targetEdge = targetShape.getEdge();
+    const threshold = 10;
+
+    // align center
+    // x
+    if (
+      baseVertex.x >= targetCenter.x - threshold &&
+      baseVertex.x <= targetCenter.x + threshold
+    ) {
+      output.x = targetCenter.x;
+    }
+
+    // y
+    if (
+      baseVertex.y >= targetCenter.y - threshold &&
+      baseVertex.y <= targetCenter.y + threshold
+    ) {
+      output.y = targetCenter.y;
+    }
+
+    // align left
+    if (
+      baseVertex.x >= targetEdge.l - threshold &&
+      baseVertex.x <= targetEdge.l + threshold
+    ) {
+      output.x = targetEdge.l;
+    }
+
+    // align right
+    if (
+      baseVertex.x >= targetEdge.r - threshold &&
+      baseVertex.x <= targetEdge.r + threshold
+    ) {
+      output.x = targetEdge.r;
+    }
+
+    // align top
+    if (
+      baseVertex.y >= targetEdge.t - threshold &&
+      baseVertex.y <= targetEdge.t + threshold
+    ) {
+      output.y = targetEdge.t;
+    }
+
+    // align bottom
+    if (
+      baseVertex.y >= targetEdge.b - threshold &&
+      baseVertex.y <= targetEdge.b + threshold
+    ) {
+      output.y = targetEdge.b;
+    }
+  }
+
+  return output;
+};
+
+const getVertexAlignLines = (
+  shapes: (Terminal | Process | Data | Desicion)[],
+  baseVertex?: CommonTypes.Vec
+) => {
+  if (!baseVertex || shapes.length === 0) return [];
+  const lines: {
+    from: CommonTypes.Vec;
+    to: CommonTypes.Vec;
+  }[] = [];
+
+  // align center
+  const vertexes_m = shapes
+    .map((targetShape) => targetShape.getCenter().m)
+    .concat(baseVertex);
+
+  // y
+  const align_center_y_vertexes = vertexes_m
+    .filter(
+      (vertex) =>
+        Number(baseVertex.y.toFixed(1)) === Number(vertex.y.toFixed(1))
+    )
+    .sort((a, b) => a.x - b.x);
+
+  if (
+    align_center_y_vertexes.length >= 2 &&
+    align_center_y_vertexes[0] &&
+    align_center_y_vertexes[align_center_y_vertexes.length - 1]
+  ) {
+    lines.push({
+      from: {
+        x: align_center_y_vertexes[0].x || baseVertex.x,
+        y: baseVertex.y,
+      },
+      to: {
+        x:
+          align_center_y_vertexes[align_center_y_vertexes.length - 1].x ||
+          baseVertex.x,
+        y: baseVertex.y,
+      },
+    });
+  }
+
+  // x
+  const align_center_x_vertexes = vertexes_m
+    .filter(
+      (vertex) =>
+        Number(baseVertex.x.toFixed(1)) === Number(vertex.x.toFixed(1))
+    )
+    .sort((a, b) => a.y - b.y);
+
+  if (
+    align_center_x_vertexes.length >= 2 &&
+    align_center_x_vertexes[0] &&
+    align_center_x_vertexes[align_center_x_vertexes.length - 1]
+  ) {
+    lines.push({
+      from: {
+        x: baseVertex.x,
+        y: align_center_x_vertexes[0].y || baseVertex.y,
+      },
+      to: {
+        x: baseVertex.x,
+        y:
+          align_center_x_vertexes[align_center_x_vertexes.length - 1].y ||
+          baseVertex.y,
+      },
+    });
+  }
+
+  // align left
+  const vertexes_l = shapes
+    .map((targetShape) => targetShape.getCenter().l)
+    .concat(baseVertex);
+
+  const align_l_vertexes = vertexes_l
+    .filter(
+      (vertex) =>
+        Number(baseVertex.x.toFixed(1)) === Number(vertex.x.toFixed(1))
+    )
+    .sort((a, b) => a.y - b.y);
+
+  if (
+    align_l_vertexes.length >= 2 &&
+    align_l_vertexes[0] &&
+    align_l_vertexes[align_l_vertexes.length - 1]
+  ) {
+    lines.push({
+      from: {
+        x: baseVertex.x,
+        y: align_l_vertexes[0].y || baseVertex.y,
+      },
+      to: {
+        x: baseVertex.x,
+        y: align_l_vertexes[align_l_vertexes.length - 1].y || baseVertex.y,
+      },
+    });
+  }
+
+  // align right
+  const vertexes_r = shapes
+    .map((targetShape) => targetShape.getCenter().r)
+    .concat(baseVertex);
+
+  const align_r_vertexes = vertexes_r
+    .filter(
+      (vertex) =>
+        Number(baseVertex.x.toFixed(1)) === Number(vertex.x.toFixed(1))
+    )
+    .sort((a, b) => a.y - b.y);
+
+  if (
+    align_r_vertexes.length >= 2 &&
+    align_r_vertexes[0] &&
+    align_r_vertexes[align_r_vertexes.length - 1]
+  ) {
+    lines.push({
+      from: {
+        x: baseVertex.x,
+        y: align_r_vertexes[0].y || baseVertex.y,
+      },
+      to: {
+        x: baseVertex.x,
+        y: align_r_vertexes[align_r_vertexes.length - 1].y || baseVertex.y,
+      },
+    });
+  }
+
+  // align top
+  const vertexes_t = shapes
+    .map((targetShape) => targetShape.getCenter().t)
+    .concat(baseVertex);
+
+  const align_t_vertexes = vertexes_t
+    .filter(
+      (vertex) =>
+        Number(baseVertex.y.toFixed(1)) === Number(vertex.y.toFixed(1))
+    )
+    .sort((a, b) => a.x - b.x);
+
+  if (
+    align_t_vertexes.length >= 2 &&
+    align_t_vertexes[0] &&
+    align_t_vertexes[align_t_vertexes.length - 1]
+  ) {
+    lines.push({
+      from: {
+        x: align_t_vertexes[0].x || baseVertex.x,
+        y: baseVertex.y,
+      },
+      to: {
+        x: align_t_vertexes[align_t_vertexes.length - 1].x || baseVertex.x,
+        y: baseVertex.y,
+      },
+    });
+  }
+
+  // align bottom
+  const vertexes_b = shapes
+    .map((targetShape) => targetShape.getCenter().b)
+    .concat(baseVertex);
+
+  const align_b_vertexes = vertexes_b
+    .filter(
+      (vertex) =>
+        Number(baseVertex.y.toFixed(1)) === Number(vertex.y.toFixed(1))
+    )
+    .sort((a, b) => a.x - b.x);
+
+  if (
+    align_b_vertexes.length >= 2 &&
+    align_b_vertexes[0] &&
+    align_b_vertexes[align_b_vertexes.length - 1]
+  ) {
+    lines.push({
+      from: {
+        x: align_b_vertexes[0].x || baseVertex.x,
+        y: baseVertex.y,
+      },
+      to: {
+        x: align_b_vertexes[align_b_vertexes.length - 1].x || baseVertex.x,
+        y: baseVertex.y,
+      },
+    });
+  }
+
+  return lines;
+};
+
+const getAlignP = (
+  shapes: (Terminal | Process | Data | Desicion)[],
+  baseShape?: null | Terminal | Process | Data | Desicion
+) => {
+  let output: { x: null | number; y: null | number } = { x: null, y: null };
+  if (!baseShape || shapes.length === 0) return output;
+
+  for (let i = 0; i < shapes.length; i++) {
+    const targetShape = shapes[i];
+    if (targetShape.id === baseShape.id) continue;
+
+    const targetEdge = targetShape.getEdge();
+    const targetCenter = targetShape.getCenter().m;
+    const baseEdge = baseShape.getEdge();
+    const baseCenter = baseShape.getCenter().m;
+    const threshold = 10;
+
+    // center x & center x
+    if (
+      baseCenter.x >= targetCenter.x - threshold &&
+      baseCenter.x <= targetCenter.x + threshold
+    ) {
+      output.x = targetCenter.x;
+    }
+
+    // center y & center y
+    if (
+      baseCenter.y >= targetCenter.y - threshold &&
+      baseCenter.y <= targetCenter.y + threshold
+    ) {
+      output.y = targetCenter.y;
+    }
+
+    // left & left
+    if (
+      baseEdge.l >= targetEdge.l - threshold &&
+      baseEdge.l <= targetEdge.l + threshold
+    ) {
+      output.x = targetEdge.l + baseShape.getScaleSize().w / 2;
+    }
+
+    // left & right
+    if (
+      baseEdge.l >= targetEdge.r - threshold &&
+      baseEdge.l <= targetEdge.r + threshold
+    ) {
+      output.x = targetEdge.r + baseShape.getScaleSize().w / 2;
+    }
+
+    // top & top
+    if (
+      baseEdge.t >= targetEdge.t - threshold &&
+      baseEdge.t <= targetEdge.t + threshold
+    ) {
+      output.y = targetEdge.t + baseShape.getScaleSize().h / 2;
+    }
+
+    // top & bottom
+    if (
+      baseEdge.t >= targetEdge.b - threshold &&
+      baseEdge.t <= targetEdge.b + threshold
+    ) {
+      output.y = targetEdge.b + baseShape.getScaleSize().h / 2;
+    }
+
+    // right & right
+    if (
+      baseEdge.r >= targetEdge.l - threshold &&
+      baseEdge.r <= targetEdge.l + threshold
+    ) {
+      output.x = targetEdge.l - baseShape.getScaleSize().w / 2;
+    }
+
+    // right & left
+    if (
+      baseEdge.r >= targetEdge.r - threshold &&
+      baseEdge.r <= targetEdge.r + threshold
+    ) {
+      output.x = targetEdge.r - baseShape.getScaleSize().w / 2;
+    }
+
+    // bottom & bottom
+    if (
+      baseEdge.b >= targetEdge.b - threshold &&
+      baseEdge.b <= targetEdge.b + threshold
+    ) {
+      output.y = targetEdge.b - baseShape.getScaleSize().h / 2;
+    }
+
+    // bottom & top
+    if (
+      baseEdge.b >= targetEdge.t - threshold &&
+      baseEdge.b <= targetEdge.t + threshold
+    ) {
+      output.y = targetEdge.t - baseShape.getScaleSize().h / 2;
+    }
+  }
+
+  return output;
+};
+
+const getAlignLines = (
+  shapes: (Terminal | Process | Data | Desicion)[],
+  baseShape?: null | Terminal | Process | Data | Desicion
+) => {
+  if (!baseShape || shapes.length === 0) return [];
+  const lines: {
+    from: CommonTypes.Vec;
+    to: CommonTypes.Vec;
+  }[] = [];
+
+  const baseCenter = baseShape.getCenter().m;
+
+  // center x & center x
+  const align_center_x_shapes = shapes
+    .filter(
+      (targetShape) =>
+        Number(baseCenter.x.toFixed(1)) ===
+          Number(targetShape.getCenter().m.x.toFixed(1)) ||
+        targetShape.id === baseShape.id
+    )
+    .sort((a, b) => a.p.x - b.p.x);
+
+  if (
+    align_center_x_shapes[0] &&
+    align_center_x_shapes[align_center_x_shapes.length - 1]
+  ) {
+    lines.push({
+      from: {
+        x: baseCenter.x,
+        y: align_center_x_shapes[0].getCenter().m.y,
+      },
+      to: {
+        x: baseCenter.x,
+        y: align_center_x_shapes[align_center_x_shapes.length - 1].getCenter().m
+          .y,
+      },
+    });
+  }
+
+  // center y & center y
+  const align_center_y_shapes = shapes
+    .filter(
+      (targetShape) =>
+        Number(baseCenter.y.toFixed(1)) ===
+          Number(targetShape.getCenter().m.y.toFixed(1)) ||
+        targetShape.id === baseShape.id
+    )
+    .sort((a, b) => a.p.y - b.p.y);
+
+  if (
+    align_center_y_shapes[0] &&
+    align_center_y_shapes[align_center_y_shapes.length - 1]
+  ) {
+    lines.push({
+      from: {
+        x: align_center_y_shapes[0].getCenter().m.x,
+        y: baseCenter.y,
+      },
+      to: {
+        x: align_center_y_shapes[align_center_y_shapes.length - 1].getCenter().m
+          .x,
+        y: baseCenter.y,
+      },
+    });
+  }
+
+  const baseEdge = baseShape.getEdge();
+
+  // left & left
+  const align_left_shapes = shapes
+    .filter(
+      (targetShape) =>
+        Number(baseEdge.l.toFixed(1)) ===
+          Number(targetShape.getEdge().l.toFixed(1)) ||
+        targetShape.id === baseShape.id
+    )
+    .sort((a, b) => a.p.y - b.p.y);
+
+  if (align_left_shapes[0] && align_left_shapes[align_left_shapes.length - 1]) {
+    lines.push({
+      from: {
+        x: baseEdge.l - 1,
+        y: align_left_shapes[0].getCenter().m.y,
+      },
+      to: {
+        x: baseEdge.l - 1,
+        y: align_left_shapes[align_left_shapes.length - 1].getCenter().m.y,
+      },
+    });
+  }
+
+  // left & right
+  const align_left_to_right_shapes = shapes
+    .filter((targetShape) => {
+      return (
+        Number(baseEdge.l.toFixed(1)) ===
+          Number(targetShape.getEdge().r.toFixed(1)) ||
+        targetShape.id === baseShape.id
+      );
+    })
+    .sort((a, b) => a.p.y - b.p.y);
+
+  if (
+    align_left_to_right_shapes[0] &&
+    align_left_to_right_shapes[align_left_to_right_shapes.length - 1]
+  ) {
+    lines.push({
+      from: {
+        x: baseEdge.l - 1,
+        y: align_left_to_right_shapes[0].getCenter().m.y,
+      },
+      to: {
+        x: baseEdge.l - 1,
+        y: align_left_to_right_shapes[
+          align_left_to_right_shapes.length - 1
+        ].getCenter().m.y,
+      },
+    });
+  }
+
+  // top & top
+  const align_top_shapes = shapes
+    .filter(
+      (targetShape) =>
+        Number(baseEdge.t.toFixed(1)) ===
+          Number(targetShape.getEdge().t.toFixed(1)) ||
+        targetShape.id === baseShape.id
+    )
+    .sort((a, b) => a.p.x - b.p.x);
+
+  if (align_top_shapes[0] && align_top_shapes[align_top_shapes.length - 1]) {
+    lines.push({
+      from: {
+        x: align_top_shapes[0].getCenter().m.x,
+        y: baseEdge.t - 1,
+      },
+      to: {
+        x: align_top_shapes[align_top_shapes.length - 1].getCenter().m.x,
+        y: baseEdge.t - 1,
+      },
+    });
+  }
+
+  // top & bottom
+  const align_top_to_bottom_shapes = shapes
+    .filter(
+      (targetShape) =>
+        Number(baseEdge.t.toFixed(1)) ===
+          Number(targetShape.getEdge().b.toFixed(1)) ||
+        targetShape.id === baseShape.id
+    )
+    .sort((a, b) => a.p.x - b.p.x);
+
+  if (
+    align_top_to_bottom_shapes[0] &&
+    align_top_to_bottom_shapes[align_top_to_bottom_shapes.length - 1]
+  ) {
+    lines.push({
+      from: {
+        x: align_top_to_bottom_shapes[0].getCenter().m.x,
+        y: baseEdge.t - 1,
+      },
+      to: {
+        x: align_top_to_bottom_shapes[
+          align_top_to_bottom_shapes.length - 1
+        ].getCenter().m.x,
+        y: baseEdge.t - 1,
+      },
+    });
+  }
+
+  // right & right
+  const align_right_shapes = shapes
+    .filter(
+      (targetShape) =>
+        Number(baseEdge.r.toFixed(1)) ===
+          Number(targetShape.getEdge().r.toFixed(1)) ||
+        targetShape.id === baseShape.id
+    )
+    .sort((a, b) => a.p.y - b.p.y);
+
+  if (
+    align_right_shapes[0] &&
+    align_right_shapes[align_right_shapes.length - 1]
+  ) {
+    lines.push({
+      from: {
+        x: baseEdge.r + 1,
+        y: align_right_shapes[0].getCenter().m.y,
+      },
+      to: {
+        x: baseEdge.r + 1,
+        y: align_right_shapes[align_right_shapes.length - 1].getCenter().m.y,
+      },
+    });
+  }
+
+  // right & left
+  const align_right_to_left_shapes = shapes
+    .filter(
+      (targetShape) =>
+        Number(baseEdge.r.toFixed(1)) ===
+          Number(targetShape.getEdge().l.toFixed(1)) ||
+        targetShape.id === baseShape.id
+    )
+    .sort((a, b) => a.p.y - b.p.y);
+
+  if (
+    align_right_to_left_shapes[0] &&
+    align_right_to_left_shapes[align_right_to_left_shapes.length - 1]
+  ) {
+    lines.push({
+      from: {
+        x: baseEdge.r + 1,
+        y: align_right_to_left_shapes[0].getCenter().m.y,
+      },
+      to: {
+        x: baseEdge.r + 1,
+        y: align_right_to_left_shapes[
+          align_right_to_left_shapes.length - 1
+        ].getCenter().m.y,
+      },
+    });
+  }
+
+  // bottom & bottom
+  const align_bottom_shapes = shapes
+    .filter(
+      (targetShape) =>
+        Number(baseEdge.b.toFixed(1)) ===
+          Number(targetShape.getEdge().b.toFixed(1)) ||
+        targetShape.id === baseShape.id
+    )
+    .sort((a, b) => a.p.x - b.p.x);
+
+  if (
+    align_bottom_shapes[0] &&
+    align_bottom_shapes[align_bottom_shapes.length - 1]
+  ) {
+    lines.push({
+      from: {
+        x: align_bottom_shapes[0].getCenter().m.x,
+        y: baseEdge.b + 1,
+      },
+      to: {
+        x: align_bottom_shapes[align_bottom_shapes.length - 1].getCenter().m.x,
+        y: baseEdge.b + 1,
+      },
+    });
+  }
+
+  // bottom & top
+  const align_bottom_to_top_shapes = shapes
+    .filter(
+      (targetShape) =>
+        Number(baseEdge.b.toFixed(1)) ===
+          Number(targetShape.getEdge().t.toFixed(1)) ||
+        targetShape.id === baseShape.id
+    )
+    .sort((a, b) => a.p.x - b.p.x);
+
+  if (
+    align_bottom_to_top_shapes[0] &&
+    align_bottom_to_top_shapes[align_bottom_to_top_shapes.length - 1]
+  ) {
+    lines.push({
+      from: {
+        x: align_bottom_to_top_shapes[0].getCenter().m.x,
+        y: baseEdge.b + 1,
+      },
+      to: {
+        x: align_bottom_to_top_shapes[
+          align_bottom_to_top_shapes.length - 1
+        ].getCenter().m.x,
+        y: baseEdge.b + 1,
+      },
+    });
+  }
+
+  return lines;
+};
+
+const getShapesInView = (shapes: (Terminal | Process | Data | Desicion)[]) => {
+  const shapesInView: (Terminal | Process | Data | Desicion)[] = [];
+  const viewport = {
+    l: 0,
+    t: 0,
+    r: window.innerWidth,
+    b: window.innerHeight,
+  };
+
+  shapes.forEach((shape) => {
+    const edge = shape.getEdge();
+
+    if (
+      ((edge.l >= viewport.l && edge.l <= viewport.r) ||
+        (edge.r >= viewport.l && edge.r <= viewport.r)) &&
+      ((edge.t >= viewport.t && edge.t <= viewport.b) ||
+        (edge.b >= viewport.t && edge.b <= viewport.b))
+    ) {
+      shapesInView.push(shape);
+    }
+  });
+
+  return shapesInView;
+};
+
+const drawShapes = (
+  ctx: null | CanvasRenderingContext2D,
+  shapes: (Terminal | Process | Data | Desicion)[]
+) => {
+  if (!ctx) return;
+
+  shapes.forEach((shape) => {
+    if (!ctx) return;
+    shape.draw(ctx);
+  });
+
+  // pressing?.ghost?.draw(ctx); // TODO: for testing align
+};
+
+const drawAlignLines = (
+  ctx: null | CanvasRenderingContext2D,
+  alginLines: { from: CommonTypes.Vec; to: CommonTypes.Vec }[]
+) => {
+  if (!ctx || alginLines.length === 0) return;
+
+  alginLines.forEach((alginLine) => {
+    ctx.save();
+    ctx.strokeStyle = tailwindColors.auxiliary;
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(alginLine.from.x, alginLine.from.y);
+    ctx.lineTo(alginLine.to.x, alginLine.to.y);
+    ctx.stroke();
+    ctx.closePath();
+    ctx.restore();
+  });
+};
+
+const resize = (
+  shapes: null | undefined | (Terminal | Process | Data | Desicion)[],
+  pressing: {
+    shape: null | undefined | Terminal | Process | Data | Desicion;
+    ghost: null | undefined | Terminal | Process | Data | Desicion;
+    target:
+      | null
+      | undefined
+      | CoreTypes.PressingTarget.lt
+      | CoreTypes.PressingTarget.rt
+      | CoreTypes.PressingTarget.rb
+      | CoreTypes.PressingTarget.lb;
+  },
+  offsetP: CommonTypes.Vec
+) => {
+  if (!shapes || !pressing.shape || !pressing.ghost || !pressing.target) return;
+
+  const shapesInView = getShapesInView(
+    shapes.filter((shape) => shape.id !== pressing?.shape?.id)
+  );
+
+  const directions = (() => {
+    switch (pressing.target) {
+      case CoreTypes.PressingTarget.lt:
+        return [CommonTypes.Direction.l, CommonTypes.Direction.t];
+
+      case CoreTypes.PressingTarget.rt:
+        return [CommonTypes.Direction.r, CommonTypes.Direction.t];
+
+      case CoreTypes.PressingTarget.rb:
+        return [CommonTypes.Direction.r, CommonTypes.Direction.b];
+
+      case CoreTypes.PressingTarget.lb:
+        return [CommonTypes.Direction.l, CommonTypes.Direction.b];
+    }
+  })();
+
+  if (!directions) return;
+
+  const center = {
+    shape: pressing.shape.getCenter(),
+    ghost: pressing.ghost.getCenter(),
+  };
+
+  const alignLines_vertical = getVertexAlignLines(
+    shapesInView,
+    center.shape[directions[0]]
+  );
+
+  const alginLines_horizental = getVertexAlignLines(
+    shapesInView,
+    center.shape[directions[1]]
+  );
+
+  alginLines = alignLines_vertical.concat(alginLines_horizental);
+
+  const alignVertixP = getAlignVertixP(
+    shapesInView,
+    center.ghost[pressing.target]
+  );
+
+  if (alignVertixP?.x && !alignVertixP?.y) {
+    pressing.shape.resize(
+      {
+        x: alignVertixP.x - center.shape[pressing.target].x,
+        y: offsetP.y,
+      },
+      pressing.target
+    );
+  }
+
+  if (!alignVertixP?.x && alignVertixP?.y) {
+    pressing.shape.resize(
+      {
+        x: offsetP.x,
+        y: alignVertixP.y - center.shape[pressing.target].y,
+      },
+      pressing.target
+    );
+  }
+
+  if (alignVertixP?.x && alignVertixP?.y) {
+    pressing.shape.resize(
+      {
+        x: alignVertixP.x - center.shape[pressing.target].x,
+        y: alignVertixP.y - center.shape[pressing.target].y,
+      },
+      pressing.target
+    );
+  }
+
+  if (!alignVertixP?.x && !alignVertixP?.y) {
+    if (pressing.shape.p.x !== pressing.ghost?.p.x) {
+      pressing.shape.resize(
+        {
+          x: center.ghost[pressing.target].x - center.shape[pressing.target].x,
+          y: 0,
+        },
+        pressing.target
+      );
+    }
+    if (pressing.shape.p.y !== pressing.ghost?.p.y) {
+      pressing.shape.resize(
+        {
+          x: 0,
+          y: center.ghost[pressing.target].y - center.shape[pressing.target].y,
+        },
+        pressing.target
+      );
+    }
+  }
+
+  pressing.ghost.resize(offsetP, pressing.target);
+};
+
 // const Editor = (props: { className: string; shape: Core }) => {
 //   const [title, setTitle] = useState<CommonTypes.Title>(""),
 //     [selections, setSelections] = useState<DataFrameTypes.Selections>({}),
@@ -596,8 +1418,9 @@ export default function IdPage() {
   const [isRenameFrameOpen, setIsRenameFrameOpen] = useState(false);
   const [isProfileFrameOpen, setIsProfileFrameOpen] = useState(false);
   const [steps, setSteps] = useState<PageTypes.Steps>({});
-  const [dataFrameWarning, setDataFrameWarning] =
-    useState<DataFrameTypes.Warning>(init.dataFrameWarning);
+  const [dataFrameWarning, setDataFrameWarning] = useState<
+    DataFrameTypes.Warning
+  >(init.dataFrameWarning);
   const [isProjectsModalOpen, setIsProjectsModalOpen] = useState(false);
   const [projects, setProjects] = useState<
     ProjectAPITypes.GetProjects["resData"]
@@ -790,8 +1613,10 @@ export default function IdPage() {
   };
 
   const fetchProjects = async () => {
-    const res: AxiosResponse<ProjectAPITypes.GetProjects["resData"], any> =
-      await projectAPIs.getProjecs();
+    const res: AxiosResponse<
+      ProjectAPITypes.GetProjects["resData"],
+      any
+    > = await projectAPIs.getProjecs();
     setProjects(res.data);
   };
 
@@ -799,8 +1624,9 @@ export default function IdPage() {
     const token = localStorage.getItem("Authorization");
 
     if (token) {
-      const res: AxiosResponse<AuthTypes.JWTLogin["resData"]> =
-        await authAPIs.jwtLogin(token);
+      const res: AxiosResponse<
+        AuthTypes.JWTLogin["resData"]
+      > = await authAPIs.jwtLogin(token);
 
       if (res.data.isPass) {
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
@@ -868,6 +1694,7 @@ export default function IdPage() {
         if (_target) {
           pressing = {
             shape: null,
+            ghost: null,
             target: _target,
             direction: null,
           };
@@ -925,8 +1752,9 @@ export default function IdPage() {
 
             if (!!pressing) return;
 
-            const withinHandlerRangeCurves =
-              shape.checkCurveControlPointsBoundry(p);
+            const withinHandlerRangeCurves = shape.checkCurveControlPointsBoundry(
+              p
+            );
             const firstDetectedCurve = withinHandlerRangeCurves[0];
             const withinRangeCurveIds = shape.checkCurvesBoundry(p);
 
@@ -936,6 +1764,7 @@ export default function IdPage() {
             ) {
               pressing = {
                 shape: shape,
+                ghost: null,
                 curveId: firstDetectedCurve.id,
                 target: CurveTypes.PressingTarget.p2,
                 direction: firstDetectedCurve.d,
@@ -943,6 +1772,7 @@ export default function IdPage() {
             } else if (firstDetectedCurve && firstDetectedCurve.isSelecting) {
               pressing = {
                 shape: shape,
+                ghost: null,
                 curveId: firstDetectedCurve.id,
                 target: firstDetectedCurve.target,
                 direction: firstDetectedCurve.d,
@@ -950,6 +1780,7 @@ export default function IdPage() {
             } else if (withinRangeCurveIds.length > 0) {
               pressing = {
                 shape: shape,
+                ghost: null,
                 curveId: withinRangeCurveIds[0],
                 target: null,
                 direction: null,
@@ -962,10 +1793,13 @@ export default function IdPage() {
           shapes.forEach((_, shapeI, shapes) => {
             const shape = shapes[shapes.length - 1 - shapeI];
             if (!!pressing) return;
+            const _ghost = cloneDeep(shape);
+            _ghost.title = "ghost";
             const vertex = shape.checkVertexesBoundry(p);
             if (shape.selecting && vertex) {
               pressing = {
                 shape: shape,
+                ghost: _ghost,
                 curveId: null,
                 target: vertex,
                 direction: null,
@@ -973,6 +1807,7 @@ export default function IdPage() {
             } else if (shape.checkBoundry(p)) {
               pressing = {
                 shape: shape,
+                ghost: _ghost,
                 curveId: null,
                 target: CoreTypes.PressingTarget.m,
                 direction: null,
@@ -1263,57 +2098,71 @@ export default function IdPage() {
           select.end.y += offsetP.y;
         }
       }
+    } else if (
+      pressing?.target === CoreTypes.PressingTarget.lt ||
+      pressing?.target === CoreTypes.PressingTarget.rt ||
+      pressing?.target === CoreTypes.PressingTarget.rb ||
+      pressing?.target === CoreTypes.PressingTarget.lb
+    ) {
+      resize(
+        shapes,
+        {
+          shape: pressing.shape,
+          ghost: pressing.ghost,
+          target: pressing.target,
+        },
+        offsetP
+      );
     } else if (pressing?.target && pressing?.shape) {
-      if (
-        pressing?.target === CoreTypes.PressingTarget.lt ||
-        pressing?.target === CoreTypes.PressingTarget.rt ||
-        pressing?.target === CoreTypes.PressingTarget.rb ||
-        pressing?.target === CoreTypes.PressingTarget.lb
-      ) {
-        pressing.shape.resize(offsetP, pressing.target);
-      } else if (pressing?.target === CoreTypes.PressingTarget.m) {
-        pressing.shape.move({ x: p.x - lastP.x, y: p.y - lastP.y });
-      }
-      // else if (
-      //   !!pressing.curveId &&
-      //   pressing.direction &&
-      //   pressing?.target === CurveTypes.PressingTarget.cp1
-      // ) {
-      //   pressing.shape.locateCurveHandler(
-      //     pressing.curveId,
-      //     CurveTypes.PressingTarget.cp1,
-      //     p
-      //   );
-      // }
-      // else if (
-      //   !!pressing.curveId &&
-      //   pressing.direction &&
-      //   pressing?.target === CurveTypes.PressingTarget.cp2
-      // ) {
-      //   pressing.shape.locateCurveHandler(
-      //     pressing.curveId,
-      //     CurveTypes.PressingTarget.cp2,
-      //     p
-      //   );
+      if (pressing?.target === CoreTypes.PressingTarget.m) {
+        const shapesInView = getShapesInView(shapes);
+        alginLines = getAlignLines(shapesInView, pressing.shape);
 
-      //   // get cp2 relative to p2 poistion
-      //   const curveArrowTopP = pressing.shape.getPressingCurveP(
-      //     CurveTypes.PressingTarget.p2,
-      //     pressing.curveId
-      //   );
-      //   const curveCp2 = pressing.shape.getPressingCurveP(
-      //     CurveTypes.PressingTarget.cp2,
-      //     pressing.curveId
-      //   );
+        const alignP = getAlignP(shapesInView, pressing.ghost);
 
-      //   if (!curveArrowTopP || !curveCp2) return;
+        if (alignP?.x || alignP?.y) {
+          pressing.shape.locate(alignP);
+        }
 
-      //   relativeCurveCp2 = {
-      //     x: curveArrowTopP.x - curveCp2.x,
-      //     y: curveArrowTopP.y - curveCp2.y,
-      //   };
-      // }
-      else if (
+        if (alignP?.x && !alignP?.y) {
+          pressing.shape.move({
+            x: 0,
+            y: p.y - lastP.y,
+          });
+        }
+
+        if (!alignP?.x && alignP?.y) {
+          pressing.shape.move({
+            x: p.x - lastP.x,
+            y: 0,
+          });
+        }
+
+        if (!alignP?.x && !alignP?.y) {
+          if (pressing.ghost && pressing.shape.p.x !== pressing.ghost?.p.x) {
+            pressing.shape.locate({
+              x: pressing.ghost.getCenter().m.x,
+              y: null,
+            });
+          }
+
+          if (pressing.ghost && pressing.shape.p.y !== pressing.ghost?.p.y) {
+            pressing.shape.locate({
+              x: null,
+              y: pressing.ghost.getCenter().m.y,
+            });
+          }
+          pressing.shape.move({
+            x: p.x - lastP.x,
+            y: p.y - lastP.y,
+          });
+        }
+
+        pressing.ghost?.move({
+          x: p.x - lastP.x,
+          y: p.y - lastP.y,
+        });
+      } else if (
         !!pressing.curveId &&
         pressing.direction &&
         pressing?.target === CurveTypes.PressingTarget.p2
@@ -1369,8 +2218,9 @@ export default function IdPage() {
           !!sticking?.to.shape
         ) {
           const endP = (() => {
-            const toReceivingP =
-              sticking.to.shape.getCenter().receivingPoints[sticking?.to?.d];
+            const toReceivingP = sticking.to.shape.getCenter().receivingPoints[
+              sticking?.to?.d
+            ];
 
             let margin = 0;
             if (sticking.to.shape instanceof Data) {
@@ -1502,8 +2352,9 @@ export default function IdPage() {
         pressing?.direction
       ) {
         const pressingShape = pressing.shape;
-        const theCheckReceivingPointsBoundryD =
-          targetShape.checkReceivingPointsBoundry(p);
+        const theCheckReceivingPointsBoundryD = targetShape.checkReceivingPointsBoundry(
+          p
+        );
         const theQuarterD = targetShape.checkQuarterArea(p);
 
         if (!pressingShape || pressing.target !== CurveTypes.PressingTarget.p2)
@@ -1596,6 +2447,7 @@ export default function IdPage() {
 
     selectAreaP = null;
     pressing = null;
+    alginLines = [];
 
     drawCanvas();
   };
@@ -1808,11 +2660,9 @@ export default function IdPage() {
         test.draw(ctx);
       });
 
-      // // draw shapes
-      shapes.forEach((shape) => {
-        if (!ctx) return;
-        shape.draw(ctx);
-      });
+      // draw align lines
+      drawShapes(ctx, shapes);
+      drawAlignLines(ctx, alginLines);
 
       if (!isScreenshot) {
         // draw sending point
@@ -2085,8 +2935,10 @@ export default function IdPage() {
 
   const initProject = async (id: ProjectTypes.Project["id"]) => {
     try {
-      const res: AxiosResponse<ProjectAPITypes.GetProject["resData"], any> =
-        await projectAPIs.getProject(id);
+      const res: AxiosResponse<
+        ProjectAPITypes.GetProject["resData"],
+        any
+      > = await projectAPIs.getProject(id);
 
       const projectData = res.data as ProjectAPITypes.ProjectData;
 
@@ -2129,8 +2981,9 @@ export default function IdPage() {
     if (!$canvas || !ctx) return;
 
     try {
-      const res: AxiosResponse<ProjectAPITypes.DeleteProject["resData"]> =
-        await projectAPIs.deleteProject(id);
+      const res: AxiosResponse<
+        ProjectAPITypes.DeleteProject["resData"]
+      > = await projectAPIs.deleteProject(id);
 
       if (id === selectedProjectId) {
         shapes = [];
@@ -2152,11 +3005,14 @@ export default function IdPage() {
       return;
     }
     shapes = [];
-    const newProject: AxiosResponse<ProjectAPITypes.CreateProject["resData"]> =
-      await projectAPIs.createProject();
+    const newProject: AxiosResponse<
+      ProjectAPITypes.CreateProject["resData"]
+    > = await projectAPIs.createProject();
 
-    const res: AxiosResponse<ProjectAPITypes.GetProjects["resData"], any> =
-      await projectAPIs.getProjecs();
+    const res: AxiosResponse<
+      ProjectAPITypes.GetProjects["resData"],
+      any
+    > = await projectAPIs.getProjecs();
 
     setIsProjectsModalOpen(false);
     setProjects(res.data);
@@ -2184,9 +3040,9 @@ export default function IdPage() {
     }));
   };
 
-  const onClickSaveProjectNameButton: MouseEventHandler<
-    HTMLButtonElement
-  > = async (e) => {
+  const onClickSaveProjectNameButton: MouseEventHandler<HTMLButtonElement> = async (
+    e
+  ) => {
     if (!selectedProjectId) return;
     const res: AxiosResponse<
       ProjectAPITypes.UpdateProjectName["resData"],

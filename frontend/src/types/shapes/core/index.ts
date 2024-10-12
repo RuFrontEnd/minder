@@ -1,14 +1,14 @@
 import Core from "@/shapes/core";
 import Curve from "@/shapes/curve";
-import { Vec, Direction } from "@/types/shapes/common";
+import * as CommonTypes from "@/types/shapes/common";
 
 enum PressingTarget {
   // anchor points
   m = "m",
-  lt = "lt",
-  rt = "rt",
-  rb = "rb",
-  lb = "lb",
+  lt = CommonTypes.Corner.lt,
+  rt = CommonTypes.Corner.rt,
+  rb = CommonTypes.Corner.rb,
+  lb = CommonTypes.Corner.lb,
   // l curve control points
   clp1 = "clp1",
   clcp1 = "clcp1",
@@ -39,7 +39,7 @@ type ConncetionTarget = null | {
 type ReceivingTarget = {
   shape: Core;
   curve: {
-    direction: Direction;
+    direction: CommonTypes.Direction;
     shape: Curve;
   };
 };
@@ -47,14 +47,14 @@ type ReceivingTarget = {
 type ConnectTarget = {
   curve: Curve;
   shape: Core;
-  direction: Direction;
+  direction: CommonTypes.Direction;
 };
 
 type CurveOffset = {
-  l: Vec;
-  t: Vec;
-  r: Vec;
-  b: Vec;
+  l: CommonTypes.Vec;
+  t: CommonTypes.Vec;
+  r: CommonTypes.Vec;
+  b: CommonTypes.Vec;
 };
 
 type ReceivePoint = {
@@ -66,7 +66,7 @@ type ReceivePoint = {
 
 type SendTo = {
   shape: Core;
-  d: Direction;
+  d: CommonTypes.Direction;
   bridgeId: string;
 };
 
@@ -77,7 +77,7 @@ type SendCurve = {
 
 type ReceiveFrom = {
   shape: Core;
-  d: Direction;
+  d: CommonTypes.Direction;
   bridgeId: string;
 };
 
@@ -87,15 +87,39 @@ enum Status {
   error = "error",
 }
 
+type GetCenterReturn = {
+  m: CommonTypes.Vec;
+  [CommonTypes.Direction.l]: CommonTypes.Vec;
+  [CommonTypes.Direction.t]: CommonTypes.Vec;
+  [CommonTypes.Direction.r]: CommonTypes.Vec;
+  [CommonTypes.Direction.b]: CommonTypes.Vec;
+  [CommonTypes.Corner.lt]: CommonTypes.Vec;
+  [CommonTypes.Corner.rt]: CommonTypes.Vec;
+  [CommonTypes.Corner.rb]: CommonTypes.Vec;
+  [CommonTypes.Corner.lb]: CommonTypes.Vec;
+  __curveTrigger__: {
+    l: CommonTypes.Vec;
+    t: CommonTypes.Vec;
+    r: CommonTypes.Vec;
+    b: CommonTypes.Vec;
+  };
+  receivingPoints: {
+    l: CommonTypes.Vec;
+    t: CommonTypes.Vec;
+    r: CommonTypes.Vec;
+    b: CommonTypes.Vec;
+  };
+};
+
 export { PressingTarget, Status };
 export type {
   ConncetionTarget,
   ReceivingTarget,
   ConnectTarget,
-  Direction,
   CurveOffset,
   ReceivePoint,
   SendTo,
   SendCurve,
   ReceiveFrom,
+  GetCenterReturn,
 };
