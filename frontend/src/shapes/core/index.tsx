@@ -1781,7 +1781,7 @@ export default class Core {
 
     ctx.save();
     ctx.translate(this.getScreenP().x, this.getScreenP().y);
-    ctx.globalAlpha = 0.5;
+    ctx.globalAlpha = 0.5; // TODO: for testing ghost
 
     ctx.fillStyle = (() => {
       switch (this.status) {
@@ -2064,10 +2064,6 @@ export default class Core {
   drawCurve(ctx: CanvasRenderingContext2D) {
     ctx.save();
     ctx.translate(this.getScreenP().x, this.getScreenP().y);
-
-    // ctx.moveTo(0, 0);
-    // ctx.fillStyle = "red";
-    // ctx.fillRect(0, 0, 10, 10);
 
     ds.forEach((d) => {
       this.curves[d].forEach((curve) => {

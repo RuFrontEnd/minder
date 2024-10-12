@@ -1117,7 +1117,7 @@ const drawShapes = (
     shape.draw(ctx);
   });
 
-  pressing?.ghost?.draw(ctx);
+  // pressing?.ghost?.draw(ctx); // TODO: for testing align
 };
 
 const drawAlignLines = (
@@ -1205,7 +1205,7 @@ const resize = (
     pressing.shape.resize(
       {
         x: alignVertixP.x - center.shape[pressing.target].x,
-        y: 0,
+        y: offsetP.y,
       },
       pressing.target
     );
@@ -1214,7 +1214,17 @@ const resize = (
   if (!alignVertixP?.x && alignVertixP?.y) {
     pressing.shape.resize(
       {
-        x: 0,
+        x: offsetP.x,
+        y: alignVertixP.y - center.shape[pressing.target].y,
+      },
+      pressing.target
+    );
+  }
+
+  if (alignVertixP?.x && alignVertixP?.y) {
+    pressing.shape.resize(
+      {
+        x: alignVertixP.x - center.shape[pressing.target].x,
         y: alignVertixP.y - center.shape[pressing.target].y,
       },
       pressing.target
