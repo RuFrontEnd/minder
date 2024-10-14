@@ -338,32 +338,32 @@ const getInitializedShapes = (
       shapeInfo.curves[d].forEach((curveId) => {
         const curveInfo = curves[curveId];
 
-        shapeMappings[shapeId].createCurve(
-          curveId,
-          d,
-          curveInfo.p1,
-          curveInfo.p2,
-          curveInfo.cp1,
-          curveInfo.cp2,
-          curveInfo.sendTo
-            ? {
-                shape: shapeMappings[curveInfo.sendTo.id],
-                d: curveInfo.sendTo.d,
-                bridgeId: curveId,
-              }
-            : null
-        );
+        // shapeMappings[shapeId].createCurve(
+        //   curveId,
+        //   d,
+        //   curveInfo.p1,
+        //   curveInfo.p2,
+        //   curveInfo.cp1,
+        //   curveInfo.cp2,
+        //   curveInfo.sendTo
+        //     ? {
+        //         shape: shapeMappings[curveInfo.sendTo.id],
+        //         d: curveInfo.sendTo.d,
+        //         bridgeId: curveId,
+        //       }
+        //     : null
+        // );
 
-        if (curveInfo.sendTo) {
-          // initialize received shape
-          shapeMappings[curveInfo.sendTo.id].receiveFrom[
-            curveInfo.sendTo.d
-          ].push({
-            shape: shapeMappings[shapeId],
-            d: d,
-            bridgeId: curveId,
-          });
-        }
+        // if (curveInfo.sendTo) {
+        //   // initialize received shape
+        //   shapeMappings[curveInfo.sendTo.id].receiveFrom[
+        //     curveInfo.sendTo.d
+        //   ].push({
+        //     shape: shapeMappings[shapeId],
+        //     d: d,
+        //     bridgeId: curveId,
+        //   });
+        // }
       });
     });
   });
@@ -421,21 +421,21 @@ const getScreenshotShapes = (
 
   if (shapes.length !== screenshotShapes.length) return [];
 
-  screenshotShapes.forEach((screenshotShape, screenshotShapeI) => {
-    ds.forEach((d) => {
-      shapes[screenshotShapeI].curves[d].forEach((curve) => {
-        screenshotShape.createCurve(
-          curve.shape.id + suffix,
-          d,
-          curve.shape.p1,
-          curve.shape.p2,
-          curve.shape.cp1,
-          curve.shape.cp2,
-          curve.sendTo
-        );
-      });
-    });
-  });
+  // screenshotShapes.forEach((screenshotShape, screenshotShapeI) => {
+  //   ds.forEach((d) => {
+  //     shapes[screenshotShapeI].curves[d].forEach((curve) => {
+  //       screenshotShape.createCurve(
+  //         curve.shape.id + suffix,
+  //         d,
+  //         curve.shape.p1,
+  //         curve.shape.p2,
+  //         curve.shape.cp1,
+  //         curve.shape.cp2,
+  //         curve.sendTo
+  //       );
+  //     });
+  //   });
+  // });
 
   return screenshotShapes;
 };
@@ -1177,11 +1177,11 @@ const draw = (
   }
 
   // draw curves in shapes
-  shapes.forEach((shape) => {
-    if (!ctx) return;
+  // shapes.forEach((shape) => {
+  //   if (!ctx) return;
 
-    shape.drawCurve(ctx);
-  });
+  //   shape.drawCurve(ctx);
+  // });
 
   if (!isScreenshot) {
     // draw selectArea
@@ -1653,39 +1653,39 @@ export default function IdPage() {
         locks: { [curveId: string]: boolean } = {}, // prevent from graph cycle
         deletedDataMap: { [text: string]: boolean } = {};
 
-      while (queue.length !== 0) {
-        const shape = queue[0];
+      // while (queue.length !== 0) {
+      //   const shape = queue[0];
 
-        ds.forEach((d) => {
-          shape.curves[d].forEach((curve) => {
-            const theSendToShape = curve.sendTo?.shape;
+      //   ds.forEach((d) => {
+      //     shape.curves[d].forEach((curve) => {
+      //       const theSendToShape = curve.sendTo?.shape;
 
-            if (!theSendToShape) return;
+      //       if (!theSendToShape) return;
 
-            dataShape.data.forEach((dataItem) => {
-              if (
-                theSendToShape.options.some(
-                  (option) => option.text === dataItem.text
-                ) ||
-                deletedDataMap[dataItem.text]
-              )
-                return;
-              theSendToShape.options.push(dataItem);
-            });
+      //       dataShape.data.forEach((dataItem) => {
+      //         if (
+      //           theSendToShape.options.some(
+      //             (option) => option.text === dataItem.text
+      //           ) ||
+      //           deletedDataMap[dataItem.text]
+      //         )
+      //           return;
+      //         theSendToShape.options.push(dataItem);
+      //       });
 
-            theSendToShape.deletedData.forEach((deleteDataItem) => {
-              deletedDataMap[deleteDataItem.text] = true;
-            });
+      //       theSendToShape.deletedData.forEach((deleteDataItem) => {
+      //         deletedDataMap[deleteDataItem.text] = true;
+      //       });
 
-            if (!locks[curve.shape.id]) {
-              queue.push(theSendToShape);
-              locks[curve.shape.id] = true;
-            }
-          });
-        });
+      //       if (!locks[curve.shape.id]) {
+      //         queue.push(theSendToShape);
+      //         locks[curve.shape.id] = true;
+      //       }
+      //     });
+      //   });
 
-        queue.shift();
-      }
+      //   queue.shift();
+      // }
     });
 
     // check all correspondants of shapes' between options and selectedData
@@ -1711,18 +1711,18 @@ export default function IdPage() {
           shape.status = CoreTypes.Status.disabled;
         }
 
-        ds.forEach((d) => {
-          shape.curves[d].forEach((curve) => {
-            const theSendToShape = curve.sendTo?.shape;
+        // ds.forEach((d) => {
+        //   shape.curves[d].forEach((curve) => {
+        //     const theSendToShape = curve.sendTo?.shape;
 
-            if (!theSendToShape) return;
+        //     if (!theSendToShape) return;
 
-            if (!locks[curve.shape.id]) {
-              queue.push(theSendToShape);
-              locks[curve.shape.id] = true;
-            }
-          });
-        });
+        //     if (!locks[curve.shape.id]) {
+        //       queue.push(theSendToShape);
+        //       locks[curve.shape.id] = true;
+        //     }
+        //   });
+        // });
 
         queue.shift();
       }
@@ -1914,12 +1914,12 @@ export default function IdPage() {
 
               const initCurveId = `curve_${Date.now()}`;
 
-              shape.initializeCurve(
-                initCurveId,
-                CommonTypes.Direction[curveTriggerD]
-              );
+              // shape.initializeCurve(
+              //   initCurveId,
+              //   CommonTypes.Direction[curveTriggerD]
+              // );
 
-              shape.setIsCurveSelected(initCurveId, true);
+              // shape.setIsCurveSelected(initCurveId, true);
             }
 
             switch (curveTriggerD) {
@@ -1954,43 +1954,43 @@ export default function IdPage() {
 
             if (!!pressing) return;
 
-            const withinHandlerRangeCurves = shape.checkCurveControlPointsBoundry(
-              p
-            );
-            const firstDetectedCurve = withinHandlerRangeCurves[0];
-            const withinRangeCurveIds = shape.checkCurvesBoundry(p);
+            // const withinHandlerRangeCurves = shape.checkCurveControlPointsBoundry(
+            //   p
+            // );
+            // const firstDetectedCurve = withinHandlerRangeCurves[0];
+            // const withinRangeCurveIds = shape.checkCurvesBoundry(p);
 
-            if (
-              firstDetectedCurve &&
-              firstDetectedCurve.target === CurveTypes.PressingTarget.p2
-            ) {
-              pressing = {
-                origin: cloneDeep(shape),
-                shape: shape,
-                ghost: null,
-                curveId: firstDetectedCurve.id,
-                target: CurveTypes.PressingTarget.p2,
-                direction: firstDetectedCurve.d,
-              };
-            } else if (firstDetectedCurve && firstDetectedCurve.isSelecting) {
-              pressing = {
-                origin: cloneDeep(shape),
-                shape: shape,
-                ghost: null,
-                curveId: firstDetectedCurve.id,
-                target: firstDetectedCurve.target,
-                direction: firstDetectedCurve.d,
-              };
-            } else if (withinRangeCurveIds.length > 0) {
-              pressing = {
-                origin: cloneDeep(shape),
-                shape: shape,
-                ghost: null,
-                curveId: withinRangeCurveIds[0],
-                target: null,
-                direction: null,
-              };
-            }
+            // if (
+            //   firstDetectedCurve &&
+            //   firstDetectedCurve.target === CurveTypes.PressingTarget.p2
+            // ) {
+            //   pressing = {
+            //     origin: cloneDeep(shape),
+            //     shape: shape,
+            //     ghost: null,
+            //     curveId: firstDetectedCurve.id,
+            //     target: CurveTypes.PressingTarget.p2,
+            //     direction: firstDetectedCurve.d,
+            //   };
+            // } else if (firstDetectedCurve && firstDetectedCurve.isSelecting) {
+            //   pressing = {
+            //     origin: cloneDeep(shape),
+            //     shape: shape,
+            //     ghost: null,
+            //     curveId: firstDetectedCurve.id,
+            //     target: firstDetectedCurve.target,
+            //     direction: firstDetectedCurve.d,
+            //   };
+            // } else if (withinRangeCurveIds.length > 0) {
+            //   pressing = {
+            //     origin: cloneDeep(shape),
+            //     shape: shape,
+            //     ghost: null,
+            //     curveId: withinRangeCurveIds[0],
+            //     target: null,
+            //     direction: null,
+            //   };
+            // }
           });
         }
 
@@ -2024,35 +2024,36 @@ export default function IdPage() {
         }
 
         // reset select status
-        shapes.forEach((shape) => {
-          shape.getCurveIds().map((curveId) => {
-            shape.setIsCurveSelected(curveId, false);
-          });
-          shape.selecting = false;
-        });
+        // shapes.forEach((shape) => {
+        //   shape.getCurveIds().map((curveId) => {
+        //     shape.setIsCurveSelected(curveId, false);
+        //   });
+        //   shape.selecting = false;
+        // });
 
         // if has already selected curve, never select any other shapes
-        if (pressing && pressing.shape && !!pressing.curveId) {
-          pressing.shape?.setIsCurveSelected(pressing.curveId, true);
+        // if (pressing && pressing.shape && !!pressing.curveId) {
+        //   pressing.shape?.setIsCurveSelected(pressing.curveId, true);
 
-          if (pressing.target === CurveTypes.PressingTarget.p2) {
-            const curveArrowTopP = pressing.shape.getPressingCurveP(
-              CurveTypes.PressingTarget.p2,
-              pressing.curveId
-            );
-            const curveCp2 = pressing.shape.getPressingCurveP(
-              CurveTypes.PressingTarget.cp2,
-              pressing.curveId
-            );
+        //   if (pressing.target === CurveTypes.PressingTarget.p2) {
+        //     const curveArrowTopP = pressing.shape.getPressingCurveP(
+        //       CurveTypes.PressingTarget.p2,
+        //       pressing.curveId
+        //     );
+        //     const curveCp2 = pressing.shape.getPressingCurveP(
+        //       CurveTypes.PressingTarget.cp2,
+        //       pressing.curveId
+        //     );
 
-            if (!curveArrowTopP || !curveCp2) return;
+        //     if (!curveArrowTopP || !curveCp2) return;
 
-            relativeCurveCp2 = {
-              x: curveArrowTopP.x - curveCp2.x,
-              y: curveArrowTopP.y - curveCp2.y,
-            };
-          }
-        } else if (pressing && pressing.shape && !pressing.curveId) {
+        //     relativeCurveCp2 = {
+        //       x: curveArrowTopP.x - curveCp2.x,
+        //       y: curveArrowTopP.y - curveCp2.y,
+        //     };
+        //   }
+        // } else 
+        if (pressing && pressing.shape && !pressing.curveId) {
           pressing.shape.selecting = true;
         }
       }
@@ -2444,19 +2445,20 @@ export default function IdPage() {
             };
           })();
 
-          sticking.from.shape.stick(
-            sticking.bridgeId,
-            endP,
-            sticking.from.d,
-            sticking.to.d
-          );
-        } else {
-          pressing.shape.locateCurveHandler(
-            pressing.curveId,
-            CurveTypes.PressingTarget.p2,
-            p
-          );
-        }
+          // sticking.from.shape.stick(
+          //   sticking.bridgeId,
+          //   endP,
+          //   sticking.from.d,
+          //   sticking.to.d
+          // );
+        } 
+        // else {
+        //   pressing.shape.locateCurveHandler(
+        //     pressing.curveId,
+        //     CurveTypes.PressingTarget.p2,
+        //     p
+        //   );
+        // }
       }
     }
 
@@ -2655,6 +2657,8 @@ export default function IdPage() {
     pressing = null;
     alginLines = [];
 
+    console.log('shapes', shapes)
+
     drawCanvas();
   };
 
@@ -2703,14 +2707,15 @@ export default function IdPage() {
         if (currentShape.selecting) {
           currentShape?.removeConnection();
           shapes = shapes.filter((shape) => shape.id !== currentShape?.id);
-        } else {
-          ds.forEach((d) => {
-            currentShape.curves[d].forEach((currentCurve) => {
-              if (!currentCurve.shape?.selecting) return;
-              currentShape.removeCurve(d, currentCurve.shape.id);
-            });
-          });
-        }
+        } 
+        // else {
+        //   ds.forEach((d) => {
+        //     currentShape.curves[d].forEach((currentCurve) => {
+        //       if (!currentCurve.shape?.selecting) return;
+        //       currentShape.removeCurve(d, currentCurve.shape.id);
+        //     });
+        //   });
+        // }
       }
 
       drawCanvas();
@@ -2932,24 +2937,24 @@ export default function IdPage() {
             b: string[];
           } = { l: [], t: [], r: [], b: [] };
 
-          ds.forEach((d) => {
-            shape.curves[d].forEach((curve) => {
-              curves[d].push(curve.shape?.id);
+          // ds.forEach((d) => {
+          //   shape.curves[d].forEach((curve) => {
+          //     curves[d].push(curve.shape?.id);
 
-              modifyData.curves[curve.shape?.id] = {
-                p1: curve.shape.p1,
-                p2: curve.shape.p2,
-                cp1: curve.shape.cp1,
-                cp2: curve.shape.cp2,
-                sendTo: curve.sendTo
-                  ? {
-                      id: curve.sendTo.shape.id,
-                      d: curve.sendTo.d,
-                    }
-                  : null,
-              };
-            });
-          });
+          //     modifyData.curves[curve.shape?.id] = {
+          //       p1: curve.shape.p1,
+          //       p2: curve.shape.p2,
+          //       cp1: curve.shape.cp1,
+          //       cp2: curve.shape.cp2,
+          //       sendTo: curve.sendTo
+          //         ? {
+          //             id: curve.sendTo.shape.id,
+          //             d: curve.sendTo.d,
+          //           }
+          //         : null,
+          //     };
+          //   });
+          // });
 
           return curves;
         })(),
