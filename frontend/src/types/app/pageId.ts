@@ -31,14 +31,26 @@ type Sticking = {
   };
 };
 
-type ActionTypes =
-  | { type: CommonTypes.Action.add }
-  | {
-      type: CommonTypes.Action.resize | CommonTypes.Action.move;
-      id: string;
-      origin: Terminal | Process | Data | Desicion;
-    };
+type ActionTarget = {
+  id: string;
+  index: number;
+  origin: null | Terminal | Process | Data | Desicion;
+};
+
+type ActionTargets = ActionTarget[];
+
+type ActionTypes = {
+  type: CommonTypes.Action;
+  targets: ActionTargets;
+};
 
 type Actions = Stack<ActionTypes>;
 
-export type { Pressing, Sticking, ActionTypes, Actions };
+export type {
+  Pressing,
+  Sticking,
+  ActionTypes,
+  ActionTarget,
+  ActionTargets,
+  Actions,
+};

@@ -1421,18 +1421,19 @@ const undo = (
 ) => {
   if (!ctx || !shapes) return;
 
-  console.log("undo");
   const action = actions.peek();
-  console.log("action", action);
 
   const returnToOrigin = (
-    shapes: undefined | null | (Terminal | Process | Data | Desicion)[],
-    actionId: string,
-    origin: undefined | null | (Terminal | Process | Data | Desicion)
+    shapes: null | (Terminal | Process | Data | Desicion)[],
+    targets: PageIdTypes.ActionTargets
   ) => {
-    if (!shapes || !origin) return;
-    const i = shapes.findIndex((shape) => shape.id === actionId);
-    shapes[i] = origin;
+    if (!shapes) return;
+    targets.forEach((target) => {
+      const origin = target.origin;
+      if (!origin) return;
+      const i = shapes.findIndex((shape) => shape.id === target.id);
+      shapes[i] = origin;
+    });
   };
 
   switch (action?.type) {
@@ -1440,20 +1441,15 @@ const undo = (
       shapes.pop();
       break;
 
-    case CommonTypes.Action.resize: {
-      returnToOrigin(shapes, action.id, action.origin);
-      break;
-    }
-
-    case CommonTypes.Action.move: {
-      returnToOrigin(shapes, action.id, action.origin);
+    case CommonTypes.Action.resize:
+    case CommonTypes.Action.move:
+    case CommonTypes.Action.connect: {
+      returnToOrigin(shapes, action.targets);
       break;
     }
   }
 
   actions.pop();
-
-  console.log(actions);
 
   drawCanvas();
   drawScreenshot();
@@ -2571,14 +2567,36 @@ export default function IdPage() {
         if (!pressingShape || pressing.target !== CurveTypes.PressingTarget.p2)
           return;
 
-        if (!!theCheckReceivingPointsBoundryD) {
-          pressingShape.connect(
-            targetShape,
-            theCheckReceivingPointsBoundryD,
-            pressing.curveId
-          );
-        } else if (!!theQuarterD) {
-          pressingShape.connect(targetShape, theQuarterD, pressing.curveId);
+        if (!!theCheckReceivingPointsBoundryD || !!theQuarterD) {
+          if (!!theCheckReceivingPointsBoundryD) {
+            pressingShape.connect(
+              targetShape,
+              theCheckReceivingPointsBoundryD,
+              pressing.curveId
+            );
+          } else if (!!theQuarterD) {
+            pressingShape.connect(targetShape, theQuarterD, pressing.curveId);
+          }
+
+          actions.push({
+            type: CommonTypes.Action.connect,
+            targets: [
+              {
+                id: pressingShape.id,
+                index: shapes.findIndex(
+                  (shape) => shape.id === pressing?.shape?.id
+                ),
+                origin: pressing.origin,
+              },
+              {
+                id: targetShape.id,
+                index: shapes.findIndex(
+                  (shape) => shape.id === targetShape?.id
+                ),
+                origin: cloneDeep(targetShape),
+              },
+            ],
+          });
         }
       }
     });
@@ -2604,14 +2622,28 @@ export default function IdPage() {
       ) {
         actions.push({
           type: CommonTypes.Action.resize,
-          id: pressing.shape.id,
-          origin: pressing.origin,
+          targets: [
+            {
+              id: pressing.shape.id,
+              index: shapes.findIndex(
+                (shape) => shape.id === pressing?.shape?.id
+              ),
+              origin: pressing.origin,
+            },
+          ],
         });
       } else if (pressing?.target === CoreTypes.PressingTarget.m) {
         actions.push({
           type: CommonTypes.Action.move,
-          id: pressing.shape.id,
-          origin: pressing.origin,
+          targets: [
+            {
+              id: pressing.shape.id,
+              index: shapes.findIndex(
+                (shape) => shape.id === pressing?.shape?.id
+              ),
+              origin: pressing.origin,
+            },
+          ],
         });
       }
     }
@@ -2711,9 +2743,14 @@ export default function IdPage() {
 
     actions.push({
       type: CommonTypes.Action.add,
+      targets: [
+        {
+          id: intiShape.id,
+          index: shapes.length - 1,
+          origin: null,
+        },
+      ],
     });
-
-    console.log("actions", actions);
 
     checkData(shapes);
     checkGroups();
