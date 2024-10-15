@@ -128,12 +128,10 @@ export default class Core {
       //       !bridge.sendTo?.d
       //     )
       //       return;
-
       //     bridge.shape.p2 = {
       //       x: bridge.shape.p2.x + offest.x,
       //       y: bridge.shape.p2.y + offest.y,
       //     };
-
       //     const [cp1, cp2] = this.moveBridgeCurve(
       //       from.d,
       //       bridge.sendTo?.d,
@@ -141,25 +139,19 @@ export default class Core {
       //       bridge.shape.p2,
       //       bridge.shape.arrowAttr.h
       //     );
-
       //     if (!cp1 || !cp2) return;
-
       //     bridge.shape.cp1 = cp1;
       //     bridge.shape.cp2 = cp2;
-
       //     senderCurvesMapping[bridge.shape.id] = true;
       //   });
       // });
-
       // when sender shape move, receiver curve follows the sender shape
       // this.curves[d].forEach((bridge) => {
       //   if (!bridge.sendTo?.d) return;
-
       //   bridge.shape.p2 = {
       //     x: bridge.shape.p2.x - offest.x,
       //     y: bridge.shape.p2.y - offest.y,
       //   };
-
       //   const [cp1, cp2] = this.moveBridgeCurve(
       //     d,
       //     bridge.sendTo?.d,
@@ -167,9 +159,7 @@ export default class Core {
       //     bridge.shape.p2,
       //     bridge.shape.arrowAttr.h
       //   );
-
       //   if (!cp1 || !cp2) return;
-
       //   bridge.shape.cp1 = cp1;
       //   bridge.shape.cp2 = cp2;
       // });
@@ -204,36 +194,36 @@ export default class Core {
     //     x: value / 2,
     //   };
 
-      // sendCurve.shape.cp1.x -= offset;
+    // sendCurve.shape.cp1.x -= offset;
 
-      // if (sendCurve.sendTo) {
-      // console.log(" sendCurve.shape.p1", sendCurve.shape.p1);
+    // if (sendCurve.sendTo) {
+    // console.log(" sendCurve.shape.p1", sendCurve.shape.p1);
 
-      // console.log(" sendCurve.shape.p2", sendCurve.shape.p2);
+    // console.log(" sendCurve.shape.p2", sendCurve.shape.p2);
 
-      //   sendCurve.shape.p2 = sendCurve.shape.p2;
+    //   sendCurve.shape.p2 = sendCurve.shape.p2;
 
-      //   const [cp1, cp2] = this.moveBridgeCurve(
-      //     Direction.r,
-      //     sendCurve.sendTo.d,
-      //     sendCurve.shape.p1,
-      //     sendCurve.shape.p2,
-      //     sendCurve.shape.arrowAttr.h
-      //   );
+    //   const [cp1, cp2] = this.moveBridgeCurve(
+    //     Direction.r,
+    //     sendCurve.sendTo.d,
+    //     sendCurve.shape.p1,
+    //     sendCurve.shape.p2,
+    //     sendCurve.shape.arrowAttr.h
+    //   );
 
-      //   if (!cp1 || !cp2) return;
+    //   if (!cp1 || !cp2) return;
 
-      //   sendCurve.shape.cp1 = cp1;
-      //   sendCurve.shape.cp2 = cp2;
+    //   sendCurve.shape.cp1 = cp1;
+    //   sendCurve.shape.cp2 = cp2;
 
-      //   console.log(" sendCurve.shape.p2", sendCurve.shape.p2);
-      // } else {
-      //   sendCurve.shape.p2 = {
-      //     ...sendCurve.shape.p2,
-      //     x: sendCurve.shape.p2.x - offset,
-      //   };
-      //   sendCurve.shape.cp2.x -= offset;
-      // }
+    //   console.log(" sendCurve.shape.p2", sendCurve.shape.p2);
+    // } else {
+    //   sendCurve.shape.p2 = {
+    //     ...sendCurve.shape.p2,
+    //     x: sendCurve.shape.p2.x - offset,
+    //   };
+    //   sendCurve.shape.cp2.x -= offset;
+    // }
     // });
 
     // when receiver width changes, receiver curve follows the sender shape
@@ -647,7 +637,8 @@ export default class Core {
     );
   }
 
-  checkQuarterArea(screenP: Vec) {
+  checkQuarterArea(screenP: undefined | Vec) {
+    if (!screenP) return null;
     const center = this.getCenter();
 
     // 定义四个方向的三角形边向量
@@ -982,7 +973,6 @@ export default class Core {
     //       };
     //   }
     // })();
-
     // if (!bridge) return;
     // bridge.curve.sendTo = {
     //   shape: targetShape,
@@ -1034,11 +1024,9 @@ export default class Core {
     //   this.curves[d].forEach((sendCurve) => {
     //     const sendTo = sendCurve.sendTo;
     //     if (!sendTo) return;
-
     //     const removeTargetI = sendTo.shape.receiveFrom[sendTo.d].findIndex(
     //       (receiveFrom) => receiveFrom.shape.id === this.id
     //     );
-
     //     sendTo.shape.receiveFrom[sendTo.d].splice(removeTargetI, 1);
     //   });
     // });
@@ -1046,7 +1034,6 @@ export default class Core {
     // ds.forEach((d) => {
     //   const senders = this.receiveFrom[d];
     //   if (!senders) return;
-
     //   ds.forEach((d) => {
     //     senders.forEach((sender) => {
     //       sender.shape.curves[d].forEach((curve) => {

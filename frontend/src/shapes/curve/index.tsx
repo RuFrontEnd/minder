@@ -116,7 +116,7 @@ export default class Curve {
     return this.__cp2__;
   }
 
-  set p2(val: Vec) {
+  private set p2(val: Vec) {
     this.__p2__ = val;
     if (this.arrow && val && this.cp2) {
       this.arrow.p = this.relativify(val);

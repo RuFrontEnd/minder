@@ -1190,39 +1190,328 @@ const getCurve = (
 
 const movePressingCurve = (
   pressingCurve: PageIdTypes.PressingCurve,
-  p: CommonTypes.Vec
+  p: CommonTypes.Vec,
+  shapes: (Terminal | Process | Data | Desicion)[]
 ) => {
   if (!pressingCurve) return;
-  pressingCurve.shape.locateHandler(CurveTypes.PressingTarget.p2, p);
 
-  let cp2 = {
-    x: 0,
-    y: 0,
-  };
+  const [toD, p2] = (() => {
+    for (let i = 0; i < shapes.length; i++) {
+      const shape = shapes[i];
 
-  switch (pressingCurve.from.d) {
-    case CommonTypes.Direction.l:
-      cp2.x = (pressingCurve.shape.p2.x + pressingCurve.shape.p1.x) / 2;
-      cp2.y = pressingCurve.from.shape.p.y;
-      break;
+      const quarterD = shape.checkQuarterArea(p);
+      if (quarterD) {
+        return [quarterD, shape.getCenter()[quarterD]];
+      }
+    }
 
-    case CommonTypes.Direction.t:
-      cp2.x = pressingCurve.from.shape.p.x;
-      cp2.y = (pressingCurve.shape.p2.y + pressingCurve.shape.p1.y) / 2;
-      break;
+    return [null, null];
+  })();
 
-    case CommonTypes.Direction.r:
-      cp2.x = (pressingCurve.shape.p2.x + pressingCurve.shape.p1.x) / 2;
-      cp2.y = pressingCurve.from.shape.p.y;
-      break;
+  if (toD && p2) {
+    //stick
+    const p1 = pressingCurve?.shape.p1;
 
-    case CommonTypes.Direction.b:
-      cp2.x = pressingCurve.from.shape.p.x;
-      cp2.y = (pressingCurve.shape.p2.y + pressingCurve.shape.p1.y) / 2;
-      break;
+    const [cp1, cp2] = (() => {
+      const fromD = pressingCurve?.from.d;
+      if (!fromD || !toD || !p1 || !p2) return [null, null];
+
+      const distance = {
+        x: Math.abs(p1.x - p2.x),
+        y: Math.abs(p1.y - p2.y),
+      };
+      const margin = {
+        x: distance.x / 2,
+        y: distance.y / 2,
+      };
+      const min = pressingCurve.shape.arrowAttr.h;
+
+      if (
+        fromD === CommonTypes.Direction.l &&
+        toD === CommonTypes.Direction.l
+      ) {
+        return [
+          {
+            x: p1.x - 2 * min - margin.y,
+            y: p1.y,
+          },
+          {
+            x: -min + p2.x - margin.y,
+            y: p2.y,
+          },
+        ];
+      }
+      if (
+        fromD === CommonTypes.Direction.l &&
+        toD === CommonTypes.Direction.t
+      ) {
+        return [
+          {
+            x: p1.x - 2 * min - margin.x,
+            y: p1.y,
+          },
+          {
+            x: p2.x,
+            y: -min + p2.y - margin.y,
+          },
+        ];
+      }
+      if (
+        fromD === CommonTypes.Direction.l &&
+        toD === CommonTypes.Direction.r
+      ) {
+        return [
+          {
+            x: p1.x - 2 * min - margin.x,
+            y: p1.y,
+          },
+          {
+            x: min + p2.x + margin.x,
+            y: p2.y,
+          },
+        ];
+      }
+      if (
+        fromD === CommonTypes.Direction.l &&
+        toD === CommonTypes.Direction.b
+      ) {
+        return [
+          {
+            x: p1.x - 2 * min - margin.x,
+            y: p1.y,
+          },
+          {
+            x: p2.x,
+            y: min + p2.y + margin.y,
+          },
+        ];
+      }
+
+      if (
+        fromD === CommonTypes.Direction.t &&
+        toD === CommonTypes.Direction.l
+      ) {
+        return [
+          {
+            x: p1.x,
+            y: p1.y - min - margin.y,
+          },
+          {
+            x: p2.x - min - margin.x,
+            y: p2.y,
+          },
+        ];
+      }
+      if (
+        fromD === CommonTypes.Direction.t &&
+        toD === CommonTypes.Direction.t
+      ) {
+        return [
+          {
+            x: p1.x,
+            y: p1.y - min * 2 - margin.x,
+          },
+          {
+            x: p2.x,
+            y: p2.y - min - margin.x,
+          },
+        ];
+      }
+      if (
+        fromD === CommonTypes.Direction.t &&
+        toD === CommonTypes.Direction.r
+      ) {
+        return [
+          {
+            x: p1.x,
+            y: p1.y - min - margin.y,
+          },
+          {
+            x: p2.x + min + margin.x,
+            y: p2.y,
+          },
+        ];
+      }
+      if (
+        fromD === CommonTypes.Direction.t &&
+        toD === CommonTypes.Direction.b
+      ) {
+        return [
+          {
+            x: p1.x,
+            y: p1.y - min * 2 - margin.y,
+          },
+          {
+            x: p2.x,
+            y: p2.y + min + margin.y,
+          },
+        ];
+      }
+
+      if (
+        fromD === CommonTypes.Direction.r &&
+        toD === CommonTypes.Direction.l
+      ) {
+        return [
+          {
+            x: p1.x + 2 * min + margin.x,
+            y: p1.y,
+          },
+          {
+            x: p2.x - min - margin.x,
+            y: p2.y,
+          },
+        ];
+      }
+      if (
+        fromD === CommonTypes.Direction.r &&
+        toD === CommonTypes.Direction.t
+      ) {
+        return [
+          {
+            x: p1.x + 2 * min + margin.x,
+            y: p1.y,
+          },
+          {
+            x: p2.x,
+            y: p2.y - min - margin.y,
+          },
+        ];
+      }
+      if (
+        fromD === CommonTypes.Direction.r &&
+        toD === CommonTypes.Direction.r
+      ) {
+        return [
+          {
+            x: p1.x + 2 * min + margin.y,
+            y: p1.y,
+          },
+          {
+            x: p2.x + min + margin.y,
+            y: p2.y,
+          },
+        ];
+      }
+      if (
+        fromD === CommonTypes.Direction.r &&
+        toD === CommonTypes.Direction.b
+      ) {
+        return [
+          {
+            x: p1.x + 2 * min + margin.x,
+            y: p1.y,
+          },
+          {
+            x: p2.x,
+            y: min + p2.y + margin.y,
+          },
+        ];
+      }
+
+      if (
+        fromD === CommonTypes.Direction.b &&
+        toD === CommonTypes.Direction.l
+      ) {
+        return [
+          {
+            x: p1.x,
+            y: p1.y + min + margin.y,
+          },
+          {
+            x: p2.x - min - margin.x,
+            y: p2.y,
+          },
+        ];
+      }
+      if (
+        fromD === CommonTypes.Direction.b &&
+        toD === CommonTypes.Direction.t
+      ) {
+        return [
+          {
+            x: p1.x,
+            y: p1.y + min * 2 + margin.y,
+          },
+          {
+            x: p2.x,
+            y: p2.y - min - margin.y,
+          },
+        ];
+      }
+      if (
+        fromD === CommonTypes.Direction.b &&
+        toD === CommonTypes.Direction.r
+      ) {
+        return [
+          {
+            x: p1.x,
+            y: p1.y + min + margin.y,
+          },
+          {
+            x: p2.x + min + margin.x,
+            y: p2.y,
+          },
+        ];
+      }
+      if (
+        fromD === CommonTypes.Direction.b &&
+        toD === CommonTypes.Direction.b
+      ) {
+        return [
+          {
+            x: p1.x,
+            y: p1.y + min * 2 + margin.x,
+          },
+          {
+            x: p2.x,
+            y: p2.y + min + margin.x,
+          },
+        ];
+      }
+
+      return [null, null];
+    })();
+
+    if (!cp1 || !cp2 || !p2) return;
+
+    pressingCurve?.shape.locateHandler(CurveTypes.PressingTarget.cp1, cp1);
+    pressingCurve?.shape.locateHandler(CurveTypes.PressingTarget.cp2, cp2);
+    pressingCurve?.shape.locateHandler(CurveTypes.PressingTarget.p2, p2);
+  } else {
+    // move
+    pressingCurve.shape.locateHandler(CurveTypes.PressingTarget.p2, p);
+
+    const cp2 = (() => {
+      switch (pressingCurve.from.d) {
+        case CommonTypes.Direction.l:
+          return {
+            x: (pressingCurve.shape.p2.x + pressingCurve.shape.p1.x) / 2,
+            y: pressingCurve.from.shape.p.y,
+          };
+
+        case CommonTypes.Direction.t:
+          return {
+            x: pressingCurve.from.shape.p.x,
+            y: (pressingCurve.shape.p2.y + pressingCurve.shape.p1.y) / 2,
+          };
+
+        case CommonTypes.Direction.r:
+          return {
+            x: (pressingCurve.shape.p2.x + pressingCurve.shape.p1.x) / 2,
+            y: pressingCurve.from.shape.p.y,
+          };
+
+        case CommonTypes.Direction.b:
+          return {
+            x: pressingCurve.from.shape.p.x,
+            y: (pressingCurve.shape.p2.y + pressingCurve.shape.p1.y) / 2,
+          };
+      }
+    })();
+
+    pressingCurve?.shape.locateHandler(CurveTypes.PressingTarget.cp2, cp2);
   }
-
-  pressingCurve.shape.cp2 = cp2;
 };
 
 const drawShapes = (
@@ -2600,7 +2889,7 @@ export default function IdPage() {
         // }
       }
     } else if (!!pressingCurve) {
-      movePressingCurve(pressingCurve, p);
+      movePressingCurve(pressingCurve, p, shapes);
     } else if (selectAreaP && !space) {
       selectAreaP = {
         ...selectAreaP,
