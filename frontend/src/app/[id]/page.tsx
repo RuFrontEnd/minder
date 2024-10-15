@@ -1211,7 +1211,6 @@ const movePressingCurve = (
   if (toD && p2) {
     //stick
     const p1 = pressingCurve?.shape.p1;
-
     const [cp1, cp2] = (() => {
       const fromD = pressingCurve?.from.d;
       if (!fromD || !toD || !p1 || !p2) return [null, null];
@@ -1480,8 +1479,8 @@ const movePressingCurve = (
     pressingCurve?.shape.locateHandler(CurveTypes.PressingTarget.p2, p2);
   } else {
     // move
-    pressingCurve.shape.locateHandler(CurveTypes.PressingTarget.p2, p);
-
+    const p2 = p;
+    const cp1 = pressingCurve?.shape.p1;
     const cp2 = (() => {
       switch (pressingCurve.from.d) {
         case CommonTypes.Direction.l:
@@ -1510,7 +1509,9 @@ const movePressingCurve = (
       }
     })();
 
+    pressingCurve?.shape.locateHandler(CurveTypes.PressingTarget.cp1, cp1);
     pressingCurve?.shape.locateHandler(CurveTypes.PressingTarget.cp2, cp2);
+    pressingCurve.shape.locateHandler(CurveTypes.PressingTarget.p2, p2);
   }
 };
 
@@ -2803,90 +2804,7 @@ export default function IdPage() {
         pressing.direction &&
         pressing?.target === CurveTypes.PressingTarget.p2
       ) {
-        let sticking: PageIdTypes.Sticking = {
-          bridgeId: null,
-          from: {
-            d: null,
-            shape: null,
-          },
-          to: {
-            d: null,
-            shape: null,
-          },
-        };
-
         pressing.shape.disConnect([pressing.curveId]);
-
-        shapes.forEach((shape) => {
-          const quarterD = shape.checkQuarterArea(p);
-          const receivingPointsBoundryD = shape.checkReceivingPointsBoundry(p);
-
-          ds.forEach((d) => {
-            shape.setReceivePointActivate(
-              d,
-              d === receivingPointsBoundryD || d === quarterD
-            );
-            shape.setReceivePointVisible(
-              d,
-              shape.checkBoundry(p, 20) && pressing?.shape !== shape
-            );
-            if (
-              !!pressing?.curveId &&
-              !!pressing?.direction &&
-              !!pressing.shape &&
-              (d === receivingPointsBoundryD || d === quarterD) &&
-              shape !== pressing?.shape
-            ) {
-              sticking.bridgeId = pressing?.curveId;
-              sticking.from.d = pressing?.direction;
-              sticking.from.shape = pressing?.shape;
-              sticking.to.d = d;
-              sticking.to.shape = shape;
-            }
-          });
-        });
-
-        if (
-          !!sticking?.bridgeId &&
-          !!sticking?.from.d &&
-          !!sticking?.from.shape &&
-          !!sticking?.to.d &&
-          !!sticking?.to.shape
-        ) {
-          const endP = (() => {
-            const toReceivingP = sticking.to.shape.getCenter().receivingPoints[
-              sticking?.to?.d
-            ];
-
-            let margin = 0;
-            if (sticking.to.shape instanceof Data) {
-              if (sticking.to.d === CommonTypes.Direction.l) {
-                margin = 7.5;
-              } else if (sticking.to.d === CommonTypes.Direction.r) {
-                margin = -7.5;
-              }
-            }
-
-            return {
-              x: toReceivingP.x + margin * scale,
-              y: toReceivingP.y,
-            };
-          })();
-
-          // sticking.from.shape.stick(
-          //   sticking.bridgeId,
-          //   endP,
-          //   sticking.from.d,
-          //   sticking.to.d
-          // );
-        }
-        // else {
-        //   pressing.shape.locateCurveHandler(
-        //     pressing.curveId,
-        //     CurveTypes.PressingTarget.p2,
-        //     p
-        //   );
-        // }
       }
     } else if (!!pressingCurve) {
       movePressingCurve(pressingCurve, p, shapes);
