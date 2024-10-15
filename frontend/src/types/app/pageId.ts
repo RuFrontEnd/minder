@@ -3,6 +3,7 @@ import Terminal from "@/shapes/terminal";
 import Process from "@/shapes/process";
 import Data from "@/shapes/data";
 import Desicion from "@/shapes/decision";
+import Curve from "@/shapes/curve";
 import Stack from "@/dataStructure/stack";
 import * as CommonTypes from "@/types/common";
 import * as CoreTypes from "@/types/shapes/core";
@@ -17,6 +18,14 @@ type Pressing = {
     | CoreTypes.PressingTarget
     | CurveTypes.PressingTarget
     | CommonTypes.SelectAreaTarget;
+};
+
+type PressingCurve = null | {
+  from: {
+    shape: Terminal | Process | Data | Desicion;
+    d: CommonTypes.Direction;
+  };
+  shape: Curve;
 };
 
 type Sticking = {
@@ -48,6 +57,7 @@ type Actions = Stack<ActionTypes>;
 
 export type {
   Pressing,
+  PressingCurve,
   Sticking,
   ActionTypes,
   ActionTarget,

@@ -366,13 +366,13 @@ export default class Curve {
           90 * (Math.PI / 180);
       }
     } else if (pressingTarget === CurveTypes.PressingTarget.p2) {
-      // TODO: do sth...
-      // if (pressingTarget === CurveTypes.PressingTarget.p2) {
-      //   this.cp2.x += offsetX;
-      //   this.cp2.y += offsetY;
-      // }
+      // should consider p2 and arrow
+      // this.p2 = {
+      //   x: this.p2.x + this.deScale(offset.x),
+      //   y: this.p2.y + this.deScale(offset.y),
+      // };
     }
-  } // checked
+  }
 
   locateHandler(pressingTarget: CurveTypes.PressingTarget, screenP: Vec) {
     if (

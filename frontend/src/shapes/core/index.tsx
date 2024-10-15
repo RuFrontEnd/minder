@@ -39,8 +39,8 @@ export default class Core {
     y: 0,
   };
   private initScale = 1;
-  __w__: number;
-  __h__: number;
+  private __w__: number;
+  private __h__: number;
   title: CommonTypes.Title;
   private __p__: Vec;
   sendTo: {
@@ -932,7 +932,7 @@ export default class Core {
     return null;
   }
 
-  getCurveTriggerDirection(p: Vec) {
+  getTriggerDirection(p: Vec) {
     if (!this.selecting) return null;
     const center = this.getCenter();
 

@@ -7,6 +7,7 @@ import Terminal from "@/shapes/terminal";
 import Process from "@/shapes/process";
 import Data from "@/shapes/data";
 import Desicion from "@/shapes/decision";
+import Curve from "@/shapes/curve";
 import Stack from "@/dataStructure/stack";
 import DataFrame from "@/components/dataFrame";
 import SidePanel from "@/components/sidePanel";
@@ -108,6 +109,7 @@ let useEffected = false,
       | CurveTypes.PressingTarget
       | CommonTypes.SelectAreaTarget;
   } = null,
+  pressingCurve: PageIdTypes.PressingCurve = null,
   offset: CommonTypes.Vec = cloneDeep(init.offset),
   offset_center: CommonTypes.Vec = cloneDeep(init.offset),
   lastP: CommonTypes.Vec = { x: 0, y: 0 },
@@ -1102,6 +1104,127 @@ const getShapesInView = (shapes: (Terminal | Process | Data | Desicion)[]) => {
   return shapesInView;
 };
 
+const getCurve = (
+  id: string,
+  d: CommonTypes.Direction,
+  w: number,
+  h: number,
+  p: CommonTypes.Vec,
+  distance: number
+) => {
+  let p1: CommonTypes.Vec = { x: 0, y: 0 };
+  let p2: CommonTypes.Vec = { x: 0, y: 0 };
+  let cp1: CommonTypes.Vec = { x: 0, y: 0 };
+  let cp2: CommonTypes.Vec = { x: 0, y: 0 };
+
+  const arrow_h = 12;
+
+  switch (d) {
+    case CommonTypes.Direction.l:
+      p1 = {
+        x: p.x - w / 2,
+        y: p.y,
+      };
+      p2 = {
+        x: p.x - w / 2 - distance + arrow_h,
+        y: p.y,
+      };
+      cp1 = p1;
+      cp2 = {
+        x: (p1.x + p2.x) / 2,
+        y: p.y,
+      };
+      break;
+
+    case CommonTypes.Direction.t:
+      p1 = {
+        x: p.x,
+        y: p.y - h / 2,
+      };
+      p2 = {
+        x: p1.x,
+        y: p1.y - distance + arrow_h,
+      };
+      cp1 = p1;
+      cp2 = {
+        x: p.x,
+        y: (p1.y + p2.y) / 2,
+      };
+      break;
+
+    case CommonTypes.Direction.r:
+      p1 = {
+        x: p.x + w / 2,
+        y: p.y,
+      };
+      p2 = {
+        x: p1.x + distance - arrow_h,
+        y: p1.y,
+      };
+      cp1 = p1;
+      cp2 = {
+        x: (p1.x + p2.x) / 2,
+        y: p.y,
+      };
+      break;
+
+    case CommonTypes.Direction.b:
+      p1 = {
+        x: p.x,
+        y: p.y + h / 2,
+      };
+      p2 = {
+        x: p1.x,
+        y: p1.y + distance - arrow_h,
+      };
+      cp1 = p1;
+      cp2 = {
+        x: p.x,
+        y: (p1.y + p2.y) / 2,
+      };
+      break;
+  }
+
+  return new Curve(id, p1, cp1, cp2, p2);
+};
+
+const movePressingCurve = (
+  pressingCurve: PageIdTypes.PressingCurve,
+  p: CommonTypes.Vec
+) => {
+  if (!pressingCurve) return;
+  pressingCurve.shape.locateHandler(CurveTypes.PressingTarget.p2, p);
+
+  let cp2 = {
+    x: 0,
+    y: 0,
+  };
+
+  switch (pressingCurve.from.d) {
+    case CommonTypes.Direction.l:
+      cp2.x = (pressingCurve.shape.p2.x + pressingCurve.shape.p1.x) / 2;
+      cp2.y = pressingCurve.from.shape.p.y;
+      break;
+
+    case CommonTypes.Direction.t:
+      cp2.x = pressingCurve.from.shape.p.x;
+      cp2.y = (pressingCurve.shape.p2.y + pressingCurve.shape.p1.y) / 2;
+      break;
+
+    case CommonTypes.Direction.r:
+      cp2.x = (pressingCurve.shape.p2.x + pressingCurve.shape.p1.x) / 2;
+      cp2.y = pressingCurve.from.shape.p.y;
+      break;
+
+    case CommonTypes.Direction.b:
+      cp2.x = pressingCurve.from.shape.p.x;
+      cp2.y = (pressingCurve.shape.p2.y + pressingCurve.shape.p1.y) / 2;
+      break;
+  }
+
+  pressingCurve.shape.cp2 = cp2;
+};
+
 const drawShapes = (
   ctx: null | CanvasRenderingContext2D,
   shapes: (Terminal | Process | Data | Desicion)[]
@@ -1182,6 +1305,7 @@ const draw = (
 
   //   shape.drawCurve(ctx);
   // });
+  pressingCurve?.shape.draw(ctx);
 
   if (!isScreenshot) {
     // draw selectArea
@@ -1908,11 +2032,26 @@ export default function IdPage() {
         if (!pressing) {
           shapes.forEach((_, shapeI, shapes) => {
             const shape = shapes[shapes.length - 1 - shapeI];
-            const curveTriggerD = shape.getCurveTriggerDirection(p);
+            const curveTriggerD = shape.getTriggerDirection(p);
             if (curveTriggerD) {
               shape.selecting = false;
 
-              const initCurveId = `curve_${Date.now()}`;
+              pressingCurve = {
+                from: {
+                  shape: shape,
+                  d: curveTriggerD,
+                },
+                shape: getCurve(
+                  `curve_${Date.now()}`,
+                  curveTriggerD,
+                  shape.w,
+                  shape.h,
+                  shape.p,
+                  50
+                ),
+              };
+
+              pressingCurve.shape.selecting = true;
 
               // shape.initializeCurve(
               //   initCurveId,
@@ -2052,7 +2191,7 @@ export default function IdPage() {
         //       y: curveArrowTopP.y - curveCp2.y,
         //     };
         //   }
-        // } else 
+        // } else
         if (pressing && pressing.shape && !pressing.curveId) {
           pressing.shape.selecting = true;
         }
@@ -2451,7 +2590,7 @@ export default function IdPage() {
           //   sticking.from.d,
           //   sticking.to.d
           // );
-        } 
+        }
         // else {
         //   pressing.shape.locateCurveHandler(
         //     pressing.curveId,
@@ -2460,19 +2599,19 @@ export default function IdPage() {
         //   );
         // }
       }
+    } else if (!!pressingCurve) {
+      movePressingCurve(pressingCurve, p);
+    } else if (selectAreaP && !space) {
+      selectAreaP = {
+        ...selectAreaP,
+        end: p,
+      };
     }
 
     if (dbClickedShape) {
       setDataFrame({
         p: getFramePosition(dbClickedShape),
       });
-    }
-
-    if (selectAreaP && !space) {
-      selectAreaP = {
-        ...selectAreaP,
-        end: p,
-      };
     }
 
     lastP = p;
@@ -2655,9 +2794,10 @@ export default function IdPage() {
 
     selectAreaP = null;
     pressing = null;
+    pressingCurve = null;
     alginLines = [];
 
-    console.log('shapes', shapes)
+    console.log("shapes", shapes);
 
     drawCanvas();
   };
@@ -2707,7 +2847,7 @@ export default function IdPage() {
         if (currentShape.selecting) {
           currentShape?.removeConnection();
           shapes = shapes.filter((shape) => shape.id !== currentShape?.id);
-        } 
+        }
         // else {
         //   ds.forEach((d) => {
         //     currentShape.curves[d].forEach((currentCurve) => {
