@@ -23,6 +23,7 @@ type Pressing = {
 type PressingCurve = null | {
   from: {
     shape: Terminal | Process | Data | Desicion;
+    origin: Terminal | Process | Data | Desicion;
     d: CommonTypes.Direction;
   };
   shape: Curve;

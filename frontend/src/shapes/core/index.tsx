@@ -43,12 +43,6 @@ export default class Core {
   private __h__: number;
   title: CommonTypes.Title;
   private __p__: Vec;
-  sendTo: {
-    l: CoreTypes.SendCurve[];
-    t: CoreTypes.SendCurve[];
-    r: CoreTypes.SendCurve[];
-    b: CoreTypes.SendCurve[];
-  }; // TODO: should be protected
   private __selecting__: boolean;
   protected __receivePoint__: CoreTypes.ReceivePoint;
   // receiveFrom: {
@@ -80,12 +74,6 @@ export default class Core {
     this.__h__ = h;
     this.__p__ = p;
     this.c = c;
-    this.sendTo = {
-      l: [],
-      t: [],
-      r: [],
-      b: [],
-    };
     this.__selecting__ = false;
     this.__receivePoint__ = {
       l: { visible: false, activate: false },
@@ -93,12 +81,6 @@ export default class Core {
       r: { visible: false, activate: false },
       b: { visible: false, activate: false },
     };
-    // this.receiveFrom = {
-    //   l: [],
-    //   t: [],
-    //   r: [],
-    //   b: [],
-    // };
     this.options = [];
     this.selectedData = [];
     this.deletedData = [];
@@ -959,32 +941,6 @@ export default class Core {
     this.__receivePoint__[d].activate = _actviate;
   }
 
-  connect(targetShape: Core, targetShapeReceiveD: Direction, bridgeId: string) {
-    // TODO: should refactor
-    // const bridge = (() => {
-    //   for (const d of ds) {
-    //     const curve = this.sendTo[d].find(
-    //       (sendTo) => sendTo.shape.id === bridgeId
-    //     );
-    //     if (curve)
-    //       return {
-    //         d: d,
-    //         curve: curve,
-    //       };
-    //   }
-    // })();
-    // if (!bridge) return;
-    // bridge.curve.sendTo = {
-    //   shape: targetShape,
-    //   d: targetShapeReceiveD,
-    //   bridgeId: bridgeId,
-    // };
-    // targetShape.receiveFrom[targetShapeReceiveD].push({
-    //   shape: this,
-    //   d: bridge.d,
-    //   bridgeId: bridgeId,
-    // });
-  }
 
   disConnect(curveIds: string[]) {
     const curveIdsMapping = (() => {

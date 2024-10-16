@@ -96,6 +96,14 @@ let useEffected = false,
   ctx: CanvasRenderingContext2D | null | undefined = null,
   ctx_screenshot: CanvasRenderingContext2D | null | undefined = null,
   shapes: (Terminal | Process | Data | Desicion)[] = [],
+  curves: Curve[] = [],
+  connections:{
+    senders:{[id:`${string}_l` | `${string}_t` | `${string}_r` | `${string}_b`]:string},
+    recievers:{[id:`${string}_l` | `${string}_t` | `${string}_r` | `${string}_b`]:string},
+  } = {
+    senders: {},
+    recievers: {},
+  },
   tests: any[] = [], // TODO: should be deleted
   pressing: null | {
     origin: null | Terminal | Process | Data | Desicion;
@@ -2329,6 +2337,7 @@ export default function IdPage() {
               pressingCurve = {
                 from: {
                   shape: shape,
+                  origin: cloneDeep(shape),
                   d: curveTriggerD,
                 },
                 shape: getCurve(
@@ -2899,55 +2908,41 @@ export default function IdPage() {
     }
 
     shapes.forEach((targetShape) => {
-      if (
-        pressing?.shape &&
-        pressing?.shape?.id !== targetShape.id &&
-        !!pressing?.curveId &&
-        pressing?.target &&
-        pressing?.direction
-      ) {
-        const pressingShape = pressing.shape;
-        const theCheckReceivingPointsBoundryD = targetShape.checkReceivingPointsBoundry(
-          p
-        );
-        const theQuarterD = targetShape.checkQuarterArea(p);
+      if (!pressingCurve) return;
+      const connectedD =
+        targetShape.checkReceivingPointsBoundry(p) ||
+        targetShape.checkQuarterArea(p);
 
-        if (!pressingShape || pressing.target !== CurveTypes.PressingTarget.p2)
-          return;
+      console.log("connectedD", connectedD);
 
-        if (!!theCheckReceivingPointsBoundryD || !!theQuarterD) {
-          if (!!theCheckReceivingPointsBoundryD) {
-            pressingShape.connect(
-              targetShape,
-              theCheckReceivingPointsBoundryD,
-              pressing.curveId
-            );
-          } else if (!!theQuarterD) {
-            pressingShape.connect(targetShape, theQuarterD, pressing.curveId);
-          }
+      if (!connectedD) return;
 
-          actions.push({
-            type: CommonTypes.Action.connect,
-            targets: [
-              {
-                id: pressingShape.id,
-                index: shapes.findIndex(
-                  (shape) => shape.id === pressing?.shape?.id
-                ),
-                origin: pressing.origin,
-              },
-              {
-                id: targetShape.id,
-                index: shapes.findIndex(
-                  (shape) => shape.id === targetShape?.id
-                ),
-                origin: cloneDeep(targetShape),
-              },
-            ],
-          });
-        }
-      }
+      curves.push(pressingCurve.shape);
+      connections.senders[`${pressingCurve.shape.id}_${pressingCurve.from.d}`] = pressingCurve.shape.id
+      connections.recievers[`${targetShape.id}_${connectedD}`] = pressingCurve.shape.id
+
+      console.log('connections', connections)
+
+      actions.push({
+        type: CommonTypes.Action.connect,
+        targets: [
+          {
+            id: pressingCurve.from.shape.id,
+            index: shapes.findIndex(
+              (shape) => shape.id === pressing?.shape?.id
+            ),
+            origin: pressingCurve.from.origin,
+          },
+          {
+            id: targetShape.id,
+            index: shapes.findIndex((shape) => shape.id === targetShape?.id),
+            origin: cloneDeep(targetShape),
+          },
+        ],
+      });
     });
+
+    console.log("shapes", shapes);
 
     shapes.forEach((shape) => {
       ds.forEach((d) => {
