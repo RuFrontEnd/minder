@@ -27,12 +27,12 @@ export default class Core {
       stroke: number;
     };
   } = {
-    d: 50,
-    size: {
-      fill: 4,
-      stroke: 2,
-    },
-  };
+      d: 50,
+      size: {
+        fill: 4,
+        stroke: 2,
+      },
+    };
   private strokeSize = 1;
   private initOffset = {
     x: 0,
@@ -688,8 +688,8 @@ export default class Core {
     const checkOnTriangle = (edgePoints: [Vec, Vec, Vec], p: Vec) => {
       const isRatio1Match =
         edgePoints[0].x -
-          edgePoints[0].x / edgePoints[1].x -
-          edgePoints[1].x ===
+        edgePoints[0].x / edgePoints[1].x -
+        edgePoints[1].x ===
         edgePoints[0].x - edgePoints[0].x / p.x - p.x;
 
       const isPInSideEdgePoint1 =
@@ -700,8 +700,8 @@ export default class Core {
 
       const isRatio2Match =
         edgePoints[1].x -
-          edgePoints[2].x / edgePoints[1].x -
-          edgePoints[2].x ===
+        edgePoints[2].x / edgePoints[1].x -
+        edgePoints[2].x ===
         edgePoints[1].x - edgePoints[1].x / p.x - p.x;
 
       const isPInSideEdgePoint2 =
@@ -712,8 +712,8 @@ export default class Core {
 
       const isRatio3Match =
         edgePoints[2].x -
-          edgePoints[0].x / edgePoints[2].x -
-          edgePoints[0].x ===
+        edgePoints[0].x / edgePoints[2].x -
+        edgePoints[0].x ===
         edgePoints[2].x - edgePoints[2].x / p.x - p.x;
 
       const isPInSideEdgePoint3 =
@@ -748,7 +748,7 @@ export default class Core {
       checkInsideTriangle(
         [quarterVecs.r.rt_rb, quarterVecs.r.rb_m, quarterVecs.r.m_rt],
         [targetVecs.r.rt_p, targetVecs.r.rb_p, targetVecs.r.m_p] ||
-          checkOnTriangle([center.rt, center.m, center.rb], screenP)
+        checkOnTriangle([center.rt, center.m, center.rb], screenP)
       )
     ) {
       return Direction.r;
@@ -912,14 +912,16 @@ export default class Core {
     for (const d of ds) {
       if (
         (p.x - center.__curveTrigger__[d].x) *
-          (p.x - center.__curveTrigger__[d].x) +
-          (p.y - center.__curveTrigger__[d].y) *
-            (p.y - center.__curveTrigger__[d].y) <
+        (p.x - center.__curveTrigger__[d].x) +
+        (p.y - center.__curveTrigger__[d].y) *
+        (p.y - center.__curveTrigger__[d].y) <
         this.__curveTrigger__.size.fill * this.__curveTrigger__.size.fill
       ) {
         return Direction[d];
       }
     }
+
+    return null;
   }
 
   // setIsCurveSelected(curveId: CurveTypes.Id, _selecting: boolean) {
@@ -940,7 +942,6 @@ export default class Core {
   setReceivePointActivate(d: Direction, _actviate: boolean) {
     this.__receivePoint__[d].activate = _actviate;
   }
-
 
   disConnect(curveIds: string[]) {
     const curveIdsMapping = (() => {

@@ -28,6 +28,7 @@ import { v4 as uuidv4 } from "uuid";
 import { ChangeEventHandler, MouseEventHandler } from "react";
 import { tailwindColors } from "@/variables/colors";
 import * as statusConstants from "@/constants/stauts";
+import * as handleUtils from "@/utils/handle";
 import * as authAPIs from "@/apis/auth";
 import * as projectAPIs from "@/apis/project";
 import * as CoreTypes from "@/types/shapes/core";
@@ -97,9 +98,17 @@ let useEffected = false,
   ctx_screenshot: CanvasRenderingContext2D | null | undefined = null,
   shapes: (Terminal | Process | Data | Desicion)[] = [],
   curves: Curve[] = [],
-  connections:{
-    senders:{[id:`${string}_l` | `${string}_t` | `${string}_r` | `${string}_b`]:string},
-    recievers:{[id:`${string}_l` | `${string}_t` | `${string}_r` | `${string}_b`]:string},
+  connections: {
+    senders: {
+      [
+      id: `${string}_l` | `${string}_t` | `${string}_r` | `${string}_b`
+      ]: string;
+    };
+    recievers: {
+      [
+      id: `${string}_l` | `${string}_t` | `${string}_r` | `${string}_b`
+      ]: string;
+    };
   } = {
     senders: {},
     recievers: {},
@@ -112,10 +121,10 @@ let useEffected = false,
     curveId?: null | CurveTypes.Id;
     direction: null | CommonTypes.Direction; // TODO: should be removed in the future
     target:
-      | null
-      | CoreTypes.PressingTarget
-      | CurveTypes.PressingTarget
-      | CommonTypes.SelectAreaTarget;
+    | null
+    | CoreTypes.PressingTarget
+    | CurveTypes.PressingTarget
+    | CommonTypes.SelectAreaTarget;
   } = null,
   pressingCurve: PageIdTypes.PressingCurve = null,
   offset: CommonTypes.Vec = cloneDeep(init.offset),
@@ -822,7 +831,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseCenter.x.toFixed(1)) ===
-          Number(targetShape.getCenter().m.x.toFixed(1)) ||
+        Number(targetShape.getCenter().m.x.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.x - b.p.x);
@@ -849,7 +858,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseCenter.y.toFixed(1)) ===
-          Number(targetShape.getCenter().m.y.toFixed(1)) ||
+        Number(targetShape.getCenter().m.y.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.y - b.p.y);
@@ -878,7 +887,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.l.toFixed(1)) ===
-          Number(targetShape.getEdge().l.toFixed(1)) ||
+        Number(targetShape.getEdge().l.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.y - b.p.y);
@@ -901,7 +910,7 @@ const getAlignLines = (
     .filter((targetShape) => {
       return (
         Number(baseEdge.l.toFixed(1)) ===
-          Number(targetShape.getEdge().r.toFixed(1)) ||
+        Number(targetShape.getEdge().r.toFixed(1)) ||
         targetShape.id === baseShape.id
       );
     })
@@ -930,7 +939,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.t.toFixed(1)) ===
-          Number(targetShape.getEdge().t.toFixed(1)) ||
+        Number(targetShape.getEdge().t.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.x - b.p.x);
@@ -953,7 +962,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.t.toFixed(1)) ===
-          Number(targetShape.getEdge().b.toFixed(1)) ||
+        Number(targetShape.getEdge().b.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.x - b.p.x);
@@ -981,7 +990,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.r.toFixed(1)) ===
-          Number(targetShape.getEdge().r.toFixed(1)) ||
+        Number(targetShape.getEdge().r.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.y - b.p.y);
@@ -1007,7 +1016,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.r.toFixed(1)) ===
-          Number(targetShape.getEdge().l.toFixed(1)) ||
+        Number(targetShape.getEdge().l.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.y - b.p.y);
@@ -1035,7 +1044,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.b.toFixed(1)) ===
-          Number(targetShape.getEdge().b.toFixed(1)) ||
+        Number(targetShape.getEdge().b.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.x - b.p.x);
@@ -1061,7 +1070,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.b.toFixed(1)) ===
-          Number(targetShape.getEdge().t.toFixed(1)) ||
+        Number(targetShape.getEdge().t.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.x - b.p.x);
@@ -1523,9 +1532,66 @@ const movePressingCurve = (
   }
 };
 
+const triggerCurve = (p: CommonTypes.Vec) => {
+  const [triggerShape, curveTriggerD] = (() => {
+    let triggerShape: null | Terminal | Process | Desicion | Data = null;
+    let curveTriggerD: null | CommonTypes.Direction = null;
+
+    for (let i = shapes.length - 1; i > -1; i--) {
+      const shape = shapes[i];
+      const triggerD = shape.getTriggerDirection(p);
+      if (triggerD) {
+        triggerShape = shape;
+        curveTriggerD = triggerD;
+        break;
+      }
+    }
+
+    return [triggerShape, curveTriggerD];
+  })();
+
+  if (triggerShape && curveTriggerD) {
+    triggerShape.selecting = false;
+
+    pressingCurve = {
+      from: {
+        shape: triggerShape,
+        origin: cloneDeep(triggerShape),
+        d: curveTriggerD,
+      },
+      shape: getCurve(
+        `curve_${Date.now()}`,
+        curveTriggerD,
+        triggerShape.w,
+        triggerShape.h,
+        triggerShape.p,
+        50
+      ),
+    };
+
+    pressingCurve.shape.selecting = true;
+    return false
+  }
+
+  return true
+};
+
+const selectCurve = (p: CommonTypes.Vec) => {
+  const curveValues = Object.values(curves);
+  for (let i = curveValues.length - 1; i > -1; i--) {
+    const curve = curveValues[i];
+    if (curve.checkBoundry(p)) {
+      curve.selecting = true;
+      return false;
+    }
+  }
+  return true
+};
+
+
 const drawShapes = (
   ctx: null | CanvasRenderingContext2D,
-  shapes: (Terminal | Process | Data | Desicion)[]
+  shapes: (Terminal | Process | Data | Desicion | Curve)[]
 ) => {
   if (!ctx) return;
 
@@ -1578,8 +1644,8 @@ const draw = (
     test.draw(ctx);
   });
 
-  // draw align lines
   drawShapes(ctx, shapes);
+  drawShapes(ctx, curves);
   drawAlignLines(ctx, alginLines);
 
   if (!isScreenshot) {
@@ -1727,12 +1793,12 @@ const resize = (
     shape: null | undefined | Terminal | Process | Data | Desicion;
     ghost: null | undefined | Terminal | Process | Data | Desicion;
     target:
-      | null
-      | undefined
-      | CoreTypes.PressingTarget.lt
-      | CoreTypes.PressingTarget.rt
-      | CoreTypes.PressingTarget.rb
-      | CoreTypes.PressingTarget.lb;
+    | null
+    | undefined
+    | CoreTypes.PressingTarget.lt
+    | CoreTypes.PressingTarget.rt
+    | CoreTypes.PressingTarget.rb
+    | CoreTypes.PressingTarget.lb;
   },
   offsetP: CommonTypes.Vec
 ) => {
@@ -2041,9 +2107,8 @@ export default function IdPage() {
   const [isRenameFrameOpen, setIsRenameFrameOpen] = useState(false);
   const [isProfileFrameOpen, setIsProfileFrameOpen] = useState(false);
   const [steps, setSteps] = useState<PageTypes.Steps>({});
-  const [dataFrameWarning, setDataFrameWarning] = useState<
-    DataFrameTypes.Warning
-  >(init.dataFrameWarning);
+  const [dataFrameWarning, setDataFrameWarning] =
+    useState<DataFrameTypes.Warning>(init.dataFrameWarning);
   const [isProjectsModalOpen, setIsProjectsModalOpen] = useState(false);
   const [projects, setProjects] = useState<
     ProjectAPITypes.GetProjects["resData"]
@@ -2070,8 +2135,8 @@ export default function IdPage() {
     dataShapes.forEach((dataShape) => {
       // traversal all relational steps
       const queue: (Core | Terminal | Process | Data | Desicion)[] = [
-          dataShape,
-        ],
+        dataShape,
+      ],
         locks: { [curveId: string]: boolean } = {}, // prevent from graph cycle
         deletedDataMap: { [text: string]: boolean } = {};
 
@@ -2122,8 +2187,8 @@ export default function IdPage() {
     errorShapes.forEach((errorShape) => {
       // traversal all relational steps
       const queue: (Core | Terminal | Process | Data | Desicion)[] = [
-          errorShape,
-        ],
+        errorShape,
+      ],
         locks: { [curveId: string]: boolean } = {}; // prevent from graph cycle
 
       while (queue.length !== 0) {
@@ -2236,10 +2301,8 @@ export default function IdPage() {
   };
 
   const fetchProjects = async () => {
-    const res: AxiosResponse<
-      ProjectAPITypes.GetProjects["resData"],
-      any
-    > = await projectAPIs.getProjecs();
+    const res: AxiosResponse<ProjectAPITypes.GetProjects["resData"], any> =
+      await projectAPIs.getProjecs();
     setProjects(res.data);
   };
 
@@ -2247,9 +2310,8 @@ export default function IdPage() {
     const token = localStorage.getItem("Authorization");
 
     if (token) {
-      const res: AxiosResponse<
-        AuthTypes.JWTLogin["resData"]
-      > = await authAPIs.jwtLogin(token);
+      const res: AxiosResponse<AuthTypes.JWTLogin["resData"]> =
+        await authAPIs.jwtLogin(token);
 
       if (res.data.isPass) {
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
@@ -2266,9 +2328,9 @@ export default function IdPage() {
     setLeftMouseBtn(true);
 
     const p = {
-        x: e.nativeEvent.offsetX,
-        y: e.nativeEvent.offsetY,
-      },
+      x: e.nativeEvent.offsetX,
+      y: e.nativeEvent.offsetY,
+    },
       pInSelectArea =
         p.x > select.start.x &&
         p.y > select.start.y &&
@@ -2298,7 +2360,7 @@ export default function IdPage() {
     if (space) {
       lastP = p;
     } else {
-      if (select.shapes.length > 1) {
+      if (select.shapes.length >= 2) {
         // when multi select shapes
         let _target: null | CommonTypes.SelectAreaTarget = null;
 
@@ -2327,110 +2389,82 @@ export default function IdPage() {
         }
       } else {
         // when single select shape
-        if (!pressing) {
-          shapes.forEach((_, shapeI, shapes) => {
-            const shape = shapes[shapes.length - 1 - shapeI];
-            const curveTriggerD = shape.getTriggerDirection(p);
-            if (curveTriggerD) {
-              shape.selecting = false;
+        handleUtils.handle([() => triggerCurve(p), () => selectCurve(p)])
 
-              pressingCurve = {
-                from: {
-                  shape: shape,
-                  origin: cloneDeep(shape),
-                  d: curveTriggerD,
-                },
-                shape: getCurve(
-                  `curve_${Date.now()}`,
-                  curveTriggerD,
-                  shape.w,
-                  shape.h,
-                  shape.p,
-                  50
-                ),
-              };
 
-              pressingCurve.shape.selecting = true;
 
-              // shape.initializeCurve(
-              //   initCurveId,
-              //   CommonTypes.Direction[curveTriggerD]
-              // );
 
-              // shape.setIsCurveSelected(initCurveId, true);
-            }
+        // switch (curveTriggerD) {
+        //   case CommonTypes.Direction.l:
+        //     relativeCurveCp2 = {
+        //       x: (-shape.curveTrigger.d * 1) / 3,
+        //       y: 0,
+        //     };
+        //     break;
 
-            switch (curveTriggerD) {
-              case CommonTypes.Direction.l:
-                relativeCurveCp2 = {
-                  x: (-shape.curveTrigger.d * 1) / 3,
-                  y: 0,
-                };
-                break;
+        //   case CommonTypes.Direction.t:
+        //     relativeCurveCp2 = {
+        //       x: 0,
+        //       y: (-shape.curveTrigger.d * 1) / 3,
+        //     };
+        //     break;
 
-              case CommonTypes.Direction.t:
-                relativeCurveCp2 = {
-                  x: 0,
-                  y: (-shape.curveTrigger.d * 1) / 3,
-                };
-                break;
+        //   case CommonTypes.Direction.r:
+        //     relativeCurveCp2 = {
+        //       x: (shape.curveTrigger.d * 1) / 3,
+        //       y: 0,
+        //     };
+        //     break;
 
-              case CommonTypes.Direction.r:
-                relativeCurveCp2 = {
-                  x: (shape.curveTrigger.d * 1) / 3,
-                  y: 0,
-                };
-                break;
+        //   case CommonTypes.Direction.b:
+        //     relativeCurveCp2 = {
+        //       x: 0,
+        //       y: (shape.curveTrigger.d * 1) / 3,
+        //     };
+        //     break;
+        // }
 
-              case CommonTypes.Direction.b:
-                relativeCurveCp2 = {
-                  x: 0,
-                  y: (shape.curveTrigger.d * 1) / 3,
-                };
-                break;
-            }
+        // if (!!pressing) return;
 
-            if (!!pressing) return;
+        // const withinHandlerRangeCurves = shape.checkCurveControlPointsBoundry(
+        //   p
+        // );
+        // const firstDetectedCurve = withinHandlerRangeCurves[0];
+        // const withinRangeCurveIds = shape.checkCurvesBoundry(p);
 
-            // const withinHandlerRangeCurves = shape.checkCurveControlPointsBoundry(
-            //   p
-            // );
-            // const firstDetectedCurve = withinHandlerRangeCurves[0];
-            // const withinRangeCurveIds = shape.checkCurvesBoundry(p);
+        // if (
+        //   firstDetectedCurve &&
+        //   firstDetectedCurve.target === CurveTypes.PressingTarget.p2
+        // ) {
+        //   pressing = {
+        //     origin: cloneDeep(shape),
+        //     shape: shape,
+        //     ghost: null,
+        //     curveId: firstDetectedCurve.id,
+        //     target: CurveTypes.PressingTarget.p2,
+        //     direction: firstDetectedCurve.d,
+        //   };
+        // } else if (firstDetectedCurve && firstDetectedCurve.isSelecting) {
+        //   pressing = {
+        //     origin: cloneDeep(shape),
+        //     shape: shape,
+        //     ghost: null,
+        //     curveId: firstDetectedCurve.id,
+        //     target: firstDetectedCurve.target,
+        //     direction: firstDetectedCurve.d,
+        //   };
+        // } else if (withinRangeCurveIds.length > 0) {
+        //   pressing = {
+        //     origin: cloneDeep(shape),
+        //     shape: shape,
+        //     ghost: null,
+        //     curveId: withinRangeCurveIds[0],
+        //     target: null,
+        //     direction: null,
+        //   };
+        // }
+        // });
 
-            // if (
-            //   firstDetectedCurve &&
-            //   firstDetectedCurve.target === CurveTypes.PressingTarget.p2
-            // ) {
-            //   pressing = {
-            //     origin: cloneDeep(shape),
-            //     shape: shape,
-            //     ghost: null,
-            //     curveId: firstDetectedCurve.id,
-            //     target: CurveTypes.PressingTarget.p2,
-            //     direction: firstDetectedCurve.d,
-            //   };
-            // } else if (firstDetectedCurve && firstDetectedCurve.isSelecting) {
-            //   pressing = {
-            //     origin: cloneDeep(shape),
-            //     shape: shape,
-            //     ghost: null,
-            //     curveId: firstDetectedCurve.id,
-            //     target: firstDetectedCurve.target,
-            //     direction: firstDetectedCurve.d,
-            //   };
-            // } else if (withinRangeCurveIds.length > 0) {
-            //   pressing = {
-            //     origin: cloneDeep(shape),
-            //     shape: shape,
-            //     ghost: null,
-            //     curveId: withinRangeCurveIds[0],
-            //     target: null,
-            //     direction: null,
-            //   };
-            // }
-          });
-        }
 
         if (!pressing) {
           shapes.forEach((_, shapeI, shapes) => {
@@ -2511,9 +2545,9 @@ export default function IdPage() {
     e.preventDefault();
 
     const p = {
-        x: e.nativeEvent.offsetX,
-        y: e.nativeEvent.offsetY,
-      },
+      x: e.nativeEvent.offsetX,
+      y: e.nativeEvent.offsetY,
+    },
       offsetP = {
         x: p.x - lastP.x,
         y: p.y - lastP.y,
@@ -2855,9 +2889,9 @@ export default function IdPage() {
         const theEdge = shape.getEdge();
 
         const l =
-            selectAreaP.start.x < selectAreaP.end.x
-              ? selectAreaP.start.x
-              : selectAreaP.end.x,
+          selectAreaP.start.x < selectAreaP.end.x
+            ? selectAreaP.start.x
+            : selectAreaP.end.x,
           t =
             selectAreaP.start.y < selectAreaP.end.y
               ? selectAreaP.start.y
@@ -2916,12 +2950,14 @@ export default function IdPage() {
       console.log("connectedD", connectedD);
 
       if (!connectedD) return;
-
+      pressingCurve.shape.selecting = false;
       curves.push(pressingCurve.shape);
-      connections.senders[`${pressingCurve.shape.id}_${pressingCurve.from.d}`] = pressingCurve.shape.id
-      connections.recievers[`${targetShape.id}_${connectedD}`] = pressingCurve.shape.id
+      connections.senders[`${pressingCurve.shape.id}_${pressingCurve.from.d}`] =
+        pressingCurve.shape.id;
+      connections.recievers[`${targetShape.id}_${connectedD}`] =
+        pressingCurve.shape.id;
 
-      console.log('connections', connections)
+      console.log("connections", connections);
 
       actions.push({
         type: CommonTypes.Action.connect,
@@ -3341,10 +3377,8 @@ export default function IdPage() {
 
   const initProject = async (id: ProjectTypes.Project["id"]) => {
     try {
-      const res: AxiosResponse<
-        ProjectAPITypes.GetProject["resData"],
-        any
-      > = await projectAPIs.getProject(id);
+      const res: AxiosResponse<ProjectAPITypes.GetProject["resData"], any> =
+        await projectAPIs.getProject(id);
 
       const projectData = res.data as ProjectAPITypes.ProjectData;
 
@@ -3387,9 +3421,8 @@ export default function IdPage() {
     if (!$canvas || !ctx) return;
 
     try {
-      const res: AxiosResponse<
-        ProjectAPITypes.DeleteProject["resData"]
-      > = await projectAPIs.deleteProject(id);
+      const res: AxiosResponse<ProjectAPITypes.DeleteProject["resData"]> =
+        await projectAPIs.deleteProject(id);
 
       if (id === selectedProjectId) {
         shapes = [];
@@ -3411,14 +3444,11 @@ export default function IdPage() {
       return;
     }
     shapes = [];
-    const newProject: AxiosResponse<
-      ProjectAPITypes.CreateProject["resData"]
-    > = await projectAPIs.createProject();
+    const newProject: AxiosResponse<ProjectAPITypes.CreateProject["resData"]> =
+      await projectAPIs.createProject();
 
-    const res: AxiosResponse<
-      ProjectAPITypes.GetProjects["resData"],
-      any
-    > = await projectAPIs.getProjecs();
+    const res: AxiosResponse<ProjectAPITypes.GetProjects["resData"], any> =
+      await projectAPIs.getProjecs();
 
     setIsProjectsModalOpen(false);
     setProjects(res.data);
@@ -3446,9 +3476,9 @@ export default function IdPage() {
     }));
   };
 
-  const onClickSaveProjectNameButton: MouseEventHandler<HTMLButtonElement> = async (
-    e
-  ) => {
+  const onClickSaveProjectNameButton: MouseEventHandler<
+    HTMLButtonElement
+  > = async (e) => {
     if (!selectedProjectId) return;
     const res: AxiosResponse<
       ProjectAPITypes.UpdateProjectName["resData"],
@@ -3898,9 +3928,8 @@ export default function IdPage() {
         />
         <canvas
           role="screenshot"
-          className={`invisible ${
-            space ? "cursor-grab" : ""
-          } overflow-hidden absolute left-0 top-0 z-[-1]`}
+          className={`invisible ${space ? "cursor-grab" : ""
+            } overflow-hidden absolute left-0 top-0 z-[-1]`}
           tabIndex={1}
           ref={(el) => {
             $screenshot = el;
