@@ -1588,6 +1588,14 @@ const selectCurve = (p: CommonTypes.Vec) => {
   return true
 };
 
+const deSelectCurve = () => {
+  curves.forEach(curve => {
+    curve.selecting = false
+  })
+
+  return false
+}
+
 
 const drawShapes = (
   ctx: null | CanvasRenderingContext2D,
@@ -2389,7 +2397,7 @@ export default function IdPage() {
         }
       } else {
         // when single select shape
-        handleUtils.handle([() => triggerCurve(p), () => selectCurve(p)])
+        handleUtils.handle([() => triggerCurve(p), () => selectCurve(p), () => deSelectCurve()])
 
 
 
