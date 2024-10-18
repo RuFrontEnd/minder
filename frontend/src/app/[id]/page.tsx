@@ -97,17 +97,17 @@ let useEffected = false,
   ctx: CanvasRenderingContext2D | null | undefined = null,
   ctx_screenshot: CanvasRenderingContext2D | null | undefined = null,
   shapes: (Terminal | Process | Data | Desicion)[] = [],
-  curves: Curve[] = [],
+  curves: { [curveId: string]: Curve } = {},
   connections: {
     senders: {
       [
-      id: `${string}_l` | `${string}_t` | `${string}_r` | `${string}_b`
-      ]: string;
+        shapeId: `${string}_l` | `${string}_t` | `${string}_r` | `${string}_b`
+      ]: string[];
     };
     recievers: {
       [
-      id: `${string}_l` | `${string}_t` | `${string}_r` | `${string}_b`
-      ]: string;
+        shapeId: `${string}_l` | `${string}_t` | `${string}_r` | `${string}_b`
+      ]: string[];
     };
   } = {
     senders: {},
@@ -121,10 +121,10 @@ let useEffected = false,
     curveId?: null | CurveTypes.Id;
     direction: null | CommonTypes.Direction; // TODO: should be removed in the future
     target:
-    | null
-    | CoreTypes.PressingTarget
-    | CurveTypes.PressingTarget
-    | CommonTypes.SelectAreaTarget;
+      | null
+      | CoreTypes.PressingTarget
+      | CurveTypes.PressingTarget
+      | CommonTypes.SelectAreaTarget;
   } = null,
   pressingCurve: PageIdTypes.PressingCurve = null,
   offset: CommonTypes.Vec = cloneDeep(init.offset),
@@ -831,7 +831,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseCenter.x.toFixed(1)) ===
-        Number(targetShape.getCenter().m.x.toFixed(1)) ||
+          Number(targetShape.getCenter().m.x.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.x - b.p.x);
@@ -858,7 +858,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseCenter.y.toFixed(1)) ===
-        Number(targetShape.getCenter().m.y.toFixed(1)) ||
+          Number(targetShape.getCenter().m.y.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.y - b.p.y);
@@ -887,7 +887,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.l.toFixed(1)) ===
-        Number(targetShape.getEdge().l.toFixed(1)) ||
+          Number(targetShape.getEdge().l.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.y - b.p.y);
@@ -910,7 +910,7 @@ const getAlignLines = (
     .filter((targetShape) => {
       return (
         Number(baseEdge.l.toFixed(1)) ===
-        Number(targetShape.getEdge().r.toFixed(1)) ||
+          Number(targetShape.getEdge().r.toFixed(1)) ||
         targetShape.id === baseShape.id
       );
     })
@@ -939,7 +939,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.t.toFixed(1)) ===
-        Number(targetShape.getEdge().t.toFixed(1)) ||
+          Number(targetShape.getEdge().t.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.x - b.p.x);
@@ -962,7 +962,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.t.toFixed(1)) ===
-        Number(targetShape.getEdge().b.toFixed(1)) ||
+          Number(targetShape.getEdge().b.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.x - b.p.x);
@@ -990,7 +990,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.r.toFixed(1)) ===
-        Number(targetShape.getEdge().r.toFixed(1)) ||
+          Number(targetShape.getEdge().r.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.y - b.p.y);
@@ -1016,7 +1016,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.r.toFixed(1)) ===
-        Number(targetShape.getEdge().l.toFixed(1)) ||
+          Number(targetShape.getEdge().l.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.y - b.p.y);
@@ -1044,7 +1044,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.b.toFixed(1)) ===
-        Number(targetShape.getEdge().b.toFixed(1)) ||
+          Number(targetShape.getEdge().b.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.x - b.p.x);
@@ -1070,7 +1070,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.b.toFixed(1)) ===
-        Number(targetShape.getEdge().t.toFixed(1)) ||
+          Number(targetShape.getEdge().t.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.x - b.p.x);
@@ -1570,10 +1570,10 @@ const triggerCurve = (p: CommonTypes.Vec) => {
     };
 
     pressingCurve.shape.selecting = true;
-    return false
+    return false;
   }
 
-  return true
+  return true;
 };
 
 const selectCurve = (p: CommonTypes.Vec) => {
@@ -1585,17 +1585,16 @@ const selectCurve = (p: CommonTypes.Vec) => {
       return false;
     }
   }
-  return true
+  return true;
 };
 
 const deSelectCurve = () => {
-  curves.forEach(curve => {
-    curve.selecting = false
-  })
+  Object.values(curves).forEach((curve) => {
+    curve.selecting = false;
+  });
 
-  return false
-}
-
+  return false;
+};
 
 const drawShapes = (
   ctx: null | CanvasRenderingContext2D,
@@ -1653,7 +1652,7 @@ const draw = (
   });
 
   drawShapes(ctx, shapes);
-  drawShapes(ctx, curves);
+  drawShapes(ctx, Object.values(curves));
   drawAlignLines(ctx, alginLines);
 
   if (!isScreenshot) {
@@ -1801,12 +1800,12 @@ const resize = (
     shape: null | undefined | Terminal | Process | Data | Desicion;
     ghost: null | undefined | Terminal | Process | Data | Desicion;
     target:
-    | null
-    | undefined
-    | CoreTypes.PressingTarget.lt
-    | CoreTypes.PressingTarget.rt
-    | CoreTypes.PressingTarget.rb
-    | CoreTypes.PressingTarget.lb;
+      | null
+      | undefined
+      | CoreTypes.PressingTarget.lt
+      | CoreTypes.PressingTarget.rt
+      | CoreTypes.PressingTarget.rb
+      | CoreTypes.PressingTarget.lb;
   },
   offsetP: CommonTypes.Vec
 ) => {
@@ -2143,8 +2142,8 @@ export default function IdPage() {
     dataShapes.forEach((dataShape) => {
       // traversal all relational steps
       const queue: (Core | Terminal | Process | Data | Desicion)[] = [
-        dataShape,
-      ],
+          dataShape,
+        ],
         locks: { [curveId: string]: boolean } = {}, // prevent from graph cycle
         deletedDataMap: { [text: string]: boolean } = {};
 
@@ -2195,8 +2194,8 @@ export default function IdPage() {
     errorShapes.forEach((errorShape) => {
       // traversal all relational steps
       const queue: (Core | Terminal | Process | Data | Desicion)[] = [
-        errorShape,
-      ],
+          errorShape,
+        ],
         locks: { [curveId: string]: boolean } = {}; // prevent from graph cycle
 
       while (queue.length !== 0) {
@@ -2336,9 +2335,9 @@ export default function IdPage() {
     setLeftMouseBtn(true);
 
     const p = {
-      x: e.nativeEvent.offsetX,
-      y: e.nativeEvent.offsetY,
-    },
+        x: e.nativeEvent.offsetX,
+        y: e.nativeEvent.offsetY,
+      },
       pInSelectArea =
         p.x > select.start.x &&
         p.y > select.start.y &&
@@ -2397,10 +2396,11 @@ export default function IdPage() {
         }
       } else {
         // when single select shape
-        handleUtils.handle([() => triggerCurve(p), () => selectCurve(p), () => deSelectCurve()])
-
-
-
+        handleUtils.handle([
+          () => triggerCurve(p),
+          () => selectCurve(p),
+          () => deSelectCurve(),
+        ]);
 
         // switch (curveTriggerD) {
         //   case CommonTypes.Direction.l:
@@ -2472,7 +2472,6 @@ export default function IdPage() {
         //   };
         // }
         // });
-
 
         if (!pressing) {
           shapes.forEach((_, shapeI, shapes) => {
@@ -2553,9 +2552,9 @@ export default function IdPage() {
     e.preventDefault();
 
     const p = {
-      x: e.nativeEvent.offsetX,
-      y: e.nativeEvent.offsetY,
-    },
+        x: e.nativeEvent.offsetX,
+        y: e.nativeEvent.offsetY,
+      },
       offsetP = {
         x: p.x - lastP.x,
         y: p.y - lastP.y,
@@ -2850,6 +2849,22 @@ export default function IdPage() {
           x: p.x - lastP.x,
           y: p.y - lastP.y,
         });
+
+        ds.forEach((d) => {
+          if (!pressing?.shape) return;
+          const senders = connections.senders[`${pressing.shape.id}_${d}`];
+          if (!senders) return;
+
+          connections.senders[`${pressing.shape.id}_${d}`].forEach(
+            (curveId) => {
+              // curves[curveId].locateHandler()
+            }
+          );
+        });
+
+        // if ()
+
+        //   connections.senders[pressing.shape.id] =;
       } else if (
         !!pressing.curveId &&
         pressing.direction &&
@@ -2897,9 +2912,9 @@ export default function IdPage() {
         const theEdge = shape.getEdge();
 
         const l =
-          selectAreaP.start.x < selectAreaP.end.x
-            ? selectAreaP.start.x
-            : selectAreaP.end.x,
+            selectAreaP.start.x < selectAreaP.end.x
+              ? selectAreaP.start.x
+              : selectAreaP.end.x,
           t =
             selectAreaP.start.y < selectAreaP.end.y
               ? selectAreaP.start.y
@@ -2959,11 +2974,29 @@ export default function IdPage() {
 
       if (!connectedD) return;
       pressingCurve.shape.selecting = false;
-      curves.push(pressingCurve.shape);
-      connections.senders[`${pressingCurve.shape.id}_${pressingCurve.from.d}`] =
-        pressingCurve.shape.id;
-      connections.recievers[`${targetShape.id}_${connectedD}`] =
-        pressingCurve.shape.id;
+      curves[pressingCurve.shape.id] = pressingCurve.shape;
+
+      if (
+        connections.senders[`${pressingCurve.shape.id}_${pressingCurve.from.d}`]
+      ) {
+        connections.senders[
+          `${pressingCurve.shape.id}_${pressingCurve.from.d}`
+        ].push(pressingCurve.shape.id);
+      } else {
+        connections.senders[
+          `${pressingCurve.shape.id}_${pressingCurve.from.d}`
+        ] = [pressingCurve.shape.id];
+      }
+
+      if (connections.recievers[`${targetShape.id}_${connectedD}`]) {
+        connections.recievers[`${targetShape.id}_${connectedD}`].push(
+          pressingCurve.shape.id
+        );
+      } else {
+        connections.recievers[`${targetShape.id}_${connectedD}`] = [
+          pressingCurve.shape.id,
+        ];
+      }
 
       console.log("connections", connections);
 
@@ -3936,8 +3969,9 @@ export default function IdPage() {
         />
         <canvas
           role="screenshot"
-          className={`invisible ${space ? "cursor-grab" : ""
-            } overflow-hidden absolute left-0 top-0 z-[-1]`}
+          className={`invisible ${
+            space ? "cursor-grab" : ""
+          } overflow-hidden absolute left-0 top-0 z-[-1]`}
           tabIndex={1}
           ref={(el) => {
             $screenshot = el;
