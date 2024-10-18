@@ -97,17 +97,17 @@ let useEffected = false,
   ctx: CanvasRenderingContext2D | null | undefined = null,
   ctx_screenshot: CanvasRenderingContext2D | null | undefined = null,
   shapes: (Terminal | Process | Data | Desicion)[] = [],
-  curves: { [curveId: string]: Curve } = {},
+  curves: PageIdTypes.Curves = {},
   connections: {
     senders: {
       [
         shapeId: `${string}_l` | `${string}_t` | `${string}_r` | `${string}_b`
-      ]: string[];
+      ]: { curveId: string; toD: CommonTypes.Direction }[];
     };
     recievers: {
       [
         shapeId: `${string}_l` | `${string}_t` | `${string}_r` | `${string}_b`
-      ]: string[];
+      ]: { curveId: string; fromD: CommonTypes.Direction }[];
     };
   } = {
     senders: {},
@@ -1205,6 +1205,224 @@ const getCurve = (
   return new Curve(id, p1, cp1, cp2, p2);
 };
 
+const getCurveStickingCp1Cp2 = (
+  fromD: CommonTypes.Direction,
+  toD: CommonTypes.Direction,
+  curve: Curve,
+  p1: CommonTypes.Vec,
+  p2: CommonTypes.Vec
+) => {
+  if (!fromD || !toD || !p1 || !p2) return [null, null];
+
+  const distance = {
+    x: Math.abs(p1.x - p2.x),
+    y: Math.abs(p1.y - p2.y),
+  };
+  const margin = {
+    x: distance.x / 2,
+    y: distance.y / 2,
+  };
+  const min = curve.arrowAttr.h;
+
+  if (fromD === CommonTypes.Direction.l && toD === CommonTypes.Direction.l) {
+    return [
+      {
+        x: p1.x - 2 * min - margin.y,
+        y: p1.y,
+      },
+      {
+        x: -min + p2.x - margin.y,
+        y: p2.y,
+      },
+    ];
+  }
+  if (fromD === CommonTypes.Direction.l && toD === CommonTypes.Direction.t) {
+    return [
+      {
+        x: p1.x - 2 * min - margin.x,
+        y: p1.y,
+      },
+      {
+        x: p2.x,
+        y: -min + p2.y - margin.y,
+      },
+    ];
+  }
+  if (fromD === CommonTypes.Direction.l && toD === CommonTypes.Direction.r) {
+    return [
+      {
+        x: p1.x - 2 * min - margin.x,
+        y: p1.y,
+      },
+      {
+        x: min + p2.x + margin.x,
+        y: p2.y,
+      },
+    ];
+  }
+  if (fromD === CommonTypes.Direction.l && toD === CommonTypes.Direction.b) {
+    return [
+      {
+        x: p1.x - 2 * min - margin.x,
+        y: p1.y,
+      },
+      {
+        x: p2.x,
+        y: min + p2.y + margin.y,
+      },
+    ];
+  }
+
+  if (fromD === CommonTypes.Direction.t && toD === CommonTypes.Direction.l) {
+    return [
+      {
+        x: p1.x,
+        y: p1.y - min - margin.y,
+      },
+      {
+        x: p2.x - min - margin.x,
+        y: p2.y,
+      },
+    ];
+  }
+  if (fromD === CommonTypes.Direction.t && toD === CommonTypes.Direction.t) {
+    return [
+      {
+        x: p1.x,
+        y: p1.y - min * 2 - margin.x,
+      },
+      {
+        x: p2.x,
+        y: p2.y - min - margin.x,
+      },
+    ];
+  }
+  if (fromD === CommonTypes.Direction.t && toD === CommonTypes.Direction.r) {
+    return [
+      {
+        x: p1.x,
+        y: p1.y - min - margin.y,
+      },
+      {
+        x: p2.x + min + margin.x,
+        y: p2.y,
+      },
+    ];
+  }
+  if (fromD === CommonTypes.Direction.t && toD === CommonTypes.Direction.b) {
+    return [
+      {
+        x: p1.x,
+        y: p1.y - min * 2 - margin.y,
+      },
+      {
+        x: p2.x,
+        y: p2.y + min + margin.y,
+      },
+    ];
+  }
+
+  if (fromD === CommonTypes.Direction.r && toD === CommonTypes.Direction.l) {
+    return [
+      {
+        x: p1.x + 2 * min + margin.x,
+        y: p1.y,
+      },
+      {
+        x: p2.x - min - margin.x,
+        y: p2.y,
+      },
+    ];
+  }
+  if (fromD === CommonTypes.Direction.r && toD === CommonTypes.Direction.t) {
+    return [
+      {
+        x: p1.x + 2 * min + margin.x,
+        y: p1.y,
+      },
+      {
+        x: p2.x,
+        y: p2.y - min - margin.y,
+      },
+    ];
+  }
+  if (fromD === CommonTypes.Direction.r && toD === CommonTypes.Direction.r) {
+    return [
+      {
+        x: p1.x + 2 * min + margin.y,
+        y: p1.y,
+      },
+      {
+        x: p2.x + min + margin.y,
+        y: p2.y,
+      },
+    ];
+  }
+  if (fromD === CommonTypes.Direction.r && toD === CommonTypes.Direction.b) {
+    return [
+      {
+        x: p1.x + 2 * min + margin.x,
+        y: p1.y,
+      },
+      {
+        x: p2.x,
+        y: min + p2.y + margin.y,
+      },
+    ];
+  }
+
+  if (fromD === CommonTypes.Direction.b && toD === CommonTypes.Direction.l) {
+    return [
+      {
+        x: p1.x,
+        y: p1.y + min + margin.y,
+      },
+      {
+        x: p2.x - min - margin.x,
+        y: p2.y,
+      },
+    ];
+  }
+  if (fromD === CommonTypes.Direction.b && toD === CommonTypes.Direction.t) {
+    return [
+      {
+        x: p1.x,
+        y: p1.y + min * 2 + margin.y,
+      },
+      {
+        x: p2.x,
+        y: p2.y - min - margin.y,
+      },
+    ];
+  }
+  if (fromD === CommonTypes.Direction.b && toD === CommonTypes.Direction.r) {
+    return [
+      {
+        x: p1.x,
+        y: p1.y + min + margin.y,
+      },
+      {
+        x: p2.x + min + margin.x,
+        y: p2.y,
+      },
+    ];
+  }
+  if (fromD === CommonTypes.Direction.b && toD === CommonTypes.Direction.b) {
+    return [
+      {
+        x: p1.x,
+        y: p1.y + min * 2 + margin.x,
+      },
+      {
+        x: p2.x,
+        y: p2.y + min + margin.x,
+      },
+    ];
+  }
+
+  return [null, null];
+};
+
 const movePressingCurve = (
   pressingCurve: PageIdTypes.PressingCurve,
   p: CommonTypes.Vec,
@@ -1228,268 +1446,14 @@ const movePressingCurve = (
   if (toD && p2) {
     //stick
     const p1 = pressingCurve?.shape.p1;
-    const [cp1, cp2] = (() => {
-      const fromD = pressingCurve?.from.d;
-      if (!fromD || !toD || !p1 || !p2) return [null, null];
-
-      const distance = {
-        x: Math.abs(p1.x - p2.x),
-        y: Math.abs(p1.y - p2.y),
-      };
-      const margin = {
-        x: distance.x / 2,
-        y: distance.y / 2,
-      };
-      const min = pressingCurve.shape.arrowAttr.h;
-
-      if (
-        fromD === CommonTypes.Direction.l &&
-        toD === CommonTypes.Direction.l
-      ) {
-        return [
-          {
-            x: p1.x - 2 * min - margin.y,
-            y: p1.y,
-          },
-          {
-            x: -min + p2.x - margin.y,
-            y: p2.y,
-          },
-        ];
-      }
-      if (
-        fromD === CommonTypes.Direction.l &&
-        toD === CommonTypes.Direction.t
-      ) {
-        return [
-          {
-            x: p1.x - 2 * min - margin.x,
-            y: p1.y,
-          },
-          {
-            x: p2.x,
-            y: -min + p2.y - margin.y,
-          },
-        ];
-      }
-      if (
-        fromD === CommonTypes.Direction.l &&
-        toD === CommonTypes.Direction.r
-      ) {
-        return [
-          {
-            x: p1.x - 2 * min - margin.x,
-            y: p1.y,
-          },
-          {
-            x: min + p2.x + margin.x,
-            y: p2.y,
-          },
-        ];
-      }
-      if (
-        fromD === CommonTypes.Direction.l &&
-        toD === CommonTypes.Direction.b
-      ) {
-        return [
-          {
-            x: p1.x - 2 * min - margin.x,
-            y: p1.y,
-          },
-          {
-            x: p2.x,
-            y: min + p2.y + margin.y,
-          },
-        ];
-      }
-
-      if (
-        fromD === CommonTypes.Direction.t &&
-        toD === CommonTypes.Direction.l
-      ) {
-        return [
-          {
-            x: p1.x,
-            y: p1.y - min - margin.y,
-          },
-          {
-            x: p2.x - min - margin.x,
-            y: p2.y,
-          },
-        ];
-      }
-      if (
-        fromD === CommonTypes.Direction.t &&
-        toD === CommonTypes.Direction.t
-      ) {
-        return [
-          {
-            x: p1.x,
-            y: p1.y - min * 2 - margin.x,
-          },
-          {
-            x: p2.x,
-            y: p2.y - min - margin.x,
-          },
-        ];
-      }
-      if (
-        fromD === CommonTypes.Direction.t &&
-        toD === CommonTypes.Direction.r
-      ) {
-        return [
-          {
-            x: p1.x,
-            y: p1.y - min - margin.y,
-          },
-          {
-            x: p2.x + min + margin.x,
-            y: p2.y,
-          },
-        ];
-      }
-      if (
-        fromD === CommonTypes.Direction.t &&
-        toD === CommonTypes.Direction.b
-      ) {
-        return [
-          {
-            x: p1.x,
-            y: p1.y - min * 2 - margin.y,
-          },
-          {
-            x: p2.x,
-            y: p2.y + min + margin.y,
-          },
-        ];
-      }
-
-      if (
-        fromD === CommonTypes.Direction.r &&
-        toD === CommonTypes.Direction.l
-      ) {
-        return [
-          {
-            x: p1.x + 2 * min + margin.x,
-            y: p1.y,
-          },
-          {
-            x: p2.x - min - margin.x,
-            y: p2.y,
-          },
-        ];
-      }
-      if (
-        fromD === CommonTypes.Direction.r &&
-        toD === CommonTypes.Direction.t
-      ) {
-        return [
-          {
-            x: p1.x + 2 * min + margin.x,
-            y: p1.y,
-          },
-          {
-            x: p2.x,
-            y: p2.y - min - margin.y,
-          },
-        ];
-      }
-      if (
-        fromD === CommonTypes.Direction.r &&
-        toD === CommonTypes.Direction.r
-      ) {
-        return [
-          {
-            x: p1.x + 2 * min + margin.y,
-            y: p1.y,
-          },
-          {
-            x: p2.x + min + margin.y,
-            y: p2.y,
-          },
-        ];
-      }
-      if (
-        fromD === CommonTypes.Direction.r &&
-        toD === CommonTypes.Direction.b
-      ) {
-        return [
-          {
-            x: p1.x + 2 * min + margin.x,
-            y: p1.y,
-          },
-          {
-            x: p2.x,
-            y: min + p2.y + margin.y,
-          },
-        ];
-      }
-
-      if (
-        fromD === CommonTypes.Direction.b &&
-        toD === CommonTypes.Direction.l
-      ) {
-        return [
-          {
-            x: p1.x,
-            y: p1.y + min + margin.y,
-          },
-          {
-            x: p2.x - min - margin.x,
-            y: p2.y,
-          },
-        ];
-      }
-      if (
-        fromD === CommonTypes.Direction.b &&
-        toD === CommonTypes.Direction.t
-      ) {
-        return [
-          {
-            x: p1.x,
-            y: p1.y + min * 2 + margin.y,
-          },
-          {
-            x: p2.x,
-            y: p2.y - min - margin.y,
-          },
-        ];
-      }
-      if (
-        fromD === CommonTypes.Direction.b &&
-        toD === CommonTypes.Direction.r
-      ) {
-        return [
-          {
-            x: p1.x,
-            y: p1.y + min + margin.y,
-          },
-          {
-            x: p2.x + min + margin.x,
-            y: p2.y,
-          },
-        ];
-      }
-      if (
-        fromD === CommonTypes.Direction.b &&
-        toD === CommonTypes.Direction.b
-      ) {
-        return [
-          {
-            x: p1.x,
-            y: p1.y + min * 2 + margin.x,
-          },
-          {
-            x: p2.x,
-            y: p2.y + min + margin.x,
-          },
-        ];
-      }
-
-      return [null, null];
-    })();
-
-    if (!cp1 || !cp2 || !p2) return;
+    const [cp1, cp2] = getCurveStickingCp1Cp2(
+      pressingCurve?.from.d,
+      toD,
+      pressingCurve.shape,
+      p1,
+      p2
+    );
+    if (!p1 || !cp1 || !cp2 || !p2) return;
 
     pressingCurve?.shape.locateHandler(CurveTypes.PressingTarget.cp1, cp1);
     pressingCurve?.shape.locateHandler(CurveTypes.PressingTarget.cp2, cp2);
@@ -1530,6 +1494,25 @@ const movePressingCurve = (
     pressingCurve?.shape.locateHandler(CurveTypes.PressingTarget.cp2, cp2);
     pressingCurve.shape.locateHandler(CurveTypes.PressingTarget.p2, p2);
   }
+};
+
+const moveSenderCurve = (
+  fromD: CommonTypes.Direction,
+  toD: CommonTypes.Direction,
+  sender: null | undefined | Terminal | Process | Data | Desicion,
+  curve: null | undefined | Curve
+) => {
+  if (!sender || !curve) return;
+
+  const p1 = sender.getCenter()[fromD];
+  const p2 = curve.p2;
+  const [cp1, cp2] = getCurveStickingCp1Cp2(fromD, toD, curve, p1, p2);
+
+  if (!p1 || !p2 || !cp1 || !cp2) return;
+
+  curve.locateHandler(CurveTypes.PressingTarget.p1, p1);
+  curve.locateHandler(CurveTypes.PressingTarget.cp1, cp1);
+  curve.locateHandler(CurveTypes.PressingTarget.cp2, cp2);
 };
 
 const triggerCurve = (p: CommonTypes.Vec) => {
@@ -2850,14 +2833,19 @@ export default function IdPage() {
           y: p.y - lastP.y,
         });
 
-        ds.forEach((d) => {
+        ds.forEach((fromD) => {
           if (!pressing?.shape) return;
-          const senders = connections.senders[`${pressing.shape.id}_${d}`];
+          const senders = connections.senders[`${pressing.shape.id}_${fromD}`];
           if (!senders) return;
 
-          connections.senders[`${pressing.shape.id}_${d}`].forEach(
-            (curveId) => {
-              // curves[curveId].locateHandler()
+          connections.senders[`${pressing.shape.id}_${fromD}`].forEach(
+            (curveInfo) => {
+              moveSenderCurve(
+                fromD,
+                curveInfo.toD,
+                pressing?.shape,
+                curves[curveInfo.curveId]
+              );
             }
           );
         });
@@ -2977,28 +2965,40 @@ export default function IdPage() {
       curves[pressingCurve.shape.id] = pressingCurve.shape;
 
       if (
-        connections.senders[`${pressingCurve.shape.id}_${pressingCurve.from.d}`]
+        connections.senders[
+          `${pressingCurve.from.shape.id}_${pressingCurve.from.d}`
+        ]
       ) {
         connections.senders[
-          `${pressingCurve.shape.id}_${pressingCurve.from.d}`
-        ].push(pressingCurve.shape.id);
+          `${pressingCurve.from.shape.id}_${pressingCurve.from.d}`
+        ].push({
+          curveId: pressingCurve.shape.id,
+          toD: connectedD,
+        });
       } else {
         connections.senders[
-          `${pressingCurve.shape.id}_${pressingCurve.from.d}`
-        ] = [pressingCurve.shape.id];
-      }
-
-      if (connections.recievers[`${targetShape.id}_${connectedD}`]) {
-        connections.recievers[`${targetShape.id}_${connectedD}`].push(
-          pressingCurve.shape.id
-        );
-      } else {
-        connections.recievers[`${targetShape.id}_${connectedD}`] = [
-          pressingCurve.shape.id,
+          `${pressingCurve.from.shape.id}_${pressingCurve.from.d}`
+        ] = [
+          {
+            curveId: pressingCurve.shape.id,
+            toD: connectedD,
+          },
         ];
       }
 
-      console.log("connections", connections);
+      if (connections.recievers[`${targetShape.id}_${connectedD}`]) {
+        connections.recievers[`${targetShape.id}_${connectedD}`].push({
+          curveId: pressingCurve.shape.id,
+          fromD: pressingCurve.from.d,
+        });
+      } else {
+        connections.recievers[`${targetShape.id}_${connectedD}`] = [
+          {
+            curveId: pressingCurve.shape.id,
+            fromD: pressingCurve.from.d,
+          },
+        ];
+      }
 
       actions.push({
         type: CommonTypes.Action.connect,

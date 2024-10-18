@@ -56,6 +56,8 @@ type ActionTypes = {
 
 type Actions = Stack<ActionTypes>;
 
+type Curves = { [curveId: string]: Curve };
+
 export type {
   Pressing,
   PressingCurve,
@@ -64,4 +66,5 @@ export type {
   ActionTarget,
   ActionTargets,
   Actions,
+  Curves,
 };

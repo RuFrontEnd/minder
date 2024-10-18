@@ -376,6 +376,7 @@ export default class Curve {
 
   locateHandler(pressingTarget: CurveTypes.PressingTarget, screenP: Vec) {
     if (
+      pressingTarget === CurveTypes.PressingTarget.p1 ||
       pressingTarget === CurveTypes.PressingTarget.cp1 ||
       pressingTarget === CurveTypes.PressingTarget.cp2
     ) {
