@@ -18,33 +18,42 @@ export default class Terminal extends Core {
     this.title = title;
   };
 
-  draw(ctx: CanvasRenderingContext2D) {
-    super.draw(ctx, () => {
-      if (this.getScaleSize().w >= this.getScaleSize().h) {
-        let r = this.getScaleSize().h / 2;
+  draw(ctx: CanvasRenderingContext2D,offest:CommonTypes.Vec={x:0, y:0}, scale:number = 0) {
+    super.draw(ctx,offest,scale, () => {
+      const scaleSize = this.getScaleSize(scale)
+      const screenP = this.getScreenP(offest, scale)
+
+      ctx.save()
+      ctx.translate(screenP.x, screenP.y)
+      if (scaleSize.w >= scaleSize.h) {
+        let r = scaleSize.h / 2;
         ctx.beginPath();
-        ctx.arc(-this.getScaleSize().w / 2 + r, 0, r, 0, 2 * Math.PI);
-        ctx.arc(this.getScaleSize().w / 2 - r, 0, r, 0, 2 * Math.PI);
+        ctx.arc(-scaleSize.w / 2 + r, 0, r, 0, 2 * Math.PI);
+        ctx.arc(scaleSize.w / 2 - r, 0, r, 0, 2 * Math.PI);
         ctx.fill();
         ctx.fillRect(
-          -this.getScaleSize().w / 2 + r,
+          -scaleSize.w / 2 + r,
           -r,
-          this.getScaleSize().w - 2 * r,
-          this.getScaleSize().h
+          scaleSize.w - 2 * r,
+          scaleSize.h
         );
-      } else if (this.getScaleSize().w < this.getScaleSize().h) {
-        let r = this.getScaleSize().w / 2;
+        ctx.closePath();
+      } else if (scaleSize.w < scaleSize.h) {
+        let r = scaleSize.w / 2;
         ctx.beginPath();
-        ctx.arc(0, -this.getScaleSize().h / 2 + r, r, 0, 2 * Math.PI);
-        ctx.arc(0, this.getScaleSize().h / 2 - r, r, 0, 2 * Math.PI);
+        ctx.moveTo(screenP.x, screenP.y)
+        ctx.arc(0, -scaleSize.h / 2 + r, r, 0, 2 * Math.PI);
+        ctx.arc(0, scaleSize.h / 2 - r, r, 0, 2 * Math.PI);
         ctx.fill();
         ctx.fillRect(
           -r,
-          -this.getScaleSize().h / 2 + r,
-          this.getScaleSize().w,
-          this.getScaleSize().h - 2 * r
+          -scaleSize.h / 2 + r,
+          scaleSize.w,
+          scaleSize.h - 2 * r
         );
+        ctx.closePath();
       }
+      ctx.restore()
     });
   }
 }

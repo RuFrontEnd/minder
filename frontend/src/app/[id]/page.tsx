@@ -2365,16 +2365,6 @@ export default function IdPage() {
 
     offset.x -= unitsAddLeft;
     offset.y -= unitsAddTop;
-    // --
-
-    shapes.forEach((shape) => {
-      shape.scale = _scale;
-      shape.offset = offset;
-    });
-    curves.forEach((curve) => {
-      curve.shape.scale = _scale;
-      curve.shape.offset = offset;
-    })
 
     // --- get center point offset value
     const distX_center = 1 / 2;
@@ -3563,6 +3553,8 @@ export default function IdPage() {
       <Icon type={type.icon} w={16} h={16} fill={tailwindColors.white["500"]} />
     ),
   }));
+
+  console.log('shapes', shapes)
 
   return (
     <>

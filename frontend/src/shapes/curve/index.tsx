@@ -431,7 +431,7 @@ export default class Curve {
     offest = offest ? offest : { x: 0, y: 0 };
     scale = scale ? scale : 1;
 
-    ctx.lineWidth = this.scalify(this.curve.w);
+    ctx.lineWidth = this.curve.w * scale;
     ctx.strokeStyle = this.curve.c;
 
     ctx.save();

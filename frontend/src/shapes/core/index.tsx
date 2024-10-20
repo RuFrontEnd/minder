@@ -189,17 +189,17 @@ export default class Core {
     };
   }
 
-  getScreenP() {
+  getScreenP(offset:Vec = {x:0, y:0}, scale:number = 1) {
     return {
-      x: (this.p.x + this.offset.x) * this.scale,
-      y: (this.p.y + this.offset.y) * this.scale,
+      x: (this.p.x +offset.x) * scale,
+      y: (this.p.y + offset.y) * scale,
     };
   }
 
-  getScaleSize() {
+  getScaleSize(scale:number = 1) {
     return {
-      w: this.w * this.scale,
-      h: this.h * this.scale,
+      w: this.w * scale,
+      h: this.h * scale,
     };
   }
 
@@ -227,12 +227,14 @@ export default class Core {
     };
   }
 
-  getEdge() {
+  getEdge(offset:Vec = {x:0, y:0}, scale:number = 1) {
+    const screenP = this.getScreenP(offset, scale)
+    const scaleSize = this.getScaleSize(scale)
     return {
-      l: this.getScreenP().x - this.getScaleSize().w / 2,
-      t: this.getScreenP().y - this.getScaleSize().h / 2,
-      r: this.getScreenP().x + this.getScaleSize().w / 2,
-      b: this.getScreenP().y + this.getScaleSize().h / 2,
+      l: screenP.x - scaleSize.w / 2,
+      t: screenP.y - scaleSize.h / 2,
+      r: screenP.x + scaleSize.w / 2,
+      b: screenP.y + scaleSize.h / 2,
     };
   }
 
@@ -874,17 +876,18 @@ export default class Core {
     }
   };
 
-  draw(ctx: CanvasRenderingContext2D, drawShapePath: () => void) {
-    const edge = this.getEdge(),
-      fillRectParams = {
-        x: edge.l - this.getScreenP().x,
-        y: edge.t - this.getScreenP().y,
-        w: this.getScaleSize().w,
-        h: this.getScaleSize().h,
+  draw(ctx: CanvasRenderingContext2D, offest:CommonTypes.Vec={x:0, y:0}, scale:number = 0,drawShapePath: () => void) {
+    const edge = this.getEdge(offest, scale)
+    const screenP = this.getScreenP(offest, scale)
+    const scaleSize = this.getScaleSize(scale)
+    const fillRectParams = {
+        x: edge.l - screenP.x,
+        y: edge.t - screenP.y,
+        w: scaleSize.w,
+        h: scaleSize.h,
       };
 
-    ctx.save();
-    ctx.translate(this.getScreenP().x, this.getScreenP().y);
+    ctx.moveTo(screenP.x, screenP.y);
     // ctx.globalAlpha = 0.5; // TODO: for testing ghost
 
     ctx.fillStyle = (() => {
@@ -907,8 +910,8 @@ export default class Core {
       ctx.textAlign = "end";
       ctx.fillText(
         "error!",
-        this.getScaleSize().w / 2,
-        -this.getScaleSize().h / 2 - 10
+        scaleSize.w / 2,
+        -scaleSize.h / 2 - 10
       );
     }
 
@@ -931,8 +934,8 @@ export default class Core {
         ctx.lineWidth = this.anchor.size.stroke;
         ctx.beginPath();
         ctx.arc(
-          edge.l - this.getScreenP().x,
-          edge.t - this.getScreenP().y,
+          edge.l - screenP.x,
+          edge.t - screenP.y,
           this.anchor.size.fill,
           0,
           2 * Math.PI,
@@ -944,8 +947,8 @@ export default class Core {
 
         ctx.beginPath();
         ctx.arc(
-          edge.r - this.getScreenP().x,
-          edge.t - this.getScreenP().y,
+          edge.r - screenP.x,
+          edge.t - screenP.y,
           this.anchor.size.fill,
           0,
           2 * Math.PI,
@@ -957,8 +960,8 @@ export default class Core {
 
         ctx.beginPath();
         ctx.arc(
-          edge.l - this.getScreenP().x,
-          edge.b - this.getScreenP().y,
+          edge.l - screenP.x,
+          edge.b - screenP.y,
           this.anchor.size.fill,
           0,
           2 * Math.PI,
@@ -970,8 +973,8 @@ export default class Core {
 
         ctx.beginPath();
         ctx.arc(
-          edge.r - this.getScreenP().x,
-          edge.b - this.getScreenP().y,
+          edge.r - screenP.x,
+          edge.b - screenP.y,
           this.anchor.size.fill,
           0,
           2 * Math.PI,
@@ -987,9 +990,9 @@ export default class Core {
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillStyle = "white";
-    ctx.font = `${16 * this.scale}px ${inter.style.fontFamily}`;
+    ctx.font = `${16 * scale}px ${inter.style.fontFamily}`;
 
-    this.renderText(ctx, this.title, 0, 0, this.getScaleSize().w, 20);
+    this.renderText(ctx, this.title, 0, 0, scaleSize.w, 20);
 
     // draw id text
     // ctx.textAlign = "start";
@@ -998,8 +1001,6 @@ export default class Core {
     //   -this.getScaleSize().w / 2,
     //   -this.getScaleSize().h / 2 - 10
     // );
-
-    ctx.restore();
   }
 
   drawSendingPoint(ctx: CanvasRenderingContext2D) {

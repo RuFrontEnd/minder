@@ -23,84 +23,6 @@ export default class Data extends Core {
     this.thersholdRatio = 1 / 10;
   }
 
-  set w(value: number) {
-    const offset = (this.w - value) / 2;
-    this.__w__ = value;
-
-    // when sender width changes, receiver curve follows the sender shape
-    this.curves[Direction.l].forEach((sendCurve) => {
-      const point = {
-          t: -this.w / 2 + this.w * this.thersholdRatio,
-          b: -this.w / 2,
-        },
-        centerP = (point.t + point.b) / 2,
-        distance = centerP - sendCurve.shape.p1.x;
-
-      sendCurve.shape.p1.x += distance;
-      sendCurve.shape.cp1.x += distance;
-
-      if (sendCurve.sendTo) return;
-
-      sendCurve.shape.p2 = {
-        ...sendCurve.shape.p2,
-        x: sendCurve.shape.p2.x + offset,
-      };
-      sendCurve.shape.cp2.x += offset;
-    });
-
-    this.curves[Direction.r].forEach((sendCurve) => {
-      const point = {
-          t: this.w / 2,
-          b: this.w / 2 - this.w * this.thersholdRatio,
-        },
-        centerP = (point.t + point.b) / 2,
-        distance = centerP - sendCurve.shape.p1.x;
-
-      sendCurve.shape.p1.x += distance;
-      sendCurve.shape.cp1.x += distance;
-
-      if (sendCurve.sendTo) return;
-
-      sendCurve.shape.p2 = {
-        ...sendCurve.shape.p2,
-        x: sendCurve.shape.p2.x - offset,
-      };
-      sendCurve.shape.cp2.x -= offset;
-    });
-
-    // when receiver width changes, receiver curve follows the sender shape
-
-    this.receiveFrom.l?.forEach((receiveFromItem) => {
-      const bridge = receiveFromItem.shape.curves[receiveFromItem.d].find(
-        (sendCurve) => sendCurve.shape.id === receiveFromItem.bridgeId
-      );
-
-      if (!bridge) return;
-      bridge.shape.p2 = {
-        ...bridge.shape.p2,
-        x: bridge.shape.p2.x + offset,
-      };
-      bridge.shape.cp2.x += offset;
-    });
-
-    this.receiveFrom.r?.forEach((receiveFromItem) => {
-      const bridge = receiveFromItem.shape.curves[receiveFromItem.d].find(
-        (sendCurve) => sendCurve.shape.id === receiveFromItem.bridgeId
-      );
-
-      if (!bridge) return;
-      bridge.shape.p2 = {
-        ...bridge.shape.p2,
-        x: bridge.shape.p2.x - offset,
-      };
-      bridge.shape.cp2.x -= offset;
-    });
-  }
-
-  get w() {
-    return this.__w__;
-  }
-
   getFrameThreshold() {
     return {
       normal: this.w * this.thersholdRatio,
@@ -243,10 +165,6 @@ export default class Data extends Core {
     if (!newCurve) return;
     newCurve.scale = this.scale;
 
-    this.curves[_d].push({
-      shape: newCurve,
-      sendTo: null,
-    });
   }
 
   checkReceivingPointsBoundry(p: CommonTypes.Vec) {
@@ -301,10 +219,13 @@ export default class Data extends Core {
     return null;
   }
 
-  draw(ctx: CanvasRenderingContext2D) {
-    super.draw(ctx, () => {
+  draw(ctx: CanvasRenderingContext2D,offest:CommonTypes.Vec={x:0, y:0}, scale:number = 0) {
+    super.draw(ctx, offest, scale,() => {
+      const screenP = this.getScreenP(offest, scale)
       const corners = this.getCorner().scale;
 
+      ctx.save()
+      ctx.translate(screenP.x, screenP.y)
       ctx.beginPath();
       ctx.moveTo(corners.tl.x, corners.tl.y);
       ctx.lineTo(corners.tr.x, corners.tr.y);
@@ -312,6 +233,7 @@ export default class Data extends Core {
       ctx.lineTo(corners.bl.x, corners.bl.y);
       ctx.closePath();
       ctx.fill();
+      ctx.restore()
     });
   }
 
