@@ -157,7 +157,8 @@ const getFramePosition = (shape: Core) => {
   };
 };
 
-const getNormalP = (p:CommonTypes.Vec,offset:CommonTypes.Vec={x:0, y:0}, scale:number = 0)=>{
+const getNormalP = (p:CommonTypes.Vec,offset:null | CommonTypes.Vec={x:0, y:0}, scale:number = 0)=>{
+  offset = offset ? offset : {x:0, y:0}
   return {
     x:p.x / scale - offset.x,
     y:p.y / scale - offset.y
@@ -1632,11 +1633,12 @@ const deSelectCurve = () => {
 };
 
 const selectShape = (p: CommonTypes.Vec,offset:CommonTypes.Vec,scale:number) => {
+  const normalP = getNormalP(p, offset, scale)
   for (let i = shapes.length - 1; i > -1; i--) {
     const shape = shapes[i];
     const _ghost = cloneDeep(shape);
     _ghost.title = "ghost";
-    const pressingVertex = shape.checkVertexesBoundry(p);
+    const pressingVertex = shape.checkVertexesBoundry(normalP);
     if (pressingVertex) {
       pressing = {
         origin: cloneDeep(shape),
@@ -1646,11 +1648,7 @@ const selectShape = (p: CommonTypes.Vec,offset:CommonTypes.Vec,scale:number) => 
         target: pressingVertex,
         direction: null,
       };
-    } else if (shape.checkBoundry({
-      x:(p.x/scale-offset.x),
-      y:(p.y/scale-offset.y),
-
-    })) {
+    } else if (shape.checkBoundry(normalP)) {
       pressing = {
         origin: cloneDeep(shape),
         shape: shape,
@@ -2795,17 +2793,17 @@ export default function IdPage() {
         }
 
         if (alignP?.x && !alignP?.y) {
-          pressing.shape.move({
+          pressing.shape.move(getNormalP({
             x: 0,
             y: p.y - lastP.y,
-          });
+          }, null, scale));
         }
 
         if (!alignP?.x && alignP?.y) {
-          pressing.shape.move({
+          pressing.shape.move(getNormalP({
             x: p.x - lastP.x,
             y: 0,
-          });
+          }, null, scale));
         }
 
         if (!alignP?.x && !alignP?.y) {
@@ -2822,16 +2820,16 @@ export default function IdPage() {
               y: pressing.ghost.getCenter().m.y,
             });
           }
-          pressing.shape.move({
+          pressing.shape.move(getNormalP({
             x: p.x - lastP.x,
             y: p.y - lastP.y,
-          });
+          }, null, scale));
         }
 
-        pressing.ghost?.move({
+        pressing.ghost?.move(getNormalP({
           x: p.x - lastP.x,
           y: p.y - lastP.y,
-        });
+        }, null, scale));
 
         moveCurve(pressing?.shape)
       }
