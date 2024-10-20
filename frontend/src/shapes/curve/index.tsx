@@ -380,27 +380,17 @@ export default class Curve {
       pressingTarget === CurveTypes.PressingTarget.cp1 ||
       pressingTarget === CurveTypes.PressingTarget.cp2
     ) {
-      this[pressingTarget] = {
-        x: screenP.x,
-        y: screenP.y,
-      };
+      this[pressingTarget] = screenP
     } else if (pressingTarget === CurveTypes.PressingTarget.p2) {
-      const normalP = this.deOffset({
-        x: this.deScale(screenP.x),
-        y: this.deScale(screenP.y),
-      });
-
-      const v = { x: this.cp2.x - normalP.x, y: this.cp2.y - normalP.y };
+      const v = { x: this.cp2.x - screenP.x, y: this.cp2.y - screenP.y };
       const len = Math.sqrt(
-        Math.pow(normalP.x - this.cp2.x, 2) +
-          Math.pow(normalP.y - this.cp2.y, 2)
+        Math.pow(screenP.x - this.cp2.x, 2) +
+          Math.pow(screenP.y - this.cp2.y, 2)
       );
 
       const ratio = this.__arrowAttr__.h / len;
 
-      this.p2 = (() => {
-        return { x: normalP.x + v.x * ratio, y: normalP.y + v.y * ratio };
-      })();
+      this.p2 = { x: screenP.x + v.x * ratio, y: screenP.y + v.y * ratio }
     }
   }
 
@@ -438,13 +428,11 @@ export default class Curve {
   draw(ctx: CanvasRenderingContext2D, offest?: Vec, scale?: number) {
     if (!this.__p1__ || !this.p2 || !this.__cp1__ || !this.cp2) return;
 
-    ctx.lineWidth = this.scalify(this.curve.w);
-    ctx.strokeStyle = this.curve.c;
-
-    const offsetP = this.offsetfy(this.__p1__);
-
     offest = offest ? offest : { x: 0, y: 0 };
     scale = scale ? scale : 1;
+
+    ctx.lineWidth = this.scalify(this.curve.w);
+    ctx.strokeStyle = this.curve.c;
 
     ctx.save();
 
@@ -520,9 +508,12 @@ export default class Curve {
     ctx.stroke();
     ctx.closePath();
 
+    ctx.save()
+    ctx.translate(screenP.p2.x, screenP.p2.y)
     if (this.arrow) {
-      this.arrow.draw(ctx);
+      this.arrow.draw(ctx, offest, scale);
     }
+    ctx.restore()
 
     if (this.selecting) {
       // control lines

@@ -274,20 +274,14 @@ export default class Arrow {
     return null;
   }
 
-  draw(ctx: CanvasRenderingContext2D) {
+  draw(ctx: CanvasRenderingContext2D, offest?: Vec, scale?: number) {
+    offest = offest ? offest : { x: 0, y: 0 };
+    scale = scale ? scale : 1;
+
     const scaleSize = {
-      w: this.scalify(this.__w__),
-      h: this.scalify(this.__h__),
+      w: this.__w__*scale,
+      h: this.__h__*scale,
     };
-
-    const offsetP = this.offsetfy(this.__p__);
-    const screenP = {
-      x: this.scalify(offsetP.x),
-      y: this.scalify(offsetP.y),
-    };
-
-    ctx.save();
-    ctx.translate(screenP.x, screenP.y);
 
     ctx.beginPath();
     ctx.fillStyle = this.__c__;
@@ -310,7 +304,5 @@ export default class Arrow {
       ctx.stroke();
       ctx.closePath();
     }
-
-    ctx.restore();
   }
 }

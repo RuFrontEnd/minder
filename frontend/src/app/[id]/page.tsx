@@ -1513,7 +1513,7 @@ const moveRecieverCurve = (
   if (!reciever || !curve) return;
 
   const p1 = curve.p1;
-  const p2 = reciever.getCenter()[toD];
+  const p2 = reciever.getNormalCenter()[toD];
   const [cp1, cp2] = getCurveStickingCp1Cp2(fromD, toD, curve, p1, p2);
 
   if (!p1 || !p2 || !cp1 || !cp2) return;
