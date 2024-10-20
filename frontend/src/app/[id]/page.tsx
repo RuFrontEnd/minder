@@ -157,6 +157,13 @@ const getFramePosition = (shape: Core) => {
   };
 };
 
+const getNormalP = (p:CommonTypes.Vec,offset:CommonTypes.Vec={x:0, y:0}, scale:number = 0)=>{
+  return {
+    x:p.x / scale - offset.x,
+    y:p.y / scale - offset.y
+  }
+}
+
 const getInitializedShape = (
   type: CommonTypes.Type,
   offset: CommonTypes.Vec,
@@ -1546,14 +1553,14 @@ const moveCurve = (shape:null | undefined | Terminal | Process | Desicion | Data
   }
 }
 
-const triggerCurve = (p: CommonTypes.Vec) => {
+const triggerCurve = (p: CommonTypes.Vec,offest:CommonTypes.Vec={x:0, y:0}, scale:number = 0) => {
   const [triggerShape, curveTriggerD] = (() => {
     let triggerShape: null | Terminal | Process | Desicion | Data = null;
     let curveTriggerD: null | CommonTypes.Direction = null;
 
     for (let i = shapes.length - 1; i > -1; i--) {
       const shape = shapes[i];
-      const triggerD = shape.getTriggerDirection(p);
+      const triggerD = shape.getTriggerDirection(getNormalP(p, offest, scale));
       if (triggerD) {
         triggerShape = shape;
         curveTriggerD = triggerD;
@@ -2500,7 +2507,7 @@ export default function IdPage() {
       } else {
         // when single multiSelect shape
         handleUtils.handle([
-          () => triggerCurve(p),
+          () => triggerCurve(p, offset, scale),
           () => deSelectShape(),
           () => selectCurve(p),
           () => deSelectCurve(),

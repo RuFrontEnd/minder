@@ -207,17 +207,6 @@ export default class Core {
     return this.__curveTrigger__.distance * this.scale;
   }
 
-  getCurveP(screenP: Vec) {
-    const relativeP = this.relativify(
-      this.deOffset({ x: this.deScale(screenP.x), y: this.deScale(screenP.y) })
-    );
-
-    return {
-      x: this.scalify(relativeP.x),
-      y: this.scalify(relativeP.y),
-    };
-  }
-
   getNormalEdge() {
     return {
       l: this.p.x - this.w / 2,
@@ -308,17 +297,13 @@ export default class Core {
 
   getCenter(): CoreTypes.GetCenterReturn {
     const edge = this.getEdge();
-    const pivot = {
-      x: this.getScreenP().x,
-      y: this.getScreenP().y,
-    };
-
+    
     return {
-      m: pivot,
-      l: { x: edge.l, y: pivot.y },
-      t: { x: pivot.x, y: edge.t },
-      r: { x: edge.r, y: pivot.y },
-      b: { x: pivot.x, y: edge.b },
+      m: this.p,
+      l: { x: edge.l, y: this.p.y },
+      t: { x: this.p.x, y: edge.t },
+      r: { x: edge.r, y: this.p.y },
+      b: { x: this.p.x, y: edge.b },
       lt: {
         x: edge.l,
         y: edge.t,
@@ -338,37 +323,37 @@ export default class Core {
       __curveTrigger__: {
         l: {
           x: edge.l - this.getScaleCurveTriggerDistance(),
-          y: pivot.y,
+          y: this.p.y,
         },
         t: {
-          x: pivot.x,
+          x: this.p.x,
           y: edge.t - this.getScaleCurveTriggerDistance(),
         },
         r: {
           x: edge.r + this.getScaleCurveTriggerDistance(),
-          y: pivot.y,
+          y: this.p.y,
         },
         b: {
-          x: pivot.x,
+          x: this.p.x,
           y: edge.b + this.getScaleCurveTriggerDistance(),
         },
       },
       receivingPoints: {
         l: {
-          x: pivot.x - this.getScaleSize().w / 2,
-          y: pivot.y,
+          x: this.p.x - this.getScaleSize().w / 2,
+          y: this.p.y,
         },
         t: {
-          x: pivot.x,
-          y: pivot.y - this.getScaleSize().h / 2,
+          x: this.p.x,
+          y: this.p.y - this.getScaleSize().h / 2,
         },
         r: {
-          x: pivot.x + this.getScaleSize().w / 2,
-          y: pivot.y,
+          x: this.p.x + this.getScaleSize().w / 2,
+          y: this.p.y,
         },
         b: {
-          x: pivot.x,
-          y: pivot.y + this.getScaleSize().h / 2,
+          x: this.p.x,
+          y: this.p.y + this.getScaleSize().h / 2,
         },
       },
     };
