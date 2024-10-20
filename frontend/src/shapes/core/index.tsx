@@ -975,7 +975,7 @@ export default class Core {
     // });
   }
 
-  removeConnection() {
+  // removeConnection() {
     // remove connection from receiver
     // ds.forEach((d) => {
     //   this.curves[d].forEach((sendCurve) => {
@@ -1001,7 +1001,7 @@ export default class Core {
     //     });
     //   });
     // });
-  }
+  // }
 
   getRedundancies() {
     this.status = CoreTypes.Status.normal;

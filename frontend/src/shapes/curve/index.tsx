@@ -380,14 +380,9 @@ export default class Curve {
       pressingTarget === CurveTypes.PressingTarget.cp1 ||
       pressingTarget === CurveTypes.PressingTarget.cp2
     ) {
-      const normalP = this.deOffset({
-        x: this.deScale(screenP.x),
-        y: this.deScale(screenP.y),
-      });
-
       this[pressingTarget] = {
-        x: normalP.x,
-        y: normalP.y,
+        x: screenP.x,
+        y: screenP.y,
       };
     } else if (pressingTarget === CurveTypes.PressingTarget.p2) {
       const normalP = this.deOffset({

@@ -1,4 +1,4 @@
-// TODO: fix browser zoom and re calculate shape offset / multi select resize in scale
+// TODO: fix browser zoom and re calculate shape offset / multi multiSelect resize in scale
 "use client";
 import axios, { AxiosResponse } from "axios";
 import { useParams, useRouter } from "next/navigation";
@@ -80,7 +80,7 @@ const init = {
     },
   },
   offset: { x: 0, y: 0 },
-  select: {
+  multiSelect: {
     start: {
       x: -1,
       y: -1,
@@ -97,22 +97,22 @@ let useEffected = false,
   ctx: CanvasRenderingContext2D | null | undefined = null,
   ctx_screenshot: CanvasRenderingContext2D | null | undefined = null,
   shapes: (Terminal | Process | Data | Desicion)[] = [],
-  curves: PageIdTypes.Curves = {},
-  connections: {
-    senders: {
-      [
-        shapeId: `${string}_l` | `${string}_t` | `${string}_r` | `${string}_b`
-      ]: { curveId: string; toD: CommonTypes.Direction }[];
-    };
-    recievers: {
-      [
-        shapeId: `${string}_l` | `${string}_t` | `${string}_r` | `${string}_b`
-      ]: { curveId: string; fromD: CommonTypes.Direction }[];
-    };
-  } = {
-    senders: {},
-    recievers: {},
-  },
+  curves: PageIdTypes.Curves = [],
+  // connections: {
+  //   senders: {
+  //     [
+  //       shapeId: `${string}_l` | `${string}_t` | `${string}_r` | `${string}_b`
+  //     ]: { curveId: string; toD: CommonTypes.Direction }[];
+  //   };
+  //   recievers: {
+  //     [
+  //       shapeId: `${string}_l` | `${string}_t` | `${string}_r` | `${string}_b`
+  //     ]: { curveId: string; fromD: CommonTypes.Direction }[];
+  //   };
+  // } = {
+  //   senders: {},
+  //   recievers: {},
+  // },
   tests: any[] = [], // TODO: should be deleted
   pressing: PageIdTypes.Pressing = null,
   pressingCurve: PageIdTypes.PressingCurve = null,
@@ -128,11 +128,11 @@ let useEffected = false,
     start: CommonTypes.Vec;
     end: CommonTypes.Vec;
   } = null,
-  select: {
+  multiSelect: {
     start: CommonTypes.Vec;
     end: CommonTypes.Vec;
     shapes: Core[];
-  } = cloneDeep(init.select),
+  } = cloneDeep(init.multiSelect),
   selectAnchor = {
     size: {
       fill: 4,
@@ -1488,8 +1488,8 @@ const movePressingCurve = (
 const moveSenderCurve = (
   fromD: CommonTypes.Direction,
   toD: CommonTypes.Direction,
-  sender: null | undefined | Terminal | Process | Data | Desicion,
-  curve: null | undefined | Curve
+  curve: null | undefined | Curve,
+  sender: null | undefined | Terminal | Process | Data | Desicion
 ) => {
   if (!sender || !curve) return;
 
@@ -1507,8 +1507,8 @@ const moveSenderCurve = (
 const moveRecieverCurve = (
   fromD: CommonTypes.Direction,
   toD: CommonTypes.Direction,
-  reciever: null | undefined | Terminal | Process | Data | Desicion,
-  curve: null | undefined | Curve
+  curve: null | undefined | Curve,
+  reciever: null | undefined | Terminal | Process | Data | Desicion
 ) => {
   if (!reciever || !curve) return;
 
@@ -1523,7 +1523,30 @@ const moveRecieverCurve = (
   curve.locateHandler(CurveTypes.PressingTarget.cp2, cp2);
 };
 
-const triggerCurve = (shapes: (Terminal | Process |Desicion | Data)[], p: CommonTypes.Vec) => {
+const moveCurve = (shape:null | undefined | Terminal | Process | Desicion | Data)=>{
+  if(!shape) return
+  for (let i = curves.length - 1; i > -1; i--) {
+    const curve = curves[i];
+    if (curve.from.shape.id === shape.id) {
+      moveSenderCurve(
+        curve.from.d,
+        curve.to.d,
+        curve.shape,
+        pressing?.shape
+      );
+    }
+    if (curve.to.shape.id === shape.id) {
+      moveRecieverCurve(
+        curve.from.d,
+        curve.to.d,
+        curve.shape,
+        pressing?.shape
+      );
+    }
+  }
+}
+
+const triggerCurve = (p: CommonTypes.Vec) => {
   const [triggerShape, curveTriggerD] = (() => {
     let triggerShape: null | Terminal | Process | Desicion | Data = null;
     let curveTriggerD: null | CommonTypes.Direction = null;
@@ -1567,34 +1590,46 @@ const triggerCurve = (shapes: (Terminal | Process |Desicion | Data)[], p: Common
   return true;
 };
 
-const selectCurve = (curves:PageIdTypes.Curves, p: CommonTypes.Vec) => {
-  const curveValues = Object.values(curves);
-  for (let i = curveValues.length - 1; i > -1; i--) {
-    const curve = curveValues[i];
-    if (curve.checkBoundry(p)) {
-      curve.selecting = true;
+const selectCurve = (p: CommonTypes.Vec) => {
+  for (let i = curves.length - 1; i > -1; i--) {
+    const curve = curves[i];
+    if (curve.shape.selecting && curve.shape.checkControlPointsBoundry(p)) {
+      pressingCurve = {
+        from: {
+          shape: curve.from.shape,
+          origin: cloneDeep(curve.from.shape),
+          d: curve.from.d,
+        },
+        shape: curve.shape,
+      };
+      curves.splice(i, 1)
+
+      return false;
+    }
+    if (curve.shape.checkBoundry(p)) {
+      curve.shape.selecting = true;
       return false;
     }
   }
   return true;
 };
 
-const deSelectCurve = (curves:PageIdTypes.Curves) => {
-  Object.values(curves).forEach((curve) => {
-    curve.selecting = false;
+const deSelectCurve = () => {
+  curves.forEach((curve) => {
+    curve.shape.selecting = false;
   });
 
-  return false;
+  return true;
 };
 
-const selectShape = (shapes: (Terminal | Process | Desicion | Data)[], p:CommonTypes.Vec, state: { pressing: PageIdTypes.Pressing }) => {
-  for(let i = shapes.length-1; i >-1; i--){
+const selectShape = (p: CommonTypes.Vec) => {
+  for (let i = shapes.length - 1; i > -1; i--) {
     const shape = shapes[i];
     const _ghost = cloneDeep(shape);
     _ghost.title = "ghost";
     const pressingVertex = shape.checkVertexesBoundry(p);
     if (pressingVertex) {
-      state.pressing = {
+      pressing = {
         origin: cloneDeep(shape),
         shape: shape,
         ghost: _ghost,
@@ -1602,9 +1637,9 @@ const selectShape = (shapes: (Terminal | Process | Desicion | Data)[], p:CommonT
         target: pressingVertex,
         direction: null,
       };
-      return false
+      return false;
     } else if (shape.checkBoundry(p)) {
-      state.pressing = {
+      pressing = {
         origin: cloneDeep(shape),
         shape: shape,
         ghost: _ghost,
@@ -1612,20 +1647,42 @@ const selectShape = (shapes: (Terminal | Process | Desicion | Data)[], p:CommonT
         target: CoreTypes.PressingTarget.m,
         direction: null,
       };
-      return false
+      return false;
     }
   }
 
-  return true
+  return true;
 };
 
-const deSelectShape = (shapes: (Terminal | Process | Desicion | Data)[]) => {
-  shapes.forEach(shape => {
-    shape.selecting = false
-  })
+const deSelectShape = () => {
+  shapes.forEach((shape) => {
+    shape.selecting = false;
+  });
 
+  return true;
+};
+
+const deleteMultiSelectShapes = ()=>{
+  if(multiSelect.shapes.length>0) return true
+  const selectings = ((()=>{
+    const map:{[id:string]:true} = {}
+
+    multiSelect.shapes.forEach(shape => {
+      map[shape.id]= true
+    })
+
+    return map
+  }))()
+
+  shapes = shapes.filter(shape => !selectings[shape.id])
+  multiSelect = cloneDeep(init.multiSelect)
   return false
-};
+}
+
+const deleteSelectShape = ()=>{
+  shapes = shapes.filter(shape => !shape.selecting)
+  return false
+}
 
 const drawShapes = (
   ctx: null | CanvasRenderingContext2D,
@@ -1683,7 +1740,10 @@ const draw = (
   });
 
   drawShapes(ctx, shapes);
-  drawShapes(ctx, Object.values(curves));
+  drawShapes(
+    ctx,
+    curves.map((curve) => curve.shape)
+  );
   drawAlignLines(ctx, alginLines);
 
   if (!isScreenshot) {
@@ -1740,27 +1800,27 @@ const draw = (
     });
   }
 
-  if (select.shapes.length > 1 && !isScreenshot) {
-    // draw select area
+  if (multiSelect.shapes.length > 1 && !isScreenshot) {
+    // draw multiSelect area
     ctx?.beginPath();
     ctx.strokeStyle = tailwindColors.info["500"];
     ctx.lineWidth = 1;
     ctx.strokeRect(
-      select.start.x,
-      select.start.y,
-      select.end.x - select.start.x,
-      select.end.y - select.start.y
+      multiSelect.start.x,
+      multiSelect.start.y,
+      multiSelect.end.x - multiSelect.start.x,
+      multiSelect.end.y - multiSelect.start.y
     );
     ctx?.closePath();
 
-    // draw select area anchors
+    // draw multiSelect area anchors
     ctx.fillStyle = "white";
     ctx.lineWidth = selectAnchor.size.stroke;
 
     ctx?.beginPath();
     ctx.arc(
-      select.start.x,
-      select.start.y,
+      multiSelect.start.x,
+      multiSelect.start.y,
       selectAnchor.size.fill,
       0,
       2 * Math.PI,
@@ -1772,8 +1832,8 @@ const draw = (
 
     ctx?.beginPath();
     ctx.arc(
-      select.end.x,
-      select.start.y,
+      multiSelect.end.x,
+      multiSelect.start.y,
       selectAnchor.size.fill,
       0,
       2 * Math.PI,
@@ -1785,8 +1845,8 @@ const draw = (
 
     ctx?.beginPath();
     ctx.arc(
-      select.end.x,
-      select.end.y,
+      multiSelect.end.x,
+      multiSelect.end.y,
       selectAnchor.size.fill,
       0,
       2 * Math.PI,
@@ -1798,8 +1858,8 @@ const draw = (
 
     ctx?.beginPath();
     ctx.arc(
-      select.start.x,
-      select.end.y,
+      multiSelect.start.x,
+      multiSelect.end.y,
       selectAnchor.size.fill,
       0,
       2 * Math.PI,
@@ -1825,7 +1885,7 @@ const drawScreenshot = () => {
   draw($screenshot, ctx_screenshot, getScreenshotShapes(shapes), true);
 };
 
-const resize = (
+const resizeShape = (
   shapes: null | undefined | (Terminal | Process | Data | Desicion)[],
   pressing: {
     shape: null | undefined | Terminal | Process | Data | Desicion;
@@ -1938,6 +1998,7 @@ const resize = (
   }
 
   pressing.ghost.resize(offsetP, pressing.target);
+  moveCurve( pressing?.shape)
 };
 
 const undo = (
@@ -2299,6 +2360,10 @@ export default function IdPage() {
       shape.scale = _scale;
       shape.offset = offset;
     });
+    curves.forEach((curve) => {
+      curve.shape.scale = _scale;
+      curve.shape.offset = offset;
+    })
 
     // --- get center point offset value
     const distX_center = 1 / 2;
@@ -2315,24 +2380,24 @@ export default function IdPage() {
     offset_center.y -= unitsAddTop_center;
     // ---
 
-    if (select.shapes.length > 1) {
-      select.start.x = -1;
-      select.end.x = -1;
-      select.start.y = -1;
-      select.end.y = -1;
-      select.shapes.forEach((shape) => {
+    if (multiSelect.shapes.length > 1) {
+      multiSelect.start.x = -1;
+      multiSelect.end.x = -1;
+      multiSelect.start.y = -1;
+      multiSelect.end.y = -1;
+      multiSelect.shapes.forEach((shape) => {
         const theEdge = shape.getEdge();
-        if (select?.start.x === -1 || theEdge.l < select?.start.x) {
-          select.start.x = theEdge.l;
+        if (multiSelect?.start.x === -1 || theEdge.l < multiSelect?.start.x) {
+          multiSelect.start.x = theEdge.l;
         }
-        if (select?.start.y === -1 || theEdge.t < select?.start.y) {
-          select.start.y = theEdge.t;
+        if (multiSelect?.start.y === -1 || theEdge.t < multiSelect?.start.y) {
+          multiSelect.start.y = theEdge.t;
         }
-        if (select.end.x === -1 || theEdge.r > select.end.x) {
-          select.end.x = theEdge.r;
+        if (multiSelect.end.x === -1 || theEdge.r > multiSelect.end.x) {
+          multiSelect.end.x = theEdge.r;
         }
-        if (select.end.y === -1 || theEdge.b > select.end.y) {
-          select.end.y = theEdge.b;
+        if (multiSelect.end.y === -1 || theEdge.b > multiSelect.end.y) {
+          multiSelect.end.y = theEdge.b;
         }
       });
     }
@@ -2370,36 +2435,36 @@ export default function IdPage() {
         y: e.nativeEvent.offsetY,
       },
       pInSelectArea =
-        p.x > select.start.x &&
-        p.y > select.start.y &&
-        p.x < select.end.x &&
-        p.y < select.end.y,
+        p.x > multiSelect.start.x &&
+        p.y > multiSelect.start.y &&
+        p.x < multiSelect.end.x &&
+        p.y < multiSelect.end.y,
       pInSelectArea_lt =
-        p.x > select.start.x - selectAnchor.size.fill &&
-        p.y > select.start.y - selectAnchor.size.fill &&
-        p.x < select.start.x + selectAnchor.size.fill &&
-        p.y < select.start.y + selectAnchor.size.fill,
+        p.x > multiSelect.start.x - selectAnchor.size.fill &&
+        p.y > multiSelect.start.y - selectAnchor.size.fill &&
+        p.x < multiSelect.start.x + selectAnchor.size.fill &&
+        p.y < multiSelect.start.y + selectAnchor.size.fill,
       pInSelectArea_rt =
-        p.x > select.end.x - selectAnchor.size.fill &&
-        p.y > select.start.y - selectAnchor.size.fill &&
-        p.x < select.end.x + selectAnchor.size.fill &&
-        p.y < select.start.y + selectAnchor.size.fill,
+        p.x > multiSelect.end.x - selectAnchor.size.fill &&
+        p.y > multiSelect.start.y - selectAnchor.size.fill &&
+        p.x < multiSelect.end.x + selectAnchor.size.fill &&
+        p.y < multiSelect.start.y + selectAnchor.size.fill,
       pInSelectArea_rb =
-        p.x > select.end.x - selectAnchor.size.fill &&
-        p.y > select.end.y - selectAnchor.size.fill &&
-        p.x < select.end.x + selectAnchor.size.fill &&
-        p.y < select.end.y + selectAnchor.size.fill,
+        p.x > multiSelect.end.x - selectAnchor.size.fill &&
+        p.y > multiSelect.end.y - selectAnchor.size.fill &&
+        p.x < multiSelect.end.x + selectAnchor.size.fill &&
+        p.y < multiSelect.end.y + selectAnchor.size.fill,
       pInSelectArea_lb =
-        p.x > select.start.x - selectAnchor.size.fill &&
-        p.y > select.end.y - selectAnchor.size.fill &&
-        p.x < select.start.x + selectAnchor.size.fill &&
-        p.y < select.end.y + selectAnchor.size.fill;
+        p.x > multiSelect.start.x - selectAnchor.size.fill &&
+        p.y > multiSelect.end.y - selectAnchor.size.fill &&
+        p.x < multiSelect.start.x + selectAnchor.size.fill &&
+        p.y < multiSelect.end.y + selectAnchor.size.fill;
 
     if (space) {
       lastP = p;
     } else {
-      if (select.shapes.length >= 2) {
-        // when multi select shapes
+      if (multiSelect.shapes.length >= 2) {
+        // when multi multiSelect shapes
         let _target: null | CommonTypes.SelectAreaTarget = null;
 
         if (pInSelectArea) {
@@ -2423,20 +2488,17 @@ export default function IdPage() {
             direction: null,
           };
         } else {
-          select = cloneDeep(init.select);
+          multiSelect = cloneDeep(init.multiSelect);
         }
       } else {
-        // when single select shape
+        // when single multiSelect shape
         handleUtils.handle([
-          () => triggerCurve(shapes, p),
-          () => selectCurve(curves, p),
-          () => deSelectCurve(curves),
+          () => triggerCurve(p),
+          () => deSelectShape(),
+          () => selectCurve(p),
+          () => deSelectCurve(),
+          () => selectShape(p),
         ]);
-
-        handleUtils.handle([
-          ()=>selectShape(shapes, p, {pressing:pressing}),
-          ()=>deSelectShape(shapes)
-        ])
 
         // switch (curveTriggerD) {
         //   case CommonTypes.Direction.l:
@@ -2509,35 +2571,35 @@ export default function IdPage() {
         // }
         // });
 
-        if (!pressing) {
-          shapes.forEach((_, shapeI, shapes) => {
-            const shape = shapes[shapes.length - 1 - shapeI];
-            const _ghost = cloneDeep(shape);
-            _ghost.title = "ghost";
-            const vertex = shape.checkVertexesBoundry(p);
-            if (shape.selecting && vertex) {
-              pressing = {
-                origin: cloneDeep(shape),
-                shape: shape,
-                ghost: _ghost,
-                curveId: null,
-                target: vertex,
-                direction: null,
-              };
-            } else if (shape.checkBoundry(p)) {
-              pressing = {
-                origin: cloneDeep(shape),
-                shape: shape,
-                ghost: _ghost,
-                curveId: null,
-                target: CoreTypes.PressingTarget.m,
-                direction: null,
-              };
-            }
-          });
-        }
+        // if (!pressing) {
+        //   shapes.forEach((_, shapeI, shapes) => {
+        //     const shape = shapes[shapes.length - 1 - shapeI];
+        //     const _ghost = cloneDeep(shape);
+        //     _ghost.title = "ghost";
+        //     const vertex = shape.checkVertexesBoundry(p);
+        //     if (shape.selecting && vertex) {
+        //       pressing = {
+        //         origin: cloneDeep(shape),
+        //         shape: shape,
+        //         ghost: _ghost,
+        //         curveId: null,
+        //         target: vertex,
+        //         direction: null,
+        //       };
+        //     } else if (shape.checkBoundry(p)) {
+        //       pressing = {
+        //         origin: cloneDeep(shape),
+        //         shape: shape,
+        //         ghost: _ghost,
+        //         curveId: null,
+        //         target: CoreTypes.PressingTarget.m,
+        //         direction: null,
+        //       };
+        //     }
+        //   });
+        // }
 
-        // reset select status
+        // reset multiSelect status
         // shapes.forEach((shape) => {
         //   shape.getCurveIds().map((curveId) => {
         //     shape.setIsCurveSelected(curveId, false);
@@ -2545,7 +2607,7 @@ export default function IdPage() {
         //   shape.selecting = false;
         // });
 
-        // if has already selected curve, never select any other shapes
+        // if has already selected curve, never multiSelect any other shapes
         // if (pressing && pressing.shape && !!pressing.curveId) {
         //   pressing.shape?.setIsCurveSelected(pressing.curveId, true);
 
@@ -2608,43 +2670,46 @@ export default function IdPage() {
       shapes.forEach((shape) => {
         shape.offset = offset;
       });
-      if (select.shapes.length > 0) {
-        select.start.x += offsetP.x;
-        select.start.y += offsetP.y;
-        select.end.x += offsetP.x;
-        select.end.y += offsetP.y;
+      curves.forEach((curve) => {
+        curve.shape.offset = offset;
+      });
+      if (multiSelect.shapes.length > 0) {
+        multiSelect.start.x += offsetP.x;
+        multiSelect.start.y += offsetP.y;
+        multiSelect.end.x += offsetP.x;
+        multiSelect.end.y += offsetP.y;
       }
-    } else if (select.shapes.length > 0) {
-      // multi select
+    } else if (multiSelect.shapes.length > 0) {
+      // multi multiSelect
 
       const theSelect = {
-        w: Math.abs(select.end.x - select.start.x),
-        h: Math.abs(select.end.y - select.start.y),
+        w: Math.abs(multiSelect.end.x - multiSelect.start.x),
+        h: Math.abs(multiSelect.end.y - multiSelect.start.y),
       };
 
       if (pressing?.target === CommonTypes.SelectAreaTarget.m) {
-        select.shapes.forEach((shape) => {
+        multiSelect.shapes.forEach((shape) => {
           shape.move({ x: p.x - lastP.x, y: p.y - lastP.y });
         });
 
-        select.start.x += offsetP.x;
-        select.start.y += offsetP.y;
-        select.end.x += offsetP.x;
-        select.end.y += offsetP.y;
+        multiSelect.start.x += offsetP.x;
+        multiSelect.start.y += offsetP.y;
+        multiSelect.end.x += offsetP.x;
+        multiSelect.end.y += offsetP.y;
       } else if (pressing?.target === CommonTypes.SelectAreaTarget.lt) {
         const canResize = {
           x: theSelect.w - offsetP.x > 0 || offsetP.x < 0,
           y: theSelect.h - offsetP.y > 0 || offsetP.y < 0,
         };
 
-        select.shapes.forEach((shape) => {
+        multiSelect.shapes.forEach((shape) => {
           const ratioW = shape.getScaleSize().w / theSelect.w,
             unitW = offsetP.x * ratioW;
 
           if (canResize.x) {
             shape.w = shape.w - unitW / scale;
 
-            const dx = Math.abs(shape.getScreenP().x - select.end.x),
+            const dx = Math.abs(shape.getScreenP().x - multiSelect.end.x),
               ratioX = dx / theSelect.w,
               unitX = offsetP.x * ratioX;
 
@@ -2660,7 +2725,7 @@ export default function IdPage() {
           if (canResize.y) {
             shape.h = shape.h - unitH / scale;
 
-            const dy = Math.abs(shape.getScreenP().y - select.end.y),
+            const dy = Math.abs(shape.getScreenP().y - multiSelect.end.y),
               ratioY = dy / theSelect.h,
               unitY = offsetP.y * ratioY;
 
@@ -2672,11 +2737,11 @@ export default function IdPage() {
         });
 
         if (canResize.x) {
-          select.start.x += offsetP.x;
+          multiSelect.start.x += offsetP.x;
         }
 
         if (canResize.y) {
-          select.start.y += offsetP.y;
+          multiSelect.start.y += offsetP.y;
         }
       } else if (pressing?.target === CommonTypes.SelectAreaTarget.rt) {
         const canResize = {
@@ -2684,14 +2749,14 @@ export default function IdPage() {
           y: theSelect.h - offsetP.y > 0 || offsetP.y < 0,
         };
 
-        select.shapes.forEach((shape) => {
+        multiSelect.shapes.forEach((shape) => {
           const ratioW = shape.getScaleSize().w / theSelect.w,
             unitW = offsetP.x * ratioW;
 
           if (canResize.x) {
             shape.w = shape.w + unitW / scale;
 
-            const dx = Math.abs(shape.getScreenP().x - select.start.x),
+            const dx = Math.abs(shape.getScreenP().x - multiSelect.start.x),
               ratioX = dx / theSelect.w,
               unitX = offsetP.x * ratioX;
 
@@ -2707,7 +2772,7 @@ export default function IdPage() {
           if (canResize.y) {
             shape.h = shape.getScaleSize().h - unitH / scale;
 
-            const dy = Math.abs(shape.getScreenP().y - select.end.y),
+            const dy = Math.abs(shape.getScreenP().y - multiSelect.end.y),
               ratioY = dy / theSelect.h,
               unitY = offsetP.y * ratioY;
 
@@ -2719,11 +2784,11 @@ export default function IdPage() {
         });
 
         if (canResize.x) {
-          select.end.x += offsetP.x;
+          multiSelect.end.x += offsetP.x;
         }
 
         if (canResize.y) {
-          select.start.y += offsetP.y;
+          multiSelect.start.y += offsetP.y;
         }
       } else if (pressing?.target === CommonTypes.SelectAreaTarget.rb) {
         const canResize = {
@@ -2731,14 +2796,14 @@ export default function IdPage() {
           y: theSelect.h + offsetP.y > 0 || offsetP.y > 0,
         };
 
-        select.shapes.forEach((shape) => {
+        multiSelect.shapes.forEach((shape) => {
           const ratioW = shape.getScaleSize().w / theSelect.w,
             unitW = offsetP.x * ratioW;
 
           if (canResize.x) {
             shape.w = shape.w + unitW / scale;
 
-            const dx = Math.abs(shape.getScreenP().x - select.start.x),
+            const dx = Math.abs(shape.getScreenP().x - multiSelect.start.x),
               ratioX = dx / theSelect.w,
               unitX = offsetP.x * ratioX;
 
@@ -2754,7 +2819,7 @@ export default function IdPage() {
           if (canResize.y) {
             shape.h = shape.h + unitH / scale;
 
-            const dy = Math.abs(shape.getScreenP().y - select.start.y),
+            const dy = Math.abs(shape.getScreenP().y - multiSelect.start.y),
               ratioY = dy / theSelect.h,
               unitY = offsetP.y * ratioY;
 
@@ -2766,11 +2831,11 @@ export default function IdPage() {
         });
 
         if (canResize.x) {
-          select.end.x += offsetP.x;
+          multiSelect.end.x += offsetP.x;
         }
 
         if (canResize.y) {
-          select.end.y += offsetP.y;
+          multiSelect.end.y += offsetP.y;
         }
       } else if (pressing?.target === CommonTypes.SelectAreaTarget.lb) {
         const canResize = {
@@ -2778,14 +2843,14 @@ export default function IdPage() {
           y: theSelect.h + offsetP.y > 0 || offsetP.y > 0,
         };
 
-        select.shapes.forEach((shape) => {
+        multiSelect.shapes.forEach((shape) => {
           const ratioW = shape.getScaleSize().w / theSelect.w,
             unitW = offsetP.x * ratioW;
 
           if (canResize.x) {
             shape.w = shape.w - unitW / scale;
 
-            const dx = Math.abs(shape.getScreenP().x - select.end.x),
+            const dx = Math.abs(shape.getScreenP().x - multiSelect.end.x),
               ratioX = dx / theSelect.w,
               unitX = offsetP.x * ratioX;
 
@@ -2801,7 +2866,7 @@ export default function IdPage() {
           if (canResize.y) {
             shape.h = shape.h + unitH / scale;
 
-            const dy = Math.abs(shape.getScreenP().y - select.start.y),
+            const dy = Math.abs(shape.getScreenP().y - multiSelect.start.y),
               ratioY = dy / theSelect.h,
               unitY = offsetP.y * ratioY;
 
@@ -2813,11 +2878,11 @@ export default function IdPage() {
         });
 
         if (canResize.x) {
-          select.start.x += offsetP.x;
+          multiSelect.start.x += offsetP.x;
         }
 
         if (canResize.y) {
-          select.end.y += offsetP.y;
+          multiSelect.end.y += offsetP.y;
         }
       }
     } else if (
@@ -2826,7 +2891,7 @@ export default function IdPage() {
       pressing?.target === CoreTypes.PressingTarget.rb ||
       pressing?.target === CoreTypes.PressingTarget.lb
     ) {
-      resize(
+      resizeShape(
         shapes,
         {
           shape: pressing.shape,
@@ -2885,40 +2950,7 @@ export default function IdPage() {
           y: p.y - lastP.y,
         });
 
-        ds.forEach((d) => {
-          if (!pressing?.shape) return;
-          const senders = connections.senders[`${pressing.shape.id}_${d}`];
-          const recievers = connections.recievers[`${pressing.shape.id}_${d}`];
-          if (senders) {
-            connections.senders[`${pressing.shape.id}_${d}`].forEach(
-              (curveInfo) => {
-                moveSenderCurve(
-                  d,
-                  curveInfo.toD,
-                  pressing?.shape,
-                  curves[curveInfo.curveId]
-                );
-              }
-            );
-          }
-
-          if (recievers) {
-            connections.recievers[`${pressing.shape.id}_${d}`].forEach(
-              (curveInfo) => {
-                moveRecieverCurve(
-                  curveInfo.fromD,
-                  d,
-                  pressing?.shape,
-                  curves[curveInfo.curveId]
-                );
-              }
-            );
-          }
-        });
-
-        // if ()
-
-        //   connections.senders[pressing.shape.id] =;
+        moveCurve(pressing?.shape)
       } else if (
         !!pressing.curveId &&
         pressing.direction &&
@@ -2957,7 +2989,7 @@ export default function IdPage() {
       y: e.nativeEvent.offsetY,
     };
 
-    // define which shape in select area
+    // define which shape in multiSelect area
     const selectedShapes = (() => {
       let shapesInSelectArea: (Terminal | Data | Process | Desicion)[] = [];
 
@@ -2995,25 +3027,25 @@ export default function IdPage() {
       return shapesInSelectArea;
     })();
 
-    // define select status
+    // define multiSelect status
     if (selectedShapes.length === 1) {
       selectedShapes[0].selecting = true;
     } else if (selectedShapes.length > 1) {
       selectedShapes.forEach((selectedShape) => {
         const theEdge = selectedShape.getEdge();
-        if (select?.start.x === -1 || theEdge.l < select?.start.x) {
-          select.start.x = theEdge.l;
+        if (multiSelect?.start.x === -1 || theEdge.l < multiSelect?.start.x) {
+          multiSelect.start.x = theEdge.l;
         }
-        if (select?.start.y === -1 || theEdge.t < select?.start.y) {
-          select.start.y = theEdge.t;
+        if (multiSelect?.start.y === -1 || theEdge.t < multiSelect?.start.y) {
+          multiSelect.start.y = theEdge.t;
         }
-        if (select.end.x === -1 || theEdge.r > select.end.x) {
-          select.end.x = theEdge.r;
+        if (multiSelect.end.x === -1 || theEdge.r > multiSelect.end.x) {
+          multiSelect.end.x = theEdge.r;
         }
-        if (select.end.y === -1 || theEdge.b > select.end.y) {
-          select.end.y = theEdge.b;
+        if (multiSelect.end.y === -1 || theEdge.b > multiSelect.end.y) {
+          multiSelect.end.y = theEdge.b;
         }
-        select.shapes.push(selectedShape);
+        multiSelect.shapes.push(selectedShape);
         selectedShape.selecting = false;
       });
     }
@@ -3026,43 +3058,17 @@ export default function IdPage() {
 
       if (!connectedD) return;
       pressingCurve.shape.selecting = false;
-      curves[pressingCurve.shape.id] = pressingCurve.shape;
-
-      if (
-        connections.senders[
-          `${pressingCurve.from.shape.id}_${pressingCurve.from.d}`
-        ]
-      ) {
-        connections.senders[
-          `${pressingCurve.from.shape.id}_${pressingCurve.from.d}`
-        ].push({
-          curveId: pressingCurve.shape.id,
-          toD: connectedD,
-        });
-      } else {
-        connections.senders[
-          `${pressingCurve.from.shape.id}_${pressingCurve.from.d}`
-        ] = [
-          {
-            curveId: pressingCurve.shape.id,
-            toD: connectedD,
-          },
-        ];
-      }
-
-      if (connections.recievers[`${targetShape.id}_${connectedD}`]) {
-        connections.recievers[`${targetShape.id}_${connectedD}`].push({
-          curveId: pressingCurve.shape.id,
-          fromD: pressingCurve.from.d,
-        });
-      } else {
-        connections.recievers[`${targetShape.id}_${connectedD}`] = [
-          {
-            curveId: pressingCurve.shape.id,
-            fromD: pressingCurve.from.d,
-          },
-        ];
-      }
+      curves.push({
+        shape: pressingCurve.shape,
+        from: {
+          shape: pressingCurve.from.shape,
+          d: pressingCurve.from.d,
+        },
+        to: {
+          shape: targetShape,
+          d: connectedD,
+        },
+      });
 
       actions.push({
         type: CommonTypes.Action.connect,
@@ -3181,21 +3187,10 @@ export default function IdPage() {
       const $canvas = document.querySelector("canvas");
       if (!$canvas || !ctx) return;
 
-      // delete
-      for (const currentShape of shapes) {
-        if (currentShape.selecting) {
-          currentShape?.removeConnection();
-          shapes = shapes.filter((shape) => shape.id !== currentShape?.id);
-        }
-        // else {
-        //   ds.forEach((d) => {
-        //     currentShape.curves[d].forEach((currentCurve) => {
-        //       if (!currentCurve.shape?.selecting) return;
-        //       currentShape.removeCurve(d, currentCurve.shape.id);
-        //     });
-        //   });
-        // }
-      }
+      handleUtils.handle([
+        deleteMultiSelectShapes,
+        deleteSelectShape
+      ])
 
       drawCanvas();
       drawScreenshot();
@@ -3416,25 +3411,6 @@ export default function IdPage() {
             b: string[];
           } = { l: [], t: [], r: [], b: [] };
 
-          // ds.forEach((d) => {
-          //   shape.curves[d].forEach((curve) => {
-          //     curves[d].push(curve.shape?.id);
-
-          //     modifyData.curves[curve.shape?.id] = {
-          //       p1: curve.shape.p1,
-          //       p2: curve.shape.p2,
-          //       cp1: curve.shape.cp1,
-          //       cp2: curve.shape.cp2,
-          //       sendTo: curve.sendTo
-          //         ? {
-          //             id: curve.sendTo.shape.id,
-          //             d: curve.sendTo.d,
-          //           }
-          //         : null,
-          //     };
-          //   });
-          // });
-
           return curves;
         })(),
         data: (() => {
@@ -3494,7 +3470,7 @@ export default function IdPage() {
         projectData.data
       );
       shapes = initShapes;
-      select = cloneDeep(init.select);
+      multiSelect = cloneDeep(init.multiSelect);
       checkData(shapes);
       checkGroups();
       drawCanvas();

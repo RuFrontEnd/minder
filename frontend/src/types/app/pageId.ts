@@ -20,7 +20,7 @@ type Pressing = null | {
     | CoreTypes.PressingTarget
     | CurveTypes.PressingTarget
     | CommonTypes.SelectAreaTarget;
-}
+};
 
 type PressingCurve = null | {
   from: {
@@ -58,7 +58,17 @@ type ActionTypes = {
 
 type Actions = Stack<ActionTypes>;
 
-type Curves = { [curveId: string]: Curve };
+type Curves = {
+  shape: Curve;
+  from: {
+    shape: Terminal | Process | Data | Desicion;
+    d: CommonTypes.Direction;
+  };
+  to: {
+    shape: Terminal | Process | Data | Desicion;
+    d: CommonTypes.Direction;
+  };
+}[];
 
 export type {
   Pressing,
