@@ -114,18 +114,7 @@ let useEffected = false,
     recievers: {},
   },
   tests: any[] = [], // TODO: should be deleted
-  pressing: null | {
-    origin: null | Terminal | Process | Data | Desicion;
-    shape: null | Terminal | Process | Data | Desicion;
-    ghost: null | Terminal | Process | Data | Desicion;
-    curveId?: null | CurveTypes.Id;
-    direction: null | CommonTypes.Direction; // TODO: should be removed in the future
-    target:
-      | null
-      | CoreTypes.PressingTarget
-      | CurveTypes.PressingTarget
-      | CommonTypes.SelectAreaTarget;
-  } = null,
+  pressing: PageIdTypes.Pressing = null,
   pressingCurve: PageIdTypes.PressingCurve = null,
   offset: CommonTypes.Vec = cloneDeep(init.offset),
   offset_center: CommonTypes.Vec = cloneDeep(init.offset),
@@ -1515,7 +1504,26 @@ const moveSenderCurve = (
   curve.locateHandler(CurveTypes.PressingTarget.cp2, cp2);
 };
 
-const triggerCurve = (p: CommonTypes.Vec) => {
+const moveRecieverCurve = (
+  fromD: CommonTypes.Direction,
+  toD: CommonTypes.Direction,
+  reciever: null | undefined | Terminal | Process | Data | Desicion,
+  curve: null | undefined | Curve
+) => {
+  if (!reciever || !curve) return;
+
+  const p1 = curve.p1;
+  const p2 = reciever.getCenter()[toD];
+  const [cp1, cp2] = getCurveStickingCp1Cp2(fromD, toD, curve, p1, p2);
+
+  if (!p1 || !p2 || !cp1 || !cp2) return;
+
+  curve.locateHandler(CurveTypes.PressingTarget.p2, p2);
+  curve.locateHandler(CurveTypes.PressingTarget.cp1, cp1);
+  curve.locateHandler(CurveTypes.PressingTarget.cp2, cp2);
+};
+
+const triggerCurve = (shapes: (Terminal | Process |Desicion | Data)[], p: CommonTypes.Vec) => {
   const [triggerShape, curveTriggerD] = (() => {
     let triggerShape: null | Terminal | Process | Desicion | Data = null;
     let curveTriggerD: null | CommonTypes.Direction = null;
@@ -1559,7 +1567,7 @@ const triggerCurve = (p: CommonTypes.Vec) => {
   return true;
 };
 
-const selectCurve = (p: CommonTypes.Vec) => {
+const selectCurve = (curves:PageIdTypes.Curves, p: CommonTypes.Vec) => {
   const curveValues = Object.values(curves);
   for (let i = curveValues.length - 1; i > -1; i--) {
     const curve = curveValues[i];
@@ -1571,12 +1579,52 @@ const selectCurve = (p: CommonTypes.Vec) => {
   return true;
 };
 
-const deSelectCurve = () => {
+const deSelectCurve = (curves:PageIdTypes.Curves) => {
   Object.values(curves).forEach((curve) => {
     curve.selecting = false;
   });
 
   return false;
+};
+
+const selectShape = (shapes: (Terminal | Process | Desicion | Data)[], p:CommonTypes.Vec, state: { pressing: PageIdTypes.Pressing }) => {
+  for(let i = shapes.length-1; i >-1; i--){
+    const shape = shapes[i];
+    const _ghost = cloneDeep(shape);
+    _ghost.title = "ghost";
+    const pressingVertex = shape.checkVertexesBoundry(p);
+    if (pressingVertex) {
+      state.pressing = {
+        origin: cloneDeep(shape),
+        shape: shape,
+        ghost: _ghost,
+        curveId: null,
+        target: pressingVertex,
+        direction: null,
+      };
+      return false
+    } else if (shape.checkBoundry(p)) {
+      state.pressing = {
+        origin: cloneDeep(shape),
+        shape: shape,
+        ghost: _ghost,
+        curveId: null,
+        target: CoreTypes.PressingTarget.m,
+        direction: null,
+      };
+      return false
+    }
+  }
+
+  return true
+};
+
+const deSelectShape = (shapes: (Terminal | Process | Desicion | Data)[]) => {
+  shapes.forEach(shape => {
+    shape.selecting = false
+  })
+
+  return false
 };
 
 const drawShapes = (
@@ -2380,10 +2428,15 @@ export default function IdPage() {
       } else {
         // when single select shape
         handleUtils.handle([
-          () => triggerCurve(p),
-          () => selectCurve(p),
-          () => deSelectCurve(),
+          () => triggerCurve(shapes, p),
+          () => selectCurve(curves, p),
+          () => deSelectCurve(curves),
         ]);
+
+        handleUtils.handle([
+          ()=>selectShape(shapes, p, {pressing:pressing}),
+          ()=>deSelectShape(shapes)
+        ])
 
         // switch (curveTriggerD) {
         //   case CommonTypes.Direction.l:
@@ -2459,7 +2512,6 @@ export default function IdPage() {
         if (!pressing) {
           shapes.forEach((_, shapeI, shapes) => {
             const shape = shapes[shapes.length - 1 - shapeI];
-            if (!!pressing) return;
             const _ghost = cloneDeep(shape);
             _ghost.title = "ghost";
             const vertex = shape.checkVertexesBoundry(p);
@@ -2833,21 +2885,35 @@ export default function IdPage() {
           y: p.y - lastP.y,
         });
 
-        ds.forEach((fromD) => {
+        ds.forEach((d) => {
           if (!pressing?.shape) return;
-          const senders = connections.senders[`${pressing.shape.id}_${fromD}`];
-          if (!senders) return;
+          const senders = connections.senders[`${pressing.shape.id}_${d}`];
+          const recievers = connections.recievers[`${pressing.shape.id}_${d}`];
+          if (senders) {
+            connections.senders[`${pressing.shape.id}_${d}`].forEach(
+              (curveInfo) => {
+                moveSenderCurve(
+                  d,
+                  curveInfo.toD,
+                  pressing?.shape,
+                  curves[curveInfo.curveId]
+                );
+              }
+            );
+          }
 
-          connections.senders[`${pressing.shape.id}_${fromD}`].forEach(
-            (curveInfo) => {
-              moveSenderCurve(
-                fromD,
-                curveInfo.toD,
-                pressing?.shape,
-                curves[curveInfo.curveId]
-              );
-            }
-          );
+          if (recievers) {
+            connections.recievers[`${pressing.shape.id}_${d}`].forEach(
+              (curveInfo) => {
+                moveRecieverCurve(
+                  curveInfo.fromD,
+                  d,
+                  pressing?.shape,
+                  curves[curveInfo.curveId]
+                );
+              }
+            );
+          }
         });
 
         // if ()
@@ -2958,8 +3024,6 @@ export default function IdPage() {
         targetShape.checkReceivingPointsBoundry(p) ||
         targetShape.checkQuarterArea(p);
 
-      console.log("connectedD", connectedD);
-
       if (!connectedD) return;
       pressingCurve.shape.selecting = false;
       curves[pressingCurve.shape.id] = pressingCurve.shape;
@@ -3019,8 +3083,6 @@ export default function IdPage() {
       });
     });
 
-    console.log("shapes", shapes);
-
     shapes.forEach((shape) => {
       ds.forEach((d) => {
         shape.setReceivePointVisible(d, false);
@@ -3075,8 +3137,6 @@ export default function IdPage() {
     pressing = null;
     pressingCurve = null;
     alginLines = [];
-
-    console.log("shapes", shapes);
 
     drawCanvas();
   };

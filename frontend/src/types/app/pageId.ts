@@ -9,8 +9,10 @@ import * as CommonTypes from "@/types/common";
 import * as CoreTypes from "@/types/shapes/core";
 import * as CurveTypes from "@/types/shapes/curve";
 
-type Pressing = {
+type Pressing = null | {
+  origin: null | Terminal | Process | Data | Desicion;
   shape: null | Terminal | Process | Data | Desicion;
+  ghost: null | Terminal | Process | Data | Desicion;
   curveId?: null | CurveTypes.Id;
   direction: null | CommonTypes.Direction; // TODO: should be removed in the future
   target:
@@ -18,7 +20,7 @@ type Pressing = {
     | CoreTypes.PressingTarget
     | CurveTypes.PressingTarget
     | CommonTypes.SelectAreaTarget;
-};
+}
 
 type PressingCurve = null | {
   from: {
