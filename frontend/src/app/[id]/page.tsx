@@ -1666,7 +1666,7 @@ const deSelectShape = () => {
 };
 
 const deleteMultiSelectShapes = ()=>{
-  if(multiSelect.shapes.length>0) return true
+  if(multiSelect.shapes.length === 0) return true
   const selectings = ((()=>{
     const map:{[id:string]:true} = {}
 
