@@ -64,7 +64,7 @@ export default class Curve {
       this.__arrowAttr__.w,
       this.__arrowAttr__.h,
       this.__arrowAttr__.c,
-      this.relativify(this.p2),
+      this.p2,
       Math.atan2(this.p2.y - this.cp2.y, this.p2.x - this.cp2.x) +
         90 * (Math.PI / 180)
     );
@@ -87,7 +87,7 @@ export default class Curve {
   set p1(val: Vec) {
     this.__p1__ = val;
     if (this.arrow && this.p2 && this.cp2) {
-      this.arrow.p = this.relativify(this.p2);
+      this.arrow.p = this.p2;
     }
   }
 
@@ -119,7 +119,7 @@ export default class Curve {
   private set p2(val: Vec) {
     this.__p2__ = val;
     if (this.arrow && val && this.cp2) {
-      this.arrow.p = this.relativify(val);
+      this.arrow.p = val;
     }
   }
 
@@ -435,36 +435,41 @@ export default class Curve {
     };
   }
 
-  draw(ctx: CanvasRenderingContext2D) {
+  draw(ctx: CanvasRenderingContext2D, offest?: Vec, scale?: number) {
     if (!this.__p1__ || !this.p2 || !this.__cp1__ || !this.cp2) return;
 
     ctx.lineWidth = this.scalify(this.curve.w);
     ctx.strokeStyle = this.curve.c;
 
     const offsetP = this.offsetfy(this.__p1__);
-    const screenP = { x: this.scalify(offsetP.x), y: this.scalify(offsetP.y) };
+
+    offest = offest ? offest : { x: 0, y: 0 };
+    scale = scale ? scale : 1;
 
     ctx.save();
-    ctx.translate(screenP.x, screenP.y);
 
-    const relativeScreenP = {
+    const screenP = {
+      p1: {
+        x: (this.p1.x + offest.x) * scale,
+        y: (this.p1.y + offest.y) * scale,
+      },
       cp1: {
-        x: this.scalify(this.relativify(this.__cp1__).x),
-        y: this.scalify(this.relativify(this.__cp1__).y),
+        x: (this.cp1.x + offest.x) * scale,
+        y: (this.cp1.y + offest.y) * scale,
       },
       cp2: {
-        x: this.scalify(this.relativify(this.__cp2__).x),
-        y: this.scalify(this.relativify(this.__cp2__).y),
+        x: (this.cp2.x + offest.x) * scale,
+        y: (this.cp2.y + offest.y) * scale,
       },
       p2: {
-        x: this.scalify(this.relativify(this.p2).x),
-        y: this.scalify(this.relativify(this.p2).y),
+        x: (this.p2.x + offest.x) * scale,
+        y: (this.p2.y + offest.y) * scale,
       },
     };
 
     ctx.beginPath();
     // curve
-    ctx.moveTo(0, 0);
+    ctx.moveTo(screenP.p1.x, screenP.p1.y);
     ctx.fillStyle = "red";
     // ctx.fillText(
     //   `p1 x:${this.screenfy(this.p1).x.toFixed(1)} y:${this.screenfy(
@@ -497,19 +502,19 @@ export default class Curve {
 
     if (this.cp2) {
       ctx.bezierCurveTo(
-        relativeScreenP.cp1.x,
-        relativeScreenP.cp1.y,
-        relativeScreenP.cp2.x,
-        relativeScreenP.cp2.y,
-        relativeScreenP.p2.x,
-        relativeScreenP.p2.y
+        screenP.cp1.x,
+        screenP.cp1.y,
+        screenP.cp2.x,
+        screenP.cp2.y,
+        screenP.p2.x,
+        screenP.p2.y
       );
     } else {
       ctx.quadraticCurveTo(
-        relativeScreenP.cp1.x,
-        relativeScreenP.cp1.y,
-        relativeScreenP.p2.x,
-        relativeScreenP.p2.y
+        screenP.cp1.x,
+        screenP.cp1.y,
+        screenP.p2.x,
+        screenP.p2.y
       );
     }
     ctx.stroke();
@@ -526,20 +531,20 @@ export default class Curve {
       ctx.fillStyle = this.cpline.c;
 
       ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.lineTo(relativeScreenP.cp1.x, relativeScreenP.cp1.y);
+      ctx.moveTo(screenP.p1.x, screenP.p1.y);
+      ctx.lineTo(screenP.cp1.x, screenP.cp1.y);
       ctx.stroke();
       ctx.closePath();
 
       if (this.cp2) {
         ctx.beginPath();
-        ctx.moveTo(relativeScreenP.p2.x, relativeScreenP.p2.y);
-        ctx.lineTo(relativeScreenP.cp2.x, relativeScreenP.cp2.y);
+        ctx.moveTo(screenP.p2.x, screenP.p2.y);
+        ctx.lineTo(screenP.cp2.x, screenP.cp2.y);
         ctx.stroke();
         ctx.closePath();
       } else {
         ctx.beginPath();
-        ctx.lineTo(relativeScreenP.p2.x, relativeScreenP.p2.y);
+        ctx.lineTo(screenP.p2.x, screenP.p2.y);
         ctx.stroke();
         ctx.closePath();
       }
@@ -563,8 +568,8 @@ export default class Curve {
 
       ctx.beginPath();
       ctx.arc(
-        relativeScreenP.cp1.x,
-        relativeScreenP.cp1.y,
+        screenP.cp1.x,
+        screenP.cp1.y,
         this.controlPoint.r,
         0,
         2 * Math.PI,
@@ -576,8 +581,8 @@ export default class Curve {
 
       ctx.beginPath();
       ctx.arc(
-        relativeScreenP.cp2.x,
-        relativeScreenP.cp2.y,
+        screenP.cp2.x,
+        screenP.cp2.y,
         this.controlPoint.r,
         0,
         2 * Math.PI,

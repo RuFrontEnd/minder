@@ -1493,7 +1493,7 @@ const moveSenderCurve = (
 ) => {
   if (!sender || !curve) return;
 
-  const p1 = sender.getCenter()[fromD];
+  const p1 = sender.getNormalCenter()[fromD];
   const p2 = curve.p2;
   const [cp1, cp2] = getCurveStickingCp1Cp2(fromD, toD, curve, p1, p2);
 
@@ -1689,13 +1689,15 @@ const deleteSelectShape = ()=>{
 
 const drawShapes = (
   ctx: null | CanvasRenderingContext2D,
-  shapes: (Terminal | Process | Data | Desicion | Curve)[]
+  shapes: (Terminal | Process | Data | Desicion | Curve)[],
+  offset?: CommonTypes.Vec,
+  scale?:number
 ) => {
   if (!ctx) return;
 
   shapes.forEach((shape) => {
     if (!ctx) return;
-    shape.draw(ctx);
+    shape.draw(ctx, offset, scale);
   });
 
   // pressing?.ghost?.draw(ctx); // TODO: for testing align
@@ -1724,7 +1726,9 @@ const drawAlignLines = (
 const draw = (
   $canvas: HTMLCanvasElement,
   ctx: CanvasRenderingContext2D,
-  shapes: (Terminal | Process | Data | Desicion)[],
+  shapes:(Terminal|Process|Data|Desicion)[],
+  offset?: CommonTypes.Vec,
+  scale?: number,
   isScreenshot?: boolean
 ) => {
   if (!isBrowser) return;
@@ -1742,10 +1746,12 @@ const draw = (
     test.draw(ctx);
   });
 
-  drawShapes(ctx, shapes);
+  drawShapes(ctx, shapes, offset, scale);
   drawShapes(
     ctx,
-    curves.map((curve) => curve.shape)
+    curves.map((curve) => curve.shape),
+    offset,
+    scale
   );
   drawAlignLines(ctx, alginLines);
 
@@ -1770,7 +1776,7 @@ const draw = (
 
   //   shape.drawCurve(ctx);
   // });
-  pressingCurve?.shape.draw(ctx);
+  pressingCurve?.shape.draw(ctx,offset,scale);
 
   if (!isScreenshot) {
     // draw selectArea
@@ -1874,18 +1880,18 @@ const draw = (
   }
 };
 
-const drawCanvas = () => {
+const drawCanvas = (offset?:CommonTypes.Vec, scale?:number) => {
   const $canvas = document.querySelector("canvas");
   if (!$canvas || !ctx) return;
-  draw($canvas, ctx, shapes, false);
+  draw($canvas, ctx, shapes, offset, scale, false);
 };
 
-const drawScreenshot = () => {
+const drawScreenshot = (offset?:CommonTypes.Vec, scale?:number) => {
   const $screenshot: HTMLCanvasElement | null = document.querySelector(
     "canvas[role='screenshot']"
   );
   if (!$screenshot || !ctx_screenshot) return;
-  draw($screenshot, ctx_screenshot, getScreenshotShapes(shapes), true);
+  draw($screenshot, ctx_screenshot, getScreenshotShapes(shapes),offset, scale, true);
 };
 
 const resizeShape = (
@@ -2007,7 +2013,9 @@ const resizeShape = (
 const undo = (
   ctx: undefined | null | CanvasRenderingContext2D,
   actions: PageIdTypes.Actions,
-  shapes: null | (Terminal | Process | Data | Desicion)[]
+  shapes: null | (Terminal | Process | Data | Desicion)[],
+  offset?:CommonTypes.Vec,
+  scale?:number,
 ) => {
   if (!ctx || !shapes) return;
 
@@ -2041,8 +2049,8 @@ const undo = (
 
   actions.pop();
 
-  drawCanvas();
-  drawScreenshot();
+  drawCanvas(offset, scale);
+  drawScreenshot(offset, scale);
 };
 
 // const Editor = (props: { className: string; shape: Core }) => {
@@ -2404,6 +2412,8 @@ export default function IdPage() {
         }
       });
     }
+
+    return _scale
   };
 
   const fetchProjects = async () => {
@@ -2512,7 +2522,7 @@ export default function IdPage() {
       }
     }
 
-    drawCanvas();
+    drawCanvas(offset, scale);
   };
 
   const onMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -2838,9 +2848,10 @@ export default function IdPage() {
     }
 
     lastP = p;
+    console.log('scale', scale)
 
-    drawCanvas();
-    drawScreenshot();
+    drawCanvas(offset, scale);
+    drawScreenshot(offset, scale);
   };
 
   const onMouseUp = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -3008,12 +3019,12 @@ export default function IdPage() {
     pressingCurve = null;
     alginLines = [];
 
-    drawCanvas();
+    drawCanvas(offset, scale);
   };
 
   const onMouseWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
     zoom(e.deltaY, { x: e.clientX, y: e.clientY });
-    drawCanvas();
+    drawCanvas(offset, scale);
   };
 
   const onDoubleClick = useCallback(
@@ -3043,7 +3054,7 @@ export default function IdPage() {
       setControl(true);
     }
     if (e.key === "z" && control) {
-      undo(ctx, actions, shapes);
+      undo(ctx, actions, shapes, offset, scale);
     }
     if (e.key === " " && !space) {
       setSpace(true);
@@ -3056,8 +3067,8 @@ export default function IdPage() {
         deleteSelectShape
       ])
 
-      drawCanvas();
-      drawScreenshot();
+      drawCanvas(offset, scale);
+      drawScreenshot(offset, scale);
     }
   }
 
@@ -3097,8 +3108,8 @@ export default function IdPage() {
 
     checkData(shapes);
     checkGroups();
-    drawCanvas();
-    drawScreenshot();
+    drawCanvas(offset, scale);
+    drawScreenshot(offset, scale);
   };
 
   const onConfirmDataFrame: DataFrameTypes.Props["onConfirm"] = (
@@ -3172,25 +3183,26 @@ export default function IdPage() {
   const onClickScalePlusIcon = () => {
     const $canvas = document.querySelector("canvas");
     if (!$canvas) return;
-    zoom(-100, { x: $canvas?.width / 2, y: $canvas?.height / 2 });
-    drawCanvas();
+    const newScale = zoom(-100, { x: $canvas?.width / 2, y: $canvas?.height / 2 });
+    drawCanvas(offset, newScale);
   };
 
   const onClickScaleMinusIcon = () => {
     const $canvas = document.querySelector("canvas");
     if (!$canvas) return;
-    zoom(100, { x: $canvas?.width / 2, y: $canvas?.height / 2 });
-    drawCanvas();
+    const newScale = zoom(100, { x: $canvas?.width / 2, y: $canvas?.height / 2 });
+    drawCanvas(offset, newScale);
   };
 
   const onClickScaleNumber = () => {
     const $canvas = document.querySelector("canvas");
     if (!$canvas) return;
-    zoom(-((1 / scale - 1) * 500), {
+
+    const newScale =zoom(-((1 / scale - 1) * 500), {
       x: $canvas?.width / 2,
       y: $canvas?.height / 2,
     });
-    drawCanvas();
+    drawCanvas(offset, newScale);
   };
 
   const onClickDataSidePanelSwitch = () => {
@@ -3219,7 +3231,7 @@ export default function IdPage() {
       shape.offset = offset;
     });
 
-    drawCanvas();
+    drawCanvas(offset, scale);
   };
 
   const onClickSaveButton: MouseEventHandler<HTMLSpanElement> = () => {
@@ -3337,8 +3349,8 @@ export default function IdPage() {
       multiSelect = cloneDeep(init.multiSelect);
       checkData(shapes);
       checkGroups();
-      drawCanvas();
-      drawScreenshot();
+      drawCanvas(offset, scale);
+      drawScreenshot(offset, scale);
       setIsProjectsModalOpen(false);
       setProjectName({
         inputVal: projectData.projectName,
@@ -3497,8 +3509,8 @@ export default function IdPage() {
       // tests.push(arrow);
       // tests.push(curve);
 
-      drawCanvas();
-      drawScreenshot();
+      drawCanvas(offset, scale);
+      drawScreenshot(offset, scale);
     })();
 
     const resizeViewport = () => {
@@ -3511,8 +3523,8 @@ export default function IdPage() {
       $canvas.height = window.innerHeight;
       $screenshot.width = window.innerWidth;
       $screenshot.height = window.innerHeight;
-      drawCanvas();
-      drawScreenshot();
+      drawCanvas(offset, scale);
+      drawScreenshot(offset, scale);
     };
 
     window.addEventListener("resize", resizeViewport);

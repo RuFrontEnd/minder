@@ -87,7 +87,6 @@ export default class Core {
     this.__p__ = value;
   }
 
-
   get p() {
     return this.__p__;
   }
@@ -246,6 +245,10 @@ export default class Core {
 
     return {
       m: pivot,
+      l: { x: edge.l, y: pivot.y },
+      t: { x: pivot.x, y: edge.t },
+      r: { x: edge.r, y: pivot.y },
+      b: { x: pivot.x, y: edge.b },
       lt: {
         x: edge.l,
         y: edge.t,
