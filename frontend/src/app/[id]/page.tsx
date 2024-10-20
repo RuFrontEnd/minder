@@ -1422,15 +1422,17 @@ const getCurveStickingCp1Cp2 = (
 const movePressingCurve = (
   pressingCurve: PageIdTypes.PressingCurve,
   p: CommonTypes.Vec,
-  shapes: (Terminal | Process | Data | Desicion)[]
+  offset:CommonTypes.Vec={x:0, y:0}, 
+  scale:number = 0
 ) => {
   if (!pressingCurve) return;
 
   const [toD, p2] = (() => {
     for (let i = 0; i < shapes.length; i++) {
       const shape = shapes[i];
+      if(shape.id === pressingCurve.from.shape.id) continue
 
-      const quarterD = shape.checkQuarterArea(p);
+      const quarterD = shape.checkQuarterArea(getNormalP(p, offset, scale));
       if (quarterD) {
         return [quarterD, shape.getCenter()[quarterD]];
       }
@@ -1456,7 +1458,7 @@ const movePressingCurve = (
     pressingCurve?.shape.locateHandler(CurveTypes.PressingTarget.p2, p2);
   } else {
     // move
-    const p2 = p;
+    const p2 = getNormalP(p, offset, scale);
     const cp1 = pressingCurve?.shape.p1;
     const cp2 = (() => {
       switch (pressingCurve.from.d) {
@@ -2834,7 +2836,7 @@ export default function IdPage() {
         moveCurve(pressing?.shape)
       }
     } else if (!!pressingCurve) {
-      movePressingCurve(pressingCurve, p, shapes);
+      movePressingCurve(pressingCurve, p, offset, scale);
     } else if (selectAreaP && !space) {
       selectAreaP = {
         ...selectAreaP,

@@ -374,23 +374,23 @@ export default class Curve {
     }
   }
 
-  locateHandler(pressingTarget: CurveTypes.PressingTarget, screenP: Vec) {
+  locateHandler(pressingTarget: CurveTypes.PressingTarget, p: Vec) {
     if (
       pressingTarget === CurveTypes.PressingTarget.p1 ||
       pressingTarget === CurveTypes.PressingTarget.cp1 ||
       pressingTarget === CurveTypes.PressingTarget.cp2
     ) {
-      this[pressingTarget] = screenP
+      this[pressingTarget] = p
     } else if (pressingTarget === CurveTypes.PressingTarget.p2) {
-      const v = { x: this.cp2.x - screenP.x, y: this.cp2.y - screenP.y };
+      const v = { x: this.cp2.x - p.x, y: this.cp2.y - p.y };
       const len = Math.sqrt(
-        Math.pow(screenP.x - this.cp2.x, 2) +
-          Math.pow(screenP.y - this.cp2.y, 2)
+        Math.pow(p.x - this.cp2.x, 2) +
+          Math.pow(p.y - this.cp2.y, 2)
       );
 
       const ratio = this.__arrowAttr__.h / len;
 
-      this.p2 = { x: screenP.x + v.x * ratio, y: screenP.y + v.y * ratio }
+      this.p2 = { x: p.x + v.x * ratio, y: p.y + v.y * ratio }
     }
   }
 
