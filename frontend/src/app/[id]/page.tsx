@@ -1622,7 +1622,7 @@ const deSelectCurve = () => {
   return true;
 };
 
-const selectShape = (p: CommonTypes.Vec) => {
+const selectShape = (p: CommonTypes.Vec,offset:CommonTypes.Vec,scale:number) => {
   for (let i = shapes.length - 1; i > -1; i--) {
     const shape = shapes[i];
     const _ghost = cloneDeep(shape);
@@ -1637,7 +1637,11 @@ const selectShape = (p: CommonTypes.Vec) => {
         target: pressingVertex,
         direction: null,
       };
-    } else if (shape.checkBoundry(p)) {
+    } else if (shape.checkBoundry({
+      x:(p.x/scale-offset.x),
+      y:(p.y/scale-offset.y),
+
+    })) {
       pressing = {
         origin: cloneDeep(shape),
         shape: shape,
@@ -2500,7 +2504,7 @@ export default function IdPage() {
           () => deSelectShape(),
           () => selectCurve(p),
           () => deSelectCurve(),
-          () => selectShape(p),
+          () => selectShape(p, offset, scale),
         ]);
       }
 
