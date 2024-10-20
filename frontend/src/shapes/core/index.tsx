@@ -1,11 +1,9 @@
 "use client";
-import Curve from "@/shapes/curve";
 import { tailwindColors } from "@/variables/colors";
 import { Inter } from "next/font/google";
 import { Vec, Direction, Data as DataType } from "@/types/common";
 import * as CoreTypes from "@/types/shapes/core";
 import * as CommonTypes from "@/types/common";
-import * as CurveTypes from "@/types/shapes/curve";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -45,12 +43,6 @@ export default class Core {
   private __p__: Vec;
   private __selecting__: boolean;
   protected __receivePoint__: CoreTypes.ReceivePoint;
-  // receiveFrom: {
-  //   l: CoreTypes.ReceiveFrom[];
-  //   t: CoreTypes.ReceiveFrom[];
-  //   r: CoreTypes.ReceiveFrom[];
-  //   b: CoreTypes.ReceiveFrom[];
-  // };
   options: DataType;
   selectedData: DataType;
   deletedData: DataType;
@@ -92,149 +84,16 @@ export default class Core {
   }
 
   set p(value: Vec) {
-    const offest = {
-      x: value.x - this.p.x,
-      y: value.y - this.p.y,
-    };
     this.__p__ = value;
-
-    // when receiver shape move, sender curve follows the receiver shape
-    const senderCurvesMapping: { [curveId: string]: boolean } = {};
-
-    ds.forEach((d) => {
-      // this.receiveFrom[d]?.forEach((from) => {
-      //   from.shape.curves[from.d].forEach((bridge) => {
-      //     if (
-      //       bridge.sendTo?.shape.id !== this.id ||
-      //       senderCurvesMapping[bridge.shape.id] ||
-      //       !bridge.sendTo?.d
-      //     )
-      //       return;
-      //     bridge.shape.p2 = {
-      //       x: bridge.shape.p2.x + offest.x,
-      //       y: bridge.shape.p2.y + offest.y,
-      //     };
-      //     const [cp1, cp2] = this.moveBridgeCurve(
-      //       from.d,
-      //       bridge.sendTo?.d,
-      //       bridge.shape.p1,
-      //       bridge.shape.p2,
-      //       bridge.shape.arrowAttr.h
-      //     );
-      //     if (!cp1 || !cp2) return;
-      //     bridge.shape.cp1 = cp1;
-      //     bridge.shape.cp2 = cp2;
-      //     senderCurvesMapping[bridge.shape.id] = true;
-      //   });
-      // });
-      // when sender shape move, receiver curve follows the sender shape
-      // this.curves[d].forEach((bridge) => {
-      //   if (!bridge.sendTo?.d) return;
-      //   bridge.shape.p2 = {
-      //     x: bridge.shape.p2.x - offest.x,
-      //     y: bridge.shape.p2.y - offest.y,
-      //   };
-      //   const [cp1, cp2] = this.moveBridgeCurve(
-      //     d,
-      //     bridge.sendTo?.d,
-      //     bridge.shape.p1,
-      //     bridge.shape.p2,
-      //     bridge.shape.arrowAttr.h
-      //   );
-      //   if (!cp1 || !cp2) return;
-      //   bridge.shape.cp1 = cp1;
-      //   bridge.shape.cp2 = cp2;
-      // });
-    });
   }
+
 
   get p() {
     return this.__p__;
   }
 
   set w(value: number) {
-    const offset = (this.w - value) / 2;
     this.__w__ = value;
-
-    // when sender width changes, receiver curve follows the sender shape
-    // this.curves[Direction.l].forEach((sendCurve) => {
-    //   sendCurve.shape.p1.x += offset;
-    //   sendCurve.shape.cp1.x += offset;
-
-    //   if (sendCurve.sendTo) return;
-
-    //   sendCurve.shape.p2 = {
-    //     ...sendCurve.shape.p2,
-    //     x: sendCurve.shape.p2.x + offset,
-    //   };
-    //   sendCurve.shape.cp2.x += offset;
-    // });
-
-    // this.curves[Direction.r].forEach((sendCurve) => {
-    //   sendCurve.shape.p1 = {
-    //     ...sendCurve.shape.p1,
-    //     x: value / 2,
-    //   };
-
-    // sendCurve.shape.cp1.x -= offset;
-
-    // if (sendCurve.sendTo) {
-    // console.log(" sendCurve.shape.p1", sendCurve.shape.p1);
-
-    // console.log(" sendCurve.shape.p2", sendCurve.shape.p2);
-
-    //   sendCurve.shape.p2 = sendCurve.shape.p2;
-
-    //   const [cp1, cp2] = this.moveBridgeCurve(
-    //     Direction.r,
-    //     sendCurve.sendTo.d,
-    //     sendCurve.shape.p1,
-    //     sendCurve.shape.p2,
-    //     sendCurve.shape.arrowAttr.h
-    //   );
-
-    //   if (!cp1 || !cp2) return;
-
-    //   sendCurve.shape.cp1 = cp1;
-    //   sendCurve.shape.cp2 = cp2;
-
-    //   console.log(" sendCurve.shape.p2", sendCurve.shape.p2);
-    // } else {
-    //   sendCurve.shape.p2 = {
-    //     ...sendCurve.shape.p2,
-    //     x: sendCurve.shape.p2.x - offset,
-    //   };
-    //   sendCurve.shape.cp2.x -= offset;
-    // }
-    // });
-
-    // when receiver width changes, receiver curve follows the sender shape
-
-    // this.receiveFrom[Direction.l]?.forEach((receiveFromItem) => {
-    //   const bridge = receiveFromItem.shape.curves[receiveFromItem.d].find(
-    //     (sendCurve) => sendCurve.shape.id === receiveFromItem.bridgeId
-    //   );
-
-    //   if (!bridge) return;
-    //   bridge.shape.p2 = {
-    //     ...bridge.shape.p2,
-    //     x: bridge.shape.p2.x + offset,
-    //   };
-    //   bridge.shape.cp2.x += offset;
-    // });
-
-    // this.receiveFrom[Direction.r]?.forEach((receiveFromItem) => {
-    //   const bridge = receiveFromItem.shape.curves[receiveFromItem.d].find(
-    //     (sendCurve) => sendCurve.shape.id === receiveFromItem.bridgeId
-    //   );
-
-    //   if (!bridge) return;
-    //   bridge.shape.p2 = {
-    //     ...bridge.shape.p2,
-    //     x: bridge.shape.p2.x - offset,
-    //   };
-    //   bridge.shape.cp2.x -= offset;
-    // });
   }
 
   get w() {
@@ -242,62 +101,7 @@ export default class Core {
   }
 
   set h(value: number) {
-    const offset = (this.h - value) / 2;
     this.__h__ = value;
-
-    // when sender height changes, receiver curve follows the sender shape
-    // this.curves[Direction.t].forEach((sendCurve) => {
-    //   sendCurve.shape.p1.y += offset;
-    //   sendCurve.shape.cp1.y += offset;
-
-    //   if (sendCurve.sendTo) return;
-
-    //   sendCurve.shape.p2 = {
-    //     ...sendCurve.shape.p2,
-    //     y: sendCurve.shape.p2.y + offset,
-    //   };
-    //   sendCurve.shape.cp2.y += offset;
-    // });
-
-    // this.curves[Direction.b].forEach((sendCurve) => {
-    //   sendCurve.shape.p1.y -= offset;
-    //   sendCurve.shape.cp1.y -= offset;
-
-    //   if (sendCurve.sendTo) return;
-
-    //   sendCurve.shape.p2 = {
-    //     ...sendCurve.shape.p2,
-    //     y: sendCurve.shape.p2.y - offset,
-    //   };
-    //   sendCurve.shape.cp2.y -= offset;
-    // });
-
-    // when receiver height changes, receiver curve follows the sender shape
-    // this.receiveFrom.t?.forEach((receiveFromItem) => {
-    //   const bridge = receiveFromItem.shape.curves[receiveFromItem.d].find(
-    //     (sendCurve) => sendCurve.shape.id === receiveFromItem.bridgeId
-    //   );
-
-    //   if (!bridge) return;
-    //   bridge.shape.p2 = {
-    //     ...bridge.shape.p2,
-    //     y: bridge.shape.p2.y + offset,
-    //   };
-    //   bridge.shape.cp2.y += offset;
-    // });
-
-    // this.receiveFrom.b?.forEach((receiveFromItem) => {
-    //   const bridge = receiveFromItem.shape.curves[receiveFromItem.d].find(
-    //     (sendCurve) => sendCurve.shape.id === receiveFromItem.bridgeId
-    //   );
-
-    //   if (!bridge) return;
-    //   bridge.shape.p2 = {
-    //     ...bridge.shape.p2,
-    //     y: bridge.shape.p2.y - offset,
-    //   };
-    //   bridge.shape.cp2.y -= offset;
-    // });
   }
 
   get h() {
@@ -318,12 +122,6 @@ export default class Core {
 
   set scale(value: number) {
     this.__scale__ = value;
-
-    // ds.forEach((d) => {
-    //   this.curves[d].forEach((curve) => {
-    //     curve.shape.scale = value;
-    //   });
-    // });
   }
 
   set selecting(_selecting: boolean) {
@@ -392,18 +190,6 @@ export default class Core {
     };
   }
 
-  // getCurveIds() {
-  //   let curveIds: string[] = [];
-
-  //   ds.forEach((d) => {
-  //     this.curves[d].forEach((curve) => {
-  //       curveIds.push(curve.shape.id);
-  //     });
-  //   });
-
-  //   return curveIds;
-  // }
-
   getScreenP() {
     return {
       x: (this.p.x + this.offset.x) * this.scale,
@@ -421,31 +207,6 @@ export default class Core {
   getScaleCurveTriggerDistance() {
     return this.__curveTrigger__.d * this.scale;
   }
-
-  // getPressingCurveP = (
-  //   pressingTarget: CurveTypes.PressingTarget,
-  //   curveId: CurveTypes.Id
-  // ) => {
-  //   const targetCurve = (() => {
-  //     for (const d of ds) {
-  //       const curve = this.curves[d].find(
-  //         (curve) => curve.shape.id === curveId
-  //       );
-  //       if (curve) return curve;
-  //     }
-  //   })();
-
-  //   if (!targetCurve) return null;
-
-  //   if (
-  //     pressingTarget === CurveTypes.PressingTarget.cp1 ||
-  //     pressingTarget === CurveTypes.PressingTarget.cp2
-  //   ) {
-  //     return targetCurve.shape[pressingTarget];
-  //   } else if (pressingTarget === CurveTypes.PressingTarget.p2) {
-  //     return targetCurve.shape.getArrowVertex()?.t;
-  //   }
-  // };
 
   getCurveP(screenP: Vec) {
     const relativeP = this.relativify(
@@ -764,49 +525,6 @@ export default class Core {
     return null;
   }
 
-  // checkCurvesBoundry(screenP: Vec) {
-  //   const withinRangeCurveIds: CurveTypes.Id[] = [];
-  //   const curveP = {
-  //     x: screenP.x - this?.getScreenP().x,
-  //     y: screenP.y - this?.getScreenP().y,
-  //   };
-
-  //   ds.forEach((d) => {
-  //     this.curves[d].forEach((curve) => {
-  //       if (!curve.shape.checkBoundry(curveP)) return;
-  //       withinRangeCurveIds.push(curve.shape.id);
-  //     });
-  //   });
-
-  //   return withinRangeCurveIds;
-  // }
-
-  // checkCurveControlPointsBoundry(screenP: Vec) {
-  //   const withinRangeCurveIds: {
-  //     id: CurveTypes.Id;
-  //     target: CurveTypes.PressingTarget;
-  //     isSelecting: boolean;
-  //     d: Direction;
-  //   }[] = [];
-
-  //   ds.forEach((d) => {
-  //     this.curves[d].forEach((curve) => {
-  //       const pressingHandler = curve.shape.checkControlPointsBoundry(
-  //         this.getCurveP(screenP)
-  //       );
-  //       if (!pressingHandler) return;
-  //       withinRangeCurveIds.push({
-  //         id: curve.shape.id,
-  //         target: pressingHandler,
-  //         isSelecting: curve.shape.selecting,
-  //         d: d,
-  //       });
-  //     });
-  //   });
-
-  //   return withinRangeCurveIds;
-  // }
-
   checkVertexesBoundry(p: Vec) {
     const edge = this.getEdge();
 
@@ -924,17 +642,6 @@ export default class Core {
     return null;
   }
 
-  // setIsCurveSelected(curveId: CurveTypes.Id, _selecting: boolean) {
-  //   ds.forEach((d) => {
-  //     const targetCurve = this.curves[d].find(
-  //       (curve) => curve.shape.id === curveId
-  //     )?.shape;
-
-  //     if (!targetCurve) return;
-  //     targetCurve.selecting = _selecting;
-  //   });
-  // }
-
   setReceivePointVisible(d: Direction, _visible: boolean) {
     this.__receivePoint__[d].visible = _visible;
   }
@@ -942,66 +649,6 @@ export default class Core {
   setReceivePointActivate(d: Direction, _actviate: boolean) {
     this.__receivePoint__[d].activate = _actviate;
   }
-
-  disConnect(curveIds: string[]) {
-    const curveIdsMapping = (() => {
-      const mapping: { [curveId: string]: boolean } = {};
-
-      curveIds.forEach((curveId) => {
-        mapping[curveId] = true;
-      });
-
-      return mapping;
-    })();
-
-    // ds.forEach((d) => {
-    //   this.curves[d].forEach((sendCurve) => {
-    //     if (!(sendCurve.shape.id in curveIdsMapping)) return;
-
-    //     const receiverShape = sendCurve?.sendTo?.shape,
-    //       receiverShapeD = sendCurve?.sendTo?.d;
-
-    //     if (receiverShape && receiverShapeD) {
-    //       const disconnectReceiveI = receiverShape.receiveFrom[
-    //         receiverShapeD
-    //       ].findIndex((receiveFrom) => receiveFrom.shape.id === this.id);
-    //       receiverShape.receiveFrom[receiverShapeD].splice(
-    //         disconnectReceiveI,
-    //         1
-    //       );
-    //       sendCurve.sendTo = null;
-    //     }
-    //   });
-    // });
-  }
-
-  // removeConnection() {
-    // remove connection from receiver
-    // ds.forEach((d) => {
-    //   this.curves[d].forEach((sendCurve) => {
-    //     const sendTo = sendCurve.sendTo;
-    //     if (!sendTo) return;
-    //     const removeTargetI = sendTo.shape.receiveFrom[sendTo.d].findIndex(
-    //       (receiveFrom) => receiveFrom.shape.id === this.id
-    //     );
-    //     sendTo.shape.receiveFrom[sendTo.d].splice(removeTargetI, 1);
-    //   });
-    // });
-    // // remove connection from sender
-    // ds.forEach((d) => {
-    //   const senders = this.receiveFrom[d];
-    //   if (!senders) return;
-    //   ds.forEach((d) => {
-    //     senders.forEach((sender) => {
-    //       sender.shape.curves[d].forEach((curve) => {
-    //         if (curve.sendTo?.shape.id === this.id) {
-    //           curve.sendTo = null;
-    //         }
-    //       });
-    //     });
-    //   });
-    // });
-  // }
 
   getRedundancies() {
     this.status = CoreTypes.Status.normal;
@@ -1039,13 +686,6 @@ export default class Core {
     );
   }
 
-  // removeCurve(d: Direction, targetId: string) {
-  //   const targetI = this.curves[d].findIndex(
-  //     (curve) => curve.shape.id === targetId
-  //   );
-  //   this.curves[d].splice(targetI, 1);
-  // }
-
   move(offset: Vec) {
     let xOffset = offset.x / this.scale,
       yOffset = offset.y / this.scale;
@@ -1055,296 +695,6 @@ export default class Core {
       y: this.p.y + yOffset,
     };
   }
-
-  // moveCurve(curveId: CurveTypes.Id, p: Vec) {
-  //   const targetCurve = (() => {
-  //     for (const d of ds) {
-  //       const curve = this.curves[d].find(
-  //         (curve) => curve.shape.id === curveId
-  //       );
-  //       if (curve) return curve;
-  //     }
-  //   })();
-
-  //   if (!targetCurve) return;
-  //   targetCurve.shape.move(p);
-  // }
-
-  // moveCurveHandler(
-  //   d: Direction,
-  //   curveId: CurveTypes.Id,
-  //   pressingTarget: CurveTypes.PressingTarget,
-  //   offset: Vec
-  // ) {
-  //   const targetCurve = this.curves[d].find(
-  //     (curve) => curve.shape.id === curveId
-  //   )?.shape;
-
-  //   if (!targetCurve) return;
-  //   targetCurve.moveHandler(pressingTarget, offset);
-  // }
-
-  // moveBridgeCurve(
-  //   fromD: CommonTypes.Direction,
-  //   toD: CommonTypes.Direction,
-  //   startP: Vec,
-  //   endP: Vec,
-  //   min: number
-  // ) {
-  //   const distance = {
-  //     x: Math.abs(startP.x - endP.x),
-  //     y: Math.abs(startP.y - endP.y),
-  //   };
-  //   const margin = {
-  //     x: distance.x / 2,
-  //     y: distance.y / 2,
-  //   };
-
-  //   if (fromD === CommonTypes.Direction.l) {
-  //     if (toD === CommonTypes.Direction.l) {
-  //       return [
-  //         {
-  //           x: startP.x - 2 * min - margin.y,
-  //           y: startP.y,
-  //         },
-  //         {
-  //           x: -min + endP.x - margin.y,
-  //           y: endP.y,
-  //         },
-  //       ];
-  //     } else if (toD === CommonTypes.Direction.t) {
-  //       return [
-  //         {
-  //           x: startP.x - 2 * min - margin.x,
-  //           y: startP.y,
-  //         },
-  //         {
-  //           x: endP.x,
-  //           y: -min + endP.y - margin.y,
-  //         },
-  //       ];
-  //     } else if (toD === CommonTypes.Direction.r) {
-  //       return [
-  //         {
-  //           x: startP.x - 2 * min - margin.x,
-  //           y: startP.y,
-  //         },
-  //         {
-  //           x: min + endP.x + margin.x,
-  //           y: endP.y,
-  //         },
-  //       ];
-  //     } else if (toD === CommonTypes.Direction.b) {
-  //       return [
-  //         {
-  //           x: startP.x - 2 * min - margin.x,
-  //           y: startP.y,
-  //         },
-  //         {
-  //           x: endP.x,
-  //           y: min + endP.y + margin.y,
-  //         },
-  //       ];
-  //     }
-  //   } else if (fromD === CommonTypes.Direction.t) {
-  //     if (toD === CommonTypes.Direction.l) {
-  //       return [
-  //         {
-  //           x: startP.x,
-  //           y: startP.y - min - margin.y,
-  //         },
-  //         {
-  //           x: endP.x - min - margin.x,
-  //           y: endP.y,
-  //         },
-  //       ];
-  //     } else if (toD === CommonTypes.Direction.t) {
-  //       return [
-  //         {
-  //           x: startP.x,
-  //           y: startP.y - min * 2 - margin.x,
-  //         },
-  //         {
-  //           x: endP.x,
-  //           y: endP.y - min - margin.x,
-  //         },
-  //       ];
-  //     } else if (toD === CommonTypes.Direction.r) {
-  //       return [
-  //         {
-  //           x: startP.x,
-  //           y: startP.y - min - margin.y,
-  //         },
-  //         {
-  //           x: endP.x + min + margin.x,
-  //           y: endP.y,
-  //         },
-  //       ];
-  //     } else if (toD === CommonTypes.Direction.b) {
-  //       return [
-  //         {
-  //           x: startP.x,
-  //           y: startP.y - min * 2 - margin.y,
-  //         },
-  //         {
-  //           x: endP.x,
-  //           y: endP.y + min + margin.y,
-  //         },
-  //       ];
-  //     }
-  //   } else if (fromD === CommonTypes.Direction.r) {
-  //     if (toD === CommonTypes.Direction.l) {
-  //       return [
-  //         {
-  //           x: startP.x + 2 * min + margin.x,
-  //           y: startP.y,
-  //         },
-  //         {
-  //           x: endP.x - min - margin.x,
-  //           y: endP.y,
-  //         },
-  //       ];
-  //     } else if (toD === CommonTypes.Direction.t) {
-  //       return [
-  //         {
-  //           x: startP.x + 2 * min + margin.x,
-  //           y: startP.y,
-  //         },
-  //         {
-  //           x: endP.x,
-  //           y: endP.y - min - margin.y,
-  //         },
-  //       ];
-  //     } else if (toD === CommonTypes.Direction.r) {
-  //       return [
-  //         {
-  //           x: startP.x + 2 * min + margin.y,
-  //           y: startP.y,
-  //         },
-  //         {
-  //           x: endP.x + min + margin.y,
-  //           y: endP.y,
-  //         },
-  //       ];
-  //     } else if (toD === CommonTypes.Direction.b) {
-  //       return [
-  //         {
-  //           x: startP.x + 2 * min + margin.x,
-  //           y: startP.y,
-  //         },
-  //         {
-  //           x: endP.x,
-  //           y: min + endP.y + margin.y,
-  //         },
-  //       ];
-  //     }
-  //   } else if (fromD === CommonTypes.Direction.b) {
-  //     if (toD === CommonTypes.Direction.l) {
-  //       return [
-  //         {
-  //           x: startP.x,
-  //           y: startP.y + min + margin.y,
-  //         },
-  //         {
-  //           x: endP.x - min - margin.x,
-  //           y: endP.y,
-  //         },
-  //       ];
-  //     } else if (toD === CommonTypes.Direction.t) {
-  //       return [
-  //         {
-  //           x: startP.x,
-  //           y: startP.y + min * 2 + margin.y,
-  //         },
-  //         {
-  //           x: endP.x,
-  //           y: endP.y - min - margin.y,
-  //         },
-  //       ];
-  //     } else if (toD === CommonTypes.Direction.r) {
-  //       return [
-  //         {
-  //           x: startP.x,
-  //           y: startP.y + min + margin.y,
-  //         },
-  //         {
-  //           x: endP.x + min + margin.x,
-  //           y: endP.y,
-  //         },
-  //       ];
-  //     } else if (toD === CommonTypes.Direction.b) {
-  //       return [
-  //         {
-  //           x: startP.x,
-  //           y: startP.y + min * 2 + margin.x,
-  //         },
-  //         {
-  //           x: endP.x,
-  //           y: endP.y + min + margin.x,
-  //         },
-  //       ];
-  //     }
-  //   }
-
-  //   return [null, null];
-  // }
-
-  // stick(
-  //   bridgeId: CurveTypes.Id,
-  //   toP: Vec,
-  //   fromD: CommonTypes.Direction,
-  //   toD: CommonTypes.Direction
-  // ) {
-  //   const bridge = this.curves[fromD].find(
-  //     (curve) => curve.shape.id === bridgeId
-  //   )?.shape;
-
-  //   if (!bridge) return;
-
-  //   const startP = {
-  //     x: this.scalify(bridge.p1.x),
-  //     y: this.scalify(bridge.p1.y),
-  //   };
-
-  //   let endP;
-
-  //   if (toD === CommonTypes.Direction.l) {
-  //     endP = this.getCurveP({
-  //       x: toP.x - this.scalify(bridge.arrowAttr.h),
-  //       y: toP.y,
-  //     });
-  //   } else if (toD === CommonTypes.Direction.t) {
-  //     endP = this.getCurveP({
-  //       x: toP.x,
-  //       y: toP.y - this.scalify(bridge.arrowAttr.h),
-  //     });
-  //   } else if (toD === CommonTypes.Direction.r) {
-  //     endP = this.getCurveP({
-  //       x: toP.x + this.scalify(bridge.arrowAttr.h),
-  //       y: toP.y,
-  //     });
-  //   } else if (toD === CommonTypes.Direction.b) {
-  //     endP = this.getCurveP({
-  //       x: toP.x,
-  //       y: toP.y + this.scalify(bridge.arrowAttr.h),
-  //     });
-  //   }
-  //   if (!endP) return;
-
-  //   const [cp1, cp2] = this.moveBridgeCurve(
-  //     fromD,
-  //     toD,
-  //     startP,
-  //     endP,
-  //     this.scalify(bridge.arrowAttr.h)
-  //   );
-
-  //   if (!cp1 || !cp2) return;
-
-  //   bridge.locateHandler(CurveTypes.PressingTarget.cp1, cp1);
-  //   bridge.locateHandler(CurveTypes.PressingTarget.cp2, cp2);
-  //   bridge.locateHandler(CurveTypes.PressingTarget.p2, this.getCurveP(toP));
-  // }
 
   locate(p: { x: null | number; y: null | number }) {
     if (!p.x && !p.y) return;
@@ -1366,99 +716,6 @@ export default class Core {
       };
     }
   }
-
-  // locateCurveHandler(
-  //   curveId: CurveTypes.Id,
-  //   pressingTarget: CurveTypes.PressingTarget,
-  //   screenP: Vec
-  // ) {
-  //   const target = (() => {
-  //     for (const _d of ds) {
-  //       const _curve = this.curves[_d].find(
-  //         (curve) => curve.shape.id === curveId
-  //       );
-  //       if (_curve) return { d: _d, curve: _curve.shape, send: _curve.sendTo };
-  //     }
-  //   })();
-
-  //   if (!target) return;
-
-  //   switch (pressingTarget) {
-  //     case CurveTypes.PressingTarget.p2:
-  //       target.curve.locateHandler(
-  //         CurveTypes.PressingTarget.p2,
-  //         this.getCurveP(screenP)
-  //       );
-
-  //       let cp2 = {
-  //         x: 0,
-  //         y: 0,
-  //       };
-
-  //       switch (target.d) {
-  //         case Direction.l:
-  //           cp2.x = (target.curve.p2.x + target.curve.p1.x) / 2;
-  //           cp2.y = 0;
-  //           break;
-
-  //         case Direction.t:
-  //           cp2.x = 0;
-  //           cp2.y = (target.curve.p2.y + target.curve.p1.y) / 2;
-  //           break;
-
-  //         case Direction.r:
-  //           cp2.x = (target.curve.p2.x + target.curve.p1.x) / 2;
-  //           cp2.y = 0;
-  //           break;
-
-  //         case Direction.b:
-  //           cp2.x = 0;
-  //           cp2.y = (target.curve.p2.y + target.curve.p1.y) / 2;
-  //           break;
-  //       }
-
-  //       target.curve.cp2 = cp2;
-
-  //       let cp1 = {
-  //         x: 0,
-  //         y: 0,
-  //       };
-
-  //       switch (target.d) {
-  //         case Direction.l:
-  //           cp1.x = this.scalify(this.offsetfy(target.curve.p1).x);
-  //           cp1.y = 0;
-  //           break;
-
-  //         case Direction.t:
-  //           cp1.x = 0;
-  //           cp1.y = 0;
-  //           break;
-
-  //         case Direction.r:
-  //           cp1.x = this.scalify(this.offsetfy(target.curve.p1).x);
-  //           cp1.y = 0;
-  //           break;
-
-  //         case Direction.b:
-  //           cp1.x = 0;
-  //           cp1.y = 0;
-  //           break;
-  //       }
-
-  //       target.curve
-  //         .stick(CurveTypes.PressingTarget.cp1)
-  //         .to(CurveTypes.PressingTarget.p1);
-  //       break;
-
-  //     case CurveTypes.PressingTarget.cp2:
-  //       target.curve.locateHandler(
-  //         CurveTypes.PressingTarget.cp2,
-  //         this.getCurveP(screenP)
-  //       );
-  //       break;
-  //   }
-  // }
 
   resize(offset: Vec, vertex: CoreTypes.PressingTarget) {
     if (
@@ -1543,107 +800,6 @@ export default class Core {
       y: _h > 0 ? this.p.y + offset.y / 2 / this.scale : this.p.y,
     };
   }
-
-  // initializeCurve(id: string, _d: Direction) {
-  //   let newCurve = null;
-  //   let p1: Vec = { x: 0, y: 0 };
-  //   let p2: Vec = { x: 0, y: 0 };
-  //   let cp1: Vec = { x: 0, y: 0 };
-  //   let cp2: Vec = { x: 0, y: 0 };
-
-  //   const arrow_h = 12;
-
-  //   switch (_d) {
-  //     case Direction.l:
-  //       p1 = {
-  //         x: -this.w / 2,
-  //         y: 0,
-  //       };
-  //       p2 = {
-  //         x: -this.w / 2 - this.__curveTrigger__.d + arrow_h,
-  //         y: 0,
-  //       };
-  //       cp1 = p1;
-  //       cp2 = {
-  //         x: (p1.x + p2.x) / 2,
-  //         y: 0,
-  //       };
-  //       break;
-
-  //     case Direction.t:
-  //       p1 = {
-  //         x: 0,
-  //         y: -this.h / 2,
-  //       };
-  //       p2 = {
-  //         x: 0,
-  //         y: -this.h / 2 - this.__curveTrigger__.d + arrow_h,
-  //       };
-  //       cp1 = p1;
-  //       cp2 = {
-  //         x: 0,
-  //         y: (p1.y + p2.y) / 2,
-  //       };
-  //       break;
-
-  //     case Direction.r:
-  //       p1 = {
-  //         x: this.w / 2,
-  //         y: 0,
-  //       };
-  //       p2 = {
-  //         x: this.w / 2 + this.__curveTrigger__.d - arrow_h,
-  //         y: 0,
-  //       };
-  //       cp1 = p1;
-  //       cp2 = {
-  //         x: (p1.x + p2.x) / 2,
-  //         y: 0,
-  //       };
-  //       break;
-
-  //     case Direction.b:
-  //       p1 = {
-  //         x: 0,
-  //         y: this.h / 2,
-  //       };
-  //       p2 = {
-  //         x: 0,
-  //         y: this.h / 2 + this.__curveTrigger__.d - arrow_h,
-  //       };
-  //       cp1 = p1;
-  //       cp2 = {
-  //         x: 0,
-  //         y: (p1.y + p2.y) / 2,
-  //       };
-  //       break;
-  //   }
-
-  //   newCurve = new Curve(id, p1, cp1, cp2, p2);
-
-  //   if (!newCurve) return;
-  //   newCurve.scale = this.scale;
-
-  //   this.curves[_d].push({
-  //     shape: newCurve,
-  //     sendTo: null,
-  //   });
-  // }
-
-  // createCurve(
-  //   id: string,
-  //   d: Direction,
-  //   p1: Vec,
-  //   p2: Vec,
-  //   cp1: Vec,
-  //   cp2: Vec,
-  //   sendTo: null | CoreTypes.SendTo
-  // ) {
-  //   this.curves[d].push({
-  //     shape: new Curve(id, p1, cp1, cp2, p2),
-  //     sendTo: sendTo,
-  //   });
-  // }
 
   renderText = (
     ctx: CanvasRenderingContext2D,
@@ -2005,17 +1161,4 @@ export default class Core {
 
     ctx.restore();
   }
-
-  // drawCurve(ctx: CanvasRenderingContext2D) {
-  //   ctx.save();
-  //   ctx.translate(this.getScreenP().x, this.getScreenP().y);
-
-  //   ds.forEach((d) => {
-  //     this.curves[d].forEach((curve) => {
-  //       curve.shape.draw(ctx);
-  //     });
-  //   });
-
-  //   ctx.restore();
-  // }
 }

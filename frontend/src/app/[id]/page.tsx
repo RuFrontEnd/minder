@@ -1637,7 +1637,6 @@ const selectShape = (p: CommonTypes.Vec) => {
         target: pressingVertex,
         direction: null,
       };
-      return false;
     } else if (shape.checkBoundry(p)) {
       pressing = {
         origin: cloneDeep(shape),
@@ -1647,8 +1646,12 @@ const selectShape = (p: CommonTypes.Vec) => {
         target: CoreTypes.PressingTarget.m,
         direction: null,
       };
-      return false;
     }
+  }
+
+  if(pressing?.shape){
+    pressing.shape.selecting = true
+    return false;
   }
 
   return true;
@@ -2499,139 +2502,6 @@ export default function IdPage() {
           () => deSelectCurve(),
           () => selectShape(p),
         ]);
-
-        // switch (curveTriggerD) {
-        //   case CommonTypes.Direction.l:
-        //     relativeCurveCp2 = {
-        //       x: (-shape.curveTrigger.d * 1) / 3,
-        //       y: 0,
-        //     };
-        //     break;
-
-        //   case CommonTypes.Direction.t:
-        //     relativeCurveCp2 = {
-        //       x: 0,
-        //       y: (-shape.curveTrigger.d * 1) / 3,
-        //     };
-        //     break;
-
-        //   case CommonTypes.Direction.r:
-        //     relativeCurveCp2 = {
-        //       x: (shape.curveTrigger.d * 1) / 3,
-        //       y: 0,
-        //     };
-        //     break;
-
-        //   case CommonTypes.Direction.b:
-        //     relativeCurveCp2 = {
-        //       x: 0,
-        //       y: (shape.curveTrigger.d * 1) / 3,
-        //     };
-        //     break;
-        // }
-
-        // if (!!pressing) return;
-
-        // const withinHandlerRangeCurves = shape.checkCurveControlPointsBoundry(
-        //   p
-        // );
-        // const firstDetectedCurve = withinHandlerRangeCurves[0];
-        // const withinRangeCurveIds = shape.checkCurvesBoundry(p);
-
-        // if (
-        //   firstDetectedCurve &&
-        //   firstDetectedCurve.target === CurveTypes.PressingTarget.p2
-        // ) {
-        //   pressing = {
-        //     origin: cloneDeep(shape),
-        //     shape: shape,
-        //     ghost: null,
-        //     curveId: firstDetectedCurve.id,
-        //     target: CurveTypes.PressingTarget.p2,
-        //     direction: firstDetectedCurve.d,
-        //   };
-        // } else if (firstDetectedCurve && firstDetectedCurve.isSelecting) {
-        //   pressing = {
-        //     origin: cloneDeep(shape),
-        //     shape: shape,
-        //     ghost: null,
-        //     curveId: firstDetectedCurve.id,
-        //     target: firstDetectedCurve.target,
-        //     direction: firstDetectedCurve.d,
-        //   };
-        // } else if (withinRangeCurveIds.length > 0) {
-        //   pressing = {
-        //     origin: cloneDeep(shape),
-        //     shape: shape,
-        //     ghost: null,
-        //     curveId: withinRangeCurveIds[0],
-        //     target: null,
-        //     direction: null,
-        //   };
-        // }
-        // });
-
-        // if (!pressing) {
-        //   shapes.forEach((_, shapeI, shapes) => {
-        //     const shape = shapes[shapes.length - 1 - shapeI];
-        //     const _ghost = cloneDeep(shape);
-        //     _ghost.title = "ghost";
-        //     const vertex = shape.checkVertexesBoundry(p);
-        //     if (shape.selecting && vertex) {
-        //       pressing = {
-        //         origin: cloneDeep(shape),
-        //         shape: shape,
-        //         ghost: _ghost,
-        //         curveId: null,
-        //         target: vertex,
-        //         direction: null,
-        //       };
-        //     } else if (shape.checkBoundry(p)) {
-        //       pressing = {
-        //         origin: cloneDeep(shape),
-        //         shape: shape,
-        //         ghost: _ghost,
-        //         curveId: null,
-        //         target: CoreTypes.PressingTarget.m,
-        //         direction: null,
-        //       };
-        //     }
-        //   });
-        // }
-
-        // reset multiSelect status
-        // shapes.forEach((shape) => {
-        //   shape.getCurveIds().map((curveId) => {
-        //     shape.setIsCurveSelected(curveId, false);
-        //   });
-        //   shape.selecting = false;
-        // });
-
-        // if has already selected curve, never multiSelect any other shapes
-        // if (pressing && pressing.shape && !!pressing.curveId) {
-        //   pressing.shape?.setIsCurveSelected(pressing.curveId, true);
-
-        //   if (pressing.target === CurveTypes.PressingTarget.p2) {
-        //     const curveArrowTopP = pressing.shape.getPressingCurveP(
-        //       CurveTypes.PressingTarget.p2,
-        //       pressing.curveId
-        //     );
-        //     const curveCp2 = pressing.shape.getPressingCurveP(
-        //       CurveTypes.PressingTarget.cp2,
-        //       pressing.curveId
-        //     );
-
-        //     if (!curveArrowTopP || !curveCp2) return;
-
-        //     relativeCurveCp2 = {
-        //       x: curveArrowTopP.x - curveCp2.x,
-        //       y: curveArrowTopP.y - curveCp2.y,
-        //     };
-        //   }
-        // } else
-        if (pressing && pressing.shape && !pressing.curveId) {
-          pressing.shape.selecting = true;
-        }
       }
 
       if (!pressing) {
@@ -2951,12 +2821,6 @@ export default function IdPage() {
         });
 
         moveCurve(pressing?.shape)
-      } else if (
-        !!pressing.curveId &&
-        pressing.direction &&
-        pressing?.target === CurveTypes.PressingTarget.p2
-      ) {
-        pressing.shape.disConnect([pressing.curveId]);
       }
     } else if (!!pressingCurve) {
       movePressingCurve(pressingCurve, p, shapes);
