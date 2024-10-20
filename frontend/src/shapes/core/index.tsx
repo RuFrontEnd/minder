@@ -19,13 +19,13 @@ export default class Core {
     },
   };
   protected __curveTrigger__: {
-    d: number;
+    distance: number;
     size: {
       fill: number;
       stroke: number;
     };
   } = {
-    d: 50,
+    distance: 48,
     size: {
       fill: 4,
       stroke: 2,
@@ -204,7 +204,7 @@ export default class Core {
   }
 
   getScaleCurveTriggerDistance() {
-    return this.__curveTrigger__.d * this.scale;
+    return this.__curveTrigger__.distance * this.scale;
   }
 
   getCurveP(screenP: Vec) {
@@ -269,20 +269,20 @@ export default class Core {
       },
       __curveTrigger__: {
         l: {
-          x: edge.l - this.__curveTrigger__.d,
+          x: edge.l - this.__curveTrigger__.distance,
           y: pivot.y,
         },
         t: {
           x: pivot.x,
-          y: edge.t - this.__curveTrigger__.d,
+          y: edge.t - this.__curveTrigger__.distance,
         },
         r: {
-          x: edge.r + this.__curveTrigger__.d,
+          x: edge.r + this.__curveTrigger__.distance,
           y: pivot.y,
         },
         b: {
           x: pivot.x,
-          y: edge.b + this.__curveTrigger__.d,
+          y: edge.b + this.__curveTrigger__.distance,
         },
       },
       receivingPoints: {
@@ -886,8 +886,6 @@ export default class Core {
         w: scaleSize.w,
         h: scaleSize.h,
       };
-
-    ctx.moveTo(screenP.x, screenP.y);
     // ctx.globalAlpha = 0.5; // TODO: for testing ghost
 
     ctx.fillStyle = (() => {
@@ -916,6 +914,8 @@ export default class Core {
     }
 
     if (this.getIsReceiving()) {
+      ctx.save()
+      ctx.translate(screenP.x, screenP.y)
       if (this.__selecting__) {
         // draw frame
         ctx.fillStyle = "white";
@@ -984,15 +984,19 @@ export default class Core {
         ctx.fill();
         ctx.closePath();
       }
+      ctx.restore()
     }
 
+    ctx.save()
+    ctx.translate(screenP.x, screenP.y)
     // render center text
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillStyle = "white";
     ctx.font = `${16 * scale}px ${inter.style.fontFamily}`;
-
     this.renderText(ctx, this.title, 0, 0, scaleSize.w, 20);
+    ctx.restore()
+
 
     // draw id text
     // ctx.textAlign = "start";
@@ -1003,19 +1007,24 @@ export default class Core {
     // );
   }
 
-  drawSendingPoint(ctx: CanvasRenderingContext2D) {
+  drawSendingPoint(ctx: CanvasRenderingContext2D, offest:CommonTypes.Vec={x:0, y:0}, scale:number = 0) {
     if (!ctx) return;
-    ctx.save();
-    ctx.translate(this.getScreenP().x, this.getScreenP().y);
+    const screenP = this.getScreenP(offest, scale)
+    const scaleSize = this.getScaleSize(scale)
+    const curveTriggerDistance = this.__curveTrigger__.distance*scale
     // draw curve triggers
     ctx.fillStyle = "white";
     ctx.strokeStyle = "DeepSkyBlue";
     ctx.lineWidth = this.strokeSize;
 
+
+    ctx.save()
+    ctx.translate(screenP.x, screenP.y)
+
     // left
     ctx.beginPath();
     ctx.arc(
-      -this.getScaleSize().w / 2 - this.getScaleCurveTriggerDistance(),
+      -scaleSize.w / 2 - curveTriggerDistance,
       0,
       this.anchor.size.fill,
       0,
@@ -1030,7 +1039,7 @@ export default class Core {
     ctx.beginPath();
     ctx.arc(
       0,
-      -this.getScaleSize().h / 2 - this.getScaleCurveTriggerDistance(),
+      -scaleSize.h / 2 - curveTriggerDistance,
       this.anchor.size.fill,
       0,
       2 * Math.PI,
@@ -1043,7 +1052,7 @@ export default class Core {
     // right
     ctx.beginPath();
     ctx.arc(
-      this.getScaleSize().w / 2 + this.getScaleCurveTriggerDistance(),
+      scaleSize.w / 2 + curveTriggerDistance,
       0,
       this.anchor.size.fill,
       0,
@@ -1058,7 +1067,7 @@ export default class Core {
     ctx.beginPath();
     ctx.arc(
       0,
-      this.getScaleSize().h / 2 + this.getScaleCurveTriggerDistance(),
+      scaleSize.h / 2 + curveTriggerDistance,
       this.__curveTrigger__.size.fill,
       0,
       2 * Math.PI,
@@ -1068,12 +1077,14 @@ export default class Core {
     ctx.fill();
     ctx.closePath();
 
-    ctx.restore();
+    ctx.restore()
   }
 
-  drawRecievingPoint(ctx: CanvasRenderingContext2D) {
+  drawRecievingPoint(ctx: CanvasRenderingContext2D,offest:CommonTypes.Vec={x:0, y:0}, scale:number = 0) {
+    const screenP = this.getScreenP(offest, scale)
+    const scaleSize = this.getScaleSize(scale)
     ctx.save();
-    ctx.translate(this.getScreenP().x, this.getScreenP().y);
+    ctx.translate(screenP.x, screenP.y);
     // draw receiving points
     ctx.fillStyle = tailwindColors.white["500"];
     ctx.strokeStyle = "DeepSkyBlue";
@@ -1088,7 +1099,7 @@ export default class Core {
       }
       ctx.beginPath();
       ctx.arc(
-        -this.getScaleSize().w / 2,
+        -scaleSize.w / 2,
         0,
         this.anchor.size.fill,
         0,
@@ -1110,7 +1121,7 @@ export default class Core {
       ctx.beginPath();
       ctx.arc(
         0,
-        -this.getScaleSize().h / 2,
+        -scaleSize.h / 2,
         this.anchor.size.fill,
         0,
         2 * Math.PI,
@@ -1130,7 +1141,7 @@ export default class Core {
       }
       ctx.beginPath();
       ctx.arc(
-        this.getScaleSize().w / 2,
+        scaleSize.w / 2,
         0,
         this.anchor.size.fill,
         0,
@@ -1152,7 +1163,7 @@ export default class Core {
       ctx.beginPath();
       ctx.arc(
         0,
-        this.getScaleSize().h / 2,
+        scaleSize.h / 2,
         this.anchor.size.fill,
         0,
         2 * Math.PI,

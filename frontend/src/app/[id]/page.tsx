@@ -1579,7 +1579,7 @@ const triggerCurve = (p: CommonTypes.Vec) => {
         triggerShape.w,
         triggerShape.h,
         triggerShape.p,
-        50
+        triggerShape.curveTrigger.distance
       ),
     };
 
@@ -1769,7 +1769,7 @@ const draw = (
         shape instanceof Data ||
         (shape instanceof Desicion && !(shape.getText().y && shape.getText().n))
       ) {
-        shape.drawSendingPoint(ctx);
+        shape.drawSendingPoint(ctx, offset, scale);
       }
     });
   }
@@ -1809,7 +1809,7 @@ const draw = (
 
   if (!isScreenshot) {
     shapes.forEach((shape) => {
-      shape.drawRecievingPoint(ctx);
+      shape.drawRecievingPoint(ctx, offset, scale);
     });
   }
 
