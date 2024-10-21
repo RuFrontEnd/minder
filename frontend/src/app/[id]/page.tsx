@@ -1612,10 +1612,14 @@ const triggerCurve = (
   return true;
 };
 
-const selectCurve = (p: CommonTypes.Vec) => {
+const selectCurve = (
+  p: CommonTypes.Vec,   
+  offset: CommonTypes.Vec = { x: 0, y: 0 },
+  scale: number = 1
+) => {
   for (let i = curves.length - 1; i > -1; i--) {
     const curve = curves[i];
-    if (curve.shape.selecting && curve.shape.checkControlPointsBoundry(p)) {
+    if (curve.shape.selecting && curve.shape.checkControlPointsBoundry(getNormalP(p, offset, scale))) {
       pressingCurve = {
         from: {
           shape: curve.from.shape,
@@ -1628,7 +1632,7 @@ const selectCurve = (p: CommonTypes.Vec) => {
 
       return false;
     }
-    if (curve.shape.checkBoundry(p)) {
+    if (curve.shape.checkBoundry(getNormalP(p, offset, scale))) {
       curve.shape.selecting = true;
       return false;
     }
@@ -2536,7 +2540,7 @@ export default function IdPage() {
         handleUtils.handle([
           () => triggerCurve(p, offset, scale),
           () => deSelectShape(),
-          () => selectCurve(p),
+          () => selectCurve(p,  offset, scale),
           () => deSelectCurve(),
           () => selectShape(p, offset, scale),
         ]);

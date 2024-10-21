@@ -249,43 +249,24 @@ export default class Curve {
   } // checked
 
   // Check if a point is close to the Bezier curve
-  getIsPNearBezierCurve(screenP: Vec, threshold: number) {
-    const relativeP = this.relativify(
-      this.deOffset({
-        x: this.deScale(screenP.x),
-        y: this.deScale(screenP.y),
-      })
-    );
-
+  getIsPNearBezierCurve(p: Vec, threshold: number) {
     for (let t = 0; t <= 1; t += 0.01) {
       if (!this.__p1__ || !this.__cp1__ || !this.cp2 || !this.p2) return false;
-      const bezierP = this.relativify(
+      const bezierP = 
         this.getBezierP(t, [this.__p1__, this.__cp1__, this.__cp2__, this.p2])
-      );
-      const distance = this.getDistance(relativeP, bezierP);
+ 
+      const distance = this.getDistance(p, bezierP);
 
       if (distance < threshold) {
         return true;
       }
     }
     return false;
-  } // checkedrelativeP
+  }
 
-  checkControlPointsBoundry(screenP: Vec) {
+  checkControlPointsBoundry(p: Vec) {
     if (!this.__p1__ || !this.p2 || !this.__cp1__ || !this.cp2) return null;
     let dx, dy;
-
-    const relativeP = {
-      p: this.relativify(
-        this.deOffset({
-          x: this.deScale(screenP.x),
-          y: this.deScale(screenP.y),
-        })
-      ),
-      p2: this.relativify(this.p2),
-      cp1: this.relativify(this.cp1),
-      cp2: this.relativify(this.cp2),
-    };
 
     // dx = relativeP.p2.x - relativeP.p.x;
     // dy = relativeP.p2.y - relativeP.p.y; // TODO: temporarily closed
@@ -296,19 +277,19 @@ export default class Curve {
     //   return CurveTypes.PressingTarget.p2;
     // } // TODO: temporarily closed
 
-    if (this.arrow?.checkControlPointsBoundry(this.getArrowP(screenP))) {
+    if (this.arrow?.checkControlPointsBoundry(p)) {
       return CurveTypes.PressingTarget.p2;
     }
 
-    dx = relativeP.cp1.x - relativeP.p.x;
-    dy = relativeP.cp1.y - relativeP.p.y;
+    dx = this.cp1.x - p.x;
+    dy = this.cp1.y - p.y;
 
     if (dx * dx + dy * dy < scope) {
       return CurveTypes.PressingTarget.cp1;
     }
 
-    dx = relativeP.cp2.x - relativeP.p.x;
-    dy = relativeP.cp2.y - relativeP.p.y;
+    dx = this.cp2.x - p.x;
+    dy = this.cp2.y - p.y;
 
     if (dx * dx + dy * dy < scope) {
       return CurveTypes.PressingTarget.cp2;
@@ -325,10 +306,10 @@ export default class Curve {
     return null;
   }
 
-  checkBoundry(screenP: Vec) {
+  checkBoundry(p: Vec) {
     return (
-      this.getIsPNearBezierCurve(screenP, threshold) || // checked
-      this.arrow?.checkBoundry(this.getArrowP(screenP))
+      this.getIsPNearBezierCurve(p, threshold) || // checked
+      this.arrow?.checkBoundry(p)
     );
   }
 

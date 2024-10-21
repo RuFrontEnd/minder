@@ -195,47 +195,34 @@ export default class Arrow {
     return this.correct(this.rotate(this.relativify(p), deg));
   }
 
-  checkBoundry(screenP: Vec) {
-    const deScaleP = {
-      x: this.deScale(screenP.x),
-      y: this.deScale(screenP.y),
-    };
-
-    const relativeP = this.relativify(this.deOffset(deScaleP));
-
-    const relativeVertex = {
-      t: this.relativify(this.__vertex__.t),
-      l: this.relativify(this.__vertex__.l),
-      r: this.relativify(this.__vertex__.r),
-    };
-
+  checkBoundry(p: Vec) {
     const vecs = [
       {
-        x: relativeVertex.r.x - relativeVertex.t.x,
-        y: relativeVertex.r.y - relativeVertex.t.y,
+        x: this.__vertex__.r.x - this.__vertex__.t.x,
+        y: this.__vertex__.r.y - this.__vertex__.t.y,
       },
       {
-        x: relativeVertex.l.x - relativeVertex.r.x,
-        y: relativeVertex.l.y - relativeVertex.r.y,
+        x: this.__vertex__.l.x - this.__vertex__.r.x,
+        y: this.__vertex__.l.y - this.__vertex__.r.y,
       },
       {
-        x: relativeVertex.t.x - relativeVertex.l.x,
-        y: relativeVertex.t.y - relativeVertex.l.y,
+        x: this.__vertex__.t.x - this.__vertex__.l.x,
+        y: this.__vertex__.t.y - this.__vertex__.l.y,
       },
     ];
 
     const target = [
       {
-        x: relativeP.x - relativeVertex.t.x,
-        y: relativeP.y - relativeVertex.t.y,
+        x: p.x - this.__vertex__.t.x,
+        y: p.y - this.__vertex__.t.y,
       },
       {
-        x: relativeP.x - relativeVertex.r.x,
-        y: relativeP.y - relativeVertex.r.y,
+        x: p.x - this.__vertex__.r.x,
+        y: p.y - this.__vertex__.r.y,
       },
       {
-        x: relativeP.x - relativeVertex.l.x,
-        y: relativeP.y - relativeVertex.l.y,
+        x: p.x - this.__vertex__.l.x,
+        y: p.y - this.__vertex__.l.y,
       },
     ];
 
@@ -249,23 +236,12 @@ export default class Arrow {
     );
   }
 
-  checkControlPointsBoundry(screenP: Vec) {
+  checkControlPointsBoundry(p: Vec) {
     if (!this.__selecting__) return null;
 
-    const deScaleP = {
-      x: this.deScale(screenP.x),
-      y: this.deScale(screenP.y),
-    };
-    const relativeP = this.relativify(this.deOffset(deScaleP));
-    const relativeVertex = {
-      t: this.relativify(this.__vertex__.t),
-      l: this.relativify(this.__vertex__.l),
-      r: this.relativify(this.__vertex__.r),
-    };
-
     if (
-      Math.pow(relativeP.x - relativeVertex.t.x, 2) +
-        Math.pow(relativeP.y - relativeVertex.t.y, 2) <
+      Math.pow(p.x - this.__vertex__.t.x, 2) +
+        Math.pow(p.y - this.__vertex__.t.y, 2) <
       Math.pow(5, 2)
     ) {
       return ArrowTypes.Vertex.t;
