@@ -157,13 +157,29 @@ const getFramePosition = (shape: Core) => {
   };
 };
 
-const getNormalP = (p:CommonTypes.Vec,offset:null | CommonTypes.Vec={x:0, y:0}, scale:number = 0)=>{
-  offset = offset ? offset : {x:0, y:0}
+const getNormalP = (
+  p: CommonTypes.Vec,
+  offset: null | CommonTypes.Vec = { x: 0, y: 0 },
+  scale: number = 1
+) => {
+  offset = offset ? offset : { x: 0, y: 0 };
   return {
-    x:p.x / scale - offset.x,
-    y:p.y / scale - offset.y
-  }
-}
+    x: p.x / scale - offset.x,
+    y: p.y / scale - offset.y,
+  };
+};
+
+const getScreenP = (
+  p: CommonTypes.Vec,
+  offset: null | CommonTypes.Vec = { x: 0, y: 0 },
+  scale: number = 1
+) => {
+  offset = offset ? offset : { x: 0, y: 0 };
+  return {
+    x: (p.x + offset.x) * scale,
+    y: (p.y + offset.y) * scale,
+  };
+};
 
 const getInitializedShape = (
   type: CommonTypes.Type,
@@ -748,7 +764,7 @@ const getAlignP = (
       baseEdge.l >= targetEdge.l - threshold &&
       baseEdge.l <= targetEdge.l + threshold
     ) {
-      output.x = targetEdge.l + baseShape.getScaleSize().w / 2;
+      output.x = targetEdge.l + baseShape.w / 2;
     }
 
     // left & right
@@ -756,7 +772,7 @@ const getAlignP = (
       baseEdge.l >= targetEdge.r - threshold &&
       baseEdge.l <= targetEdge.r + threshold
     ) {
-      output.x = targetEdge.r + baseShape.getScaleSize().w / 2;
+      output.x = targetEdge.r + baseShape.w / 2;
     }
 
     // top & top
@@ -764,7 +780,7 @@ const getAlignP = (
       baseEdge.t >= targetEdge.t - threshold &&
       baseEdge.t <= targetEdge.t + threshold
     ) {
-      output.y = targetEdge.t + baseShape.getScaleSize().h / 2;
+      output.y = targetEdge.t + baseShape.h / 2;
     }
 
     // top & bottom
@@ -772,7 +788,7 @@ const getAlignP = (
       baseEdge.t >= targetEdge.b - threshold &&
       baseEdge.t <= targetEdge.b + threshold
     ) {
-      output.y = targetEdge.b + baseShape.getScaleSize().h / 2;
+      output.y = targetEdge.b + baseShape.h / 2;
     }
 
     // right & right
@@ -780,7 +796,7 @@ const getAlignP = (
       baseEdge.r >= targetEdge.l - threshold &&
       baseEdge.r <= targetEdge.l + threshold
     ) {
-      output.x = targetEdge.l - baseShape.getScaleSize().w / 2;
+      output.x = targetEdge.l - baseShape.w / 2;
     }
 
     // right & left
@@ -788,7 +804,7 @@ const getAlignP = (
       baseEdge.r >= targetEdge.r - threshold &&
       baseEdge.r <= targetEdge.r + threshold
     ) {
-      output.x = targetEdge.r - baseShape.getScaleSize().w / 2;
+      output.x = targetEdge.r - baseShape.w / 2;
     }
 
     // bottom & bottom
@@ -796,7 +812,7 @@ const getAlignP = (
       baseEdge.b >= targetEdge.b - threshold &&
       baseEdge.b <= targetEdge.b + threshold
     ) {
-      output.y = targetEdge.b - baseShape.getScaleSize().h / 2;
+      output.y = targetEdge.b - baseShape.h / 2;
     }
 
     // bottom & top
@@ -804,7 +820,7 @@ const getAlignP = (
       baseEdge.b >= targetEdge.t - threshold &&
       baseEdge.b <= targetEdge.t + threshold
     ) {
-      output.y = targetEdge.t - baseShape.getScaleSize().h / 2;
+      output.y = targetEdge.t - baseShape.h / 2;
     }
   }
 
@@ -1423,15 +1439,15 @@ const getCurveStickingCp1Cp2 = (
 const movePressingCurve = (
   pressingCurve: PageIdTypes.PressingCurve,
   p: CommonTypes.Vec,
-  offset:CommonTypes.Vec={x:0, y:0}, 
-  scale:number = 0
+  offset: CommonTypes.Vec = { x: 0, y: 0 },
+  scale: number = 1
 ) => {
   if (!pressingCurve) return;
 
   const [toD, p2] = (() => {
     for (let i = 0; i < shapes.length; i++) {
       const shape = shapes[i];
-      if(shape.id === pressingCurve.from.shape.id) continue
+      if (shape.id === pressingCurve.from.shape.id) continue;
 
       const quarterD = shape.checkQuarterArea(getNormalP(p, offset, scale));
       if (quarterD) {
@@ -1533,30 +1549,26 @@ const moveRecieverCurve = (
   curve.locateHandler(CurveTypes.PressingTarget.cp2, cp2);
 };
 
-const moveCurve = (shape:null | undefined | Terminal | Process | Desicion | Data)=>{
-  if(!shape) return
+const moveCurve = (
+  shape: null | undefined | Terminal | Process | Desicion | Data
+) => {
+  if (!shape) return;
   for (let i = curves.length - 1; i > -1; i--) {
     const curve = curves[i];
     if (curve.from.shape.id === shape.id) {
-      moveSenderCurve(
-        curve.from.d,
-        curve.to.d,
-        curve.shape,
-        pressing?.shape
-      );
+      moveSenderCurve(curve.from.d, curve.to.d, curve.shape, pressing?.shape);
     }
     if (curve.to.shape.id === shape.id) {
-      moveRecieverCurve(
-        curve.from.d,
-        curve.to.d,
-        curve.shape,
-        pressing?.shape
-      );
+      moveRecieverCurve(curve.from.d, curve.to.d, curve.shape, pressing?.shape);
     }
   }
-}
+};
 
-const triggerCurve = (p: CommonTypes.Vec,offest:CommonTypes.Vec={x:0, y:0}, scale:number = 0) => {
+const triggerCurve = (
+  p: CommonTypes.Vec,
+  offest: CommonTypes.Vec = { x: 0, y: 0 },
+  scale: number = 0
+) => {
   const [triggerShape, curveTriggerD] = (() => {
     let triggerShape: null | Terminal | Process | Desicion | Data = null;
     let curveTriggerD: null | CommonTypes.Direction = null;
@@ -1612,7 +1624,7 @@ const selectCurve = (p: CommonTypes.Vec) => {
         },
         shape: curve.shape,
       };
-      curves.splice(i, 1)
+      curves.splice(i, 1);
 
       return false;
     }
@@ -1632,8 +1644,12 @@ const deSelectCurve = () => {
   return true;
 };
 
-const selectShape = (p: CommonTypes.Vec,offset:CommonTypes.Vec,scale:number) => {
-  const normalP = getNormalP(p, offset, scale)
+const selectShape = (
+  p: CommonTypes.Vec,
+  offset: CommonTypes.Vec,
+  scale: number
+) => {
+  const normalP = getNormalP(p, offset, scale);
   for (let i = shapes.length - 1; i > -1; i--) {
     const shape = shapes[i];
     const _ghost = cloneDeep(shape);
@@ -1660,8 +1676,8 @@ const selectShape = (p: CommonTypes.Vec,offset:CommonTypes.Vec,scale:number) => 
     }
   }
 
-  if(pressing?.shape){
-    pressing.shape.selecting = true
+  if (pressing?.shape) {
+    pressing.shape.selecting = true;
     return false;
   }
 
@@ -1676,33 +1692,33 @@ const deSelectShape = () => {
   return true;
 };
 
-const deleteMultiSelectShapes = ()=>{
-  if(multiSelect.shapes.length === 0) return true
-  const selectings = ((()=>{
-    const map:{[id:string]:true} = {}
+const deleteMultiSelectShapes = () => {
+  if (multiSelect.shapes.length === 0) return true;
+  const selectings = (() => {
+    const map: { [id: string]: true } = {};
 
-    multiSelect.shapes.forEach(shape => {
-      map[shape.id]= true
-    })
+    multiSelect.shapes.forEach((shape) => {
+      map[shape.id] = true;
+    });
 
-    return map
-  }))()
+    return map;
+  })();
 
-  shapes = shapes.filter(shape => !selectings[shape.id])
-  multiSelect = cloneDeep(init.multiSelect)
-  return false
-}
+  shapes = shapes.filter((shape) => !selectings[shape.id]);
+  multiSelect = cloneDeep(init.multiSelect);
+  return false;
+};
 
-const deleteSelectShape = ()=>{
-  shapes = shapes.filter(shape => !shape.selecting)
-  return false
-}
+const deleteSelectShape = () => {
+  shapes = shapes.filter((shape) => !shape.selecting);
+  return false;
+};
 
 const drawShapes = (
   ctx: null | CanvasRenderingContext2D,
   shapes: (Terminal | Process | Data | Desicion | Curve)[],
   offset?: CommonTypes.Vec,
-  scale?:number
+  scale?: number
 ) => {
   if (!ctx) return;
 
@@ -1716,18 +1732,22 @@ const drawShapes = (
 
 const drawAlignLines = (
   ctx: null | CanvasRenderingContext2D,
-  alginLines: { from: CommonTypes.Vec; to: CommonTypes.Vec }[]
+  alginLines: { from: CommonTypes.Vec; to: CommonTypes.Vec }[],
+  offset: CommonTypes.Vec = { x: 0, y: 0 },
+  scale: number = 1
 ) => {
   if (!ctx || alginLines.length === 0) return;
 
   alginLines.forEach((alginLine) => {
+    const fromP = getScreenP(alginLine.from, offset, scale);
+    const toP = getScreenP(alginLine.to, offset, scale);
     ctx.save();
     ctx.strokeStyle = tailwindColors.auxiliary;
     ctx.lineWidth = 1.5;
     ctx.setLineDash([4, 4]);
     ctx.beginPath();
-    ctx.moveTo(alginLine.from.x, alginLine.from.y);
-    ctx.lineTo(alginLine.to.x, alginLine.to.y);
+    ctx.moveTo(fromP.x, fromP.y);
+    ctx.lineTo(toP.x, toP.y);
     ctx.stroke();
     ctx.closePath();
     ctx.restore();
@@ -1737,7 +1757,7 @@ const drawAlignLines = (
 const draw = (
   $canvas: HTMLCanvasElement,
   ctx: CanvasRenderingContext2D,
-  shapes:(Terminal|Process|Data|Desicion)[],
+  shapes: (Terminal | Process | Data | Desicion)[],
   offset?: CommonTypes.Vec,
   scale?: number,
   isScreenshot?: boolean
@@ -1764,7 +1784,7 @@ const draw = (
     offset,
     scale
   );
-  drawAlignLines(ctx, alginLines);
+  drawAlignLines(ctx, alginLines, offset, scale);
 
   if (!isScreenshot) {
     // draw sending point
@@ -1787,7 +1807,7 @@ const draw = (
 
   //   shape.drawCurve(ctx);
   // });
-  pressingCurve?.shape.draw(ctx,offset,scale);
+  pressingCurve?.shape.draw(ctx, offset, scale);
 
   if (!isScreenshot) {
     // draw selectArea
@@ -1891,18 +1911,25 @@ const draw = (
   }
 };
 
-const drawCanvas = (offset?:CommonTypes.Vec, scale?:number) => {
+const drawCanvas = (offset?: CommonTypes.Vec, scale?: number) => {
   const $canvas = document.querySelector("canvas");
   if (!$canvas || !ctx) return;
   draw($canvas, ctx, shapes, offset, scale, false);
 };
 
-const drawScreenshot = (offset?:CommonTypes.Vec, scale?:number) => {
+const drawScreenshot = (offset?: CommonTypes.Vec, scale?: number) => {
   const $screenshot: HTMLCanvasElement | null = document.querySelector(
     "canvas[role='screenshot']"
   );
   if (!$screenshot || !ctx_screenshot) return;
-  draw($screenshot, ctx_screenshot, getScreenshotShapes(shapes),offset, scale, true);
+  draw(
+    $screenshot,
+    ctx_screenshot,
+    getScreenshotShapes(shapes),
+    offset,
+    scale,
+    true
+  );
 };
 
 const resizeShape = (
@@ -2018,15 +2045,15 @@ const resizeShape = (
   }
 
   pressing.ghost.resize(offsetP, pressing.target);
-  moveCurve( pressing?.shape)
+  moveCurve(pressing?.shape);
 };
 
 const undo = (
   ctx: undefined | null | CanvasRenderingContext2D,
   actions: PageIdTypes.Actions,
   shapes: null | (Terminal | Process | Data | Desicion)[],
-  offset?:CommonTypes.Vec,
-  scale?:number,
+  offset?: CommonTypes.Vec,
+  scale?: number
 ) => {
   if (!ctx || !shapes) return;
 
@@ -2414,7 +2441,7 @@ export default function IdPage() {
       });
     }
 
-    return _scale
+    return _scale;
   };
 
   const fetchProjects = async () => {
@@ -2793,17 +2820,29 @@ export default function IdPage() {
         }
 
         if (alignP?.x && !alignP?.y) {
-          pressing.shape.move(getNormalP({
-            x: 0,
-            y: p.y - lastP.y,
-          }, null, scale));
+          pressing.shape.move(
+            getNormalP(
+              {
+                x: 0,
+                y: p.y - lastP.y,
+              },
+              null,
+              scale
+            )
+          );
         }
 
         if (!alignP?.x && alignP?.y) {
-          pressing.shape.move(getNormalP({
-            x: p.x - lastP.x,
-            y: 0,
-          }, null, scale));
+          pressing.shape.move(
+            getNormalP(
+              {
+                x: p.x - lastP.x,
+                y: 0,
+              },
+              null,
+              scale
+            )
+          );
         }
 
         if (!alignP?.x && !alignP?.y) {
@@ -2820,18 +2859,30 @@ export default function IdPage() {
               y: pressing.ghost.getCenter().m.y,
             });
           }
-          pressing.shape.move(getNormalP({
-            x: p.x - lastP.x,
-            y: p.y - lastP.y,
-          }, null, scale));
+          pressing.shape.move(
+            getNormalP(
+              {
+                x: p.x - lastP.x,
+                y: p.y - lastP.y,
+              },
+              null,
+              scale
+            )
+          );
         }
 
-        pressing.ghost?.move(getNormalP({
-          x: p.x - lastP.x,
-          y: p.y - lastP.y,
-        }, null, scale));
+        pressing.ghost?.move(
+          getNormalP(
+            {
+              x: p.x - lastP.x,
+              y: p.y - lastP.y,
+            },
+            null,
+            scale
+          )
+        );
 
-        moveCurve(pressing?.shape)
+        moveCurve(pressing?.shape);
       }
     } else if (!!pressingCurve) {
       movePressingCurve(pressingCurve, p, offset, scale);
@@ -2849,7 +2900,7 @@ export default function IdPage() {
     }
 
     lastP = p;
-    console.log('scale', scale)
+    console.log("scale", scale);
 
     drawCanvas(offset, scale);
     drawScreenshot(offset, scale);
@@ -3063,10 +3114,7 @@ export default function IdPage() {
       const $canvas = document.querySelector("canvas");
       if (!$canvas || !ctx) return;
 
-      handleUtils.handle([
-        deleteMultiSelectShapes,
-        deleteSelectShape
-      ])
+      handleUtils.handle([deleteMultiSelectShapes, deleteSelectShape]);
 
       drawCanvas(offset, scale);
       drawScreenshot(offset, scale);
@@ -3184,14 +3232,20 @@ export default function IdPage() {
   const onClickScalePlusIcon = () => {
     const $canvas = document.querySelector("canvas");
     if (!$canvas) return;
-    const newScale = zoom(-100, { x: $canvas?.width / 2, y: $canvas?.height / 2 });
+    const newScale = zoom(-100, {
+      x: $canvas?.width / 2,
+      y: $canvas?.height / 2,
+    });
     drawCanvas(offset, newScale);
   };
 
   const onClickScaleMinusIcon = () => {
     const $canvas = document.querySelector("canvas");
     if (!$canvas) return;
-    const newScale = zoom(100, { x: $canvas?.width / 2, y: $canvas?.height / 2 });
+    const newScale = zoom(100, {
+      x: $canvas?.width / 2,
+      y: $canvas?.height / 2,
+    });
     drawCanvas(offset, newScale);
   };
 
@@ -3199,7 +3253,7 @@ export default function IdPage() {
     const $canvas = document.querySelector("canvas");
     if (!$canvas) return;
 
-    const newScale =zoom(-((1 / scale - 1) * 500), {
+    const newScale = zoom(-((1 / scale - 1) * 500), {
       x: $canvas?.width / 2,
       y: $canvas?.height / 2,
     });
@@ -3565,7 +3619,7 @@ export default function IdPage() {
     ),
   }));
 
-  console.log('shapes', shapes)
+  console.log("shapes", shapes);
 
   return (
     <>

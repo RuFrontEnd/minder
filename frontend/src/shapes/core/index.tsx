@@ -189,14 +189,14 @@ export default class Core {
     };
   }
 
-  getScreenP(offset:Vec = {x:0, y:0}, scale:number = 1) {
+  getScreenP(offset: Vec = { x: 0, y: 0 }, scale: number = 1) {
     return {
-      x: (this.p.x +offset.x) * scale,
+      x: (this.p.x + offset.x) * scale,
       y: (this.p.y + offset.y) * scale,
     };
   }
 
-  getScaleSize(scale:number = 1) {
+  getScaleSize(scale: number = 1) {
     return {
       w: this.w * scale,
       h: this.h * scale,
@@ -216,9 +216,9 @@ export default class Core {
     };
   }
 
-  getEdge(offset:Vec = {x:0, y:0}, scale:number = 1) {
-    const screenP = this.getScreenP(offset, scale)
-    const scaleSize = this.getScaleSize(scale)
+  getEdge(offset: Vec = { x: 0, y: 0 }, scale: number = 1) {
+    const screenP = this.getScreenP(offset, scale);
+    const scaleSize = this.getScaleSize(scale);
     return {
       l: screenP.x - scaleSize.w / 2,
       t: screenP.y - scaleSize.h / 2,
@@ -297,7 +297,7 @@ export default class Core {
 
   getCenter(): CoreTypes.GetCenterReturn {
     const edge = this.getEdge();
-    
+
     return {
       m: this.p,
       l: { x: edge.l, y: this.p.y },
@@ -677,12 +677,9 @@ export default class Core {
   }
 
   move(offset: Vec) {
-    let xOffset = offset.x / this.scale,
-      yOffset = offset.y / this.scale;
-
     this.p = {
-      x: this.p.x + xOffset,
-      y: this.p.y + yOffset,
+      x: this.p.x + offset.x,
+      y: this.p.y + offset.y,
     };
   }
 
@@ -691,18 +688,18 @@ export default class Core {
 
     if (!!p.x && !!p.y) {
       this.p = {
-        x: p.x / this.scale - this.offset.x,
-        y: p.y / this.scale - this.offset.y,
+        x: p.x,
+        y: p.y,
       };
     } else if (!!p.x && !p.y) {
       this.p = {
-        x: p.x / this.scale - this.offset.x,
+        x: p.x,
         y: this.p.y,
       };
     } else if (!!p.y && !p.x) {
       this.p = {
         x: this.p.x,
-        y: p.y / this.scale - this.offset.y,
+        y: p.y,
       };
     }
   }
@@ -861,16 +858,21 @@ export default class Core {
     }
   };
 
-  draw(ctx: CanvasRenderingContext2D, offest:CommonTypes.Vec={x:0, y:0}, scale:number = 0,drawShapePath: () => void) {
-    const edge = this.getEdge(offest, scale)
-    const screenP = this.getScreenP(offest, scale)
-    const scaleSize = this.getScaleSize(scale)
+  draw(
+    ctx: CanvasRenderingContext2D,
+    offest: CommonTypes.Vec = { x: 0, y: 0 },
+    scale: number = 0,
+    drawShapePath: () => void
+  ) {
+    const edge = this.getEdge(offest, scale);
+    const screenP = this.getScreenP(offest, scale);
+    const scaleSize = this.getScaleSize(scale);
     const fillRectParams = {
-        x: edge.l - screenP.x,
-        y: edge.t - screenP.y,
-        w: scaleSize.w,
-        h: scaleSize.h,
-      };
+      x: edge.l - screenP.x,
+      y: edge.t - screenP.y,
+      w: scaleSize.w,
+      h: scaleSize.h,
+    };
     // ctx.globalAlpha = 0.5; // TODO: for testing ghost
 
     ctx.fillStyle = (() => {
@@ -891,16 +893,12 @@ export default class Core {
     if (this.status === CoreTypes.Status.error) {
       // draw error message
       ctx.textAlign = "end";
-      ctx.fillText(
-        "error!",
-        scaleSize.w / 2,
-        -scaleSize.h / 2 - 10
-      );
+      ctx.fillText("error!", scaleSize.w / 2, -scaleSize.h / 2 - 10);
     }
 
     if (this.getIsReceiving()) {
-      ctx.save()
-      ctx.translate(screenP.x, screenP.y)
+      ctx.save();
+      ctx.translate(screenP.x, screenP.y);
       if (this.__selecting__) {
         // draw frame
         ctx.fillStyle = "white";
@@ -969,19 +967,18 @@ export default class Core {
         ctx.fill();
         ctx.closePath();
       }
-      ctx.restore()
+      ctx.restore();
     }
 
-    ctx.save()
-    ctx.translate(screenP.x, screenP.y)
+    ctx.save();
+    ctx.translate(screenP.x, screenP.y);
     // render center text
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillStyle = "white";
     ctx.font = `${16 * scale}px ${inter.style.fontFamily}`;
     this.renderText(ctx, this.title, 0, 0, scaleSize.w, 20);
-    ctx.restore()
-
+    ctx.restore();
 
     // draw id text
     // ctx.textAlign = "start";
@@ -992,19 +989,22 @@ export default class Core {
     // );
   }
 
-  drawSendingPoint(ctx: CanvasRenderingContext2D, offest:CommonTypes.Vec={x:0, y:0}, scale:number = 0) {
+  drawSendingPoint(
+    ctx: CanvasRenderingContext2D,
+    offest: CommonTypes.Vec = { x: 0, y: 0 },
+    scale: number = 0
+  ) {
     if (!ctx) return;
-    const screenP = this.getScreenP(offest, scale)
-    const scaleSize = this.getScaleSize(scale)
-    const curveTriggerDistance = this.__curveTrigger__.distance*scale
+    const screenP = this.getScreenP(offest, scale);
+    const scaleSize = this.getScaleSize(scale);
+    const curveTriggerDistance = this.__curveTrigger__.distance * scale;
     // draw curve triggers
     ctx.fillStyle = "white";
     ctx.strokeStyle = "DeepSkyBlue";
     ctx.lineWidth = this.strokeSize;
 
-
-    ctx.save()
-    ctx.translate(screenP.x, screenP.y)
+    ctx.save();
+    ctx.translate(screenP.x, screenP.y);
 
     // left
     ctx.beginPath();
@@ -1062,12 +1062,16 @@ export default class Core {
     ctx.fill();
     ctx.closePath();
 
-    ctx.restore()
+    ctx.restore();
   }
 
-  drawRecievingPoint(ctx: CanvasRenderingContext2D,offest:CommonTypes.Vec={x:0, y:0}, scale:number = 0) {
-    const screenP = this.getScreenP(offest, scale)
-    const scaleSize = this.getScaleSize(scale)
+  drawRecievingPoint(
+    ctx: CanvasRenderingContext2D,
+    offest: CommonTypes.Vec = { x: 0, y: 0 },
+    scale: number = 0
+  ) {
+    const screenP = this.getScreenP(offest, scale);
+    const scaleSize = this.getScaleSize(scale);
     ctx.save();
     ctx.translate(screenP.x, screenP.y);
     // draw receiving points
@@ -1125,14 +1129,7 @@ export default class Core {
         ctx.fillStyle = tailwindColors.white["500"];
       }
       ctx.beginPath();
-      ctx.arc(
-        scaleSize.w / 2,
-        0,
-        this.anchor.size.fill,
-        0,
-        2 * Math.PI,
-        false
-      );
+      ctx.arc(scaleSize.w / 2, 0, this.anchor.size.fill, 0, 2 * Math.PI, false);
       ctx.stroke();
       ctx.fill();
       ctx.closePath();
@@ -1146,14 +1143,7 @@ export default class Core {
         ctx.fillStyle = tailwindColors.white["500"];
       }
       ctx.beginPath();
-      ctx.arc(
-        0,
-        scaleSize.h / 2,
-        this.anchor.size.fill,
-        0,
-        2 * Math.PI,
-        false
-      );
+      ctx.arc(0, scaleSize.h / 2, this.anchor.size.fill, 0, 2 * Math.PI, false);
       ctx.stroke();
       ctx.fill();
       ctx.closePath();
