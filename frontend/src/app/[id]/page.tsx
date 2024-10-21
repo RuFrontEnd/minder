@@ -2806,7 +2806,7 @@ export default function IdPage() {
           ghost: pressing.ghost,
           target: pressing.target,
         },
-        offsetP
+        getNormalP(offsetP, null, scale),
       );
     } else if (pressing?.target && pressing?.shape) {
       if (pressing?.target === CoreTypes.PressingTarget.m) {

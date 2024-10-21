@@ -718,13 +718,13 @@ export default class Core {
 
     if (vertex === CoreTypes.PressingTarget.lt) {
       _w =
-        this.w - offset.x / this.scale <= 0
+        this.w - offset.x <= 0
           ? 0
-          : this.w - offset.x / this.scale;
+          : this.w - offset.x;
       _h =
-        this.h - offset.y / this.scale <= 0
+        this.h - offset.y <= 0
           ? 0
-          : this.h - offset.y / this.scale;
+          : this.h - offset.y;
 
       if (_w > 0 || offset.x < 0) {
         this.w = Math.abs(_w);
@@ -734,13 +734,13 @@ export default class Core {
       }
     } else if (vertex === CoreTypes.PressingTarget.rt) {
       _w =
-        this.w + offset.x / this.scale <= 0
+        this.w + offset.x <= 0
           ? 0
-          : this.w + offset.x / this.scale;
+          : this.w + offset.x;
       _h =
-        this.h - offset.y / this.scale <= 0
+        this.h - offset.y <= 0
           ? 0
-          : this.h - offset.y / this.scale;
+          : this.h - offset.y;
 
       if (_w > 0 || offset.x > 0) {
         this.w = Math.abs(_w);
@@ -750,13 +750,13 @@ export default class Core {
       }
     } else if (vertex === CoreTypes.PressingTarget.rb) {
       _w =
-        this.w + offset.x / this.scale <= 0
+        this.w + offset.x <= 0
           ? 0
-          : this.w + offset.x / this.scale;
+          : this.w + offset.x;
       _h =
-        this.h + offset.y / this.scale <= 0
+        this.h + offset.y <= 0
           ? 0
-          : this.h + offset.y / this.scale;
+          : this.h + offset.y;
 
       if (_w > 0 || offset.x > 0) {
         this.w = Math.abs(_w);
@@ -766,13 +766,13 @@ export default class Core {
       }
     } else if (vertex === CoreTypes.PressingTarget.lb) {
       _w =
-        this.w - offset.x / this.scale <= 0
+        this.w - offset.x <= 0
           ? 0
-          : this.w - offset.x / this.scale;
+          : this.w - offset.x;
       _h =
-        this.h + offset.y / this.scale <= 0
+        this.h + offset.y <= 0
           ? 0
-          : this.h + offset.y / this.scale;
+          : this.h + offset.y;
 
       if (_w > 0 || offset.x < 0) {
         this.w = Math.abs(_w);
@@ -783,8 +783,8 @@ export default class Core {
     }
 
     this.p = {
-      x: _w > 0 ? this.p.x + offset.x / 2 / this.scale : this.p.x,
-      y: _h > 0 ? this.p.y + offset.y / 2 / this.scale : this.p.y,
+      x: _w > 0 ? this.p.x + offset.x / 2 : this.p.x,
+      y: _h > 0 ? this.p.y + offset.y / 2 : this.p.y,
     };
   }
 
