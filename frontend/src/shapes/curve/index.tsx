@@ -148,81 +148,6 @@ export default class Curve {
     return this.__arrowAttr__;
   }
 
-  scalify(val: number) {
-    return val * this.__scale__;
-  }
-
-  deScale(val: number) {
-    return val / this.__scale__;
-  }
-
-  relativify(p: Vec) {
-    return {
-      x: p.x - this.__p1__.x,
-      y: p.y - this.__p1__.y,
-    };
-  }
-
-  correct(p: Vec) {
-    return {
-      x: p.x + this.__p1__.x,
-      y: p.y + this.__p1__.y,
-    };
-  }
-
-  offsetfy(p: Vec) {
-    return {
-      x: p.x + this.__offset__.x,
-      y: p.y + this.__offset__.y,
-    };
-  }
-
-  deOffset(p: Vec) {
-    return {
-      x: p.x - this.__offset__.x,
-      y: p.y - this.__offset__.y,
-    };
-  }
-
-  screenfy(normalP: Vec) {
-    return {
-      x: this.scalify(normalP.x + this.__offset__.x),
-      y: this.scalify(normalP.y + this.__offset__.y),
-    };
-  }
-
-  deScreenfy(screenP: Vec) {
-    return {
-      x: this.deScale(screenP.x) - this.__offset__.x,
-      y: this.deScale(screenP.y) - this.__offset__.y,
-    };
-  }
-
-  getRelativeP(p: Vec) {
-    return {
-      x: p.x - this.__p1__.x,
-      y: p.y - this.__p1__.y,
-    };
-  }
-
-  getRelativeScreenP(screenP: Vec) {
-    return {
-      x: screenP.x - (this.__p1__.x + this.__offset__.x) * this.__scale__,
-      y: screenP.y - (this.__p1__.y + this.__offset__.y) * this.__scale__,
-    };
-  }
-
-  getArrowP(screenP: Vec) {
-    const relativeP = this.relativify(
-      this.deOffset({ x: this.deScale(screenP.x), y: this.deScale(screenP.y) })
-    );
-
-    return {
-      x: this.scalify(relativeP.x),
-      y: this.scalify(relativeP.y),
-    };
-  }
-
   getBezierP(t: number, controlPs: Vec[]) {
     const x =
       Math.pow(1 - t, 3) * controlPs[0].x +
@@ -337,8 +262,8 @@ export default class Curve {
       pressingTarget === CurveTypes.PressingTarget.cp1 ||
       pressingTarget === CurveTypes.PressingTarget.cp2
     ) {
-      this[`__${pressingTarget}__`].x += this.deScale(offset.x);
-      this[`__${pressingTarget}__`].y += this.deScale(offset.y);
+      this[`__${pressingTarget}__`].x += offset.x;
+      this[`__${pressingTarget}__`].y += offset.y;
 
       if (this.arrow && this.p2 && this.cp2) {
         this.arrow.p = this.p2; // TODO: arrow should add offset and scale and calculate inside Arrow class
@@ -373,18 +298,6 @@ export default class Curve {
 
       this.p2 = { x: p.x + v.x * ratio, y: p.y + v.y * ratio }
     }
-  }
-
-  getArrowVertex() {
-    const arrowVertex = this.arrow?.getVertex();
-
-    if (!arrowVertex) return null;
-
-    return {
-      t: this.correct(arrowVertex?.t),
-      l: this.correct(arrowVertex?.l),
-      r: this.correct(arrowVertex?.r),
-    };
   }
 
   stick(

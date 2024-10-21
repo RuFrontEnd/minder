@@ -149,11 +149,11 @@ const ds = [
   CommonTypes.Direction.b,
 ];
 
-const getFramePosition = (shape: Core) => {
+const getFramePosition = (shape: Core, offset:CommonTypes.Vec, scale:number) => {
   const frameOffset = 12;
   return {
-    x: shape.getScreenP().x + shape.getScaleSize().w / 2 + frameOffset,
-    y: shape.getScreenP().y,
+    x: shape.getP(offset, scale).x + shape.getScaleSize().w / 2 + frameOffset,
+    y: shape.getP(offset, scale).y,
   };
 };
 
@@ -1437,16 +1437,18 @@ const getCurveStickingCp1Cp2 = (
 };
 
 const movePressingCurve = (
+  ctx: null | undefined | CanvasRenderingContext2D,
   pressingCurve: PageIdTypes.PressingCurve,
   p: CommonTypes.Vec,
   offset: CommonTypes.Vec = { x: 0, y: 0 },
   scale: number = 1
 ) => {
-  if (!pressingCurve) return;
+  if (!ctx || !pressingCurve) return;
 
   const [toD, p2] = (() => {
     for (let i = 0; i < shapes.length; i++) {
       const shape = shapes[i];
+
       if (shape.id === pressingCurve.from.shape.id) continue;
 
       const quarterD = shape.checkQuarterArea(getNormalP(p, offset, scale));
@@ -1813,6 +1815,12 @@ const draw = (
   // });
   pressingCurve?.shape.draw(ctx, offset, scale);
 
+  // shapes.forEach((shape) => {
+  //   console.log('shape', shape)
+  //   if(!ctx) return
+  //   shape.drawRecievingPoint(ctx, offset, scale)
+  // })
+
   if (!isScreenshot) {
     // draw selectArea
     if (selectAreaP) {
@@ -1836,12 +1844,6 @@ const draw = (
 
       ctx?.closePath();
     }
-  }
-
-  if (!isScreenshot) {
-    shapes.forEach((shape) => {
-      shape.drawRecievingPoint(ctx, offset, scale);
-    });
   }
 
   if (multiSelect.shapes.length > 1 && !isScreenshot) {
@@ -2621,7 +2623,7 @@ export default function IdPage() {
           if (canResize.x) {
             shape.w = shape.w - unitW / scale;
 
-            const dx = Math.abs(shape.getScreenP().x - multiSelect.end.x),
+            const dx = Math.abs(shape.p.x - multiSelect.end.x),
               ratioX = dx / theSelect.w,
               unitX = offsetP.x * ratioX;
 
@@ -2637,7 +2639,7 @@ export default function IdPage() {
           if (canResize.y) {
             shape.h = shape.h - unitH / scale;
 
-            const dy = Math.abs(shape.getScreenP().y - multiSelect.end.y),
+            const dy = Math.abs(shape.p.y - multiSelect.end.y),
               ratioY = dy / theSelect.h,
               unitY = offsetP.y * ratioY;
 
@@ -2668,7 +2670,7 @@ export default function IdPage() {
           if (canResize.x) {
             shape.w = shape.w + unitW / scale;
 
-            const dx = Math.abs(shape.getScreenP().x - multiSelect.start.x),
+            const dx = Math.abs(shape.p.x - multiSelect.start.x),
               ratioX = dx / theSelect.w,
               unitX = offsetP.x * ratioX;
 
@@ -2684,7 +2686,7 @@ export default function IdPage() {
           if (canResize.y) {
             shape.h = shape.getScaleSize().h - unitH / scale;
 
-            const dy = Math.abs(shape.getScreenP().y - multiSelect.end.y),
+            const dy = Math.abs(shape.p.y - multiSelect.end.y),
               ratioY = dy / theSelect.h,
               unitY = offsetP.y * ratioY;
 
@@ -2715,7 +2717,7 @@ export default function IdPage() {
           if (canResize.x) {
             shape.w = shape.w + unitW / scale;
 
-            const dx = Math.abs(shape.getScreenP().x - multiSelect.start.x),
+            const dx = Math.abs(shape.p.x - multiSelect.start.x),
               ratioX = dx / theSelect.w,
               unitX = offsetP.x * ratioX;
 
@@ -2731,7 +2733,7 @@ export default function IdPage() {
           if (canResize.y) {
             shape.h = shape.h + unitH / scale;
 
-            const dy = Math.abs(shape.getScreenP().y - multiSelect.start.y),
+            const dy = Math.abs(shape.p.y - multiSelect.start.y),
               ratioY = dy / theSelect.h,
               unitY = offsetP.y * ratioY;
 
@@ -2762,7 +2764,7 @@ export default function IdPage() {
           if (canResize.x) {
             shape.w = shape.w - unitW / scale;
 
-            const dx = Math.abs(shape.getScreenP().x - multiSelect.end.x),
+            const dx = Math.abs(shape.p.x - multiSelect.end.x),
               ratioX = dx / theSelect.w,
               unitX = offsetP.x * ratioX;
 
@@ -2778,7 +2780,7 @@ export default function IdPage() {
           if (canResize.y) {
             shape.h = shape.h + unitH / scale;
 
-            const dy = Math.abs(shape.getScreenP().y - multiSelect.start.y),
+            const dy = Math.abs(shape.p.y - multiSelect.start.y),
               ratioY = dy / theSelect.h,
               unitY = offsetP.y * ratioY;
 
@@ -2889,7 +2891,8 @@ export default function IdPage() {
         moveCurve(pressing?.shape);
       }
     } else if (!!pressingCurve) {
-      movePressingCurve(pressingCurve, p, offset, scale);
+      console.log('pressingCurve', pressingCurve)
+      movePressingCurve(ctx, pressingCurve, p, offset, scale);
     } else if (selectAreaP && !space) {
       selectAreaP = {
         ...selectAreaP,
@@ -2899,12 +2902,11 @@ export default function IdPage() {
 
     if (dbClickedShape) {
       setDataFrame({
-        p: getFramePosition(dbClickedShape),
+        p: getFramePosition(dbClickedShape, offset, scale),
       });
     }
 
     lastP = p;
-    console.log("scale", scale);
 
     drawCanvas(offset, scale);
     drawScreenshot(offset, scale);
@@ -3020,12 +3022,6 @@ export default function IdPage() {
       });
     });
 
-    shapes.forEach((shape) => {
-      ds.forEach((d) => {
-        shape.setReceivePointVisible(d, false);
-      });
-    });
-
     if (
       pressing?.target &&
       pressing?.shape &&
@@ -3097,7 +3093,7 @@ export default function IdPage() {
           setDataFrameWarning(init.dataFrameWarning);
           setDbClickedShape(shape);
           setDataFrame({
-            p: getFramePosition(shape),
+            p: getFramePosition(shape, offset, scale),
           });
         }
       });

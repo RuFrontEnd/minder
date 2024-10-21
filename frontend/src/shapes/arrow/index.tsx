@@ -27,7 +27,6 @@ export default class Arrow {
     p: Vec,
     deg: number
   ) {
-    // TODO: add id
     this.__id__ = id;
     this.__w__ = w;
     this.__h__ = h;
@@ -130,22 +129,15 @@ export default class Arrow {
     return this.__vertex__;
   }
 
-  scalify(val: number) {
-    return val * this.__scale__;
-  }
 
-  deScale(val: number) {
-    return val / this.__scale__;
-  }
-
-  relativify(p: Vec) {
+  toPivot(p: Vec) {
     return {
       x: p.x - this.__p__.x,
       y: p.y - this.__p__.y,
     };
   }
 
-  correct(p: Vec) {
+  toOrigin(p: Vec) {
     return {
       x: p.x + this.__p__.x,
       y: p.y + this.__p__.y,
@@ -159,40 +151,9 @@ export default class Arrow {
     };
   }
 
-  offsetfy(p: Vec) {
-    return {
-      x: p.x + this.__offset__.x,
-      y: p.y + this.__offset__.y,
-    };
-  }
-
-  deOffset(p: Vec) {
-    return {
-      x: p.x - this.__offset__.x,
-      y: p.y - this.__offset__.y,
-    };
-  }
-
-  getVertex() {
-    return {
-      t: {
-        x: this.__p__.x,
-        y: this.__p__.y - this.__h__,
-      },
-      l: {
-        x: this.__p__.x - this.__w__ / 2,
-        y: this.__p__.y,
-      },
-      r: {
-        x: this.__p__.x + this.__w__ / 2,
-        y: this.__p__.y,
-      },
-    };
-  } // TOOD: should be replaced by getVtx
-
   getVtx(p: Vec, deg: number) {
     // move to origin and rotate then put back to original position
-    return this.correct(this.rotate(this.relativify(p), deg));
+    return this.toOrigin(this.rotate(this.toPivot(p), deg));
   }
 
   checkBoundry(p: Vec) {
@@ -250,10 +211,7 @@ export default class Arrow {
     return null;
   }
 
-  draw(ctx: CanvasRenderingContext2D, offest?: Vec, scale?: number) {
-    offest = offest ? offest : { x: 0, y: 0 };
-    scale = scale ? scale : 1;
-
+  draw(ctx: CanvasRenderingContext2D, offest: Vec = { x: 0, y: 0 }, scale: number = 1) {
     const scaleSize = {
       w: this.__w__*scale,
       h: this.__h__*scale,

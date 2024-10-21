@@ -139,57 +139,7 @@ export default class Core {
     return this.__minCurveHandlerDistance__;
   }
 
-  scalify(val: number) {
-    return val * this.__scale__;
-  }
-
-  deScale(val: number) {
-    return val / this.__scale__;
-  }
-
-  relativify(p: Vec) {
-    return {
-      x: p.x - this.__p__.x,
-      y: p.y - this.__p__.y,
-    };
-  }
-
-  correct(p: Vec) {
-    return {
-      x: p.x + this.__p__.x,
-      y: p.y + this.__p__.y,
-    };
-  }
-
-  offsetfy(p: Vec) {
-    return {
-      x: p.x + this.__offset__.x,
-      y: p.y + this.__offset__.y,
-    };
-  }
-
-  deOffset(p: Vec) {
-    return {
-      x: p.x - this.__offset__.x,
-      y: p.y - this.__offset__.y,
-    };
-  }
-
-  screenfy(normalP: Vec) {
-    return {
-      x: this.scalify(normalP.x + this.__offset__.x),
-      y: this.scalify(normalP.y + this.__offset__.y),
-    };
-  }
-
-  deScreenfy(screenP: Vec) {
-    return {
-      x: this.deScale(screenP.x) - this.__offset__.x,
-      y: this.deScale(screenP.y) - this.__offset__.y,
-    };
-  }
-
-  getScreenP(offset: Vec = { x: 0, y: 0 }, scale: number = 1) {
+  getP(offset: Vec = { x: 0, y: 0 }, scale: number = 1) {
     return {
       x: (this.p.x + offset.x) * scale,
       y: (this.p.y + offset.y) * scale,
@@ -203,10 +153,6 @@ export default class Core {
     };
   }
 
-  getScaleCurveTriggerDistance() {
-    return this.__curveTrigger__.distance * this.scale;
-  }
-
   getNormalEdge() {
     return {
       l: this.p.x - this.w / 2,
@@ -217,7 +163,7 @@ export default class Core {
   }
 
   getEdge(offset: Vec = { x: 0, y: 0 }, scale: number = 1) {
-    const screenP = this.getScreenP(offset, scale);
+    const screenP = this.getP(offset, scale);
     const scaleSize = this.getScaleSize(scale);
     return {
       l: screenP.x - scaleSize.w / 2,
@@ -322,38 +268,38 @@ export default class Core {
       },
       __curveTrigger__: {
         l: {
-          x: edge.l - this.getScaleCurveTriggerDistance(),
+          x: edge.l - this.__curveTrigger__.distance,
           y: this.p.y,
         },
         t: {
           x: this.p.x,
-          y: edge.t - this.getScaleCurveTriggerDistance(),
+          y: edge.t - this.__curveTrigger__.distance,
         },
         r: {
-          x: edge.r + this.getScaleCurveTriggerDistance(),
+          x: edge.r + this.__curveTrigger__.distance,
           y: this.p.y,
         },
         b: {
           x: this.p.x,
-          y: edge.b + this.getScaleCurveTriggerDistance(),
+          y: edge.b + this.__curveTrigger__.distance,
         },
       },
       receivingPoints: {
         l: {
-          x: this.p.x - this.getScaleSize().w / 2,
+          x: this.p.x - this.w / 2,
           y: this.p.y,
         },
         t: {
           x: this.p.x,
-          y: this.p.y - this.getScaleSize().h / 2,
+          y: this.p.y - this.h / 2,
         },
         r: {
-          x: this.p.x + this.getScaleSize().w / 2,
+          x: this.p.x + this.w / 2,
           y: this.p.y,
         },
         b: {
           x: this.p.x,
-          y: this.p.y + this.getScaleSize().h / 2,
+          y: this.p.y + this.h / 2,
         },
       },
     };
@@ -632,13 +578,6 @@ export default class Core {
     return null;
   }
 
-  setReceivePointVisible(d: Direction, _visible: boolean) {
-    this.__receivePoint__[d].visible = _visible;
-  }
-
-  setReceivePointActivate(d: Direction, _actviate: boolean) {
-    this.__receivePoint__[d].activate = _actviate;
-  }
 
   getRedundancies() {
     this.status = CoreTypes.Status.normal;
@@ -794,12 +733,13 @@ export default class Core {
     x: number,
     y: number,
     maxWidth: number,
-    lineHeight: number
+    lineHeight: number,
+    scale:number=1
   ) => {
     const words = text.split("");
     const lines: string[] = [];
     const padding = 32;
-    const lineH = this.scalify(lineHeight);
+    const lineH = lineHeight*scale
     let line = "";
 
     for (const word of words) {
@@ -807,7 +747,7 @@ export default class Core {
         metrics = ctx.measureText(testLine),
         testWidth = metrics.width;
 
-      if (testWidth > maxWidth - this.scalify(padding)) {
+      if (testWidth > maxWidth - padding * scale) {
         lines.push(line);
         line = word;
       } else {
@@ -818,7 +758,7 @@ export default class Core {
     lines.push(line);
 
     // calculate the maximum number of lines
-    const maxLines = Math.floor(this.scalify(this.h - padding) / lineH);
+    const maxLines = Math.floor((this.h - padding)*scale / lineH);
 
     // make sure the number of lines to be rendered does not exceed the maximum number of lines
     const totalLines = Math.min(lines.length, maxLines);
@@ -865,7 +805,7 @@ export default class Core {
     drawShapePath: () => void
   ) {
     const edge = this.getEdge(offest, scale);
-    const screenP = this.getScreenP(offest, scale);
+    const screenP = this.getP(offest, scale);
     const scaleSize = this.getScaleSize(scale);
     const fillRectParams = {
       x: edge.l - screenP.x,
@@ -977,7 +917,7 @@ export default class Core {
     ctx.textBaseline = "middle";
     ctx.fillStyle = "white";
     ctx.font = `${16 * scale}px ${inter.style.fontFamily}`;
-    this.renderText(ctx, this.title, 0, 0, scaleSize.w, 20);
+    this.renderText(ctx, this.title, 0, 0, scaleSize.w, 20, scale);
     ctx.restore();
 
     // draw id text
@@ -992,10 +932,10 @@ export default class Core {
   drawSendingPoint(
     ctx: CanvasRenderingContext2D,
     offest: CommonTypes.Vec = { x: 0, y: 0 },
-    scale: number = 0
+    scale: number = 1
   ) {
     if (!ctx) return;
-    const screenP = this.getScreenP(offest, scale);
+    const screenP = this.getP(offest, scale);
     const scaleSize = this.getScaleSize(scale);
     const curveTriggerDistance = this.__curveTrigger__.distance * scale;
     // draw curve triggers
@@ -1068,10 +1008,11 @@ export default class Core {
   drawRecievingPoint(
     ctx: CanvasRenderingContext2D,
     offest: CommonTypes.Vec = { x: 0, y: 0 },
-    scale: number = 0
+    scale: number = 1
   ) {
-    const screenP = this.getScreenP(offest, scale);
+    const screenP = this.getP(offest, scale);
     const scaleSize = this.getScaleSize(scale);
+
     ctx.save();
     ctx.translate(screenP.x, screenP.y);
     // draw receiving points
@@ -1080,12 +1021,12 @@ export default class Core {
     ctx.lineWidth = this.anchor.size.stroke;
 
     // left
-    if (this.__receivePoint__.l.visible) {
-      if (this.__receivePoint__.l.activate) {
-        ctx.fillStyle = "DeepSkyBlue";
-      } else {
-        ctx.fillStyle = tailwindColors.white["500"];
-      }
+    // if (this.__receivePoint__.l.visible) {
+    //   if (this.__receivePoint__.l.activate) {
+    //     ctx.fillStyle = "DeepSkyBlue";
+    //   } else {
+    //     ctx.fillStyle = tailwindColors.white["500"];
+    //   }
       ctx.beginPath();
       ctx.arc(
         -scaleSize.w / 2,
@@ -1098,15 +1039,15 @@ export default class Core {
       ctx.stroke();
       ctx.fill();
       ctx.closePath();
-    }
+    // }
 
     // top
-    if (this.__receivePoint__.t.visible) {
-      if (this.__receivePoint__.t.activate) {
-        ctx.fillStyle = "DeepSkyBlue";
-      } else {
-        ctx.fillStyle = tailwindColors.white["500"];
-      }
+    // if (this.__receivePoint__.t.visible) {
+    //   if (this.__receivePoint__.t.activate) {
+    //     ctx.fillStyle = "DeepSkyBlue";
+    //   } else {
+    //     ctx.fillStyle = tailwindColors.white["500"];
+    //   }
       ctx.beginPath();
       ctx.arc(
         0,
@@ -1119,35 +1060,35 @@ export default class Core {
       ctx.stroke();
       ctx.fill();
       ctx.closePath();
-    }
+    // }
 
     // right
-    if (this.__receivePoint__.r.visible) {
-      if (this.__receivePoint__.r.activate) {
-        ctx.fillStyle = "DeepSkyBlue";
-      } else {
-        ctx.fillStyle = tailwindColors.white["500"];
-      }
+    // if (this.__receivePoint__.r.visible) {
+    //   if (this.__receivePoint__.r.activate) {
+    //     ctx.fillStyle = "DeepSkyBlue";
+    //   } else {
+    //     ctx.fillStyle = tailwindColors.white["500"];
+    //   }
       ctx.beginPath();
       ctx.arc(scaleSize.w / 2, 0, this.anchor.size.fill, 0, 2 * Math.PI, false);
       ctx.stroke();
       ctx.fill();
       ctx.closePath();
-    }
+    // }
 
     // bottom
-    if (this.__receivePoint__.b.visible) {
-      if (this.__receivePoint__.b.activate) {
-        ctx.fillStyle = "DeepSkyBlue";
-      } else {
-        ctx.fillStyle = tailwindColors.white["500"];
-      }
+    // if (this.__receivePoint__.b.visible) {
+    //   if (this.__receivePoint__.b.activate) {
+    //     ctx.fillStyle = "DeepSkyBlue";
+    //   } else {
+    //     ctx.fillStyle = tailwindColors.white["500"];
+    //   }
       ctx.beginPath();
       ctx.arc(0, scaleSize.h / 2, this.anchor.size.fill, 0, 2 * Math.PI, false);
       ctx.stroke();
       ctx.fill();
       ctx.closePath();
-    }
+    // }
 
     ctx.restore();
   }

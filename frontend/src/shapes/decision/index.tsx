@@ -73,7 +73,7 @@ export default class Desicion extends Core {
 
   draw(ctx: CanvasRenderingContext2D,offest:CommonTypes.Vec={x:0, y:0}, scale:number = 0) {
     super.draw(ctx, offest, scale,() => {
-      const screenP = this.getScreenP(offest, scale)
+      const screenP = this.getP(offest, scale)
       const x1 = -this.getScaleSize(scale).w / 2,
         y1 = 0;
       const x2 = 0,

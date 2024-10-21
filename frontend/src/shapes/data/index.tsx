@@ -101,7 +101,7 @@ export default class Data extends Core {
           y: 0,
         };
         p2 = {
-          x: -this.w / 2 - this.__curveTrigger__.d + arrow_h,
+          x: -this.w / 2 - this.__curveTrigger__.distance + arrow_h,
           y: 0,
         };
         cp1 = p1;
@@ -118,7 +118,7 @@ export default class Data extends Core {
         };
         p2 = {
           x: 0,
-          y: -this.h / 2 - this.__curveTrigger__.d + arrow_h,
+          y: -this.h / 2 - this.__curveTrigger__.distance + arrow_h,
         };
         cp1 = p1;
         cp2 = {
@@ -133,7 +133,7 @@ export default class Data extends Core {
           y: 0,
         };
         p2 = {
-          x: this.w / 2 + this.__curveTrigger__.d - arrow_h,
+          x: this.w / 2 + this.__curveTrigger__.distance - arrow_h,
           y: 0,
         };
         cp1 = p1;
@@ -150,7 +150,7 @@ export default class Data extends Core {
         };
         p2 = {
           x: 0,
-          y: this.h / 2 + this.__curveTrigger__.d - arrow_h,
+          y: this.h / 2 + this.__curveTrigger__.distance - arrow_h,
         };
         cp1 = p1;
         cp2 = {
@@ -175,7 +175,7 @@ export default class Data extends Core {
     let dx, dy;
 
     dx =
-      this.getScreenP().x - Math.abs((corners.bl.x + corners.tl.x) / 2) - p.x;
+      this.p.x - Math.abs((corners.bl.x + corners.tl.x) / 2) - p.x;
     dy = center.m.y - p.y;
 
     if (
@@ -185,7 +185,7 @@ export default class Data extends Core {
       return CommonTypes.Direction.l;
     }
 
-    dx = this.getScreenP().x - p.x;
+    dx = this.p.x - p.x;
     dy = edge.t - p.y;
 
     if (
@@ -196,7 +196,7 @@ export default class Data extends Core {
     }
 
     dx =
-      this.getScreenP().x + Math.abs((corners.tr.x + corners.br.x) / 2) - p.x;
+      this.p.x + Math.abs((corners.tr.x + corners.br.x) / 2) - p.x;
     dy = center.m.y - p.y;
 
     if (
@@ -206,7 +206,7 @@ export default class Data extends Core {
       return CommonTypes.Direction.r;
     }
 
-    dx = this.getScreenP().x - p.x;
+    dx = this.p.x - p.x;
     dy = p.y - edge.b;
 
     if (
@@ -221,7 +221,7 @@ export default class Data extends Core {
 
   draw(ctx: CanvasRenderingContext2D,offest:CommonTypes.Vec={x:0, y:0}, scale:number = 0) {
     super.draw(ctx, offest, scale,() => {
-      const screenP = this.getScreenP(offest, scale)
+      const screenP = this.getP(offest, scale)
       const corners = this.getCorner().scale;
 
       ctx.save()
@@ -239,7 +239,7 @@ export default class Data extends Core {
 
   drawRecievingPoint(ctx: CanvasRenderingContext2D) {
     ctx.save();
-    ctx.translate(this.getScreenP().x, this.getScreenP().y);
+    ctx.translate(this.p.x, this.p.y);
     // draw receiving points
     ctx.fillStyle = "white";
     ctx.strokeStyle = "DeepSkyBlue";

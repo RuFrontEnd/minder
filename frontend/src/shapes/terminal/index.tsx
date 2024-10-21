@@ -21,7 +21,7 @@ export default class Terminal extends Core {
   draw(ctx: CanvasRenderingContext2D,offest:CommonTypes.Vec={x:0, y:0}, scale:number = 0) {
     super.draw(ctx,offest,scale, () => {
       const scaleSize = this.getScaleSize(scale)
-      const screenP = this.getScreenP(offest, scale)
+      const screenP = this.getP(offest, scale)
 
       ctx.save()
       ctx.translate(screenP.x, screenP.y)
