@@ -444,9 +444,9 @@ export default class Core {
     } else if (
       checkInsideTriangle(
         [quarterVecs.r.rt_rb, quarterVecs.r.rb_m, quarterVecs.r.m_rt],
-        [targetVecs.r.rt_p, targetVecs.r.rb_p, targetVecs.r.m_p] ||
-          checkOnTriangle([center.rt, center.m, center.rb], screenP)
-      )
+        [targetVecs.r.rt_p, targetVecs.r.rb_p, targetVecs.r.m_p]
+      ) ||
+      checkOnTriangle([center.rt, center.m, center.rb], screenP)
     ) {
       return Direction.r;
     } else if (
