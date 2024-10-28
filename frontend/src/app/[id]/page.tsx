@@ -2465,7 +2465,7 @@ export default function IdPage() {
       });
     }
 
-    return _scale;
+    drawCanvas(offset, _scale);
   };
 
   const fetchProjects = async () => {
@@ -3093,7 +3093,6 @@ export default function IdPage() {
 
   const onMouseWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
     zoom(e.deltaY, { x: e.clientX, y: e.clientY });
-    drawCanvas(offset, scale);
   };
 
   const onDoubleClick = useCallback(
@@ -3249,32 +3248,29 @@ export default function IdPage() {
   const onClickScalePlusIcon = () => {
     const $canvas = document.querySelector("canvas");
     if (!$canvas) return;
-    const newScale = zoom(-100, {
+    zoom(-100, {
       x: $canvas?.width / 2,
       y: $canvas?.height / 2,
     });
-    drawCanvas(offset, newScale);
   };
 
   const onClickScaleMinusIcon = () => {
     const $canvas = document.querySelector("canvas");
     if (!$canvas) return;
-    const newScale = zoom(100, {
+    zoom(100, {
       x: $canvas?.width / 2,
       y: $canvas?.height / 2,
     });
-    drawCanvas(offset, newScale);
   };
 
   const onClickScaleNumber = () => {
     const $canvas = document.querySelector("canvas");
     if (!$canvas) return;
 
-    const newScale = zoom(-((1 / scale - 1) * 500), {
+    zoom(-((1 / scale - 1) * 500), {
       x: $canvas?.width / 2,
       y: $canvas?.height / 2,
     });
-    drawCanvas(offset, newScale);
   };
 
   const onClickDataSidePanelSwitch = () => {
