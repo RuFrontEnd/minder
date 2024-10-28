@@ -1558,10 +1558,10 @@ const moveCurve = (
   for (let i = curves.length - 1; i > -1; i--) {
     const curve = curves[i];
     if (curve.from.shape.id === shape.id) {
-      moveSenderCurve(curve.from.d, curve.to.d, curve.shape, pressing?.shape);
+      moveSenderCurve(curve.from.d, curve.to.d, curve.shape, curve.from.shape);
     }
     if (curve.to.shape.id === shape.id) {
-      moveRecieverCurve(curve.from.d, curve.to.d, curve.shape, pressing?.shape);
+      moveRecieverCurve(curve.from.d, curve.to.d, curve.shape, curve.to.shape);
     }
   }
 };
@@ -1701,10 +1701,8 @@ const deSelectShape = () => {
   return true;
 };
 
-const deleteMultiSelectShapes = () => {
-  if (multiSelect.shapes.length === 0) return true;
+const getMultSelectingMaps = ()=>{
 
-  const selectings = (() => {
     const map: { [id: string]: true } = {};
 
     multiSelect.shapes.forEach((shape) => {
@@ -1712,7 +1710,13 @@ const deleteMultiSelectShapes = () => {
     });
 
     return map;
-  })();
+
+}
+
+const deleteMultiSelectShapes = () => {
+  if (multiSelect.shapes.length === 0) return true;
+
+  const selectings = getMultSelectingMaps()
 
   curves = curves.filter(
     (curve) =>
@@ -2823,43 +2827,37 @@ export default function IdPage() {
         x: p.x - lastP.x,
         y: p.y - lastP.y,
       },
-      screenOffsetP = {
-        x: (p.x - lastP.x) * (1 / scale),
-        y: (p.y - lastP.y) * (1 / scale),
-      };
+      normalOffsetP = getNormalP(offsetP, null, scale);
 
     const movingViewport = space && leftMouseBtn;
 
     if (movingViewport) {
       setDataFrame(undefined);
-      offset.x += screenOffsetP.x;
-      offset.y += screenOffsetP.y;
-    } else if (pressing?.target === CommonTypes.SelectAreaTarget.m) {
-      moveMultiSelectingShapes(offsetP);
-    } else if (
-      pressing?.target === CommonTypes.SelectAreaTarget.lt ||
-      pressing?.target === CommonTypes.SelectAreaTarget.rt ||
-      pressing?.target === CommonTypes.SelectAreaTarget.rb ||
-      pressing?.target === CommonTypes.SelectAreaTarget.lb
-    ) {
-      resizeMultiSelectingShapes(pressing?.target, offsetP, scale);
-    } else if (
-      pressing?.target === CoreTypes.PressingTarget.lt ||
-      pressing?.target === CoreTypes.PressingTarget.rt ||
-      pressing?.target === CoreTypes.PressingTarget.rb ||
-      pressing?.target === CoreTypes.PressingTarget.lb
-    ) {
-      resizeShape(
-        shapes,
-        {
-          shape: pressing.shape,
-          ghost: pressing.ghost,
-          target: pressing.target,
-        },
-        getNormalP(offsetP, null, scale)
-      );
-    } else if (pressing?.target && pressing?.shape) {
-      if (pressing?.target === CoreTypes.PressingTarget.m) {
+      offset.x += normalOffsetP.x;
+      offset.y += normalOffsetP.y;
+    }
+
+    if (!movingViewport && multiSelect.shapes.length >= 2) {
+      if (pressing?.target === CommonTypes.SelectAreaTarget.m) {
+        moveMultiSelectingShapes(normalOffsetP);
+      }
+
+      if (
+        pressing?.target === CommonTypes.SelectAreaTarget.lt ||
+        pressing?.target === CommonTypes.SelectAreaTarget.rt ||
+        pressing?.target === CommonTypes.SelectAreaTarget.rb ||
+        pressing?.target === CommonTypes.SelectAreaTarget.lb
+      ) {
+        resizeMultiSelectingShapes(pressing?.target, offsetP, scale);
+      }
+
+      multiSelect.shapes.forEach((shape) => {
+        moveCurve(shape)
+      })
+    }
+
+    if (!movingViewport && pressing?.shape) {
+      if (pressing?.shape && pressing?.target === CoreTypes.PressingTarget.m) {
         const shapesInView = getShapesInView(shapes);
         alginLines = getAlignLines(shapesInView, pressing.shape);
 
@@ -2934,9 +2932,28 @@ export default function IdPage() {
 
         moveCurve(pressing?.shape);
       }
-    } else if (!!pressingCurve) {
+
+      if (
+        pressing?.target === CoreTypes.PressingTarget.lt ||
+        pressing?.target === CoreTypes.PressingTarget.rt ||
+        pressing?.target === CoreTypes.PressingTarget.rb ||
+        pressing?.target === CoreTypes.PressingTarget.lb
+      ) {
+        resizeShape(
+          shapes,
+          {
+            shape: pressing.shape,
+            ghost: pressing.ghost,
+            target: pressing.target,
+          },
+          getNormalP(offsetP, null, scale)
+        );
+      }
+    }
+
+    if (!movingViewport && !!pressingCurve) {
       movePressingCurve(ctx, pressingCurve, p, offset, scale);
-    } else if (selectAreaP && !space) {
+    } else if (!movingViewport && selectAreaP) {
       selectAreaP = {
         ...selectAreaP,
         end: p,

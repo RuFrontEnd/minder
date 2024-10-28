@@ -73,7 +73,7 @@ type Curves = {
 type MultiSelect =  {
   start: CommonTypes.Vec;
   end: CommonTypes.Vec;
-  shapes: Core[];
+  shapes: (Terminal | Process | Desicion | Data)[];
 }
 
 export type {
