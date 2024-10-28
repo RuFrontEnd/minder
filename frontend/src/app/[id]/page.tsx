@@ -2730,6 +2730,7 @@ export default function IdPage() {
       x: e.nativeEvent.offsetX,
       y: e.nativeEvent.offsetY,
     };
+    const normalP = getNormalP(p, offset, scale);
     if (space) {
       lastP = p;
     } else {
@@ -2740,30 +2741,30 @@ export default function IdPage() {
           getMultiSelectingAreaP();
         const pInSelectingArea = {
           m:
-            p.x > multiSelectingAreaStartP.x &&
-            p.y > multiSelectingAreaStartP.y &&
-            p.x < multiSelectingAreaEndP.x &&
-            p.y < multiSelectingAreaEndP.y,
+            normalP.x > multiSelectingAreaStartP.x &&
+            normalP.y > multiSelectingAreaStartP.y &&
+            normalP.x < multiSelectingAreaEndP.x &&
+            normalP.y < multiSelectingAreaEndP.y,
           lt:
-            p.x > multiSelectingAreaEndP.x - selectAnchor.size.fill &&
-            p.y > multiSelectingAreaStartP.y - selectAnchor.size.fill &&
-            p.x < multiSelectingAreaEndP.x + selectAnchor.size.fill &&
-            p.y < multiSelectingAreaStartP.y + selectAnchor.size.fill,
+            normalP.x > multiSelectingAreaStartP.x - selectAnchor.size.fill &&
+            normalP.y > multiSelectingAreaStartP.y - selectAnchor.size.fill &&
+            normalP.x < multiSelectingAreaStartP.x + selectAnchor.size.fill &&
+            normalP.y < multiSelectingAreaStartP.y + selectAnchor.size.fill,
           rt:
-            p.x > multiSelectingAreaEndP.x - selectAnchor.size.fill &&
-            p.y > multiSelectingAreaStartP.y - selectAnchor.size.fill &&
-            p.x < multiSelectingAreaEndP.x + selectAnchor.size.fill &&
-            p.y < multiSelectingAreaStartP.y + selectAnchor.size.fill,
+            normalP.x > multiSelectingAreaEndP.x - selectAnchor.size.fill &&
+            normalP.y > multiSelectingAreaStartP.y - selectAnchor.size.fill &&
+            normalP.x < multiSelectingAreaEndP.x + selectAnchor.size.fill &&
+            normalP.y < multiSelectingAreaStartP.y + selectAnchor.size.fill,
           rb:
-            p.x > multiSelectingAreaEndP.x - selectAnchor.size.fill &&
-            p.y > multiSelectingAreaEndP.y - selectAnchor.size.fill &&
-            p.x < multiSelectingAreaEndP.x + selectAnchor.size.fill &&
-            p.y < multiSelectingAreaEndP.y + selectAnchor.size.fill,
+            normalP.x > multiSelectingAreaEndP.x - selectAnchor.size.fill &&
+            normalP.y > multiSelectingAreaEndP.y - selectAnchor.size.fill &&
+            normalP.x < multiSelectingAreaEndP.x + selectAnchor.size.fill &&
+            normalP.y < multiSelectingAreaEndP.y + selectAnchor.size.fill,
           lb:
-            p.x > multiSelectingAreaStartP.x - selectAnchor.size.fill &&
-            p.y > multiSelectingAreaEndP.y - selectAnchor.size.fill &&
-            p.x < multiSelectingAreaStartP.x + selectAnchor.size.fill &&
-            p.y < multiSelectingAreaEndP.y + selectAnchor.size.fill,
+            normalP.x > multiSelectingAreaStartP.x - selectAnchor.size.fill &&
+            normalP.y > multiSelectingAreaEndP.y - selectAnchor.size.fill &&
+            normalP.x < multiSelectingAreaStartP.x + selectAnchor.size.fill &&
+            normalP.y < multiSelectingAreaEndP.y + selectAnchor.size.fill,
         };
 
         if (pInSelectingArea.m) {
