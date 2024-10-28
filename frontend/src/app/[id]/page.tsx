@@ -1707,6 +1707,7 @@ const deSelectShape = () => {
 
 const deleteMultiSelectShapes = () => {
   if (multiSelect.shapes.length === 0) return true;
+
   const selectings = (() => {
     const map: { [id: string]: true } = {};
 
@@ -1717,6 +1718,7 @@ const deleteMultiSelectShapes = () => {
     return map;
   })();
 
+  curves = curves.filter(curve => !selectings[curve.from.shape.id] && !selectings[curve.to.shape.id])
   shapes = shapes.filter((shape) => !selectings[shape.id]);
   multiSelect = cloneDeep(init.multiSelect);
   return false;
