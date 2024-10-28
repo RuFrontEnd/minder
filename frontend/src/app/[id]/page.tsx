@@ -128,11 +128,7 @@ let useEffected = false,
     start: CommonTypes.Vec;
     end: CommonTypes.Vec;
   } = null,
-  multiSelect: {
-    start: CommonTypes.Vec;
-    end: CommonTypes.Vec;
-    shapes: Core[];
-  } = cloneDeep(init.multiSelect),
+  multiSelect: PageIdTypes.MultiSelect = cloneDeep(init.multiSelect),
   selectAnchor = {
     size: {
       fill: 4,
@@ -1718,7 +1714,10 @@ const deleteMultiSelectShapes = () => {
     return map;
   })();
 
-  curves = curves.filter(curve => !selectings[curve.from.shape.id] && !selectings[curve.to.shape.id])
+  curves = curves.filter(
+    (curve) =>
+      !selectings[curve.from.shape.id] && !selectings[curve.to.shape.id]
+  );
   shapes = shapes.filter((shape) => !selectings[shape.id]);
   multiSelect = cloneDeep(init.multiSelect);
   return false;
@@ -1778,6 +1777,92 @@ const drawAlignLines = (
     ctx.closePath();
     ctx.restore();
   });
+};
+
+const drawMultiSelectedShapesArea = (
+  ctx: undefined | null | CanvasRenderingContext2D,
+  multiSelect: PageIdTypes.MultiSelect,
+  offset: CommonTypes.Vec = { x: 0, y: 0 },
+  scale: number = 1
+) => {
+  if (!ctx || multiSelect.shapes.length < 2) return;
+
+  const multiSelectScreenStartP = {
+    x: (multiSelect.start.x + offset.x) * scale,
+    y: (multiSelect.start.y + offset.y) * scale,
+  };
+  const multiSelectScreenEndP = {
+    x: (multiSelect.end.x + offset.x) * scale,
+    y: (multiSelect.end.y + offset.y) * scale,
+  };
+
+  // draw multiSelect area
+  ctx?.beginPath();
+  ctx.strokeStyle = tailwindColors.info["500"];
+  ctx.lineWidth = 1;
+  ctx.strokeRect(
+    multiSelectScreenStartP.x,
+    multiSelectScreenStartP.y,
+    multiSelectScreenEndP.x - multiSelectScreenStartP.x,
+    multiSelectScreenEndP.y - multiSelectScreenStartP.y
+  );
+  ctx?.closePath();
+
+  // draw multiSelect area anchors
+  ctx.fillStyle = "white";
+  ctx.lineWidth = selectAnchor.size.stroke;
+
+  ctx?.beginPath();
+  ctx.arc(
+    multiSelectScreenStartP.x,
+    multiSelectScreenStartP.y,
+    selectAnchor.size.fill,
+    0,
+    2 * Math.PI,
+    false
+  ); // left, top
+  ctx.stroke();
+  ctx.fill();
+  ctx?.closePath();
+
+  ctx?.beginPath();
+  ctx.arc(
+    multiSelectScreenEndP.x,
+    multiSelectScreenStartP.y,
+    selectAnchor.size.fill,
+    0,
+    2 * Math.PI,
+    false
+  ); // right, top
+  ctx.stroke();
+  ctx.fill();
+  ctx?.closePath();
+
+  ctx?.beginPath();
+  ctx.arc(
+    multiSelectScreenEndP.x,
+    multiSelectScreenEndP.y,
+    selectAnchor.size.fill,
+    0,
+    2 * Math.PI,
+    false
+  ); // right, bottom
+  ctx.stroke();
+  ctx.fill();
+  ctx?.closePath();
+
+  ctx?.beginPath();
+  ctx.arc(
+    multiSelectScreenStartP.x,
+    multiSelectScreenEndP.y,
+    selectAnchor.size.fill,
+    0,
+    2 * Math.PI,
+    false
+  ); // left, bottom
+  ctx.stroke();
+  ctx.fill();
+  ctx?.closePath();
 };
 
 const draw = (
@@ -1866,74 +1951,8 @@ const draw = (
     }
   }
 
-  if (multiSelect.shapes.length > 1 && !isScreenshot) {
-    // draw multiSelect area
-    ctx?.beginPath();
-    ctx.strokeStyle = tailwindColors.info["500"];
-    ctx.lineWidth = 1;
-    ctx.strokeRect(
-      multiSelect.start.x,
-      multiSelect.start.y,
-      multiSelect.end.x - multiSelect.start.x,
-      multiSelect.end.y - multiSelect.start.y
-    );
-    ctx?.closePath();
-
-    // draw multiSelect area anchors
-    ctx.fillStyle = "white";
-    ctx.lineWidth = selectAnchor.size.stroke;
-
-    ctx?.beginPath();
-    ctx.arc(
-      multiSelect.start.x,
-      multiSelect.start.y,
-      selectAnchor.size.fill,
-      0,
-      2 * Math.PI,
-      false
-    ); // left, top
-    ctx.stroke();
-    ctx.fill();
-    ctx?.closePath();
-
-    ctx?.beginPath();
-    ctx.arc(
-      multiSelect.end.x,
-      multiSelect.start.y,
-      selectAnchor.size.fill,
-      0,
-      2 * Math.PI,
-      false
-    ); // right, top
-    ctx.stroke();
-    ctx.fill();
-    ctx?.closePath();
-
-    ctx?.beginPath();
-    ctx.arc(
-      multiSelect.end.x,
-      multiSelect.end.y,
-      selectAnchor.size.fill,
-      0,
-      2 * Math.PI,
-      false
-    ); // right, bottom
-    ctx.stroke();
-    ctx.fill();
-    ctx?.closePath();
-
-    ctx?.beginPath();
-    ctx.arc(
-      multiSelect.start.x,
-      multiSelect.end.y,
-      selectAnchor.size.fill,
-      0,
-      2 * Math.PI,
-      false
-    ); // left, bottom
-    ctx.stroke();
-    ctx.fill();
-    ctx?.closePath();
+  if (!isScreenshot) {
+    drawMultiSelectedShapesArea(ctx, multiSelect, offset, scale);
   }
 };
 

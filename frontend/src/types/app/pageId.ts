@@ -70,6 +70,12 @@ type Curves = {
   };
 }[];
 
+type MultiSelect =  {
+  start: CommonTypes.Vec;
+  end: CommonTypes.Vec;
+  shapes: Core[];
+}
+
 export type {
   Pressing,
   PressingCurve,
@@ -79,4 +85,5 @@ export type {
   ActionTargets,
   Actions,
   Curves,
+  MultiSelect
 };
