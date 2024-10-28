@@ -1739,6 +1739,212 @@ const deleteSelectedShape = () => {
   return false;
 };
 
+const moveMultiSelectingShapes = (offsetP: CommonTypes.Vec) => {
+  if (multiSelect.shapes.length < 2) return;
+  multiSelect.shapes.forEach((shape) => {
+    shape.move(offsetP);
+  });
+};
+
+const resizeMultiSelectingShapes = (
+  target:
+    | null
+    | undefined
+    | CommonTypes.SelectAreaTarget.lt
+    | CommonTypes.SelectAreaTarget.rt
+    | CommonTypes.SelectAreaTarget.rb
+    | CommonTypes.SelectAreaTarget.lb,
+  offsetP: CommonTypes.Vec,
+  scale = 1
+) => {
+  if (!target || multiSelect.shapes.length < 2) return;
+  const [multiSelectingAreaStartP, multiSelectingAreaEndP] =
+    getMultiSelectingAreaP();
+  const multiSelectingAreaP = {
+    start: multiSelectingAreaStartP,
+    end: multiSelectingAreaEndP,
+  };
+  const multiSelectingAreaSize = {
+    w: Math.abs(multiSelectingAreaP.end.x - multiSelectingAreaP.start.x),
+    h: Math.abs(multiSelectingAreaP.end.y - multiSelectingAreaP.start.y),
+  };
+
+  switch (target) {
+    case CommonTypes.SelectAreaTarget.lt:
+      {
+        const canResize = {
+          x: multiSelectingAreaSize.w - offsetP.x > 0 || offsetP.x < 0,
+          y: multiSelectingAreaSize.h - offsetP.y > 0 || offsetP.y < 0,
+        };
+
+        multiSelect.shapes.forEach((shape) => {
+          const ratioW = shape.getScaleSize().w / multiSelectingAreaSize.w,
+            unitW = offsetP.x * ratioW;
+
+          if (canResize.x) {
+            shape.w = shape.w - unitW / scale;
+
+            const dx = Math.abs(shape.p.x - multiSelectingAreaP.end.x),
+              ratioX = dx / multiSelectingAreaSize.w,
+              unitX = offsetP.x * ratioX;
+
+            shape.p = {
+              ...shape.p,
+              x: shape.p.x + unitX / scale,
+            };
+          }
+
+          const ratioH = shape.getScaleSize().h / multiSelectingAreaSize.h,
+            unitH = offsetP.y * ratioH;
+
+          if (canResize.y) {
+            shape.h = shape.h - unitH / scale;
+
+            const dy = Math.abs(shape.p.y - multiSelectingAreaP.end.y),
+              ratioY = dy / multiSelectingAreaSize.h,
+              unitY = offsetP.y * ratioY;
+
+            shape.p = {
+              ...shape.p,
+              y: shape.p.y + unitY / scale,
+            };
+          }
+        });
+      }
+      break;
+
+    case CommonTypes.SelectAreaTarget.rt:
+      {
+        const canResize = {
+          x: multiSelectingAreaSize.w + offsetP.x > 0 || offsetP.x > 0,
+          y: multiSelectingAreaSize.h - offsetP.y > 0 || offsetP.y < 0,
+        };
+
+        multiSelect.shapes.forEach((shape) => {
+          const ratioW = shape.getScaleSize().w / multiSelectingAreaSize.w,
+            unitW = offsetP.x * ratioW;
+
+          if (canResize.x) {
+            shape.w = shape.w + unitW / scale;
+
+            const dx = Math.abs(shape.p.x - multiSelectingAreaP.start.x),
+              ratioX = dx / multiSelectingAreaSize.w,
+              unitX = offsetP.x * ratioX;
+
+            shape.p = {
+              ...shape.p,
+              x: shape.p.x + unitX / scale,
+            };
+          }
+
+          const ratioH = shape.h / multiSelectingAreaSize.h,
+            unitH = offsetP.y * ratioH;
+
+          if (canResize.y) {
+            shape.h = shape.getScaleSize().h - unitH / scale;
+
+            const dy = Math.abs(shape.p.y - multiSelectingAreaP.end.y),
+              ratioY = dy / multiSelectingAreaSize.h,
+              unitY = offsetP.y * ratioY;
+
+            shape.p = {
+              ...shape.p,
+              y: shape.p.y + unitY / scale,
+            };
+          }
+        });
+      }
+      break;
+
+    case CommonTypes.SelectAreaTarget.rb:
+      {
+        const canResize = {
+          x: multiSelectingAreaSize.w + offsetP.x > 0 || offsetP.x > 0,
+          y: multiSelectingAreaSize.h + offsetP.y > 0 || offsetP.y > 0,
+        };
+
+        multiSelect.shapes.forEach((shape) => {
+          const ratioW = shape.getScaleSize().w / multiSelectingAreaSize.w,
+            unitW = offsetP.x * ratioW;
+
+          if (canResize.x) {
+            shape.w = shape.w + unitW / scale;
+
+            const dx = Math.abs(shape.p.x - multiSelectingAreaP.start.x),
+              ratioX = dx / multiSelectingAreaSize.w,
+              unitX = offsetP.x * ratioX;
+
+            shape.p = {
+              ...shape.p,
+              x: shape.p.x + unitX / scale,
+            };
+          }
+
+          const ratioH = shape.getScaleSize().h / multiSelectingAreaSize.h,
+            unitH = offsetP.y * ratioH;
+
+          if (canResize.y) {
+            shape.h = shape.h + unitH / scale;
+
+            const dy = Math.abs(shape.p.y - multiSelectingAreaP.start.y),
+              ratioY = dy / multiSelectingAreaSize.h,
+              unitY = offsetP.y * ratioY;
+
+            shape.p = {
+              ...shape.p,
+              y: shape.p.y + unitY / scale,
+            };
+          }
+        });
+      }
+      break;
+
+    case CommonTypes.SelectAreaTarget.lb:
+      {
+        const canResize = {
+          x: multiSelectingAreaSize.w - offsetP.x > 0 || offsetP.x < 0,
+          y: multiSelectingAreaSize.h + offsetP.y > 0 || offsetP.y > 0,
+        };
+
+        multiSelect.shapes.forEach((shape) => {
+          const ratioW = shape.getScaleSize().w / multiSelectingAreaSize.w,
+            unitW = offsetP.x * ratioW;
+
+          if (canResize.x) {
+            shape.w = shape.w - unitW / scale;
+
+            const dx = Math.abs(shape.p.x - multiSelectingAreaP.end.x),
+              ratioX = dx / multiSelectingAreaSize.w,
+              unitX = offsetP.x * ratioX;
+
+            shape.p = {
+              ...shape.p,
+              x: shape.p.x + unitX / scale,
+            };
+          }
+
+          const ratioH = shape.getScaleSize().h / multiSelectingAreaSize.h,
+            unitH = offsetP.y * ratioH;
+
+          if (canResize.y) {
+            shape.h = shape.h + unitH / scale;
+
+            const dy = Math.abs(shape.p.y - multiSelectingAreaP.start.y),
+              ratioY = dy / multiSelectingAreaSize.h,
+              unitY = offsetP.y * ratioY;
+
+            shape.p = {
+              ...shape.p,
+              y: shape.p.y + unitY / scale,
+            };
+          }
+        });
+      }
+
+      break;
+  }
+};
+
 const drawShapes = (
   ctx: null | CanvasRenderingContext2D,
   shapes: (Terminal | Process | Data | Desicion | Curve)[],
@@ -1779,21 +1985,48 @@ const drawAlignLines = (
   });
 };
 
+const getMultiSelectingAreaP = () => {
+  const startP = { x: -1, y: -1 };
+  const endP = { x: -1, y: -1 };
+
+  multiSelect.shapes.forEach((shape) => {
+    const theEdge = shape.getEdge();
+    if (startP.x === -1 || theEdge.l < startP.x) {
+      startP.x = theEdge.l;
+    }
+    if (startP.y === -1 || theEdge.t < startP.y) {
+      startP.y = theEdge.t;
+    }
+    if (endP.x === -1 || theEdge.r > endP.x) {
+      endP.x = theEdge.r;
+    }
+    if (endP.y === -1 || theEdge.b > endP.y) {
+      endP.y = theEdge.b;
+    }
+  });
+
+  return [startP, endP];
+};
+
 const drawMultiSelectedShapesArea = (
   ctx: undefined | null | CanvasRenderingContext2D,
-  multiSelect: PageIdTypes.MultiSelect,
   offset: CommonTypes.Vec = { x: 0, y: 0 },
   scale: number = 1
 ) => {
   if (!ctx || multiSelect.shapes.length < 2) return;
 
-  const multiSelectScreenStartP = {
-    x: (multiSelect.start.x + offset.x) * scale,
-    y: (multiSelect.start.y + offset.y) * scale,
+  const [startP, endP] = getMultiSelectingAreaP();
+
+  if (startP.x === -1 || startP.y === -1 || endP.x === -1 || endP.y === -1)
+    return;
+
+  const screenStartP = {
+    x: (startP.x + offset.x) * scale,
+    y: (startP.y + offset.y) * scale,
   };
-  const multiSelectScreenEndP = {
-    x: (multiSelect.end.x + offset.x) * scale,
-    y: (multiSelect.end.y + offset.y) * scale,
+  const screenEndP = {
+    x: (endP.x + offset.x) * scale,
+    y: (endP.y + offset.y) * scale,
   };
 
   // draw multiSelect area
@@ -1801,10 +2034,10 @@ const drawMultiSelectedShapesArea = (
   ctx.strokeStyle = tailwindColors.info["500"];
   ctx.lineWidth = 1;
   ctx.strokeRect(
-    multiSelectScreenStartP.x,
-    multiSelectScreenStartP.y,
-    multiSelectScreenEndP.x - multiSelectScreenStartP.x,
-    multiSelectScreenEndP.y - multiSelectScreenStartP.y
+    screenStartP.x,
+    screenStartP.y,
+    screenEndP.x - screenStartP.x,
+    screenEndP.y - screenStartP.y
   );
   ctx?.closePath();
 
@@ -1814,8 +2047,8 @@ const drawMultiSelectedShapesArea = (
 
   ctx?.beginPath();
   ctx.arc(
-    multiSelectScreenStartP.x,
-    multiSelectScreenStartP.y,
+    screenStartP.x,
+    screenStartP.y,
     selectAnchor.size.fill,
     0,
     2 * Math.PI,
@@ -1827,8 +2060,8 @@ const drawMultiSelectedShapesArea = (
 
   ctx?.beginPath();
   ctx.arc(
-    multiSelectScreenEndP.x,
-    multiSelectScreenStartP.y,
+    screenEndP.x,
+    screenStartP.y,
     selectAnchor.size.fill,
     0,
     2 * Math.PI,
@@ -1840,8 +2073,8 @@ const drawMultiSelectedShapesArea = (
 
   ctx?.beginPath();
   ctx.arc(
-    multiSelectScreenEndP.x,
-    multiSelectScreenEndP.y,
+    screenEndP.x,
+    screenEndP.y,
     selectAnchor.size.fill,
     0,
     2 * Math.PI,
@@ -1853,8 +2086,8 @@ const drawMultiSelectedShapesArea = (
 
   ctx?.beginPath();
   ctx.arc(
-    multiSelectScreenStartP.x,
-    multiSelectScreenEndP.y,
+    screenStartP.x,
+    screenEndP.y,
     selectAnchor.size.fill,
     0,
     2 * Math.PI,
@@ -1952,7 +2185,7 @@ const draw = (
   }
 
   if (!isScreenshot) {
-    drawMultiSelectedShapesArea(ctx, multiSelect, offset, scale);
+    drawMultiSelectedShapesArea(ctx, offset, scale);
   }
 };
 
@@ -2462,29 +2695,6 @@ export default function IdPage() {
 
     offset_center.x -= unitsAddLeft_center;
     offset_center.y -= unitsAddTop_center;
-    // ---
-
-    if (multiSelect.shapes.length > 1) {
-      multiSelect.start.x = -1;
-      multiSelect.end.x = -1;
-      multiSelect.start.y = -1;
-      multiSelect.end.y = -1;
-      multiSelect.shapes.forEach((shape) => {
-        const theEdge = shape.getEdge();
-        if (multiSelect?.start.x === -1 || theEdge.l < multiSelect?.start.x) {
-          multiSelect.start.x = theEdge.l;
-        }
-        if (multiSelect?.start.y === -1 || theEdge.t < multiSelect?.start.y) {
-          multiSelect.start.y = theEdge.t;
-        }
-        if (multiSelect.end.x === -1 || theEdge.r > multiSelect.end.x) {
-          multiSelect.end.x = theEdge.r;
-        }
-        if (multiSelect.end.y === -1 || theEdge.b > multiSelect.end.y) {
-          multiSelect.end.y = theEdge.b;
-        }
-      });
-    }
 
     drawCanvas(offset, _scale);
   };
@@ -2517,51 +2727,54 @@ export default function IdPage() {
     setLeftMouseBtn(true);
 
     const p = {
-        x: e.nativeEvent.offsetX,
-        y: e.nativeEvent.offsetY,
-      },
-      pInSelectArea =
-        p.x > multiSelect.start.x &&
-        p.y > multiSelect.start.y &&
-        p.x < multiSelect.end.x &&
-        p.y < multiSelect.end.y,
-      pInSelectArea_lt =
-        p.x > multiSelect.start.x - selectAnchor.size.fill &&
-        p.y > multiSelect.start.y - selectAnchor.size.fill &&
-        p.x < multiSelect.start.x + selectAnchor.size.fill &&
-        p.y < multiSelect.start.y + selectAnchor.size.fill,
-      pInSelectArea_rt =
-        p.x > multiSelect.end.x - selectAnchor.size.fill &&
-        p.y > multiSelect.start.y - selectAnchor.size.fill &&
-        p.x < multiSelect.end.x + selectAnchor.size.fill &&
-        p.y < multiSelect.start.y + selectAnchor.size.fill,
-      pInSelectArea_rb =
-        p.x > multiSelect.end.x - selectAnchor.size.fill &&
-        p.y > multiSelect.end.y - selectAnchor.size.fill &&
-        p.x < multiSelect.end.x + selectAnchor.size.fill &&
-        p.y < multiSelect.end.y + selectAnchor.size.fill,
-      pInSelectArea_lb =
-        p.x > multiSelect.start.x - selectAnchor.size.fill &&
-        p.y > multiSelect.end.y - selectAnchor.size.fill &&
-        p.x < multiSelect.start.x + selectAnchor.size.fill &&
-        p.y < multiSelect.end.y + selectAnchor.size.fill;
-
+      x: e.nativeEvent.offsetX,
+      y: e.nativeEvent.offsetY,
+    };
     if (space) {
       lastP = p;
     } else {
       if (multiSelect.shapes.length >= 2) {
         // when multi multiSelect shapes
         let _target: null | CommonTypes.SelectAreaTarget = null;
+        const [multiSelectingAreaStartP, multiSelectingAreaEndP] =
+          getMultiSelectingAreaP();
+        const pInSelectingArea = {
+          m:
+            p.x > multiSelectingAreaStartP.x &&
+            p.y > multiSelectingAreaStartP.y &&
+            p.x < multiSelectingAreaEndP.x &&
+            p.y < multiSelectingAreaEndP.y,
+          lt:
+            p.x > multiSelectingAreaEndP.x - selectAnchor.size.fill &&
+            p.y > multiSelectingAreaStartP.y - selectAnchor.size.fill &&
+            p.x < multiSelectingAreaEndP.x + selectAnchor.size.fill &&
+            p.y < multiSelectingAreaStartP.y + selectAnchor.size.fill,
+          rt:
+            p.x > multiSelectingAreaEndP.x - selectAnchor.size.fill &&
+            p.y > multiSelectingAreaStartP.y - selectAnchor.size.fill &&
+            p.x < multiSelectingAreaEndP.x + selectAnchor.size.fill &&
+            p.y < multiSelectingAreaStartP.y + selectAnchor.size.fill,
+          rb:
+            p.x > multiSelectingAreaEndP.x - selectAnchor.size.fill &&
+            p.y > multiSelectingAreaEndP.y - selectAnchor.size.fill &&
+            p.x < multiSelectingAreaEndP.x + selectAnchor.size.fill &&
+            p.y < multiSelectingAreaEndP.y + selectAnchor.size.fill,
+          lb:
+            p.x > multiSelectingAreaStartP.x - selectAnchor.size.fill &&
+            p.y > multiSelectingAreaEndP.y - selectAnchor.size.fill &&
+            p.x < multiSelectingAreaStartP.x + selectAnchor.size.fill &&
+            p.y < multiSelectingAreaEndP.y + selectAnchor.size.fill,
+        };
 
-        if (pInSelectArea) {
+        if (pInSelectingArea.m) {
           _target = CommonTypes.SelectAreaTarget.m;
-        } else if (pInSelectArea_lt) {
+        } else if (pInSelectingArea.lt) {
           _target = CommonTypes.SelectAreaTarget.lt;
-        } else if (pInSelectArea_rt) {
+        } else if (pInSelectingArea.rt) {
           _target = CommonTypes.SelectAreaTarget.rt;
-        } else if (pInSelectArea_rb) {
+        } else if (pInSelectingArea.rb) {
           _target = CommonTypes.SelectAreaTarget.rb;
-        } else if (pInSelectArea_lb) {
+        } else if (pInSelectingArea.lb) {
           _target = CommonTypes.SelectAreaTarget.lb;
         }
 
@@ -2620,224 +2833,15 @@ export default function IdPage() {
       setDataFrame(undefined);
       offset.x += screenOffsetP.x;
       offset.y += screenOffsetP.y;
-      shapes.forEach((shape) => {
-        shape.offset = offset;
-      });
-      curves.forEach((curve) => {
-        curve.shape.offset = offset;
-      });
-      if (multiSelect.shapes.length > 0) {
-        multiSelect.start.x += offsetP.x;
-        multiSelect.start.y += offsetP.y;
-        multiSelect.end.x += offsetP.x;
-        multiSelect.end.y += offsetP.y;
-      }
-    } else if (multiSelect.shapes.length > 0) {
-      // multi multiSelect
-
-      const theSelect = {
-        w: Math.abs(multiSelect.end.x - multiSelect.start.x),
-        h: Math.abs(multiSelect.end.y - multiSelect.start.y),
-      };
-
-      if (pressing?.target === CommonTypes.SelectAreaTarget.m) {
-        multiSelect.shapes.forEach((shape) => {
-          shape.move({ x: p.x - lastP.x, y: p.y - lastP.y });
-        });
-
-        multiSelect.start.x += offsetP.x;
-        multiSelect.start.y += offsetP.y;
-        multiSelect.end.x += offsetP.x;
-        multiSelect.end.y += offsetP.y;
-      } else if (pressing?.target === CommonTypes.SelectAreaTarget.lt) {
-        const canResize = {
-          x: theSelect.w - offsetP.x > 0 || offsetP.x < 0,
-          y: theSelect.h - offsetP.y > 0 || offsetP.y < 0,
-        };
-
-        multiSelect.shapes.forEach((shape) => {
-          const ratioW = shape.getScaleSize().w / theSelect.w,
-            unitW = offsetP.x * ratioW;
-
-          if (canResize.x) {
-            shape.w = shape.w - unitW / scale;
-
-            const dx = Math.abs(shape.p.x - multiSelect.end.x),
-              ratioX = dx / theSelect.w,
-              unitX = offsetP.x * ratioX;
-
-            shape.p = {
-              ...shape.p,
-              x: shape.p.x + unitX / scale,
-            };
-          }
-
-          const ratioH = shape.getScaleSize().h / theSelect.h,
-            unitH = offsetP.y * ratioH;
-
-          if (canResize.y) {
-            shape.h = shape.h - unitH / scale;
-
-            const dy = Math.abs(shape.p.y - multiSelect.end.y),
-              ratioY = dy / theSelect.h,
-              unitY = offsetP.y * ratioY;
-
-            shape.p = {
-              ...shape.p,
-              y: shape.p.y + unitY / scale,
-            };
-          }
-        });
-
-        if (canResize.x) {
-          multiSelect.start.x += offsetP.x;
-        }
-
-        if (canResize.y) {
-          multiSelect.start.y += offsetP.y;
-        }
-      } else if (pressing?.target === CommonTypes.SelectAreaTarget.rt) {
-        const canResize = {
-          x: theSelect.w + offsetP.x > 0 || offsetP.x > 0,
-          y: theSelect.h - offsetP.y > 0 || offsetP.y < 0,
-        };
-
-        multiSelect.shapes.forEach((shape) => {
-          const ratioW = shape.getScaleSize().w / theSelect.w,
-            unitW = offsetP.x * ratioW;
-
-          if (canResize.x) {
-            shape.w = shape.w + unitW / scale;
-
-            const dx = Math.abs(shape.p.x - multiSelect.start.x),
-              ratioX = dx / theSelect.w,
-              unitX = offsetP.x * ratioX;
-
-            shape.p = {
-              ...shape.p,
-              x: shape.p.x + unitX / scale,
-            };
-          }
-
-          const ratioH = shape.h / theSelect.h,
-            unitH = offsetP.y * ratioH;
-
-          if (canResize.y) {
-            shape.h = shape.getScaleSize().h - unitH / scale;
-
-            const dy = Math.abs(shape.p.y - multiSelect.end.y),
-              ratioY = dy / theSelect.h,
-              unitY = offsetP.y * ratioY;
-
-            shape.p = {
-              ...shape.p,
-              y: shape.p.y + unitY / scale,
-            };
-          }
-        });
-
-        if (canResize.x) {
-          multiSelect.end.x += offsetP.x;
-        }
-
-        if (canResize.y) {
-          multiSelect.start.y += offsetP.y;
-        }
-      } else if (pressing?.target === CommonTypes.SelectAreaTarget.rb) {
-        const canResize = {
-          x: theSelect.w + offsetP.x > 0 || offsetP.x > 0,
-          y: theSelect.h + offsetP.y > 0 || offsetP.y > 0,
-        };
-
-        multiSelect.shapes.forEach((shape) => {
-          const ratioW = shape.getScaleSize().w / theSelect.w,
-            unitW = offsetP.x * ratioW;
-
-          if (canResize.x) {
-            shape.w = shape.w + unitW / scale;
-
-            const dx = Math.abs(shape.p.x - multiSelect.start.x),
-              ratioX = dx / theSelect.w,
-              unitX = offsetP.x * ratioX;
-
-            shape.p = {
-              ...shape.p,
-              x: shape.p.x + unitX / scale,
-            };
-          }
-
-          const ratioH = shape.getScaleSize().h / theSelect.h,
-            unitH = offsetP.y * ratioH;
-
-          if (canResize.y) {
-            shape.h = shape.h + unitH / scale;
-
-            const dy = Math.abs(shape.p.y - multiSelect.start.y),
-              ratioY = dy / theSelect.h,
-              unitY = offsetP.y * ratioY;
-
-            shape.p = {
-              ...shape.p,
-              y: shape.p.y + unitY / scale,
-            };
-          }
-        });
-
-        if (canResize.x) {
-          multiSelect.end.x += offsetP.x;
-        }
-
-        if (canResize.y) {
-          multiSelect.end.y += offsetP.y;
-        }
-      } else if (pressing?.target === CommonTypes.SelectAreaTarget.lb) {
-        const canResize = {
-          x: theSelect.w - offsetP.x > 0 || offsetP.x < 0,
-          y: theSelect.h + offsetP.y > 0 || offsetP.y > 0,
-        };
-
-        multiSelect.shapes.forEach((shape) => {
-          const ratioW = shape.getScaleSize().w / theSelect.w,
-            unitW = offsetP.x * ratioW;
-
-          if (canResize.x) {
-            shape.w = shape.w - unitW / scale;
-
-            const dx = Math.abs(shape.p.x - multiSelect.end.x),
-              ratioX = dx / theSelect.w,
-              unitX = offsetP.x * ratioX;
-
-            shape.p = {
-              ...shape.p,
-              x: shape.p.x + unitX / scale,
-            };
-          }
-
-          const ratioH = shape.getScaleSize().h / theSelect.h,
-            unitH = offsetP.y * ratioH;
-
-          if (canResize.y) {
-            shape.h = shape.h + unitH / scale;
-
-            const dy = Math.abs(shape.p.y - multiSelect.start.y),
-              ratioY = dy / theSelect.h,
-              unitY = offsetP.y * ratioY;
-
-            shape.p = {
-              ...shape.p,
-              y: shape.p.y + unitY / scale,
-            };
-          }
-        });
-
-        if (canResize.x) {
-          multiSelect.start.x += offsetP.x;
-        }
-
-        if (canResize.y) {
-          multiSelect.end.y += offsetP.y;
-        }
-      }
+    } else if (pressing?.target === CommonTypes.SelectAreaTarget.m) {
+      moveMultiSelectingShapes(offsetP);
+    } else if (
+      pressing?.target === CommonTypes.SelectAreaTarget.lt ||
+      pressing?.target === CommonTypes.SelectAreaTarget.rt ||
+      pressing?.target === CommonTypes.SelectAreaTarget.rb ||
+      pressing?.target === CommonTypes.SelectAreaTarget.lb
+    ) {
+      resizeMultiSelectingShapes(pressing?.target, offsetP, scale);
     } else if (
       pressing?.target === CoreTypes.PressingTarget.lt ||
       pressing?.target === CoreTypes.PressingTarget.rt ||
@@ -2961,7 +2965,7 @@ export default function IdPage() {
     };
 
     // define which shape in multiSelect area
-    const selectedShapes = (() => {
+    const shapesInSelectingArea = (() => {
       let shapesInSelectArea: (Terminal | Data | Process | Desicion)[] = [];
 
       shapes.forEach((shape) => {
@@ -2999,26 +3003,10 @@ export default function IdPage() {
     })();
 
     // define multiSelect status
-    if (selectedShapes.length === 1) {
-      selectedShapes[0].selecting = true;
-    } else if (selectedShapes.length > 1) {
-      selectedShapes.forEach((selectedShape) => {
-        const theEdge = selectedShape.getEdge();
-        if (multiSelect?.start.x === -1 || theEdge.l < multiSelect?.start.x) {
-          multiSelect.start.x = theEdge.l;
-        }
-        if (multiSelect?.start.y === -1 || theEdge.t < multiSelect?.start.y) {
-          multiSelect.start.y = theEdge.t;
-        }
-        if (multiSelect.end.x === -1 || theEdge.r > multiSelect.end.x) {
-          multiSelect.end.x = theEdge.r;
-        }
-        if (multiSelect.end.y === -1 || theEdge.b > multiSelect.end.y) {
-          multiSelect.end.y = theEdge.b;
-        }
-        multiSelect.shapes.push(selectedShape);
-        selectedShape.selecting = false;
-      });
+    if (shapesInSelectingArea.length === 1) {
+      shapesInSelectingArea[0].selecting = true;
+    } else if (shapesInSelectingArea.length > 1) {
+      multiSelect.shapes = shapesInSelectingArea;
     }
 
     shapes.forEach((targetShape) => {
