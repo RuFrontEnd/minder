@@ -149,7 +149,11 @@ const ds = [
   CommonTypes.Direction.b,
 ];
 
-const getFramePosition = (shape: Core, offset:CommonTypes.Vec, scale:number) => {
+const getFramePosition = (
+  shape: Core,
+  offset: CommonTypes.Vec,
+  scale: number
+) => {
   const frameOffset = 12;
   return {
     x: shape.getP(offset, scale).x + shape.getScaleSize().w / 2 + frameOffset,
@@ -1615,13 +1619,16 @@ const triggerCurve = (
 };
 
 const selectCurve = (
-  p: CommonTypes.Vec,   
+  p: CommonTypes.Vec,
   offset: CommonTypes.Vec = { x: 0, y: 0 },
   scale: number = 1
 ) => {
   for (let i = curves.length - 1; i > -1; i--) {
     const curve = curves[i];
-    if (curve.shape.selecting && curve.shape.checkControlPointsBoundry(getNormalP(p, offset, scale))) {
+    if (
+      curve.shape.selecting &&
+      curve.shape.checkControlPointsBoundry(getNormalP(p, offset, scale))
+    ) {
       pressingCurve = {
         from: {
           shape: curve.from.shape,
@@ -1715,8 +1722,19 @@ const deleteMultiSelectShapes = () => {
   return false;
 };
 
-const deleteSelectShape = () => {
-  shapes = shapes.filter((shape) => !shape.selecting);
+const deleteSelectedShape = () => {
+  const selectedShapeI = shapes.findIndex((shape) => shape.selecting);
+
+  if (selectedShapeI === -1) return false;
+
+  curves = curves.filter(
+    (curve) =>
+      curve.from.shape.id !== shapes[selectedShapeI].id &&
+      curve.to.shape.id !== shapes[selectedShapeI].id
+  );
+
+  shapes.splice(selectedShapeI, 1);
+
   return false;
 };
 
@@ -2542,7 +2560,7 @@ export default function IdPage() {
         handleUtils.handle([
           () => triggerCurve(p, offset, scale),
           () => deSelectShape(),
-          () => selectCurve(p,  offset, scale),
+          () => selectCurve(p, offset, scale),
           () => deSelectCurve(),
           () => selectShape(p, offset, scale),
         ]);
@@ -2812,7 +2830,7 @@ export default function IdPage() {
           ghost: pressing.ghost,
           target: pressing.target,
         },
-        getNormalP(offsetP, null, scale),
+        getNormalP(offsetP, null, scale)
       );
     } else if (pressing?.target && pressing?.shape) {
       if (pressing?.target === CoreTypes.PressingTarget.m) {
@@ -2891,7 +2909,6 @@ export default function IdPage() {
         moveCurve(pressing?.shape);
       }
     } else if (!!pressingCurve) {
-      console.log('pressingCurve', pressingCurve)
       movePressingCurve(ctx, pressingCurve, p, offset, scale);
     } else if (selectAreaP && !space) {
       selectAreaP = {
@@ -3114,7 +3131,7 @@ export default function IdPage() {
       const $canvas = document.querySelector("canvas");
       if (!$canvas || !ctx) return;
 
-      handleUtils.handle([deleteMultiSelectShapes, deleteSelectShape]);
+      handleUtils.handle([deleteMultiSelectShapes, deleteSelectedShape]);
 
       drawCanvas(offset, scale);
       drawScreenshot(offset, scale);
@@ -3618,8 +3635,6 @@ export default function IdPage() {
       <Icon type={type.icon} w={16} h={16} fill={tailwindColors.white["500"]} />
     ),
   }));
-
-  console.log("shapes", shapes);
 
   return (
     <>
