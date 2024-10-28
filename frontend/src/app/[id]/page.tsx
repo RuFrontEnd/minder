@@ -1244,11 +1244,11 @@ const getCurveStickingCp1Cp2 = (
   if (fromD === CommonTypes.Direction.l && toD === CommonTypes.Direction.l) {
     return [
       {
-        x: p1.x - 2 * min - margin.y,
+        x: p1.x - min * 2 - margin.y,
         y: p1.y,
       },
       {
-        x: -min + p2.x - margin.y,
+        x: p2.x - min * 2 - margin.y,
         y: p2.y,
       },
     ];
@@ -1256,23 +1256,23 @@ const getCurveStickingCp1Cp2 = (
   if (fromD === CommonTypes.Direction.l && toD === CommonTypes.Direction.t) {
     return [
       {
-        x: p1.x - 2 * min - margin.x,
+        x: p1.x - min * 2 - margin.x,
         y: p1.y,
       },
       {
         x: p2.x,
-        y: -min + p2.y - margin.y,
+        y: p2.y - min * 2 - margin.y,
       },
     ];
   }
   if (fromD === CommonTypes.Direction.l && toD === CommonTypes.Direction.r) {
     return [
       {
-        x: p1.x - 2 * min - margin.x,
+        x: p1.x - min * 2 - margin.x,
         y: p1.y,
       },
       {
-        x: min + p2.x + margin.x,
+        x: p2.x + min * 2 + margin.x,
         y: p2.y,
       },
     ];
@@ -1280,12 +1280,12 @@ const getCurveStickingCp1Cp2 = (
   if (fromD === CommonTypes.Direction.l && toD === CommonTypes.Direction.b) {
     return [
       {
-        x: p1.x - 2 * min - margin.x,
+        x: p1.x - min * 2 - margin.x,
         y: p1.y,
       },
       {
         x: p2.x,
-        y: min + p2.y + margin.y,
+        y: p2.y + min * 2 + margin.y,
       },
     ];
   }
@@ -1310,7 +1310,7 @@ const getCurveStickingCp1Cp2 = (
       },
       {
         x: p2.x,
-        y: p2.y - min - margin.x,
+        y: p2.y - min * 2 - margin.x,
       },
     ];
   }
@@ -1334,7 +1334,7 @@ const getCurveStickingCp1Cp2 = (
       },
       {
         x: p2.x,
-        y: p2.y + min + margin.y,
+        y: p2.y + min * 2 + margin.y,
       },
     ];
   }
@@ -1342,11 +1342,11 @@ const getCurveStickingCp1Cp2 = (
   if (fromD === CommonTypes.Direction.r && toD === CommonTypes.Direction.l) {
     return [
       {
-        x: p1.x + 2 * min + margin.x,
+        x: p1.x + min * 2 + margin.x,
         y: p1.y,
       },
       {
-        x: p2.x - min - margin.x,
+        x: p2.x - min * 2 - margin.x,
         y: p2.y,
       },
     ];
@@ -1354,23 +1354,23 @@ const getCurveStickingCp1Cp2 = (
   if (fromD === CommonTypes.Direction.r && toD === CommonTypes.Direction.t) {
     return [
       {
-        x: p1.x + 2 * min + margin.x,
+        x: p1.x + min * 2 + margin.x,
         y: p1.y,
       },
       {
         x: p2.x,
-        y: p2.y - min - margin.y,
+        y: p2.y - min * 2 - margin.y,
       },
     ];
   }
   if (fromD === CommonTypes.Direction.r && toD === CommonTypes.Direction.r) {
     return [
       {
-        x: p1.x + 2 * min + margin.y,
+        x: p1.x + min * 2 + margin.y,
         y: p1.y,
       },
       {
-        x: p2.x + min + margin.y,
+        x: p2.x + min * 2 + margin.y,
         y: p2.y,
       },
     ];
@@ -1378,12 +1378,12 @@ const getCurveStickingCp1Cp2 = (
   if (fromD === CommonTypes.Direction.r && toD === CommonTypes.Direction.b) {
     return [
       {
-        x: p1.x + 2 * min + margin.x,
+        x: p1.x + min * 2 + margin.x,
         y: p1.y,
       },
       {
         x: p2.x,
-        y: min + p2.y + margin.y,
+        y: p2.y + min * 2 + margin.y,
       },
     ];
   }
@@ -1408,7 +1408,7 @@ const getCurveStickingCp1Cp2 = (
       },
       {
         x: p2.x,
-        y: p2.y - min - margin.y,
+        y: p2.y - min * 2 - margin.y,
       },
     ];
   }
@@ -1432,7 +1432,7 @@ const getCurveStickingCp1Cp2 = (
       },
       {
         x: p2.x,
-        y: p2.y + min + margin.x,
+        y: p2.y + min * 2 + margin.x,
       },
     ];
   }
