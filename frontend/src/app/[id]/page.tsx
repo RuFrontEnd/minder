@@ -93,8 +93,7 @@ const init = {
   },
 };
 
-let useEffected = false,
-  ctx: CanvasRenderingContext2D | null | undefined = null,
+let ctx: CanvasRenderingContext2D | null | undefined = null,
   ctx_screenshot: CanvasRenderingContext2D | null | undefined = null,
   shapes: (Terminal | Process | Data | Desicion)[] = [],
   curves: PageIdTypes.Curves = [],
@@ -117,13 +116,7 @@ let useEffected = false,
   pressing: PageIdTypes.Pressing = null,
   pressingCurve: PageIdTypes.PressingCurve = null,
   offset: CommonTypes.Vec = cloneDeep(init.offset),
-  offset_center: CommonTypes.Vec = cloneDeep(init.offset),
   lastP: CommonTypes.Vec = { x: 0, y: 0 },
-  moveP: {
-    x: null | number;
-    y: null | number;
-  } = { x: null, y: null },
-  relativeCurveCp2: CommonTypes.Vec = { x: 0, y: 0 },
   selectionFrameP: null | {
     start: CommonTypes.Vec;
     end: CommonTypes.Vec;
@@ -184,7 +177,7 @@ const getScreenP = (
 const getInitializedShape = (
   type: CommonTypes.Type,
   offset: CommonTypes.Vec,
-  offset_center: CommonTypes.Vec
+  scale: number = 1
 ) => {
   switch (type) {
     case CommonTypes.Type["terminator"]:
@@ -193,8 +186,8 @@ const getInitializedShape = (
         init.shape.size.t.w,
         init.shape.size.t.h,
         {
-          x: -offset.x + window.innerWidth / 2 + offset_center.x,
-          y: -offset.y + window.innerHeight / 2 + offset_center.y,
+          x: -offset.x + window.innerWidth / 2,
+          y: -offset.y + window.innerHeight / 2,
         },
         type
       );
@@ -204,8 +197,8 @@ const getInitializedShape = (
         init.shape.size.p.w,
         init.shape.size.p.h,
         {
-          x: -offset.x + window.innerWidth / 2 + offset_center.x,
-          y: -offset.y + window.innerHeight / 2 + offset_center.y,
+          x: -offset.x + window.innerWidth / 2 / scale,
+          y: -offset.y + window.innerHeight / 2 / scale,
         },
         type
       );
@@ -216,8 +209,8 @@ const getInitializedShape = (
         init.shape.size.d.w,
         init.shape.size.d.h,
         {
-          x: -offset.x + window.innerWidth / 2 + offset_center.x,
-          y: -offset.y + window.innerHeight / 2 + offset_center.y,
+          x: -offset.x + window.innerWidth / 2,
+          y: -offset.y + window.innerHeight / 2,
         },
         type
       );
@@ -228,8 +221,8 @@ const getInitializedShape = (
         init.shape.size.dec.w,
         init.shape.size.dec.h,
         {
-          x: -offset.x + window.innerWidth / 2 + offset_center.x,
-          y: -offset.y + window.innerHeight / 2 + offset_center.y,
+          x: -offset.x + window.innerWidth / 2,
+          y: -offset.y + window.innerHeight / 2,
         },
         type
       );
@@ -2717,7 +2710,7 @@ export default function IdPage() {
     if (!$canvas) return;
     const scaleAmount = -delta / 500;
     const _scale = scale * (1 + scaleAmount);
-    setScale(_scale <= 0.1? _scale:0.1);
+    setScale(_scale);
 
     // --- get offset value
     // zoom the page based on where the cursor is
@@ -2732,20 +2725,6 @@ export default function IdPage() {
 
     offset.x -= unitsAddLeft;
     offset.y -= unitsAddTop;
-
-    // --- get center point offset value
-    const distX_center = 1 / 2;
-    const distY_center = 1 / 2;
-
-    // calculate how much we need to zoom
-    const unitsZoomedX_center = ($canvas.width / _scale) * scaleAmount;
-    const unitsZoomedY_center = ($canvas.height / _scale) * scaleAmount;
-
-    const unitsAddLeft_center = unitsZoomedX_center * distX_center;
-    const unitsAddTop_center = unitsZoomedY_center * distY_center;
-
-    offset_center.x -= unitsAddLeft_center;
-    offset_center.y -= unitsAddTop_center;
 
     drawCanvas(offset, _scale);
   };
@@ -3020,8 +2999,6 @@ export default function IdPage() {
   };
 
   const onMouseUp = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    console.log('offset_center', offset_center)
-    console.log('offset', offset)
     e.preventDefault();
 
     const p = {
@@ -3188,7 +3165,7 @@ export default function IdPage() {
     e.preventDefault();
     if (!isBrowser) return;
 
-    let intiShape = getInitializedShape(type, offset, offset_center);
+    let intiShape = getInitializedShape(type, offset, scale);
     shapes.push(intiShape);
 
     actions.push({
@@ -3322,8 +3299,8 @@ export default function IdPage() {
     if (!isBrowser) return;
 
     offset = {
-      x: offset_center.x + (window.innerWidth / 2 - shapeP.x),
-      y: offset_center.y + (window.innerHeight / 2 - shapeP.y),
+      x: window.innerWidth / 2 /scale - shapeP.x,
+      y: window.innerHeight / 2 / scale - shapeP.y,
     };
 
     drawCanvas(offset, scale);
@@ -3433,7 +3410,6 @@ export default function IdPage() {
       setScale(1);
       setSelectedProjectId(id);
       offset = cloneDeep(init.offset);
-      offset_center = cloneDeep(init.offset);
       const initShapes = getInitializedShapes(
         projectData.orders,
         projectData.shapes,
