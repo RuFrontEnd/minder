@@ -1701,8 +1701,7 @@ const selectShape = (
   scale: number
 ) => {
   const normalP = getNormalP(p, offset, scale);
-  for (let i = shapes.length - 1; i > -1; i--) {
-    const shape = shapes[i];
+  shapes.forEach(shape => {
     const _ghost = cloneDeep(shape);
     _ghost.title = "ghost";
     const pressingVertex = shape.checkVertexesBoundry(normalP);
@@ -1725,7 +1724,7 @@ const selectShape = (
         direction: null,
       };
     }
-  }
+  })
 
   if (pressing?.shape) {
     pressing.shape.selecting = true;
