@@ -273,8 +273,6 @@ const getInitializedShapes = (
           });
         });
 
-        newTerminator.offset = offset;
-
         shapeMappings[id] = newTerminator;
 
         break;
@@ -302,8 +300,6 @@ const getInitializedShapes = (
           });
         });
 
-        newData.offset = offset;
-
         shapeMappings[id] = newData;
 
         break;
@@ -323,8 +319,6 @@ const getInitializedShapes = (
             text: data[dataId],
           });
         });
-
-        newProcess.offset = offset;
 
         shapeMappings[id] = newProcess;
 
@@ -355,8 +349,6 @@ const getInitializedShapes = (
             text: data[dataId],
           });
         });
-
-        newDesicion.offset = offset;
 
         shapeMappings[id] = newDesicion;
 
@@ -2725,7 +2717,7 @@ export default function IdPage() {
     if (!$canvas) return;
     const scaleAmount = -delta / 500;
     const _scale = scale * (1 + scaleAmount);
-    setScale(_scale);
+    setScale(_scale <= 0.1? _scale:0.1);
 
     // --- get offset value
     // zoom the page based on where the cursor is
@@ -3028,6 +3020,8 @@ export default function IdPage() {
   };
 
   const onMouseUp = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    console.log('offset_center', offset_center)
+    console.log('offset', offset)
     e.preventDefault();
 
     const p = {
@@ -3185,7 +3179,7 @@ export default function IdPage() {
     }
   }
 
-  const onClickShapeButton = (
+  const onClickCreateShapeButton = (
     e: React.MouseEvent<HTMLButtonElement>,
     type: CommonTypes.Type,
     actions: PageIdTypes.Actions
@@ -3195,8 +3189,6 @@ export default function IdPage() {
     if (!isBrowser) return;
 
     let intiShape = getInitializedShape(type, offset, offset_center);
-    intiShape.offset = offset;
-    intiShape.scale = scale;
     shapes.push(intiShape);
 
     actions.push({
@@ -3333,10 +3325,6 @@ export default function IdPage() {
       x: offset_center.x + (window.innerWidth / 2 - shapeP.x),
       y: offset_center.y + (window.innerHeight / 2 - shapeP.y),
     };
-
-    shapes.forEach((shape) => {
-      shape.offset = offset;
-    });
 
     drawCanvas(offset, scale);
   };
@@ -3875,7 +3863,7 @@ export default function IdPage() {
           className="overflow-y-auto overflow-x-hidden"
         >
           <li className="h-[8px]" />
-          {Object.entries(steps).map(([stepId, step], stepI) => {
+          {Object.entries(steps).map(([stepId, step]) => {
             return (
               <li key={stepId}>
                 <Accordion
@@ -3934,7 +3922,7 @@ export default function IdPage() {
                 className="mx-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
                 content={createShapeButton.icon}
                 onClick={(e) => {
-                  onClickShapeButton(e, createShapeButton.type, actions);
+                  onClickCreateShapeButton(e, createShapeButton.type, actions);
                 }}
                 onKeyDown={(e) => {
                   e.preventDefault();

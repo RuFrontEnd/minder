@@ -18,13 +18,17 @@ export default class Terminal extends Core {
     this.title = title;
   };
 
-  draw(ctx: CanvasRenderingContext2D,offest:CommonTypes.Vec={x:0, y:0}, scale:number = 0) {
-    super.draw(ctx,offest,scale, () => {
-      const scaleSize = this.getScaleSize(scale)
-      const screenP = this.getP(offest, scale)
+  draw(
+    ctx: CanvasRenderingContext2D,
+    offest: CommonTypes.Vec = { x: 0, y: 0 },
+    scale: number = 1
+  ) {
+    super.draw(ctx, offest, scale, () => {
+      const scaleSize = this.getScaleSize(scale);
+      const screenP = this.getP(offest, scale);
 
-      ctx.save()
-      ctx.translate(screenP.x, screenP.y)
+      ctx.save();
+      ctx.translate(screenP.x, screenP.y);
       if (scaleSize.w >= scaleSize.h) {
         let r = scaleSize.h / 2;
         ctx.beginPath();
@@ -41,7 +45,7 @@ export default class Terminal extends Core {
       } else if (scaleSize.w < scaleSize.h) {
         let r = scaleSize.w / 2;
         ctx.beginPath();
-        ctx.moveTo(screenP.x, screenP.y)
+        ctx.moveTo(screenP.x, screenP.y);
         ctx.arc(0, -scaleSize.h / 2 + r, r, 0, 2 * Math.PI);
         ctx.arc(0, scaleSize.h / 2 - r, r, 0, 2 * Math.PI);
         ctx.fill();
@@ -53,7 +57,7 @@ export default class Terminal extends Core {
         );
         ctx.closePath();
       }
-      ctx.restore()
+      ctx.restore();
     });
   }
 }

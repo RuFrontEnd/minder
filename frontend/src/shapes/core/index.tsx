@@ -32,11 +32,6 @@ export default class Core {
     },
   };
   private strokeSize = 1;
-  private initOffset = {
-    x: 0,
-    y: 0,
-  };
-  private initScale = 1;
   private __w__: number;
   private __h__: number;
   title: CommonTypes.Title;
@@ -47,8 +42,6 @@ export default class Core {
   selectedData: DataType;
   deletedData: DataType;
   redundancies: DataType;
-  __offset__: Vec;
-  __scale__: number;
   status: CoreTypes.Status;
   private __minCurveHandlerDistance__: number;
 
@@ -77,8 +70,6 @@ export default class Core {
     this.selectedData = [];
     this.deletedData = [];
     this.redundancies = [];
-    this.__offset__ = this.initOffset;
-    this.__scale__ = this.initScale;
     this.status = CoreTypes.Status.normal;
     this.__minCurveHandlerDistance__ = 60;
   }
@@ -105,22 +96,6 @@ export default class Core {
 
   get h() {
     return this.__h__;
-  }
-
-  set offset(value: Vec) {
-    this.__offset__ = value;
-  }
-
-  get offset() {
-    return this.__offset__;
-  }
-
-  get scale() {
-    return this.__scale__;
-  }
-
-  set scale(value: number) {
-    this.__scale__ = value;
   }
 
   set selecting(_selecting: boolean) {
@@ -578,7 +553,6 @@ export default class Core {
     return null;
   }
 
-
   getRedundancies() {
     this.status = CoreTypes.Status.normal;
     this.redundancies = [];
@@ -656,14 +630,8 @@ export default class Core {
       _h = this.h;
 
     if (vertex === CoreTypes.PressingTarget.lt) {
-      _w =
-        this.w - offset.x <= 0
-          ? 0
-          : this.w - offset.x;
-      _h =
-        this.h - offset.y <= 0
-          ? 0
-          : this.h - offset.y;
+      _w = this.w - offset.x <= 0 ? 0 : this.w - offset.x;
+      _h = this.h - offset.y <= 0 ? 0 : this.h - offset.y;
 
       if (_w > 0 || offset.x < 0) {
         this.w = Math.abs(_w);
@@ -672,14 +640,8 @@ export default class Core {
         this.h = Math.abs(_h);
       }
     } else if (vertex === CoreTypes.PressingTarget.rt) {
-      _w =
-        this.w + offset.x <= 0
-          ? 0
-          : this.w + offset.x;
-      _h =
-        this.h - offset.y <= 0
-          ? 0
-          : this.h - offset.y;
+      _w = this.w + offset.x <= 0 ? 0 : this.w + offset.x;
+      _h = this.h - offset.y <= 0 ? 0 : this.h - offset.y;
 
       if (_w > 0 || offset.x > 0) {
         this.w = Math.abs(_w);
@@ -688,14 +650,8 @@ export default class Core {
         this.h = Math.abs(_h);
       }
     } else if (vertex === CoreTypes.PressingTarget.rb) {
-      _w =
-        this.w + offset.x <= 0
-          ? 0
-          : this.w + offset.x;
-      _h =
-        this.h + offset.y <= 0
-          ? 0
-          : this.h + offset.y;
+      _w = this.w + offset.x <= 0 ? 0 : this.w + offset.x;
+      _h = this.h + offset.y <= 0 ? 0 : this.h + offset.y;
 
       if (_w > 0 || offset.x > 0) {
         this.w = Math.abs(_w);
@@ -704,14 +660,8 @@ export default class Core {
         this.h = Math.abs(_h);
       }
     } else if (vertex === CoreTypes.PressingTarget.lb) {
-      _w =
-        this.w - offset.x <= 0
-          ? 0
-          : this.w - offset.x;
-      _h =
-        this.h + offset.y <= 0
-          ? 0
-          : this.h + offset.y;
+      _w = this.w - offset.x <= 0 ? 0 : this.w - offset.x;
+      _h = this.h + offset.y <= 0 ? 0 : this.h + offset.y;
 
       if (_w > 0 || offset.x < 0) {
         this.w = Math.abs(_w);
@@ -734,12 +684,12 @@ export default class Core {
     y: number,
     maxWidth: number,
     lineHeight: number,
-    scale:number=1
+    scale: number = 1
   ) => {
     const words = text.split("");
     const lines: string[] = [];
     const padding = 32;
-    const lineH = lineHeight*scale
+    const lineH = lineHeight * scale;
     let line = "";
 
     for (const word of words) {
@@ -758,7 +708,7 @@ export default class Core {
     lines.push(line);
 
     // calculate the maximum number of lines
-    const maxLines = Math.floor((this.h - padding)*scale / lineH);
+    const maxLines = Math.floor(((this.h - padding) * scale) / lineH);
 
     // make sure the number of lines to be rendered does not exceed the maximum number of lines
     const totalLines = Math.min(lines.length, maxLines);
@@ -768,7 +718,7 @@ export default class Core {
       const lastLine = lines[totalLines - 1] || "";
       const ellipsis = "...";
       const metricsEllipsis = ctx.measureText(ellipsis);
-      const maxTextWidth = maxWidth - 32 * this.scale - metricsEllipsis.width;
+      const maxTextWidth = maxWidth - 32 * scale - metricsEllipsis.width;
 
       let truncatedLine = "";
       for (const char of lastLine) {
@@ -1027,18 +977,11 @@ export default class Core {
     //   } else {
     //     ctx.fillStyle = tailwindColors.white["500"];
     //   }
-      ctx.beginPath();
-      ctx.arc(
-        -scaleSize.w / 2,
-        0,
-        this.anchor.size.fill,
-        0,
-        2 * Math.PI,
-        false
-      );
-      ctx.stroke();
-      ctx.fill();
-      ctx.closePath();
+    ctx.beginPath();
+    ctx.arc(-scaleSize.w / 2, 0, this.anchor.size.fill, 0, 2 * Math.PI, false);
+    ctx.stroke();
+    ctx.fill();
+    ctx.closePath();
     // }
 
     // top
@@ -1048,18 +991,11 @@ export default class Core {
     //   } else {
     //     ctx.fillStyle = tailwindColors.white["500"];
     //   }
-      ctx.beginPath();
-      ctx.arc(
-        0,
-        -scaleSize.h / 2,
-        this.anchor.size.fill,
-        0,
-        2 * Math.PI,
-        false
-      );
-      ctx.stroke();
-      ctx.fill();
-      ctx.closePath();
+    ctx.beginPath();
+    ctx.arc(0, -scaleSize.h / 2, this.anchor.size.fill, 0, 2 * Math.PI, false);
+    ctx.stroke();
+    ctx.fill();
+    ctx.closePath();
     // }
 
     // right
@@ -1069,11 +1005,11 @@ export default class Core {
     //   } else {
     //     ctx.fillStyle = tailwindColors.white["500"];
     //   }
-      ctx.beginPath();
-      ctx.arc(scaleSize.w / 2, 0, this.anchor.size.fill, 0, 2 * Math.PI, false);
-      ctx.stroke();
-      ctx.fill();
-      ctx.closePath();
+    ctx.beginPath();
+    ctx.arc(scaleSize.w / 2, 0, this.anchor.size.fill, 0, 2 * Math.PI, false);
+    ctx.stroke();
+    ctx.fill();
+    ctx.closePath();
     // }
 
     // bottom
@@ -1083,11 +1019,11 @@ export default class Core {
     //   } else {
     //     ctx.fillStyle = tailwindColors.white["500"];
     //   }
-      ctx.beginPath();
-      ctx.arc(0, scaleSize.h / 2, this.anchor.size.fill, 0, 2 * Math.PI, false);
-      ctx.stroke();
-      ctx.fill();
-      ctx.closePath();
+    ctx.beginPath();
+    ctx.arc(0, scaleSize.h / 2, this.anchor.size.fill, 0, 2 * Math.PI, false);
+    ctx.stroke();
+    ctx.fill();
+    ctx.closePath();
     // }
 
     ctx.restore();

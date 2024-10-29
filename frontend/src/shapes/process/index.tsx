@@ -24,22 +24,26 @@ export default class Process extends Core {
     this.deletedData = _deletedData;
   };
 
-  draw(ctx: CanvasRenderingContext2D,offest:CommonTypes.Vec={x:0, y:0}, scale:number = 0) {
-    super.draw(ctx,offest,scale,() => {
-      const screenP = this.getP(offest, scale)
-      const scaleSize = this.getScaleSize(scale)
+  draw(
+    ctx: CanvasRenderingContext2D,
+    offest: CommonTypes.Vec = { x: 0, y: 0 },
+    scale: number = 1
+  ) {
+    super.draw(ctx, offest, scale, () => {
+      const screenP = this.getP(offest, scale);
+      const scaleSize = this.getScaleSize(scale);
 
-      ctx.save()
-      ctx.translate(screenP.x, screenP.y)
+      ctx.save();
+      ctx.translate(screenP.x, screenP.y);
       ctx.beginPath();
       ctx.fillRect(
-        -scaleSize.w/2,
-        -scaleSize.h/2,
+        -scaleSize.w / 2,
+        -scaleSize.h / 2,
         scaleSize.w,
         scaleSize.h
       );
       ctx.closePath();
-      ctx.restore()
+      ctx.restore();
     });
   }
 }

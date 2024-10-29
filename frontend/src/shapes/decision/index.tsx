@@ -60,7 +60,6 @@ export default class Desicion extends Core {
     return output;
   }
 
-
   onDataChange(
     _title: CommonTypes.Title,
     _selectedData: CommonTypes.Data,
@@ -71,9 +70,13 @@ export default class Desicion extends Core {
     this.deletedData = _deletedData;
   }
 
-  draw(ctx: CanvasRenderingContext2D,offest:CommonTypes.Vec={x:0, y:0}, scale:number = 0) {
-    super.draw(ctx, offest, scale,() => {
-      const screenP = this.getP(offest, scale)
+  draw(
+    ctx: CanvasRenderingContext2D,
+    offest: CommonTypes.Vec = { x: 0, y: 0 },
+    scale: number = 1
+  ) {
+    super.draw(ctx, offest, scale, () => {
+      const screenP = this.getP(offest, scale);
       const x1 = -this.getScaleSize(scale).w / 2,
         y1 = 0;
       const x2 = 0,
@@ -83,8 +86,8 @@ export default class Desicion extends Core {
       const x4 = 0,
         y4 = -this.getScaleSize(scale).h / 2;
 
-        ctx.save()
-        ctx.translate(screenP.x, screenP.y)
+      ctx.save();
+      ctx.translate(screenP.x, screenP.y);
       ctx.beginPath();
       ctx.moveTo(x1, y1);
       ctx.lineTo(x2, y2);
@@ -92,7 +95,7 @@ export default class Desicion extends Core {
       ctx.lineTo(x4, y4);
       ctx.closePath();
       ctx.fill();
-      ctx.restore()
+      ctx.restore();
     });
   }
 
