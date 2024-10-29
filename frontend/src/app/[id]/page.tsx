@@ -124,7 +124,7 @@ let useEffected = false,
     y: null | number;
   } = { x: null, y: null },
   relativeCurveCp2: CommonTypes.Vec = { x: 0, y: 0 },
-  selectAreaP: null | {
+  selectionFrameP: null | {
     start: CommonTypes.Vec;
     end: CommonTypes.Vec;
   } = null,
@@ -1134,6 +1134,63 @@ const getShapesInView = (shapes: (Terminal | Process | Data | Desicion)[]) => {
   return shapesInView;
 };
 
+const frameSelect = (
+  offset: CommonTypes.Vec = { x: 0, y: 0 },
+  scale: number = 1
+) => {
+  // define which shape in select area
+  const shapesInSelectingArea = (() => {
+    const shapesInSelectArea: (Terminal | Data | Process | Desicion)[] = [];
+
+    if (!selectionFrameP) return [];
+
+    const normalSelectAreaP = {
+      start: getNormalP(selectionFrameP.start, offset, scale),
+      end: getNormalP(selectionFrameP.end, offset, scale),
+    };
+
+    shapes.forEach((shape) => {
+      if (!normalSelectAreaP) return;
+      const theEdge = shape.getEdge();
+
+      const l =
+          normalSelectAreaP.start.x < normalSelectAreaP.end.x
+            ? normalSelectAreaP.start.x
+            : normalSelectAreaP.end.x,
+        t =
+          normalSelectAreaP.start.y < normalSelectAreaP.end.y
+            ? normalSelectAreaP.start.y
+            : normalSelectAreaP.end.y,
+        r =
+          normalSelectAreaP.start.x > normalSelectAreaP.end.x
+            ? normalSelectAreaP.start.x
+            : normalSelectAreaP.end.x,
+        b =
+          normalSelectAreaP.start.y > normalSelectAreaP.end.y
+            ? normalSelectAreaP.start.y
+            : normalSelectAreaP.end.y;
+
+      const x1 = Math.max(theEdge.l, l),
+        y1 = Math.max(theEdge.t, t),
+        x2 = Math.min(theEdge.r, r),
+        y2 = Math.min(theEdge.b, b);
+
+      if (x2 > x1 && y2 > y1) {
+        shapesInSelectArea.push(shape);
+      }
+    });
+
+    return shapesInSelectArea;
+  })();
+
+  // define select status
+  if (shapesInSelectingArea.length === 1) {
+    shapesInSelectingArea[0].selecting = true;
+  } else if (shapesInSelectingArea.length > 1) {
+    multiSelect.shapes = shapesInSelectingArea;
+  }
+};
+
 const getCurve = (
   id: string,
   d: CommonTypes.Direction,
@@ -1701,22 +1758,20 @@ const deSelectShape = () => {
   return true;
 };
 
-const getMultSelectingMaps = ()=>{
+const getMultSelectingMaps = () => {
+  const map: { [id: string]: true } = {};
 
-    const map: { [id: string]: true } = {};
+  multiSelect.shapes.forEach((shape) => {
+    map[shape.id] = true;
+  });
 
-    multiSelect.shapes.forEach((shape) => {
-      map[shape.id] = true;
-    });
-
-    return map;
-
-}
+  return map;
+};
 
 const deleteMultiSelectShapes = () => {
   if (multiSelect.shapes.length === 0) return true;
 
-  const selectings = getMultSelectingMaps()
+  const selectings = getMultSelectingMaps();
 
   curves = curves.filter(
     (curve) =>
@@ -2165,23 +2220,23 @@ const draw = (
 
   if (!isScreenshot) {
     // draw selectArea
-    if (selectAreaP) {
+    if (selectionFrameP) {
       ctx?.beginPath();
 
       ctx.fillStyle = "#2436b155";
       ctx.fillRect(
-        selectAreaP?.start.x,
-        selectAreaP?.start.y,
-        selectAreaP?.end.x - selectAreaP?.start.x,
-        selectAreaP?.end.y - selectAreaP?.start.y
+        selectionFrameP?.start.x,
+        selectionFrameP?.start.y,
+        selectionFrameP?.end.x - selectionFrameP?.start.x,
+        selectionFrameP?.end.y - selectionFrameP?.start.y
       );
 
       ctx.strokeStyle = "#2436b1";
       ctx.strokeRect(
-        selectAreaP?.start.x,
-        selectAreaP?.start.y,
-        selectAreaP?.end.x - selectAreaP?.start.x,
-        selectAreaP?.end.y - selectAreaP?.start.y
+        selectionFrameP?.start.x,
+        selectionFrameP?.start.y,
+        selectionFrameP?.end.x - selectionFrameP?.start.x,
+        selectionFrameP?.end.y - selectionFrameP?.start.y
       );
 
       ctx?.closePath();
@@ -2806,7 +2861,7 @@ export default function IdPage() {
       }
 
       if (!pressing) {
-        selectAreaP = {
+        selectionFrameP = {
           start: p,
           end: p,
         };
@@ -2852,8 +2907,8 @@ export default function IdPage() {
       }
 
       multiSelect.shapes.forEach((shape) => {
-        moveCurve(shape)
-      })
+        moveCurve(shape);
+      });
     }
 
     if (!movingViewport && pressing?.shape) {
@@ -2953,9 +3008,9 @@ export default function IdPage() {
 
     if (!movingViewport && !!pressingCurve) {
       movePressingCurve(ctx, pressingCurve, p, offset, scale);
-    } else if (!movingViewport && selectAreaP) {
-      selectAreaP = {
-        ...selectAreaP,
+    } else if (!movingViewport && selectionFrameP) {
+      selectionFrameP = {
+        ...selectionFrameP,
         end: p,
       };
     }
@@ -2975,57 +3030,14 @@ export default function IdPage() {
   const onMouseUp = (e: React.MouseEvent<HTMLCanvasElement>) => {
     e.preventDefault();
 
-    setLeftMouseBtn(false);
-
     const p = {
       x: e.nativeEvent.offsetX,
       y: e.nativeEvent.offsetY,
     };
 
-    // define which shape in multiSelect area
-    const shapesInSelectingArea = (() => {
-      let shapesInSelectArea: (Terminal | Data | Process | Desicion)[] = [];
+    setLeftMouseBtn(false);
 
-      shapes.forEach((shape) => {
-        if (!selectAreaP) return;
-        const theEdge = shape.getEdge();
-
-        const l =
-            selectAreaP.start.x < selectAreaP.end.x
-              ? selectAreaP.start.x
-              : selectAreaP.end.x,
-          t =
-            selectAreaP.start.y < selectAreaP.end.y
-              ? selectAreaP.start.y
-              : selectAreaP.end.y,
-          r =
-            selectAreaP.start.x > selectAreaP.end.x
-              ? selectAreaP.start.x
-              : selectAreaP.end.x,
-          b =
-            selectAreaP.start.y > selectAreaP.end.y
-              ? selectAreaP.start.y
-              : selectAreaP.end.y;
-
-        const x1 = Math.max(theEdge.l, l),
-          y1 = Math.max(theEdge.t, t),
-          x2 = Math.min(theEdge.r, r),
-          y2 = Math.min(theEdge.b, b);
-
-        if (x2 > x1 && y2 > y1) {
-          shapesInSelectArea.push(shape);
-        }
-      });
-
-      return shapesInSelectArea;
-    })();
-
-    // define multiSelect status
-    if (shapesInSelectingArea.length === 1) {
-      shapesInSelectingArea[0].selecting = true;
-    } else if (shapesInSelectingArea.length > 1) {
-      multiSelect.shapes = shapesInSelectingArea;
-    }
+    frameSelect(offset, scale);
 
     shapes.forEach((targetShape) => {
       if (!pressingCurve) return;
@@ -3110,7 +3122,7 @@ export default function IdPage() {
     checkData(shapes);
     checkGroups();
 
-    selectAreaP = null;
+    selectionFrameP = null;
     pressing = null;
     pressingCurve = null;
     alginLines = [];
