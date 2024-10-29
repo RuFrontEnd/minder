@@ -46,7 +46,7 @@ type Sticking = {
 type ActionTarget = {
   id: string;
   index: number;
-  origin: null | Terminal | Process | Data | Desicion;
+  origin: null | Terminal | Process | Data | Desicion | Curve;
 };
 
 type ActionTargets = ActionTarget[];

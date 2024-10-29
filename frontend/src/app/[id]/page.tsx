@@ -1701,7 +1701,7 @@ const selectShape = (
   scale: number
 ) => {
   const normalP = getNormalP(p, offset, scale);
-  shapes.forEach(shape => {
+  shapes.forEach((shape) => {
     const _ghost = cloneDeep(shape);
     _ghost.title = "ghost";
     const pressingVertex = shape.checkVertexesBoundry(normalP);
@@ -1724,7 +1724,7 @@ const selectShape = (
         direction: null,
       };
     }
-  })
+  });
 
   if (pressing?.shape) {
     pressing.shape.selecting = true;
@@ -2387,7 +2387,7 @@ const undo = (
     if (!shapes) return;
     targets.forEach((target) => {
       const origin = target.origin;
-      if (!origin) return;
+      if (!origin || origin instanceof Curve) return;
       const i = shapes.findIndex((shape) => shape.id === target.id);
       shapes[i] = origin;
     });
@@ -2399,9 +2399,13 @@ const undo = (
       break;
 
     case CommonTypes.Action.resize:
-    case CommonTypes.Action.move:
-    case CommonTypes.Action.connect: {
+    case CommonTypes.Action.move: {
       returnToOrigin(shapes, action.targets);
+      break;
+    }
+
+    case CommonTypes.Action.connect: {
+      // returnToOrigin(shapes, action.targets);
       break;
     }
   }
@@ -3016,6 +3020,7 @@ export default function IdPage() {
         targetShape.checkQuarterArea(p);
 
       if (!connectedD) return;
+      console.log("connectedD", connectedD);
       pressingCurve.shape.selecting = false;
       curves.push({
         shape: pressingCurve.shape,
@@ -3098,6 +3103,7 @@ export default function IdPage() {
     alginLines = [];
 
     drawCanvas(offset, scale);
+    console.log("actions", actions);
   };
 
   const onMouseWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
@@ -3298,7 +3304,7 @@ export default function IdPage() {
     if (!isBrowser) return;
 
     offset = {
-      x: window.innerWidth / 2 /scale - shapeP.x,
+      x: window.innerWidth / 2 / scale - shapeP.x,
       y: window.innerHeight / 2 / scale - shapeP.y,
     };
 
