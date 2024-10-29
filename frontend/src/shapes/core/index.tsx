@@ -139,8 +139,11 @@ export default class Core {
     };
   }
 
-  getCenter(): CoreTypes.GetCenterReturn {
-    const edge = this.getEdge();
+  getCenter(
+    offset: Vec = { x: 0, y: 0 },
+    scale: number = 1
+  ): CoreTypes.GetCenterReturn {
+    const edge = this.getEdge(offset, scale);
 
     return {
       m: this.p,
