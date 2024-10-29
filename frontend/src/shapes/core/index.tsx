@@ -128,15 +128,6 @@ export default class Core {
     };
   }
 
-  getNormalEdge() {
-    return {
-      l: this.p.x - this.w / 2,
-      t: this.p.y - this.h / 2,
-      r: this.p.x + this.w / 2,
-      b: this.p.y + this.h / 2,
-    };
-  }
-
   getEdge(offset: Vec = { x: 0, y: 0 }, scale: number = 1) {
     const screenP = this.getP(offset, scale);
     const scaleSize = this.getScaleSize(scale);
@@ -145,74 +136,6 @@ export default class Core {
       t: screenP.y - scaleSize.h / 2,
       r: screenP.x + scaleSize.w / 2,
       b: screenP.y + scaleSize.h / 2,
-    };
-  }
-
-  getNormalCenter() {
-    const edge = this.getNormalEdge();
-    const pivot = {
-      x: this.p.x,
-      y: this.p.y,
-    };
-
-    return {
-      m: pivot,
-      l: { x: edge.l, y: pivot.y },
-      t: { x: pivot.x, y: edge.t },
-      r: { x: edge.r, y: pivot.y },
-      b: { x: pivot.x, y: edge.b },
-      lt: {
-        x: edge.l,
-        y: edge.t,
-      },
-      rt: {
-        x: edge.r,
-        y: edge.t,
-      },
-      rb: {
-        x: edge.r,
-        y: edge.b,
-      },
-      lb: {
-        x: edge.l,
-        y: edge.b,
-      },
-      __curveTrigger__: {
-        l: {
-          x: edge.l - this.__curveTrigger__.distance,
-          y: pivot.y,
-        },
-        t: {
-          x: pivot.x,
-          y: edge.t - this.__curveTrigger__.distance,
-        },
-        r: {
-          x: edge.r + this.__curveTrigger__.distance,
-          y: pivot.y,
-        },
-        b: {
-          x: pivot.x,
-          y: edge.b + this.__curveTrigger__.distance,
-        },
-      },
-      receivingPoints: {
-        l: {
-          x: pivot.x - this.w / 2,
-          y: pivot.y,
-        },
-        t: {
-          x: pivot.x,
-          y: pivot.y - this.h / 2,
-        },
-        r: {
-          x: pivot.x + this.w / 2,
-          y: pivot.y,
-        },
-        b: {
-          x: pivot.x,
-          y: pivot.y + this.h / 2,
-        },
-      },
     };
   }
 

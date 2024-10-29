@@ -23,51 +23,24 @@ export default class Data extends Core {
     this.thersholdRatio = 1 / 10;
   }
 
-  getFrameThreshold() {
+  getCenterToCornerDistance() {
+    const frameThreshold = this.w * this.thersholdRatio;
     return {
-      normal: this.w * this.thersholdRatio,
-      scale: this.getScaleSize().w * this.thersholdRatio,
-    };
-  }
-
-  getCorner() {
-    const frameThreshold = this.getFrameThreshold();
-    return {
-      normal: {
-        tl: {
-          x: -this.w / 2 + frameThreshold.normal,
-          y: -this.h / 2,
-        },
-        tr: {
-          x: this.w / 2,
-          y: -this.h / 2,
-        },
-        br: {
-          x: this.w / 2 - frameThreshold.normal,
-          y: this.h / 2,
-        },
-        bl: {
-          x: -this.w / 2,
-          y: this.h / 2,
-        },
+      tl: {
+        x: -this.w / 2 + frameThreshold,
+        y: -this.h / 2,
       },
-      scale: {
-        tl: {
-          x: -this.getScaleSize().w / 2 + frameThreshold.scale,
-          y: -this.getScaleSize().h / 2,
-        },
-        tr: {
-          x: this.getScaleSize().w / 2,
-          y: -this.getScaleSize().h / 2,
-        },
-        br: {
-          x: this.getScaleSize().w / 2 - frameThreshold.scale,
-          y: this.getScaleSize().h / 2,
-        },
-        bl: {
-          x: -this.getScaleSize().w / 2,
-          y: this.getScaleSize().h / 2,
-        },
+      tr: {
+        x: this.w / 2,
+        y: -this.h / 2,
+      },
+      br: {
+        x: this.w / 2 - frameThreshold,
+        y: this.h / 2,
+      },
+      bl: {
+        x: -this.w / 2,
+        y: this.h / 2,
       },
     };
   }
@@ -84,98 +57,14 @@ export default class Data extends Core {
     this.deletedData = _deletedData;
   };
 
-  initializeCurve(id: string, _d: Direction) {
-    let newCurve = null;
-    let p1: CommonTypes.Vec = { x: 0, y: 0 };
-    let p2: CommonTypes.Vec = { x: 0, y: 0 };
-    let cp1: CommonTypes.Vec = { x: 0, y: 0 };
-    let cp2: CommonTypes.Vec = { x: 0, y: 0 };
-
-    const corner = this.getCorner().normal;
-    const arrow_h = 12;
-
-    switch (_d) {
-      case Direction.l:
-        p1 = {
-          x: -this.w / 2 + (corner.tl.x - corner.bl.x) / 2,
-          y: 0,
-        };
-        p2 = {
-          x: -this.w / 2 - this.__curveTrigger__.distance + arrow_h,
-          y: 0,
-        };
-        cp1 = p1;
-        cp2 = {
-          x: (p1.x + p2.x) / 2,
-          y: 0,
-        };
-        break;
-
-      case Direction.t:
-        p1 = {
-          x: 0,
-          y: -this.h / 2,
-        };
-        p2 = {
-          x: 0,
-          y: -this.h / 2 - this.__curveTrigger__.distance + arrow_h,
-        };
-        cp1 = p1;
-        cp2 = {
-          x: 0,
-          y: (p1.y + p2.y) / 2,
-        };
-        break;
-
-      case Direction.r:
-        p1 = {
-          x: this.w / 2 - (corner.tl.x - corner.bl.x) / 2,
-          y: 0,
-        };
-        p2 = {
-          x: this.w / 2 + this.__curveTrigger__.distance - arrow_h,
-          y: 0,
-        };
-        cp1 = p1;
-        cp2 = {
-          x: (p1.x + p2.x) / 2,
-          y: 0,
-        };
-        break;
-
-      case Direction.b:
-        p1 = {
-          x: 0,
-          y: this.h / 2,
-        };
-        p2 = {
-          x: 0,
-          y: this.h / 2 + this.__curveTrigger__.distance - arrow_h,
-        };
-        cp1 = p1;
-        cp2 = {
-          x: 0,
-          y: (p1.y + p2.y) / 2,
-        };
-        break;
-    }
-
-    newCurve = new Curve(id, p1, cp1, cp2, p2);
-
-    if (!newCurve) return;
-    newCurve.scale = this.scale;
-
-  }
-
   checkReceivingPointsBoundry(p: CommonTypes.Vec) {
-    const corners = this.getCorner().scale,
+    const corners = this.getCenterToCornerDistance(),
       edge = this.getEdge(),
       center = this.getCenter();
 
     let dx, dy;
 
-    dx =
-      this.p.x - Math.abs((corners.bl.x + corners.tl.x) / 2) - p.x;
+    dx = this.p.x - Math.abs((corners.bl.x + corners.tl.x) / 2) - p.x;
     dy = center.m.y - p.y;
 
     if (
@@ -195,8 +84,7 @@ export default class Data extends Core {
       return CommonTypes.Direction.t;
     }
 
-    dx =
-      this.p.x + Math.abs((corners.tr.x + corners.br.x) / 2) - p.x;
+    dx = this.p.x + Math.abs((corners.tr.x + corners.br.x) / 2) - p.x;
     dy = center.m.y - p.y;
 
     if (
@@ -219,25 +107,45 @@ export default class Data extends Core {
     return null;
   }
 
-  draw(ctx: CanvasRenderingContext2D,offest:CommonTypes.Vec={x:0, y:0}, scale:number = 0) {
-    super.draw(ctx, offest, scale,() => {
-      const screenP = this.getP(offest, scale)
-      const corners = this.getCorner().scale;
+  draw(
+    ctx: CanvasRenderingContext2D,
+    offest: CommonTypes.Vec = { x: 0, y: 0 },
+    scale: number = 1
+  ) {
+    super.draw(ctx, offest, scale, () => {
+      const screenP = this.getP(offest, scale);
+      const centerToCornersDistance = this.getCenterToCornerDistance();
 
-      ctx.save()
-      ctx.translate(screenP.x, screenP.y)
+      ctx.save();
+      ctx.translate(screenP.x, screenP.y);
       ctx.beginPath();
-      ctx.moveTo(corners.tl.x, corners.tl.y);
-      ctx.lineTo(corners.tr.x, corners.tr.y);
-      ctx.lineTo(corners.br.x, corners.br.y);
-      ctx.lineTo(corners.bl.x, corners.bl.y);
+      ctx.moveTo(
+        centerToCornersDistance.tl.x * scale,
+        centerToCornersDistance.tl.y * scale
+      );
+      ctx.lineTo(
+        centerToCornersDistance.tr.x * scale,
+        centerToCornersDistance.tr.y * scale
+      );
+      ctx.lineTo(
+        centerToCornersDistance.br.x * scale,
+        centerToCornersDistance.br.y * scale
+      );
+      ctx.lineTo(
+        centerToCornersDistance.bl.x * scale,
+        centerToCornersDistance.bl.y * scale
+      );
       ctx.closePath();
       ctx.fill();
-      ctx.restore()
+      ctx.restore();
     });
   }
 
-  drawRecievingPoint(ctx: CanvasRenderingContext2D) {
+  drawRecievingPoint(
+    ctx: CanvasRenderingContext2D,
+    offest: CommonTypes.Vec = { x: 0, y: 0 },
+    scale: number = 1
+  ) {
     ctx.save();
     ctx.translate(this.p.x, this.p.y);
     // draw receiving points
@@ -245,7 +153,9 @@ export default class Data extends Core {
     ctx.strokeStyle = "DeepSkyBlue";
     ctx.lineWidth = this.anchor.size.stroke;
 
-    const corners = this.getCorner().scale;
+    const centerToCornersDistance = this.getCenterToCornerDistance();
+
+    const scaleSize = this.getScaleSize();
 
     // left
     if (this.__receivePoint__.l.visible) {
@@ -256,7 +166,12 @@ export default class Data extends Core {
       }
       ctx.beginPath();
       ctx.arc(
-        -this.getScaleSize().w / 2 + Math.abs(corners.tl.x - corners.bl.x) / 2,
+        -scaleSize.w / 2 +
+          Math.abs(
+            (centerToCornersDistance.tl.x - centerToCornersDistance.bl.x) *
+              scale
+          ) /
+            2,
         0,
         this.anchor.size.fill,
         0,
@@ -278,7 +193,7 @@ export default class Data extends Core {
       ctx.beginPath();
       ctx.arc(
         0,
-        -this.getScaleSize().h / 2,
+        -scaleSize.h / 2,
         this.anchor.size.fill,
         0,
         2 * Math.PI,
@@ -298,7 +213,12 @@ export default class Data extends Core {
       }
       ctx.beginPath();
       ctx.arc(
-        this.getScaleSize().w / 2 - Math.abs(corners.tr.x - corners.br.x) / 2,
+        scaleSize.w / 2 -
+          Math.abs(
+            (centerToCornersDistance.tr.x - centerToCornersDistance.br.x) *
+              scale
+          ) /
+            2,
         0,
         this.anchor.size.fill,
         0,
@@ -318,14 +238,7 @@ export default class Data extends Core {
         ctx.fillStyle = tailwindColors.white["500"];
       }
       ctx.beginPath();
-      ctx.arc(
-        0,
-        this.getScaleSize().h / 2,
-        this.anchor.size.fill,
-        0,
-        2 * Math.PI,
-        false
-      );
+      ctx.arc(0, scaleSize.h / 2, this.anchor.size.fill, 0, 2 * Math.PI, false);
       ctx.stroke();
       ctx.fill();
       ctx.closePath();
