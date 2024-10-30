@@ -1677,6 +1677,11 @@ const selectCurve = (
       };
       disconnect(i);
 
+      actions.push({
+        type: CommonTypes.Action.disconnect,
+        curve: cloneDeep(curve),
+      });
+
       return false;
     }
     if (curve.shape.checkBoundry(getNormalP(p, offset, scale))) {
@@ -1986,6 +1991,58 @@ const resizeMultiSelectingShapes = (
 
       break;
   }
+};
+
+const connect = (
+  curve: Curve,
+  from: {
+    shape: Terminal | Process | Data | Desicion;
+    d: CommonTypes.Direction;
+  },
+  to: {
+    shape: Terminal | Process | Data | Desicion;
+    d: CommonTypes.Direction;
+  }
+) => {
+  curves.push({
+    shape: curve,
+    from: {
+      shape: from.shape,
+      d: from.d,
+    },
+    to: {
+      shape: to.shape,
+      d: to.d,
+    },
+  });
+};
+
+const checkConnect = (p: CommonTypes.Vec) => {
+  shapes.forEach((targetShape) => {
+    if (!pressingCurve) return;
+    const connectedD =
+      targetShape.checkReceivingPointsBoundry(p) ||
+      targetShape.checkQuarterArea(p);
+
+    if (!connectedD) return;
+    pressingCurve.shape.selecting = false;
+
+    connect(
+      pressingCurve.shape,
+      {
+        shape: pressingCurve.from.shape,
+        d: pressingCurve.from.d,
+      },
+      {
+        shape: targetShape,
+        d: connectedD,
+      }
+    );
+
+    actions.push({
+      type: CommonTypes.Action.connect,
+    });
+  });
 };
 
 const disconnect = (curveI: number) => {
@@ -2402,6 +2459,12 @@ const undo = (
 
     case CommonTypes.Action.connect: {
       disconnect(curves.length - 1);
+      // TODO: should check data
+      break;
+    }
+
+    case CommonTypes.Action.disconnect: {
+      connect(action.curve.shape, action.curve.from, action.curve.to);
       // TODO: should check data
       break;
     }
@@ -3007,33 +3070,8 @@ export default function IdPage() {
     };
 
     setLeftMouseBtn(false);
-
     frameSelect(offset, scale);
-
-    shapes.forEach((targetShape) => {
-      if (!pressingCurve) return;
-      const connectedD =
-        targetShape.checkReceivingPointsBoundry(getNormalP(p, offset, scale)) ||
-        targetShape.checkQuarterArea(getNormalP(p, offset, scale));
-
-      if (!connectedD) return;
-      pressingCurve.shape.selecting = false;
-      curves.push({
-        shape: pressingCurve.shape,
-        from: {
-          shape: pressingCurve.from.shape,
-          d: pressingCurve.from.d,
-        },
-        to: {
-          shape: targetShape,
-          d: connectedD,
-        },
-      });
-
-      actions.push({
-        type: CommonTypes.Action.connect,
-      });
-    });
+    checkConnect(getNormalP(p, offset, scale));
 
     if (
       pressing?.target &&

@@ -43,6 +43,18 @@ type Sticking = {
   };
 };
 
+type Curves = {
+  shape: Curve;
+  from: {
+    shape: Terminal | Process | Data | Desicion;
+    d: CommonTypes.Direction;
+  };
+  to: {
+    shape: Terminal | Process | Data | Desicion;
+    d: CommonTypes.Direction;
+  };
+}[];
+
 type ActionTarget = {
   id: string;
   index: number;
@@ -63,20 +75,12 @@ type ActionTypes =
   | {
       type: CommonTypes.Action.connect;
     }
+  | {
+      type: CommonTypes.Action.disconnect;
+      curve:Curves[number]
+    }
 
 type Actions = Stack<ActionTypes>;
-
-type Curves = {
-  shape: Curve;
-  from: {
-    shape: Terminal | Process | Data | Desicion;
-    d: CommonTypes.Direction;
-  };
-  to: {
-    shape: Terminal | Process | Data | Desicion;
-    d: CommonTypes.Direction;
-  };
-}[];
 
 type MultiSelect = {
   start: CommonTypes.Vec;
