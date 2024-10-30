@@ -51,10 +51,19 @@ type ActionTarget = {
 
 type ActionTargets = ActionTarget[];
 
-type ActionTypes = {
-  type: CommonTypes.Action;
-  targets: ActionTargets;
-};
+type ActionTypes =
+  | {
+      type: CommonTypes.Action.add;
+    }
+  | {
+      type: CommonTypes.Action.move;
+      target: Terminal | Process | Data | Desicion;
+      displacement: CommonTypes.Vec;
+    }
+  | {
+      type: CommonTypes.Action.connect;
+      curveId: CurveTypes.Id;
+    }
 
 type Actions = Stack<ActionTypes>;
 
@@ -70,11 +79,11 @@ type Curves = {
   };
 }[];
 
-type MultiSelect =  {
+type MultiSelect = {
   start: CommonTypes.Vec;
   end: CommonTypes.Vec;
   shapes: (Terminal | Process | Desicion | Data)[];
-}
+};
 
 export type {
   Pressing,
@@ -85,5 +94,5 @@ export type {
   ActionTargets,
   Actions,
   Curves,
-  MultiSelect
+  MultiSelect,
 };

@@ -120,6 +120,9 @@ export default class Curve {
     this.__p2__ = val;
     if (this.arrow && val && this.cp2) {
       this.arrow.p = val;
+      this.arrow.deg =
+        Math.atan2(this.cp2.y - this.p2.y, this.cp2.x - this.p2.x) -
+        90 * (Math.PI / 180);
     }
   }
 
@@ -177,9 +180,13 @@ export default class Curve {
   getIsPNearBezierCurve(p: Vec, threshold: number) {
     for (let t = 0; t <= 1; t += 0.01) {
       if (!this.__p1__ || !this.__cp1__ || !this.cp2 || !this.p2) return false;
-      const bezierP = 
-        this.getBezierP(t, [this.__p1__, this.__cp1__, this.__cp2__, this.p2])
- 
+      const bezierP = this.getBezierP(t, [
+        this.__p1__,
+        this.__cp1__,
+        this.__cp2__,
+        this.p2,
+      ]);
+
       const distance = this.getDistance(p, bezierP);
 
       if (distance < threshold) {
@@ -286,17 +293,16 @@ export default class Curve {
       pressingTarget === CurveTypes.PressingTarget.cp1 ||
       pressingTarget === CurveTypes.PressingTarget.cp2
     ) {
-      this[pressingTarget] = p
+      this[pressingTarget] = p;
     } else if (pressingTarget === CurveTypes.PressingTarget.p2) {
       const v = { x: this.cp2.x - p.x, y: this.cp2.y - p.y };
       const len = Math.sqrt(
-        Math.pow(p.x - this.cp2.x, 2) +
-          Math.pow(p.y - this.cp2.y, 2)
+        Math.pow(p.x - this.cp2.x, 2) + Math.pow(p.y - this.cp2.y, 2)
       );
 
       const ratio = this.__arrowAttr__.h / len;
 
-      this.p2 = { x: p.x + v.x * ratio, y: p.y + v.y * ratio }
+      this.p2 = { x: p.x + v.x * ratio, y: p.y + v.y * ratio };
     }
   }
 
@@ -402,12 +408,12 @@ export default class Curve {
     ctx.stroke();
     ctx.closePath();
 
-    ctx.save()
-    ctx.translate(screenP.p2.x, screenP.p2.y)
+    ctx.save();
+    ctx.translate(screenP.p2.x, screenP.p2.y);
     if (this.arrow) {
       this.arrow.draw(ctx, offest, scale);
     }
-    ctx.restore()
+    ctx.restore();
 
     if (this.selecting) {
       // control lines

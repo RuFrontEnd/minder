@@ -1588,9 +1588,9 @@ const moveRecieverCurve = (
 
   if (!p1 || !p2 || !cp1 || !cp2) return;
 
-  curve.locateHandler(CurveTypes.PressingTarget.p2, p2);
   curve.locateHandler(CurveTypes.PressingTarget.cp1, cp1);
   curve.locateHandler(CurveTypes.PressingTarget.cp2, cp2);
+  curve.locateHandler(CurveTypes.PressingTarget.p2, p2);
 };
 
 const moveCurve = (
@@ -1675,7 +1675,7 @@ const selectCurve = (
         },
         shape: curve.shape,
       };
-      curves.splice(i, 1);
+      disconnect(i)
 
       return false;
     }
@@ -1987,6 +1987,10 @@ const resizeMultiSelectingShapes = (
       break;
   }
 };
+
+const disconnect = (curveI:number)=>{
+  curves.splice(curveI, 1)
+}
 
 const drawShapes = (
   ctx: null | CanvasRenderingContext2D,
@@ -2380,32 +2384,25 @@ const undo = (
 
   const action = actions.peek();
 
-  const returnToOrigin = (
-    shapes: null | (Terminal | Process | Data | Desicion)[],
-    targets: PageIdTypes.ActionTargets
-  ) => {
-    if (!shapes) return;
-    targets.forEach((target) => {
-      const origin = target.origin;
-      if (!origin || origin instanceof Curve) return;
-      const i = shapes.findIndex((shape) => shape.id === target.id);
-      shapes[i] = origin;
-    });
-  };
 
   switch (action?.type) {
     case CommonTypes.Action.add:
       shapes.pop();
       break;
 
-    case CommonTypes.Action.resize:
+    // case CommonTypes.Action.resize:
     case CommonTypes.Action.move: {
-      returnToOrigin(shapes, action.targets);
+      const returnToOrigin = () => {
+        action.target.move(action.displacement)
+      };
+      
+      returnToOrigin();
+      moveCurve(action.target)
       break;
     }
 
     case CommonTypes.Action.connect: {
-      curves.splice(action.targets[0].index, 1)
+      disconnect(curves.findIndex(curve => curve.shape.id === action.curveId))
       // TODO: should check data
       break;
     }
@@ -3021,7 +3018,6 @@ export default function IdPage() {
         targetShape.checkQuarterArea(p);
 
       if (!connectedD) return;
-      console.log("connectedD", connectedD);
       pressingCurve.shape.selecting = false;
       curves.push({
         shape: pressingCurve.shape,
@@ -3037,15 +3033,7 @@ export default function IdPage() {
 
       actions.push({
         type: CommonTypes.Action.connect,
-        targets: [
-          {
-            id: pressingCurve.shape.id,
-            index: curves.findIndex(
-              (curve) => curve.shape.id === pressingCurve?.shape.id
-            ),
-            origin: null,
-          },
-        ],
+        curveId: pressingCurve.shape.id,
       });
     });
 
@@ -3062,30 +3050,26 @@ export default function IdPage() {
         pressing?.target === CoreTypes.PressingTarget.rb ||
         pressing?.target === CoreTypes.PressingTarget.lb
       ) {
-        actions.push({
-          type: CommonTypes.Action.resize,
-          targets: [
-            {
-              id: pressing.shape.id,
-              index: shapes.findIndex(
-                (shape) => shape.id === pressing?.shape?.id
-              ),
-              origin: pressing.origin,
-            },
-          ],
-        });
+        // actions.push({
+        //   type: CommonTypes.Action.resize,
+        //   targets: [
+        //     {
+        //       id: pressing.shape.id,
+        //       index: shapes.findIndex(
+        //         (shape) => shape.id === pressing?.shape?.id
+        //       ),
+        //       origin: pressing.origin,
+        //     },
+        //   ],
+        // });
       } else if (pressing?.target === CoreTypes.PressingTarget.m) {
         actions.push({
           type: CommonTypes.Action.move,
-          targets: [
-            {
-              id: pressing.shape.id,
-              index: shapes.findIndex(
-                (shape) => shape.id === pressing?.shape?.id
-              ),
-              origin: pressing.origin,
-            },
-          ],
+          target: pressing.shape,
+          displacement:{
+            x: pressing.origin.p.x - pressing.shape.p.x,
+            y: pressing.origin.p.y - pressing.shape.p.y
+          }
         });
       }
     }
@@ -3099,7 +3083,6 @@ export default function IdPage() {
     alginLines = [];
 
     drawCanvas(offset, scale);
-    console.log("actions", actions);
   };
 
   const onMouseWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
@@ -3171,13 +3154,6 @@ export default function IdPage() {
 
     actions.push({
       type: CommonTypes.Action.add,
-      targets: [
-        {
-          id: intiShape.id,
-          index: shapes.length - 1,
-          origin: null,
-        },
-      ],
     });
 
     checkData(shapes);
