@@ -2405,7 +2405,8 @@ const undo = (
     }
 
     case CommonTypes.Action.connect: {
-      // returnToOrigin(shapes, action.targets);
+      curves.splice(action.targets[0].index, 1)
+      // TODO: should check data
       break;
     }
   }
@@ -3038,16 +3039,11 @@ export default function IdPage() {
         type: CommonTypes.Action.connect,
         targets: [
           {
-            id: pressingCurve.from.shape.id,
-            index: shapes.findIndex(
-              (shape) => shape.id === pressing?.shape?.id
+            id: pressingCurve.shape.id,
+            index: curves.findIndex(
+              (curve) => curve.shape.id === pressingCurve?.shape.id
             ),
-            origin: pressingCurve.from.origin,
-          },
-          {
-            id: targetShape.id,
-            index: shapes.findIndex((shape) => shape.id === targetShape?.id),
-            origin: cloneDeep(targetShape),
+            origin: null,
           },
         ],
       });
