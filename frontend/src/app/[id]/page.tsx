@@ -152,8 +152,8 @@ const getFramePosition = (
 
 const getNormalP = (
   p: CommonTypes.Vec,
-  offset: null | CommonTypes.Vec = { x: 0, y: 0 },
-  scale: number = 1
+  offset: null | CommonTypes.Vec,
+  scale: number
 ) => {
   offset = offset ? offset : { x: 0, y: 0 };
   return {
@@ -1675,7 +1675,7 @@ const selectCurve = (
         },
         shape: curve.shape,
       };
-      disconnect(i)
+      disconnect(i);
 
       return false;
     }
@@ -1988,9 +1988,9 @@ const resizeMultiSelectingShapes = (
   }
 };
 
-const disconnect = (curveI:number)=>{
-  curves.splice(curveI, 1)
-}
+const disconnect = (curveI: number) => {
+  curves.splice(curveI, 1);
+};
 
 const drawShapes = (
   ctx: null | CanvasRenderingContext2D,
@@ -2384,7 +2384,6 @@ const undo = (
 
   const action = actions.peek();
 
-
   switch (action?.type) {
     case CommonTypes.Action.add:
       shapes.pop();
@@ -2393,16 +2392,16 @@ const undo = (
     // case CommonTypes.Action.resize:
     case CommonTypes.Action.move: {
       const returnToOrigin = () => {
-        action.target.move(action.displacement)
+        action.target.move(action.displacement);
       };
-      
+
       returnToOrigin();
-      moveCurve(action.target)
+      moveCurve(action.target);
       break;
     }
 
     case CommonTypes.Action.connect: {
-      disconnect(curves.findIndex(curve => curve.shape.id === action.curveId))
+      disconnect(curves.length - 1);
       // TODO: should check data
       break;
     }
@@ -3014,8 +3013,8 @@ export default function IdPage() {
     shapes.forEach((targetShape) => {
       if (!pressingCurve) return;
       const connectedD =
-        targetShape.checkReceivingPointsBoundry(p) ||
-        targetShape.checkQuarterArea(p);
+        targetShape.checkReceivingPointsBoundry(getNormalP(p, offset, scale)) ||
+        targetShape.checkQuarterArea(getNormalP(p, offset, scale));
 
       if (!connectedD) return;
       pressingCurve.shape.selecting = false;
@@ -3033,7 +3032,6 @@ export default function IdPage() {
 
       actions.push({
         type: CommonTypes.Action.connect,
-        curveId: pressingCurve.shape.id,
       });
     });
 
@@ -3066,10 +3064,10 @@ export default function IdPage() {
         actions.push({
           type: CommonTypes.Action.move,
           target: pressing.shape,
-          displacement:{
+          displacement: {
             x: pressing.origin.p.x - pressing.shape.p.x,
-            y: pressing.origin.p.y - pressing.shape.p.y
-          }
+            y: pressing.origin.p.y - pressing.shape.p.y,
+          },
         });
       }
     }

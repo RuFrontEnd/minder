@@ -62,7 +62,6 @@ type ActionTypes =
     }
   | {
       type: CommonTypes.Action.connect;
-      curveId: CurveTypes.Id;
     }
 
 type Actions = Stack<ActionTypes>;
