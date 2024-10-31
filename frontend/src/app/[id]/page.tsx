@@ -1639,6 +1639,7 @@ const triggerCurve = (
         origin: cloneDeep(triggerShape),
         d: curveTriggerD,
       },
+      to: null,
       shape: getCurve(
         `curve_${Date.now()}`,
         curveTriggerD,
@@ -1673,14 +1674,13 @@ const selectCurve = (
           origin: cloneDeep(curve.from.shape),
           d: curve.from.d,
         },
+        to: {
+          shape: curve.to.shape,
+          origin: cloneDeep(curve.to.shape),
+          d: curve.to.d,
+        },
         shape: curve.shape,
       };
-      disconnect(i);
-
-      actions.push({
-        type: CommonTypes.Action.disconnect,
-        curve: cloneDeep(curve),
-      });
 
       return false;
     }
@@ -2018,13 +2018,44 @@ const connect = (
 };
 
 const checkConnect = (p: CommonTypes.Vec) => {
-  shapes.forEach((targetShape) => {
-    if (!pressingCurve) return;
+  if (!pressingCurve) return;
+  let to: {
+    d: null | CommonTypes.Direction;
+    shape: null | Terminal | Process | Data | Desicion;
+  } = {
+    d: null,
+    shape: null,
+  };
+
+  shapes.forEach((shape) => {
     const connectedD =
-      targetShape.checkReceivingPointsBoundry(p) ||
-      targetShape.checkQuarterArea(p);
+      shape.checkReceivingPointsBoundry(p) || shape.checkQuarterArea(p);
 
     if (!connectedD) return;
+    to.d = connectedD;
+    to.shape = shape;
+  });
+
+  if (!to.d && !to.shape) {
+    const curveI = curves.findIndex(
+      (curve) => curve.shape.id === pressingCurve?.shape.id
+    );
+    const _curve = {...curves[curveI]}; // must shallow copy
+
+    disconnect(curveI);
+
+    actions.push({
+      type: CommonTypes.Action.disconnect,
+      curve: _curve,
+    });
+  }
+
+  if (
+    to.d &&
+    to.shape &&
+    to.d !== pressingCurve.to?.d &&
+    to.shape !== pressingCurve.to?.shape
+  ) {
     pressingCurve.shape.selecting = false;
 
     connect(
@@ -2034,15 +2065,15 @@ const checkConnect = (p: CommonTypes.Vec) => {
         d: pressingCurve.from.d,
       },
       {
-        shape: targetShape,
-        d: connectedD,
+        shape: to.shape,
+        d: to.d,
       }
     );
 
     actions.push({
       type: CommonTypes.Action.connect,
     });
-  });
+  }
 };
 
 const disconnect = (curveI: number) => {
@@ -2255,7 +2286,9 @@ const draw = (
 
   //   shape.drawCurve(ctx);
   // });
-  pressingCurve?.shape.draw(ctx, offset, scale);
+  if (!pressingCurve?.to) {
+    pressingCurve?.shape.draw(ctx, offset, scale);
+  }
 
   // shapes.forEach((shape) => {
   //   console.log('shape', shape)
@@ -2465,6 +2498,7 @@ const undo = (
 
     case CommonTypes.Action.disconnect: {
       connect(action.curve.shape, action.curve.from, action.curve.to);
+      moveCurve(action.curve.to.shape);
       // TODO: should check data
       break;
     }

@@ -28,6 +28,11 @@ type PressingCurve = null | {
     origin: Terminal | Process | Data | Desicion;
     d: CommonTypes.Direction;
   };
+  to: null | {
+    shape: Terminal | Process | Data | Desicion;
+    origin: Terminal | Process | Data | Desicion;
+    d: CommonTypes.Direction;
+  };
   shape: Curve;
 };
 
@@ -77,8 +82,8 @@ type ActionTypes =
     }
   | {
       type: CommonTypes.Action.disconnect;
-      curve:Curves[number]
-    }
+      curve: Curves[number];
+    };
 
 type Actions = Stack<ActionTypes>;
 
