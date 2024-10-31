@@ -138,6 +138,41 @@ const ds = [
   CommonTypes.Direction.b,
 ];
 
+const getActionRecords = () => {
+  const records: {
+    [type: string]: {
+      shapes: null | (Terminal | Process | Data | Desicion)[];
+      curves: null | PageIdTypes.Curves;
+    };
+  } = {};
+
+  return {
+    register: (type: CommonTypes.Action) => {
+      if (records[type]) return;
+      records[type] = {
+        shapes: cloneDeep(shapes),
+        curves: cloneDeep(curves),
+      };
+    },
+    interrupt:(type: CommonTypes.Action)=>{
+      if (!records[type]) return;
+      delete records[type];
+    },
+    finish: (type: CommonTypes.Action) => {
+      console.log('records', records)
+      if (!records[type]?.shapes || !records[type]?.curves) return;
+      actions.push({
+        type: type,
+        shapes: records[type].shapes,
+        curves: records[type].curves,
+      });
+      delete records[type];
+    },
+  };
+};
+
+const actionRecords = getActionRecords();
+
 const getFramePosition = (
   shape: Core,
   offset: CommonTypes.Vec,
@@ -1176,13 +1211,6 @@ const frameSelect = (
   }
 };
 
-const pushAction = () => {
-  actions.push({
-    shapes: cloneDeep(shapes),
-    curves: cloneDeep(curves),
-  });
-};
-
 const getCurve = (
   id: string,
   d: CommonTypes.Direction,
@@ -1566,8 +1594,9 @@ const moveSenderCurve = (
   fromD: CommonTypes.Direction,
   toD: CommonTypes.Direction,
   curve: null | undefined | Curve,
-  sender: null | undefined | Terminal | Process | Data | Desicion
+  senderId: null | undefined | string
 ) => {
+  const sender = shapes.find(shape => shape.id === senderId)
   if (!sender || !curve) return;
 
   const p1 = sender.getCenter()[fromD];
@@ -1585,8 +1614,9 @@ const moveRecieverCurve = (
   fromD: CommonTypes.Direction,
   toD: CommonTypes.Direction,
   curve: null | undefined | Curve,
-  reciever: null | undefined | Terminal | Process | Data | Desicion
+  recieverId:null|undefined|string
 ) => {
+  const reciever = shapes.find(shape => shape.id === recieverId)
   if (!reciever || !curve) return;
 
   const p1 = curve.p1;
@@ -1607,10 +1637,10 @@ const moveCurve = (
   for (let i = curves.length - 1; i > -1; i--) {
     const curve = curves[i];
     if (curve.from.shape.id === shape.id) {
-      moveSenderCurve(curve.from.d, curve.to.d, curve.shape, curve.from.shape);
+      moveSenderCurve(curve.from.d, curve.to.d, curve.shape, curve.from.shape.id); // TODO: just record curve.from.shape.id in pressingCurve
     }
     if (curve.to.shape.id === shape.id) {
-      moveRecieverCurve(curve.from.d, curve.to.d, curve.shape, curve.to.shape);
+      moveRecieverCurve(curve.from.d, curve.to.d, curve.shape, curve.to.shape.id); // TODO: just record curve.to.shape.id in pressingCurve
     }
   }
 };
@@ -1782,7 +1812,7 @@ const deleteSelectedShape = () => {
   const selectedShapeI = shapes.findIndex((shape) => shape.selecting);
 
   if (selectedShapeI === -1) return false;
-  pushAction();
+  actionRecords.register(CommonTypes.Action.delete)
 
   curves = curves.filter(
     (curve) =>
@@ -1791,6 +1821,7 @@ const deleteSelectedShape = () => {
   );
 
   shapes.splice(selectedShapeI, 1);
+  actionRecords.finish(CommonTypes.Action.delete);
 
   // actions.push({
   //   type: CommonTypes.Action.delete,
@@ -2054,11 +2085,11 @@ const checkConnect = (p: CommonTypes.Vec) => {
   });
 
   if (!to.d && !to.shape) {
-    pushAction();
     disconnect(
       curves.findIndex((curve) => curve.shape.id === pressingCurve?.shape.id)
     );
-
+    actionRecords.finish(CommonTypes.Action.disconnect)
+    return
     // actions.push({
     //   type: CommonTypes.Action.disconnect,
     //   curve: _curve,
@@ -2071,7 +2102,7 @@ const checkConnect = (p: CommonTypes.Vec) => {
     to.d !== pressingCurve.to?.d &&
     to.shape !== pressingCurve.to?.shape
   ) {
-    pushAction();
+    actionRecords.register(CommonTypes.Action.connect);
     pressingCurve.shape.selecting = false;
 
     connect(
@@ -2088,7 +2119,10 @@ const checkConnect = (p: CommonTypes.Vec) => {
     // actions.push({
     //   type: CommonTypes.Action.connect,
     // }); // temp close
+    actionRecords.finish(CommonTypes.Action.connect);
   }
+
+  actionRecords.interrupt(CommonTypes.Action.disconnect)
 };
 
 const disconnect = (curveI: number) => {
@@ -2996,6 +3030,7 @@ export default function IdPage() {
         pressing?.target === CommonTypes.SelectAreaTarget.rb ||
         pressing?.target === CommonTypes.SelectAreaTarget.lb
       ) {
+        actionRecords.register(CommonTypes.Action.resize)
         resizeMultiSelectingShapes(pressing?.target, offsetP, scale);
       }
 
@@ -3006,6 +3041,8 @@ export default function IdPage() {
 
     if (!movingViewport && pressing?.shape) {
       if (pressing?.shape && pressing?.target === CoreTypes.PressingTarget.m) {
+        actionRecords.register(CommonTypes.Action.move)
+
         const shapesInView = getShapesInView(shapes);
         alginLines = getAlignLines(shapesInView, pressing.shape);
 
@@ -3100,6 +3137,7 @@ export default function IdPage() {
     }
 
     if (!movingViewport && !!pressingCurve) {
+      actionRecords.register(CommonTypes.Action.disconnect)
       movePressingCurve(ctx, pressingCurve, p, offset, scale);
     } else if (!movingViewport && selectionFrameP) {
       selectionFrameP = {
@@ -3139,12 +3177,25 @@ export default function IdPage() {
       (pressing?.shape?.p.x !== pressing?.origin?.p.x ||
         pressing?.shape?.p.y !== pressing?.origin?.p.y)
     ) {
-      if (
+      if (pressing?.target === CoreTypes.PressingTarget.m) {
+        actionRecords.finish(CommonTypes.Action.move)
+        // endRecordAction(CommonTypes.Action.move);
+        // isRecordingAction = false;
+        // actions.push({
+        //   type: CommonTypes.Action.move,
+        //   target: pressing.shape,
+        //   displacement: {
+        //     x: pressing.origin.p.x - pressing.shape.p.x,
+        //     y: pressing.origin.p.y - pressing.shape.p.y,
+        //   },
+        // }); // temp close
+      }else if (
         pressing?.target === CoreTypes.PressingTarget.lt ||
         pressing?.target === CoreTypes.PressingTarget.rt ||
         pressing?.target === CoreTypes.PressingTarget.rb ||
         pressing?.target === CoreTypes.PressingTarget.lb
       ) {
+        actionRecords.finish(CommonTypes.Action.resize);
         // actions.push({
         //   type: CommonTypes.Action.resize,
         //   targets: [
@@ -3156,17 +3207,6 @@ export default function IdPage() {
         //       origin: pressing.origin,
         //     },
         //   ],
-        // });
-        pushAction()
-      } else if (pressing?.target === CoreTypes.PressingTarget.m) {
-        pushAction()
-        // actions.push({
-        //   type: CommonTypes.Action.move,
-        //   target: pressing.shape,
-        //   displacement: {
-        //     x: pressing.origin.p.x - pressing.shape.p.x,
-        //     y: pressing.origin.p.y - pressing.shape.p.y,
-        //   },
         // }); // temp close
       }
     }
@@ -3247,11 +3287,12 @@ export default function IdPage() {
     e.stopPropagation();
     e.preventDefault();
     if (!isBrowser) return;
-    pushAction()
+    actionRecords.register(CommonTypes.Action.add);
 
     let intiShape = getInitializedShape(type, offset, scale);
     shapes.push(intiShape);
 
+    actionRecords.finish(CommonTypes.Action.add);
 
     // actions.push({
     //   type: CommonTypes.Action.add,

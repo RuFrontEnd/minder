@@ -101,6 +101,7 @@ type Curves = {
 // type Actions = Stack<ActionTypes>; // TODO: temp close
 
 type Actions = Stack<{
+  type: CommonTypes.Action;
   shapes: (Terminal | Process | Data | Desicion)[];
   curves: Curves;
 }>;
