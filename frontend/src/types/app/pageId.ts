@@ -60,32 +60,50 @@ type Curves = {
   };
 }[];
 
-type ActionTarget = {
-  id: string;
-  index: number;
-  origin: null | Terminal | Process | Data | Desicion | Curve;
-};
+// type ActionTarget = {
+//   id: string;
+//   index: number;
+//   origin: null | Terminal | Process | Data | Desicion | Curve;
+// }; // TODO: temp close
 
-type ActionTargets = ActionTarget[];
+// type ActionTargets = ActionTarget[];
 
-type ActionTypes =
-  | {
-      type: CommonTypes.Action.add;
-    }
-  | {
-      type: CommonTypes.Action.move;
-      target: Terminal | Process | Data | Desicion;
-      displacement: CommonTypes.Vec;
-    }
-  | {
-      type: CommonTypes.Action.connect;
-    }
-  | {
-      type: CommonTypes.Action.disconnect;
-      curve: Curves[number];
-    };
+// type ActionDeleteTarget = {
+//   shape:Terminal | Process | Data| Desicion
+//   i:number
+//   curves:{
+//     shape:Curves[number],
+//     i:number
+//   }[]
+// } // TODO: temp close
 
-type Actions = Stack<ActionTypes>;
+// type ActionTypes =
+//   | {
+//       type: CommonTypes.Action.add;
+//     }
+//   | {
+//       type: CommonTypes.Action.delete;
+//       target:ActionDeleteTarget,
+//     }
+//   | {
+//       type: CommonTypes.Action.move;
+//       target: Terminal | Process | Data | Desicion;
+//       displacement: CommonTypes.Vec;
+//     }
+//   | {
+//       type: CommonTypes.Action.connect;
+//     }
+//   | {
+//       type: CommonTypes.Action.disconnect;
+//       curve: Curves[number];
+//     }; // TODO: temp close
+
+// type Actions = Stack<ActionTypes>; // TODO: temp close
+
+type Actions = Stack<{
+  shapes: (Terminal | Process | Data | Desicion)[];
+  curves: Curves;
+}>;
 
 type MultiSelect = {
   start: CommonTypes.Vec;
@@ -97,9 +115,10 @@ export type {
   Pressing,
   PressingCurve,
   Sticking,
-  ActionTypes,
-  ActionTarget,
-  ActionTargets,
+  // ActionTypes,
+  // ActionTarget,
+  // ActionDeleteTarget,
+  // ActionTargets,
   Actions,
   Curves,
   MultiSelect,

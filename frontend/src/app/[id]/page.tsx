@@ -129,7 +129,7 @@ let ctx: CanvasRenderingContext2D | null | undefined = null,
     },
   },
   alginLines: { from: CommonTypes.Vec; to: CommonTypes.Vec }[] = [],
-  actions = new Stack<PageIdTypes.ActionTypes>();
+  actions: PageIdTypes.Actions = new Stack();
 
 const ds = [
   CommonTypes.Direction.l,
@@ -1176,6 +1176,13 @@ const frameSelect = (
   }
 };
 
+const pushAction = () => {
+  actions.push({
+    shapes: cloneDeep(shapes),
+    curves: cloneDeep(curves),
+  });
+};
+
 const getCurve = (
   id: string,
   d: CommonTypes.Direction,
@@ -1775,6 +1782,7 @@ const deleteSelectedShape = () => {
   const selectedShapeI = shapes.findIndex((shape) => shape.selecting);
 
   if (selectedShapeI === -1) return false;
+  pushAction();
 
   curves = curves.filter(
     (curve) =>
@@ -1783,6 +1791,15 @@ const deleteSelectedShape = () => {
   );
 
   shapes.splice(selectedShapeI, 1);
+
+  // actions.push({
+  //   type: CommonTypes.Action.delete,
+  //   target: {
+  //     shape: removedShape,
+  //     i: selectedShapeI,
+  //     curves: removedCurves,
+  //   },
+  // }); // TODO: temp close
 
   return false;
 };
@@ -2037,17 +2054,15 @@ const checkConnect = (p: CommonTypes.Vec) => {
   });
 
   if (!to.d && !to.shape) {
-    const curveI = curves.findIndex(
-      (curve) => curve.shape.id === pressingCurve?.shape.id
+    pushAction();
+    disconnect(
+      curves.findIndex((curve) => curve.shape.id === pressingCurve?.shape.id)
     );
-    const _curve = {...curves[curveI]}; // must shallow copy
 
-    disconnect(curveI);
-
-    actions.push({
-      type: CommonTypes.Action.disconnect,
-      curve: _curve,
-    });
+    // actions.push({
+    //   type: CommonTypes.Action.disconnect,
+    //   curve: _curve,
+    // }); // temp close
   }
 
   if (
@@ -2056,6 +2071,7 @@ const checkConnect = (p: CommonTypes.Vec) => {
     to.d !== pressingCurve.to?.d &&
     to.shape !== pressingCurve.to?.shape
   ) {
+    pushAction();
     pressingCurve.shape.selecting = false;
 
     connect(
@@ -2069,10 +2085,9 @@ const checkConnect = (p: CommonTypes.Vec) => {
         d: to.d,
       }
     );
-
-    actions.push({
-      type: CommonTypes.Action.connect,
-    });
+    // actions.push({
+    //   type: CommonTypes.Action.connect,
+    // }); // temp close
   }
 };
 
@@ -2465,44 +2480,54 @@ const resizeShape = (
 
 const undo = (
   ctx: undefined | null | CanvasRenderingContext2D,
-  actions: PageIdTypes.Actions,
-  shapes: null | (Terminal | Process | Data | Desicion)[],
   offset?: CommonTypes.Vec,
   scale?: number
 ) => {
   if (!ctx || !shapes) return;
 
+  // TODO: temp close
   const action = actions.peek();
+  if (!action) return;
+  shapes = action?.shapes;
+  curves = action?.curves;
 
-  switch (action?.type) {
-    case CommonTypes.Action.add:
-      shapes.pop();
-      break;
+  // switch (action?.type) {
+  //   case CommonTypes.Action.add:
+  //     shapes.pop();
+  //     break;
 
-    // case CommonTypes.Action.resize:
-    case CommonTypes.Action.move: {
-      const returnToOrigin = () => {
-        action.target.move(action.displacement);
-      };
+  //   case CommonTypes.Action.delete:
+  //     shapes.splice(action.target.i, 0, action.target.shape);
+  //     for(let i =action.target.curves.length-1; i>-1; i--){
+  //       curves.splice(action.target.curves[i].i, 0,action.target.curves[i].shape)
+  //     }
 
-      returnToOrigin();
-      moveCurve(action.target);
-      break;
-    }
+  //     break;
 
-    case CommonTypes.Action.connect: {
-      disconnect(curves.length - 1);
-      // TODO: should check data
-      break;
-    }
+  //   // case CommonTypes.Action.resize:
+  //   case CommonTypes.Action.move: {
+  //     const returnToOrigin = () => {
+  //       action.target.move(action.displacement);
+  //     };
 
-    case CommonTypes.Action.disconnect: {
-      connect(action.curve.shape, action.curve.from, action.curve.to);
-      moveCurve(action.curve.to.shape);
-      // TODO: should check data
-      break;
-    }
-  }
+  //     returnToOrigin();
+  //     moveCurve(action.target);
+  //     break;
+  //   }
+
+  //   case CommonTypes.Action.connect: {
+  //     disconnect(curves.length - 1);
+  //     // TODO: should check data
+  //     break;
+  //   }
+
+  //   case CommonTypes.Action.disconnect: {
+  //     connect(action.curve.shape, action.curve.from, action.curve.to);
+  //     moveCurve(action.curve.to.shape);
+  //     // TODO: should check data
+  //     break;
+  //   }
+  // }
 
   actions.pop();
 
@@ -3132,15 +3157,17 @@ export default function IdPage() {
         //     },
         //   ],
         // });
+        pushAction()
       } else if (pressing?.target === CoreTypes.PressingTarget.m) {
-        actions.push({
-          type: CommonTypes.Action.move,
-          target: pressing.shape,
-          displacement: {
-            x: pressing.origin.p.x - pressing.shape.p.x,
-            y: pressing.origin.p.y - pressing.shape.p.y,
-          },
-        });
+        pushAction()
+        // actions.push({
+        //   type: CommonTypes.Action.move,
+        //   target: pressing.shape,
+        //   displacement: {
+        //     x: pressing.origin.p.x - pressing.shape.p.x,
+        //     y: pressing.origin.p.y - pressing.shape.p.y,
+        //   },
+        // }); // temp close
       }
     }
 
@@ -3153,6 +3180,8 @@ export default function IdPage() {
     alginLines = [];
 
     drawCanvas(offset, scale);
+
+    console.log("actions", actions);
   };
 
   const onMouseWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
@@ -3186,7 +3215,7 @@ export default function IdPage() {
       setControl(true);
     }
     if (e.key === "z" && control) {
-      undo(ctx, actions, shapes, offset, scale);
+      undo(ctx, offset, scale);
     }
     if (e.key === " " && !space) {
       setSpace(true);
@@ -3218,13 +3247,15 @@ export default function IdPage() {
     e.stopPropagation();
     e.preventDefault();
     if (!isBrowser) return;
+    pushAction()
 
     let intiShape = getInitializedShape(type, offset, scale);
     shapes.push(intiShape);
 
-    actions.push({
-      type: CommonTypes.Action.add,
-    });
+
+    // actions.push({
+    //   type: CommonTypes.Action.add,
+    // }); // temp close
 
     checkData(shapes);
     checkGroups();

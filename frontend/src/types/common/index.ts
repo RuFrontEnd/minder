@@ -51,6 +51,7 @@ enum SelectAreaTarget {
 
 enum Action {
   add = "add",
+  delete = "delete",
   remove = "remove",
   connect = "connect",
   disconnect = "disconnect",
