@@ -154,12 +154,12 @@ const getActionRecords = () => {
         curves: cloneDeep(curves),
       };
     },
-    interrupt:(type: CommonTypes.Action)=>{
+    interrupt: (type: CommonTypes.Action) => {
       if (!records[type]) return;
       delete records[type];
     },
     finish: (type: CommonTypes.Action) => {
-      console.log('records', records)
+      console.log("records", records);
       if (!records[type]?.shapes || !records[type]?.curves) return;
       actions.push({
         type: type,
@@ -1596,7 +1596,7 @@ const moveSenderCurve = (
   curve: null | undefined | Curve,
   senderId: null | undefined | string
 ) => {
-  const sender = shapes.find(shape => shape.id === senderId)
+  const sender = shapes.find((shape) => shape.id === senderId);
   if (!sender || !curve) return;
 
   const p1 = sender.getCenter()[fromD];
@@ -1614,9 +1614,9 @@ const moveRecieverCurve = (
   fromD: CommonTypes.Direction,
   toD: CommonTypes.Direction,
   curve: null | undefined | Curve,
-  recieverId:null|undefined|string
+  recieverId: null | undefined | string
 ) => {
-  const reciever = shapes.find(shape => shape.id === recieverId)
+  const reciever = shapes.find((shape) => shape.id === recieverId);
   if (!reciever || !curve) return;
 
   const p1 = curve.p1;
@@ -1637,10 +1637,20 @@ const moveCurve = (
   for (let i = curves.length - 1; i > -1; i--) {
     const curve = curves[i];
     if (curve.from.shape.id === shape.id) {
-      moveSenderCurve(curve.from.d, curve.to.d, curve.shape, curve.from.shape.id); // TODO: just record curve.from.shape.id in pressingCurve
+      moveSenderCurve(
+        curve.from.d,
+        curve.to.d,
+        curve.shape,
+        curve.from.shape.id
+      ); // TODO: just record curve.from.shape.id in pressingCurve
     }
     if (curve.to.shape.id === shape.id) {
-      moveRecieverCurve(curve.from.d, curve.to.d, curve.shape, curve.to.shape.id); // TODO: just record curve.to.shape.id in pressingCurve
+      moveRecieverCurve(
+        curve.from.d,
+        curve.to.d,
+        curve.shape,
+        curve.to.shape.id
+      ); // TODO: just record curve.to.shape.id in pressingCurve
     }
   }
 };
@@ -1812,7 +1822,7 @@ const deleteSelectedShape = () => {
   const selectedShapeI = shapes.findIndex((shape) => shape.selecting);
 
   if (selectedShapeI === -1) return false;
-  actionRecords.register(CommonTypes.Action.delete)
+  actionRecords.register(CommonTypes.Action.delete);
 
   curves = curves.filter(
     (curve) =>
@@ -2052,17 +2062,35 @@ const connect = (
     d: CommonTypes.Direction;
   }
 ) => {
-  curves.push({
-    shape: curve,
-    from: {
-      shape: from.shape,
-      d: from.d,
-    },
-    to: {
-      shape: to.shape,
-      d: to.d,
-    },
-  });
+  const curveI = curves.findIndex(
+    (currentCurve) => currentCurve.shape.id === curve.id
+  );
+
+  if (curveI > -1) {
+    curves[curveI] = {
+      shape: curve,
+      from: {
+        shape: from.shape,
+        d: from.d,
+      },
+      to: {
+        shape: to.shape,
+        d: to.d,
+      },
+    };
+  } else {
+    curves.push({
+      shape: curve,
+      from: {
+        shape: from.shape,
+        d: from.d,
+      },
+      to: {
+        shape: to.shape,
+        d: to.d,
+      },
+    });
+  }
 };
 
 const checkConnect = (p: CommonTypes.Vec) => {
@@ -2088,8 +2116,8 @@ const checkConnect = (p: CommonTypes.Vec) => {
     disconnect(
       curves.findIndex((curve) => curve.shape.id === pressingCurve?.shape.id)
     );
-    actionRecords.finish(CommonTypes.Action.disconnect)
-    return
+    actionRecords.finish(CommonTypes.Action.disconnect);
+    return;
     // actions.push({
     //   type: CommonTypes.Action.disconnect,
     //   curve: _curve,
@@ -2099,8 +2127,8 @@ const checkConnect = (p: CommonTypes.Vec) => {
   if (
     to.d &&
     to.shape &&
-    to.d !== pressingCurve.to?.d &&
-    to.shape !== pressingCurve.to?.shape
+    !(to.d === pressingCurve.to?.d &&
+    to.shape === pressingCurve.to?.shape)
   ) {
     actionRecords.register(CommonTypes.Action.connect);
     pressingCurve.shape.selecting = false;
@@ -2122,7 +2150,7 @@ const checkConnect = (p: CommonTypes.Vec) => {
     actionRecords.finish(CommonTypes.Action.connect);
   }
 
-  actionRecords.interrupt(CommonTypes.Action.disconnect)
+  actionRecords.interrupt(CommonTypes.Action.disconnect);
 };
 
 const disconnect = (curveI: number) => {
@@ -3030,7 +3058,7 @@ export default function IdPage() {
         pressing?.target === CommonTypes.SelectAreaTarget.rb ||
         pressing?.target === CommonTypes.SelectAreaTarget.lb
       ) {
-        actionRecords.register(CommonTypes.Action.resize)
+        actionRecords.register(CommonTypes.Action.resize);
         resizeMultiSelectingShapes(pressing?.target, offsetP, scale);
       }
 
@@ -3041,7 +3069,7 @@ export default function IdPage() {
 
     if (!movingViewport && pressing?.shape) {
       if (pressing?.shape && pressing?.target === CoreTypes.PressingTarget.m) {
-        actionRecords.register(CommonTypes.Action.move)
+        actionRecords.register(CommonTypes.Action.move);
 
         const shapesInView = getShapesInView(shapes);
         alginLines = getAlignLines(shapesInView, pressing.shape);
@@ -3137,7 +3165,7 @@ export default function IdPage() {
     }
 
     if (!movingViewport && !!pressingCurve) {
-      actionRecords.register(CommonTypes.Action.disconnect)
+      actionRecords.register(CommonTypes.Action.disconnect);
       movePressingCurve(ctx, pressingCurve, p, offset, scale);
     } else if (!movingViewport && selectionFrameP) {
       selectionFrameP = {
@@ -3178,7 +3206,7 @@ export default function IdPage() {
         pressing?.shape?.p.y !== pressing?.origin?.p.y)
     ) {
       if (pressing?.target === CoreTypes.PressingTarget.m) {
-        actionRecords.finish(CommonTypes.Action.move)
+        actionRecords.finish(CommonTypes.Action.move);
         // endRecordAction(CommonTypes.Action.move);
         // isRecordingAction = false;
         // actions.push({
@@ -3189,7 +3217,7 @@ export default function IdPage() {
         //     y: pressing.origin.p.y - pressing.shape.p.y,
         //   },
         // }); // temp close
-      }else if (
+      } else if (
         pressing?.target === CoreTypes.PressingTarget.lt ||
         pressing?.target === CoreTypes.PressingTarget.rt ||
         pressing?.target === CoreTypes.PressingTarget.rb ||
