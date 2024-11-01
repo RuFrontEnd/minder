@@ -1,9 +1,11 @@
 // Define a generic Stack class
 class Stack<T> {
     private items: T[];
+    private limit: number;
   
-    constructor() {
+    constructor(limit?:number) {
       this.items = [];
+      this.limit = limit || Infinity
     }
   
     /**
@@ -11,6 +13,9 @@ class Stack<T> {
      * @param element The element to be added
      */
     push(element: T): void {
+      if(this.items.length === this.limit){
+        this.items.splice(0, 1)
+      }
       this.items.push(element);
     }
   

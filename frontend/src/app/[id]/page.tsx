@@ -106,7 +106,7 @@ let ctx: CanvasRenderingContext2D | null | undefined = null,
     },
   },
   alginLines: { from: CommonTypes.Vec; to: CommonTypes.Vec }[] = [],
-  actions: PageIdTypes.Actions = new Stack();
+  actions: PageIdTypes.Actions = new Stack(40);
 
 const ds = [
   CommonTypes.Direction.l,
