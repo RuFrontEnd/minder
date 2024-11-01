@@ -56,6 +56,7 @@ enum Action {
   disconnect = "disconnect",
   move = "move",
   resize = "resize",
+  multiMove = "multiMove",
 }
 
 export type { Id, W, H, C, Vec, Shapes, Title, DataItem, Data };

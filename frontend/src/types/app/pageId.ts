@@ -60,6 +60,8 @@ type Curves = {
   };
 }[];
 
+type MultiSelectShapeIds = string[];
+
 // type ActionTarget = {
 //   id: string;
 //   index: number;
@@ -106,12 +108,6 @@ type Actions = Stack<{
   curves: Curves;
 }>;
 
-type MultiSelect = {
-  start: CommonTypes.Vec;
-  end: CommonTypes.Vec;
-  shapes: (Terminal | Process | Desicion | Data)[];
-};
-
 export type {
   Pressing,
   PressingCurve,
@@ -122,5 +118,5 @@ export type {
   // ActionTargets,
   Actions,
   Curves,
-  MultiSelect,
+  MultiSelectShapeIds,
 };
