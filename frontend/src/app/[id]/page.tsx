@@ -136,7 +136,6 @@ const getActionRecords = () => {
       delete records[type];
     },
     finish: (type: CommonTypes.Action) => {
-      console.log("records", records);
       if (!records[type]?.shapes || !records[type]?.curves) return;
       actions.push({
         type: type,
@@ -3197,8 +3196,6 @@ export default function IdPage() {
     setLeftMouseBtn(false);
     frameSelect(offset, scale);
     checkConnect(getNormalP(p, offset, scale));
-
-    console.log("pressing", pressing);
 
     if (
       multiSelectShapeIds.length >= 2 &&
