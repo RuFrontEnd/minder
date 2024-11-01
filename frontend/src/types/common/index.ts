@@ -57,6 +57,7 @@ enum Action {
   move = "move",
   resize = "resize",
   multiMove = "multiMove",
+  multiResize = "multiResize",
 }
 
 export type { Id, W, H, C, Vec, Shapes, Title, DataItem, Data };

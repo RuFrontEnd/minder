@@ -3055,7 +3055,7 @@ export default function IdPage() {
         pressing?.target === CommonTypes.SelectAreaTarget.rb ||
         pressing?.target === CommonTypes.SelectAreaTarget.lb
       ) {
-        actionRecords.register(CommonTypes.Action.resize);
+        actionRecords.register(CommonTypes.Action.multiResize);
         resizeMultiSelectingShapes(pressing?.target, offsetP, scale);
       }
 
@@ -3205,6 +3205,14 @@ export default function IdPage() {
       pressing?.target === CommonTypes.SelectAreaTarget.m
     ) {
       actionRecords.finish(CommonTypes.Action.multiMove);
+    } else if (
+      (multiSelectShapeIds.length >= 2 &&
+        pressing?.target === CommonTypes.SelectAreaTarget.lt) ||
+      pressing?.target === CommonTypes.SelectAreaTarget.rt ||
+      pressing?.target === CommonTypes.SelectAreaTarget.rb ||
+      pressing?.target === CommonTypes.SelectAreaTarget.lb
+    ) {
+      actionRecords.finish(CommonTypes.Action.multiResize);
     } else if (
       pressing?.target &&
       pressing?.shape &&
