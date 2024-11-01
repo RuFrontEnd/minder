@@ -3151,6 +3151,7 @@ export default function IdPage() {
         pressing?.target === CoreTypes.PressingTarget.rb ||
         pressing?.target === CoreTypes.PressingTarget.lb
       ) {
+        actionRecords.register(CommonTypes.Action.resize)
         resizeShape(
           shapes,
           {
@@ -3203,13 +3204,32 @@ export default function IdPage() {
     ) {
       actionRecords.finish(CommonTypes.Action.multiMove);
     } else if (
-      (multiSelectShapeIds.length >= 2 &&
-        pressing?.target === CommonTypes.SelectAreaTarget.lt) ||
-      pressing?.target === CommonTypes.SelectAreaTarget.rt ||
-      pressing?.target === CommonTypes.SelectAreaTarget.rb ||
-      pressing?.target === CommonTypes.SelectAreaTarget.lb
+      multiSelectShapeIds.length >= 2 &&
+      (pressing?.target === CommonTypes.SelectAreaTarget.lt ||
+        pressing?.target === CommonTypes.SelectAreaTarget.rt ||
+        pressing?.target === CommonTypes.SelectAreaTarget.rb ||
+        pressing?.target === CommonTypes.SelectAreaTarget.lb)
     ) {
       actionRecords.finish(CommonTypes.Action.multiResize);
+    } else if (
+      pressing?.target === CoreTypes.PressingTarget.lt ||
+      pressing?.target === CoreTypes.PressingTarget.rt ||
+      pressing?.target === CoreTypes.PressingTarget.rb ||
+      pressing?.target === CoreTypes.PressingTarget.lb
+    ) {
+      actionRecords.finish(CommonTypes.Action.resize);
+      // actions.push({
+      //   type: CommonTypes.Action.resize,
+      //   targets: [
+      //     {
+      //       id: pressing.shape.id,
+      //       index: shapes.findIndex(
+      //         (shape) => shape.id === pressing?.shape?.id
+      //       ),
+      //       origin: pressing.origin,
+      //     },
+      //   ],
+      // }); // temp close
     } else if (
       pressing?.target &&
       pressing?.shape &&
@@ -3226,25 +3246,6 @@ export default function IdPage() {
         //     x: pressing.origin.p.x - pressing.shape.p.x,
         //     y: pressing.origin.p.y - pressing.shape.p.y,
         //   },
-        // }); // temp close
-      } else if (
-        pressing?.target === CoreTypes.PressingTarget.lt ||
-        pressing?.target === CoreTypes.PressingTarget.rt ||
-        pressing?.target === CoreTypes.PressingTarget.rb ||
-        pressing?.target === CoreTypes.PressingTarget.lb
-      ) {
-        actionRecords.finish(CommonTypes.Action.resize);
-        // actions.push({
-        //   type: CommonTypes.Action.resize,
-        //   targets: [
-        //     {
-        //       id: pressing.shape.id,
-        //       index: shapes.findIndex(
-        //         (shape) => shape.id === pressing?.shape?.id
-        //       ),
-        //       origin: pressing.origin,
-        //     },
-        //   ],
         // }); // temp close
       }
     }
@@ -3342,7 +3343,7 @@ export default function IdPage() {
     drawScreenshot(offset, scale);
   };
 
-  const onClickUndoButton = ()=>{
+  const onClickUndoButton = () => {
     undo(ctx, offset, scale);
   }
 
@@ -4117,8 +4118,8 @@ export default function IdPage() {
             ctx = $canvas?.getContext("2d");
           }}
           onMouseDown={onMouseDown}
-          onMouseUp={onMouseUp}
           onMouseMove={onMouseMove}
+          onMouseUp={onMouseUp}
           onWheel={onMouseWheel}
           onDoubleClick={onDoubleClick}
         />
