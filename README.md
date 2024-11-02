@@ -28,14 +28,14 @@ FT
 - [x] create project
 - [x] delete project
 - [x] auto calculate curve position
+- [x] align shapes
+- [x] undo
 - [ ] one-click remove redundancies
 - [ ] modulize steps
 - [ ] data remark
-- [ ] align shapes
 - [ ] forget password
 - [ ] third-party sign in
 - [ ] copy
-- [ ] undo
 - [ ] redo
 - [ ] optimizing UI
 - [ ] branding page
@@ -57,8 +57,3 @@ BK
 - node.js 20.11.0
 - express 4.18.3
 - mysql 8.3.0
-
-## Others
-- Icon: heroicons[https://heroicons.com]
-        flowbite[https://flowbite.com/icons/]
-        thenounproject[https://thenounproject.com/icons/]

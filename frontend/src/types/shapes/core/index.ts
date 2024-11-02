@@ -1,6 +1,6 @@
 import Core from "@/shapes/core";
 import Curve from "@/shapes/curve";
-import * as CommonTypes from "@/types/shapes/common";
+import * as CommonTypes from "@/types/common";
 
 enum PressingTarget {
   // anchor points

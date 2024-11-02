@@ -4,7 +4,7 @@ import Process from "@/shapes/process";
 import Data from "@/shapes/data";
 import Desicion from "@/shapes/decision";
 import * as CurveTypes from "@/types/shapes/curve";
-import * as CommonTypes from "@/types/shapes/common";
+import * as CommonTypes from "@/types/common";
 
 type Steps = {
   [shapeId: string]: {

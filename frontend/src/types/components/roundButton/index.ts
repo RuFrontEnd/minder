@@ -8,6 +8,7 @@ type Props = {
   content?: ReactNode;
   size?: number;
   outerRing?: boolean;
+  differece?: number;
   onClick?: MouseEventHandler<HTMLButtonElement>;
   onKeyDown?: KeyboardEventHandler<HTMLButtonElement>;
 };

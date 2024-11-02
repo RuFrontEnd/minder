@@ -160,6 +160,64 @@ export default function Icon(props: IconTypes.Props) {
           />
         </svg>
       )}
+      {props.type === IconTypes.Type.rotateCcw && (
+        <svg
+          style={{
+            width: props.w || defaultVal.w,
+            height: props.h || defaultVal.h,
+            fill: props.fill || defaultVal.fill,
+          }}
+          fill="#000000"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 52 52"
+          enable-background="new 0 0 52 52"
+        >
+          <path
+            d="M30.3,12.6c10.4,0,18.9,8.4,18.9,18.9s-8.5,18.9-18.9,18.9h-8.2c-0.8,0-1.3-0.6-1.3-1.4v-3.2
+c0-0.8,0.6-1.5,1.4-1.5h8.1c7.1,0,12.8-5.7,12.8-12.8s-5.7-12.8-12.8-12.8H16.4c0,0-0.8,0-1.1,0.1c-0.8,0.4-0.6,1,0.1,1.7l4.9,4.9
+c0.6,0.6,0.5,1.5-0.1,2.1L18,29.7c-0.6,0.6-1.3,0.6-1.9,0.1l-13-13c-0.5-0.5-0.5-1.3,0-1.8L16,2.1c0.6-0.6,1.6-0.6,2.1,0l2.1,2.1
+c0.6,0.6,0.6,1.6,0,2.1l-4.9,4.9c-0.6,0.6-0.6,1.3,0.4,1.3c0.3,0,0.7,0,0.7,0L30.3,12.6z"
+          />
+        </svg>
+      )}
+      {props.type === IconTypes.Type.arrow && (
+        <svg
+          style={{
+            width: props.w || defaultVal.w,
+            height: props.h || defaultVal.h,
+            stroke: props.stroke || defaultVal.stroke,
+          }}
+          className={props.className}
+          aria-hidden="true"
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="m8 10 4 4 4-4"
+          />
+        </svg>
+      )}
+      {props.type === IconTypes.Type.arrowSolid && (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          style={{
+            width: props.w || defaultVal.w,
+            height: props.h || defaultVal.h,
+            fill: props.fill || defaultVal.fill,
+          }}
+          className={props.className}
+          viewBox="0 0 24 24"
+        >
+          <path d="m4.431 12.822 13 9A1 1 0 0 0 19 21V3a1 1 0 0 0-1.569-.823l-13 9a1.003 1.003 0 0 0 0 1.645z" />
+        </svg>
+      )}
     </>
   );
 }

@@ -1,5 +1,5 @@
 import * as ProjectTypes from "@/types/project";
-import * as CommonTypes from "@/types/shapes/common";
+import * as CommonTypes from "@/types/common";
 import * as APICommonTypes from "@/types/apis/common";
 import * as DecisionTypes from "@/types/shapes/decision";
 

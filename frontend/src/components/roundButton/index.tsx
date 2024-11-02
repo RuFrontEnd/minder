@@ -4,7 +4,7 @@ import * as RoundButtonTypes from "@/types/components/roundButton";
 const RoundButton = (props: RoundButtonTypes.Props) => {
   const size = {
     default: 24,
-    differece: 6,
+    differece: props.differece || 6,
   };
 
   const coreClassName = `inline-flex items-center justify-center flex-shrink-0 cursor-pointer rounded-full shadow-md`;

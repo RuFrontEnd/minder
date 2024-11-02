@@ -1,6 +1,6 @@
 "use client";
 import Core from "@/shapes/core";
-import * as CommonTypes from "@/types/shapes/common";
+import * as CommonTypes from "@/types/common";
 import * as CoreTypes from "@/types/shapes/core";
 
 export default class Process extends Core {
@@ -24,18 +24,26 @@ export default class Process extends Core {
     this.deletedData = _deletedData;
   };
 
-  draw(ctx: CanvasRenderingContext2D) {
-    super.draw(ctx, () => {
-      const edge = this.getEdge();
+  draw(
+    ctx: CanvasRenderingContext2D,
+    offest: CommonTypes.Vec = { x: 0, y: 0 },
+    scale: number = 1
+  ) {
+    super.draw(ctx, offest, scale, () => {
+      const screenP = this.getP(offest, scale);
+      const scaleSize = this.getScaleSize(scale);
 
+      ctx.save();
+      ctx.translate(screenP.x, screenP.y);
       ctx.beginPath();
       ctx.fillRect(
-        edge.l - this.getScreenP().x,
-        edge.t - this.getScreenP().y,
-        this.getScaleSize().w,
-        this.getScaleSize().h
+        -scaleSize.w / 2,
+        -scaleSize.h / 2,
+        scaleSize.w,
+        scaleSize.h
       );
       ctx.closePath();
+      ctx.restore();
     });
   }
 }

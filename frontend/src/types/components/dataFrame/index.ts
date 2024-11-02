@@ -1,4 +1,4 @@
-import { Vec, Title, Data as DataType, DataItem } from "@/types/shapes/common";
+import { Vec, Title, Data as DataType, DataItem } from "@/types/common";
 import Terminator from "@/shapes/terminal";
 import Process from "@/shapes/process";
 import Data from "@/shapes/data";

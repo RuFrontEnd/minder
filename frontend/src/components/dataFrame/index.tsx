@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { Props, Selections } from "@/types/components/dataFrame";
-import { Title, DataItem, Data as DataType } from "@/types/shapes/common";
+import { Title, DataItem, Data as DataType } from "@/types/common";
 import cloneDeep from "lodash/cloneDeep";
 import Frame from "@/components/frame";
 import Data from "@/shapes/data";

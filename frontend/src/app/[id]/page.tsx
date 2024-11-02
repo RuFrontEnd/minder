@@ -1,4 +1,4 @@
-// TODO: fix browser zoom and re calculate shape offset / multi select resize in scale
+// TODO: fix browser zoom and re calculate shape offset / multi multiSelect resize in scale
 "use client";
 import axios, { AxiosResponse } from "axios";
 import { useParams, useRouter } from "next/navigation";
@@ -6,9 +6,9 @@ import Core from "@/shapes/core";
 import Terminal from "@/shapes/terminal";
 import Process from "@/shapes/process";
 import Data from "@/shapes/data";
-import Curve from "@/shapes/curve";
-import Arrow from "@/shapes/arrow";
 import Desicion from "@/shapes/decision";
+import Curve from "@/shapes/curve";
+import Stack from "@/dataStructure/stack";
 import DataFrame from "@/components/dataFrame";
 import SidePanel from "@/components/sidePanel";
 import Accordion from "@/components/accordion";
@@ -28,11 +28,12 @@ import { v4 as uuidv4 } from "uuid";
 import { ChangeEventHandler, MouseEventHandler } from "react";
 import { tailwindColors } from "@/variables/colors";
 import * as statusConstants from "@/constants/stauts";
+import * as handleUtils from "@/utils/handle";
 import * as authAPIs from "@/apis/auth";
 import * as projectAPIs from "@/apis/project";
 import * as CoreTypes from "@/types/shapes/core";
 import * as CurveTypes from "@/types/shapes/curve";
-import * as CommonTypes from "@/types/shapes/common";
+import * as CommonTypes from "@/types/common";
 import * as PageTypes from "@/types/app/page";
 import * as DataFrameTypes from "@/types/components/dataFrame";
 import * as InputTypes from "@/types/components/input";
@@ -79,52 +80,25 @@ const init = {
     },
   },
   offset: { x: 0, y: 0 },
-  select: {
-    start: {
-      x: -1,
-      y: -1,
-    },
-    end: {
-      x: -1,
-      y: -1,
-    },
-    shapes: [],
-  },
+  multiSelectShapeIds: [],
 };
 
-let useEffected = false,
-  ctx: CanvasRenderingContext2D | null | undefined = null,
+let ctx: CanvasRenderingContext2D | null | undefined = null,
   ctx_screenshot: CanvasRenderingContext2D | null | undefined = null,
   shapes: (Terminal | Process | Data | Desicion)[] = [],
+  curves: PageIdTypes.Curves = [],
   tests: any[] = [], // TODO: should be deleted
-  pressing: null | {
-    shape: null | Terminal | Process | Data | Desicion;
-    ghost: null | Terminal | Process | Data | Desicion;
-    curveId?: null | CurveTypes.Id;
-    direction: null | CommonTypes.Direction; // TODO: should be removed in the future
-    target:
-      | null
-      | CoreTypes.PressingTarget
-      | CurveTypes.PressingTarget
-      | CommonTypes.SelectAreaTarget;
-  } = null,
+  pressing: PageIdTypes.Pressing = null,
+  pressingCurve: PageIdTypes.PressingCurve = null,
   offset: CommonTypes.Vec = cloneDeep(init.offset),
-  offset_center: CommonTypes.Vec = cloneDeep(init.offset),
   lastP: CommonTypes.Vec = { x: 0, y: 0 },
-  moveP: {
-    x: null | number;
-    y: null | number;
-  } = { x: null, y: null },
-  relativeCurveCp2: CommonTypes.Vec = { x: 0, y: 0 },
-  selectAreaP: null | {
+  selectionFrameP: null | {
     start: CommonTypes.Vec;
     end: CommonTypes.Vec;
   } = null,
-  select: {
-    start: CommonTypes.Vec;
-    end: CommonTypes.Vec;
-    shapes: Core[];
-  } = cloneDeep(init.select),
+  multiSelectShapeIds: PageIdTypes.MultiSelectShapeIds = cloneDeep(
+    init.multiSelectShapeIds
+  ),
   selectAnchor = {
     size: {
       fill: 4,
@@ -132,11 +106,7 @@ let useEffected = false,
     },
   },
   alginLines: { from: CommonTypes.Vec; to: CommonTypes.Vec }[] = [],
-  align: { d: null | CommonTypes.Direction; p: CommonTypes.Vec } = {
-    d: null,
-    p: { x: 0, y: 0 },
-  },
-  movingD: null | CommonTypes.Direction = null;
+  actions: PageIdTypes.Actions = new Stack(40);
 
 const ds = [
   CommonTypes.Direction.l,
@@ -145,18 +115,80 @@ const ds = [
   CommonTypes.Direction.b,
 ];
 
-const getFramePosition = (shape: Core) => {
+const getActionRecords = () => {
+  const records: {
+    [type: string]: {
+      shapes: null | (Terminal | Process | Data | Desicion)[];
+      curves: null | PageIdTypes.Curves;
+    };
+  } = {};
+
+  return {
+    register: (type: CommonTypes.Action) => {
+      if (records[type]) return;
+      records[type] = {
+        shapes: cloneDeep(shapes),
+        curves: cloneDeep(curves),
+      };
+    },
+    interrupt: (type: CommonTypes.Action) => {
+      if (!records[type]) return;
+      delete records[type];
+    },
+    finish: (type: CommonTypes.Action) => {
+      if (!records[type]?.shapes || !records[type]?.curves) return;
+      actions.push({
+        type: type,
+        shapes: records[type].shapes,
+        curves: records[type].curves,
+      });
+      delete records[type];
+    },
+  };
+};
+
+const actionRecords = getActionRecords();
+
+const getFramePosition = (
+  shape: Core,
+  offset: CommonTypes.Vec,
+  scale: number
+) => {
   const frameOffset = 12;
   return {
-    x: shape.getScreenP().x + shape.getScaleSize().w / 2 + frameOffset,
-    y: shape.getScreenP().y,
+    x: shape.getP(offset, scale).x + shape.getScaleSize().w / 2 + frameOffset,
+    y: shape.getP(offset, scale).y,
+  };
+};
+
+const getNormalP = (
+  p: CommonTypes.Vec,
+  offset: null | CommonTypes.Vec,
+  scale: number
+) => {
+  offset = offset ? offset : { x: 0, y: 0 };
+  return {
+    x: p.x / scale - offset.x,
+    y: p.y / scale - offset.y,
+  };
+};
+
+const getScreenP = (
+  p: CommonTypes.Vec,
+  offset: null | CommonTypes.Vec = { x: 0, y: 0 },
+  scale: number = 1
+) => {
+  offset = offset ? offset : { x: 0, y: 0 };
+  return {
+    x: (p.x + offset.x) * scale,
+    y: (p.y + offset.y) * scale,
   };
 };
 
 const getInitializedShape = (
   type: CommonTypes.Type,
   offset: CommonTypes.Vec,
-  offset_center: CommonTypes.Vec
+  scale: number = 1
 ) => {
   switch (type) {
     case CommonTypes.Type["terminator"]:
@@ -165,8 +197,8 @@ const getInitializedShape = (
         init.shape.size.t.w,
         init.shape.size.t.h,
         {
-          x: -offset.x + window.innerWidth / 2 + offset_center.x,
-          y: -offset.y + window.innerHeight / 2 + offset_center.y,
+          x: -offset.x + window.innerWidth / 2,
+          y: -offset.y + window.innerHeight / 2,
         },
         type
       );
@@ -176,8 +208,8 @@ const getInitializedShape = (
         init.shape.size.p.w,
         init.shape.size.p.h,
         {
-          x: -offset.x + window.innerWidth / 2 + offset_center.x,
-          y: -offset.y + window.innerHeight / 2 + offset_center.y,
+          x: -offset.x + window.innerWidth / 2 / scale,
+          y: -offset.y + window.innerHeight / 2 / scale,
         },
         type
       );
@@ -188,8 +220,8 @@ const getInitializedShape = (
         init.shape.size.d.w,
         init.shape.size.d.h,
         {
-          x: -offset.x + window.innerWidth / 2 + offset_center.x,
-          y: -offset.y + window.innerHeight / 2 + offset_center.y,
+          x: -offset.x + window.innerWidth / 2,
+          y: -offset.y + window.innerHeight / 2,
         },
         type
       );
@@ -200,8 +232,8 @@ const getInitializedShape = (
         init.shape.size.dec.w,
         init.shape.size.dec.h,
         {
-          x: -offset.x + window.innerWidth / 2 + offset_center.x,
-          y: -offset.y + window.innerHeight / 2 + offset_center.y,
+          x: -offset.x + window.innerWidth / 2,
+          y: -offset.y + window.innerHeight / 2,
         },
         type
       );
@@ -245,8 +277,6 @@ const getInitializedShapes = (
           });
         });
 
-        newTerminator.offset = offset;
-
         shapeMappings[id] = newTerminator;
 
         break;
@@ -274,8 +304,6 @@ const getInitializedShapes = (
           });
         });
 
-        newData.offset = offset;
-
         shapeMappings[id] = newData;
 
         break;
@@ -295,8 +323,6 @@ const getInitializedShapes = (
             text: data[dataId],
           });
         });
-
-        newProcess.offset = offset;
 
         shapeMappings[id] = newProcess;
 
@@ -328,8 +354,6 @@ const getInitializedShapes = (
           });
         });
 
-        newDesicion.offset = offset;
-
         shapeMappings[id] = newDesicion;
 
         break;
@@ -342,32 +366,32 @@ const getInitializedShapes = (
       shapeInfo.curves[d].forEach((curveId) => {
         const curveInfo = curves[curveId];
 
-        shapeMappings[shapeId].createCurve(
-          curveId,
-          d,
-          curveInfo.p1,
-          curveInfo.p2,
-          curveInfo.cp1,
-          curveInfo.cp2,
-          curveInfo.sendTo
-            ? {
-                shape: shapeMappings[curveInfo.sendTo.id],
-                d: curveInfo.sendTo.d,
-                bridgeId: curveId,
-              }
-            : null
-        );
+        // shapeMappings[shapeId].createCurve(
+        //   curveId,
+        //   d,
+        //   curveInfo.p1,
+        //   curveInfo.p2,
+        //   curveInfo.cp1,
+        //   curveInfo.cp2,
+        //   curveInfo.sendTo
+        //     ? {
+        //         shape: shapeMappings[curveInfo.sendTo.id],
+        //         d: curveInfo.sendTo.d,
+        //         bridgeId: curveId,
+        //       }
+        //     : null
+        // );
 
-        if (curveInfo.sendTo) {
-          // initialize received shape
-          shapeMappings[curveInfo.sendTo.id].receiveFrom[
-            curveInfo.sendTo.d
-          ].push({
-            shape: shapeMappings[shapeId],
-            d: d,
-            bridgeId: curveId,
-          });
-        }
+        // if (curveInfo.sendTo) {
+        //   // initialize received shape
+        //   shapeMappings[curveInfo.sendTo.id].receiveFrom[
+        //     curveInfo.sendTo.d
+        //   ].push({
+        //     shape: shapeMappings[shapeId],
+        //     d: d,
+        //     bridgeId: curveId,
+        //   });
+        // }
       });
     });
   });
@@ -425,21 +449,21 @@ const getScreenshotShapes = (
 
   if (shapes.length !== screenshotShapes.length) return [];
 
-  screenshotShapes.forEach((screenshotShape, screenshotShapeI) => {
-    ds.forEach((d) => {
-      shapes[screenshotShapeI].curves[d].forEach((curve) => {
-        screenshotShape.createCurve(
-          curve.shape.id + suffix,
-          d,
-          curve.shape.p1,
-          curve.shape.p2,
-          curve.shape.cp1,
-          curve.shape.cp2,
-          curve.sendTo
-        );
-      });
-    });
-  });
+  // screenshotShapes.forEach((screenshotShape, screenshotShapeI) => {
+  //   ds.forEach((d) => {
+  //     shapes[screenshotShapeI].curves[d].forEach((curve) => {
+  //       screenshotShape.createCurve(
+  //         curve.shape.id + suffix,
+  //         d,
+  //         curve.shape.p1,
+  //         curve.shape.p2,
+  //         curve.shape.cp1,
+  //         curve.shape.cp2,
+  //         curve.sendTo
+  //       );
+  //     });
+  //   });
+  // });
 
   return screenshotShapes;
 };
@@ -736,7 +760,7 @@ const getAlignP = (
       baseEdge.l >= targetEdge.l - threshold &&
       baseEdge.l <= targetEdge.l + threshold
     ) {
-      output.x = targetEdge.l + baseShape.getScaleSize().w / 2;
+      output.x = targetEdge.l + baseShape.w / 2;
     }
 
     // left & right
@@ -744,7 +768,7 @@ const getAlignP = (
       baseEdge.l >= targetEdge.r - threshold &&
       baseEdge.l <= targetEdge.r + threshold
     ) {
-      output.x = targetEdge.r + baseShape.getScaleSize().w / 2;
+      output.x = targetEdge.r + baseShape.w / 2;
     }
 
     // top & top
@@ -752,7 +776,7 @@ const getAlignP = (
       baseEdge.t >= targetEdge.t - threshold &&
       baseEdge.t <= targetEdge.t + threshold
     ) {
-      output.y = targetEdge.t + baseShape.getScaleSize().h / 2;
+      output.y = targetEdge.t + baseShape.h / 2;
     }
 
     // top & bottom
@@ -760,7 +784,7 @@ const getAlignP = (
       baseEdge.t >= targetEdge.b - threshold &&
       baseEdge.t <= targetEdge.b + threshold
     ) {
-      output.y = targetEdge.b + baseShape.getScaleSize().h / 2;
+      output.y = targetEdge.b + baseShape.h / 2;
     }
 
     // right & right
@@ -768,7 +792,7 @@ const getAlignP = (
       baseEdge.r >= targetEdge.l - threshold &&
       baseEdge.r <= targetEdge.l + threshold
     ) {
-      output.x = targetEdge.l - baseShape.getScaleSize().w / 2;
+      output.x = targetEdge.l - baseShape.w / 2;
     }
 
     // right & left
@@ -776,7 +800,7 @@ const getAlignP = (
       baseEdge.r >= targetEdge.r - threshold &&
       baseEdge.r <= targetEdge.r + threshold
     ) {
-      output.x = targetEdge.r - baseShape.getScaleSize().w / 2;
+      output.x = targetEdge.r - baseShape.w / 2;
     }
 
     // bottom & bottom
@@ -784,7 +808,7 @@ const getAlignP = (
       baseEdge.b >= targetEdge.b - threshold &&
       baseEdge.b <= targetEdge.b + threshold
     ) {
-      output.y = targetEdge.b - baseShape.getScaleSize().h / 2;
+      output.y = targetEdge.b - baseShape.h / 2;
     }
 
     // bottom & top
@@ -792,7 +816,7 @@ const getAlignP = (
       baseEdge.b >= targetEdge.t - threshold &&
       baseEdge.b <= targetEdge.t + threshold
     ) {
-      output.y = targetEdge.t - baseShape.getScaleSize().h / 2;
+      output.y = targetEdge.t - baseShape.h / 2;
     }
   }
 
@@ -816,7 +840,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseCenter.x.toFixed(1)) ===
-          Number(targetShape.getCenter().m.x.toFixed(1)) ||
+        Number(targetShape.getCenter().m.x.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.x - b.p.x);
@@ -843,7 +867,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseCenter.y.toFixed(1)) ===
-          Number(targetShape.getCenter().m.y.toFixed(1)) ||
+        Number(targetShape.getCenter().m.y.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.y - b.p.y);
@@ -872,7 +896,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.l.toFixed(1)) ===
-          Number(targetShape.getEdge().l.toFixed(1)) ||
+        Number(targetShape.getEdge().l.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.y - b.p.y);
@@ -895,7 +919,7 @@ const getAlignLines = (
     .filter((targetShape) => {
       return (
         Number(baseEdge.l.toFixed(1)) ===
-          Number(targetShape.getEdge().r.toFixed(1)) ||
+        Number(targetShape.getEdge().r.toFixed(1)) ||
         targetShape.id === baseShape.id
       );
     })
@@ -924,7 +948,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.t.toFixed(1)) ===
-          Number(targetShape.getEdge().t.toFixed(1)) ||
+        Number(targetShape.getEdge().t.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.x - b.p.x);
@@ -947,7 +971,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.t.toFixed(1)) ===
-          Number(targetShape.getEdge().b.toFixed(1)) ||
+        Number(targetShape.getEdge().b.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.x - b.p.x);
@@ -975,7 +999,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.r.toFixed(1)) ===
-          Number(targetShape.getEdge().r.toFixed(1)) ||
+        Number(targetShape.getEdge().r.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.y - b.p.y);
@@ -1001,7 +1025,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.r.toFixed(1)) ===
-          Number(targetShape.getEdge().l.toFixed(1)) ||
+        Number(targetShape.getEdge().l.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.y - b.p.y);
@@ -1029,7 +1053,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.b.toFixed(1)) ===
-          Number(targetShape.getEdge().b.toFixed(1)) ||
+        Number(targetShape.getEdge().b.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.x - b.p.x);
@@ -1055,7 +1079,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.b.toFixed(1)) ===
-          Number(targetShape.getEdge().t.toFixed(1)) ||
+        Number(targetShape.getEdge().t.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.x - b.p.x);
@@ -1106,15 +1130,1038 @@ const getShapesInView = (shapes: (Terminal | Process | Data | Desicion)[]) => {
   return shapesInView;
 };
 
+const frameSelect = (
+  offset: CommonTypes.Vec = { x: 0, y: 0 },
+  scale: number = 1
+) => {
+  // define which shape in select area
+  const shapesInSelectingAreaIds = (() => {
+    const ids: PageIdTypes.MultiSelectShapeIds = [];
+
+    if (!selectionFrameP) return [];
+
+    const normalSelectAreaP = {
+      start: getNormalP(selectionFrameP.start, offset, scale),
+      end: getNormalP(selectionFrameP.end, offset, scale),
+    };
+
+    shapes.forEach((shape) => {
+      if (!normalSelectAreaP) return;
+      const theEdge = shape.getEdge();
+
+      const l =
+        normalSelectAreaP.start.x < normalSelectAreaP.end.x
+          ? normalSelectAreaP.start.x
+          : normalSelectAreaP.end.x,
+        t =
+          normalSelectAreaP.start.y < normalSelectAreaP.end.y
+            ? normalSelectAreaP.start.y
+            : normalSelectAreaP.end.y,
+        r =
+          normalSelectAreaP.start.x > normalSelectAreaP.end.x
+            ? normalSelectAreaP.start.x
+            : normalSelectAreaP.end.x,
+        b =
+          normalSelectAreaP.start.y > normalSelectAreaP.end.y
+            ? normalSelectAreaP.start.y
+            : normalSelectAreaP.end.y;
+
+      const x1 = Math.max(theEdge.l, l),
+        y1 = Math.max(theEdge.t, t),
+        x2 = Math.min(theEdge.r, r),
+        y2 = Math.min(theEdge.b, b);
+
+      if (x2 > x1 && y2 > y1) {
+        ids.push(shape.id);
+      }
+    });
+
+    return ids;
+  })();
+
+  // define select status
+  if (shapesInSelectingAreaIds.length === 1) {
+    const targetShape = shapes.find(
+      (shape) => shape.id === shapesInSelectingAreaIds[0]
+    );
+    if (!targetShape) return;
+    targetShape.selecting = true;
+  } else if (shapesInSelectingAreaIds.length >= 2) {
+    multiSelectShapeIds = shapesInSelectingAreaIds;
+  }
+};
+
+const getCurve = (
+  id: string,
+  d: CommonTypes.Direction,
+  w: number,
+  h: number,
+  p: CommonTypes.Vec,
+  distance: number
+) => {
+  let p1: CommonTypes.Vec = { x: 0, y: 0 };
+  let p2: CommonTypes.Vec = { x: 0, y: 0 };
+  let cp1: CommonTypes.Vec = { x: 0, y: 0 };
+  let cp2: CommonTypes.Vec = { x: 0, y: 0 };
+
+  const arrow_h = 12;
+
+  switch (d) {
+    case CommonTypes.Direction.l:
+      p1 = {
+        x: p.x - w / 2,
+        y: p.y,
+      };
+      p2 = {
+        x: p.x - w / 2 - distance + arrow_h,
+        y: p.y,
+      };
+      cp1 = p1;
+      cp2 = {
+        x: (p1.x + p2.x) / 2,
+        y: p.y,
+      };
+      break;
+
+    case CommonTypes.Direction.t:
+      p1 = {
+        x: p.x,
+        y: p.y - h / 2,
+      };
+      p2 = {
+        x: p1.x,
+        y: p1.y - distance + arrow_h,
+      };
+      cp1 = p1;
+      cp2 = {
+        x: p.x,
+        y: (p1.y + p2.y) / 2,
+      };
+      break;
+
+    case CommonTypes.Direction.r:
+      p1 = {
+        x: p.x + w / 2,
+        y: p.y,
+      };
+      p2 = {
+        x: p1.x + distance - arrow_h,
+        y: p1.y,
+      };
+      cp1 = p1;
+      cp2 = {
+        x: (p1.x + p2.x) / 2,
+        y: p.y,
+      };
+      break;
+
+    case CommonTypes.Direction.b:
+      p1 = {
+        x: p.x,
+        y: p.y + h / 2,
+      };
+      p2 = {
+        x: p1.x,
+        y: p1.y + distance - arrow_h,
+      };
+      cp1 = p1;
+      cp2 = {
+        x: p.x,
+        y: (p1.y + p2.y) / 2,
+      };
+      break;
+  }
+
+  return new Curve(id, p1, cp1, cp2, p2);
+};
+
+const getCurveStickingCp1Cp2 = (
+  fromD: CommonTypes.Direction,
+  toD: CommonTypes.Direction,
+  curve: Curve,
+  p1: CommonTypes.Vec,
+  p2: CommonTypes.Vec
+) => {
+  if (!fromD || !toD || !p1 || !p2) return [null, null];
+
+  const distance = {
+    x: Math.abs(p1.x - p2.x),
+    y: Math.abs(p1.y - p2.y),
+  };
+  const margin = {
+    x: distance.x / 2,
+    y: distance.y / 2,
+  };
+  const min = curve.arrowAttr.h;
+
+  if (fromD === CommonTypes.Direction.l && toD === CommonTypes.Direction.l) {
+    return [
+      {
+        x: p1.x - min * 2 - margin.y,
+        y: p1.y,
+      },
+      {
+        x: p2.x - min * 2 - margin.y,
+        y: p2.y,
+      },
+    ];
+  }
+  if (fromD === CommonTypes.Direction.l && toD === CommonTypes.Direction.t) {
+    return [
+      {
+        x: p1.x - min * 2 - margin.x,
+        y: p1.y,
+      },
+      {
+        x: p2.x,
+        y: p2.y - min * 2 - margin.y,
+      },
+    ];
+  }
+  if (fromD === CommonTypes.Direction.l && toD === CommonTypes.Direction.r) {
+    return [
+      {
+        x: p1.x - min * 2 - margin.x,
+        y: p1.y,
+      },
+      {
+        x: p2.x + min * 2 + margin.x,
+        y: p2.y,
+      },
+    ];
+  }
+  if (fromD === CommonTypes.Direction.l && toD === CommonTypes.Direction.b) {
+    return [
+      {
+        x: p1.x - min * 2 - margin.x,
+        y: p1.y,
+      },
+      {
+        x: p2.x,
+        y: p2.y + min * 2 + margin.y,
+      },
+    ];
+  }
+
+  if (fromD === CommonTypes.Direction.t && toD === CommonTypes.Direction.l) {
+    return [
+      {
+        x: p1.x,
+        y: p1.y - min - margin.y,
+      },
+      {
+        x: p2.x - min - margin.x,
+        y: p2.y,
+      },
+    ];
+  }
+  if (fromD === CommonTypes.Direction.t && toD === CommonTypes.Direction.t) {
+    return [
+      {
+        x: p1.x,
+        y: p1.y - min * 2 - margin.x,
+      },
+      {
+        x: p2.x,
+        y: p2.y - min * 2 - margin.x,
+      },
+    ];
+  }
+  if (fromD === CommonTypes.Direction.t && toD === CommonTypes.Direction.r) {
+    return [
+      {
+        x: p1.x,
+        y: p1.y - min - margin.y,
+      },
+      {
+        x: p2.x + min + margin.x,
+        y: p2.y,
+      },
+    ];
+  }
+  if (fromD === CommonTypes.Direction.t && toD === CommonTypes.Direction.b) {
+    return [
+      {
+        x: p1.x,
+        y: p1.y - min * 2 - margin.y,
+      },
+      {
+        x: p2.x,
+        y: p2.y + min * 2 + margin.y,
+      },
+    ];
+  }
+
+  if (fromD === CommonTypes.Direction.r && toD === CommonTypes.Direction.l) {
+    return [
+      {
+        x: p1.x + min * 2 + margin.x,
+        y: p1.y,
+      },
+      {
+        x: p2.x - min * 2 - margin.x,
+        y: p2.y,
+      },
+    ];
+  }
+  if (fromD === CommonTypes.Direction.r && toD === CommonTypes.Direction.t) {
+    return [
+      {
+        x: p1.x + min * 2 + margin.x,
+        y: p1.y,
+      },
+      {
+        x: p2.x,
+        y: p2.y - min * 2 - margin.y,
+      },
+    ];
+  }
+  if (fromD === CommonTypes.Direction.r && toD === CommonTypes.Direction.r) {
+    return [
+      {
+        x: p1.x + min * 2 + margin.y,
+        y: p1.y,
+      },
+      {
+        x: p2.x + min * 2 + margin.y,
+        y: p2.y,
+      },
+    ];
+  }
+  if (fromD === CommonTypes.Direction.r && toD === CommonTypes.Direction.b) {
+    return [
+      {
+        x: p1.x + min * 2 + margin.x,
+        y: p1.y,
+      },
+      {
+        x: p2.x,
+        y: p2.y + min * 2 + margin.y,
+      },
+    ];
+  }
+
+  if (fromD === CommonTypes.Direction.b && toD === CommonTypes.Direction.l) {
+    return [
+      {
+        x: p1.x,
+        y: p1.y + min + margin.y,
+      },
+      {
+        x: p2.x - min - margin.x,
+        y: p2.y,
+      },
+    ];
+  }
+  if (fromD === CommonTypes.Direction.b && toD === CommonTypes.Direction.t) {
+    return [
+      {
+        x: p1.x,
+        y: p1.y + min * 2 + margin.y,
+      },
+      {
+        x: p2.x,
+        y: p2.y - min * 2 - margin.y,
+      },
+    ];
+  }
+  if (fromD === CommonTypes.Direction.b && toD === CommonTypes.Direction.r) {
+    return [
+      {
+        x: p1.x,
+        y: p1.y + min + margin.y,
+      },
+      {
+        x: p2.x + min + margin.x,
+        y: p2.y,
+      },
+    ];
+  }
+  if (fromD === CommonTypes.Direction.b && toD === CommonTypes.Direction.b) {
+    return [
+      {
+        x: p1.x,
+        y: p1.y + min * 2 + margin.x,
+      },
+      {
+        x: p2.x,
+        y: p2.y + min * 2 + margin.x,
+      },
+    ];
+  }
+
+  return [null, null];
+};
+
+const movePressingCurve = (
+  ctx: null | undefined | CanvasRenderingContext2D,
+  pressingCurve: PageIdTypes.PressingCurve,
+  p: CommonTypes.Vec,
+  offset: CommonTypes.Vec = { x: 0, y: 0 },
+  scale: number = 1
+) => {
+  if (!ctx || !pressingCurve) return;
+
+  const [toD, p2] = (() => {
+    for (let i = 0; i < shapes.length; i++) {
+      const shape = shapes[i];
+
+      if (shape.id === pressingCurve.from.shape.id) continue;
+
+      const quarterD = shape.checkQuarterArea(getNormalP(p, offset, scale));
+      if (quarterD) {
+        return [quarterD, shape.getCenter()[quarterD]];
+      }
+    }
+
+    return [null, null];
+  })();
+
+  if (toD && p2) {
+    //stick
+    const p1 = pressingCurve?.shape.p1;
+    const [cp1, cp2] = getCurveStickingCp1Cp2(
+      pressingCurve?.from.d,
+      toD,
+      pressingCurve.shape,
+      p1,
+      p2
+    );
+    if (!p1 || !cp1 || !cp2 || !p2) return;
+
+    pressingCurve?.shape.locateHandler(CurveTypes.PressingTarget.cp1, cp1);
+    pressingCurve?.shape.locateHandler(CurveTypes.PressingTarget.cp2, cp2);
+    pressingCurve?.shape.locateHandler(CurveTypes.PressingTarget.p2, p2);
+  } else {
+    // move
+    const p2 = getNormalP(p, offset, scale);
+    const cp1 = pressingCurve?.shape.p1;
+    const cp2 = (() => {
+      switch (pressingCurve.from.d) {
+        case CommonTypes.Direction.l:
+          return {
+            x: (pressingCurve.shape.p2.x + pressingCurve.shape.p1.x) / 2,
+            y: pressingCurve.from.shape.p.y,
+          };
+
+        case CommonTypes.Direction.t:
+          return {
+            x: pressingCurve.from.shape.p.x,
+            y: (pressingCurve.shape.p2.y + pressingCurve.shape.p1.y) / 2,
+          };
+
+        case CommonTypes.Direction.r:
+          return {
+            x: (pressingCurve.shape.p2.x + pressingCurve.shape.p1.x) / 2,
+            y: pressingCurve.from.shape.p.y,
+          };
+
+        case CommonTypes.Direction.b:
+          return {
+            x: pressingCurve.from.shape.p.x,
+            y: (pressingCurve.shape.p2.y + pressingCurve.shape.p1.y) / 2,
+          };
+      }
+    })();
+
+    pressingCurve?.shape.locateHandler(CurveTypes.PressingTarget.cp1, cp1);
+    pressingCurve?.shape.locateHandler(CurveTypes.PressingTarget.cp2, cp2);
+    pressingCurve.shape.locateHandler(CurveTypes.PressingTarget.p2, p2);
+  }
+};
+
+const moveSenderCurve = (
+  fromD: CommonTypes.Direction,
+  toD: CommonTypes.Direction,
+  curve: null | undefined | Curve,
+  senderId: null | undefined | string
+) => {
+  const sender = shapes.find((shape) => shape.id === senderId);
+  if (!sender || !curve) return;
+
+  const p1 = sender.getCenter()[fromD];
+  const p2 = curve.p2;
+  const [cp1, cp2] = getCurveStickingCp1Cp2(fromD, toD, curve, p1, p2);
+
+  if (!p1 || !p2 || !cp1 || !cp2) return;
+
+  curve.locateHandler(CurveTypes.PressingTarget.p1, p1);
+  curve.locateHandler(CurveTypes.PressingTarget.cp1, cp1);
+  curve.locateHandler(CurveTypes.PressingTarget.cp2, cp2);
+};
+
+const moveRecieverCurve = (
+  fromD: CommonTypes.Direction,
+  toD: CommonTypes.Direction,
+  curve: null | undefined | Curve,
+  recieverId: null | undefined | string
+) => {
+  const reciever = shapes.find((shape) => shape.id === recieverId);
+  if (!reciever || !curve) return;
+
+  const p1 = curve.p1;
+  const p2 = reciever.getCenter()[toD];
+  const [cp1, cp2] = getCurveStickingCp1Cp2(fromD, toD, curve, p1, p2);
+
+  if (!p1 || !p2 || !cp1 || !cp2) return;
+
+  curve.locateHandler(CurveTypes.PressingTarget.cp1, cp1);
+  curve.locateHandler(CurveTypes.PressingTarget.cp2, cp2);
+  curve.locateHandler(CurveTypes.PressingTarget.p2, p2);
+};
+
+const moveCurve = (
+  shape: null | undefined | Terminal | Process | Desicion | Data
+) => {
+  if (!shape) return;
+  for (let i = curves.length - 1; i > -1; i--) {
+    const curve = curves[i];
+    if (curve.from.shape.id === shape.id) {
+      moveSenderCurve(
+        curve.from.d,
+        curve.to.d,
+        curve.shape,
+        curve.from.shape.id
+      ); // TODO: just record curve.from.shape.id in pressingCurve
+    }
+    if (curve.to.shape.id === shape.id) {
+      moveRecieverCurve(
+        curve.from.d,
+        curve.to.d,
+        curve.shape,
+        curve.to.shape.id
+      ); // TODO: just record curve.to.shape.id in pressingCurve
+    }
+  }
+};
+
+const triggerCurve = (
+  p: CommonTypes.Vec,
+  offest: CommonTypes.Vec = { x: 0, y: 0 },
+  scale: number = 0
+) => {
+  const [triggerShape, curveTriggerD] = (() => {
+    let triggerShape: null | Terminal | Process | Desicion | Data = null;
+    let curveTriggerD: null | CommonTypes.Direction = null;
+
+    for (let i = shapes.length - 1; i > -1; i--) {
+      const shape = shapes[i];
+      const triggerD = shape.getTriggerDirection(getNormalP(p, offest, scale));
+      if (triggerD) {
+        triggerShape = shape;
+        curveTriggerD = triggerD;
+        break;
+      }
+    }
+
+    return [triggerShape, curveTriggerD];
+  })();
+
+  if (triggerShape && curveTriggerD) {
+    triggerShape.selecting = false;
+
+    pressingCurve = {
+      from: {
+        shape: triggerShape,
+        origin: cloneDeep(triggerShape),
+        d: curveTriggerD,
+      },
+      to: null,
+      shape: getCurve(
+        `curve_${Date.now()}`,
+        curveTriggerD,
+        triggerShape.w,
+        triggerShape.h,
+        triggerShape.p,
+        triggerShape.curveTrigger.distance
+      ),
+    };
+
+    pressingCurve.shape.selecting = true;
+    return false;
+  }
+
+  return true;
+};
+
+const selectCurve = (
+  p: CommonTypes.Vec,
+  offset: CommonTypes.Vec = { x: 0, y: 0 },
+  scale: number = 1
+) => {
+  for (let i = curves.length - 1; i > -1; i--) {
+    const curve = curves[i];
+    if (
+      curve.shape.selecting &&
+      curve.shape.checkControlPointsBoundry(getNormalP(p, offset, scale))
+    ) {
+      pressingCurve = {
+        from: {
+          shape: curve.from.shape,
+          origin: cloneDeep(curve.from.shape),
+          d: curve.from.d,
+        },
+        to: {
+          shape: curve.to.shape,
+          origin: cloneDeep(curve.to.shape),
+          d: curve.to.d,
+        },
+        shape: curve.shape,
+      };
+
+      return false;
+    }
+    if (curve.shape.checkBoundry(getNormalP(p, offset, scale))) {
+      curve.shape.selecting = true;
+      return false;
+    }
+  }
+  return true;
+};
+
+const deSelectCurve = () => {
+  curves.forEach((curve) => {
+    curve.shape.selecting = false;
+  });
+
+  return true;
+};
+
+const selectShape = (
+  p: CommonTypes.Vec,
+  offset: CommonTypes.Vec,
+  scale: number
+) => {
+  const normalP = getNormalP(p, offset, scale);
+  shapes.forEach((shape) => {
+    const _ghost = cloneDeep(shape);
+    _ghost.title = "ghost";
+    const pressingVertex = shape.checkVertexesBoundry(normalP);
+    if (pressingVertex) {
+      pressing = {
+        origin: cloneDeep(shape),
+        shape: shape,
+        ghost: _ghost,
+        curveId: null,
+        target: pressingVertex,
+        direction: null,
+      };
+    } else if (shape.checkBoundry(normalP)) {
+      pressing = {
+        origin: cloneDeep(shape),
+        shape: shape,
+        ghost: _ghost,
+        curveId: null,
+        target: CoreTypes.PressingTarget.m,
+        direction: null,
+      };
+    }
+  });
+
+  if (pressing?.shape) {
+    pressing.shape.selecting = true;
+    return false;
+  }
+
+  return true;
+};
+
+const deSelectShape = () => {
+  shapes.forEach((shape) => {
+    shape.selecting = false;
+  });
+
+  return true;
+};
+
+const getMultSelectingMap = () => {
+  const map: { [id: string]: true } = {};
+
+  multiSelectShapeIds.forEach((multiSelectShapeId) => {
+    map[multiSelectShapeId] = true;
+  });
+
+  return map;
+};
+
+const deleteMultiSelectShapes = () => {
+  if (multiSelectShapeIds.length === 0) return true;
+
+  const multiSelectingMap = getMultSelectingMap();
+
+  curves = curves.filter(
+    (curve) =>
+      !multiSelectingMap[curve.from.shape.id] &&
+      !multiSelectingMap[curve.to.shape.id]
+  );
+  shapes = shapes.filter((shape) => !multiSelectingMap[shape.id]);
+  multiSelectShapeIds = cloneDeep(init.multiSelectShapeIds);
+  return false;
+};
+
+const deleteSelectedShape = () => {
+  const selectedShapeI = shapes.findIndex((shape) => shape.selecting);
+
+  if (selectedShapeI === -1) return false;
+  actionRecords.register(CommonTypes.Action.delete);
+
+  curves = curves.filter(
+    (curve) =>
+      curve.from.shape.id !== shapes[selectedShapeI].id &&
+      curve.to.shape.id !== shapes[selectedShapeI].id
+  );
+
+  shapes.splice(selectedShapeI, 1);
+  actionRecords.finish(CommonTypes.Action.delete);
+
+  // actions.push({
+  //   type: CommonTypes.Action.delete,
+  //   target: {
+  //     shape: removedShape,
+  //     i: selectedShapeI,
+  //     curves: removedCurves,
+  //   },
+  // }); // TODO: temp close
+
+  return false;
+};
+
+const moveMultiSelectingShapes = (offsetP: CommonTypes.Vec) => {
+  if (multiSelectShapeIds.length < 2) return;
+  const multiSelectingMap = getMultSelectingMap();
+  shapes.forEach((shape) => {
+    if (!multiSelectingMap[shape.id]) return;
+    shape.move(offsetP);
+  });
+};
+
+const resizeMultiSelectingShapes = (
+  target:
+    | null
+    | undefined
+    | CommonTypes.SelectAreaTarget.lt
+    | CommonTypes.SelectAreaTarget.rt
+    | CommonTypes.SelectAreaTarget.rb
+    | CommonTypes.SelectAreaTarget.lb,
+  offsetP: CommonTypes.Vec,
+  scale = 1
+) => {
+  if (!target || multiSelectShapeIds.length < 2) return;
+  const [multiSelectingAreaStartP, multiSelectingAreaEndP] =
+    getMultiSelectingAreaP();
+  const multiSelectingAreaP = {
+    start: multiSelectingAreaStartP,
+    end: multiSelectingAreaEndP,
+  };
+  const multiSelectingAreaSize = {
+    w: Math.abs(multiSelectingAreaP.end.x - multiSelectingAreaP.start.x),
+    h: Math.abs(multiSelectingAreaP.end.y - multiSelectingAreaP.start.y),
+  };
+
+  switch (target) {
+    case CommonTypes.SelectAreaTarget.lt:
+      {
+        const canResize = {
+          x: multiSelectingAreaSize.w - offsetP.x > 0 || offsetP.x < 0,
+          y: multiSelectingAreaSize.h - offsetP.y > 0 || offsetP.y < 0,
+        };
+        const multiSelectingMap = getMultSelectingMap();
+
+        shapes.forEach((shape) => {
+          if (!multiSelectingMap[shape.id]) return;
+
+          const ratioW = shape.getScaleSize().w / multiSelectingAreaSize.w,
+            unitW = offsetP.x * ratioW;
+
+          if (canResize.x) {
+            shape.w = shape.w - unitW / scale;
+
+            const dx = Math.abs(shape.p.x - multiSelectingAreaP.end.x),
+              ratioX = dx / multiSelectingAreaSize.w,
+              unitX = offsetP.x * ratioX;
+
+            shape.p = {
+              ...shape.p,
+              x: shape.p.x + unitX / scale,
+            };
+          }
+
+          const ratioH = shape.getScaleSize().h / multiSelectingAreaSize.h,
+            unitH = offsetP.y * ratioH;
+
+          if (canResize.y) {
+            shape.h = shape.h - unitH / scale;
+
+            const dy = Math.abs(shape.p.y - multiSelectingAreaP.end.y),
+              ratioY = dy / multiSelectingAreaSize.h,
+              unitY = offsetP.y * ratioY;
+
+            shape.p = {
+              ...shape.p,
+              y: shape.p.y + unitY / scale,
+            };
+          }
+        });
+      }
+      break;
+
+    case CommonTypes.SelectAreaTarget.rt:
+      {
+        const canResize = {
+          x: multiSelectingAreaSize.w + offsetP.x > 0 || offsetP.x > 0,
+          y: multiSelectingAreaSize.h - offsetP.y > 0 || offsetP.y < 0,
+        };
+
+        const multiSelectingMap = getMultSelectingMap();
+
+        shapes.forEach((shape) => {
+          if (!multiSelectingMap[shape.id]) return;
+          const ratioW = shape.getScaleSize().w / multiSelectingAreaSize.w,
+            unitW = offsetP.x * ratioW;
+
+          if (canResize.x) {
+            shape.w = shape.w + unitW / scale;
+
+            const dx = Math.abs(shape.p.x - multiSelectingAreaP.start.x),
+              ratioX = dx / multiSelectingAreaSize.w,
+              unitX = offsetP.x * ratioX;
+
+            shape.p = {
+              ...shape.p,
+              x: shape.p.x + unitX / scale,
+            };
+          }
+
+          const ratioH = shape.h / multiSelectingAreaSize.h,
+            unitH = offsetP.y * ratioH;
+
+          if (canResize.y) {
+            shape.h = shape.getScaleSize().h - unitH / scale;
+
+            const dy = Math.abs(shape.p.y - multiSelectingAreaP.end.y),
+              ratioY = dy / multiSelectingAreaSize.h,
+              unitY = offsetP.y * ratioY;
+
+            shape.p = {
+              ...shape.p,
+              y: shape.p.y + unitY / scale,
+            };
+          }
+        });
+      }
+      break;
+
+    case CommonTypes.SelectAreaTarget.rb:
+      {
+        const canResize = {
+          x: multiSelectingAreaSize.w + offsetP.x > 0 || offsetP.x > 0,
+          y: multiSelectingAreaSize.h + offsetP.y > 0 || offsetP.y > 0,
+        };
+
+        const multiSelectingMap = getMultSelectingMap();
+
+        shapes.forEach((shape) => {
+          if (!multiSelectingMap[shape.id]) return;
+          const ratioW = shape.getScaleSize().w / multiSelectingAreaSize.w,
+            unitW = offsetP.x * ratioW;
+
+          if (canResize.x) {
+            shape.w = shape.w + unitW / scale;
+
+            const dx = Math.abs(shape.p.x - multiSelectingAreaP.start.x),
+              ratioX = dx / multiSelectingAreaSize.w,
+              unitX = offsetP.x * ratioX;
+
+            shape.p = {
+              ...shape.p,
+              x: shape.p.x + unitX / scale,
+            };
+          }
+
+          const ratioH = shape.getScaleSize().h / multiSelectingAreaSize.h,
+            unitH = offsetP.y * ratioH;
+
+          if (canResize.y) {
+            shape.h = shape.h + unitH / scale;
+
+            const dy = Math.abs(shape.p.y - multiSelectingAreaP.start.y),
+              ratioY = dy / multiSelectingAreaSize.h,
+              unitY = offsetP.y * ratioY;
+
+            shape.p = {
+              ...shape.p,
+              y: shape.p.y + unitY / scale,
+            };
+          }
+        });
+      }
+      break;
+
+    case CommonTypes.SelectAreaTarget.lb:
+      {
+        const canResize = {
+          x: multiSelectingAreaSize.w - offsetP.x > 0 || offsetP.x < 0,
+          y: multiSelectingAreaSize.h + offsetP.y > 0 || offsetP.y > 0,
+        };
+
+        const multiSelectingMap = getMultSelectingMap();
+
+        shapes.forEach((shape) => {
+          if (!multiSelectingMap[shape.id]) return;
+          const ratioW = shape.getScaleSize().w / multiSelectingAreaSize.w,
+            unitW = offsetP.x * ratioW;
+
+          if (canResize.x) {
+            shape.w = shape.w - unitW / scale;
+
+            const dx = Math.abs(shape.p.x - multiSelectingAreaP.end.x),
+              ratioX = dx / multiSelectingAreaSize.w,
+              unitX = offsetP.x * ratioX;
+
+            shape.p = {
+              ...shape.p,
+              x: shape.p.x + unitX / scale,
+            };
+          }
+
+          const ratioH = shape.getScaleSize().h / multiSelectingAreaSize.h,
+            unitH = offsetP.y * ratioH;
+
+          if (canResize.y) {
+            shape.h = shape.h + unitH / scale;
+
+            const dy = Math.abs(shape.p.y - multiSelectingAreaP.start.y),
+              ratioY = dy / multiSelectingAreaSize.h,
+              unitY = offsetP.y * ratioY;
+
+            shape.p = {
+              ...shape.p,
+              y: shape.p.y + unitY / scale,
+            };
+          }
+        });
+      }
+
+      break;
+  }
+};
+
+const connect = (
+  curve: Curve,
+  from: {
+    shape: Terminal | Process | Data | Desicion;
+    d: CommonTypes.Direction;
+  },
+  to: {
+    shape: Terminal | Process | Data | Desicion;
+    d: CommonTypes.Direction;
+  }
+) => {
+  const curveI = curves.findIndex(
+    (currentCurve) => currentCurve.shape.id === curve.id
+  );
+
+  if (curveI > -1) {
+    curves[curveI] = {
+      shape: curve,
+      from: {
+        shape: from.shape,
+        d: from.d,
+      },
+      to: {
+        shape: to.shape,
+        d: to.d,
+      },
+    };
+  } else {
+    curves.push({
+      shape: curve,
+      from: {
+        shape: from.shape,
+        d: from.d,
+      },
+      to: {
+        shape: to.shape,
+        d: to.d,
+      },
+    });
+  }
+};
+
+const checkConnect = (p: CommonTypes.Vec) => {
+  if (!pressingCurve) return;
+  let to: {
+    d: null | CommonTypes.Direction;
+    shape: null | Terminal | Process | Data | Desicion;
+  } = {
+    d: null,
+    shape: null,
+  };
+
+  shapes.forEach((shape) => {
+    const connectedD =
+      shape.checkReceivingPointsBoundry(p) || shape.checkQuarterArea(p);
+
+    if (!connectedD) return;
+    to.d = connectedD;
+    to.shape = shape;
+  });
+
+  if (!to.d && !to.shape) {
+    disconnect(
+      curves.findIndex((curve) => curve.shape.id === pressingCurve?.shape.id)
+    );
+    actionRecords.finish(CommonTypes.Action.disconnect);
+    return;
+    // actions.push({
+    //   type: CommonTypes.Action.disconnect,
+    //   curve: _curve,
+    // }); // temp close
+  }
+
+  if (
+    to.d &&
+    to.shape &&
+    !(to.d === pressingCurve.to?.d && to.shape === pressingCurve.to?.shape)
+  ) {
+    actionRecords.register(CommonTypes.Action.connect);
+    pressingCurve.shape.selecting = false;
+
+    connect(
+      pressingCurve.shape,
+      {
+        shape: pressingCurve.from.shape,
+        d: pressingCurve.from.d,
+      },
+      {
+        shape: to.shape,
+        d: to.d,
+      }
+    );
+    // actions.push({
+    //   type: CommonTypes.Action.connect,
+    // }); // temp close
+    actionRecords.finish(CommonTypes.Action.connect);
+  }
+
+  actionRecords.interrupt(CommonTypes.Action.disconnect);
+};
+
+const disconnect = (curveI: number) => {
+  curves.splice(curveI, 1);
+};
+
 const drawShapes = (
   ctx: null | CanvasRenderingContext2D,
-  shapes: (Terminal | Process | Data | Desicion)[]
+  shapes: (Terminal | Process | Data | Desicion | Curve)[],
+  offset?: CommonTypes.Vec,
+  scale?: number
 ) => {
   if (!ctx) return;
 
   shapes.forEach((shape) => {
     if (!ctx) return;
-    shape.draw(ctx);
+    shape.draw(ctx, offset, scale);
   });
 
   // pressing?.ghost?.draw(ctx); // TODO: for testing align
@@ -1122,36 +2169,270 @@ const drawShapes = (
 
 const drawAlignLines = (
   ctx: null | CanvasRenderingContext2D,
-  alginLines: { from: CommonTypes.Vec; to: CommonTypes.Vec }[]
+  alginLines: { from: CommonTypes.Vec; to: CommonTypes.Vec }[],
+  offset: CommonTypes.Vec = { x: 0, y: 0 },
+  scale: number = 1
 ) => {
   if (!ctx || alginLines.length === 0) return;
 
   alginLines.forEach((alginLine) => {
+    const fromP = getScreenP(alginLine.from, offset, scale);
+    const toP = getScreenP(alginLine.to, offset, scale);
     ctx.save();
     ctx.strokeStyle = tailwindColors.auxiliary;
     ctx.lineWidth = 1.5;
     ctx.setLineDash([4, 4]);
     ctx.beginPath();
-    ctx.moveTo(alginLine.from.x, alginLine.from.y);
-    ctx.lineTo(alginLine.to.x, alginLine.to.y);
+    ctx.moveTo(fromP.x, fromP.y);
+    ctx.lineTo(toP.x, toP.y);
     ctx.stroke();
     ctx.closePath();
     ctx.restore();
   });
 };
 
-const resize = (
+const getMultiSelectingAreaP = () => {
+  const startP = { x: -1, y: -1 };
+  const endP = { x: -1, y: -1 };
+
+  const multiSelectingMap = getMultSelectingMap();
+
+  shapes.forEach((shape) => {
+    if (!multiSelectingMap[shape.id]) return;
+    const theEdge = shape.getEdge();
+    if (startP.x === -1 || theEdge.l < startP.x) {
+      startP.x = theEdge.l;
+    }
+    if (startP.y === -1 || theEdge.t < startP.y) {
+      startP.y = theEdge.t;
+    }
+    if (endP.x === -1 || theEdge.r > endP.x) {
+      endP.x = theEdge.r;
+    }
+    if (endP.y === -1 || theEdge.b > endP.y) {
+      endP.y = theEdge.b;
+    }
+  });
+
+  return [startP, endP];
+};
+
+const drawMultiSelectedShapesArea = (
+  ctx: undefined | null | CanvasRenderingContext2D,
+  offset: CommonTypes.Vec = { x: 0, y: 0 },
+  scale: number = 1
+) => {
+  if (!ctx || multiSelectShapeIds.length < 2) return;
+
+  const [startP, endP] = getMultiSelectingAreaP();
+
+  if (startP.x === -1 || startP.y === -1 || endP.x === -1 || endP.y === -1)
+    return;
+
+  const screenStartP = {
+    x: (startP.x + offset.x) * scale,
+    y: (startP.y + offset.y) * scale,
+  };
+  const screenEndP = {
+    x: (endP.x + offset.x) * scale,
+    y: (endP.y + offset.y) * scale,
+  };
+
+  // draw multiSelect area
+  ctx?.beginPath();
+  ctx.strokeStyle = tailwindColors.info["500"];
+  ctx.lineWidth = 1;
+  ctx.strokeRect(
+    screenStartP.x,
+    screenStartP.y,
+    screenEndP.x - screenStartP.x,
+    screenEndP.y - screenStartP.y
+  );
+  ctx?.closePath();
+
+  // draw multiSelect area anchors
+  ctx.fillStyle = "white";
+  ctx.lineWidth = selectAnchor.size.stroke;
+
+  ctx?.beginPath();
+  ctx.arc(
+    screenStartP.x,
+    screenStartP.y,
+    selectAnchor.size.fill,
+    0,
+    2 * Math.PI,
+    false
+  ); // left, top
+  ctx.stroke();
+  ctx.fill();
+  ctx?.closePath();
+
+  ctx?.beginPath();
+  ctx.arc(
+    screenEndP.x,
+    screenStartP.y,
+    selectAnchor.size.fill,
+    0,
+    2 * Math.PI,
+    false
+  ); // right, top
+  ctx.stroke();
+  ctx.fill();
+  ctx?.closePath();
+
+  ctx?.beginPath();
+  ctx.arc(
+    screenEndP.x,
+    screenEndP.y,
+    selectAnchor.size.fill,
+    0,
+    2 * Math.PI,
+    false
+  ); // right, bottom
+  ctx.stroke();
+  ctx.fill();
+  ctx?.closePath();
+
+  ctx?.beginPath();
+  ctx.arc(
+    screenStartP.x,
+    screenEndP.y,
+    selectAnchor.size.fill,
+    0,
+    2 * Math.PI,
+    false
+  ); // left, bottom
+  ctx.stroke();
+  ctx.fill();
+  ctx?.closePath();
+};
+
+const draw = (
+  $canvas: HTMLCanvasElement,
+  ctx: CanvasRenderingContext2D,
+  shapes: (Terminal | Process | Data | Desicion)[],
+  offset?: CommonTypes.Vec,
+  scale?: number,
+  isScreenshot?: boolean
+) => {
+  if (!isBrowser) return;
+  $canvas.width = window.innerWidth;
+  $canvas.height = window.innerHeight;
+  ctx?.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+  // draw background
+  ctx?.beginPath();
+  ctx.fillStyle = "#F6F7FA";
+  ctx?.fillRect(0, 0, window.innerWidth, window.innerHeight);
+  ctx?.closePath();
+
+  tests.forEach((test) => {
+    test.draw(ctx);
+  });
+
+  drawShapes(ctx, shapes, offset, scale);
+  drawShapes(
+    ctx,
+    curves.map((curve) => curve.shape),
+    offset,
+    scale
+  );
+  drawAlignLines(ctx, alginLines, offset, scale);
+
+  if (!isScreenshot) {
+    // draw sending point
+    shapes.forEach((shape) => {
+      if (!ctx || !shape.selecting) return;
+      if (
+        shape instanceof Terminal ||
+        shape instanceof Process ||
+        shape instanceof Data ||
+        (shape instanceof Desicion && !(shape.getText().y && shape.getText().n))
+      ) {
+        shape.drawSendingPoint(ctx, offset, scale);
+      }
+    });
+  }
+
+  // draw curves in shapes
+  // shapes.forEach((shape) => {
+  //   if (!ctx) return;
+
+  //   shape.drawCurve(ctx);
+  // });
+  if (!pressingCurve?.to) {
+    pressingCurve?.shape.draw(ctx, offset, scale);
+  }
+
+  // shapes.forEach((shape) => {
+  //   console.log('shape', shape)
+  //   if(!ctx) return
+  //   shape.drawRecievingPoint(ctx, offset, scale)
+  // })
+
+  if (!isScreenshot) {
+    // draw selectArea
+    if (selectionFrameP) {
+      ctx?.beginPath();
+
+      ctx.fillStyle = "#2436b155";
+      ctx.fillRect(
+        selectionFrameP?.start.x,
+        selectionFrameP?.start.y,
+        selectionFrameP?.end.x - selectionFrameP?.start.x,
+        selectionFrameP?.end.y - selectionFrameP?.start.y
+      );
+
+      ctx.strokeStyle = "#2436b1";
+      ctx.strokeRect(
+        selectionFrameP?.start.x,
+        selectionFrameP?.start.y,
+        selectionFrameP?.end.x - selectionFrameP?.start.x,
+        selectionFrameP?.end.y - selectionFrameP?.start.y
+      );
+
+      ctx?.closePath();
+    }
+  }
+
+  if (!isScreenshot) {
+    drawMultiSelectedShapesArea(ctx, offset, scale);
+  }
+};
+
+const drawCanvas = (offset?: CommonTypes.Vec, scale?: number) => {
+  const $canvas = document.querySelector("canvas");
+  if (!$canvas || !ctx) return;
+  draw($canvas, ctx, shapes, offset, scale, false);
+};
+
+const drawScreenshot = (offset?: CommonTypes.Vec, scale?: number) => {
+  const $screenshot: HTMLCanvasElement | null = document.querySelector(
+    "canvas[role='screenshot']"
+  );
+  if (!$screenshot || !ctx_screenshot) return;
+  draw(
+    $screenshot,
+    ctx_screenshot,
+    getScreenshotShapes(shapes),
+    offset,
+    scale,
+    true
+  );
+};
+
+const resizeShape = (
   shapes: null | undefined | (Terminal | Process | Data | Desicion)[],
   pressing: {
     shape: null | undefined | Terminal | Process | Data | Desicion;
     ghost: null | undefined | Terminal | Process | Data | Desicion;
     target:
-      | null
-      | undefined
-      | CoreTypes.PressingTarget.lt
-      | CoreTypes.PressingTarget.rt
-      | CoreTypes.PressingTarget.rb
-      | CoreTypes.PressingTarget.lb;
+    | null
+    | undefined
+    | CoreTypes.PressingTarget.lt
+    | CoreTypes.PressingTarget.rt
+    | CoreTypes.PressingTarget.rb
+    | CoreTypes.PressingTarget.lb;
   },
   offsetP: CommonTypes.Vec
 ) => {
@@ -1253,6 +2534,64 @@ const resize = (
   }
 
   pressing.ghost.resize(offsetP, pressing.target);
+  moveCurve(pressing?.shape);
+};
+
+const undo = (
+  ctx: undefined | null | CanvasRenderingContext2D,
+  offset?: CommonTypes.Vec,
+  scale?: number
+) => {
+  if (!ctx || !shapes) return;
+
+  // TODO: temp close
+  const action = actions.peek();
+  if (!action) return;
+  shapes = action?.shapes;
+  curves = action?.curves;
+
+  // switch (action?.type) {
+  //   case CommonTypes.Action.add:
+  //     shapes.pop();
+  //     break;
+
+  //   case CommonTypes.Action.delete:
+  //     shapes.splice(action.target.i, 0, action.target.shape);
+  //     for(let i =action.target.curves.length-1; i>-1; i--){
+  //       curves.splice(action.target.curves[i].i, 0,action.target.curves[i].shape)
+  //     }
+
+  //     break;
+
+  //   // case CommonTypes.Action.resize:
+  //   case CommonTypes.Action.move: {
+  //     const returnToOrigin = () => {
+  //       action.target.move(action.displacement);
+  //     };
+
+  //     returnToOrigin();
+  //     moveCurve(action.target);
+  //     break;
+  //   }
+
+  //   case CommonTypes.Action.connect: {
+  //     disconnect(curves.length - 1);
+  //     // TODO: should check data
+  //     break;
+  //   }
+
+  //   case CommonTypes.Action.disconnect: {
+  //     connect(action.curve.shape, action.curve.from, action.curve.to);
+  //     moveCurve(action.curve.to.shape);
+  //     // TODO: should check data
+  //     break;
+  //   }
+  // }
+
+  actions.pop();
+
+  drawCanvas(offset, scale);
+  drawScreenshot(offset, scale);
 };
 
 // const Editor = (props: { className: string; shape: Core }) => {
@@ -1412,15 +2751,15 @@ export default function IdPage() {
     Terminal | Data | Process | Desicion | null
   >(null);
   const [space, setSpace] = useState(false);
+  const [control, setControl] = useState(false);
   const [scale, setScale] = useState(1);
   const [leftMouseBtn, setLeftMouseBtn] = useState(false);
   const [isDataSidePanelOpen, setIsDataSidePanelOpen] = useState(false);
   const [isRenameFrameOpen, setIsRenameFrameOpen] = useState(false);
   const [isProfileFrameOpen, setIsProfileFrameOpen] = useState(false);
   const [steps, setSteps] = useState<PageTypes.Steps>({});
-  const [dataFrameWarning, setDataFrameWarning] = useState<
-    DataFrameTypes.Warning
-  >(init.dataFrameWarning);
+  const [dataFrameWarning, setDataFrameWarning] =
+    useState<DataFrameTypes.Warning>(init.dataFrameWarning);
   const [isProjectsModalOpen, setIsProjectsModalOpen] = useState(false);
   const [projects, setProjects] = useState<
     ProjectAPITypes.GetProjects["resData"]
@@ -1447,44 +2786,44 @@ export default function IdPage() {
     dataShapes.forEach((dataShape) => {
       // traversal all relational steps
       const queue: (Core | Terminal | Process | Data | Desicion)[] = [
-          dataShape,
-        ],
+        dataShape,
+      ],
         locks: { [curveId: string]: boolean } = {}, // prevent from graph cycle
         deletedDataMap: { [text: string]: boolean } = {};
 
-      while (queue.length !== 0) {
-        const shape = queue[0];
+      // while (queue.length !== 0) {
+      //   const shape = queue[0];
 
-        ds.forEach((d) => {
-          shape.curves[d].forEach((curve) => {
-            const theSendToShape = curve.sendTo?.shape;
+      //   ds.forEach((d) => {
+      //     shape.curves[d].forEach((curve) => {
+      //       const theSendToShape = curve.sendTo?.shape;
 
-            if (!theSendToShape) return;
+      //       if (!theSendToShape) return;
 
-            dataShape.data.forEach((dataItem) => {
-              if (
-                theSendToShape.options.some(
-                  (option) => option.text === dataItem.text
-                ) ||
-                deletedDataMap[dataItem.text]
-              )
-                return;
-              theSendToShape.options.push(dataItem);
-            });
+      //       dataShape.data.forEach((dataItem) => {
+      //         if (
+      //           theSendToShape.options.some(
+      //             (option) => option.text === dataItem.text
+      //           ) ||
+      //           deletedDataMap[dataItem.text]
+      //         )
+      //           return;
+      //         theSendToShape.options.push(dataItem);
+      //       });
 
-            theSendToShape.deletedData.forEach((deleteDataItem) => {
-              deletedDataMap[deleteDataItem.text] = true;
-            });
+      //       theSendToShape.deletedData.forEach((deleteDataItem) => {
+      //         deletedDataMap[deleteDataItem.text] = true;
+      //       });
 
-            if (!locks[curve.shape.id]) {
-              queue.push(theSendToShape);
-              locks[curve.shape.id] = true;
-            }
-          });
-        });
+      //       if (!locks[curve.shape.id]) {
+      //         queue.push(theSendToShape);
+      //         locks[curve.shape.id] = true;
+      //       }
+      //     });
+      //   });
 
-        queue.shift();
-      }
+      //   queue.shift();
+      // }
     });
 
     // check all correspondants of shapes' between options and selectedData
@@ -1499,8 +2838,8 @@ export default function IdPage() {
     errorShapes.forEach((errorShape) => {
       // traversal all relational steps
       const queue: (Core | Terminal | Process | Data | Desicion)[] = [
-          errorShape,
-        ],
+        errorShape,
+      ],
         locks: { [curveId: string]: boolean } = {}; // prevent from graph cycle
 
       while (queue.length !== 0) {
@@ -1510,18 +2849,18 @@ export default function IdPage() {
           shape.status = CoreTypes.Status.disabled;
         }
 
-        ds.forEach((d) => {
-          shape.curves[d].forEach((curve) => {
-            const theSendToShape = curve.sendTo?.shape;
+        // ds.forEach((d) => {
+        //   shape.curves[d].forEach((curve) => {
+        //     const theSendToShape = curve.sendTo?.shape;
 
-            if (!theSendToShape) return;
+        //     if (!theSendToShape) return;
 
-            if (!locks[curve.shape.id]) {
-              queue.push(theSendToShape);
-              locks[curve.shape.id] = true;
-            }
-          });
-        });
+        //     if (!locks[curve.shape.id]) {
+        //       queue.push(theSendToShape);
+        //       locks[curve.shape.id] = true;
+        //     }
+        //   });
+        // });
 
         queue.shift();
       }
@@ -1567,56 +2906,13 @@ export default function IdPage() {
 
     offset.x -= unitsAddLeft;
     offset.y -= unitsAddTop;
-    // --
 
-    shapes.forEach((shape) => {
-      shape.scale = _scale;
-      shape.offset = offset;
-    });
-
-    // --- get center point offset value
-    const distX_center = 1 / 2;
-    const distY_center = 1 / 2;
-
-    // calculate how much we need to zoom
-    const unitsZoomedX_center = ($canvas.width / _scale) * scaleAmount;
-    const unitsZoomedY_center = ($canvas.height / _scale) * scaleAmount;
-
-    const unitsAddLeft_center = unitsZoomedX_center * distX_center;
-    const unitsAddTop_center = unitsZoomedY_center * distY_center;
-
-    offset_center.x -= unitsAddLeft_center;
-    offset_center.y -= unitsAddTop_center;
-    // ---
-
-    if (select.shapes.length > 1) {
-      select.start.x = -1;
-      select.end.x = -1;
-      select.start.y = -1;
-      select.end.y = -1;
-      select.shapes.forEach((shape) => {
-        const theEdge = shape.getEdge();
-        if (select?.start.x === -1 || theEdge.l < select?.start.x) {
-          select.start.x = theEdge.l;
-        }
-        if (select?.start.y === -1 || theEdge.t < select?.start.y) {
-          select.start.y = theEdge.t;
-        }
-        if (select.end.x === -1 || theEdge.r > select.end.x) {
-          select.end.x = theEdge.r;
-        }
-        if (select.end.y === -1 || theEdge.b > select.end.y) {
-          select.end.y = theEdge.b;
-        }
-      });
-    }
+    drawCanvas(offset, _scale);
   };
 
   const fetchProjects = async () => {
-    const res: AxiosResponse<
-      ProjectAPITypes.GetProjects["resData"],
-      any
-    > = await projectAPIs.getProjecs();
+    const res: AxiosResponse<ProjectAPITypes.GetProjects["resData"], any> =
+      await projectAPIs.getProjecs();
     setProjects(res.data);
   };
 
@@ -1624,9 +2920,8 @@ export default function IdPage() {
     const token = localStorage.getItem("Authorization");
 
     if (token) {
-      const res: AxiosResponse<
-        AuthTypes.JWTLogin["resData"]
-      > = await authAPIs.jwtLogin(token);
+      const res: AxiosResponse<AuthTypes.JWTLogin["resData"]> =
+        await authAPIs.jwtLogin(token);
 
       if (res.data.isPass) {
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
@@ -1643,478 +2938,138 @@ export default function IdPage() {
     setLeftMouseBtn(true);
 
     const p = {
-        x: e.nativeEvent.offsetX,
-        y: e.nativeEvent.offsetY,
-      },
-      pInSelectArea =
-        p.x > select.start.x &&
-        p.y > select.start.y &&
-        p.x < select.end.x &&
-        p.y < select.end.y,
-      pInSelectArea_lt =
-        p.x > select.start.x - selectAnchor.size.fill &&
-        p.y > select.start.y - selectAnchor.size.fill &&
-        p.x < select.start.x + selectAnchor.size.fill &&
-        p.y < select.start.y + selectAnchor.size.fill,
-      pInSelectArea_rt =
-        p.x > select.end.x - selectAnchor.size.fill &&
-        p.y > select.start.y - selectAnchor.size.fill &&
-        p.x < select.end.x + selectAnchor.size.fill &&
-        p.y < select.start.y + selectAnchor.size.fill,
-      pInSelectArea_rb =
-        p.x > select.end.x - selectAnchor.size.fill &&
-        p.y > select.end.y - selectAnchor.size.fill &&
-        p.x < select.end.x + selectAnchor.size.fill &&
-        p.y < select.end.y + selectAnchor.size.fill,
-      pInSelectArea_lb =
-        p.x > select.start.x - selectAnchor.size.fill &&
-        p.y > select.end.y - selectAnchor.size.fill &&
-        p.x < select.start.x + selectAnchor.size.fill &&
-        p.y < select.end.y + selectAnchor.size.fill;
-
+      x: e.nativeEvent.offsetX,
+      y: e.nativeEvent.offsetY,
+    };
+    const normalP = getNormalP(p, offset, scale);
     if (space) {
       lastP = p;
     } else {
-      if (select.shapes.length > 1) {
-        // when multi select shapes
+      if (multiSelectShapeIds.length >= 2) {
+        // when multi multiSelect shapes
         let _target: null | CommonTypes.SelectAreaTarget = null;
+        const [multiSelectingAreaStartP, multiSelectingAreaEndP] =
+          getMultiSelectingAreaP();
+        const pInSelectingArea = {
+          m:
+            normalP.x > multiSelectingAreaStartP.x &&
+            normalP.y > multiSelectingAreaStartP.y &&
+            normalP.x < multiSelectingAreaEndP.x &&
+            normalP.y < multiSelectingAreaEndP.y,
+          lt:
+            normalP.x > multiSelectingAreaStartP.x - selectAnchor.size.fill &&
+            normalP.y > multiSelectingAreaStartP.y - selectAnchor.size.fill &&
+            normalP.x < multiSelectingAreaStartP.x + selectAnchor.size.fill &&
+            normalP.y < multiSelectingAreaStartP.y + selectAnchor.size.fill,
+          rt:
+            normalP.x > multiSelectingAreaEndP.x - selectAnchor.size.fill &&
+            normalP.y > multiSelectingAreaStartP.y - selectAnchor.size.fill &&
+            normalP.x < multiSelectingAreaEndP.x + selectAnchor.size.fill &&
+            normalP.y < multiSelectingAreaStartP.y + selectAnchor.size.fill,
+          rb:
+            normalP.x > multiSelectingAreaEndP.x - selectAnchor.size.fill &&
+            normalP.y > multiSelectingAreaEndP.y - selectAnchor.size.fill &&
+            normalP.x < multiSelectingAreaEndP.x + selectAnchor.size.fill &&
+            normalP.y < multiSelectingAreaEndP.y + selectAnchor.size.fill,
+          lb:
+            normalP.x > multiSelectingAreaStartP.x - selectAnchor.size.fill &&
+            normalP.y > multiSelectingAreaEndP.y - selectAnchor.size.fill &&
+            normalP.x < multiSelectingAreaStartP.x + selectAnchor.size.fill &&
+            normalP.y < multiSelectingAreaEndP.y + selectAnchor.size.fill,
+        };
 
-        if (pInSelectArea) {
+        if (pInSelectingArea.m) {
           _target = CommonTypes.SelectAreaTarget.m;
-        } else if (pInSelectArea_lt) {
+        } else if (pInSelectingArea.lt) {
           _target = CommonTypes.SelectAreaTarget.lt;
-        } else if (pInSelectArea_rt) {
+        } else if (pInSelectingArea.rt) {
           _target = CommonTypes.SelectAreaTarget.rt;
-        } else if (pInSelectArea_rb) {
+        } else if (pInSelectingArea.rb) {
           _target = CommonTypes.SelectAreaTarget.rb;
-        } else if (pInSelectArea_lb) {
+        } else if (pInSelectingArea.lb) {
           _target = CommonTypes.SelectAreaTarget.lb;
         }
 
         if (_target) {
           pressing = {
+            origin: null,
             shape: null,
             ghost: null,
             target: _target,
             direction: null,
           };
         } else {
-          select = cloneDeep(init.select);
+          multiSelectShapeIds = cloneDeep(init.multiSelectShapeIds);
         }
       } else {
-        // when single select shape
-        if (!pressing) {
-          shapes.forEach((_, shapeI, shapes) => {
-            const shape = shapes[shapes.length - 1 - shapeI];
-            const curveTriggerD = shape.getCurveTriggerDirection(p);
-            if (curveTriggerD) {
-              shape.selecting = false;
-
-              const initCurveId = `curve_${Date.now()}`;
-
-              shape.initializeCurve(
-                initCurveId,
-                CommonTypes.Direction[curveTriggerD]
-              );
-
-              shape.setIsCurveSelected(initCurveId, true);
-            }
-
-            switch (curveTriggerD) {
-              case CommonTypes.Direction.l:
-                relativeCurveCp2 = {
-                  x: (-shape.curveTrigger.d * 1) / 3,
-                  y: 0,
-                };
-                break;
-
-              case CommonTypes.Direction.t:
-                relativeCurveCp2 = {
-                  x: 0,
-                  y: (-shape.curveTrigger.d * 1) / 3,
-                };
-                break;
-
-              case CommonTypes.Direction.r:
-                relativeCurveCp2 = {
-                  x: (shape.curveTrigger.d * 1) / 3,
-                  y: 0,
-                };
-                break;
-
-              case CommonTypes.Direction.b:
-                relativeCurveCp2 = {
-                  x: 0,
-                  y: (shape.curveTrigger.d * 1) / 3,
-                };
-                break;
-            }
-
-            if (!!pressing) return;
-
-            const withinHandlerRangeCurves = shape.checkCurveControlPointsBoundry(
-              p
-            );
-            const firstDetectedCurve = withinHandlerRangeCurves[0];
-            const withinRangeCurveIds = shape.checkCurvesBoundry(p);
-
-            if (
-              firstDetectedCurve &&
-              firstDetectedCurve.target === CurveTypes.PressingTarget.p2
-            ) {
-              pressing = {
-                shape: shape,
-                ghost: null,
-                curveId: firstDetectedCurve.id,
-                target: CurveTypes.PressingTarget.p2,
-                direction: firstDetectedCurve.d,
-              };
-            } else if (firstDetectedCurve && firstDetectedCurve.isSelecting) {
-              pressing = {
-                shape: shape,
-                ghost: null,
-                curveId: firstDetectedCurve.id,
-                target: firstDetectedCurve.target,
-                direction: firstDetectedCurve.d,
-              };
-            } else if (withinRangeCurveIds.length > 0) {
-              pressing = {
-                shape: shape,
-                ghost: null,
-                curveId: withinRangeCurveIds[0],
-                target: null,
-                direction: null,
-              };
-            }
-          });
-        }
-
-        if (!pressing) {
-          shapes.forEach((_, shapeI, shapes) => {
-            const shape = shapes[shapes.length - 1 - shapeI];
-            if (!!pressing) return;
-            const _ghost = cloneDeep(shape);
-            _ghost.title = "ghost";
-            const vertex = shape.checkVertexesBoundry(p);
-            if (shape.selecting && vertex) {
-              pressing = {
-                shape: shape,
-                ghost: _ghost,
-                curveId: null,
-                target: vertex,
-                direction: null,
-              };
-            } else if (shape.checkBoundry(p)) {
-              pressing = {
-                shape: shape,
-                ghost: _ghost,
-                curveId: null,
-                target: CoreTypes.PressingTarget.m,
-                direction: null,
-              };
-            }
-          });
-        }
-
-        // reset select status
-        shapes.forEach((shape) => {
-          shape.getCurveIds().map((curveId) => {
-            shape.setIsCurveSelected(curveId, false);
-          });
-          shape.selecting = false;
-        });
-
-        // if has already selected curve, never select any other shapes
-        if (pressing && pressing.shape && !!pressing.curveId) {
-          pressing.shape?.setIsCurveSelected(pressing.curveId, true);
-
-          if (pressing.target === CurveTypes.PressingTarget.p2) {
-            const curveArrowTopP = pressing.shape.getPressingCurveP(
-              CurveTypes.PressingTarget.p2,
-              pressing.curveId
-            );
-            const curveCp2 = pressing.shape.getPressingCurveP(
-              CurveTypes.PressingTarget.cp2,
-              pressing.curveId
-            );
-
-            if (!curveArrowTopP || !curveCp2) return;
-
-            relativeCurveCp2 = {
-              x: curveArrowTopP.x - curveCp2.x,
-              y: curveArrowTopP.y - curveCp2.y,
-            };
-          }
-        } else if (pressing && pressing.shape && !pressing.curveId) {
-          pressing.shape.selecting = true;
-        }
+        // when single multiSelect shape
+        handleUtils.handle([
+          () => triggerCurve(p, offset, scale),
+          () => deSelectShape(),
+          () => selectCurve(p, offset, scale),
+          () => deSelectCurve(),
+          () => selectShape(p, offset, scale),
+        ]);
       }
 
       if (!pressing) {
-        selectAreaP = {
+        selectionFrameP = {
           start: p,
           end: p,
         };
       }
     }
 
-    drawCanvas();
+    drawCanvas(offset, scale);
   };
 
   const onMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     e.preventDefault();
 
     const p = {
-        x: e.nativeEvent.offsetX,
-        y: e.nativeEvent.offsetY,
-      },
+      x: e.nativeEvent.offsetX,
+      y: e.nativeEvent.offsetY,
+    },
       offsetP = {
         x: p.x - lastP.x,
         y: p.y - lastP.y,
       },
-      screenOffsetP = {
-        x: (p.x - lastP.x) * (1 / scale),
-        y: (p.y - lastP.y) * (1 / scale),
-      };
+      normalOffsetP = getNormalP(offsetP, null, scale);
 
     const movingViewport = space && leftMouseBtn;
 
     if (movingViewport) {
       setDataFrame(undefined);
-      offset.x += screenOffsetP.x;
-      offset.y += screenOffsetP.y;
-      shapes.forEach((shape) => {
-        shape.offset = offset;
-      });
-      if (select.shapes.length > 0) {
-        select.start.x += offsetP.x;
-        select.start.y += offsetP.y;
-        select.end.x += offsetP.x;
-        select.end.y += offsetP.y;
-      }
-    } else if (select.shapes.length > 0) {
-      // multi select
+      offset.x += normalOffsetP.x;
+      offset.y += normalOffsetP.y;
+    }
 
-      const theSelect = {
-        w: Math.abs(select.end.x - select.start.x),
-        h: Math.abs(select.end.y - select.start.y),
-      };
-
+    if (!movingViewport && multiSelectShapeIds.length >= 2) {
       if (pressing?.target === CommonTypes.SelectAreaTarget.m) {
-        select.shapes.forEach((shape) => {
-          shape.move({ x: p.x - lastP.x, y: p.y - lastP.y });
-        });
-
-        select.start.x += offsetP.x;
-        select.start.y += offsetP.y;
-        select.end.x += offsetP.x;
-        select.end.y += offsetP.y;
-      } else if (pressing?.target === CommonTypes.SelectAreaTarget.lt) {
-        const canResize = {
-          x: theSelect.w - offsetP.x > 0 || offsetP.x < 0,
-          y: theSelect.h - offsetP.y > 0 || offsetP.y < 0,
-        };
-
-        select.shapes.forEach((shape) => {
-          const ratioW = shape.getScaleSize().w / theSelect.w,
-            unitW = offsetP.x * ratioW;
-
-          if (canResize.x) {
-            shape.w = shape.w - unitW / scale;
-
-            const dx = Math.abs(shape.getScreenP().x - select.end.x),
-              ratioX = dx / theSelect.w,
-              unitX = offsetP.x * ratioX;
-
-            shape.p = {
-              ...shape.p,
-              x: shape.p.x + unitX / scale,
-            };
-          }
-
-          const ratioH = shape.getScaleSize().h / theSelect.h,
-            unitH = offsetP.y * ratioH;
-
-          if (canResize.y) {
-            shape.h = shape.h - unitH / scale;
-
-            const dy = Math.abs(shape.getScreenP().y - select.end.y),
-              ratioY = dy / theSelect.h,
-              unitY = offsetP.y * ratioY;
-
-            shape.p = {
-              ...shape.p,
-              y: shape.p.y + unitY / scale,
-            };
-          }
-        });
-
-        if (canResize.x) {
-          select.start.x += offsetP.x;
-        }
-
-        if (canResize.y) {
-          select.start.y += offsetP.y;
-        }
-      } else if (pressing?.target === CommonTypes.SelectAreaTarget.rt) {
-        const canResize = {
-          x: theSelect.w + offsetP.x > 0 || offsetP.x > 0,
-          y: theSelect.h - offsetP.y > 0 || offsetP.y < 0,
-        };
-
-        select.shapes.forEach((shape) => {
-          const ratioW = shape.getScaleSize().w / theSelect.w,
-            unitW = offsetP.x * ratioW;
-
-          if (canResize.x) {
-            shape.w = shape.w + unitW / scale;
-
-            const dx = Math.abs(shape.getScreenP().x - select.start.x),
-              ratioX = dx / theSelect.w,
-              unitX = offsetP.x * ratioX;
-
-            shape.p = {
-              ...shape.p,
-              x: shape.p.x + unitX / scale,
-            };
-          }
-
-          const ratioH = shape.h / theSelect.h,
-            unitH = offsetP.y * ratioH;
-
-          if (canResize.y) {
-            shape.h = shape.getScaleSize().h - unitH / scale;
-
-            const dy = Math.abs(shape.getScreenP().y - select.end.y),
-              ratioY = dy / theSelect.h,
-              unitY = offsetP.y * ratioY;
-
-            shape.p = {
-              ...shape.p,
-              y: shape.p.y + unitY / scale,
-            };
-          }
-        });
-
-        if (canResize.x) {
-          select.end.x += offsetP.x;
-        }
-
-        if (canResize.y) {
-          select.start.y += offsetP.y;
-        }
-      } else if (pressing?.target === CommonTypes.SelectAreaTarget.rb) {
-        const canResize = {
-          x: theSelect.w + offsetP.x > 0 || offsetP.x > 0,
-          y: theSelect.h + offsetP.y > 0 || offsetP.y > 0,
-        };
-
-        select.shapes.forEach((shape) => {
-          const ratioW = shape.getScaleSize().w / theSelect.w,
-            unitW = offsetP.x * ratioW;
-
-          if (canResize.x) {
-            shape.w = shape.w + unitW / scale;
-
-            const dx = Math.abs(shape.getScreenP().x - select.start.x),
-              ratioX = dx / theSelect.w,
-              unitX = offsetP.x * ratioX;
-
-            shape.p = {
-              ...shape.p,
-              x: shape.p.x + unitX / scale,
-            };
-          }
-
-          const ratioH = shape.getScaleSize().h / theSelect.h,
-            unitH = offsetP.y * ratioH;
-
-          if (canResize.y) {
-            shape.h = shape.h + unitH / scale;
-
-            const dy = Math.abs(shape.getScreenP().y - select.start.y),
-              ratioY = dy / theSelect.h,
-              unitY = offsetP.y * ratioY;
-
-            shape.p = {
-              ...shape.p,
-              y: shape.p.y + unitY / scale,
-            };
-          }
-        });
-
-        if (canResize.x) {
-          select.end.x += offsetP.x;
-        }
-
-        if (canResize.y) {
-          select.end.y += offsetP.y;
-        }
-      } else if (pressing?.target === CommonTypes.SelectAreaTarget.lb) {
-        const canResize = {
-          x: theSelect.w - offsetP.x > 0 || offsetP.x < 0,
-          y: theSelect.h + offsetP.y > 0 || offsetP.y > 0,
-        };
-
-        select.shapes.forEach((shape) => {
-          const ratioW = shape.getScaleSize().w / theSelect.w,
-            unitW = offsetP.x * ratioW;
-
-          if (canResize.x) {
-            shape.w = shape.w - unitW / scale;
-
-            const dx = Math.abs(shape.getScreenP().x - select.end.x),
-              ratioX = dx / theSelect.w,
-              unitX = offsetP.x * ratioX;
-
-            shape.p = {
-              ...shape.p,
-              x: shape.p.x + unitX / scale,
-            };
-          }
-
-          const ratioH = shape.getScaleSize().h / theSelect.h,
-            unitH = offsetP.y * ratioH;
-
-          if (canResize.y) {
-            shape.h = shape.h + unitH / scale;
-
-            const dy = Math.abs(shape.getScreenP().y - select.start.y),
-              ratioY = dy / theSelect.h,
-              unitY = offsetP.y * ratioY;
-
-            shape.p = {
-              ...shape.p,
-              y: shape.p.y + unitY / scale,
-            };
-          }
-        });
-
-        if (canResize.x) {
-          select.start.x += offsetP.x;
-        }
-
-        if (canResize.y) {
-          select.end.y += offsetP.y;
-        }
+        actionRecords.register(CommonTypes.Action.multiMove);
+        moveMultiSelectingShapes(normalOffsetP);
+      } else if (
+        pressing?.target === CommonTypes.SelectAreaTarget.lt ||
+        pressing?.target === CommonTypes.SelectAreaTarget.rt ||
+        pressing?.target === CommonTypes.SelectAreaTarget.rb ||
+        pressing?.target === CommonTypes.SelectAreaTarget.lb
+      ) {
+        actionRecords.register(CommonTypes.Action.multiResize);
+        resizeMultiSelectingShapes(pressing?.target, offsetP, scale);
       }
-    } else if (
-      pressing?.target === CoreTypes.PressingTarget.lt ||
-      pressing?.target === CoreTypes.PressingTarget.rt ||
-      pressing?.target === CoreTypes.PressingTarget.rb ||
-      pressing?.target === CoreTypes.PressingTarget.lb
-    ) {
-      resize(
-        shapes,
-        {
-          shape: pressing.shape,
-          ghost: pressing.ghost,
-          target: pressing.target,
-        },
-        offsetP
-      );
-    } else if (pressing?.target && pressing?.shape) {
-      if (pressing?.target === CoreTypes.PressingTarget.m) {
+
+      const multiSelectingMap = getMultSelectingMap();
+
+      shapes.forEach((shape) => {
+        if (!multiSelectingMap[shape.id]) return;
+        moveCurve(shape);
+      });
+    }
+
+    if (!movingViewport && pressing?.shape) {
+      if (pressing?.shape && pressing?.target === CoreTypes.PressingTarget.m) {
+        actionRecords.register(CommonTypes.Action.move);
+
         const shapesInView = getShapesInView(shapes);
         alginLines = getAlignLines(shapesInView, pressing.shape);
 
@@ -2125,17 +3080,29 @@ export default function IdPage() {
         }
 
         if (alignP?.x && !alignP?.y) {
-          pressing.shape.move({
-            x: 0,
-            y: p.y - lastP.y,
-          });
+          pressing.shape.move(
+            getNormalP(
+              {
+                x: 0,
+                y: p.y - lastP.y,
+              },
+              null,
+              scale
+            )
+          );
         }
 
         if (!alignP?.x && alignP?.y) {
-          pressing.shape.move({
-            x: p.x - lastP.x,
-            y: 0,
-          });
+          pressing.shape.move(
+            getNormalP(
+              {
+                x: p.x - lastP.x,
+                y: 0,
+              },
+              null,
+              scale
+            )
+          );
         }
 
         if (!alignP?.x && !alignP?.y) {
@@ -2152,309 +3119,152 @@ export default function IdPage() {
               y: pressing.ghost.getCenter().m.y,
             });
           }
-          pressing.shape.move({
-            x: p.x - lastP.x,
-            y: p.y - lastP.y,
-          });
+          pressing.shape.move(
+            getNormalP(
+              {
+                x: p.x - lastP.x,
+                y: p.y - lastP.y,
+              },
+              null,
+              scale
+            )
+          );
         }
 
-        pressing.ghost?.move({
-          x: p.x - lastP.x,
-          y: p.y - lastP.y,
-        });
-      } else if (
-        !!pressing.curveId &&
-        pressing.direction &&
-        pressing?.target === CurveTypes.PressingTarget.p2
+        pressing.ghost?.move(
+          getNormalP(
+            {
+              x: p.x - lastP.x,
+              y: p.y - lastP.y,
+            },
+            null,
+            scale
+          )
+        );
+
+        moveCurve(pressing?.shape);
+      }
+
+      if (
+        pressing?.target === CoreTypes.PressingTarget.lt ||
+        pressing?.target === CoreTypes.PressingTarget.rt ||
+        pressing?.target === CoreTypes.PressingTarget.rb ||
+        pressing?.target === CoreTypes.PressingTarget.lb
       ) {
-        let sticking: PageIdTypes.Sticking = {
-          bridgeId: null,
-          from: {
-            d: null,
-            shape: null,
+        actionRecords.register(CommonTypes.Action.resize)
+        resizeShape(
+          shapes,
+          {
+            shape: pressing.shape,
+            ghost: pressing.ghost,
+            target: pressing.target,
           },
-          to: {
-            d: null,
-            shape: null,
-          },
-        };
-
-        pressing.shape.disConnect([pressing.curveId]);
-
-        shapes.forEach((shape) => {
-          const quarterD = shape.checkQuarterArea(p);
-          const receivingPointsBoundryD = shape.checkReceivingPointsBoundry(p);
-
-          ds.forEach((d) => {
-            shape.setReceivePointActivate(
-              d,
-              d === receivingPointsBoundryD || d === quarterD
-            );
-            shape.setReceivePointVisible(
-              d,
-              shape.checkBoundry(p, 20) && pressing?.shape !== shape
-            );
-            if (
-              !!pressing?.curveId &&
-              !!pressing?.direction &&
-              !!pressing.shape &&
-              (d === receivingPointsBoundryD || d === quarterD) &&
-              shape !== pressing?.shape
-            ) {
-              sticking.bridgeId = pressing?.curveId;
-              sticking.from.d = pressing?.direction;
-              sticking.from.shape = pressing?.shape;
-              sticking.to.d = d;
-              sticking.to.shape = shape;
-            }
-          });
-        });
-
-        if (
-          !!sticking?.bridgeId &&
-          !!sticking?.from.d &&
-          !!sticking?.from.shape &&
-          !!sticking?.to.d &&
-          !!sticking?.to.shape
-        ) {
-          const endP = (() => {
-            const toReceivingP = sticking.to.shape.getCenter().receivingPoints[
-              sticking?.to?.d
-            ];
-
-            let margin = 0;
-            if (sticking.to.shape instanceof Data) {
-              if (sticking.to.d === CommonTypes.Direction.l) {
-                margin = 7.5;
-              } else if (sticking.to.d === CommonTypes.Direction.r) {
-                margin = -7.5;
-              }
-            }
-
-            return {
-              x: toReceivingP.x + margin * scale,
-              y: toReceivingP.y,
-            };
-          })();
-
-          sticking.from.shape.stick(
-            sticking.bridgeId,
-            endP,
-            sticking.from.d,
-            sticking.to.d
-          );
-        } else {
-          pressing.shape.locateCurveHandler(
-            pressing.curveId,
-            CurveTypes.PressingTarget.p2,
-            p
-          );
-        }
+          getNormalP(offsetP, null, scale)
+        );
       }
     }
 
-    if (dbClickedShape) {
-      setDataFrame({
-        p: getFramePosition(dbClickedShape),
-      });
-    }
-
-    if (selectAreaP && !space) {
-      selectAreaP = {
-        ...selectAreaP,
+    if (!movingViewport && !!pressingCurve) {
+      actionRecords.register(CommonTypes.Action.disconnect);
+      movePressingCurve(ctx, pressingCurve, p, offset, scale);
+    } else if (!movingViewport && selectionFrameP) {
+      selectionFrameP = {
+        ...selectionFrameP,
         end: p,
       };
     }
 
+    if (dbClickedShape) {
+      setDataFrame({
+        p: getFramePosition(dbClickedShape, offset, scale),
+      });
+    }
+
     lastP = p;
 
-    drawCanvas();
-    drawScreenshot();
+    drawCanvas(offset, scale);
+    drawScreenshot(offset, scale);
   };
 
   const onMouseUp = (e: React.MouseEvent<HTMLCanvasElement>) => {
     e.preventDefault();
-
-    setLeftMouseBtn(false);
 
     const p = {
       x: e.nativeEvent.offsetX,
       y: e.nativeEvent.offsetY,
     };
 
-    // define which shape in select area
-    const selectedShapes = (() => {
-      let shapesInSelectArea: (Terminal | Data | Process | Desicion)[] = [];
+    setLeftMouseBtn(false);
+    frameSelect(offset, scale);
+    checkConnect(getNormalP(p, offset, scale));
 
-      shapes.forEach((shape) => {
-        if (!selectAreaP) return;
-        const theEdge = shape.getEdge();
-
-        const l =
-            selectAreaP.start.x < selectAreaP.end.x
-              ? selectAreaP.start.x
-              : selectAreaP.end.x,
-          t =
-            selectAreaP.start.y < selectAreaP.end.y
-              ? selectAreaP.start.y
-              : selectAreaP.end.y,
-          r =
-            selectAreaP.start.x > selectAreaP.end.x
-              ? selectAreaP.start.x
-              : selectAreaP.end.x,
-          b =
-            selectAreaP.start.y > selectAreaP.end.y
-              ? selectAreaP.start.y
-              : selectAreaP.end.y;
-
-        const x1 = Math.max(theEdge.l, l),
-          y1 = Math.max(theEdge.t, t),
-          x2 = Math.min(theEdge.r, r),
-          y2 = Math.min(theEdge.b, b);
-
-        if (x2 > x1 && y2 > y1) {
-          shapesInSelectArea.push(shape);
-        }
-      });
-
-      return shapesInSelectArea;
-    })();
-
-    // define select status
-    if (selectedShapes.length === 1) {
-      selectedShapes[0].selecting = true;
-    } else if (selectedShapes.length > 1) {
-      selectedShapes.forEach((selectedShape) => {
-        const theEdge = selectedShape.getEdge();
-        if (select?.start.x === -1 || theEdge.l < select?.start.x) {
-          select.start.x = theEdge.l;
-        }
-        if (select?.start.y === -1 || theEdge.t < select?.start.y) {
-          select.start.y = theEdge.t;
-        }
-        if (select.end.x === -1 || theEdge.r > select.end.x) {
-          select.end.x = theEdge.r;
-        }
-        if (select.end.y === -1 || theEdge.b > select.end.y) {
-          select.end.y = theEdge.b;
-        }
-        select.shapes.push(selectedShape);
-        selectedShape.selecting = false;
-      });
-    }
-
-    shapes.forEach((targetShape) => {
-      if (
-        pressing?.shape &&
-        pressing?.shape?.id !== targetShape.id &&
-        !!pressing?.curveId &&
-        pressing?.target &&
-        pressing?.direction
-      ) {
-        const pressingShape = pressing.shape;
-        const theCheckReceivingPointsBoundryD = targetShape.checkReceivingPointsBoundry(
-          p
-        );
-        const theQuarterD = targetShape.checkQuarterArea(p);
-
-        if (!pressingShape || pressing.target !== CurveTypes.PressingTarget.p2)
-          return;
-
-        if (!!theCheckReceivingPointsBoundryD) {
-          pressingShape.connect(
-            targetShape,
-            theCheckReceivingPointsBoundryD,
-            pressing.curveId
-          );
-        } else if (!!theQuarterD) {
-          pressingShape.connect(targetShape, theQuarterD, pressing.curveId);
-        }
-
-        let relocateP: null | CommonTypes.Vec = null;
-        switch (theCheckReceivingPointsBoundryD || theQuarterD) {
-          case CommonTypes.Direction.l:
-            if (targetShape instanceof Data) {
-              relocateP = {
-                x: targetShape.getCenter().receivingPoints.l.x - 6,
-                y: targetShape.getCenter().receivingPoints.l.y,
-              };
-            } else {
-              relocateP = {
-                x: targetShape.getCenter().receivingPoints.l.x - 6,
-                y: targetShape.getCenter().receivingPoints.l.y,
-              };
-            }
-            break;
-          case CommonTypes.Direction.t:
-            if (targetShape instanceof Data) {
-              relocateP = {
-                x: targetShape.getCenter().receivingPoints.t.x,
-                y: targetShape.getCenter().receivingPoints.t.y - 6,
-              };
-            } else {
-              relocateP = {
-                x: targetShape.getCenter().receivingPoints.t.x,
-                y: targetShape.getCenter().receivingPoints.t.y - 6,
-              };
-            }
-            break;
-          case CommonTypes.Direction.r:
-            if (targetShape instanceof Data) {
-              relocateP = {
-                x: targetShape.getCenter().receivingPoints.r.x - 6,
-                y: targetShape.getCenter().receivingPoints.r.y,
-              };
-            } else {
-              relocateP = {
-                x: targetShape.getCenter().receivingPoints.r.x + 6,
-                y: targetShape.getCenter().receivingPoints.r.y,
-              };
-            }
-            break;
-          case CommonTypes.Direction.b:
-            if (targetShape instanceof Data) {
-              relocateP = {
-                x: targetShape.getCenter().receivingPoints.b.x,
-                y: targetShape.getCenter().receivingPoints.b.y + 6,
-              };
-            } else {
-              relocateP = {
-                x: targetShape.getCenter().receivingPoints.b.x,
-                y: targetShape.getCenter().receivingPoints.b.y + 6,
-              };
-            }
-            break;
-        }
-
-        // if (!!relocateP) {
-        //   pressingShape.locateCurveHandler(
-        //     pressing.curveId,
-        //     CurveTypes.PressingTarget.p2,
-        //     relocateP
-        //   );
-        // } // TODO: temprarily closed
+    if (
+      multiSelectShapeIds.length >= 2 &&
+      pressing?.target === CommonTypes.SelectAreaTarget.m
+    ) {
+      actionRecords.finish(CommonTypes.Action.multiMove);
+    } else if (
+      multiSelectShapeIds.length >= 2 &&
+      (pressing?.target === CommonTypes.SelectAreaTarget.lt ||
+        pressing?.target === CommonTypes.SelectAreaTarget.rt ||
+        pressing?.target === CommonTypes.SelectAreaTarget.rb ||
+        pressing?.target === CommonTypes.SelectAreaTarget.lb)
+    ) {
+      actionRecords.finish(CommonTypes.Action.multiResize);
+    } else if (
+      pressing?.target === CoreTypes.PressingTarget.lt ||
+      pressing?.target === CoreTypes.PressingTarget.rt ||
+      pressing?.target === CoreTypes.PressingTarget.rb ||
+      pressing?.target === CoreTypes.PressingTarget.lb
+    ) {
+      actionRecords.finish(CommonTypes.Action.resize);
+      // actions.push({
+      //   type: CommonTypes.Action.resize,
+      //   targets: [
+      //     {
+      //       id: pressing.shape.id,
+      //       index: shapes.findIndex(
+      //         (shape) => shape.id === pressing?.shape?.id
+      //       ),
+      //       origin: pressing.origin,
+      //     },
+      //   ],
+      // }); // temp close
+    } else if (
+      pressing?.target &&
+      pressing?.shape &&
+      pressing?.origin &&
+      (pressing?.shape?.p.x !== pressing?.origin?.p.x ||
+        pressing?.shape?.p.y !== pressing?.origin?.p.y)
+    ) {
+      if (pressing?.target === CoreTypes.PressingTarget.m) {
+        actionRecords.finish(CommonTypes.Action.move);
+        // actions.push({
+        //   type: CommonTypes.Action.move,
+        //   target: pressing.shape,
+        //   displacement: {
+        //     x: pressing.origin.p.x - pressing.shape.p.x,
+        //     y: pressing.origin.p.y - pressing.shape.p.y,
+        //   },
+        // }); // temp close
       }
-    });
-
-    shapes.forEach((shape) => {
-      ds.forEach((d) => {
-        shape.setReceivePointVisible(d, false);
-      });
-    });
+    }
 
     checkData(shapes);
     checkGroups();
 
-    selectAreaP = null;
+    selectionFrameP = null;
     pressing = null;
+    pressingCurve = null;
     alginLines = [];
 
-    drawCanvas();
+    drawCanvas(offset, scale);
+
+    console.log("actions", actions);
   };
 
   const onMouseWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
     zoom(e.deltaY, { x: e.clientX, y: e.clientY });
-    drawCanvas();
   };
 
   const onDoubleClick = useCallback(
@@ -2471,7 +3281,7 @@ export default function IdPage() {
           setDataFrameWarning(init.dataFrameWarning);
           setDbClickedShape(shape);
           setDataFrame({
-            p: getFramePosition(shape),
+            p: getFramePosition(shape, offset, scale),
           });
         }
       });
@@ -2480,57 +3290,62 @@ export default function IdPage() {
   );
 
   function handleKeyDown(this: Window, e: KeyboardEvent) {
-    // space
+    if (e.key === "Control") {
+      setControl(true);
+    }
+    if (e.key === "z" && control) {
+      undo(ctx, offset, scale);
+    }
     if (e.key === " " && !space) {
       setSpace(true);
     } else if (e.key === "Backspace" && !dataFrame && !dbClickedShape) {
       const $canvas = document.querySelector("canvas");
       if (!$canvas || !ctx) return;
 
-      // delete
-      for (const currentShape of shapes) {
-        if (currentShape.selecting) {
-          currentShape?.removeConnection();
-          shapes = shapes.filter((shape) => shape.id !== currentShape?.id);
-        } else {
-          ds.forEach((d) => {
-            currentShape.curves[d].forEach((currentCurve) => {
-              if (!currentCurve.shape?.selecting) return;
-              currentShape.removeCurve(d, currentCurve.shape.id);
-            });
-          });
-        }
-      }
+      handleUtils.handle([deleteMultiSelectShapes, deleteSelectedShape]);
 
-      drawCanvas();
-      drawScreenshot();
+      drawCanvas(offset, scale);
+      drawScreenshot(offset, scale);
     }
   }
 
   function handleKeyUp(this: Window, e: KeyboardEvent) {
+    if (e.key === "Control") {
+      setControl(false);
+    }
     if (e.key === " " && space) {
       setSpace(false);
     }
   }
 
-  const onClickShapeButton = (
+  const onClickCreateShapeButton = (
     e: React.MouseEvent<HTMLButtonElement>,
-    type: CommonTypes.Type
+    type: CommonTypes.Type,
+    actions: PageIdTypes.Actions
   ) => {
     e.stopPropagation();
     e.preventDefault();
     if (!isBrowser) return;
+    actionRecords.register(CommonTypes.Action.add);
 
-    let intiShape = getInitializedShape(type, offset, offset_center);
-    intiShape.offset = offset;
-    intiShape.scale = scale;
+    let intiShape = getInitializedShape(type, offset, scale);
     shapes.push(intiShape);
+
+    actionRecords.finish(CommonTypes.Action.add);
+
+    // actions.push({
+    //   type: CommonTypes.Action.add,
+    // }); // temp close
 
     checkData(shapes);
     checkGroups();
-    drawCanvas();
-    drawScreenshot();
+    drawCanvas(offset, scale);
+    drawScreenshot(offset, scale);
   };
+
+  const onClickUndoButton = () => {
+    undo(ctx, offset, scale);
+  }
 
   const onConfirmDataFrame: DataFrameTypes.Props["onConfirm"] = (
     title,
@@ -2603,25 +3418,29 @@ export default function IdPage() {
   const onClickScalePlusIcon = () => {
     const $canvas = document.querySelector("canvas");
     if (!$canvas) return;
-    zoom(-100, { x: $canvas?.width / 2, y: $canvas?.height / 2 });
-    drawCanvas();
+    zoom(-100, {
+      x: $canvas?.width / 2,
+      y: $canvas?.height / 2,
+    });
   };
 
   const onClickScaleMinusIcon = () => {
     const $canvas = document.querySelector("canvas");
     if (!$canvas) return;
-    zoom(100, { x: $canvas?.width / 2, y: $canvas?.height / 2 });
-    drawCanvas();
+    zoom(100, {
+      x: $canvas?.width / 2,
+      y: $canvas?.height / 2,
+    });
   };
 
   const onClickScaleNumber = () => {
     const $canvas = document.querySelector("canvas");
     if (!$canvas) return;
+
     zoom(-((1 / scale - 1) * 500), {
       x: $canvas?.width / 2,
       y: $canvas?.height / 2,
     });
-    drawCanvas();
   };
 
   const onClickDataSidePanelSwitch = () => {
@@ -2638,186 +3457,15 @@ export default function IdPage() {
     await fetchProjects();
   };
 
-  const draw = useCallback(
-    (
-      $canvas: HTMLCanvasElement,
-      ctx: CanvasRenderingContext2D,
-      shapes: (Terminal | Process | Data | Desicion)[],
-      isScreenshot?: boolean
-    ) => {
-      if (!isBrowser) return;
-      $canvas.width = window.innerWidth;
-      $canvas.height = window.innerHeight;
-      ctx?.clearRect(0, 0, window.innerWidth, window.innerHeight);
-
-      // draw background
-      ctx?.beginPath();
-      ctx.fillStyle = "#F6F7FA";
-      ctx?.fillRect(0, 0, window.innerWidth, window.innerHeight);
-      ctx?.closePath();
-
-      tests.forEach((test) => {
-        test.draw(ctx);
-      });
-
-      // draw align lines
-      drawShapes(ctx, shapes);
-      drawAlignLines(ctx, alginLines);
-
-      if (!isScreenshot) {
-        // draw sending point
-        shapes.forEach((shape) => {
-          if (!ctx || !shape.selecting) return;
-          if (
-            shape instanceof Terminal ||
-            shape instanceof Process ||
-            shape instanceof Data ||
-            (shape instanceof Desicion &&
-              !(shape.getText().y && shape.getText().n))
-          ) {
-            shape.drawSendingPoint(ctx);
-          }
-        });
-      }
-
-      // draw curves in shapes
-      shapes.forEach((shape) => {
-        if (!ctx) return;
-
-        shape.drawCurve(ctx);
-      });
-
-      if (!isScreenshot) {
-        // draw selectArea
-        if (selectAreaP) {
-          ctx?.beginPath();
-
-          ctx.fillStyle = "#2436b155";
-          ctx.fillRect(
-            selectAreaP?.start.x,
-            selectAreaP?.start.y,
-            selectAreaP?.end.x - selectAreaP?.start.x,
-            selectAreaP?.end.y - selectAreaP?.start.y
-          );
-
-          ctx.strokeStyle = "#2436b1";
-          ctx.strokeRect(
-            selectAreaP?.start.x,
-            selectAreaP?.start.y,
-            selectAreaP?.end.x - selectAreaP?.start.x,
-            selectAreaP?.end.y - selectAreaP?.start.y
-          );
-
-          ctx?.closePath();
-        }
-      }
-
-      if (!isScreenshot) {
-        shapes.forEach((shape) => {
-          shape.drawRecievingPoint(ctx);
-        });
-      }
-
-      if (select.shapes.length > 1 && !isScreenshot) {
-        // draw select area
-        ctx?.beginPath();
-        ctx.strokeStyle = tailwindColors.info["500"];
-        ctx.lineWidth = 1;
-        ctx.strokeRect(
-          select.start.x,
-          select.start.y,
-          select.end.x - select.start.x,
-          select.end.y - select.start.y
-        );
-        ctx?.closePath();
-
-        // draw select area anchors
-        ctx.fillStyle = "white";
-        ctx.lineWidth = selectAnchor.size.stroke;
-
-        ctx?.beginPath();
-        ctx.arc(
-          select.start.x,
-          select.start.y,
-          selectAnchor.size.fill,
-          0,
-          2 * Math.PI,
-          false
-        ); // left, top
-        ctx.stroke();
-        ctx.fill();
-        ctx?.closePath();
-
-        ctx?.beginPath();
-        ctx.arc(
-          select.end.x,
-          select.start.y,
-          selectAnchor.size.fill,
-          0,
-          2 * Math.PI,
-          false
-        ); // right, top
-        ctx.stroke();
-        ctx.fill();
-        ctx?.closePath();
-
-        ctx?.beginPath();
-        ctx.arc(
-          select.end.x,
-          select.end.y,
-          selectAnchor.size.fill,
-          0,
-          2 * Math.PI,
-          false
-        ); // right, bottom
-        ctx.stroke();
-        ctx.fill();
-        ctx?.closePath();
-
-        ctx?.beginPath();
-        ctx.arc(
-          select.start.x,
-          select.end.y,
-          selectAnchor.size.fill,
-          0,
-          2 * Math.PI,
-          false
-        ); // left, bottom
-        ctx.stroke();
-        ctx.fill();
-        ctx?.closePath();
-      }
-    },
-    []
-  );
-
-  const drawCanvas = () => {
-    const $canvas = document.querySelector("canvas");
-    if (!$canvas || !ctx) return;
-    draw($canvas, ctx, shapes, false);
-  };
-
-  const drawScreenshot = () => {
-    const $screenshot: HTMLCanvasElement | null = document.querySelector(
-      "canvas[role='screenshot']"
-    );
-    if (!$screenshot || !ctx_screenshot) return;
-    draw($screenshot, ctx_screenshot, getScreenshotShapes(shapes), true);
-  };
-
   const onClickStep = (shapeP: CommonTypes.Vec) => {
     if (!isBrowser) return;
 
     offset = {
-      x: offset_center.x + (window.innerWidth / 2 - shapeP.x),
-      y: offset_center.y + (window.innerHeight / 2 - shapeP.y),
+      x: window.innerWidth / 2 / scale - shapeP.x,
+      y: window.innerHeight / 2 / scale - shapeP.y,
     };
 
-    shapes.forEach((shape) => {
-      shape.offset = offset;
-    });
-
-    drawCanvas();
+    drawCanvas(offset, scale);
   };
 
   const onClickSaveButton: MouseEventHandler<HTMLSpanElement> = () => {
@@ -2873,25 +3521,6 @@ export default function IdPage() {
             b: string[];
           } = { l: [], t: [], r: [], b: [] };
 
-          ds.forEach((d) => {
-            shape.curves[d].forEach((curve) => {
-              curves[d].push(curve.shape?.id);
-
-              modifyData.curves[curve.shape?.id] = {
-                p1: curve.shape.p1,
-                p2: curve.shape.p2,
-                cp1: curve.shape.cp1,
-                cp2: curve.shape.cp2,
-                sendTo: curve.sendTo
-                  ? {
-                      id: curve.sendTo.shape.id,
-                      d: curve.sendTo.d,
-                    }
-                  : null,
-              };
-            });
-          });
-
           return curves;
         })(),
         data: (() => {
@@ -2935,17 +3564,14 @@ export default function IdPage() {
 
   const initProject = async (id: ProjectTypes.Project["id"]) => {
     try {
-      const res: AxiosResponse<
-        ProjectAPITypes.GetProject["resData"],
-        any
-      > = await projectAPIs.getProject(id);
+      const res: AxiosResponse<ProjectAPITypes.GetProject["resData"], any> =
+        await projectAPIs.getProject(id);
 
       const projectData = res.data as ProjectAPITypes.ProjectData;
 
       setScale(1);
       setSelectedProjectId(id);
       offset = cloneDeep(init.offset);
-      offset_center = cloneDeep(init.offset);
       const initShapes = getInitializedShapes(
         projectData.orders,
         projectData.shapes,
@@ -2953,11 +3579,11 @@ export default function IdPage() {
         projectData.data
       );
       shapes = initShapes;
-      select = cloneDeep(init.select);
+      multiSelectShapeIds = cloneDeep(init.multiSelectShapeIds);
       checkData(shapes);
       checkGroups();
-      drawCanvas();
-      drawScreenshot();
+      drawCanvas(offset, scale);
+      drawScreenshot(offset, scale);
       setIsProjectsModalOpen(false);
       setProjectName({
         inputVal: projectData.projectName,
@@ -2981,9 +3607,8 @@ export default function IdPage() {
     if (!$canvas || !ctx) return;
 
     try {
-      const res: AxiosResponse<
-        ProjectAPITypes.DeleteProject["resData"]
-      > = await projectAPIs.deleteProject(id);
+      const res: AxiosResponse<ProjectAPITypes.DeleteProject["resData"]> =
+        await projectAPIs.deleteProject(id);
 
       if (id === selectedProjectId) {
         shapes = [];
@@ -3005,14 +3630,11 @@ export default function IdPage() {
       return;
     }
     shapes = [];
-    const newProject: AxiosResponse<
-      ProjectAPITypes.CreateProject["resData"]
-    > = await projectAPIs.createProject();
+    const newProject: AxiosResponse<ProjectAPITypes.CreateProject["resData"]> =
+      await projectAPIs.createProject();
 
-    const res: AxiosResponse<
-      ProjectAPITypes.GetProjects["resData"],
-      any
-    > = await projectAPIs.getProjecs();
+    const res: AxiosResponse<ProjectAPITypes.GetProjects["resData"], any> =
+      await projectAPIs.getProjecs();
 
     setIsProjectsModalOpen(false);
     setProjects(res.data);
@@ -3040,9 +3662,9 @@ export default function IdPage() {
     }));
   };
 
-  const onClickSaveProjectNameButton: MouseEventHandler<HTMLButtonElement> = async (
-    e
-  ) => {
+  const onClickSaveProjectNameButton: MouseEventHandler<
+    HTMLButtonElement
+  > = async (e) => {
     if (!selectedProjectId) return;
     const res: AxiosResponse<
       ProjectAPITypes.UpdateProjectName["resData"],
@@ -3120,11 +3742,11 @@ export default function IdPage() {
       // tests.push(arrow);
       // tests.push(curve);
 
-      drawCanvas();
-      drawScreenshot();
+      drawCanvas(offset, scale);
+      drawScreenshot(offset, scale);
     })();
 
-    const resize = () => {
+    const resizeViewport = () => {
       const $canvas = document.querySelector("canvas");
       const $screenshot: HTMLCanvasElement | null = document.querySelector(
         "canvas[role='screenshot']"
@@ -3134,11 +3756,11 @@ export default function IdPage() {
       $canvas.height = window.innerHeight;
       $screenshot.width = window.innerWidth;
       $screenshot.height = window.innerHeight;
-      drawCanvas();
-      drawScreenshot();
+      drawCanvas(offset, scale);
+      drawScreenshot(offset, scale);
     };
 
-    window.addEventListener("resize", resize);
+    window.addEventListener("resize", resizeViewport);
     window.addEventListener("beforeunload", function (e) {
       e.preventDefault();
       e.returnValue = "";
@@ -3147,7 +3769,7 @@ export default function IdPage() {
 
     return () => {
       if (!isBrowser) return;
-      window.removeEventListener("resize", resize);
+      window.removeEventListener("resize", resizeViewport);
     };
   }, []);
 
@@ -3161,7 +3783,7 @@ export default function IdPage() {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, [dataFrame, dbClickedShape, space, steps]);
+  }, [dataFrame, dbClickedShape, space, steps, control]);
 
   const createShapeButtons = [
     { shape: CommonTypes.Type["terminator"], icon: IconTypes.Type.ellipse },
@@ -3379,7 +4001,7 @@ export default function IdPage() {
           className="overflow-y-auto overflow-x-hidden"
         >
           <li className="h-[8px]" />
-          {Object.entries(steps).map(([stepId, step], stepI) => {
+          {Object.entries(steps).map(([stepId, step]) => {
             return (
               <li key={stepId}>
                 <Accordion
@@ -3429,7 +4051,7 @@ export default function IdPage() {
         </ul>
       </SidePanel>
 
-      <div className="fixed p-4 bottom-[16px] left-1/2 -translate-x-1/2 bg-white-500 shadow-md rounded-full">
+      <div className="fixed p-3 bottom-[16px] left-1/2 -translate-x-1/2 bg-white-500 shadow-md rounded-full" role="create_shapes">
         <div className="justify-self-center">
           <div className="flex">
             {createShapeButtons.map((createShapeButton) => (
@@ -3438,12 +4060,7 @@ export default function IdPage() {
                 className="mx-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
                 content={createShapeButton.icon}
                 onClick={(e) => {
-                  if ((e as any).key === " ") {
-                    // 确保只在按下空格键时阻止默认行为
-                    e.preventDefault();
-                    e.stopPropagation(); // 确保事件不传播
-                  }
-                  onClickShapeButton(e, createShapeButton.type);
+                  onClickCreateShapeButton(e, createShapeButton.type, actions);
                 }}
                 onKeyDown={(e) => {
                   e.preventDefault();
@@ -3454,9 +4071,19 @@ export default function IdPage() {
           </div>
         </div>
       </div>
-      <ul className="fixed p-4 bottom-[16px] right-4 rounded-full shadow-md bg-white-500">
-        {" "}
-        <li className="justify-self-end">
+      <div className="fixed bottom-[16px] right-[164px]" role="undo">
+        <RoundButton
+          size={48}
+          outerRing
+          differece={16}
+          content={
+            <Icon type={IconTypes.Type.rotateCcw} w={14} h={14} fill={tailwindColors.white["500"]} />
+          }
+          onClick={onClickUndoButton}
+        />
+      </div>
+      <div className="fixed p-3 bottom-[16px] right-4 rounded-full shadow-md bg-white-500" role="zoom">
+        <div className="justify-self-end">
           <div className="flex items-center">
             <div
               className="w-6 h-6 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
@@ -3477,8 +4104,9 @@ export default function IdPage() {
               +
             </div>
           </div>
-        </li>
-      </ul>
+        </div>
+      </div>
+
       <img id="screenshotImg" alt="Screenshot" style={{ display: "none" }} />
       <div className={"flex"}>
         <canvas
@@ -3490,16 +4118,15 @@ export default function IdPage() {
             ctx = $canvas?.getContext("2d");
           }}
           onMouseDown={onMouseDown}
-          onMouseUp={onMouseUp}
           onMouseMove={onMouseMove}
+          onMouseUp={onMouseUp}
           onWheel={onMouseWheel}
           onDoubleClick={onDoubleClick}
         />
         <canvas
           role="screenshot"
-          className={`invisible ${
-            space ? "cursor-grab" : ""
-          } overflow-hidden absolute left-0 top-0 z-[-1]`}
+          className={`invisible ${space ? "cursor-grab" : ""
+            } overflow-hidden absolute left-0 top-0 z-[-1]`}
           tabIndex={1}
           ref={(el) => {
             $screenshot = el;

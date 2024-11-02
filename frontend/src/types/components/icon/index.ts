@@ -7,6 +7,9 @@ enum Type {
   square = "square",
   parallelogram = "parallelogram",
   dimond = "dimond",
+  rotateCcw = "rotateCcw",
+  arrow = "arrow",
+  arrowSolid = "arrowSolid"
 }
 
 type Props = {
