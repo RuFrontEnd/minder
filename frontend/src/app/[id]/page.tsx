@@ -4051,7 +4051,7 @@ export default function IdPage() {
         </ul>
       </SidePanel>
 
-      <div className="fixed p-4 bottom-[16px] left-1/2 -translate-x-1/2 bg-white-500 shadow-md rounded-full" role="create_shapes">
+      <div className="fixed p-3 bottom-[16px] left-1/2 -translate-x-1/2 bg-white-500 shadow-md rounded-full" role="create_shapes">
         <div className="justify-self-center">
           <div className="flex">
             {createShapeButtons.map((createShapeButton) => (
@@ -4071,18 +4071,18 @@ export default function IdPage() {
           </div>
         </div>
       </div>
-      <div className="fixed bottom-[16px] right-[11rem]" role="undo">
+      <div className="fixed bottom-[16px] right-[164px]" role="undo">
         <RoundButton
-          size={56}
+          size={48}
           outerRing
-          differece={24}
+          differece={16}
           content={
             <Icon type={IconTypes.Type.rotateCcw} w={14} h={14} fill={tailwindColors.white["500"]} />
           }
           onClick={onClickUndoButton}
         />
       </div>
-      <div className="fixed p-4 bottom-[16px] right-4 rounded-full shadow-md bg-white-500" role="zoom">
+      <div className="fixed p-3 bottom-[16px] right-4 rounded-full shadow-md bg-white-500" role="zoom">
         <div className="justify-self-end">
           <div className="flex items-center">
             <div
