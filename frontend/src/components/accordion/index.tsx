@@ -17,10 +17,10 @@ export default function Accordion(props: AccordionTypes.Props) {
   return (
     <div className={className} onClick={onClick}>
       <div className="px-4 py-2 cursor-pointer hover:bg-grey-5 hover:bg-opacity-50 group">
-        <div className="flex flex-1">
+        <div className="flex flex-1 items-center">
           {showArrow && (
             <Icon type={IconTypes.Type.arrowLeft} className={`${open ? "rotate-0" : "rotate-[-90deg]"
-              } text-primary-500 duration-300 start-0 items-center`} w={24} h={24} />
+              } text-primary-500 duration-300 start-0`} w={24} h={24} />
           )}
           <p className="text-primary-500 text-lg flex-1 break-all">{title}</p>
           <div className="flex items-center">
