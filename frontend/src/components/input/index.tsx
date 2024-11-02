@@ -23,9 +23,9 @@ const Input = (props: InputTypes.Props) => {
 
   return (
     <div className={props.className} id={props.id}>
-      <label htmlFor={props.name} className={`leading-7 text-md text-grey-2 ms-1 duration-200 ease-in-out`}>
+      {props.label && <label htmlFor={props.name} className={`leading-7 text-md text-grey-2 ms-1 duration-200 ease-in-out`}>
         {props.label}
-      </label>
+      </label>}
       <input
         type={props.type}
         name={props.name}

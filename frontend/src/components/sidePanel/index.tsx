@@ -28,7 +28,7 @@ const SidePanel = (props: any) => {
       animate={open ? "open" : `closed`}
       transition={{ type: "easeInOut" }}
     >
-      <div className="p-3 h-full">
+      <div className="p-4 h-full">
         <div className="h-full relative text-grey-2 bg-white-500 shadow-md rounded-lg">
           {children}
           {onClickSwitch && (

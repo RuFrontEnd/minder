@@ -113,6 +113,11 @@ enum OverallType {
   data = "data",
 }
 
+type Datas = {
+  id:string;
+  name:string
+}[]
+
 export type {
   Pressing,
   PressingCurve,
@@ -124,6 +129,7 @@ export type {
   Actions,
   Curves,
   MultiSelectShapeIds,
+  Datas
 };
 
 export { OverallType };

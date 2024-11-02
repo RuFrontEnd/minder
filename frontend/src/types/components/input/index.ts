@@ -12,7 +12,7 @@ type Props = {
   label?: HTMLInputTypeAttribute;
   type?: HTMLInputTypeAttribute;
   name?: string;
-  value?: undefined | string;
+  value?: undefined | null | string;
   status?: Status;
   comment?: string;
   onChange?: ChangeEventHandler<HTMLInputElement>;

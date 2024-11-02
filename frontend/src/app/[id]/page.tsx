@@ -190,16 +190,17 @@ const getInitializedShape = (
   offset: CommonTypes.Vec,
   scale: number = 1
 ) => {
+  const initPosition = {
+    x: -offset.x + window.innerWidth / 2 / scale,
+    y: -offset.y + window.innerHeight / 2 / scale,
+  }
   switch (type) {
     case CommonTypes.Type["terminator"]:
       return new Terminal(
         `${type}_${Date.now()}`,
         init.shape.size.t.w,
         init.shape.size.t.h,
-        {
-          x: -offset.x + window.innerWidth / 2,
-          y: -offset.y + window.innerHeight / 2,
-        },
+        initPosition,
         type
       );
     case CommonTypes.Type["process"]:
@@ -207,10 +208,7 @@ const getInitializedShape = (
         `${type}_${Date.now()}`,
         init.shape.size.p.w,
         init.shape.size.p.h,
-        {
-          x: -offset.x + window.innerWidth / 2 / scale,
-          y: -offset.y + window.innerHeight / 2 / scale,
-        },
+        initPosition,
         type
       );
 
@@ -219,10 +217,7 @@ const getInitializedShape = (
         `${type}_${Date.now()}`,
         init.shape.size.d.w,
         init.shape.size.d.h,
-        {
-          x: -offset.x + window.innerWidth / 2,
-          y: -offset.y + window.innerHeight / 2,
-        },
+        initPosition,
         type
       );
 
@@ -231,10 +226,7 @@ const getInitializedShape = (
         `${type}_${Date.now()}`,
         init.shape.size.dec.w,
         init.shape.size.dec.h,
-        {
-          x: -offset.x + window.innerWidth / 2,
-          y: -offset.y + window.innerHeight / 2,
-        },
+        initPosition,
         type
       );
   }
@@ -2758,6 +2750,7 @@ export default function IdPage() {
   const [isRenameFrameOpen, setIsRenameFrameOpen] = useState(false);
   const [isProfileFrameOpen, setIsProfileFrameOpen] = useState(false);
   const [steps, setSteps] = useState<PageTypes.Steps>([]);
+  const [datas, setDatas] = useState<PageIdTypes.Datas>([{ id: 'id1', name: 'data1' }])
   const [dataFrameWarning, setDataFrameWarning] =
     useState<DataFrameTypes.Warning>(init.dataFrameWarning);
   const [isProjectsModalOpen, setIsProjectsModalOpen] = useState(false);
@@ -2773,6 +2766,7 @@ export default function IdPage() {
     val: "Untitled",
   });
   const [overallType, setOverallType] = useState(PageIdTypes.OverallType.step)
+  const [createDataValue, setCreateDateValue] = useState<null | string>(null)
 
   const checkData = (shapes: (Terminal | Process | Data | Desicion)[]) => {
     const dataShapes: Data[] = [];
@@ -3698,6 +3692,22 @@ export default function IdPage() {
     setOverallType(dataTab)
   }
 
+  const onChangeCreateDataInput: InputTypes.Props['onChange'] = (e) => {
+    setCreateDateValue(e.target.value)
+  }
+
+  const onClickCreateDataButton = () => {
+    const _datas = cloneDeep(datas)
+
+    if (!createDataValue) return
+
+    _datas.push(
+      { id: Math.random().toString(), name: createDataValue }
+    ) // TODO: should be revised into post to backend
+
+    setDatas(_datas)
+  }
+
   useEffect(() => {
     if (!isBrowser) return;
 
@@ -4093,7 +4103,30 @@ export default function IdPage() {
               })}
             </>
           }
-          {overallType === PageIdTypes.OverallType.data && <></>}
+          {overallType === PageIdTypes.OverallType.data &&
+            <>
+              <div className="flex m-2">
+                <Input className="flex-1" value={createDataValue} onChange={onChangeCreateDataInput} />
+                <button className="ms-3 me-1 text-info-500" onClick={onClickCreateDataButton}>
+                  Create
+                </button>
+              </div>
+              {datas.map(data => (<>
+                <li key={data.id}>
+                  <Accordion
+                    showArrow={false}
+                    title={<>
+                      <div className="flex items-center">
+
+                        <p className="ms-2">{data.name}</p>
+                      </div>
+                    </>}
+                  >
+                  </Accordion>
+                </li>
+              </>))}
+            </>
+          }
         </ul>
       </SidePanel>
 
