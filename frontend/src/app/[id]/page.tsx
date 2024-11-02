@@ -2772,6 +2772,7 @@ export default function IdPage() {
     inputVal: "Untitled",
     val: "Untitled",
   });
+  const [overallType, setOverallType] = useState(PageIdTypes.OverallType.step)
 
   const checkData = (shapes: (Terminal | Process | Data | Desicion)[]) => {
     const dataShapes: Data[] = [];
@@ -3686,6 +3687,17 @@ export default function IdPage() {
     setIsRenameFrameOpen(false);
   };
 
+  const onClickOverallSidePanelTab = (e: React.MouseEvent<HTMLDivElement>) => {
+    const dataTab = (e.target as HTMLElement | null)?.closest('[data-tab]')?.getAttribute('data-tab');
+
+    const isOverallType = (value: any): value is PageIdTypes.OverallType =>
+      Object.values(PageIdTypes.OverallType).includes(value);
+
+    if (!dataTab || !isOverallType(dataTab)) return;
+
+    setOverallType(dataTab)
+  }
+
   useEffect(() => {
     if (!isBrowser) return;
 
@@ -3985,13 +3997,13 @@ export default function IdPage() {
         onClickSwitch={onClickDataSidePanelSwitch}
       >
         <div>
-          <div className="flex border-b border-grey-5 cursor-pointer">
-            <h3 className="flex-1 flex justify-center text-lg font-semibold py-3 px-5 text-black-2 border-b-2 border-secondary-500">
+          <div className="flex border-b border-grey-5 cursor-pointer" onClick={(e) => { onClickOverallSidePanelTab(e) }}>
+            <h3 data-tab={PageIdTypes.OverallType.step} className={`flex-1 flex justify-center text-lg font-semibold py-3 px-5 ${overallType === PageIdTypes.OverallType.step ? 'border-b-2 border-secondary-500 text-black-2' : "border-b-1 text-grey-4"}`}>
               <span>Step</span>
             </h3>
             <div className="border-r border-grey-5" />
-            <h3 className="flex-1 flex justify-center text-lg font-semibold py-3 px-5 text-black-2 border-b-1">
-              <span className={'text-grey-4'}>Data</span>
+            <h3 data-tab={PageIdTypes.OverallType.data} className={`flex-1 flex justify-center text-lg font-semibold py-3 px-5 ${overallType === PageIdTypes.OverallType.data ? 'border-b-2 border-secondary-500 text-black-2' : "border-b-1 text-grey-4"}`}>
+              <span>Data</span>
             </h3>
           </div>
         </div>
@@ -3999,84 +4011,89 @@ export default function IdPage() {
           style={{ height: "calc(100% - 52px)" }}
           className="overflow-y-auto overflow-x-hidden p-2"
         >
-          {steps.map((step) => {
-            const icon = (() => {
-              let _type = undefined
-              let _color = undefined
-              if (step instanceof Terminal) {
-                _type = IconTypes.Type.ellipse
-                _color = tailwindColors.shape.terminal
-              }
-              if (step instanceof Process) {
-                _type = IconTypes.Type.square
-                _color = tailwindColors.shape.process
-
-              }
-              if (step instanceof Data) {
-                _type = IconTypes.Type.parallelogram
-                _color = tailwindColors.shape.data
-
-              }
-              if (step instanceof Desicion) {
-                _type = IconTypes.Type.dimond
-                _color = tailwindColors.shape.decision
-              }
-
-              return {
-                type: _type,
-                color: _color
-              }
-            })()
-
-            return (
-              <li key={step.id}>
-                <Accordion
-                  showArrow={false}
-                  title={<>
-                    <div className="flex items-center">
-                      <Icon type={icon.type} w={20} h={20} fill={icon.color} />
-                      <p className="ms-2">{step.title}</p>
-                    </div>
-                  </>}
-                  hoverRender={
-                    <div className="h-full justify-end items-center">
-                      <div
-                        onClick={(e) => {
-                          e.stopPropagation();
-                        }}
-                      >
-                        <svg
-                          width={18}
-                          height={18}
-                          xmlns="http://www.w3.org/2000/svg"
-                          xmlnsXlink="http://www.w3.org/1999/xlink"
-                          version="1.1"
-                          x="0px"
-                          y="0px"
-                          viewBox="0 0 100 100"
-                          enable-background="new 0 0 100 100"
-                          xmlSpace="preserve"
-                        >
-                          <path
-                            fill="#233C53"
-                            d="M84.6,45C82.4,29.7,70.3,17.5,55,15.3V5H45v10.3C29.7,17.5,17.6,29.7,15.4,45H5v10h10.4C17.6,70.3,29.7,82.4,45,84.6V95h10  V84.6C70.3,82.4,82.4,70.3,84.6,55H95V45H84.6z M50,75c-13.8,0-25-11.2-25-25s11.2-25,25-25s25,11.2,25,25S63.8,75,50,75z"
-                          />
-                          <circle cx="50" cy="50" r="10" />
-                        </svg>
-                      </div>
-                    </div>
+          {overallType === PageIdTypes.OverallType.step &&
+            <>
+              {steps.map((step) => {
+                const icon = (() => {
+                  let _type = undefined
+                  let _color = undefined
+                  if (step instanceof Terminal) {
+                    _type = IconTypes.Type.ellipse
+                    _color = tailwindColors.shape.terminal
                   }
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onClickStep(step.p);
-                    // onClickaAccordionArrow(stepId); // TODO: open after content is added
-                  }}
-                >
-                  {/* <Editor className="ps-6" shape={step.shape} /> TODO: open after content is added */}
-                </Accordion>
-              </li>
-            );
-          })}
+                  if (step instanceof Process) {
+                    _type = IconTypes.Type.square
+                    _color = tailwindColors.shape.process
+
+                  }
+                  if (step instanceof Data) {
+                    _type = IconTypes.Type.parallelogram
+                    _color = tailwindColors.shape.data
+
+                  }
+                  if (step instanceof Desicion) {
+                    _type = IconTypes.Type.dimond
+                    _color = tailwindColors.shape.decision
+                  }
+
+                  return {
+                    type: _type,
+                    color: _color
+                  }
+                })()
+
+                return (
+                  <li key={step.id}>
+                    <Accordion
+                      showArrow={false}
+                      title={<>
+                        <div className="flex items-center">
+                          <Icon type={icon.type} w={20} h={20} fill={icon.color} />
+                          <p className="ms-2">{step.title}</p>
+                        </div>
+                      </>}
+                      hoverRender={
+                        <div className="h-full justify-end items-center">
+                          <div
+                            onClick={(e) => {
+                              e.stopPropagation();
+                            }}
+                          >
+                            <svg
+                              width={18}
+                              height={18}
+                              xmlns="http://www.w3.org/2000/svg"
+                              xmlnsXlink="http://www.w3.org/1999/xlink"
+                              version="1.1"
+                              x="0px"
+                              y="0px"
+                              viewBox="0 0 100 100"
+                              enable-background="new 0 0 100 100"
+                              xmlSpace="preserve"
+                            >
+                              <path
+                                fill="#233C53"
+                                d="M84.6,45C82.4,29.7,70.3,17.5,55,15.3V5H45v10.3C29.7,17.5,17.6,29.7,15.4,45H5v10h10.4C17.6,70.3,29.7,82.4,45,84.6V95h10  V84.6C70.3,82.4,82.4,70.3,84.6,55H95V45H84.6z M50,75c-13.8,0-25-11.2-25-25s11.2-25,25-25s25,11.2,25,25S63.8,75,50,75z"
+                              />
+                              <circle cx="50" cy="50" r="10" />
+                            </svg>
+                          </div>
+                        </div>
+                      }
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onClickStep(step.p);
+                        // onClickaAccordionArrow(stepId); // TODO: open after content is added
+                      }}
+                    >
+                      {/* <Editor className="ps-6" shape={step.shape} /> TODO: open after content is added */}
+                    </Accordion>
+                  </li>
+                );
+              })}
+            </>
+          }
+          {overallType === PageIdTypes.OverallType.data && <></>}
         </ul>
       </SidePanel>
 

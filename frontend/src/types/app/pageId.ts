@@ -108,6 +108,11 @@ type Actions = Stack<{
   curves: Curves;
 }>;
 
+enum OverallType {
+  step = "step",
+  data = "data",
+}
+
 export type {
   Pressing,
   PressingCurve,
@@ -120,3 +125,5 @@ export type {
   Curves,
   MultiSelectShapeIds,
 };
+
+export { OverallType };
