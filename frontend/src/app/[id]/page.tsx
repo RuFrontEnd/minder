@@ -22,7 +22,7 @@ import PencilSquareIcon from "@/assets/svg/pencil-square.svg";
 import Icon from "@/components/icon";
 import RoundButton from "@/components/roundButton";
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { motion } from "framer-motion";
+import { motion, steps } from "framer-motion";
 import { cloneDeep } from "lodash";
 import { v4 as uuidv4 } from "uuid";
 import { ChangeEventHandler, MouseEventHandler } from "react";
@@ -2757,7 +2757,7 @@ export default function IdPage() {
   const [isDataSidePanelOpen, setIsDataSidePanelOpen] = useState(false);
   const [isRenameFrameOpen, setIsRenameFrameOpen] = useState(false);
   const [isProfileFrameOpen, setIsProfileFrameOpen] = useState(false);
-  const [steps, setSteps] = useState<PageTypes.Steps>({});
+  const [steps, setSteps] = useState<PageTypes.Steps>([]);
   const [dataFrameWarning, setDataFrameWarning] =
     useState<DataFrameTypes.Warning>(init.dataFrameWarning);
   const [isProjectsModalOpen, setIsProjectsModalOpen] = useState(false);
@@ -2867,17 +2867,8 @@ export default function IdPage() {
     });
   };
 
-  const checkGroups = () => {
-    const _steps: PageTypes.Steps = {};
-
-    shapes.forEach((shape) => {
-      _steps[shape.id] = {
-        shape: cloneDeep(shape),
-        open: steps[shape.id] ? steps[shape.id].open : false,
-      };
-    });
-
-    setSteps(_steps);
+  const checkSteps = () => {
+    setSteps(cloneDeep(shapes));
   };
 
   const zoom = (
@@ -3251,7 +3242,7 @@ export default function IdPage() {
     }
 
     checkData(shapes);
-    checkGroups();
+    checkSteps();
 
     selectionFrameP = null;
     pressing = null;
@@ -3306,6 +3297,7 @@ export default function IdPage() {
 
       drawCanvas(offset, scale);
       drawScreenshot(offset, scale);
+      checkSteps()
     }
   }
 
@@ -3321,7 +3313,6 @@ export default function IdPage() {
   const onClickCreateShapeButton = (
     e: React.MouseEvent<HTMLButtonElement>,
     type: CommonTypes.Type,
-    actions: PageIdTypes.Actions
   ) => {
     e.stopPropagation();
     e.preventDefault();
@@ -3338,7 +3329,7 @@ export default function IdPage() {
     // }); // temp close
 
     checkData(shapes);
-    checkGroups();
+    checkSteps();
     drawCanvas(offset, scale);
     drawScreenshot(offset, scale);
   };
@@ -3412,7 +3403,7 @@ export default function IdPage() {
     setDataFrame(undefined);
     setDbClickedShape(null);
     checkData(shapes);
-    checkGroups();
+    checkSteps();
   };
 
   const onClickScalePlusIcon = () => {
@@ -3581,7 +3572,7 @@ export default function IdPage() {
       shapes = initShapes;
       multiSelectShapeIds = cloneDeep(init.multiSelectShapeIds);
       checkData(shapes);
-      checkGroups();
+      checkSteps();
       drawCanvas(offset, scale);
       drawScreenshot(offset, scale);
       setIsProjectsModalOpen(false);
@@ -4008,26 +3999,25 @@ export default function IdPage() {
           style={{ height: "calc(100% - 52px)" }}
           className="overflow-y-auto overflow-x-hidden p-2"
         >
-          {Object.entries(steps).map(([stepId, step]) => {
-            console.log(step)
+          {steps.map((step) => {
             const icon = (() => {
               let _type = undefined
               let _color = undefined
-              if (step.shape instanceof Terminal) {
+              if (step instanceof Terminal) {
                 _type = IconTypes.Type.ellipse
                 _color = tailwindColors.shape.terminal
               }
-              if (step.shape instanceof Process) {
+              if (step instanceof Process) {
                 _type = IconTypes.Type.square
                 _color = tailwindColors.shape.process
 
               }
-              if (step.shape instanceof Data) {
+              if (step instanceof Data) {
                 _type = IconTypes.Type.parallelogram
                 _color = tailwindColors.shape.data
 
               }
-              if (step.shape instanceof Desicion) {
+              if (step instanceof Desicion) {
                 _type = IconTypes.Type.dimond
                 _color = tailwindColors.shape.decision
               }
@@ -4039,15 +4029,13 @@ export default function IdPage() {
             })()
 
             return (
-              <li key={stepId}>
-
-
+              <li key={step.id}>
                 <Accordion
                   showArrow={false}
                   title={<>
                     <div className="flex items-center">
                       <Icon type={icon.type} w={20} h={20} fill={icon.color} />
-                      <p className="ms-2">{step.shape.title}</p>
+                      <p className="ms-2">{step.title}</p>
                     </div>
                   </>}
                   hoverRender={
@@ -4078,16 +4066,14 @@ export default function IdPage() {
                       </div>
                     </div>
                   }
-                  open={step.open}
                   onClick={(e) => {
                     e.stopPropagation();
-                    onClickStep(step.shape.p);
+                    onClickStep(step.p);
                     // onClickaAccordionArrow(stepId); // TODO: open after content is added
                   }}
                 >
                   {/* <Editor className="ps-6" shape={step.shape} /> TODO: open after content is added */}
                 </Accordion>
-
               </li>
             );
           })}
@@ -4103,7 +4089,7 @@ export default function IdPage() {
                 className="mx-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
                 content={createShapeButton.icon}
                 onClick={(e) => {
-                  onClickCreateShapeButton(e, createShapeButton.type, actions);
+                  onClickCreateShapeButton(e, createShapeButton.type);
                 }}
                 onKeyDown={(e) => {
                   e.preventDefault();
