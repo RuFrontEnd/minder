@@ -43,6 +43,7 @@ export default class Core {
   deletedData: DataType;
   redundancies: DataType;
   status: CoreTypes.Status;
+  private __data__: CommonTypes.Data = [];
   private __minCurveHandlerDistance__: number;
 
   constructor(
@@ -72,6 +73,7 @@ export default class Core {
     this.redundancies = [];
     this.status = CoreTypes.Status.normal;
     this.__minCurveHandlerDistance__ = 60;
+    this.__data__ = [];
   }
 
   set p(value: Vec) {
@@ -112,6 +114,10 @@ export default class Core {
 
   get minCurveHandlerDistance() {
     return this.__minCurveHandlerDistance__;
+  }
+
+  get data() {
+    return this.__data__;
   }
 
   getP(offset: Vec = { x: 0, y: 0 }, scale: number = 1) {
@@ -672,6 +678,18 @@ export default class Core {
     for (let i = 0; i < totalLines; i++) {
       ctx.fillText(lines[i], x, y - offsetYs[i]);
     }
+  };
+
+  onDataChange = (
+    _title: CommonTypes.Title,
+    _data: CommonTypes.Data,
+    _selectedData: CommonTypes.Data,
+    _deletedData: CommonTypes.Data
+  ) => {
+    this.title = _title;
+    this.__data__ = _data;
+    this.selectedData = _selectedData;
+    this.deletedData = _deletedData;
   };
 
   draw(

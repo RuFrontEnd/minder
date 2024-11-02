@@ -7,7 +7,6 @@ import * as CommonTypes from "@/types/common";
 
 export default class Data extends Core {
   isFrameOpen: boolean;
-  data: CommonTypes.Data;
   thersholdRatio: number;
 
   constructor(
@@ -19,7 +18,6 @@ export default class Data extends Core {
   ) {
     super(id, w, h, p, tailwindColors.shape.data, title);
     this.isFrameOpen = false;
-    this.data = [];
     this.thersholdRatio = 1 / 10;
   }
 
@@ -44,18 +42,6 @@ export default class Data extends Core {
       },
     };
   }
-
-  onDataChange = (
-    _title: CommonTypes.Title,
-    _data: CommonTypes.Data,
-    _selectedData: CommonTypes.Data,
-    _deletedData: CommonTypes.Data
-  ) => {
-    this.title = _title;
-    this.data = _data;
-    this.selectedData = _selectedData;
-    this.deletedData = _deletedData;
-  };
 
   checkReceivingPointsBoundry(p: CommonTypes.Vec) {
     const corners = this.getCenterToCornerDistance(),

@@ -13,8 +13,10 @@ import DataFrame from "@/components/dataFrame";
 import SidePanel from "@/components/sidePanel";
 import Accordion from "@/components/accordion";
 import Button from "@/components/button";
+import SimpleButton from "@/components/simpleButton";
 import Modal from "@/components/modal";
 import Input from "@/components/input";
+import Select from "@/components/select";
 import Alert from "@/components/alert";
 import Card from "@/components/card";
 import Frame from "@/components/frame";
@@ -44,6 +46,7 @@ import * as ProjectAPITypes from "@/types/apis/project";
 import * as ProjectTypes from "@/types/project";
 import * as APICommonTypes from "@/types/apis/common";
 import * as PageIdTypes from "@/types/app/pageId";
+import * as SidePanelTypes from "@/types/components/sidePanel";
 
 axios.defaults.baseURL = process.env.BASE_URL || "http://localhost:5000/api";
 
@@ -193,7 +196,7 @@ const getInitializedShape = (
   const initPosition = {
     x: -offset.x + window.innerWidth / 2 / scale,
     y: -offset.y + window.innerHeight / 2 / scale,
-  }
+  };
   switch (type) {
     case CommonTypes.Type["terminator"]:
       return new Terminal(
@@ -832,7 +835,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseCenter.x.toFixed(1)) ===
-        Number(targetShape.getCenter().m.x.toFixed(1)) ||
+          Number(targetShape.getCenter().m.x.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.x - b.p.x);
@@ -859,7 +862,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseCenter.y.toFixed(1)) ===
-        Number(targetShape.getCenter().m.y.toFixed(1)) ||
+          Number(targetShape.getCenter().m.y.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.y - b.p.y);
@@ -888,7 +891,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.l.toFixed(1)) ===
-        Number(targetShape.getEdge().l.toFixed(1)) ||
+          Number(targetShape.getEdge().l.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.y - b.p.y);
@@ -911,7 +914,7 @@ const getAlignLines = (
     .filter((targetShape) => {
       return (
         Number(baseEdge.l.toFixed(1)) ===
-        Number(targetShape.getEdge().r.toFixed(1)) ||
+          Number(targetShape.getEdge().r.toFixed(1)) ||
         targetShape.id === baseShape.id
       );
     })
@@ -940,7 +943,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.t.toFixed(1)) ===
-        Number(targetShape.getEdge().t.toFixed(1)) ||
+          Number(targetShape.getEdge().t.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.x - b.p.x);
@@ -963,7 +966,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.t.toFixed(1)) ===
-        Number(targetShape.getEdge().b.toFixed(1)) ||
+          Number(targetShape.getEdge().b.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.x - b.p.x);
@@ -991,7 +994,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.r.toFixed(1)) ===
-        Number(targetShape.getEdge().r.toFixed(1)) ||
+          Number(targetShape.getEdge().r.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.y - b.p.y);
@@ -1017,7 +1020,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.r.toFixed(1)) ===
-        Number(targetShape.getEdge().l.toFixed(1)) ||
+          Number(targetShape.getEdge().l.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.y - b.p.y);
@@ -1045,7 +1048,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.b.toFixed(1)) ===
-        Number(targetShape.getEdge().b.toFixed(1)) ||
+          Number(targetShape.getEdge().b.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.x - b.p.x);
@@ -1071,7 +1074,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.b.toFixed(1)) ===
-        Number(targetShape.getEdge().t.toFixed(1)) ||
+          Number(targetShape.getEdge().t.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.x - b.p.x);
@@ -1142,9 +1145,9 @@ const frameSelect = (
       const theEdge = shape.getEdge();
 
       const l =
-        normalSelectAreaP.start.x < normalSelectAreaP.end.x
-          ? normalSelectAreaP.start.x
-          : normalSelectAreaP.end.x,
+          normalSelectAreaP.start.x < normalSelectAreaP.end.x
+            ? normalSelectAreaP.start.x
+            : normalSelectAreaP.end.x,
         t =
           normalSelectAreaP.start.y < normalSelectAreaP.end.y
             ? normalSelectAreaP.start.y
@@ -2419,12 +2422,12 @@ const resizeShape = (
     shape: null | undefined | Terminal | Process | Data | Desicion;
     ghost: null | undefined | Terminal | Process | Data | Desicion;
     target:
-    | null
-    | undefined
-    | CoreTypes.PressingTarget.lt
-    | CoreTypes.PressingTarget.rt
-    | CoreTypes.PressingTarget.rb
-    | CoreTypes.PressingTarget.lb;
+      | null
+      | undefined
+      | CoreTypes.PressingTarget.lt
+      | CoreTypes.PressingTarget.rt
+      | CoreTypes.PressingTarget.rb
+      | CoreTypes.PressingTarget.lb;
   },
   offsetP: CommonTypes.Vec
 ) => {
@@ -2746,11 +2749,15 @@ export default function IdPage() {
   const [control, setControl] = useState(false);
   const [scale, setScale] = useState(1);
   const [leftMouseBtn, setLeftMouseBtn] = useState(false);
-  const [isDataSidePanelOpen, setIsDataSidePanelOpen] = useState(false);
+  const [isOverAllSidePanelOpen, setIsOverallSidePanelOpen] = useState(false);
+  const [isIndivisualSidePanelOpen, setIsIndivisualSidePanelOpen] =
+    useState(false);
   const [isRenameFrameOpen, setIsRenameFrameOpen] = useState(false);
   const [isProfileFrameOpen, setIsProfileFrameOpen] = useState(false);
   const [steps, setSteps] = useState<PageTypes.Steps>([]);
-  const [datas, setDatas] = useState<PageIdTypes.Datas>([{ id: 'id1', name: 'data1' }])
+  const [datas, setDatas] = useState<PageIdTypes.Datas>([
+    { id: "id1", name: "data1" },
+  ]);
   const [dataFrameWarning, setDataFrameWarning] =
     useState<DataFrameTypes.Warning>(init.dataFrameWarning);
   const [isProjectsModalOpen, setIsProjectsModalOpen] = useState(false);
@@ -2765,8 +2772,11 @@ export default function IdPage() {
     inputVal: "Untitled",
     val: "Untitled",
   });
-  const [overallType, setOverallType] = useState(PageIdTypes.OverallType.step)
-  const [createDataValue, setCreateDateValue] = useState<null | string>(null)
+  const [overallType, setOverallType] = useState(PageIdTypes.OverallType.step);
+  const [createDataValue, setCreateDateValue] = useState<null | string>(null);
+  const [indiviual, setIndiviual] = useState<
+    null | Terminal | Process | Data | Desicion
+  >(null);
 
   const checkData = (shapes: (Terminal | Process | Data | Desicion)[]) => {
     const dataShapes: Data[] = [];
@@ -2781,8 +2791,8 @@ export default function IdPage() {
     dataShapes.forEach((dataShape) => {
       // traversal all relational steps
       const queue: (Core | Terminal | Process | Data | Desicion)[] = [
-        dataShape,
-      ],
+          dataShape,
+        ],
         locks: { [curveId: string]: boolean } = {}, // prevent from graph cycle
         deletedDataMap: { [text: string]: boolean } = {};
 
@@ -2833,8 +2843,8 @@ export default function IdPage() {
     errorShapes.forEach((errorShape) => {
       // traversal all relational steps
       const queue: (Core | Terminal | Process | Data | Desicion)[] = [
-        errorShape,
-      ],
+          errorShape,
+        ],
         locks: { [curveId: string]: boolean } = {}; // prevent from graph cycle
 
       while (queue.length !== 0) {
@@ -3013,9 +3023,9 @@ export default function IdPage() {
     e.preventDefault();
 
     const p = {
-      x: e.nativeEvent.offsetX,
-      y: e.nativeEvent.offsetY,
-    },
+        x: e.nativeEvent.offsetX,
+        y: e.nativeEvent.offsetY,
+      },
       offsetP = {
         x: p.x - lastP.x,
         y: p.y - lastP.y,
@@ -3137,7 +3147,7 @@ export default function IdPage() {
         pressing?.target === CoreTypes.PressingTarget.rb ||
         pressing?.target === CoreTypes.PressingTarget.lb
       ) {
-        actionRecords.register(CommonTypes.Action.resize)
+        actionRecords.register(CommonTypes.Action.resize);
         resizeShape(
           shapes,
           {
@@ -3253,27 +3263,25 @@ export default function IdPage() {
     zoom(e.deltaY, { x: e.clientX, y: e.clientY });
   };
 
-  const onDoubleClick = useCallback(
-    (e: React.MouseEvent<HTMLCanvasElement>) => {
-      e.preventDefault();
+  const onDoubleClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
 
-      const p = {
-        x: e.nativeEvent.x,
-        y: e.nativeEvent.y,
-      };
+    const p = {
+      x: e.nativeEvent.x,
+      y: e.nativeEvent.y,
+    };
 
-      shapes.forEach((shape) => {
-        if (shape.checkBoundry(p)) {
-          setDataFrameWarning(init.dataFrameWarning);
-          setDbClickedShape(shape);
-          setDataFrame({
-            p: getFramePosition(shape, offset, scale),
-          });
-        }
+    shapes.forEach((shape) => {
+      if (!shape.checkBoundry(getNormalP(p, offset, scale))) return;
+      setDataFrameWarning(init.dataFrameWarning);
+      setDbClickedShape(shape);
+      setIsIndivisualSidePanelOpen(true);
+      setIndiviual(shape);
+      setDataFrame({
+        p: getFramePosition(shape, offset, scale),
       });
-    },
-    []
-  );
+    });
+  };
 
   function handleKeyDown(this: Window, e: KeyboardEvent) {
     if (e.key === "Control") {
@@ -3292,7 +3300,7 @@ export default function IdPage() {
 
       drawCanvas(offset, scale);
       drawScreenshot(offset, scale);
-      checkSteps()
+      checkSteps();
     }
   }
 
@@ -3307,7 +3315,7 @@ export default function IdPage() {
 
   const onClickCreateShapeButton = (
     e: React.MouseEvent<HTMLButtonElement>,
-    type: CommonTypes.Type,
+    type: CommonTypes.Type
   ) => {
     e.stopPropagation();
     e.preventDefault();
@@ -3331,7 +3339,7 @@ export default function IdPage() {
 
   const onClickUndoButton = () => {
     undo(ctx, offset, scale);
-  }
+  };
 
   const onConfirmDataFrame: DataFrameTypes.Props["onConfirm"] = (
     title,
@@ -3388,7 +3396,7 @@ export default function IdPage() {
       dbClickedShape instanceof Process ||
       dbClickedShape instanceof Desicion
     ) {
-      dbClickedShape?.onDataChange(title, selectedData, deletedData);
+      // dbClickedShape?.onDataChange(title, selectedData, deletedData);
     } else if (dbClickedShape instanceof Data) {
       dbClickedShape?.onDataChange(title, data, selectedData, deletedData);
     } else if (dbClickedShape instanceof Terminal) {
@@ -3429,9 +3437,15 @@ export default function IdPage() {
     });
   };
 
-  const onClickDataSidePanelSwitch = () => {
-    setIsDataSidePanelOpen((open) => !open);
+  const onClickOverallSidePanelSwitch = () => {
+    setIsOverallSidePanelOpen((open) => !open);
   };
+
+  const onClickIndiviualSidePanelSwitch: SidePanelTypes.Props["onClickSwitch"] =
+    (e) => {
+      e.preventDefault();
+      setIsIndivisualSidePanelOpen((open) => !open);
+    };
 
   const onClickProfile = () => {
     setIsProfileFrameOpen((isProfileFrameOpen) => !isProfileFrameOpen);
@@ -3682,31 +3696,31 @@ export default function IdPage() {
   };
 
   const onClickOverallSidePanelTab = (e: React.MouseEvent<HTMLDivElement>) => {
-    const dataTab = (e.target as HTMLElement | null)?.closest('[data-tab]')?.getAttribute('data-tab');
+    const dataTab = (e.target as HTMLElement | null)
+      ?.closest("[data-tab]")
+      ?.getAttribute("data-tab");
 
     const isOverallType = (value: any): value is PageIdTypes.OverallType =>
       Object.values(PageIdTypes.OverallType).includes(value);
 
     if (!dataTab || !isOverallType(dataTab)) return;
 
-    setOverallType(dataTab)
-  }
+    setOverallType(dataTab);
+  };
 
-  const onChangeCreateDataInput: InputTypes.Props['onChange'] = (e) => {
-    setCreateDateValue(e.target.value)
-  }
+  const onChangeCreateDataInput: InputTypes.Props["onChange"] = (e) => {
+    setCreateDateValue(e.target.value);
+  };
 
   const onClickCreateDataButton = () => {
-    const _datas = cloneDeep(datas)
+    const _datas = cloneDeep(datas);
 
-    if (!createDataValue) return
+    if (!createDataValue) return;
 
-    _datas.push(
-      { id: Math.random().toString(), name: createDataValue }
-    ) // TODO: should be revised into post to backend
+    _datas.push({ id: Math.random().toString(), name: createDataValue }); // TODO: should be revised into post to backend
 
-    setDatas(_datas)
-  }
+    setDatas(_datas);
+  };
 
   useEffect(() => {
     if (!isBrowser) return;
@@ -3818,7 +3832,7 @@ export default function IdPage() {
         onClickX={onClickProjectsModalX}
       >
         <div>
-          <section className="rounded-lg text-gray-600 bg-white-500 p-8 body-font">
+          <section className="rounded-lg  bg-white-500 p-8 body-font">
             <div className="mb-6 pb-3 ps-4 border-b border-grey-5 flex justify-between items-end">
               <h2 className="text-gray-900 title-font text-lg font-semibold">
                 Projects
@@ -3868,8 +3882,8 @@ export default function IdPage() {
           </section>
         </div>
       </Modal>
-      <header className="w-full fixed z-50 text-gray-600 body-font bg-primary-500 shadow-md">
-        <ul className="container mx-auto grid grid-cols-3 py-3 px-4">
+      <header className="fixed -translate-x-1/2 z-50 left-1/2 p-4 w-[720px]">
+        <ul className="container mx-auto grid grid-cols-3 py-3 px-4 rounded-full body-font bg-primary-500 shadow-md">
           <li>
             <a className="flex title-font font-medium items-center text-gray-900 mb-4 md:mb-0">
               <svg
@@ -4000,19 +4014,38 @@ export default function IdPage() {
         </ul>
       </header>
       <SidePanel
-        open={isDataSidePanelOpen}
+        open={isOverAllSidePanelOpen}
         w={"360px"}
-        h={"calc(100vh - 64px)"}
-        d={["b"]}
-        onClickSwitch={onClickDataSidePanelSwitch}
+        h={"calc(100vh)"}
+        verticalD={SidePanelTypes.VerticalD.b}
+        onClickSwitch={onClickOverallSidePanelSwitch}
       >
         <div>
-          <div className="flex border-b border-grey-5 cursor-pointer" onClick={(e) => { onClickOverallSidePanelTab(e) }}>
-            <h3 data-tab={PageIdTypes.OverallType.step} className={`flex-1 flex justify-center text-lg font-semibold py-3 px-5 ${overallType === PageIdTypes.OverallType.step ? 'border-b-2 border-secondary-500 text-black-2' : "border-b-1 text-grey-4"}`}>
+          <div
+            className="flex border-b border-grey-5 cursor-pointer"
+            onClick={(e) => {
+              onClickOverallSidePanelTab(e);
+            }}
+          >
+            <h3
+              data-tab={PageIdTypes.OverallType.step}
+              className={`flex-1 flex justify-center text-lg font-semibold py-3 px-5 ${
+                overallType === PageIdTypes.OverallType.step
+                  ? "border-b-2 border-secondary-500 text-black-2"
+                  : "border-b-1 text-grey-4"
+              }`}
+            >
               <span>Step</span>
             </h3>
             <div className="border-r border-grey-5" />
-            <h3 data-tab={PageIdTypes.OverallType.data} className={`flex-1 flex justify-center text-lg font-semibold py-3 px-5 ${overallType === PageIdTypes.OverallType.data ? 'border-b-2 border-secondary-500 text-black-2' : "border-b-1 text-grey-4"}`}>
+            <h3
+              data-tab={PageIdTypes.OverallType.data}
+              className={`flex-1 flex justify-center text-lg font-semibold py-3 px-5 ${
+                overallType === PageIdTypes.OverallType.data
+                  ? "border-b-2 border-secondary-500 text-black-2"
+                  : "border-b-1 text-grey-4"
+              }`}
+            >
               <span>Data</span>
             </h3>
           </div>
@@ -4021,47 +4054,52 @@ export default function IdPage() {
           style={{ height: "calc(100% - 52px)" }}
           className="overflow-y-auto overflow-x-hidden p-2"
         >
-          {overallType === PageIdTypes.OverallType.step &&
+          {overallType === PageIdTypes.OverallType.step && (
             <>
               {steps.map((step) => {
                 const icon = (() => {
-                  let _type = undefined
-                  let _color = undefined
+                  let _type = undefined;
+                  let _color = undefined;
                   if (step instanceof Terminal) {
-                    _type = IconTypes.Type.ellipse
-                    _color = tailwindColors.shape.terminal
+                    _type = IconTypes.Type.ellipse;
+                    _color = tailwindColors.shape.terminal;
                   }
                   if (step instanceof Process) {
-                    _type = IconTypes.Type.square
-                    _color = tailwindColors.shape.process
-
+                    _type = IconTypes.Type.square;
+                    _color = tailwindColors.shape.process;
                   }
                   if (step instanceof Data) {
-                    _type = IconTypes.Type.parallelogram
-                    _color = tailwindColors.shape.data
-
+                    _type = IconTypes.Type.parallelogram;
+                    _color = tailwindColors.shape.data;
                   }
                   if (step instanceof Desicion) {
-                    _type = IconTypes.Type.dimond
-                    _color = tailwindColors.shape.decision
+                    _type = IconTypes.Type.dimond;
+                    _color = tailwindColors.shape.decision;
                   }
 
                   return {
                     type: _type,
-                    color: _color
-                  }
-                })()
+                    color: _color,
+                  };
+                })();
 
                 return (
                   <li key={step.id}>
                     <Accordion
                       showArrow={false}
-                      title={<>
-                        <div className="flex items-center">
-                          <Icon type={icon.type} w={20} h={20} fill={icon.color} />
-                          <p className="ms-2">{step.title}</p>
-                        </div>
-                      </>}
+                      title={
+                        <>
+                          <div className="flex items-center">
+                            <Icon
+                              type={icon.type}
+                              w={20}
+                              h={20}
+                              fill={icon.color}
+                            />
+                            <p className="ms-2">{step.title}</p>
+                          </div>
+                        </>
+                      }
                       hoverRender={
                         <div className="h-full justify-end items-center">
                           <div
@@ -4102,35 +4140,46 @@ export default function IdPage() {
                 );
               })}
             </>
-          }
-          {overallType === PageIdTypes.OverallType.data &&
+          )}
+          {overallType === PageIdTypes.OverallType.data && (
             <>
               <div className="flex m-2">
-                <Input className="flex-1" value={createDataValue} onChange={onChangeCreateDataInput} />
-                <button className="ms-3 me-1 text-info-500" onClick={onClickCreateDataButton}>
-                  Create
-                </button>
+                <Input
+                  className="flex-1"
+                  value={createDataValue}
+                  onChange={onChangeCreateDataInput}
+                />
+                <SimpleButton
+                  onClick={onClickCreateDataButton}
+                  text="Create"
+                  className="ms-3 me-1"
+                />
               </div>
-              {datas.map(data => (<>
-                <li key={data.id}>
-                  <Accordion
-                    showArrow={false}
-                    title={<>
-                      <div className="flex items-center">
-
-                        <p className="ms-2">{data.name}</p>
-                      </div>
-                    </>}
-                  >
-                  </Accordion>
-                </li>
-              </>))}
+              {datas.map((data) => (
+                <>
+                  <li key={data.id}>
+                    <Accordion
+                      showArrow={false}
+                      title={
+                        <>
+                          <div className="flex items-center">
+                            <p className="ms-2">{data.name}</p>
+                          </div>
+                        </>
+                      }
+                    ></Accordion>
+                  </li>
+                </>
+              ))}
             </>
-          }
+          )}
         </ul>
       </SidePanel>
 
-      <div className="fixed p-3 bottom-[16px] left-1/2 -translate-x-1/2 bg-white-500 shadow-md rounded-full" role="create_shapes">
+      <div
+        className="fixed p-3 bottom-[16px] left-1/2 -translate-x-1/2 bg-white-500 shadow-md rounded-full"
+        role="create_shapes"
+      >
         <div className="justify-self-center">
           <div className="flex">
             {createShapeButtons.map((createShapeButton) => (
@@ -4150,18 +4199,35 @@ export default function IdPage() {
           </div>
         </div>
       </div>
-      <div className="fixed bottom-[16px] right-[164px]" role="undo">
+
+      <div
+        className={`fixed bottom-[16px] ${
+          isIndivisualSidePanelOpen ? "right-[508px]" : "right-[164px]"
+        }`}
+        role="undo"
+      >
         <RoundButton
           size={48}
           outerRing
           differece={16}
           content={
-            <Icon type={IconTypes.Type.rotateCcw} w={14} h={14} fill={tailwindColors.white["500"]} />
+            <Icon
+              type={IconTypes.Type.rotateCcw}
+              w={14}
+              h={14}
+              fill={tailwindColors.white["500"]}
+            />
           }
           onClick={onClickUndoButton}
         />
       </div>
-      <div className="fixed p-3 bottom-[16px] right-4 rounded-full shadow-md bg-white-500" role="zoom">
+
+      <div
+        className={`fixed p-3 bottom-[16px] ${
+          isIndivisualSidePanelOpen ? "right-[360px]" : "right-[16px]"
+        } rounded-full shadow-md bg-white-500`}
+        role="zoom"
+      >
         <div className="justify-self-end">
           <div className="flex items-center">
             <div
@@ -4204,8 +4270,9 @@ export default function IdPage() {
         />
         <canvas
           role="screenshot"
-          className={`invisible ${space ? "cursor-grab" : ""
-            } overflow-hidden absolute left-0 top-0 z-[-1]`}
+          className={`invisible ${
+            space ? "cursor-grab" : ""
+          } overflow-hidden absolute left-0 top-0 z-[-1]`}
           tabIndex={1}
           ref={(el) => {
             $screenshot = el;
@@ -4213,25 +4280,175 @@ export default function IdPage() {
           }}
         />
       </div>
-      {dataFrame && dbClickedShape && (
-        <DataFrame
-          shape={dbClickedShape}
-          coordinate={dataFrame.p}
-          onConfirm={onConfirmDataFrame}
-          feature={{
-            import: dbClickedShape instanceof Data,
-            usage:
-              dbClickedShape instanceof Process ||
-              dbClickedShape instanceof Data ||
-              dbClickedShape instanceof Desicion,
-            redundancy:
-              dbClickedShape instanceof Process ||
-              dbClickedShape instanceof Data ||
-              dbClickedShape instanceof Desicion,
-          }}
-          warning={dataFrameWarning}
-        />
-      )}
+      <SidePanel
+        role={"indivisual"}
+        open={isIndivisualSidePanelOpen}
+        horizentalD={SidePanelTypes.HorizentalD.r}
+        verticalD={SidePanelTypes.VerticalD.b}
+        w={"360px"}
+        h={"calc(100vh)"}
+        onClickSwitch={onClickIndiviualSidePanelSwitch}
+      >
+        <div className={"p-4 h-full"}>
+          <div className="flex flex-col h-full">
+            <section className="mb-2 pb-4 border-b border-grey-5">
+              <Input
+                label="Title"
+                value={indiviual?.title}
+                // onChange={onChangeTitle}
+              />
+            </section>
+            <section className="flex-1 mb-2 pb-4 border-b border-grey-5">
+              <div className="px-1">
+                <div className="mb-1">
+                  <div className="flex justify-between">
+                    <p className="leading-7 text-sm">Import Data</p>
+                    <SimpleButton
+                      onClick={onClickCreateDataButton}
+                      text="New"
+                    />
+                  </div>
+                </div>
+                <Select className="mb-1" />
+                {indiviual?.data && indiviual?.data.length > 0 ? (
+                  indiviual.data.map((dataItem, i) => (
+                    <div className={`flex flex-col mt-${i !== 0 ? "2" : "0"}`}>
+                      <div className="flex items-center">
+                        <input
+                          type="text"
+                          id="full-name"
+                          name="full-name"
+                          className={`w-full h-[28px] bg-white rounded border 
+                        ${false ? "border-red-500" : "border-gray-300"}
+                  focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out`}
+                          value={dataItem.text}
+                          // onChange={(e) => {
+                          //   onChangeData(e, i);
+                          // }}
+                        />
+                        <div
+                          className="w-6 h-6 ml-2 inline-flex items-center justify-center rounded-full text-white-500 bg-primary-500 flex-shrink-0 cursor-pointer"
+                          // onClick={() => {
+                          //   onClickMinus(dataItem.id);
+                          // }}
+                        >
+                          -
+                        </div>
+                      </div>
+                      {/* {false && (
+                      <span className="text-red-500">{warning.data[i]}</span>
+                    )} */}
+                    </div>
+                  ))
+                ) : (
+                  <p>none</p>
+                )}
+              </div>
+            </section>
+            <section className="flex-1 mb-2 pb-4 border-b border-grey-5">
+              <div className="px-1">
+                <div className="mb-1">
+                  <p className="leading-7 text-sm ">Using Data</p>
+                  {/* <div
+                  className="w-6 h-6 ml-2 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
+                // onClick={onClickPlus}
+                >
+                  +
+                </div> */}
+                </div>
+                {indiviual?.data && indiviual?.data.length > 0 ? (
+                  indiviual.data.map((dataItem, i) => (
+                    <div className={`flex flex-col mt-${i !== 0 ? "2" : "0"}`}>
+                      <div className="flex items-center">
+                        <input
+                          type="text"
+                          id="full-name"
+                          name="full-name"
+                          className={`w-full h-[28px] bg-white rounded border 
+                        ${false ? "border-red-500" : "border-gray-300"}
+                  focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out`}
+                          value={dataItem.text}
+                          // onChange={(e) => {
+                          //   onChangeData(e, i);
+                          // }}
+                        />
+                        <div
+                          className="w-6 h-6 ml-2 inline-flex items-center justify-center rounded-full text-white-500 bg-primary-500 flex-shrink-0 cursor-pointer"
+                          // onClick={() => {
+                          //   onClickMinus(dataItem.id);
+                          // }}
+                        >
+                          -
+                        </div>
+                      </div>
+                      {/* {false && (
+                      <span className="text-red-500">{warning.data[i]}</span>
+                    )} */}
+                    </div>
+                  ))
+                ) : (
+                  <p>none</p>
+                )}
+              </div>
+            </section>
+            <section className="flex-1 mb-2 pb-4 border-b border-grey-5">
+              <div className="px-1">
+                <div className="mb-1">
+                  <p className="leading-7 text-sm ">Remove Data</p>
+                  {/* <div
+                  className="w-6 h-6 ml-2 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
+                // onClick={onClickPlus}
+                >
+                  +
+                </div> */}
+                </div>
+                {indiviual?.data && indiviual?.data.length > 0 ? (
+                  indiviual.data.map((dataItem, i) => (
+                    <div className={`flex flex-col mt-${i !== 0 ? "2" : "0"}`}>
+                      <div className="flex items-center">
+                        <input
+                          type="text"
+                          id="full-name"
+                          name="full-name"
+                          className={`w-full h-[28px] bg-white rounded border 
+                        ${false ? "border-red-500" : "border-gray-300"}
+                  focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out`}
+                          value={dataItem.text}
+                          // onChange={(e) => {
+                          //   onChangeData(e, i);
+                          // }}
+                        />
+                        <div
+                          className="w-6 h-6 ml-2 inline-flex items-center justify-center rounded-full text-white-500 bg-primary-500 flex-shrink-0 cursor-pointer"
+                          // onClick={() => {
+                          //   onClickMinus(dataItem.id);
+                          // }}
+                        >
+                          -
+                        </div>
+                      </div>
+                      {/* {false && (
+                      <span className="text-red-500">{warning.data[i]}</span>
+                    )} */}
+                    </div>
+                  ))
+                ) : (
+                  <p>none</p>
+                )}
+              </div>
+            </section>
+            <section>
+              <Input
+                label="Remark"
+                h={120}
+                value={indiviual?.title}
+                // onChange={onChangeTitle}
+              />
+              {/* TODO: change to textArea */}
+            </section>
+          </div>
+        </div>
+      </SidePanel>
     </>
   );
 }

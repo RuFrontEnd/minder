@@ -4,7 +4,6 @@ import { tailwindColors } from "@/variables/colors";
 import * as CommonTypes from "@/types/common";
 import * as DecisionTypes from "@/types/shapes/decision";
 
-
 const ds = [
   CommonTypes.Direction.l,
   CommonTypes.Direction.t,
@@ -60,16 +59,6 @@ export default class Desicion extends Core {
     };
 
     return output;
-  }
-
-  onDataChange(
-    _title: CommonTypes.Title,
-    _selectedData: CommonTypes.Data,
-    _deletedData: CommonTypes.Data
-  ) {
-    this.title = _title;
-    this.selectedData = _selectedData;
-    this.deletedData = _deletedData;
   }
 
   draw(

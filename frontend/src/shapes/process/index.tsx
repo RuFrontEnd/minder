@@ -14,16 +14,6 @@ export default class Process extends Core {
     super(id, w, h, p, tailwindColors.shape.process, title);
   }
 
-  onDataChange = (
-    _title: CommonTypes.Title,
-    _selectedData: CommonTypes.Data,
-    _deletedData: CommonTypes.Data
-  ) => {
-    this.title = _title;
-    this.selectedData = _selectedData;
-    this.deletedData = _deletedData;
-  };
-
   draw(
     ctx: CanvasRenderingContext2D,
     offest: CommonTypes.Vec = { x: 0, y: 0 },
