@@ -43,7 +43,7 @@ const SidePanel = (props: any) => {
               className="mx-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
               content={
                 <Icon
-                  className={`rotate-${d[1] === "r" ? open ? 180 : 0 : open ? 0 : 180}`}
+                  className={`transform ${d[1] === "r" ? open ? `rotate-180` : `rotate-0` : open ? `rotate-0` : `rotate-180`}`}
                   type={IconTypes.Type.arrowSolid}
                   w={12}
                   h={12}

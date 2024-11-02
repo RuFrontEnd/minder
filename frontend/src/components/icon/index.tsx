@@ -167,6 +167,7 @@ export default function Icon(props: IconTypes.Props) {
             height: props.h || defaultVal.h,
             fill: props.fill || defaultVal.fill,
           }}
+          className={props.className}
           fill="#000000"
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 52 52"
