@@ -22,7 +22,7 @@ export default function Accordion(props: AccordionTypes.Props) {
             <Icon type={IconTypes.Type.arrow} className={`${open ? "rotate-0" : "rotate-[-90deg]"
               } text-primary-500 duration-300 start-0`} w={24} h={24} />
           )}
-          <p className="text-primary-500 text-lg flex-1 break-all">{title}</p>
+          <p className="text-black-3 text-md flex-1 break-all">{title}</p>
           <div className="flex items-center">
             <div className="opacity-0 group-hover:opacity-100">
               {hoverRender}

@@ -4029,7 +4029,7 @@ export default function IdPage() {
           >
             <h3
               data-tab={PageIdTypes.OverallType.step}
-              className={`flex-1 flex justify-center text-lg font-semibold py-3 px-5 ${
+              className={`flex-1 flex justify-center text-lg font-semibold py-2 px-5 ${
                 overallType === PageIdTypes.OverallType.step
                   ? "border-b-2 border-secondary-500 text-black-2"
                   : "border-b-1 text-grey-4"
@@ -4040,7 +4040,7 @@ export default function IdPage() {
             <div className="border-r border-grey-5" />
             <h3
               data-tab={PageIdTypes.OverallType.data}
-              className={`flex-1 flex justify-center text-lg font-semibold py-3 px-5 ${
+              className={`flex-1 flex justify-center text-lg font-semibold py-2 px-5 ${
                 overallType === PageIdTypes.OverallType.data
                   ? "border-b-2 border-secondary-500 text-black-2"
                   : "border-b-1 text-grey-4"
