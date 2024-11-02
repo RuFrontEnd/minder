@@ -19,7 +19,7 @@ export default function Accordion(props: AccordionTypes.Props) {
       <div className="px-4 py-2 cursor-pointer hover:bg-grey-5 hover:bg-opacity-50 group">
         <div className="flex flex-1 items-center">
           {showArrow && (
-            <Icon type={IconTypes.Type.arrowLeft} className={`${open ? "rotate-0" : "rotate-[-90deg]"
+            <Icon type={IconTypes.Type.arrow} className={`${open ? "rotate-0" : "rotate-[-90deg]"
               } text-primary-500 duration-300 start-0`} w={24} h={24} />
           )}
           <p className="text-primary-500 text-lg flex-1 break-all">{title}</p>

@@ -180,7 +180,7 @@ c0.6,0.6,0.6,1.6,0,2.1l-4.9,4.9c-0.6,0.6-0.6,1.3,0.4,1.3c0.3,0,0.7,0,0.7,0L30.3,
           />
         </svg>
       )}
-      {props.type === IconTypes.Type.arrowLeft && (
+      {props.type === IconTypes.Type.arrow && (
         <svg
           style={{
             width: props.w || defaultVal.w,
@@ -202,6 +202,20 @@ c0.6,0.6,0.6,1.6,0,2.1l-4.9,4.9c-0.6,0.6-0.6,1.3,0.4,1.3c0.3,0,0.7,0,0.7,0L30.3,
             stroke-width="2"
             d="m8 10 4 4 4-4"
           />
+        </svg>
+      )}
+      {props.type === IconTypes.Type.arrowSolid && (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          style={{
+            width: props.w || defaultVal.w,
+            height: props.h || defaultVal.h,
+            fill: props.fill || defaultVal.fill,
+          }}
+          className={props.className}
+          viewBox="0 0 24 24"
+        >
+          <path d="m4.431 12.822 13 9A1 1 0 0 0 19 21V3a1 1 0 0 0-1.569-.823l-13 9a1.003 1.003 0 0 0 0 1.645z" />
         </svg>
       )}
     </>
