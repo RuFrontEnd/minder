@@ -1,7 +1,7 @@
 "use client";
 import Core from "@/shapes/core";
+import { tailwindColors } from "@/variables/colors";
 import * as CommonTypes from "@/types/common";
-import * as CoreTypes from "@/types/shapes/core";
 
 export default class Process extends Core {
   constructor(
@@ -11,7 +11,7 @@ export default class Process extends Core {
     p: CommonTypes.Vec,
     title: CommonTypes.Title
   ) {
-    super(id, w, h, p, "#AB44F4", title);
+    super(id, w, h, p, tailwindColors.shape.process, title);
   }
 
   onDataChange = (

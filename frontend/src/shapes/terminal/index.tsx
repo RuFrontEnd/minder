@@ -1,4 +1,5 @@
 "use client";
+import { tailwindColors } from "@/variables/colors";
 import Core from "@/shapes/core";
 import * as TerminatorTypes from "@/types/shapes/terminator";
 import * as CommonTypes from "@/types/common";
@@ -11,7 +12,7 @@ export default class Terminal extends Core {
     p: CommonTypes.Vec,
     title: CommonTypes.Title
   ) {
-    super(id, w, h, p, "#FFB100", title);
+    super(id, w, h, p, tailwindColors.shape.terminal, title);
   }
 
   onDataChange = (title: CommonTypes.Title) => {

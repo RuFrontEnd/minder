@@ -54,12 +54,11 @@ const config: Config = {
   				'4': '#BDBDBD',
   				'5': '#E0E0E0'
   			},
-  			shpe: {
-  				t: '#fdf8f6',
-  				te: '#fdf8f6',
-  				p: '#fdf8f6',
-  				d: '#fdf8f6',
-  				dec: '#fdf8f6'
+  			shape: {
+  				terminal: "#FFB100",
+  				process: "#AB44F4",
+  				data: "#1BC861",
+  				decision: "#5468E9"
   			},
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',

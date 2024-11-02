@@ -17,7 +17,7 @@ export default class Data extends Core {
     p: CommonTypes.Vec,
     title: CommonTypes.Title
   ) {
-    super(id, w, h, p, "#1BC861", title);
+    super(id, w, h, p, tailwindColors.shape.data, title);
     this.isFrameOpen = false;
     this.data = [];
     this.thersholdRatio = 1 / 10;

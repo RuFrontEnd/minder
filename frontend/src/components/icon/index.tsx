@@ -58,7 +58,6 @@ export default function Icon(props: IconTypes.Props) {
             width: props.w || defaultVal.w,
             height: props.h || defaultVal.h,
             fill: props.fill || defaultVal.fill,
-            stroke: props.stroke || defaultVal.stroke,
           }}
           version="1.1"
           xmlns="http://www.w3.org/2000/svg"
@@ -74,7 +73,6 @@ export default function Icon(props: IconTypes.Props) {
               <path
                 style={{
                   fill: props.fill || defaultVal.fill,
-                  stroke: props.stroke || defaultVal.stroke,
                 }}
                 d="M246,128c0,49.2-39.9,89-89,89H99c-49.2,0-89-39.9-89-89l0,0c0-49.2,39.9-89,89-89H157C206.1,39,246,78.8,246,128L246,128z"
               />
@@ -88,7 +86,6 @@ export default function Icon(props: IconTypes.Props) {
             width: props.w || defaultVal.w,
             height: props.h || defaultVal.h,
             fill: props.fill || defaultVal.fill,
-            stroke: props.stroke || defaultVal.stroke,
           }}
           xmlns="http://www.w3.org/2000/svg"
           xmlnsXlink="http://www.w3.org/1999/xlink"
@@ -101,7 +98,6 @@ export default function Icon(props: IconTypes.Props) {
           <path
             style={{
               fill: props.fill || defaultVal.fill,
-              stroke: props.stroke || defaultVal.stroke,
             }}
             className="st0"
             d="M93.44,78.48H6.56V21.52h86.88V78.48z"
@@ -114,7 +110,6 @@ export default function Icon(props: IconTypes.Props) {
             width: props.w || defaultVal.w,
             height: props.h || defaultVal.h,
             fill: props.fill || defaultVal.fill,
-            stroke: props.stroke || defaultVal.stroke,
           }}
           xmlns="http://www.w3.org/2000/svg"
           data-name="Layer 21"
@@ -125,7 +120,6 @@ export default function Icon(props: IconTypes.Props) {
           <path
             style={{
               fill: props.fill || defaultVal.fill,
-              stroke: props.stroke || defaultVal.stroke,
             }}
             d="M30.387,5.683A.5.5,0,0,0,30,5.5H6a.5.5,0,0,0-.49.4l-4,20a.5.5,0,0,0,.49.6H26a.5.5,0,0,0,.49-.4l4-20A.5.5,0,0,0,30.387,5.683Z"
           />
@@ -137,7 +131,6 @@ export default function Icon(props: IconTypes.Props) {
             width: props.w || defaultVal.w,
             height: props.h || defaultVal.h,
             fill: props.fill || defaultVal.fill,
-            stroke: props.stroke || defaultVal.stroke,
           }}
           xmlns="http://www.w3.org/2000/svg"
           xmlnsXlink="http://www.w3.org/1999/xlink"
@@ -150,7 +143,6 @@ export default function Icon(props: IconTypes.Props) {
           <rect
             style={{
               fill: props.fill || defaultVal.fill,
-              stroke: props.stroke || defaultVal.stroke,
             }}
             x="12.5545645"
             y="12.5545635"

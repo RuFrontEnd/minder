@@ -1,7 +1,9 @@
 "use client";
 import Core from "@/shapes/core";
+import { tailwindColors } from "@/variables/colors";
 import * as CommonTypes from "@/types/common";
 import * as DecisionTypes from "@/types/shapes/decision";
+
 
 const ds = [
   CommonTypes.Direction.l,
@@ -24,7 +26,7 @@ export default class Desicion extends Core {
     p: CommonTypes.Vec,
     title: CommonTypes.Title
   ) {
-    super(id, w, h, p, "#5468E9", title);
+    super(id, w, h, p, tailwindColors.shape.decision, title);
     this.text = {
       l: null,
       t: null,

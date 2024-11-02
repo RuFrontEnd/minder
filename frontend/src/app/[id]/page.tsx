@@ -3993,20 +3993,63 @@ export default function IdPage() {
         d={["b"]}
         onClickSwitch={onClickDataSidePanelSwitch}
       >
-        <h3 className="text-lg font-semibold py-3 px-5 border-b border-grey-5 text-black-2 shadow-sm">
-          Shapes
-        </h3>
+        <div>
+          <div className="flex border-b border-grey-5 cursor-pointer">
+            <h3 className="flex-1 flex justify-center text-lg font-semibold py-3 px-5 text-black-2 border-b-2 border-secondary-500">
+              <span>Step</span>
+            </h3>
+            <div className="border-r border-grey-5" />
+            <h3 className="flex-1 flex justify-center text-lg font-semibold py-3 px-5 text-black-2 border-b-1">
+              <span className={'text-grey-4'}>Data</span>
+            </h3>
+          </div>
+        </div>
         <ul
           style={{ height: "calc(100% - 52px)" }}
-          className="overflow-y-auto overflow-x-hidden"
+          className="overflow-y-auto overflow-x-hidden p-2"
         >
-          <li className="h-[8px]" />
           {Object.entries(steps).map(([stepId, step]) => {
+            console.log(step)
+            const icon = (() => {
+              let _type = undefined
+              let _color = undefined
+              if (step.shape instanceof Terminal) {
+                _type = IconTypes.Type.ellipse
+                _color = tailwindColors.shape.terminal
+              }
+              if (step.shape instanceof Process) {
+                _type = IconTypes.Type.square
+                _color = tailwindColors.shape.process
+
+              }
+              if (step.shape instanceof Data) {
+                _type = IconTypes.Type.parallelogram
+                _color = tailwindColors.shape.data
+
+              }
+              if (step.shape instanceof Desicion) {
+                _type = IconTypes.Type.dimond
+                _color = tailwindColors.shape.decision
+              }
+
+              return {
+                type: _type,
+                color: _color
+              }
+            })()
+
             return (
               <li key={stepId}>
+
+
                 <Accordion
                   showArrow={false}
-                  title={step.shape.title}
+                  title={<>
+                    <div className="flex items-center">
+                      <Icon type={icon.type} w={20} h={20} fill={icon.color} />
+                      <p className="ms-2">{step.shape.title}</p>
+                    </div>
+                  </>}
                   hoverRender={
                     <div className="h-full justify-end items-center">
                       <div
@@ -4044,10 +4087,10 @@ export default function IdPage() {
                 >
                   {/* <Editor className="ps-6" shape={step.shape} /> TODO: open after content is added */}
                 </Accordion>
+
               </li>
             );
           })}
-          <li className="h-[8px]" />
         </ul>
       </SidePanel>
 
