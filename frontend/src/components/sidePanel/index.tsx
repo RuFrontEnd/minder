@@ -38,7 +38,8 @@ const SidePanel = (props: any) => {
             onClick={onClickSwitch}
           >
             <RoundButton
-              size={44}
+              outerRing={false}
+              size={28}
               className="mx-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
               content={
                 <Icon
@@ -49,7 +50,6 @@ const SidePanel = (props: any) => {
                   fill={tailwindColors.white["500"]}
                 />
               }
-              outerRing
               differece={16}
             />
           </div>

@@ -4005,7 +4005,7 @@ export default function IdPage() {
             return (
               <li key={stepId}>
                 <Accordion
-                  showArrow
+                  showArrow={false}
                   title={step.shape.title}
                   hoverRender={
                     <div className="h-full justify-end items-center">
