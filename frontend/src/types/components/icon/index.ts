@@ -8,6 +8,7 @@ enum Type {
   parallelogram = "parallelogram",
   dimond = "dimond",
   rotateCcw = "rotateCcw",
+  arrowLeft = "arrowLeft"
 }
 
 type Props = {

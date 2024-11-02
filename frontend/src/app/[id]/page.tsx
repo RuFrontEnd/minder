@@ -4005,7 +4005,7 @@ export default function IdPage() {
             return (
               <li key={stepId}>
                 <Accordion
-                  showArrow={false}
+                  showArrow
                   title={step.shape.title}
                   hoverRender={
                     <div className="h-full justify-end items-center">
@@ -4077,7 +4077,7 @@ export default function IdPage() {
           outerRing
           differece={24}
           content={
-            <Icon type={IconTypes.Type.rotateCcw} w={16} h={16} fill={tailwindColors.white["500"]} />
+            <Icon type={IconTypes.Type.rotateCcw} w={14} h={14} fill={tailwindColors.white["500"]} />
           }
           onClick={onClickUndoButton}
         />

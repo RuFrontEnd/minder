@@ -180,6 +180,30 @@ c0.6,0.6,0.6,1.6,0,2.1l-4.9,4.9c-0.6,0.6-0.6,1.3,0.4,1.3c0.3,0,0.7,0,0.7,0L30.3,
           />
         </svg>
       )}
+      {props.type === IconTypes.Type.arrowLeft && (
+        <svg
+          style={{
+            width: props.w || defaultVal.w,
+            height: props.h || defaultVal.h,
+            stroke: props.stroke || defaultVal.stroke,
+          }}
+          className={props.className}
+          aria-hidden="true"
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="m8 10 4 4 4-4"
+          />
+        </svg>
+      )}
     </>
   );
 }
