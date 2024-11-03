@@ -13,6 +13,7 @@ export default function Icon(props: IconTypes.Props) {
     <>
       {(!props.type || props.type === IconTypes.Type.x) && (
         <svg
+          role={props.role}
           style={{
             width: props.w || defaultVal.w,
             height: props.h || defaultVal.h,
@@ -23,11 +24,14 @@ export default function Icon(props: IconTypes.Props) {
           aria-hidden="true"
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
+          onClick={props.onClick}
         >
           <path
             style={{
               fill: props.fill || defaultVal.fill,
-              stroke: props.stroke || defaultVal.stroke,
+              stroke: props.disabled
+                ? tailwindColors.disabled["500"]
+                : props.stroke || defaultVal.stroke,
             }}
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -36,24 +40,127 @@ export default function Icon(props: IconTypes.Props) {
           />
         </svg>
       )}
-      {props.type === IconTypes.Type.pencilSquare && (
+      {(!props.type || props.type === IconTypes.Type.xCircle) && (
         <svg
+          xmlns="http://www.w3.org/2000/svg"
+          role={props.role}
           style={{
             width: props.w || defaultVal.w,
             height: props.h || defaultVal.h,
-            fill: props.fill || defaultVal.fill,
-            stroke: props.stroke || defaultVal.stroke,
+            stroke: props.disabled
+              ? tailwindColors.disabled["500"]
+              : props.stroke || defaultVal.stroke,
           }}
           className={props.className}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          onClick={props.onClick}
+        >
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="15" y1="9" x2="9" y2="15"></line>
+          <line x1="9" y1="9" x2="15" y2="15"></line>
+        </svg>
+      )}
+      {(!props.type ||
+        props.type === IconTypes.Type.exclaimationMarkTriangle) && (
+        <svg
           xmlns="http://www.w3.org/2000/svg"
+          role={props.role}
+          style={{
+            width: props.w || defaultVal.w,
+            height: props.h || defaultVal.h,
+            stroke: props.disabled
+              ? tailwindColors.disabled["500"]
+              : props.stroke || defaultVal.stroke,
+          }}
+          className={props.className}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          onClick={props.onClick}
+        >
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+          <line x1="12" y1="9" x2="12" y2="13"></line>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+      )}
+      {(!props.type || props.type === IconTypes.Type.tick) && (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          role={props.role}
+          style={{
+            width: props.w || defaultVal.w,
+            height: props.h || defaultVal.h,
+            stroke: props.disabled
+              ? tailwindColors.disabled["500"]
+              : props.stroke || defaultVal.stroke,
+          }}
+          className={props.className}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          onClick={props.onClick}
+        >
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      )}
+      {props.type === IconTypes.Type.tickCircle && (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          role={props.role}
+          style={{
+            width: props.w || defaultVal.w,
+            height: props.h || defaultVal.h,
+            stroke: props.disabled
+              ? tailwindColors.disabled["500"]
+              : props.stroke || defaultVal.stroke,
+            cursor: props.disabled ? "default" : "",
+          }}
+          className={`${props.className}`}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          onClick={props.onClick}
+        >
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+      )}
+      {props.type === IconTypes.Type.pencilSquare && (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          role={props.role}
+          style={{
+            width: props.w || defaultVal.w,
+            height: props.h || defaultVal.h,
+            stroke: props.disabled
+              ? tailwindColors.disabled["500"]
+              : props.stroke || defaultVal.stroke,
+            cursor: props.disabled ? "default" : "",
+          }}
+          className={`${props.className}`}
+          onClick={props.onClick}
           viewBox="0 0 24 24"
         >
-          <path d="M21.731 2.269a2.625 2.625 0 0 0-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 0 0 0-3.712ZM19.513 8.199l-3.712-3.712-8.4 8.4a5.25 5.25 0 0 0-1.32 2.214l-.8 2.685a.75.75 0 0 0 .933.933l2.685-.8a5.25 5.25 0 0 0 2.214-1.32l8.4-8.4Z" />
-          <path d="M5.25 5.25a3 3 0 0 0-3 3v10.5a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3V13.5a.75.75 0 0 0-1.5 0v5.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5V8.25a1.5 1.5 0 0 1 1.5-1.5h5.25a.75.75 0 0 0 0-1.5H5.25Z" />
+          <path d="m16 2.012 3 3L16.713 7.3l-3-3zM4 14v3h3l8.299-8.287-3-3zm0 6h16v2H4z" />
         </svg>
       )}
       {props.type === IconTypes.Type.ellipse && (
         <svg
+          role={props.role}
           style={{
             width: props.w || defaultVal.w,
             height: props.h || defaultVal.h,
@@ -67,6 +174,7 @@ export default function Icon(props: IconTypes.Props) {
           viewBox="0 0 256 256"
           enable-background="new 0 0 256 256"
           xmlSpace="preserve"
+          onClick={props.onClick}
         >
           <g>
             <g>
@@ -82,6 +190,7 @@ export default function Icon(props: IconTypes.Props) {
       )}
       {props.type === IconTypes.Type.square && (
         <svg
+          role={props.role}
           style={{
             width: props.w || defaultVal.w,
             height: props.h || defaultVal.h,
@@ -94,6 +203,7 @@ export default function Icon(props: IconTypes.Props) {
           y="0px"
           viewBox="0 0 100 100"
           xmlSpace="preserve"
+          onClick={props.onClick}
         >
           <path
             style={{
@@ -106,6 +216,7 @@ export default function Icon(props: IconTypes.Props) {
       )}
       {props.type === IconTypes.Type.parallelogram && (
         <svg
+          role={props.role}
           style={{
             width: props.w || defaultVal.w,
             height: props.h || defaultVal.h,
@@ -116,6 +227,7 @@ export default function Icon(props: IconTypes.Props) {
           viewBox="0 0 32 32"
           x="0px"
           y="0px"
+          onClick={props.onClick}
         >
           <path
             style={{
@@ -127,6 +239,7 @@ export default function Icon(props: IconTypes.Props) {
       )}
       {props.type === IconTypes.Type.dimond && (
         <svg
+          role={props.role}
           style={{
             width: props.w || defaultVal.w,
             height: props.h || defaultVal.h,
@@ -139,6 +252,7 @@ export default function Icon(props: IconTypes.Props) {
           y="0px"
           viewBox="0 0 64 64"
           xmlSpace="preserve"
+          onClick={props.onClick}
         >
           <rect
             style={{
@@ -154,6 +268,7 @@ export default function Icon(props: IconTypes.Props) {
       )}
       {props.type === IconTypes.Type.rotateCcw && (
         <svg
+          role={props.role}
           style={{
             width: props.w || defaultVal.w,
             height: props.h || defaultVal.h,
@@ -164,6 +279,7 @@ export default function Icon(props: IconTypes.Props) {
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 52 52"
           enable-background="new 0 0 52 52"
+          onClick={props.onClick}
         >
           <path
             d="M30.3,12.6c10.4,0,18.9,8.4,18.9,18.9s-8.5,18.9-18.9,18.9h-8.2c-0.8,0-1.3-0.6-1.3-1.4v-3.2
@@ -175,6 +291,7 @@ c0.6,0.6,0.6,1.6,0,2.1l-4.9,4.9c-0.6,0.6-0.6,1.3,0.4,1.3c0.3,0,0.7,0,0.7,0L30.3,
       )}
       {props.type === IconTypes.Type.arrow && (
         <svg
+          role={props.role}
           style={{
             width: props.w || defaultVal.w,
             height: props.h || defaultVal.h,
@@ -187,6 +304,7 @@ c0.6,0.6,0.6,1.6,0,2.1l-4.9,4.9c-0.6,0.6-0.6,1.3,0.4,1.3c0.3,0,0.7,0,0.7,0L30.3,
           height="24"
           fill="none"
           viewBox="0 0 24 24"
+          onClick={props.onClick}
         >
           <path
             stroke="currentColor"
@@ -199,6 +317,7 @@ c0.6,0.6,0.6,1.6,0,2.1l-4.9,4.9c-0.6,0.6-0.6,1.3,0.4,1.3c0.3,0,0.7,0,0.7,0L30.3,
       )}
       {props.type === IconTypes.Type.arrowSolid && (
         <svg
+          role={props.role}
           xmlns="http://www.w3.org/2000/svg"
           style={{
             width: props.w || defaultVal.w,
@@ -207,6 +326,7 @@ c0.6,0.6,0.6,1.6,0,2.1l-4.9,4.9c-0.6,0.6-0.6,1.3,0.4,1.3c0.3,0,0.7,0,0.7,0L30.3,
           }}
           className={props.className}
           viewBox="0 0 24 24"
+          onClick={props.onClick}
         >
           <path d="m4.431 12.822 13 9A1 1 0 0 0 19 21V3a1 1 0 0 0-1.569-.823l-13 9a1.003 1.003 0 0 0 0 1.645z" />
         </svg>

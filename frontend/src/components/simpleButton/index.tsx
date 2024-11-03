@@ -3,7 +3,19 @@ import { tailwindColors } from "@/variables/colors";
 import * as SimpleButtonTypes from "@/types/components/simpleButton";
 
 const SimpleButton = (props: SimpleButtonTypes.Props) => {
-  const size = (() => {
+  const statusStyle = (() => {
+    if (props.disabled) {
+      return "cursor-default";
+    }
+    if (props.danger) {
+      return "text-error-500"
+    }
+
+    return "text-info-500";
+  })();
+
+
+  const sizeStyle = (() => {
     if (props.size === SimpleButtonTypes.Size.sm) {
       return "text-sm";
     }
@@ -21,7 +33,7 @@ const SimpleButton = (props: SimpleButtonTypes.Props) => {
 
   return (
     <button
-      className={`flex items-center text-info-500 ${size} ${props.className}`}
+      className={`flex items-center ${sizeStyle} ${statusStyle} ${props.className}`}
       onClick={props.onClick}
     >
       {props.loading && (

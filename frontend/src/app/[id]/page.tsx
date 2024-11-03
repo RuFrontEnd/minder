@@ -1,5 +1,6 @@
 // TODO: fix browser zoom and re calculate shape offset / multi multiSelect resize in scale
 "use client";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import axios, { AxiosResponse } from "axios";
 import { useParams, useRouter } from "next/navigation";
 import Core from "@/shapes/core";
@@ -23,7 +24,8 @@ import Frame from "@/components/frame";
 import PencilSquareIcon from "@/assets/svg/pencil-square.svg";
 import Icon from "@/components/icon";
 import RoundButton from "@/components/roundButton";
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import StatusText from "@/components/statusText";
+import Divider from "@/components/divider";
 import { motion, steps } from "framer-motion";
 import { cloneDeep } from "lodash";
 import { v4 as uuidv4 } from "uuid";
@@ -47,6 +49,9 @@ import * as ProjectTypes from "@/types/project";
 import * as APICommonTypes from "@/types/apis/common";
 import * as PageIdTypes from "@/types/app/pageId";
 import * as SidePanelTypes from "@/types/components/sidePanel";
+import * as ButtonTypes from '@/types/components/button'
+import * as SimpleButtonTypes from '@/types/components/simpleButton'
+import * as StatusTextTypes from '@/types/components/statusText'
 
 axios.defaults.baseURL = process.env.BASE_URL || "http://localhost:5000/api";
 
@@ -248,6 +253,9 @@ const getInitializedShapes = (
   const dataShapes = Object.entries(shapes);
 
   dataShapes.forEach(([id, info]) => {
+
+
+
     switch (info.type) {
       case CommonTypes.Type.terminator:
         const newTerminator = new Terminal(
@@ -258,19 +266,29 @@ const getInitializedShapes = (
           info.title
         );
 
-        info.selectedData.forEach((dataId) => {
-          newTerminator.selectedData.push({
-            id: dataId,
-            text: data[dataId],
-          });
-        });
+        newTerminator.importDatas = [
+          {
+            id: 'd1', text: 'account', status: CommonTypes.DataStatus.default
+          },
+          { id: 'd2', text: 'email', status: CommonTypes.DataStatus.pass },
+          { id: 'd3', text: 'password', status: CommonTypes.DataStatus.warning },
+          { id: 'd4', text: 'card_number', status: CommonTypes.DataStatus.error },
+        ]
 
-        info.deletedData.forEach((dataId) => {
-          newTerminator.deletedData.push({
-            id: dataId,
-            text: data[dataId],
-          });
-        });
+        // info.selectedData.forEach((dataId) => {
+        //   newTerminator.importDatas.push({
+        //     id: dataId,
+        //     text: data[dataId],
+        //   });
+        // });
+
+        // info.deletedData.forEach((dataId) => {
+        //   newTerminator.deletedData.push({
+        //     id: dataId,
+        //     text: data[dataId],
+        //   });
+        // }); 
+        // TODO: wait until backend has revised
 
         shapeMappings[id] = newTerminator;
 
@@ -278,26 +296,27 @@ const getInitializedShapes = (
       case CommonTypes.Type.data:
         const newData = new Data(id, info.w, info.h, info.p, info.title);
 
-        info.data.forEach((dataId) => {
-          newData.data.push({
-            id: dataId,
-            text: data[dataId],
-          });
-        });
+        // info.data.forEach((dataId) => {
+        //   newData.data.push({
+        //     id: dataId,
+        //     text: data[dataId],
+        //   });
+        // });
 
-        info.selectedData.forEach((dataId) => {
-          newData.selectedData.push({
-            id: dataId,
-            text: data[dataId],
-          });
-        });
+        // info.selectedData.forEach((dataId) => {
+        //   newData.selectedData.push({
+        //     id: dataId,
+        //     text: data[dataId],
+        //   });
+        // });
 
-        info.deletedData.forEach((dataId) => {
-          newData.deletedData.push({
-            id: dataId,
-            text: data[dataId],
-          });
-        });
+        // info.deletedData.forEach((dataId) => {
+        //   newData.deletedData.push({
+        //     id: dataId,
+        //     text: data[dataId],
+        //   });
+        // });
+        // TODO: wait until backend has revised
 
         shapeMappings[id] = newData;
 
@@ -305,19 +324,20 @@ const getInitializedShapes = (
       case CommonTypes.Type.process:
         const newProcess = new Process(id, info.w, info.h, info.p, info.title);
 
-        info.selectedData.forEach((dataId) => {
-          newProcess.selectedData.push({
-            id: dataId,
-            text: data[dataId],
-          });
-        });
+        // info.selectedData.forEach((dataId) => {
+        //   newProcess.selectedData.push({
+        //     id: dataId,
+        //     text: data[dataId],
+        //   });
+        // });
 
-        info.deletedData.forEach((dataId) => {
-          newProcess.deletedData.push({
-            id: dataId,
-            text: data[dataId],
-          });
-        });
+        // info.deletedData.forEach((dataId) => {
+        //   newProcess.deletedData.push({
+        //     id: dataId,
+        //     text: data[dataId],
+        //   });
+        // });
+        // TODO: wait until backend has revised
 
         shapeMappings[id] = newProcess;
 
@@ -335,19 +355,20 @@ const getInitializedShapes = (
           newDesicion.text = info.text;
         }
 
-        info.selectedData.forEach((dataId) => {
-          newDesicion.selectedData.push({
-            id: dataId,
-            text: data[dataId],
-          });
-        });
+        // info.selectedData.forEach((dataId) => {
+        //   newDesicion.selectedData.push({
+        //     id: dataId,
+        //     text: data[dataId],
+        //   });
+        // });
 
-        info.deletedData.forEach((dataId) => {
-          newDesicion.deletedData.push({
-            id: dataId,
-            text: data[dataId],
-          });
-        });
+        // info.deletedData.forEach((dataId) => {
+        //   newDesicion.deletedData.push({
+        //     id: dataId,
+        //     text: data[dataId],
+        //   });
+        // });
+        // TODO: wait until backend has revised
 
         shapeMappings[id] = newDesicion;
 
@@ -835,7 +856,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseCenter.x.toFixed(1)) ===
-          Number(targetShape.getCenter().m.x.toFixed(1)) ||
+        Number(targetShape.getCenter().m.x.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.x - b.p.x);
@@ -862,7 +883,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseCenter.y.toFixed(1)) ===
-          Number(targetShape.getCenter().m.y.toFixed(1)) ||
+        Number(targetShape.getCenter().m.y.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.y - b.p.y);
@@ -891,7 +912,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.l.toFixed(1)) ===
-          Number(targetShape.getEdge().l.toFixed(1)) ||
+        Number(targetShape.getEdge().l.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.y - b.p.y);
@@ -914,7 +935,7 @@ const getAlignLines = (
     .filter((targetShape) => {
       return (
         Number(baseEdge.l.toFixed(1)) ===
-          Number(targetShape.getEdge().r.toFixed(1)) ||
+        Number(targetShape.getEdge().r.toFixed(1)) ||
         targetShape.id === baseShape.id
       );
     })
@@ -943,7 +964,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.t.toFixed(1)) ===
-          Number(targetShape.getEdge().t.toFixed(1)) ||
+        Number(targetShape.getEdge().t.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.x - b.p.x);
@@ -966,7 +987,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.t.toFixed(1)) ===
-          Number(targetShape.getEdge().b.toFixed(1)) ||
+        Number(targetShape.getEdge().b.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.x - b.p.x);
@@ -994,7 +1015,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.r.toFixed(1)) ===
-          Number(targetShape.getEdge().r.toFixed(1)) ||
+        Number(targetShape.getEdge().r.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.y - b.p.y);
@@ -1020,7 +1041,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.r.toFixed(1)) ===
-          Number(targetShape.getEdge().l.toFixed(1)) ||
+        Number(targetShape.getEdge().l.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.y - b.p.y);
@@ -1048,7 +1069,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.b.toFixed(1)) ===
-          Number(targetShape.getEdge().b.toFixed(1)) ||
+        Number(targetShape.getEdge().b.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.x - b.p.x);
@@ -1074,7 +1095,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.b.toFixed(1)) ===
-          Number(targetShape.getEdge().t.toFixed(1)) ||
+        Number(targetShape.getEdge().t.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.x - b.p.x);
@@ -1145,9 +1166,9 @@ const frameSelect = (
       const theEdge = shape.getEdge();
 
       const l =
-          normalSelectAreaP.start.x < normalSelectAreaP.end.x
-            ? normalSelectAreaP.start.x
-            : normalSelectAreaP.end.x,
+        normalSelectAreaP.start.x < normalSelectAreaP.end.x
+          ? normalSelectAreaP.start.x
+          : normalSelectAreaP.end.x,
         t =
           normalSelectAreaP.start.y < normalSelectAreaP.end.y
             ? normalSelectAreaP.start.y
@@ -2422,12 +2443,12 @@ const resizeShape = (
     shape: null | undefined | Terminal | Process | Data | Desicion;
     ghost: null | undefined | Terminal | Process | Data | Desicion;
     target:
-      | null
-      | undefined
-      | CoreTypes.PressingTarget.lt
-      | CoreTypes.PressingTarget.rt
-      | CoreTypes.PressingTarget.rb
-      | CoreTypes.PressingTarget.lb;
+    | null
+    | undefined
+    | CoreTypes.PressingTarget.lt
+    | CoreTypes.PressingTarget.rt
+    | CoreTypes.PressingTarget.rb
+    | CoreTypes.PressingTarget.lb;
   },
   offsetP: CommonTypes.Vec
 ) => {
@@ -2774,102 +2795,103 @@ export default function IdPage() {
   });
   const [overallType, setOverallType] = useState(PageIdTypes.OverallType.step);
   const [createDataValue, setCreateDateValue] = useState<null | string>(null);
-  const [indiviual, setIndiviual] = useState<
+  const [indivisual, setIndivisual] = useState<
     null | Terminal | Process | Data | Desicion
   >(null);
+  const [isEditingIndivisual, setIsEditingIndivisual] = useState(false)
 
   const checkData = (shapes: (Terminal | Process | Data | Desicion)[]) => {
     const dataShapes: Data[] = [];
 
-    shapes.forEach((shape) => {
-      shape.options = [];
-      if (shape instanceof Data) {
-        dataShapes.push(shape);
-      }
-    });
+    // shapes.forEach((shape) => {
+    //   shape.options = [];
+    //   if (shape instanceof Data) {
+    //     dataShapes.push(shape);
+    //   }
+    // });
 
-    dataShapes.forEach((dataShape) => {
-      // traversal all relational steps
-      const queue: (Core | Terminal | Process | Data | Desicion)[] = [
-          dataShape,
-        ],
-        locks: { [curveId: string]: boolean } = {}, // prevent from graph cycle
-        deletedDataMap: { [text: string]: boolean } = {};
+    // dataShapes.forEach((dataShape) => {
+    // traversal all relational steps
+    // const queue: (Core | Terminal | Process | Data | Desicion)[] = [
+    //   dataShape,
+    // ],
+    //   locks: { [curveId: string]: boolean } = {}, // prevent from graph cycle
+    //   deletedDataMap: { [text: string]: boolean } = {};
 
-      // while (queue.length !== 0) {
-      //   const shape = queue[0];
+    // while (queue.length !== 0) {
+    //   const shape = queue[0];
 
-      //   ds.forEach((d) => {
-      //     shape.curves[d].forEach((curve) => {
-      //       const theSendToShape = curve.sendTo?.shape;
+    //   ds.forEach((d) => {
+    //     shape.curves[d].forEach((curve) => {
+    //       const theSendToShape = curve.sendTo?.shape;
 
-      //       if (!theSendToShape) return;
+    //       if (!theSendToShape) return;
 
-      //       dataShape.data.forEach((dataItem) => {
-      //         if (
-      //           theSendToShape.options.some(
-      //             (option) => option.text === dataItem.text
-      //           ) ||
-      //           deletedDataMap[dataItem.text]
-      //         )
-      //           return;
-      //         theSendToShape.options.push(dataItem);
-      //       });
+    //       dataShape.data.forEach((dataItem) => {
+    //         if (
+    //           theSendToShape.options.some(
+    //             (option) => option.text === dataItem.text
+    //           ) ||
+    //           deletedDataMap[dataItem.text]
+    //         )
+    //           return;
+    //         theSendToShape.options.push(dataItem);
+    //       });
 
-      //       theSendToShape.deletedData.forEach((deleteDataItem) => {
-      //         deletedDataMap[deleteDataItem.text] = true;
-      //       });
+    //       theSendToShape.deletedData.forEach((deleteDataItem) => {
+    //         deletedDataMap[deleteDataItem.text] = true;
+    //       });
 
-      //       if (!locks[curve.shape.id]) {
-      //         queue.push(theSendToShape);
-      //         locks[curve.shape.id] = true;
-      //       }
-      //     });
-      //   });
+    //       if (!locks[curve.shape.id]) {
+    //         queue.push(theSendToShape);
+    //         locks[curve.shape.id] = true;
+    //       }
+    //     });
+    //   });
 
-      //   queue.shift();
-      // }
-    });
+    //   queue.shift();
+    // }
+    // });
 
     // check all correspondants of shapes' between options and selectedData
-    shapes.forEach((shape) => {
-      shape.getRedundancies();
-    });
+    // shapes.forEach((shape) => {
+    //   shape.getRedundancies();
+    // });
 
-    const errorShapes: Core[] = shapes.filter(
-      (shape) => shape.status === CoreTypes.Status.error
-    );
+    // const errorShapes: Core[] = shapes.filter(
+    //   (shape) => shape.status === CoreTypes.Status.error
+    // );
 
-    errorShapes.forEach((errorShape) => {
-      // traversal all relational steps
-      const queue: (Core | Terminal | Process | Data | Desicion)[] = [
-          errorShape,
-        ],
-        locks: { [curveId: string]: boolean } = {}; // prevent from graph cycle
+    // errorShapes.forEach((errorShape) => {
+    //   // traversal all relational steps
+    //   const queue: (Core | Terminal | Process | Data | Desicion)[] = [
+    //     errorShape,
+    //   ],
+    //     locks: { [curveId: string]: boolean } = {}; // prevent from graph cycle
 
-      while (queue.length !== 0) {
-        const shape = queue[0];
+    //   while (queue.length !== 0) {
+    //     const shape = queue[0];
 
-        if (shape.status !== CoreTypes.Status.error) {
-          shape.status = CoreTypes.Status.disabled;
-        }
+    //     if (shape.status !== CoreTypes.Status.error) {
+    //       shape.status = CoreTypes.Status.disabled;
+    //     }
 
-        // ds.forEach((d) => {
-        //   shape.curves[d].forEach((curve) => {
-        //     const theSendToShape = curve.sendTo?.shape;
+    // ds.forEach((d) => {
+    //   shape.curves[d].forEach((curve) => {
+    //     const theSendToShape = curve.sendTo?.shape;
 
-        //     if (!theSendToShape) return;
+    //     if (!theSendToShape) return;
 
-        //     if (!locks[curve.shape.id]) {
-        //       queue.push(theSendToShape);
-        //       locks[curve.shape.id] = true;
-        //     }
-        //   });
-        // });
+    //     if (!locks[curve.shape.id]) {
+    //       queue.push(theSendToShape);
+    //       locks[curve.shape.id] = true;
+    //     }
+    //   });
+    // });
 
-        queue.shift();
-      }
-    });
+    // queue.shift();
+    // }
+    // });
   };
 
   const checkSteps = () => {
@@ -3023,9 +3045,9 @@ export default function IdPage() {
     e.preventDefault();
 
     const p = {
-        x: e.nativeEvent.offsetX,
-        y: e.nativeEvent.offsetY,
-      },
+      x: e.nativeEvent.offsetX,
+      y: e.nativeEvent.offsetY,
+    },
       offsetP = {
         x: p.x - lastP.x,
         y: p.y - lastP.y,
@@ -3276,7 +3298,7 @@ export default function IdPage() {
       setDataFrameWarning(init.dataFrameWarning);
       setDbClickedShape(shape);
       setIsIndivisualSidePanelOpen(true);
-      setIndiviual(shape);
+      setIndivisual(shape);
       setDataFrame({
         p: getFramePosition(shape, offset, scale),
       });
@@ -3378,12 +3400,12 @@ export default function IdPage() {
     //   }
     // });
 
-    data.forEach((dataItem, dataItemI) => {
-      // validate required data
-      if (!dataItem.text) {
-        dataWarningMapping[dataItemI] = "required field.";
-      }
-    });
+    // data.forEach((dataItem, dataItemI) => {
+    //   // validate required data
+    //   if (!dataItem.text) {
+    //     dataWarningMapping[dataItemI] = "required field.";
+    //   }
+    // });
 
     setDataFrameWarning((dataFrameWarning) => ({
       ...dataFrameWarning,
@@ -3398,9 +3420,9 @@ export default function IdPage() {
     ) {
       // dbClickedShape?.onDataChange(title, selectedData, deletedData);
     } else if (dbClickedShape instanceof Data) {
-      dbClickedShape?.onDataChange(title, data, selectedData, deletedData);
+      // dbClickedShape?.onDataChange(title, data, selectedData, deletedData);
     } else if (dbClickedShape instanceof Terminal) {
-      dbClickedShape?.onDataChange(title);
+      // dbClickedShape?.onDataChange(title);
     }
 
     setDataFrame(undefined);
@@ -3441,11 +3463,15 @@ export default function IdPage() {
     setIsOverallSidePanelOpen((open) => !open);
   };
 
-  const onClickIndiviualSidePanelSwitch: SidePanelTypes.Props["onClickSwitch"] =
+  const onClickIndivisualSidePanelSwitch: SidePanelTypes.Props["onClickSwitch"] =
     (e) => {
       e.preventDefault();
       setIsIndivisualSidePanelOpen((open) => !open);
     };
+
+  const onClickEditIndivisualIcon = () => {
+    setIsEditingIndivisual(true)
+  }
 
   const onClickProfile = () => {
     setIsProfileFrameOpen((isProfileFrameOpen) => !isProfileFrameOpen);
@@ -3495,51 +3521,51 @@ export default function IdPage() {
       )
         return;
 
-      modifyData.shapes[shape.id] = {
-        w: shape.w,
-        h: shape.h,
-        title: shape.title,
-        type: (() => {
-          if (shape instanceof Terminal) {
-            return CommonTypes.Type.terminator;
-          } else if (shape instanceof Process) {
-            return CommonTypes.Type.process;
-          } else if (shape instanceof Data) {
-            return CommonTypes.Type.data;
-          } else if (shape instanceof Desicion) {
-            return CommonTypes.Type.decision;
-          }
+      // modifyData.shapes[shape.id] = {
+      //   w: shape.w,
+      //   h: shape.h,
+      //   title: shape.title,
+      //   type: (() => {
+      //     if (shape instanceof Terminal) {
+      //       return CommonTypes.Type.terminator;
+      //     } else if (shape instanceof Process) {
+      //       return CommonTypes.Type.process;
+      //     } else if (shape instanceof Data) {
+      //       return CommonTypes.Type.data;
+      //     } else if (shape instanceof Desicion) {
+      //       return CommonTypes.Type.decision;
+      //     }
 
-          return CommonTypes.Type.process;
-        })(),
-        p: shape.p,
-        curves: (() => {
-          const curves: {
-            l: string[];
-            t: string[];
-            r: string[];
-            b: string[];
-          } = { l: [], t: [], r: [], b: [] };
+      //     return CommonTypes.Type.process;
+      //   })(),
+      //   p: shape.p,
+      //   curves: (() => {
+      //     const curves: {
+      //       l: string[];
+      //       t: string[];
+      //       r: string[];
+      //       b: string[];
+      //     } = { l: [], t: [], r: [], b: [] };
 
-          return curves;
-        })(),
-        data: (() => {
-          if (shape instanceof Data) {
-            return shape.data.map((dataItem) => {
-              modifyData.data[dataItem.id] = dataItem.text;
+      //     return curves;
+      //   })(),
+      //   data: (() => {
+      //     if (shape instanceof Data) {
+      //       return shape.data.map((dataItem) => {
+      //         modifyData.data[dataItem.id] = dataItem.text;
 
-              return dataItem.id;
-            });
-          }
+      //         return dataItem.id;
+      //       });
+      //     }
 
-          return [];
-        })(),
-        selectedData: shape.selectedData.map(
-          (selectedDataItem) => selectedDataItem.id
-        ),
-        deletedData: shape.deletedData.map((deleteData) => deleteData.id),
-        text: shape instanceof Desicion ? shape?.text : null,
-      };
+      //     return [];
+      //   })(),
+      //   selectedData: shape.selectedData.map(
+      //     (selectedDataItem) => selectedDataItem.id
+      //   ),
+      //   deletedData: shape.deletedData.map((deleteData) => deleteData.id),
+      //   text: shape instanceof Desicion ? shape?.text : null,
+      // };
     });
 
     projectAPIs
@@ -3961,20 +3987,14 @@ export default function IdPage() {
           </li>
           <li className="flex justify-self-end self-center text-base">
             <Button
-              className={"mr-4 bg-secondary-500"}
+              info
+              className={"mr-4"}
               onClick={onClickSaveButton}
-              text={
-                <div className="d-flex items-center">
-                  <span className="text-white-500">Save</span>
-                  {/* <div
-                  className="mx-2 w-2 h-2 inline-flex items-center justify-center rounded-full bg-info-500 text-indigo-500 flex-shrink-0 cursor-pointer"
-                /> */}
-                </div>
-              }
+              text={"Save"}
             />
             <div className="relative">
               <div
-                className="w-10 h-10 inline-flex items-center justify-center rounded-full bg-info-500 text-white-500 flex-shrink-0 cursor-pointer"
+                className="w-10 h-10 inline-flex items-center justify-center rounded-full bg-secondary-500 text-black-2 flex-shrink-0 cursor-pointer"
                 onClick={onClickProfile}
               >
                 L
@@ -4029,22 +4049,20 @@ export default function IdPage() {
           >
             <h3
               data-tab={PageIdTypes.OverallType.step}
-              className={`flex-1 flex justify-center text-lg font-semibold py-2 px-5 ${
-                overallType === PageIdTypes.OverallType.step
-                  ? "border-b-2 border-secondary-500 text-black-2"
-                  : "border-b-1 text-grey-4"
-              }`}
+              className={`flex-1 flex justify-center text-lg font-semibold py-2 px-5 ${overallType === PageIdTypes.OverallType.step
+                ? "border-b-2 border-secondary-500 text-black-2"
+                : "border-b-1 text-grey-4"
+                }`}
             >
               <span>Step</span>
             </h3>
             <div className="border-r border-grey-5" />
             <h3
               data-tab={PageIdTypes.OverallType.data}
-              className={`flex-1 flex justify-center text-lg font-semibold py-2 px-5 ${
-                overallType === PageIdTypes.OverallType.data
-                  ? "border-b-2 border-secondary-500 text-black-2"
-                  : "border-b-1 text-grey-4"
-              }`}
+              className={`flex-1 flex justify-center text-lg font-semibold py-2 px-5 ${overallType === PageIdTypes.OverallType.data
+                ? "border-b-2 border-secondary-500 text-black-2"
+                : "border-b-1 text-grey-4"
+                }`}
             >
               <span>Data</span>
             </h3>
@@ -4201,9 +4219,8 @@ export default function IdPage() {
       </div>
 
       <div
-        className={`fixed bottom-[16px] ${
-          isIndivisualSidePanelOpen ? "right-[508px]" : "right-[164px]"
-        }`}
+        className={`fixed bottom-[16px] ${isIndivisualSidePanelOpen ? "right-[508px]" : "right-[164px]"
+          }`}
         role="undo"
       >
         <RoundButton
@@ -4223,9 +4240,8 @@ export default function IdPage() {
       </div>
 
       <div
-        className={`fixed p-3 bottom-[16px] ${
-          isIndivisualSidePanelOpen ? "right-[360px]" : "right-[16px]"
-        } rounded-full shadow-md bg-white-500`}
+        className={`fixed p-3 bottom-[16px] ${isIndivisualSidePanelOpen ? "right-[360px]" : "right-[16px]"
+          } rounded-full shadow-md bg-white-500`}
         role="zoom"
       >
         <div className="justify-self-end">
@@ -4252,6 +4268,178 @@ export default function IdPage() {
         </div>
       </div>
 
+      <SidePanel
+        role={"indivisual"}
+        open={isIndivisualSidePanelOpen}
+        horizentalD={SidePanelTypes.HorizentalD.r}
+        verticalD={SidePanelTypes.VerticalD.b}
+        w={"360px"}
+        h={"calc(100vh)"}
+        onClickSwitch={onClickIndivisualSidePanelSwitch}
+      >
+        <div className={"p-4 h-full"}>
+          {isEditingIndivisual ?
+            <div className="flex justify-end items-center">
+              <Button vice text="Cancel" className="ms-2" size={ButtonTypes.Size.sm} onClick={() => { setIsEditingIndivisual(false) }} />
+              <Button text="Save" className="ms-2" size={ButtonTypes.Size.sm} onClick={() => { }} />
+            </div> :
+            <Icon
+              role="edit_indivisual"
+              className={"justify-self-end cursor-pointer"}
+              type={IconTypes.Type.pencilSquare}
+              w={16}
+              h={16}
+              disabled={!indivisual}
+              onClick={onClickEditIndivisualIcon}
+            />
+          }
+          <div className="flex flex-col h-full">
+            <section>
+              <div>
+                <p className="text-sm px-1">title</p>
+                {isEditingIndivisual ?
+                  <Input
+                    value={indivisual?.title}
+                  // onChange={onChangeTitle}
+                  />
+                  :
+                  <p className="text-black-2 px-3 py-1">{indivisual?.title || 'none'}</p>
+                }
+              </div>
+            </section>
+            <Divider text={"Import Data"}/>
+            <section className="flex-1">
+              <div>
+                <div className="flex items-center justify-end px-1">
+                  {isEditingIndivisual &&
+                    <div className="flex">
+                      <SimpleButton
+                        onClick={onClickCreateDataButton}
+                        text="Add"
+                        size={SimpleButtonTypes.Size.sm}
+                      />
+                      <div className="border mx-2 my-1" />
+                      <SimpleButton
+                        onClick={onClickCreateDataButton}
+                        text="New"
+                        size={SimpleButtonTypes.Size.sm}
+                      />
+                    </div>
+                  }
+                </div>
+                {/* <Select className="mb-1" /> */}
+                {indivisual?.importDatas && indivisual?.importDatas.length > 0 ? (
+                  indivisual.importDatas.map((importData, i) => (
+                    <div className="px-3 py-1 hover:bg-grey-5">
+                      <StatusText text={importData.text} status={importData.status} />
+                    </div>
+                  ))
+                ) : (
+                  <p className="px-3 py-1 text-black-2">none</p>
+                )}
+              </div>
+            </section>
+            <Divider text={"Using Data"}/>
+            <section className="flex-1 mb-2 pb-4">
+              <div className="px-1">
+                {/* <div
+                  className="w-6 h-6 ml-2 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
+                // onClick={onClickPlus}
+                >
+                  +
+                </div> */}
+                {indivisual?.usingDatas && indivisual?.usingDatas.length > 0 ? (
+                  indivisual.usingDatas.map((usingData, i) => (
+                    <div className={`flex flex-col mt-${i !== 0 ? "2" : "0"}`}>
+                      <div className="flex items-center">
+                        <input
+                          type="text"
+                          id="full-name"
+                          name="full-name"
+                          className={`w-full h-[28px] bg-white rounded border 
+                        ${false ? "border-red-500" : "border-gray-300"}
+                  focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out`}
+                          value={usingData.text}
+                        // onChange={(e) => {
+                        //   onChangeData(e, i);
+                        // }}
+                        />
+                        <div
+                          className="w-6 h-6 ml-2 inline-flex items-center justify-center rounded-full text-white-500 bg-primary-500 flex-shrink-0 cursor-pointer"
+                        // onClick={() => {
+                        //   onClickMinus(usingData.id);
+                        // }}
+                        >
+                          -
+                        </div>
+                      </div>
+                      {/* {false && (
+                      <span className="text-red-500">{warning.data[i]}</span>
+                    )} */}
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-black-2">none</p>
+                )}
+              </div>
+            </section>
+            <Divider text={"Remove Data"}/>
+            <section className="flex-1 mb-2 pb-4">
+              <div className="px-1">
+                {/* <div
+                  className="w-6 h-6 ml-2 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
+                // onClick={onClickPlus}
+                >
+                  +
+                </div> */}
+                {indivisual?.removeDatas && indivisual?.removeDatas.length > 0 ? (
+                  indivisual.removeDatas.map((removeData, i) => (
+                    <div className={`flex flex-col mt-${i !== 0 ? "2" : "0"}`}>
+                      <div className="flex items-center">
+                        <input
+                          type="text"
+                          id="full-name"
+                          name="full-name"
+                          className={`w-full h-[28px] bg-white rounded border 
+                        ${false ? "border-red-500" : "border-gray-300"}
+                  focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out`}
+                          value={removeData.text}
+                        // onChange={(e) => {
+                        //   onChangeData(e, i);
+                        // }}
+                        />
+                        <div
+                          className="w-6 h-6 ml-2 inline-flex items-center justify-center rounded-full text-white-500 bg-primary-500 flex-shrink-0 cursor-pointer"
+                        // onClick={() => {
+                        //   onClickMinus(removeData.id);
+                        // }}
+                        >
+                          -
+                        </div>
+                      </div>
+                      {/* {false && (
+                      <span className="text-red-500">{warning.data[i]}</span>
+                    )} */}
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-black-2">none</p>
+                )}
+              </div>
+            </section>
+            {/* <section>
+              <Input
+                label="Remark"
+                h={120}
+                value={indivisual?.title}
+              // onChange={onChangeTitle}
+              />
+              TODO: change to textArea
+            </section> */}
+          </div>
+        </div>
+      </SidePanel>
+
       <img id="screenshotImg" alt="Screenshot" style={{ display: "none" }} />
       <div className={"flex"}>
         <canvas
@@ -4270,9 +4458,8 @@ export default function IdPage() {
         />
         <canvas
           role="screenshot"
-          className={`invisible ${
-            space ? "cursor-grab" : ""
-          } overflow-hidden absolute left-0 top-0 z-[-1]`}
+          className={`invisible ${space ? "cursor-grab" : ""
+            } overflow-hidden absolute left-0 top-0 z-[-1]`}
           tabIndex={1}
           ref={(el) => {
             $screenshot = el;
@@ -4280,175 +4467,6 @@ export default function IdPage() {
           }}
         />
       </div>
-      <SidePanel
-        role={"indivisual"}
-        open={isIndivisualSidePanelOpen}
-        horizentalD={SidePanelTypes.HorizentalD.r}
-        verticalD={SidePanelTypes.VerticalD.b}
-        w={"360px"}
-        h={"calc(100vh)"}
-        onClickSwitch={onClickIndiviualSidePanelSwitch}
-      >
-        <div className={"p-4 h-full"}>
-          <div className="flex flex-col h-full">
-            <section className="mb-2 pb-4 border-b border-grey-5">
-              <Input
-                label="Title"
-                value={indiviual?.title}
-                // onChange={onChangeTitle}
-              />
-            </section>
-            <section className="flex-1 mb-2 pb-4 border-b border-grey-5">
-              <div className="px-1">
-                <div className="mb-1">
-                  <div className="flex justify-between">
-                    <p className="leading-7 text-sm">Import Data</p>
-                    <SimpleButton
-                      onClick={onClickCreateDataButton}
-                      text="New"
-                    />
-                  </div>
-                </div>
-                <Select className="mb-1" />
-                {indiviual?.data && indiviual?.data.length > 0 ? (
-                  indiviual.data.map((dataItem, i) => (
-                    <div className={`flex flex-col mt-${i !== 0 ? "2" : "0"}`}>
-                      <div className="flex items-center">
-                        <input
-                          type="text"
-                          id="full-name"
-                          name="full-name"
-                          className={`w-full h-[28px] bg-white rounded border 
-                        ${false ? "border-red-500" : "border-gray-300"}
-                  focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out`}
-                          value={dataItem.text}
-                          // onChange={(e) => {
-                          //   onChangeData(e, i);
-                          // }}
-                        />
-                        <div
-                          className="w-6 h-6 ml-2 inline-flex items-center justify-center rounded-full text-white-500 bg-primary-500 flex-shrink-0 cursor-pointer"
-                          // onClick={() => {
-                          //   onClickMinus(dataItem.id);
-                          // }}
-                        >
-                          -
-                        </div>
-                      </div>
-                      {/* {false && (
-                      <span className="text-red-500">{warning.data[i]}</span>
-                    )} */}
-                    </div>
-                  ))
-                ) : (
-                  <p>none</p>
-                )}
-              </div>
-            </section>
-            <section className="flex-1 mb-2 pb-4 border-b border-grey-5">
-              <div className="px-1">
-                <div className="mb-1">
-                  <p className="leading-7 text-sm ">Using Data</p>
-                  {/* <div
-                  className="w-6 h-6 ml-2 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
-                // onClick={onClickPlus}
-                >
-                  +
-                </div> */}
-                </div>
-                {indiviual?.data && indiviual?.data.length > 0 ? (
-                  indiviual.data.map((dataItem, i) => (
-                    <div className={`flex flex-col mt-${i !== 0 ? "2" : "0"}`}>
-                      <div className="flex items-center">
-                        <input
-                          type="text"
-                          id="full-name"
-                          name="full-name"
-                          className={`w-full h-[28px] bg-white rounded border 
-                        ${false ? "border-red-500" : "border-gray-300"}
-                  focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out`}
-                          value={dataItem.text}
-                          // onChange={(e) => {
-                          //   onChangeData(e, i);
-                          // }}
-                        />
-                        <div
-                          className="w-6 h-6 ml-2 inline-flex items-center justify-center rounded-full text-white-500 bg-primary-500 flex-shrink-0 cursor-pointer"
-                          // onClick={() => {
-                          //   onClickMinus(dataItem.id);
-                          // }}
-                        >
-                          -
-                        </div>
-                      </div>
-                      {/* {false && (
-                      <span className="text-red-500">{warning.data[i]}</span>
-                    )} */}
-                    </div>
-                  ))
-                ) : (
-                  <p>none</p>
-                )}
-              </div>
-            </section>
-            <section className="flex-1 mb-2 pb-4 border-b border-grey-5">
-              <div className="px-1">
-                <div className="mb-1">
-                  <p className="leading-7 text-sm ">Remove Data</p>
-                  {/* <div
-                  className="w-6 h-6 ml-2 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
-                // onClick={onClickPlus}
-                >
-                  +
-                </div> */}
-                </div>
-                {indiviual?.data && indiviual?.data.length > 0 ? (
-                  indiviual.data.map((dataItem, i) => (
-                    <div className={`flex flex-col mt-${i !== 0 ? "2" : "0"}`}>
-                      <div className="flex items-center">
-                        <input
-                          type="text"
-                          id="full-name"
-                          name="full-name"
-                          className={`w-full h-[28px] bg-white rounded border 
-                        ${false ? "border-red-500" : "border-gray-300"}
-                  focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out`}
-                          value={dataItem.text}
-                          // onChange={(e) => {
-                          //   onChangeData(e, i);
-                          // }}
-                        />
-                        <div
-                          className="w-6 h-6 ml-2 inline-flex items-center justify-center rounded-full text-white-500 bg-primary-500 flex-shrink-0 cursor-pointer"
-                          // onClick={() => {
-                          //   onClickMinus(dataItem.id);
-                          // }}
-                        >
-                          -
-                        </div>
-                      </div>
-                      {/* {false && (
-                      <span className="text-red-500">{warning.data[i]}</span>
-                    )} */}
-                    </div>
-                  ))
-                ) : (
-                  <p>none</p>
-                )}
-              </div>
-            </section>
-            <section>
-              <Input
-                label="Remark"
-                h={120}
-                value={indiviual?.title}
-                // onChange={onChangeTitle}
-              />
-              {/* TODO: change to textArea */}
-            </section>
-          </div>
-        </div>
-      </SidePanel>
     </>
   );
 }

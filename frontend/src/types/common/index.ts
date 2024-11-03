@@ -30,9 +30,16 @@ enum Corner {
 
 type Title = string;
 
-type DataItem = { id: string; text: string };
+enum DataStatus {
+  default = "default",
+  pass = "pass",
+  warning = "warning",
+  error = "error",
+}
 
-type Data = DataItem[];
+type Data = { id: string; text: string; status: DataStatus };
+
+type Datas = Data[];
 
 enum Type {
   terminator = "terminator",
@@ -60,5 +67,5 @@ enum Action {
   multiResize = "multiResize",
 }
 
-export type { Id, W, H, C, Vec, Shapes, Title, DataItem, Data };
-export { Direction, Corner, Type, SelectAreaTarget, Action };
+export type { Id, W, H, C, Vec, Shapes, Title, Data, Datas };
+export { Direction, Corner, Type, SelectAreaTarget, Action, DataStatus };

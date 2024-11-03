@@ -1,13 +1,12 @@
 "use client";
 import { tailwindColors } from "@/variables/colors";
 import { Inter } from "next/font/google";
-import { Vec, Direction, Data as DataType } from "@/types/common";
 import * as CoreTypes from "@/types/shapes/core";
 import * as CommonTypes from "@/types/common";
 
 const inter = Inter({ subsets: ["latin"] });
 
-const ds = [Direction.l, Direction.t, Direction.r, Direction.b];
+const ds = [CommonTypes.Direction.l, CommonTypes.Direction.t, CommonTypes.Direction.r, CommonTypes.Direction.b];
 
 export default class Core {
   id: string;
@@ -25,32 +24,30 @@ export default class Core {
       stroke: number;
     };
   } = {
-    distance: 48,
-    size: {
-      fill: 4,
-      stroke: 2,
-    },
-  };
+      distance: 48,
+      size: {
+        fill: 4,
+        stroke: 2,
+      },
+    };
   private strokeSize = 1;
   private __w__: number;
   private __h__: number;
   title: CommonTypes.Title;
-  private __p__: Vec;
+  private __p__: CommonTypes.Vec;
   private __selecting__: boolean;
   protected __receivePoint__: CoreTypes.ReceivePoint;
-  options: DataType;
-  selectedData: DataType;
-  deletedData: DataType;
-  redundancies: DataType;
+  private __importDatas__: CommonTypes.Datas;
+  private __usingDatas__: CommonTypes.Datas;
+  private __removeDatas__: CommonTypes.Datas;
   status: CoreTypes.Status;
-  private __data__: CommonTypes.Data = [];
   private __minCurveHandlerDistance__: number;
 
   constructor(
     id: string,
     w: number,
     h: number,
-    p: Vec,
+    p: CommonTypes.Vec,
     c: string,
     title: CommonTypes.Title
   ) {
@@ -67,16 +64,14 @@ export default class Core {
       r: { visible: false, activate: false },
       b: { visible: false, activate: false },
     };
-    this.options = [];
-    this.selectedData = [];
-    this.deletedData = [];
-    this.redundancies = [];
+    this.__importDatas__ = [];
+    this.__usingDatas__ = [];
+    this.__removeDatas__ = [];
     this.status = CoreTypes.Status.normal;
     this.__minCurveHandlerDistance__ = 60;
-    this.__data__ = [];
   }
 
-  set p(value: Vec) {
+  set p(value: CommonTypes.Vec) {
     this.__p__ = value;
   }
 
@@ -116,11 +111,31 @@ export default class Core {
     return this.__minCurveHandlerDistance__;
   }
 
-  get data() {
-    return this.__data__;
+  set importDatas(val: CommonTypes.Datas) {
+    this.__importDatas__ = val;
   }
 
-  getP(offset: Vec = { x: 0, y: 0 }, scale: number = 1) {
+  get importDatas() {
+    return this.__importDatas__;
+  }
+
+  set usingDatas(val: CommonTypes.Datas) {
+    this.__usingDatas__ = val;
+  }
+
+  get usingDatas() {
+    return this.__usingDatas__;
+  }
+
+  set removeDatas(val: CommonTypes.Datas) {
+    this.__removeDatas__ = val;
+  }
+
+  get removeDatas() {
+    return this.__removeDatas__;
+  }
+
+  getP(offset: CommonTypes.Vec = { x: 0, y: 0 }, scale: number = 1) {
     return {
       x: (this.p.x + offset.x) * scale,
       y: (this.p.y + offset.y) * scale,
@@ -134,7 +149,7 @@ export default class Core {
     };
   }
 
-  getEdge(offset: Vec = { x: 0, y: 0 }, scale: number = 1) {
+  getEdge(offset: CommonTypes.Vec = { x: 0, y: 0 }, scale: number = 1) {
     const screenP = this.getP(offset, scale);
     const scaleSize = this.getScaleSize(scale);
     return {
@@ -146,7 +161,7 @@ export default class Core {
   }
 
   getCenter(
-    offset: Vec = { x: 0, y: 0 },
+    offset: CommonTypes.Vec = { x: 0, y: 0 },
     scale: number = 1
   ): CoreTypes.GetCenterReturn {
     const edge = this.getEdge(offset, scale);
@@ -212,7 +227,7 @@ export default class Core {
     };
   }
 
-  checkBoundry(p: Vec, threshold: number = 0) {
+  checkBoundry(p: CommonTypes.Vec, threshold: number = 0) {
     const edge = this.getEdge();
 
     return (
@@ -223,7 +238,7 @@ export default class Core {
     );
   }
 
-  checkQuarterArea(screenP: undefined | Vec) {
+  checkQuarterArea(screenP: undefined | CommonTypes.Vec) {
     if (!screenP) return null;
     const center = this.getCenter();
 
@@ -276,8 +291,8 @@ export default class Core {
     };
 
     const checkInsideTriangle = (
-      vecs: [Vec, Vec, Vec],
-      target: [Vec, Vec, Vec]
+      vecs: [CommonTypes.Vec, CommonTypes.Vec, CommonTypes.Vec],
+      target: [CommonTypes.Vec, CommonTypes.Vec, CommonTypes.Vec]
     ) => {
       const cross1 = vecs[0].x * target[0].y - vecs[0].y * target[0].x;
       const cross2 = vecs[1].x * target[1].y - vecs[1].y * target[1].x;
@@ -289,11 +304,11 @@ export default class Core {
       );
     };
 
-    const checkOnTriangle = (edgePoints: [Vec, Vec, Vec], p: Vec) => {
+    const checkOnTriangle = (edgePoints: [CommonTypes.Vec, CommonTypes.Vec, CommonTypes.Vec], p: CommonTypes.Vec) => {
       const isRatio1Match =
         edgePoints[0].x -
-          edgePoints[0].x / edgePoints[1].x -
-          edgePoints[1].x ===
+        edgePoints[0].x / edgePoints[1].x -
+        edgePoints[1].x ===
         edgePoints[0].x - edgePoints[0].x / p.x - p.x;
 
       const isPInSideEdgePoint1 =
@@ -304,8 +319,8 @@ export default class Core {
 
       const isRatio2Match =
         edgePoints[1].x -
-          edgePoints[2].x / edgePoints[1].x -
-          edgePoints[2].x ===
+        edgePoints[2].x / edgePoints[1].x -
+        edgePoints[2].x ===
         edgePoints[1].x - edgePoints[1].x / p.x - p.x;
 
       const isPInSideEdgePoint2 =
@@ -316,8 +331,8 @@ export default class Core {
 
       const isRatio3Match =
         edgePoints[2].x -
-          edgePoints[0].x / edgePoints[2].x -
-          edgePoints[0].x ===
+        edgePoints[0].x / edgePoints[2].x -
+        edgePoints[0].x ===
         edgePoints[2].x - edgePoints[2].x / p.x - p.x;
 
       const isPInSideEdgePoint3 =
@@ -340,14 +355,14 @@ export default class Core {
       ) ||
       checkOnTriangle([center.lt, center.m, center.lb], screenP)
     ) {
-      return Direction.l;
+      return CommonTypes.Direction.l;
     } else if (
       checkInsideTriangle(
         [quarterVecs.t.lt_rt, quarterVecs.t.rt_m, quarterVecs.t.m_lt],
         [targetVecs.t.lt_p, targetVecs.t.rt_p, targetVecs.t.m_p]
       )
     ) {
-      return Direction.t;
+      return CommonTypes.Direction.t;
     } else if (
       checkInsideTriangle(
         [quarterVecs.r.rt_rb, quarterVecs.r.rb_m, quarterVecs.r.m_rt],
@@ -355,20 +370,20 @@ export default class Core {
       ) ||
       checkOnTriangle([center.rt, center.m, center.rb], screenP)
     ) {
-      return Direction.r;
+      return CommonTypes.Direction.r;
     } else if (
       checkInsideTriangle(
         [quarterVecs.b.rb_lb, quarterVecs.b.m_rb, quarterVecs.b.lb_m],
         [targetVecs.b.lb_p, targetVecs.b.rb_p, targetVecs.b.m_p]
       )
     ) {
-      return Direction.b;
+      return CommonTypes.Direction.b;
     }
 
     return null;
   }
 
-  checkVertexesBoundry(p: Vec) {
+  checkVertexesBoundry(p: CommonTypes.Vec) {
     const edge = this.getEdge();
 
     let dx, dy;
@@ -404,7 +419,7 @@ export default class Core {
     return null;
   }
 
-  checkReceivingBoundry(p: Vec) {
+  checkReceivingBoundry(p: CommonTypes.Vec) {
     const edge = this.getEdge();
 
     const receivingBoundryOffset = 10;
@@ -417,7 +432,7 @@ export default class Core {
     );
   }
 
-  checkReceivingPointsBoundry(p: Vec) {
+  checkReceivingPointsBoundry(p: CommonTypes.Vec) {
     const edge = this.getEdge(),
       center = this.getCenter();
 
@@ -430,7 +445,7 @@ export default class Core {
       this.__receivePoint__.l.visible &&
       dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill
     ) {
-      return Direction.l;
+      return CommonTypes.Direction.l;
     }
 
     dx = center.m.x - p.x;
@@ -440,7 +455,7 @@ export default class Core {
       this.__receivePoint__.t.visible &&
       dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill
     ) {
-      return Direction.t;
+      return CommonTypes.Direction.t;
     }
 
     dx = p.x - edge.r;
@@ -450,7 +465,7 @@ export default class Core {
       this.__receivePoint__.r.visible &&
       dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill
     ) {
-      return Direction.r;
+      return CommonTypes.Direction.r;
     }
 
     dx = center.m.x - p.x;
@@ -460,56 +475,29 @@ export default class Core {
       this.__receivePoint__.b.visible &&
       dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill
     ) {
-      return Direction.b;
+      return CommonTypes.Direction.b;
     }
 
     return null;
   }
 
-  getTriggerDirection(p: Vec) {
+  getTriggerDirection(p: CommonTypes.Vec) {
     if (!this.selecting) return null;
     const center = this.getCenter();
 
     for (const d of ds) {
       if (
         (p.x - center.__curveTrigger__[d].x) *
-          (p.x - center.__curveTrigger__[d].x) +
-          (p.y - center.__curveTrigger__[d].y) *
-            (p.y - center.__curveTrigger__[d].y) <
+        (p.x - center.__curveTrigger__[d].x) +
+        (p.y - center.__curveTrigger__[d].y) *
+        (p.y - center.__curveTrigger__[d].y) <
         this.__curveTrigger__.size.fill * this.__curveTrigger__.size.fill
       ) {
-        return Direction[d];
+        return CommonTypes.Direction[d];
       }
     }
 
     return null;
-  }
-
-  getRedundancies() {
-    this.status = CoreTypes.Status.normal;
-    this.redundancies = [];
-
-    let optionsHash: { [text: string]: boolean } = {};
-
-    this.options.forEach((option) => {
-      optionsHash[option.text] = true;
-    });
-
-    this.selectedData.forEach((dataItem) => {
-      if (!optionsHash[dataItem.text]) {
-        this.redundancies.push(dataItem);
-      }
-    });
-
-    this.deletedData.forEach((dataItem) => {
-      if (!optionsHash[dataItem.text]) {
-        this.redundancies.push(dataItem);
-      }
-    });
-
-    if (this.redundancies.length > 0) {
-      this.status = CoreTypes.Status.error;
-    }
   }
 
   getIsReceiving() {
@@ -521,7 +509,7 @@ export default class Core {
     );
   }
 
-  move(offset: Vec) {
+  move(offset: CommonTypes.Vec) {
     this.p = {
       x: this.p.x + offset.x,
       y: this.p.y + offset.y,
@@ -549,7 +537,7 @@ export default class Core {
     }
   }
 
-  resize(offset: Vec, vertex: CoreTypes.PressingTarget) {
+  resize(offset: CommonTypes.Vec, vertex: CoreTypes.PressingTarget) {
     if (
       vertex !== CoreTypes.PressingTarget.lt &&
       vertex !== CoreTypes.PressingTarget.rt &&
@@ -682,14 +670,14 @@ export default class Core {
 
   onDataChange = (
     _title: CommonTypes.Title,
-    _data: CommonTypes.Data,
-    _selectedData: CommonTypes.Data,
-    _deletedData: CommonTypes.Data
+    _importDatas: CommonTypes.Datas,
+    _usingDatas: CommonTypes.Datas,
+    _removeDatas: CommonTypes.Datas
   ) => {
     this.title = _title;
-    this.__data__ = _data;
-    this.selectedData = _selectedData;
-    this.deletedData = _deletedData;
+    this.__importDatas__ = _importDatas;
+    this.__usingDatas__ = _usingDatas;
+    this.__removeDatas__ = _removeDatas;
   };
 
   draw(

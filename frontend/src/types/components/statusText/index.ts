@@ -1,4 +1,5 @@
 import { MouseEventHandler, ReactNode } from "react";
+import * as CommonTypes from "@/types/common";
 
 enum Size {
   md = "md",
@@ -15,7 +16,8 @@ type Props = {
   disabled?: boolean;
   danger?: boolean;
   size?: Size;
-  onClick: MouseEventHandler<HTMLButtonElement>;
+  status?: CommonTypes.DataStatus;
+  onClick?: MouseEventHandler<HTMLButtonElement>;
 };
 
 export type { Props };

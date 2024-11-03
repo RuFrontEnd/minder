@@ -15,13 +15,13 @@ const config: Config = {
   		},
   		colors: {
   			primary: {
-  				'500': '#233C53',
+  				'500': '#002878',
   				hover: '#092C4C',
   				DEFAULT: 'hsl(var(--primary))',
   				foreground: 'hsl(var(--primary-foreground))'
   			},
   			secondary: {
-  				'500': '#DF914C',
+  				'500': '#B0C4DE',
   				DEFAULT: 'hsl(var(--secondary))',
   				foreground: 'hsl(var(--secondary-foreground))'
   			},
@@ -39,6 +39,9 @@ const config: Config = {
   				'500': '#EB5757',
   				secondary: '#EBB5B5'
   			},
+			disabled:{
+				'500': '#BDBDBD',
+			},
   			black: {
   				'1': '#000000',
   				'2': '#1D1D1D',
