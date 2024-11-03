@@ -3783,6 +3783,16 @@ export default function IdPage() {
     setAddImportDatas(_addImportDatas);
   };
 
+  const onClickCancelEditIndivisualButton = () => {
+    setAddImportDatas([])
+    setNewImportDatas([])
+    setAddUsingDatas([])
+    setNewUsingDatas([])
+    setAddRemoveDatas([])
+    setNewRemoveDatas([])
+    setIsEditingIndivisual(false)
+  }
+
   useEffect(() => {
     if (!isBrowser) return;
 
@@ -4315,7 +4325,7 @@ export default function IdPage() {
         <div className={"p-4 h-full"}>
           {isEditingIndivisual ?
             <div className="flex justify-end items-center">
-              <Button vice text="Cancel" className="ms-2" size={ButtonTypes.Size.sm} onClick={() => { setIsEditingIndivisual(false) }} />
+              <Button vice text="Cancel" className="ms-2" size={ButtonTypes.Size.sm} onClick={onClickCancelEditIndivisualButton} />
               <Button text="Save" className="ms-2" size={ButtonTypes.Size.sm} onClick={() => { }} />
             </div> :
             <Icon
@@ -4362,14 +4372,14 @@ export default function IdPage() {
               {indivisual?.importDatas && indivisual?.importDatas.length > 0 ? (
                 <ul>
                   {indivisual.importDatas.map((importData) => (
-                    <li key={importData.text} className="px-3 py-1 hover:bg-grey-5">
+                    <li className="px-3 py-1 hover:bg-grey-5">
                       <StatusText text={importData.text} status={importData.status} />
                     </li>
                   ))}
                   {addImportDatas.length > 0 &&
                     addImportDatas.map((addImportData, addImportDataI) => (
-                      <li key={addImportData} className="py-1 flex items-center">
-                        <Input className="flex-1" value={addImportData} onChange={(e) => { onChangeAddImportDataButton(e, addImportDataI) }} />
+                      <li className="py-1 flex items-center">
+                        <Input className="flex-1" placeholder={"input data name"} value={addImportData} onChange={(e) => { onChangeAddImportDataButton(e, addImportDataI) }} />
                         <Icon className="m-1 cursor-pointer"
                           type={IconTypes.Type.x}
                           w={16}
@@ -4382,7 +4392,7 @@ export default function IdPage() {
                   }
                   {newImportDatas.length > 0 &&
                     newImportDatas.map(newImportData => (
-                      <li key={newImportData} className="py-1 flex items-center">
+                      <li className="py-1 flex items-center">
                         <Select className="flex-1" options={dataOptions} />
                         <Icon className="m-1 cursor-pointer" type={IconTypes.Type.x} w={16} h={16} stroke={tailwindColors.error['500']} />
                       </li>
