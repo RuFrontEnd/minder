@@ -22,7 +22,6 @@ const StatusText = (props: StatusTextTypes.Props) => {
       return "text-warning-500";
     }
 
-
     if (props.status === CommonTypes.DataStatus.error) {
       return "text-error-500";
     }

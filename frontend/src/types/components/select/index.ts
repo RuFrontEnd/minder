@@ -17,7 +17,8 @@ type Props = {
   value?: undefined | null | string;
   status?: Status;
   comment?: string;
-  onChange?: ChangeEventHandler<HTMLInputElement>;
+  options: string[];
+  onChange?: ChangeEventHandler<HTMLSelectElement>;
 };
 export { Status };
 export type { Props };

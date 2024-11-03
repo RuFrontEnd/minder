@@ -1,6 +1,6 @@
 // TODO: fix browser zoom and re calculate shape offset / multi multiSelect resize in scale
 "use client";
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback, ChangeEvent } from "react";
 import axios, { AxiosResponse } from "axios";
 import { useParams, useRouter } from "next/navigation";
 import Core from "@/shapes/core";
@@ -2778,6 +2778,8 @@ export default function IdPage() {
   const [steps, setSteps] = useState<PageTypes.Steps>([]);
   const [datas, setDatas] = useState<PageIdTypes.Datas>([
     { id: "id1", name: "data1" },
+    { id: "id2", name: "data2" },
+    { id: "id3", name: "data3" },
   ]);
   const [dataFrameWarning, setDataFrameWarning] =
     useState<DataFrameTypes.Warning>(init.dataFrameWarning);
@@ -2799,6 +2801,14 @@ export default function IdPage() {
     null | Terminal | Process | Data | Desicion
   >(null);
   const [isEditingIndivisual, setIsEditingIndivisual] = useState(false)
+  const [addImportDatas, setAddImportDatas] = useState<(null | string)[]>([])
+  const [newImportDatas, setNewImportDatas] = useState<(null | string)[]>([])
+  const [addUsingDatas, setAddUsingDatas] = useState<(null | string)[]>([])
+  const [newUsingDatas, setNewUsingDatas] = useState<(null | string)[]>([])
+  const [addRemoveDatas, setAddRemoveDatas] = useState<(null | string)[]>([])
+  const [newRemoveDatas, setNewRemoveDatas] = useState<(null | string)[]>([])
+
+  const dataOptions = datas.map(data => data.name)
 
   const checkData = (shapes: (Terminal | Process | Data | Desicion)[]) => {
     const dataShapes: Data[] = [];
@@ -3748,6 +3758,31 @@ export default function IdPage() {
     setDatas(_datas);
   };
 
+
+  const onClickAddImportDataButton = () => {
+    const _addImportDatas = cloneDeep(addImportDatas);
+
+    _addImportDatas.push(null);
+
+    setAddImportDatas(_addImportDatas);
+  };
+
+  const onChangeAddImportDataButton = (e: ChangeEvent<HTMLInputElement>, i: number) => {
+    const _addImportDatas = cloneDeep(addImportDatas);
+
+    _addImportDatas[i] = e.target.value
+
+    setAddImportDatas(_addImportDatas);
+  };
+
+  const onRemoveAddImportDataButton = (i: number) => {
+    const _addImportDatas = cloneDeep(addImportDatas);
+
+    _addImportDatas.splice(i, 1)
+
+    setAddImportDatas(_addImportDatas);
+  };
+
   useEffect(() => {
     if (!isBrowser) return;
 
@@ -4307,39 +4342,58 @@ export default function IdPage() {
                 }
               </div>
             </section>
-            <Divider text={"Import Data"}/>
-            <section className="flex-1">
-              <div>
-                <div className="flex items-center justify-end px-1">
-                  {isEditingIndivisual &&
-                    <div className="flex">
-                      <SimpleButton
-                        onClick={onClickCreateDataButton}
-                        text="Add"
-                        size={SimpleButtonTypes.Size.sm}
-                      />
-                      <div className="border mx-2 my-1" />
-                      <SimpleButton
-                        onClick={onClickCreateDataButton}
-                        text="New"
-                        size={SimpleButtonTypes.Size.sm}
-                      />
-                    </div>
-                  }
-                </div>
-                {/* <Select className="mb-1" /> */}
-                {indivisual?.importDatas && indivisual?.importDatas.length > 0 ? (
-                  indivisual.importDatas.map((importData, i) => (
-                    <div className="px-3 py-1 hover:bg-grey-5">
+            <Divider text={"Import Data"} />
+            {isEditingIndivisual &&
+              <section className="flex items-center justify-end px-1">
+                <SimpleButton
+                  onClick={onClickAddImportDataButton}
+                  text="Add"
+                  size={SimpleButtonTypes.Size.sm}
+                />
+                <div className="border mx-2 h-[80%]" />
+                <SimpleButton
+                  onClick={onClickCreateDataButton}
+                  text="New"
+                  size={SimpleButtonTypes.Size.sm}
+                />
+              </section>
+            }
+            <section className="flex-1 overflow-auto">
+              {indivisual?.importDatas && indivisual?.importDatas.length > 0 ? (
+                <ul>
+                  {indivisual.importDatas.map((importData) => (
+                    <li key={importData.text} className="px-3 py-1 hover:bg-grey-5">
                       <StatusText text={importData.text} status={importData.status} />
-                    </div>
-                  ))
-                ) : (
-                  <p className="px-3 py-1 text-black-2">none</p>
-                )}
-              </div>
+                    </li>
+                  ))}
+                  {addImportDatas.length > 0 &&
+                    addImportDatas.map((addImportData, addImportDataI) => (
+                      <li key={addImportData} className="py-1 flex items-center">
+                        <Input className="flex-1" value={addImportData} onChange={(e) => { onChangeAddImportDataButton(e, addImportDataI) }} />
+                        <Icon className="m-1 cursor-pointer"
+                          type={IconTypes.Type.x}
+                          w={16}
+                          h={16}
+                          stroke={tailwindColors.error['500']}
+                          onClick={(e) => { onRemoveAddImportDataButton(addImportDataI) }}
+                        />
+                      </li>
+                    ))
+                  }
+                  {newImportDatas.length > 0 &&
+                    newImportDatas.map(newImportData => (
+                      <li key={newImportData} className="py-1 flex items-center">
+                        <Select className="flex-1" options={dataOptions} />
+                        <Icon className="m-1 cursor-pointer" type={IconTypes.Type.x} w={16} h={16} stroke={tailwindColors.error['500']} />
+                      </li>
+                    ))
+                  }
+                </ul>
+              ) : (
+                <p className="px-3 py-1 text-black-2">none</p>
+              )}
             </section>
-            <Divider text={"Using Data"}/>
+            <Divider text={"Using Data"} />
             <section className="flex-1 mb-2 pb-4">
               <div className="px-1">
                 {/* <div
@@ -4383,7 +4437,7 @@ export default function IdPage() {
                 )}
               </div>
             </section>
-            <Divider text={"Remove Data"}/>
+            <Divider text={"Remove Data"} />
             <section className="flex-1 mb-2 pb-4">
               <div className="px-1">
                 {/* <div
