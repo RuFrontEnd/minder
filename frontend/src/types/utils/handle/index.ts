@@ -1,5 +1,7 @@
-type Handler = () => boolean;
+type HandlerReturn = boolean | { [lastReturn: string]: any };
+
+type Handler = (lastReturn?: any) => HandlerReturn;
 
 type Handlers = Handler[];
 
-export type { Handler, Handlers };
+export type { HandlerReturn, Handler, Handlers };

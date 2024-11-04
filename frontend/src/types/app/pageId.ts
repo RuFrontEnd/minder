@@ -8,6 +8,7 @@ import Stack from "@/dataStructure/stack";
 import * as CommonTypes from "@/types/common";
 import * as CoreTypes from "@/types/shapes/core";
 import * as CurveTypes from "@/types/shapes/curve";
+import * as InputTypes from "@/types/components/input";
 
 type Pressing = null | {
   origin: null | Terminal | Process | Data | Desicion;
@@ -114,9 +115,15 @@ enum OverallType {
 }
 
 type Datas = {
-  id:string;
-  name:string
-}[]
+  id: string;
+  name: string;
+}[];
+
+type AddImportDatas = {
+  val: null | string;
+  comment: null | string;
+  status: null | InputTypes.Status;
+}[];
 
 export type {
   Pressing,
@@ -129,7 +136,8 @@ export type {
   Actions,
   Curves,
   MultiSelectShapeIds,
-  Datas
+  Datas,
+  AddImportDatas,
 };
 
 export { OverallType };

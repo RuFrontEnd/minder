@@ -16,8 +16,8 @@ type Props = {
   w?: string | number;
   h?: string | number;
   value?: undefined | null | string;
-  status?: Status;
-  comment?: string;
+  status?: null | Status;
+  comment?: null | string;
   onChange?: ChangeEventHandler<HTMLInputElement>;
 };
 export { Status };
