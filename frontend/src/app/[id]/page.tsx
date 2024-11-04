@@ -1,6 +1,12 @@
 // TODO: fix browser zoom and re calculate shape offset / multi multiSelect resize in scale
 "use client";
-import React, { useState, useRef, useEffect, useCallback, ChangeEvent } from "react";
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  ChangeEvent,
+} from "react";
 import axios, { AxiosResponse } from "axios";
 import { useParams, useRouter } from "next/navigation";
 import Core from "@/shapes/core";
@@ -49,9 +55,9 @@ import * as ProjectTypes from "@/types/project";
 import * as APICommonTypes from "@/types/apis/common";
 import * as PageIdTypes from "@/types/app/pageId";
 import * as SidePanelTypes from "@/types/components/sidePanel";
-import * as ButtonTypes from '@/types/components/button'
-import * as SimpleButtonTypes from '@/types/components/simpleButton'
-import * as StatusTextTypes from '@/types/components/statusText'
+import * as ButtonTypes from "@/types/components/button";
+import * as SimpleButtonTypes from "@/types/components/simpleButton";
+import * as StatusTextTypes from "@/types/components/statusText";
 
 axios.defaults.baseURL = process.env.BASE_URL || "http://localhost:5000/api";
 
@@ -253,9 +259,6 @@ const getInitializedShapes = (
   const dataShapes = Object.entries(shapes);
 
   dataShapes.forEach(([id, info]) => {
-
-
-
     switch (info.type) {
       case CommonTypes.Type.terminator:
         const newTerminator = new Terminal(
@@ -268,12 +271,22 @@ const getInitializedShapes = (
 
         newTerminator.importDatas = [
           {
-            id: 'd1', text: 'account', status: CommonTypes.DataStatus.default
+            id: "d1",
+            text: "account",
+            status: CommonTypes.DataStatus.default,
           },
-          { id: 'd2', text: 'email', status: CommonTypes.DataStatus.pass },
-          { id: 'd3', text: 'password', status: CommonTypes.DataStatus.warning },
-          { id: 'd4', text: 'card_number', status: CommonTypes.DataStatus.error },
-        ]
+          { id: "d2", text: "email", status: CommonTypes.DataStatus.pass },
+          {
+            id: "d3",
+            text: "password",
+            status: CommonTypes.DataStatus.warning,
+          },
+          {
+            id: "d4",
+            text: "card_number",
+            status: CommonTypes.DataStatus.error,
+          },
+        ];
 
         // info.selectedData.forEach((dataId) => {
         //   newTerminator.importDatas.push({
@@ -287,7 +300,7 @@ const getInitializedShapes = (
         //     id: dataId,
         //     text: data[dataId],
         //   });
-        // }); 
+        // });
         // TODO: wait until backend has revised
 
         shapeMappings[id] = newTerminator;
@@ -856,7 +869,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseCenter.x.toFixed(1)) ===
-        Number(targetShape.getCenter().m.x.toFixed(1)) ||
+          Number(targetShape.getCenter().m.x.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.x - b.p.x);
@@ -883,7 +896,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseCenter.y.toFixed(1)) ===
-        Number(targetShape.getCenter().m.y.toFixed(1)) ||
+          Number(targetShape.getCenter().m.y.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.y - b.p.y);
@@ -912,7 +925,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.l.toFixed(1)) ===
-        Number(targetShape.getEdge().l.toFixed(1)) ||
+          Number(targetShape.getEdge().l.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.y - b.p.y);
@@ -935,7 +948,7 @@ const getAlignLines = (
     .filter((targetShape) => {
       return (
         Number(baseEdge.l.toFixed(1)) ===
-        Number(targetShape.getEdge().r.toFixed(1)) ||
+          Number(targetShape.getEdge().r.toFixed(1)) ||
         targetShape.id === baseShape.id
       );
     })
@@ -964,7 +977,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.t.toFixed(1)) ===
-        Number(targetShape.getEdge().t.toFixed(1)) ||
+          Number(targetShape.getEdge().t.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.x - b.p.x);
@@ -987,7 +1000,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.t.toFixed(1)) ===
-        Number(targetShape.getEdge().b.toFixed(1)) ||
+          Number(targetShape.getEdge().b.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.x - b.p.x);
@@ -1015,7 +1028,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.r.toFixed(1)) ===
-        Number(targetShape.getEdge().r.toFixed(1)) ||
+          Number(targetShape.getEdge().r.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.y - b.p.y);
@@ -1041,7 +1054,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.r.toFixed(1)) ===
-        Number(targetShape.getEdge().l.toFixed(1)) ||
+          Number(targetShape.getEdge().l.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.y - b.p.y);
@@ -1069,7 +1082,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.b.toFixed(1)) ===
-        Number(targetShape.getEdge().b.toFixed(1)) ||
+          Number(targetShape.getEdge().b.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.x - b.p.x);
@@ -1095,7 +1108,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.b.toFixed(1)) ===
-        Number(targetShape.getEdge().t.toFixed(1)) ||
+          Number(targetShape.getEdge().t.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.x - b.p.x);
@@ -1166,9 +1179,9 @@ const frameSelect = (
       const theEdge = shape.getEdge();
 
       const l =
-        normalSelectAreaP.start.x < normalSelectAreaP.end.x
-          ? normalSelectAreaP.start.x
-          : normalSelectAreaP.end.x,
+          normalSelectAreaP.start.x < normalSelectAreaP.end.x
+            ? normalSelectAreaP.start.x
+            : normalSelectAreaP.end.x,
         t =
           normalSelectAreaP.start.y < normalSelectAreaP.end.y
             ? normalSelectAreaP.start.y
@@ -2443,12 +2456,12 @@ const resizeShape = (
     shape: null | undefined | Terminal | Process | Data | Desicion;
     ghost: null | undefined | Terminal | Process | Data | Desicion;
     target:
-    | null
-    | undefined
-    | CoreTypes.PressingTarget.lt
-    | CoreTypes.PressingTarget.rt
-    | CoreTypes.PressingTarget.rb
-    | CoreTypes.PressingTarget.lb;
+      | null
+      | undefined
+      | CoreTypes.PressingTarget.lt
+      | CoreTypes.PressingTarget.rt
+      | CoreTypes.PressingTarget.rb
+      | CoreTypes.PressingTarget.lb;
   },
   offsetP: CommonTypes.Vec
 ) => {
@@ -2800,15 +2813,19 @@ export default function IdPage() {
   const [indivisual, setIndivisual] = useState<
     null | Terminal | Process | Data | Desicion
   >(null);
-  const [isEditingIndivisual, setIsEditingIndivisual] = useState(false)
-  const [addImportDatas, setAddImportDatas] = useState<(null | string)[]>([])
-  const [newImportDatas, setNewImportDatas] = useState<(null | string)[]>([])
-  const [addUsingDatas, setAddUsingDatas] = useState<(null | string)[]>([])
-  const [newUsingDatas, setNewUsingDatas] = useState<(null | string)[]>([])
-  const [addRemoveDatas, setAddRemoveDatas] = useState<(null | string)[]>([])
-  const [newRemoveDatas, setNewRemoveDatas] = useState<(null | string)[]>([])
+  const [isEditingIndivisual, setIsEditingIndivisual] = useState(false);
+  const [addImportDatas, setAddImportDatas] = useState<
+    { val: null | string; comment: null | string }[]
+  >([]);
+  const [newImportDatas, setNewImportDatas] = useState<
+    { val: string; comment: null | string }[]
+  >([]);
+  const [addUsingDatas, setAddUsingDatas] = useState<(null | string)[]>([]);
+  const [newUsingDatas, setNewUsingDatas] = useState<(null | string)[]>([]);
+  const [addRemoveDatas, setAddRemoveDatas] = useState<(null | string)[]>([]);
+  const [newRemoveDatas, setNewRemoveDatas] = useState<(null | string)[]>([]);
 
-  const dataOptions = datas.map(data => data.name)
+  const dataOptions = datas.map((data) => data.name);
 
   const checkData = (shapes: (Terminal | Process | Data | Desicion)[]) => {
     const dataShapes: Data[] = [];
@@ -3055,9 +3072,9 @@ export default function IdPage() {
     e.preventDefault();
 
     const p = {
-      x: e.nativeEvent.offsetX,
-      y: e.nativeEvent.offsetY,
-    },
+        x: e.nativeEvent.offsetX,
+        y: e.nativeEvent.offsetY,
+      },
       offsetP = {
         x: p.x - lastP.x,
         y: p.y - lastP.y,
@@ -3480,8 +3497,8 @@ export default function IdPage() {
     };
 
   const onClickEditIndivisualIcon = () => {
-    setIsEditingIndivisual(true)
-  }
+    setIsEditingIndivisual(true);
+  };
 
   const onClickProfile = () => {
     setIsProfileFrameOpen((isProfileFrameOpen) => !isProfileFrameOpen);
@@ -3758,40 +3775,69 @@ export default function IdPage() {
     setDatas(_datas);
   };
 
-
   const onClickAddImportDataButton = () => {
     const _addImportDatas = cloneDeep(addImportDatas);
 
-    _addImportDatas.push(null);
+    _addImportDatas.push({ val: null, comment: null });
 
     setAddImportDatas(_addImportDatas);
   };
 
-  const onChangeAddImportDataButton = (e: ChangeEvent<HTMLInputElement>, i: number) => {
+  const onChangeAddImportDataButton = (
+    e: ChangeEvent<HTMLInputElement>,
+    i: number
+  ) => {
     const _addImportDatas = cloneDeep(addImportDatas);
 
-    _addImportDatas[i] = e.target.value
+    _addImportDatas[i] = { val: e.target.value, comment: null };
 
     setAddImportDatas(_addImportDatas);
   };
 
   const onRemoveAddImportDataButton = (i: number) => {
-    const _addImportDatas = cloneDeep(addImportDatas);
+    const _newImportDatas = cloneDeep(newImportDatas);
 
-    _addImportDatas.splice(i, 1)
+    _newImportDatas.splice(i, 1);
 
-    setAddImportDatas(_addImportDatas);
+    setAddImportDatas(_newImportDatas);
+  };
+
+  const onClickNewImportDataButton = () => {
+    const _newImportDatas = cloneDeep(newImportDatas);
+
+    _newImportDatas.push({ val: dataOptions[0], comment: null });
+
+    setNewImportDatas(_newImportDatas);
+  };
+
+  const onChangeNewImportDataButton = (
+    e: ChangeEvent<HTMLSelectElement>,
+    i: number
+  ) => {
+    const _newImportDatas = cloneDeep(newImportDatas);
+
+    _newImportDatas[i] = { val: e.target.value, comment: null };
+
+    setNewImportDatas(_newImportDatas);
+  };
+
+  const onRemoveNewImportDataButton = (i: number) => {
+    const _newImportDatas = cloneDeep(newImportDatas);
+
+    _newImportDatas.splice(i, 1);
+
+    setNewImportDatas(_newImportDatas);
   };
 
   const onClickCancelEditIndivisualButton = () => {
-    setAddImportDatas([])
-    setNewImportDatas([])
-    setAddUsingDatas([])
-    setNewUsingDatas([])
-    setAddRemoveDatas([])
-    setNewRemoveDatas([])
-    setIsEditingIndivisual(false)
-  }
+    setAddImportDatas([]);
+    setNewImportDatas([]);
+    setAddUsingDatas([]);
+    setNewUsingDatas([]);
+    setAddRemoveDatas([]);
+    setNewRemoveDatas([]);
+    setIsEditingIndivisual(false);
+  };
 
   useEffect(() => {
     if (!isBrowser) return;
@@ -4094,20 +4140,22 @@ export default function IdPage() {
           >
             <h3
               data-tab={PageIdTypes.OverallType.step}
-              className={`flex-1 flex justify-center text-lg font-semibold py-2 px-5 ${overallType === PageIdTypes.OverallType.step
-                ? "border-b-2 border-secondary-500 text-black-2"
-                : "border-b-1 text-grey-4"
-                }`}
+              className={`flex-1 flex justify-center text-lg font-semibold py-2 px-5 ${
+                overallType === PageIdTypes.OverallType.step
+                  ? "border-b-2 border-secondary-500 text-black-2"
+                  : "border-b-1 text-grey-4"
+              }`}
             >
               <span>Step</span>
             </h3>
             <div className="border-r border-grey-5" />
             <h3
               data-tab={PageIdTypes.OverallType.data}
-              className={`flex-1 flex justify-center text-lg font-semibold py-2 px-5 ${overallType === PageIdTypes.OverallType.data
-                ? "border-b-2 border-secondary-500 text-black-2"
-                : "border-b-1 text-grey-4"
-                }`}
+              className={`flex-1 flex justify-center text-lg font-semibold py-2 px-5 ${
+                overallType === PageIdTypes.OverallType.data
+                  ? "border-b-2 border-secondary-500 text-black-2"
+                  : "border-b-1 text-grey-4"
+              }`}
             >
               <span>Data</span>
             </h3>
@@ -4264,8 +4312,9 @@ export default function IdPage() {
       </div>
 
       <div
-        className={`fixed bottom-[16px] ${isIndivisualSidePanelOpen ? "right-[508px]" : "right-[164px]"
-          }`}
+        className={`fixed bottom-[16px] ${
+          isIndivisualSidePanelOpen ? "right-[508px]" : "right-[164px]"
+        }`}
         role="undo"
       >
         <RoundButton
@@ -4285,8 +4334,9 @@ export default function IdPage() {
       </div>
 
       <div
-        className={`fixed p-3 bottom-[16px] ${isIndivisualSidePanelOpen ? "right-[360px]" : "right-[16px]"
-          } rounded-full shadow-md bg-white-500`}
+        className={`fixed p-3 bottom-[16px] ${
+          isIndivisualSidePanelOpen ? "right-[360px]" : "right-[16px]"
+        } rounded-full shadow-md bg-white-500`}
         role="zoom"
       >
         <div className="justify-self-end">
@@ -4323,11 +4373,23 @@ export default function IdPage() {
         onClickSwitch={onClickIndivisualSidePanelSwitch}
       >
         <div className={"p-4 h-full"}>
-          {isEditingIndivisual ?
+          {isEditingIndivisual ? (
             <div className="flex justify-end items-center">
-              <Button vice text="Cancel" className="ms-2" size={ButtonTypes.Size.sm} onClick={onClickCancelEditIndivisualButton} />
-              <Button text="Save" className="ms-2" size={ButtonTypes.Size.sm} onClick={() => { }} />
-            </div> :
+              <Button
+                vice
+                text="Cancel"
+                className="ms-2"
+                size={ButtonTypes.Size.sm}
+                onClick={onClickCancelEditIndivisualButton}
+              />
+              <Button
+                text="Save"
+                className="ms-2"
+                size={ButtonTypes.Size.sm}
+                onClick={() => {}}
+              />
+            </div>
+          ) : (
             <Icon
               role="edit_indivisual"
               className={"justify-self-end cursor-pointer"}
@@ -4337,23 +4399,25 @@ export default function IdPage() {
               disabled={!indivisual}
               onClick={onClickEditIndivisualIcon}
             />
-          }
+          )}
           <div className="flex flex-col h-full">
             <section>
               <div>
                 <p className="text-sm px-1">title</p>
-                {isEditingIndivisual ?
+                {isEditingIndivisual ? (
                   <Input
                     value={indivisual?.title}
-                  // onChange={onChangeTitle}
+                    // onChange={onChangeTitle}
                   />
-                  :
-                  <p className="text-black-2 px-3 py-1">{indivisual?.title || 'none'}</p>
-                }
+                ) : (
+                  <p className="text-black-2 px-3 py-1">
+                    {indivisual?.title || "none"}
+                  </p>
+                )}
               </div>
             </section>
             <Divider text={"Import Data"} />
-            {isEditingIndivisual &&
+            {isEditingIndivisual && (
               <section className="flex items-center justify-end px-1">
                 <SimpleButton
                   onClick={onClickAddImportDataButton}
@@ -4362,42 +4426,70 @@ export default function IdPage() {
                 />
                 <div className="border mx-2 h-[80%]" />
                 <SimpleButton
-                  onClick={onClickCreateDataButton}
+                  onClick={onClickNewImportDataButton}
                   text="New"
                   size={SimpleButtonTypes.Size.sm}
                 />
               </section>
-            }
+            )}
             <section className="flex-1 overflow-auto">
               {indivisual?.importDatas && indivisual?.importDatas.length > 0 ? (
                 <ul>
                   {indivisual.importDatas.map((importData) => (
                     <li className="px-3 py-1 hover:bg-grey-5">
-                      <StatusText text={importData.text} status={importData.status} />
+                      <StatusText
+                        text={importData.text}
+                        status={importData.status}
+                      />
                     </li>
                   ))}
                   {addImportDatas.length > 0 &&
                     addImportDatas.map((addImportData, addImportDataI) => (
                       <li className="py-1 flex items-center">
-                        <Input className="flex-1" placeholder={"input data name"} value={addImportData} onChange={(e) => { onChangeAddImportDataButton(e, addImportDataI) }} />
-                        <Icon className="m-1 cursor-pointer"
+                        <Input
+                          className="flex-1"
+                          placeholder={"input data name"}
+                          value={addImportData.val}
+                          onChange={(e) => {
+                            onChangeAddImportDataButton(e, addImportDataI);
+                          }}
+                        />
+                        <Icon
+                          className="m-1 cursor-pointer"
                           type={IconTypes.Type.x}
                           w={16}
                           h={16}
-                          stroke={tailwindColors.error['500']}
-                          onClick={(e) => { onRemoveAddImportDataButton(addImportDataI) }}
+                          stroke={tailwindColors.error["500"]}
+                          onClick={(e) => {
+                            onRemoveAddImportDataButton(addImportDataI);
+                          }}
                         />
                       </li>
-                    ))
-                  }
+                    ))}
                   {newImportDatas.length > 0 &&
-                    newImportDatas.map(newImportData => (
+                    newImportDatas.map((newImportData, newImportDataI) => (
                       <li className="py-1 flex items-center">
-                        <Select className="flex-1" options={dataOptions} />
-                        <Icon className="m-1 cursor-pointer" type={IconTypes.Type.x} w={16} h={16} stroke={tailwindColors.error['500']} />
+                        <Select
+                          className="flex-1"
+                          options={dataOptions}
+                          value={newImportData.val}
+                          placeholder={"select data"}
+                          onChange={(e) => {
+                            onChangeNewImportDataButton(e, newImportDataI);
+                          }}
+                        />
+                        <Icon
+                          className="m-1 cursor-pointer"
+                          type={IconTypes.Type.x}
+                          w={16}
+                          h={16}
+                          stroke={tailwindColors.error["500"]}
+                          onClick={(e) => {
+                            onRemoveNewImportDataButton(newImportDataI);
+                          }}
+                        />
                       </li>
-                    ))
-                  }
+                    ))}
                 </ul>
               ) : (
                 <p className="px-3 py-1 text-black-2">none</p>
@@ -4424,15 +4516,15 @@ export default function IdPage() {
                         ${false ? "border-red-500" : "border-gray-300"}
                   focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out`}
                           value={usingData.text}
-                        // onChange={(e) => {
-                        //   onChangeData(e, i);
-                        // }}
+                          // onChange={(e) => {
+                          //   onChangeData(e, i);
+                          // }}
                         />
                         <div
                           className="w-6 h-6 ml-2 inline-flex items-center justify-center rounded-full text-white-500 bg-primary-500 flex-shrink-0 cursor-pointer"
-                        // onClick={() => {
-                        //   onClickMinus(usingData.id);
-                        // }}
+                          // onClick={() => {
+                          //   onClickMinus(usingData.id);
+                          // }}
                         >
                           -
                         </div>
@@ -4456,7 +4548,8 @@ export default function IdPage() {
                 >
                   +
                 </div> */}
-                {indivisual?.removeDatas && indivisual?.removeDatas.length > 0 ? (
+                {indivisual?.removeDatas &&
+                indivisual?.removeDatas.length > 0 ? (
                   indivisual.removeDatas.map((removeData, i) => (
                     <div className={`flex flex-col mt-${i !== 0 ? "2" : "0"}`}>
                       <div className="flex items-center">
@@ -4468,15 +4561,15 @@ export default function IdPage() {
                         ${false ? "border-red-500" : "border-gray-300"}
                   focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out`}
                           value={removeData.text}
-                        // onChange={(e) => {
-                        //   onChangeData(e, i);
-                        // }}
+                          // onChange={(e) => {
+                          //   onChangeData(e, i);
+                          // }}
                         />
                         <div
                           className="w-6 h-6 ml-2 inline-flex items-center justify-center rounded-full text-white-500 bg-primary-500 flex-shrink-0 cursor-pointer"
-                        // onClick={() => {
-                        //   onClickMinus(removeData.id);
-                        // }}
+                          // onClick={() => {
+                          //   onClickMinus(removeData.id);
+                          // }}
                         >
                           -
                         </div>
@@ -4522,8 +4615,9 @@ export default function IdPage() {
         />
         <canvas
           role="screenshot"
-          className={`invisible ${space ? "cursor-grab" : ""
-            } overflow-hidden absolute left-0 top-0 z-[-1]`}
+          className={`invisible ${
+            space ? "cursor-grab" : ""
+          } overflow-hidden absolute left-0 top-0 z-[-1]`}
           tabIndex={1}
           ref={(el) => {
             $screenshot = el;

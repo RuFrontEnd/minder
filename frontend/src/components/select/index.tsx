@@ -40,6 +40,7 @@ const Select = (props: SelectTypes.Props) => {
         className={`bg-white-500 rounded border ${borderColor} appearance-none text-base outline-none text-grey-2 py-1 px-3 transition-colors duration-200 ease-in-out`}
         value={props.value || ""}
         onChange={props.onChange}
+        placeholder={props.placeholder}
       >
         {props.options.map(option => <option key={option}>{option}</option>)}
       </select>

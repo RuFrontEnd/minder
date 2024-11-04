@@ -12,6 +12,7 @@ type Props = {
   label?: HTMLInputTypeAttribute;
   type?: HTMLInputTypeAttribute;
   name?: string;
+  placeholder?: string;
   w?: string | number;
   h?: string | number;
   value?: undefined | null | string;
