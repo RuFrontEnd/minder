@@ -3879,7 +3879,7 @@ export default function IdPage() {
 
       _addImportDatas.forEach(_addImportData => {
         if (!_addImportData.val || !map[_addImportData.val]) return
-        _addImportData.comment = 'repetition!'
+        _addImportData.comment = 'repetitive!'
         _addImportData.status = InputTypes.Status.error
         isPass = false
 
@@ -3891,7 +3891,7 @@ export default function IdPage() {
 
       _newImportDatas.forEach(_newImportDatas => {
         if (!_newImportDatas.val || !map[_newImportDatas.val]) return
-        _newImportDatas.comment = 'repetition!'
+        _newImportDatas.comment = 'repetitive!'
         _newImportDatas.status = SelectTypes.Status.error
         isPass = false
 
