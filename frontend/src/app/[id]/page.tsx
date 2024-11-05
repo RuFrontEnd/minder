@@ -32,7 +32,9 @@ import Icon from "@/components/icon";
 import RoundButton from "@/components/roundButton";
 import StatusText from "@/components/statusText";
 import Divider from "@/components/divider";
+import SquareButton from "@/components/squareButton";
 import IndivisaulSidePanel from "@/sections/indivisualSidePanel";
+import CreateShapeButtons from "@/sections/createShapeButtons";
 import { motion, steps } from "framer-motion";
 import { cloneDeep } from "lodash";
 import { v4 as uuidv4 } from "uuid";
@@ -4138,29 +4140,19 @@ export default function IdPage() {
         </ul>
       </SidePanel>
 
-      <div
-        className="fixed p-3 bottom-[16px] left-1/2 -translate-x-1/2 bg-white-500 shadow-md rounded-full"
-        role="create_shapes"
-      >
-        <div className="justify-self-center">
-          <div className="flex">
-            {createShapeButtons.map((createShapeButton) => (
-              <RoundButton
-                size={32}
-                className="mx-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
-                content={createShapeButton.icon}
-                onClick={(e) => {
-                  onClickCreateShapeButton(e, createShapeButton.type);
-                }}
-                onKeyDown={(e) => {
-                  e.preventDefault();
-                  return false;
-                }}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
+      <CreateShapeButtons
+        isOverAllSidePanelOpen={isOverAllSidePanelOpen}
+        actionRecords={actionRecords}
+        shapes={shapes}
+        offset={offset}
+        scale={scale}
+        reload={() => {
+          checkData(shapes);
+          checkSteps();
+          drawCanvas(offset, scale);
+          drawScreenshot(offset, scale);
+        }}
+      />
 
       <div
         className={`fixed bottom-[16px] ${
@@ -4168,16 +4160,15 @@ export default function IdPage() {
         }`}
         role="undo"
       >
-        <RoundButton
-          size={48}
-          outerRing
-          differece={16}
+        <SquareButton
+          size={32}
+          shadow
           content={
             <Icon
               type={IconTypes.Type.rotateCcw}
               w={14}
               h={14}
-              fill={tailwindColors.white["500"]}
+              fill={tailwindColors.grey["1"]}
             />
           }
           onClick={onClickUndoButton}
