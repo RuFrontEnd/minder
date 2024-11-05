@@ -3331,7 +3331,7 @@ export default function IdPage() {
     }
     if (e.key === " " && !space) {
       setSpace(true);
-    } else if (e.key === "Backspace" && !dataFrame && !dbClickedShape) {
+    } else if (e.key === "Backspace") {
       const $canvas = document.querySelector("canvas");
       if (!$canvas || !ctx) return;
 
