@@ -20,11 +20,10 @@ export default function IndivisualSidePanel(
   props: IndivisaulSidePanelTypes.Props
 ) {
   const [isEditingIndivisual, setIsEditingIndivisual] = useState(false);
+  const [createImportDatas, setCreateImportDatas] =
+    useState<IndivisaulSidePanelTypes.CreateDatas>([]);
   const [addImportDatas, setAddImportDatas] =
-    useState<PageIdTypes.AddImportDatas>([]);
-  const [newImportDatas, setNewImportDatas] = useState<
-    { val: string; comment: null | string; status: null | InputTypes.Status }[]
-  >([]);
+    useState<IndivisaulSidePanelTypes.AddDatas>([]);
   const [addUsingDatas, setAddUsingDatas] = useState<(null | string)[]>([]);
   const [newUsingDatas, setNewUsingDatas] = useState<(null | string)[]>([]);
   const [addRemoveDatas, setAddRemoveDatas] = useState<(null | string)[]>([]);
@@ -43,8 +42,8 @@ export default function IndivisualSidePanel(
   };
 
   const onClickCancelEditIndivisualButton = () => {
+    setCreateImportDatas([]);
     setAddImportDatas([]);
-    setNewImportDatas([]);
     setAddUsingDatas([]);
     setNewUsingDatas([]);
     setAddRemoveDatas([]);
@@ -54,7 +53,7 @@ export default function IndivisualSidePanel(
 
   const onClickSaveIndivisualButton = () => {
     const validateRequirement = () => {
-      const _addImportDatas = cloneDeep(addImportDatas);
+      const _addImportDatas = cloneDeep(createImportDatas);
 
       _addImportDatas.forEach((_addImportData) => {
         if (!!_addImportData.val) return;
@@ -62,11 +61,11 @@ export default function IndivisualSidePanel(
         _addImportData.status = InputTypes.Status.error;
       });
 
-      return { addImportDatas: _addImportDatas };
+      return { createImportDatas: _addImportDatas };
     };
 
     const validateRepetition = (lastResult: {
-      addImportDatas: PageIdTypes.AddImportDatas;
+      createImportDatas: IndivisaulSidePanelTypes.CreateDatas;
     }) => {
       const map: { [data: string]: boolean } = {};
 
@@ -74,39 +73,39 @@ export default function IndivisualSidePanel(
         map[importData.text] = importData.text in map;
       });
 
+      createImportDatas.forEach((createImportData) => {
+        if (!createImportData.val) return;
+        map[createImportData.val] = createImportData.val in map;
+      });
+
       addImportDatas.forEach((addImportData) => {
         if (!addImportData.val) return;
         map[addImportData.val] = addImportData.val in map;
       });
 
-      newImportDatas.forEach((newImportData) => {
-        if (!newImportData.val) return;
-        map[newImportData.val] = newImportData.val in map;
-      });
-
       let isPass = true;
 
-      const _addImportDatas = lastResult.addImportDatas;
+      const _createImportDatas = lastResult.createImportDatas;
 
-      _addImportDatas.forEach((_addImportData) => {
+      _createImportDatas.forEach((_addImportData) => {
         if (!_addImportData.val || !map[_addImportData.val]) return;
         _addImportData.comment = "repetitive!";
         _addImportData.status = InputTypes.Status.error;
         isPass = false;
       });
 
-      setAddImportDatas(_addImportDatas);
+      setCreateImportDatas(_createImportDatas);
 
-      const _newImportDatas = cloneDeep(newImportDatas);
+      const _addImportDatas = cloneDeep(addImportDatas);
 
-      _newImportDatas.forEach((_newImportDatas) => {
-        if (!_newImportDatas.val || !map[_newImportDatas.val]) return;
-        _newImportDatas.comment = "repetitive!";
-        _newImportDatas.status = SelectTypes.Status.error;
+      _addImportDatas.forEach((_addImportDatas) => {
+        if (!_addImportDatas.val || !map[_addImportDatas.val]) return;
+        _addImportDatas.comment = "repetitive!";
+        _addImportDatas.status = SelectTypes.Status.error;
         isPass = false;
       });
 
-      setNewImportDatas(_newImportDatas);
+      setAddImportDatas(_addImportDatas);
 
       return isPass;
     };
@@ -174,10 +173,10 @@ export default function IndivisualSidePanel(
             isEditing={isEditingIndivisual}
             options={dataOptions}
             datas={props.indivisual?.importDatas || []}
+            createDatas={createImportDatas}
+            setCreateDatas={setCreateImportDatas}
             addDatas={addImportDatas}
             setAddDatas={setAddImportDatas}
-            newDatas={newImportDatas}
-            setNewDatas={setNewImportDatas}
           />
           {/* TODO: split Using Data / Remove Data */}
           <Divider text={"Using Data"} />

@@ -119,12 +119,6 @@ type Datas = {
   name: string;
 }[];
 
-type AddImportDatas = {
-  val: null | string;
-  comment: null | string;
-  status: null | InputTypes.Status;
-}[];
-
 export type {
   Pressing,
   PressingCurve,
@@ -137,7 +131,6 @@ export type {
   Curves,
   MultiSelectShapeIds,
   Datas,
-  AddImportDatas,
 };
 
 export { OverallType };

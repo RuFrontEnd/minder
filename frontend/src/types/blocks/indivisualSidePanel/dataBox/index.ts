@@ -9,18 +9,18 @@ type Props = {
   isEditing: boolean;
   options: string[];
   datas: CommonTypes.Datas;
-  addDatas: {
+  createDatas: {
     val: null | string;
     comment: null | string;
     status: null | InputTypes.Status;
   }[];
-  setAddDatas: Dispatch<SetStateAction<Props["addDatas"]>>;
-  newDatas: {
+  setCreateDatas: Dispatch<SetStateAction<Props["createDatas"]>>;
+  addDatas: {
     val: string;
     comment: null | string;
     status: null | SelectTypes.Status;
   }[];
-  setNewDatas: Dispatch<SetStateAction<Props["newDatas"]>>;
+  setAddDatas: Dispatch<SetStateAction<Props["addDatas"]>>;
 };
 
 export type { Props };

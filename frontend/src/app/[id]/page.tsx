@@ -2815,18 +2815,6 @@ export default function IdPage() {
   const [indivisual, setIndivisual] = useState<
     null | Terminal | Process | Data | Desicion
   >(null);
-  const [isEditingIndivisual, setIsEditingIndivisual] = useState(false);
-  const [addImportDatas, setAddImportDatas] =
-    useState<PageIdTypes.AddImportDatas>([]);
-  const [newImportDatas, setNewImportDatas] = useState<
-    { val: string; comment: null | string; status: null | InputTypes.Status }[]
-  >([]);
-  const [addUsingDatas, setAddUsingDatas] = useState<(null | string)[]>([]);
-  const [newUsingDatas, setNewUsingDatas] = useState<(null | string)[]>([]);
-  const [addRemoveDatas, setAddRemoveDatas] = useState<(null | string)[]>([]);
-  const [newRemoveDatas, setNewRemoveDatas] = useState<(null | string)[]>([]);
-
-  const dataOptions = datas.map((data) => data.name);
 
   const checkData = (shapes: (Terminal | Process | Data | Desicion)[]) => {
     const dataShapes: Data[] = [];
