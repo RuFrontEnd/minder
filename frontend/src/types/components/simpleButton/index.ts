@@ -9,6 +9,7 @@ enum Size {
 type Props = {
   id?: string;
   className?: string;
+  role?: string;
   text: ReactNode;
   size?: Size;
   loading?: boolean;

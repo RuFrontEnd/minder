@@ -8,12 +8,11 @@ const SimpleButton = (props: SimpleButtonTypes.Props) => {
       return "cursor-default";
     }
     if (props.danger) {
-      return "text-error-500"
+      return "text-error-500";
     }
 
     return "text-info-500";
   })();
-
 
   const sizeStyle = (() => {
     if (props.size === SimpleButtonTypes.Size.sm) {
@@ -33,6 +32,7 @@ const SimpleButton = (props: SimpleButtonTypes.Props) => {
 
   return (
     <button
+      role={props.role}
       className={`flex items-center ${sizeStyle} ${statusStyle} ${props.className}`}
       onClick={props.onClick}
     >
