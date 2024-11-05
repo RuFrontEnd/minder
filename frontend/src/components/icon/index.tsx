@@ -40,7 +40,7 @@ export default function Icon(props: IconTypes.Props) {
           />
         </svg>
       )}
-      {(props.type === IconTypes.Type.xCircle) && (
+      {props.type === IconTypes.Type.xCircle && (
         <svg
           xmlns="http://www.w3.org/2000/svg"
           role={props.role}
@@ -65,33 +65,32 @@ export default function Icon(props: IconTypes.Props) {
           <line x1="9" y1="9" x2="15" y2="15"></line>
         </svg>
       )}
-      {(
-        props.type === IconTypes.Type.exclaimationMarkTriangle) && (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            role={props.role}
-            style={{
-              width: props.w || defaultVal.w,
-              height: props.h || defaultVal.h,
-              stroke: props.disabled
-                ? tailwindColors.disabled["500"]
-                : props.stroke || defaultVal.stroke,
-            }}
-            className={props.className}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            onClick={props.disabled ? undefined : props.onClick}
-          >
-            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-            <line x1="12" y1="9" x2="12" y2="13"></line>
-            <line x1="12" y1="17" x2="12.01" y2="17"></line>
-          </svg>
-        )}
-      {(props.type === IconTypes.Type.tick) && (
+      {props.type === IconTypes.Type.exclaimationMarkTriangle && (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          role={props.role}
+          style={{
+            width: props.w || defaultVal.w,
+            height: props.h || defaultVal.h,
+            stroke: props.disabled
+              ? tailwindColors.disabled["500"]
+              : props.stroke || defaultVal.stroke,
+          }}
+          className={props.className}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          onClick={props.disabled ? undefined : props.onClick}
+        >
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+          <line x1="12" y1="9" x2="12" y2="13"></line>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+      )}
+      {props.type === IconTypes.Type.tick && (
         <svg
           xmlns="http://www.w3.org/2000/svg"
           role={props.role}
@@ -329,6 +328,37 @@ c0.6,0.6,0.6,1.6,0,2.1l-4.9,4.9c-0.6,0.6-0.6,1.3,0.4,1.3c0.3,0,0.7,0,0.7,0L30.3,
           onClick={props.disabled ? undefined : props.onClick}
         >
           <path d="m4.431 12.822 13 9A1 1 0 0 0 19 21V3a1 1 0 0 0-1.569-.823l-13 9a1.003 1.003 0 0 0 0 1.645z" />
+        </svg>
+      )}
+      {props.type === IconTypes.Type.plus && (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          style={{
+            width: props.w || defaultVal.w,
+            height: props.h || defaultVal.h,
+            fill: props.fill || defaultVal.fill,
+          }}
+          className={props.className}
+          viewBox="0 0 448 512"
+          onClick={props.disabled ? undefined : props.onClick}
+        >
+          <path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 144L48 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l144 0 0 144c0 17.7 14.3 32 32 32s32-14.3 32-32l0-144 144 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-144 0 0-144z" />
+        </svg>
+      )}
+      {props.type === IconTypes.Type.minus && (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          role={props.role}
+          style={{
+            width: props.w || defaultVal.w,
+            height: props.h || defaultVal.h,
+            fill: props.fill || defaultVal.fill,
+          }}
+          className={props.className}
+          viewBox="0 0 448 512"
+          onClick={props.disabled ? undefined : props.onClick}
+        >
+          <path d="M432 256c0 17.7-14.3 32-32 32L48 288c-17.7 0-32-14.3-32-32s14.3-32 32-32l352 0c17.7 0 32 14.3 32 32z" />
         </svg>
       )}
     </>

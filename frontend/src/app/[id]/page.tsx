@@ -35,6 +35,7 @@ import Divider from "@/components/divider";
 import SquareButton from "@/components/squareButton";
 import IndivisaulSidePanel from "@/sections/indivisualSidePanel";
 import CreateShapeButtons from "@/sections/createShapeButtons";
+import Zoom from "@/sections/zoom";
 import { motion, steps } from "framer-motion";
 import { cloneDeep } from "lodash";
 import { v4 as uuidv4 } from "uuid";
@@ -873,7 +874,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseCenter.x.toFixed(1)) ===
-          Number(targetShape.getCenter().m.x.toFixed(1)) ||
+        Number(targetShape.getCenter().m.x.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.x - b.p.x);
@@ -900,7 +901,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseCenter.y.toFixed(1)) ===
-          Number(targetShape.getCenter().m.y.toFixed(1)) ||
+        Number(targetShape.getCenter().m.y.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.y - b.p.y);
@@ -929,7 +930,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.l.toFixed(1)) ===
-          Number(targetShape.getEdge().l.toFixed(1)) ||
+        Number(targetShape.getEdge().l.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.y - b.p.y);
@@ -952,7 +953,7 @@ const getAlignLines = (
     .filter((targetShape) => {
       return (
         Number(baseEdge.l.toFixed(1)) ===
-          Number(targetShape.getEdge().r.toFixed(1)) ||
+        Number(targetShape.getEdge().r.toFixed(1)) ||
         targetShape.id === baseShape.id
       );
     })
@@ -981,7 +982,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.t.toFixed(1)) ===
-          Number(targetShape.getEdge().t.toFixed(1)) ||
+        Number(targetShape.getEdge().t.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.x - b.p.x);
@@ -1004,7 +1005,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.t.toFixed(1)) ===
-          Number(targetShape.getEdge().b.toFixed(1)) ||
+        Number(targetShape.getEdge().b.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.x - b.p.x);
@@ -1032,7 +1033,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.r.toFixed(1)) ===
-          Number(targetShape.getEdge().r.toFixed(1)) ||
+        Number(targetShape.getEdge().r.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.y - b.p.y);
@@ -1058,7 +1059,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.r.toFixed(1)) ===
-          Number(targetShape.getEdge().l.toFixed(1)) ||
+        Number(targetShape.getEdge().l.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.y - b.p.y);
@@ -1086,7 +1087,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.b.toFixed(1)) ===
-          Number(targetShape.getEdge().b.toFixed(1)) ||
+        Number(targetShape.getEdge().b.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.x - b.p.x);
@@ -1112,7 +1113,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.b.toFixed(1)) ===
-          Number(targetShape.getEdge().t.toFixed(1)) ||
+        Number(targetShape.getEdge().t.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.x - b.p.x);
@@ -1183,9 +1184,9 @@ const frameSelect = (
       const theEdge = shape.getEdge();
 
       const l =
-          normalSelectAreaP.start.x < normalSelectAreaP.end.x
-            ? normalSelectAreaP.start.x
-            : normalSelectAreaP.end.x,
+        normalSelectAreaP.start.x < normalSelectAreaP.end.x
+          ? normalSelectAreaP.start.x
+          : normalSelectAreaP.end.x,
         t =
           normalSelectAreaP.start.y < normalSelectAreaP.end.y
             ? normalSelectAreaP.start.y
@@ -2460,12 +2461,12 @@ const resizeShape = (
     shape: null | undefined | Terminal | Process | Data | Desicion;
     ghost: null | undefined | Terminal | Process | Data | Desicion;
     target:
-      | null
-      | undefined
-      | CoreTypes.PressingTarget.lt
-      | CoreTypes.PressingTarget.rt
-      | CoreTypes.PressingTarget.rb
-      | CoreTypes.PressingTarget.lb;
+    | null
+    | undefined
+    | CoreTypes.PressingTarget.lt
+    | CoreTypes.PressingTarget.rt
+    | CoreTypes.PressingTarget.rb
+    | CoreTypes.PressingTarget.lb;
   },
   offsetP: CommonTypes.Vec
 ) => {
@@ -3064,9 +3065,9 @@ export default function IdPage() {
     e.preventDefault();
 
     const p = {
-        x: e.nativeEvent.offsetX,
-        y: e.nativeEvent.offsetY,
-      },
+      x: e.nativeEvent.offsetX,
+      y: e.nativeEvent.offsetY,
+    },
       offsetP = {
         x: p.x - lastP.x,
         y: p.y - lastP.y,
@@ -3380,34 +3381,6 @@ export default function IdPage() {
 
   const onClickUndoButton = () => {
     undo(ctx, offset, scale);
-  };
-
-  const onClickScalePlusIcon = () => {
-    const $canvas = document.querySelector("canvas");
-    if (!$canvas) return;
-    zoom(-100, {
-      x: $canvas?.width / 2,
-      y: $canvas?.height / 2,
-    });
-  };
-
-  const onClickScaleMinusIcon = () => {
-    const $canvas = document.querySelector("canvas");
-    if (!$canvas) return;
-    zoom(100, {
-      x: $canvas?.width / 2,
-      y: $canvas?.height / 2,
-    });
-  };
-
-  const onClickScaleNumber = () => {
-    const $canvas = document.querySelector("canvas");
-    if (!$canvas) return;
-
-    zoom(-((1 / scale - 1) * 500), {
-      x: $canvas?.width / 2,
-      y: $canvas?.height / 2,
-    });
   };
 
   const onClickOverallSidePanelSwitch = () => {
@@ -3992,22 +3965,20 @@ export default function IdPage() {
           >
             <h3
               data-tab={PageIdTypes.OverallType.step}
-              className={`flex-1 flex justify-center text-lg font-semibold py-2 px-5 ${
-                overallType === PageIdTypes.OverallType.step
-                  ? "border-b-2 border-secondary-500 text-black-2"
-                  : "border-b-1 text-grey-4"
-              }`}
+              className={`flex-1 flex justify-center text-lg font-semibold py-2 px-5 ${overallType === PageIdTypes.OverallType.step
+                ? "border-b-2 border-secondary-500 text-black-2"
+                : "border-b-1 text-grey-4"
+                }`}
             >
               <span>Step</span>
             </h3>
             <div className="border-r border-grey-5" />
             <h3
               data-tab={PageIdTypes.OverallType.data}
-              className={`flex-1 flex justify-center text-lg font-semibold py-2 px-5 ${
-                overallType === PageIdTypes.OverallType.data
-                  ? "border-b-2 border-secondary-500 text-black-2"
-                  : "border-b-1 text-grey-4"
-              }`}
+              className={`flex-1 flex justify-center text-lg font-semibold py-2 px-5 ${overallType === PageIdTypes.OverallType.data
+                ? "border-b-2 border-secondary-500 text-black-2"
+                : "border-b-1 text-grey-4"
+                }`}
             >
               <span>Data</span>
             </h3>
@@ -4155,9 +4126,8 @@ export default function IdPage() {
       />
 
       <div
-        className={`fixed bottom-[16px] ${
-          isIndivisualSidePanelOpen ? "right-[508px]" : "right-[164px]"
-        }`}
+        className={`fixed bottom-[16px] ${isIndivisualSidePanelOpen ? "right-[488px]" : "right-[144px]"
+          }`}
         role="undo"
       >
         <SquareButton
@@ -4175,35 +4145,8 @@ export default function IdPage() {
         />
       </div>
 
-      <div
-        className={`fixed p-3 bottom-[16px] ${
-          isIndivisualSidePanelOpen ? "right-[360px]" : "right-[16px]"
-        } rounded-full shadow-md bg-white-500`}
-        role="zoom"
-      >
-        <div className="justify-self-end">
-          <div className="flex items-center">
-            <div
-              className="w-6 h-6 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
-              onClick={onClickScaleMinusIcon}
-            >
-              -
-            </div>
-            <div
-              className="flex mx-2 items-center justify-center cursor-pointer w-[48px]"
-              onClick={onClickScaleNumber}
-            >
-              {Math.ceil(scale * 100)}%
-            </div>
-            <div
-              className="w-6 h-6 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
-              onClick={onClickScalePlusIcon}
-            >
-              +
-            </div>
-          </div>
-        </div>
-      </div>
+      <Zoom isIndivisualSidePanelOpen={isIndivisualSidePanelOpen} zoom={zoom} scale={scale} />
+
 
       <IndivisaulSidePanel
         datas={datas}
@@ -4231,9 +4174,8 @@ export default function IdPage() {
         />
         <canvas
           role="screenshot"
-          className={`invisible ${
-            space ? "cursor-grab" : ""
-          } overflow-hidden absolute left-0 top-0 z-[-1]`}
+          className={`invisible ${space ? "cursor-grab" : ""
+            } overflow-hidden absolute left-0 top-0 z-[-1]`}
           tabIndex={1}
           ref={(el) => {
             $screenshot = el;

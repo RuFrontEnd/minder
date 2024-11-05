@@ -3,6 +3,7 @@ import { MouseEventHandler } from "react";
 enum Type {
   x = "x",
   xCircle = 'x-circle',
+  exclaimationMarkTriangle = 'exclaimation-markTriangle',
   tick = "tick",
   tickCircle = 'tick-circle',
   pencilSquare = "pencil-square",
@@ -13,7 +14,8 @@ enum Type {
   rotateCcw = "rotateCcw",
   arrow = "arrow",
   arrowSolid = "arrow-solid",
-  exclaimationMarkTriangle = 'exclaimation-markTriangle'
+  plus = "plus",
+  minus = "minus",
 }
 
 type Props = {
