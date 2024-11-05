@@ -3775,6 +3775,8 @@ export default function IdPage() {
     _datas.push({ id: Math.random().toString(), name: createDataValue }); // TODO: should be revised into post to backend
 
     setDatas(_datas);
+
+    setCreateDateValue(null)
   };
 
   const onClickAddImportDataButton = () => {
@@ -4340,6 +4342,7 @@ export default function IdPage() {
                   onClick={onClickCreateDataButton}
                   text="Create"
                   className="ms-3 me-1"
+                  size={SimpleButtonTypes.Size.md}
                 />
               </div>
               {datas.map((data) => (
