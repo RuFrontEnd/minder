@@ -39,7 +39,7 @@ export default class Core {
   protected __receivePoint__: CoreTypes.ReceivePoint;
   private __importDatas__: CommonTypes.Datas;
   private __usingDatas__: CommonTypes.Datas;
-  private __removeDatas__: CommonTypes.Datas;
+  private __deleteDatas__: CommonTypes.Datas;
   status: CoreTypes.Status;
   private __minCurveHandlerDistance__: number;
 
@@ -66,7 +66,7 @@ export default class Core {
     };
     this.__importDatas__ = [];
     this.__usingDatas__ = [];
-    this.__removeDatas__ = [];
+    this.__deleteDatas__ = [];
     this.status = CoreTypes.Status.normal;
     this.__minCurveHandlerDistance__ = 60;
   }
@@ -128,11 +128,11 @@ export default class Core {
   }
 
   set removeDatas(val: CommonTypes.Datas) {
-    this.__removeDatas__ = val;
+    this.__deleteDatas__ = val;
   }
 
   get removeDatas() {
-    return this.__removeDatas__;
+    return this.__deleteDatas__;
   }
 
   getP(offset: CommonTypes.Vec = { x: 0, y: 0 }, scale: number = 1) {
@@ -677,7 +677,7 @@ export default class Core {
     this.title = _title;
     this.__importDatas__ = _importDatas;
     this.__usingDatas__ = _usingDatas;
-    this.__removeDatas__ = _removeDatas;
+    this.__deleteDatas__ = _removeDatas;
   };
 
   draw(

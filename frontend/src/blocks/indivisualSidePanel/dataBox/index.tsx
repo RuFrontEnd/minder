@@ -68,7 +68,7 @@ export default function DataBox(props: DataBoxTypes.Props) {
   };
 
   return (
-    <section className={`${props.className && props.className} overflow-auto`}>
+    <section className={`${props.className && props.className} flex flex-col`}>
       <Divider text={props.text} />
       {props.isEditing && (
         <div className="flex items-center justify-end px-1">
@@ -78,7 +78,7 @@ export default function DataBox(props: DataBoxTypes.Props) {
             text="Create"
             size={SimpleButtonTypes.Size.sm}
           />
-          <div className="border mx-2 h-3"/>
+          <div className="border mx-2 h-3" />
           <SimpleButton
             role="add_data"
             onClick={onClickAddDataButton}
@@ -87,7 +87,7 @@ export default function DataBox(props: DataBoxTypes.Props) {
           />
         </div>
       )}
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-hidden">
         {props.datas.length > 0 ||
         props.createDatas.length > 0 ||
         props.addDatas.length > 0 ? (
@@ -148,7 +148,9 @@ export default function DataBox(props: DataBoxTypes.Props) {
             ))}
           </ul>
         ) : (
-          <p className="px-3 py-1 text-black-2">none</p>
+          <div className="flex-1">
+            <p className="px-3 py-1 text-black-2">none</p>
+          </div>
         )}
       </div>
     </section>

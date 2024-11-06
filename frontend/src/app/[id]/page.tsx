@@ -4147,7 +4147,6 @@ export default function IdPage() {
 
       <Zoom isIndivisualSidePanelOpen={isIndivisualSidePanelOpen} zoom={zoom} scale={scale} />
 
-
       <IndivisaulSidePanel
         datas={datas}
         isIndivisualSidePanelOpen={isIndivisualSidePanelOpen}

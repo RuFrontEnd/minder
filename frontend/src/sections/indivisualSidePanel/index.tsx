@@ -24,10 +24,14 @@ export default function IndivisualSidePanel(
     useState<IndivisaulSidePanelTypes.CreateDatas>([]);
   const [addImportDatas, setAddImportDatas] =
     useState<IndivisaulSidePanelTypes.AddDatas>([]);
-  const [addUsingDatas, setAddUsingDatas] = useState<(null | string)[]>([]);
-  const [newUsingDatas, setNewUsingDatas] = useState<(null | string)[]>([]);
-  const [addRemoveDatas, setAddRemoveDatas] = useState<(null | string)[]>([]);
-  const [newRemoveDatas, setNewRemoveDatas] = useState<(null | string)[]>([]);
+  const [createUsingDatas, setCreateUsingDatas] =
+    useState<IndivisaulSidePanelTypes.CreateDatas>([]);
+  const [addUsingDatas, setAddUsingDatas] =
+    useState<IndivisaulSidePanelTypes.AddDatas>([]);
+  const [createDeleteDatas, setCreateDelteDatas] =
+    useState<IndivisaulSidePanelTypes.CreateDatas>([]);
+  const [addDeleteDatas, setAddDeleteDatas] =
+    useState<IndivisaulSidePanelTypes.AddDatas>([]);
 
   const dataOptions = props.datas.map((data) => data.name);
 
@@ -44,10 +48,10 @@ export default function IndivisualSidePanel(
   const onClickCancelEditIndivisualButton = () => {
     setCreateImportDatas([]);
     setAddImportDatas([]);
+    setCreateUsingDatas([]);
     setAddUsingDatas([]);
-    setNewUsingDatas([]);
-    setAddRemoveDatas([]);
-    setNewRemoveDatas([]);
+    setCreateDelteDatas([]);
+    setAddDeleteDatas([]);
     setIsEditingIndivisual(false);
   };
 
@@ -178,97 +182,28 @@ export default function IndivisualSidePanel(
             addDatas={addImportDatas}
             setAddDatas={setAddImportDatas}
           />
-          {/* TODO: split Using Data / Remove Data */}
-          <Divider text={"Using Data"} />
-          <section className="flex-1 mb-2 pb-4">
-            <div className="px-1">
-              {/* <div
-                  className="w-6 h-6 ml-2 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
-                // onClick={onClickPlus}
-                >
-                  +
-                </div> */}
-              {props.indivisual?.usingDatas &&
-              props.indivisual?.usingDatas.length > 0 ? (
-                props.indivisual.usingDatas.map((usingData, i) => (
-                  <div className={`flex flex-col mt-${i !== 0 ? "2" : "0"}`}>
-                    <div className="flex items-center">
-                      <input
-                        type="text"
-                        id="full-name"
-                        name="full-name"
-                        className={`w-full h-[28px] bg-white rounded border 
-                        ${false ? "border-red-500" : "border-gray-300"}
-                  focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out`}
-                        value={usingData.text}
-                        // onChange={(e) => {
-                        //   onChangeData(e, i);
-                        // }}
-                      />
-                      <div
-                        className="w-6 h-6 ml-2 inline-flex items-center justify-center rounded-full text-white-500 bg-primary-500 flex-shrink-0 cursor-pointer"
-                        // onClick={() => {
-                        //   onClickMinus(usingData.id);
-                        // }}
-                      >
-                        -
-                      </div>
-                    </div>
-                    {/* {false && (
-                      <span className="text-red-500">{warning.data[i]}</span>
-                    )} */}
-                  </div>
-                ))
-              ) : (
-                <p className="text-black-2">none</p>
-              )}
-            </div>
-          </section>
-          <Divider text={"Remove Data"} />
-          <section className="flex-1 mb-2 pb-4">
-            <div className="px-1">
-              {/* <div
-                  className="w-6 h-6 ml-2 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
-                // onClick={onClickPlus}
-                >
-                  +
-                </div> */}
-              {props.indivisual?.removeDatas &&
-              props.indivisual?.removeDatas.length > 0 ? (
-                props.indivisual.removeDatas.map((removeData, i) => (
-                  <div className={`flex flex-col mt-${i !== 0 ? "2" : "0"}`}>
-                    <div className="flex items-center">
-                      <input
-                        type="text"
-                        id="full-name"
-                        name="full-name"
-                        className={`w-full h-[28px] bg-white rounded border 
-                        ${false ? "border-red-500" : "border-gray-300"}
-                  focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out`}
-                        value={removeData.text}
-                        // onChange={(e) => {
-                        //   onChangeData(e, i);
-                        // }}
-                      />
-                      <div
-                        className="w-6 h-6 ml-2 inline-flex items-center justify-center rounded-full text-white-500 bg-primary-500 flex-shrink-0 cursor-pointer"
-                        // onClick={() => {
-                        //   onClickMinus(removeData.id);
-                        // }}
-                      >
-                        -
-                      </div>
-                    </div>
-                    {/* {false && (
-                      <span className="text-red-500">{warning.data[i]}</span>
-                    )} */}
-                  </div>
-                ))
-              ) : (
-                <p className="text-black-2">none</p>
-              )}
-            </div>
-          </section>
+          <DataBox
+            className="flex-1"
+            text={"Using Data"}
+            isEditing={isEditingIndivisual}
+            options={dataOptions}
+            datas={props.indivisual?.importDatas || []}
+            createDatas={createUsingDatas}
+            setCreateDatas={setCreateUsingDatas}
+            addDatas={addUsingDatas}
+            setAddDatas={setAddUsingDatas}
+          />
+          <DataBox
+            className="flex-1"
+            text={"Delete Data"}
+            isEditing={isEditingIndivisual}
+            options={dataOptions}
+            datas={props.indivisual?.importDatas || []}
+            createDatas={createDeleteDatas}
+            setCreateDatas={setCreateDelteDatas}
+            addDatas={addDeleteDatas}
+            setAddDatas={setAddDeleteDatas}
+          />
         </div>
       </div>
     </SidePanel>
