@@ -2147,10 +2147,6 @@ const checkConnect = (p: CommonTypes.Vec) => {
     );
     actionRecords.finish(CommonTypes.Action.disconnect);
     return;
-    // actions.push({
-    //   type: CommonTypes.Action.disconnect,
-    //   curve: _curve,
-    // }); // temp close
   }
 
   if (

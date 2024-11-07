@@ -15,6 +15,7 @@ import * as PageIdTypes from "@/types/app/pageId";
 import * as SidePanelTypes from "@/types/components/sidePanel";
 import * as ButtonTypes from "@/types/components/button";
 import * as IndivisaulSidePanelTypes from "@/types/sections/id/indivisualSidePanel";
+import * as CommonTypes from "@/types/common";
 
 export default function IndivisualSidePanel(
   props: IndivisaulSidePanelTypes.Props
@@ -28,93 +29,329 @@ export default function IndivisualSidePanel(
     useState<IndivisaulSidePanelTypes.CreateDatas>([]);
   const [addUsingDatas, setAddUsingDatas] =
     useState<IndivisaulSidePanelTypes.AddDatas>([]);
-  const [createDeleteDatas, setCreateDelteDatas] =
+  const [createDeleteDatas, setCreateDeleteDatas] =
     useState<IndivisaulSidePanelTypes.CreateDatas>([]);
   const [addDeleteDatas, setAddDeleteDatas] =
     useState<IndivisaulSidePanelTypes.AddDatas>([]);
 
   const dataOptions = props.datas.map((data) => data.name);
 
-  const onClickIndivisualSidePanelSwitch: SidePanelTypes.Props["onClickSwitch"] =
-    (e) => {
-      e.preventDefault();
-      props.setIsIndivisualSidePanelOpen((open) => !open);
-    };
-
-  const onClickEditIndivisualIcon = () => {
-    setIsEditingIndivisual(true);
-  };
-
-  const onClickCancelEditIndivisualButton = () => {
+  const closeEditing = () => {
     setCreateImportDatas([]);
     setAddImportDatas([]);
     setCreateUsingDatas([]);
     setAddUsingDatas([]);
-    setCreateDelteDatas([]);
+    setCreateDeleteDatas([]);
     setAddDeleteDatas([]);
     setIsEditingIndivisual(false);
   };
 
-  const onClickSaveIndivisualButton = () => {
-    const validateRequirement = () => {
-      const _addImportDatas = cloneDeep(createImportDatas);
+  const onClickSidePanelSwitch: SidePanelTypes.Props["onClickSwitch"] = (e) => {
+    e.preventDefault();
+    props.setIsIndivisualSidePanelOpen((open) => !open);
+  };
 
-      _addImportDatas.forEach((_addImportData) => {
-        if (!!_addImportData.val) return;
-        _addImportData.comment = "required!";
-        _addImportData.status = InputTypes.Status.error;
+  const onClickEditIcon = () => {
+    if (props.indivisual?.importDatas) {
+      setCreateImportDatas(
+        props.indivisual.importDatas.map((data) => ({
+          val: data.text,
+          comment: null,
+          status: null,
+        }))
+      );
+    }
+
+    setIsEditingIndivisual(true);
+  };
+
+  const onClickCancelButton = () => {
+    closeEditing();
+  };
+
+  const onClickSaveButton = () => {
+    const getUnfilledDatas = () => {
+      const _createImportDatas = cloneDeep(createImportDatas);
+      const _createUsingDatas = cloneDeep(createUsingDatas);
+      const _createDeleteDatas = cloneDeep(createDeleteDatas);
+
+      _createImportDatas.forEach((_datas) => {
+        _datas.status = null;
+
+        if (!!_datas.val) return;
+        _datas.comment = "required!";
+        _datas.status = InputTypes.Status.error;
       });
 
-      return { createImportDatas: _addImportDatas };
+      _createUsingDatas.forEach((_datas) => {
+        _datas.status = null;
+
+        if (!!_datas.val) return;
+        _datas.comment = "required!";
+        _datas.status = InputTypes.Status.error;
+      });
+
+      _createDeleteDatas.forEach((_datas) => {
+        _datas.status = null;
+
+        if (!!_datas.val) return;
+        _datas.comment = "required!";
+        _datas.status = InputTypes.Status.error;
+      });
+
+      return {
+        createImportDatas: _createImportDatas,
+        createUsingDatas: _createUsingDatas,
+        createDeleteDatas: _createDeleteDatas,
+      };
     };
 
-    const validateRepetition = (lastResult: {
+    const getRepetitiveDatas = (lastResult: {
       createImportDatas: IndivisaulSidePanelTypes.CreateDatas;
+      createUsingDatas: IndivisaulSidePanelTypes.CreateDatas;
+      createDeleteDatas: IndivisaulSidePanelTypes.CreateDatas;
     }) => {
-      const map: { [data: string]: boolean } = {};
+      const importMap: { [data: string]: boolean } = {};
+      const usingMap: { [data: string]: boolean } = {};
+      const deleteMap: { [data: string]: boolean } = {};
 
-      props.indivisual?.importDatas.forEach((importData) => {
-        map[importData.text] = importData.text in map;
+      createImportDatas.forEach((data) => {
+        if (!data.val) return;
+        importMap[data.val] = data.val in importMap;
       });
 
-      createImportDatas.forEach((createImportData) => {
-        if (!createImportData.val) return;
-        map[createImportData.val] = createImportData.val in map;
+      addImportDatas.forEach((data) => {
+        if (!data.val) return;
+        importMap[data.val] = data.val in importMap;
       });
 
-      addImportDatas.forEach((addImportData) => {
-        if (!addImportData.val) return;
-        map[addImportData.val] = addImportData.val in map;
+      createUsingDatas.forEach((data) => {
+        if (!data.val) return;
+        usingMap[data.val] = data.val in usingMap;
       });
 
-      let isPass = true;
+      addUsingDatas.forEach((data) => {
+        if (!data.val) return;
+        usingMap[data.val] = data.val in usingMap;
+      });
+
+      createDeleteDatas.forEach((data) => {
+        if (!data.val) return;
+        deleteMap[data.val] = data.val in deleteMap;
+      });
+
+      addDeleteDatas.forEach((data) => {
+        if (!data.val) return;
+        deleteMap[data.val] = data.val in deleteMap;
+      });
 
       const _createImportDatas = lastResult.createImportDatas;
+      const _createUsingDatas = lastResult.createUsingDatas;
+      const _createDeleteDatas = lastResult.createDeleteDatas;
 
-      _createImportDatas.forEach((_addImportData) => {
-        if (!_addImportData.val || !map[_addImportData.val]) return;
-        _addImportData.comment = "repetitive!";
-        _addImportData.status = InputTypes.Status.error;
-        isPass = false;
+      _createImportDatas.forEach((data) => {
+        if (!data.val || !importMap[data.val]) return;
+        data.comment = "repetitive!";
+        data.status = InputTypes.Status.error;
       });
 
-      setCreateImportDatas(_createImportDatas);
+      _createUsingDatas.forEach((data) => {
+        if (!data.val || !usingMap[data.val]) return;
+        data.comment = "repetitive!";
+        data.status = InputTypes.Status.error;
+      });
+
+      _createDeleteDatas.forEach((data) => {
+        if (!data.val || !deleteMap[data.val]) return;
+        data.comment = "repetitive!";
+        data.status = InputTypes.Status.error;
+      });
 
       const _addImportDatas = cloneDeep(addImportDatas);
+      const _addUsingDatas = cloneDeep(addUsingDatas);
+      const _addDeleteDatas = cloneDeep(addDeleteDatas);
 
-      _addImportDatas.forEach((_addImportDatas) => {
-        if (!_addImportDatas.val || !map[_addImportDatas.val]) return;
-        _addImportDatas.comment = "repetitive!";
-        _addImportDatas.status = SelectTypes.Status.error;
-        isPass = false;
+      _addImportDatas.forEach((data) => {
+        data.status = null;
+
+        if (!data.val || !importMap[data.val]) return;
+        data.comment = "repetitive!";
+        data.status = SelectTypes.Status.error;
       });
 
-      setAddImportDatas(_addImportDatas);
+      _addUsingDatas.forEach((data) => {
+        data.status = null;
 
-      return isPass;
+        if (!data.val || !usingMap[data.val]) return;
+        data.comment = "repetitive!";
+        data.status = SelectTypes.Status.error;
+      });
+
+      _addDeleteDatas.forEach((data) => {
+        data.status = null;
+
+        if (!data.val || !deleteMap[data.val]) return;
+        data.comment = "repetitive!";
+        data.status = SelectTypes.Status.error;
+      });
+
+      console.log("importMap", importMap);
+
+      return {
+        createImportDatas: _createImportDatas,
+        createUsingDatas: _createUsingDatas,
+        createDeleteDatas: _createDeleteDatas,
+        addImportDatas: _addImportDatas,
+        addUsingDatas: _addUsingDatas,
+        addDeleteDatas: _addDeleteDatas,
+      };
     };
 
-    handleUtils.handle([validateRequirement, validateRepetition]);
+    const validate = (lastResult: {
+      createImportDatas: IndivisaulSidePanelTypes.CreateDatas;
+      createUsingDatas: IndivisaulSidePanelTypes.CreateDatas;
+      createDeleteDatas: IndivisaulSidePanelTypes.CreateDatas;
+      addImportDatas: IndivisaulSidePanelTypes.AddDatas;
+      addUsingDatas: IndivisaulSidePanelTypes.AddDatas;
+      addDeleteDatas: IndivisaulSidePanelTypes.AddDatas;
+    }) => {
+      if (
+        lastResult.createImportDatas.findIndex(
+          (data) => data.status === InputTypes.Status.error
+        ) > -1 ||
+        lastResult.createUsingDatas.findIndex(
+          (data) => data.status === InputTypes.Status.error
+        ) > -1 ||
+        lastResult.createDeleteDatas.findIndex(
+          (data) => data.status === InputTypes.Status.error
+        ) > -1 ||
+        lastResult.addImportDatas.findIndex(
+          (data) => data.status === InputTypes.Status.error
+        ) > -1 ||
+        lastResult.addUsingDatas.findIndex(
+          (data) => data.status === InputTypes.Status.error
+        ) > -1 ||
+        lastResult.addDeleteDatas.findIndex(
+          (data) => data.status === InputTypes.Status.error
+        ) > -1
+      ) {
+        setCreateImportDatas(lastResult.createImportDatas);
+        setCreateUsingDatas(lastResult.createUsingDatas);
+        setCreateDeleteDatas(lastResult.createDeleteDatas);
+        setAddImportDatas(lastResult.addImportDatas);
+        setAddUsingDatas(lastResult.addUsingDatas);
+        setAddDeleteDatas(lastResult.addDeleteDatas);
+        return false;
+      }
+
+      return {
+        createImportDatas: lastResult.createImportDatas,
+        createUsingDatas: lastResult.createUsingDatas,
+        createDeleteDatas: lastResult.createDeleteDatas,
+        addImportDatas: lastResult.addImportDatas,
+        addUsingDatas: lastResult.addUsingDatas,
+        addDeleteDatas: lastResult.addDeleteDatas,
+      };
+    };
+
+    const setDatasToShape = (lastResult: {
+      createImportDatas: IndivisaulSidePanelTypes.CreateDatas;
+      createUsingDatas: IndivisaulSidePanelTypes.CreateDatas;
+      createDeleteDatas: IndivisaulSidePanelTypes.CreateDatas;
+      addImportDatas: IndivisaulSidePanelTypes.AddDatas;
+      addUsingDatas: IndivisaulSidePanelTypes.AddDatas;
+      addDeleteDatas: IndivisaulSidePanelTypes.AddDatas;
+    }) => {
+      if (!props.indivisual) return false;
+      const _importDatas: CommonTypes.Datas = [];
+      const _usingDatas: CommonTypes.Datas = [];
+      const _deleteDatas: CommonTypes.Datas = [];
+
+      for (let i = 0; i < lastResult.createImportDatas.length; i++) {
+        const data = lastResult.createImportDatas[i];
+        if (!data.val) return false;
+
+        _importDatas.push({
+          id: data.val,
+          text: data.val,
+          status: CommonTypes.DataStatus.default,
+        });
+      }
+
+      for (let i = 0; i < lastResult.addImportDatas.length; i++) {
+        const data = lastResult.addImportDatas[i];
+        if (!data.val) return false;
+
+        _importDatas.push({
+          id: data.val,
+          text: data.val,
+          status: CommonTypes.DataStatus.default,
+        });
+      }
+
+      for (let i = 0; i < lastResult.createUsingDatas.length; i++) {
+        const data = lastResult.createUsingDatas[i];
+        if (!data.val) return false;
+
+        _usingDatas.push({
+          id: data.val,
+          text: data.val,
+          status: CommonTypes.DataStatus.default,
+        });
+      }
+
+      for (let i = 0; i < lastResult.addUsingDatas.length; i++) {
+        const data = lastResult.addUsingDatas[i];
+        if (!data.val) return false;
+
+        _usingDatas.push({
+          id: data.val,
+          text: data.val,
+          status: CommonTypes.DataStatus.default,
+        });
+      }
+
+      for (let i = 0; i < lastResult.createDeleteDatas.length; i++) {
+        const data = lastResult.createDeleteDatas[i];
+        if (!data.val) return false;
+
+        _deleteDatas.push({
+          id: data.val,
+          text: data.val,
+          status: CommonTypes.DataStatus.default,
+        });
+      }
+
+      for (let i = 0; i < lastResult.addDeleteDatas.length; i++) {
+        const data = lastResult.addDeleteDatas[i];
+        if (!data.val) return false;
+
+        _deleteDatas.push({
+          id: data.val,
+          text: data.val,
+          status: CommonTypes.DataStatus.default,
+        });
+      }
+
+      props.indivisual.importDatas = _importDatas;
+      props.indivisual.usingDatas = _usingDatas;
+      props.indivisual.deleteDatas = _deleteDatas;
+      setIsEditingIndivisual(false);
+      return true;
+    };
+
+    const finishEditing = () => {
+      closeEditing();
+      return false;
+    };
+
+    handleUtils.handle([
+      getUnfilledDatas,
+      getRepetitiveDatas,
+      validate,
+      setDatasToShape,
+      finishEditing,
+    ]);
   };
 
   return (
@@ -125,7 +362,7 @@ export default function IndivisualSidePanel(
       verticalD={SidePanelTypes.VerticalD.b}
       w={"360px"}
       h={"calc(100vh)"}
-      onClickSwitch={onClickIndivisualSidePanelSwitch}
+      onClickSwitch={onClickSidePanelSwitch}
     >
       <div className={"p-4 h-full"}>
         {isEditingIndivisual ? (
@@ -136,14 +373,14 @@ export default function IndivisualSidePanel(
               text="Cancel"
               className="ms-2"
               size={ButtonTypes.Size.sm}
-              onClick={onClickCancelEditIndivisualButton}
+              onClick={onClickCancelButton}
             />
             <Button
               role="save_edit_indivisual"
               text="Save"
               className="ms-2"
               size={ButtonTypes.Size.sm}
-              onClick={onClickSaveIndivisualButton}
+              onClick={onClickSaveButton}
             />
           </div>
         ) : (
@@ -154,7 +391,7 @@ export default function IndivisualSidePanel(
             w={16}
             h={16}
             disabled={!props.indivisual}
-            onClick={onClickEditIndivisualIcon}
+            onClick={onClickEditIcon}
           />
         )}
         <div
@@ -170,7 +407,7 @@ export default function IndivisualSidePanel(
               />
             ) : (
               <p className="text-black-2 px-3 py-1">
-                {props.indivisual?.title || '-'}
+                {props.indivisual?.title || "-"}
               </p>
             )}
           </div>
@@ -192,7 +429,7 @@ export default function IndivisualSidePanel(
             text={"Using Data"}
             isEditing={isEditingIndivisual}
             options={dataOptions}
-            datas={props.indivisual?.importDatas || []}
+            datas={props.indivisual?.usingDatas || []}
             createDatas={createUsingDatas}
             setCreateDatas={setCreateUsingDatas}
             addDatas={addUsingDatas}
@@ -204,9 +441,9 @@ export default function IndivisualSidePanel(
             text={"Delete Data"}
             isEditing={isEditingIndivisual}
             options={dataOptions}
-            datas={props.indivisual?.importDatas || []}
+            datas={props.indivisual?.deleteDatas || []}
             createDatas={createDeleteDatas}
-            setCreateDatas={setCreateDelteDatas}
+            setCreateDatas={setCreateDeleteDatas}
             addDatas={addDeleteDatas}
             setAddDatas={setAddDeleteDatas}
           />

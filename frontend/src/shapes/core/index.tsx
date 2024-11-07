@@ -127,11 +127,11 @@ export default class Core {
     return this.__usingDatas__;
   }
 
-  set removeDatas(val: CommonTypes.Datas) {
+  set deleteDatas(val: CommonTypes.Datas) {
     this.__deleteDatas__ = val;
   }
 
-  get removeDatas() {
+  get deleteDatas() {
     return this.__deleteDatas__;
   }
 

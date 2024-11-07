@@ -98,60 +98,67 @@ export default function DataBox(props: DataBoxTypes.Props) {
         props.createDatas.length > 0 ||
         props.addDatas.length > 0 ? (
           <>
-            {props.datas.map((data) => (
-              <li className="px-3 py-1 hover:bg-grey-5">
-                <StatusText text={data.text} status={data.status} />
-              </li>
-            ))}
-            {props.createDatas.map((createData, createDataI) => (
-              <li className="py-1 flex">
-                <Input
-                  className="flex-1"
-                  placeholder={"input data name"}
-                  value={createData.val}
-                  onChange={(e) => {
-                    onChangeCreateDataButton(e, createDataI);
-                  }}
-                  comment={createData.comment}
-                  status={createData.status}
-                />
-                <Icon
-                  className="m-1 cursor-pointer"
-                  type={IconTypes.Type.x}
-                  w={16}
-                  h={24}
-                  stroke={tailwindColors.error["500"]}
-                  onClick={(e) => {
-                    onRemoveCreateDataButton(createDataI);
-                  }}
-                />
-              </li>
-            ))}
-            {props.addDatas.map((addData, addDataI) => (
-              <li className="py-1 flex">
-                <Select
-                  className="flex-1"
-                  options={props.options}
-                  value={addData.val}
-                  placeholder={"select data"}
-                  onChange={(e) => {
-                    onChangeAddDataButton(e, addDataI);
-                  }}
-                  comment={addData.comment}
-                  status={addData.status}
-                />
-                <Icon
-                  className="m-1 cursor-pointer"
-                  type={IconTypes.Type.x}
-                  w={16}
-                  h={24}
-                  stroke={tailwindColors.error["500"]}
-                  onClick={(e) => {
-                    onRemoveAddDataButton(addDataI);
-                  }}
-                />
-              </li>
-            ))}
+            {props.createDatas.length > 0 || props.addDatas.length > 0 ? (
+              <>
+                {props.createDatas.map((createData, createDataI) => (
+                  <li className="py-1 flex">
+                    <Input
+                      className="flex-1"
+                      placeholder={"input data name"}
+                      value={createData.val}
+                      onChange={(e) => {
+                        onChangeCreateDataButton(e, createDataI);
+                      }}
+                      comment={createData.comment}
+                      status={createData.status}
+                    />
+                    <Icon
+                      className="m-1 cursor-pointer"
+                      type={IconTypes.Type.x}
+                      w={16}
+                      h={24}
+                      stroke={tailwindColors.error["500"]}
+                      onClick={(e) => {
+                        onRemoveCreateDataButton(createDataI);
+                      }}
+                    />
+                  </li>
+                ))}
+                {props.addDatas.map((addData, addDataI) => (
+                  <li className="py-1 flex">
+                    <Select
+                      className="flex-1"
+                      options={props.options}
+                      value={addData.val}
+                      placeholder={"select data"}
+                      onChange={(e) => {
+                        onChangeAddDataButton(e, addDataI);
+                      }}
+                      comment={addData.comment}
+                      status={addData.status}
+                    />
+                    <Icon
+                      className="m-1 cursor-pointer"
+                      type={IconTypes.Type.x}
+                      w={16}
+                      h={24}
+                      stroke={tailwindColors.error["500"]}
+                      onClick={(e) => {
+                        onRemoveAddDataButton(addDataI);
+                      }}
+                    />
+                  </li>
+                ))}
+              </>
+            ) : (
+              <>
+                {props.datas.map((data) => (
+                  <li className="px-3 py-1 hover:bg-grey-5">
+                    <StatusText text={data.text} status={data.status} />
+                  </li>
+                ))}
+              </>
+            )}
           </>
         ) : (
           <div className="flex justify-center items-center h-full p-1">
