@@ -1,9 +1,10 @@
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, CSSProperties } from "react";
 import * as CommonTypes from "@/types/common";
 import * as InputTypes from "@/types/components/input";
 import * as SelectTypes from "@/types/components/select";
 
 type Props = {
+  style?: CSSProperties;
   className?: string;
   text: string;
   isEditing: boolean;

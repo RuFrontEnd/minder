@@ -157,7 +157,7 @@ export default function IndivisualSidePanel(
             onClick={onClickEditIndivisualIcon}
           />
         )}
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col" style={{ height: "calc(100% - 28px)" }}>
           <div>
             <p className="text-sm px-1">title</p>
             {isEditingIndivisual ? (
@@ -172,6 +172,7 @@ export default function IndivisualSidePanel(
             )}
           </div>
           <DataBox
+            style={{ height: "calc(33.333% - 17.333px)" }}
             className="flex-1"
             text={"Import Data"}
             isEditing={isEditingIndivisual}
@@ -183,6 +184,7 @@ export default function IndivisualSidePanel(
             setAddDatas={setAddImportDatas}
           />
           <DataBox
+            style={{ height: "calc(33.333% - 17.333px)" }}
             className="flex-1"
             text={"Using Data"}
             isEditing={isEditingIndivisual}
@@ -194,6 +196,7 @@ export default function IndivisualSidePanel(
             setAddDatas={setAddUsingDatas}
           />
           <DataBox
+            style={{ height: "calc(33.333% - 17.333px)" }}
             className="flex-1"
             text={"Delete Data"}
             isEditing={isEditingIndivisual}

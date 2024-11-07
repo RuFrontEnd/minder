@@ -68,7 +68,10 @@ export default function DataBox(props: DataBoxTypes.Props) {
   };
 
   return (
-    <section className={`${props.className && props.className} flex flex-col`}>
+    <section
+      style={props.style}
+      className={`${props.className && props.className} flex flex-col`}
+    >
       <Divider text={props.text} />
       {props.isEditing && (
         <div className="flex items-center justify-end px-1">
@@ -87,11 +90,14 @@ export default function DataBox(props: DataBoxTypes.Props) {
           />
         </div>
       )}
-      <div className="flex-1 overflow-hidden">
+      <ul
+        className="flex-1 overflow-auto"
+        style={{ height: "calc(100% - 52px)" }}
+      >
         {props.datas.length > 0 ||
         props.createDatas.length > 0 ||
         props.addDatas.length > 0 ? (
-          <ul>
+          <>
             {props.datas.map((data) => (
               <li className="px-3 py-1 hover:bg-grey-5">
                 <StatusText text={data.text} status={data.status} />
@@ -146,13 +152,13 @@ export default function DataBox(props: DataBoxTypes.Props) {
                 />
               </li>
             ))}
-          </ul>
+          </>
         ) : (
           <div className="flex-1">
             <p className="px-3 py-1 text-black-2">none</p>
           </div>
         )}
-      </div>
+      </ul>
     </section>
   );
 }
