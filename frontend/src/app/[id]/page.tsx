@@ -4145,6 +4145,7 @@ export default function IdPage() {
 
       <IndivisaulSidePanel
         datas={datas}
+        setDatas={setDatas}
         isIndivisualSidePanelOpen={isIndivisualSidePanelOpen}
         setIsIndivisualSidePanelOpen={setIsIndivisualSidePanelOpen}
         indivisual={indivisual}

@@ -53,7 +53,7 @@ export default function IndivisualSidePanel(
 
   const onClickEditIcon = () => {
     if (props.indivisual?.importDatas) {
-      setCreateImportDatas(
+      setAddImportDatas(
         props.indivisual.importDatas.map((data) => ({
           val: data.text,
           comment: null,
@@ -195,8 +195,6 @@ export default function IndivisualSidePanel(
         data.status = SelectTypes.Status.error;
       });
 
-      console.log("importMap", importMap);
-
       return {
         createImportDatas: _createImportDatas,
         createUsingDatas: _createUsingDatas,
@@ -337,6 +335,51 @@ export default function IndivisualSidePanel(
       props.indivisual.usingDatas = _usingDatas;
       props.indivisual.deleteDatas = _deleteDatas;
       setIsEditingIndivisual(false);
+
+      return {
+        createImportDatas: lastResult.createImportDatas,
+        createUsingDatas: lastResult.createUsingDatas,
+        createDeleteDatas: lastResult.createDeleteDatas,
+      };
+    };
+
+    const syncToOverallData = (lastResult: {
+      createImportDatas: IndivisaulSidePanelTypes.CreateDatas;
+      createUsingDatas: IndivisaulSidePanelTypes.CreateDatas;
+      createDeleteDatas: IndivisaulSidePanelTypes.CreateDatas;
+    }) => {
+      const originalDatas = cloneDeep(props.datas);
+
+      const newDatas = new Set<{
+        id: string;
+        name: string;
+      }>(originalDatas);
+
+      lastResult.createImportDatas.forEach((data) => {
+        if (!data.val) return;
+        newDatas.add({
+          id: data.val,
+          name: data.val,
+        });
+      });
+
+      lastResult.createUsingDatas.forEach((data) => {
+        if (!data.val) return;
+        newDatas.add({
+          id: data.val,
+          name: data.val,
+        });
+      });
+
+      lastResult.createDeleteDatas.forEach((data) => {
+        if (!data.val) return;
+        newDatas.add({
+          id: data.val,
+          name: data.val,
+        });
+      });
+
+      props.setDatas(Array.from(newDatas));
       return true;
     };
 
@@ -350,6 +393,7 @@ export default function IndivisualSidePanel(
       getRepetitiveDatas,
       validate,
       setDatasToShape,
+      syncToOverallData,
       finishEditing,
     ]);
   };

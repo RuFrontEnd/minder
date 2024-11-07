@@ -3,8 +3,8 @@ import Terminal from "@/shapes/terminal";
 import Process from "@/shapes/process";
 import Data from "@/shapes/data";
 import Desicion from "@/shapes/decision";
-import * as InputTypes from '@/types/components/input';
-import * as SelectTypes from '@/types/components/input';
+import * as InputTypes from "@/types/components/input";
+import * as SelectTypes from "@/types/components/input";
 
 type CreateDatas = {
   val: null | string;
@@ -16,13 +16,14 @@ type AddDatas = {
   val: string;
   comment: null | string;
   status: null | SelectTypes.Status;
-}[]
+}[];
 
 type Props = {
   datas: {
     id: string;
     name: string;
   }[];
+  setDatas: Dispatch<SetStateAction<Props["datas"]>>;
   isIndivisualSidePanelOpen: boolean;
   setIsIndivisualSidePanelOpen: Dispatch<
     SetStateAction<Props["isIndivisualSidePanelOpen"]>
