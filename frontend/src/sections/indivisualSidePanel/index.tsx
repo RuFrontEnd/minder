@@ -157,7 +157,10 @@ export default function IndivisualSidePanel(
             onClick={onClickEditIndivisualIcon}
           />
         )}
-        <div className="flex flex-col" style={{ height: "calc(100% - 28px)" }}>
+        <div
+          className="flex flex-col"
+          style={{ height: `calc(100% - ${isEditingIndivisual ? 28 : 16}px)` }}
+        >
           <div>
             <p className="text-sm px-1">title</p>
             {isEditingIndivisual ? (
@@ -167,7 +170,7 @@ export default function IndivisualSidePanel(
               />
             ) : (
               <p className="text-black-2 px-3 py-1">
-                {props.indivisual?.title || "none"}
+                {props.indivisual?.title || '-'}
               </p>
             )}
           </div>

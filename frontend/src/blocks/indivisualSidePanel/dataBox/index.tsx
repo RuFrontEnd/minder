@@ -154,8 +154,10 @@ export default function DataBox(props: DataBoxTypes.Props) {
             ))}
           </>
         ) : (
-          <div className="flex-1">
-            <p className="px-3 py-1 text-black-2">none</p>
+          <div className="flex justify-center items-center h-full p-1">
+            <div className="flex-1 flex justify-center items-center h-full bg-grey-7 rounded-md">
+              <p className="text-black-2 text-grey-4">No Data</p>
+            </div>
           </div>
         )}
       </ul>

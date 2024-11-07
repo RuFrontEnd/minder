@@ -35,7 +35,7 @@ const Button = (props: ButtonTypes.Props) => {
     <button
       id={props.id}
       role={props.role}
-      className={`${statusStyle} ${sizeStyle} whitespace-nowrap flex justify-center items-center border-0 focus:outline-none rounded ease-in-out duration-300 break-keep ${
+      className={`${statusStyle} ${sizeStyle} whitespace-nowrap flex justify-center items-center border-0 focus:outline-none rounded break-keep ${
         props.className && props.className
       }`}
       onClick={props.loading ? undefined : props.onClick}
