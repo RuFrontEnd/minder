@@ -48,6 +48,26 @@ export default function IndivisualSidePanel(
       );
     }
 
+    if (props.indivisual?.usingDatas) {
+      props.setAddUsingDatas(
+        props.indivisual.usingDatas.map((data) => ({
+          val: data.text,
+          comment: null,
+          status: null,
+        }))
+      );
+    }
+
+    if (props.indivisual?.deleteDatas) {
+      props.setAddDeleteDatas(
+        props.indivisual.deleteDatas.map((data) => ({
+          val: data.text,
+          comment: null,
+          status: null,
+        }))
+      );
+    }
+
     props.setIsEditingIndivisual(true);
   };
 
@@ -56,6 +76,7 @@ export default function IndivisualSidePanel(
   };
 
   const onClickSaveButton = () => {
+    console.log('props.indivisual', props.indivisual)
     const getUnfilledDatas = () => {
       const _createImportDatas = cloneDeep(props.createImportDatas);
       const _createUsingDatas = cloneDeep(props.createUsingDatas);
@@ -246,6 +267,7 @@ export default function IndivisualSidePanel(
       addUsingDatas: IndivisaulSidePanelTypes.AddDatas;
       addDeleteDatas: IndivisaulSidePanelTypes.AddDatas;
     }) => {
+      console.log('lastResult', lastResult)
       if (!props.indivisual) return false;
       const _importDatas: CommonTypes.Datas = [];
       const _usingDatas: CommonTypes.Datas = [];
@@ -366,7 +388,7 @@ export default function IndivisualSidePanel(
       });
 
       props.setDatas(Array.from(newDatas));
-      
+
       return true;
     };
 
