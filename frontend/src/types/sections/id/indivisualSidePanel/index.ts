@@ -30,6 +30,22 @@ type Props = {
   >;
   indivisual: null | Terminal | Process | Data | Desicion;
   setIndivisual: Dispatch<SetStateAction<Props["indivisual"]>>;
+  isEditingIndivisual: boolean;
+  setIsEditingIndivisual: Dispatch<
+    SetStateAction<Props["isEditingIndivisual"]>
+  >;
+  createImportDatas: CreateDatas;
+  setCreateImportDatas: Dispatch<SetStateAction<CreateDatas>>;
+  addImportDatas: AddDatas;
+  setAddImportDatas: Dispatch<SetStateAction<AddDatas>>;
+  createUsingDatas: CreateDatas;
+  setCreateUsingDatas: Dispatch<SetStateAction<CreateDatas>>;
+  addUsingDatas: AddDatas;
+  setAddUsingDatas: Dispatch<SetStateAction<AddDatas>>;
+  createDeleteDatas: CreateDatas;
+  setCreateDeleteDatas: Dispatch<SetStateAction<CreateDatas>>;
+  addDeleteDatas: AddDatas;
+  setAddDeleteDatas: Dispatch<SetStateAction<AddDatas>>;
 };
 
 export type { Props, CreateDatas, AddDatas };

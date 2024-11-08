@@ -16,7 +16,6 @@ import Data from "@/shapes/data";
 import Desicion from "@/shapes/decision";
 import Curve from "@/shapes/curve";
 import Stack from "@/dataStructure/stack";
-import DataFrame from "@/components/dataFrame";
 import SidePanel from "@/components/sidePanel";
 import Accordion from "@/components/accordion";
 import Button from "@/components/button";
@@ -49,7 +48,7 @@ import * as CoreTypes from "@/types/shapes/core";
 import * as CurveTypes from "@/types/shapes/curve";
 import * as CommonTypes from "@/types/common";
 import * as PageTypes from "@/types/app/page";
-import * as DataFrameTypes from "@/types/components/dataFrame";
+import * as IndivisaulSidePanelTypes from "@/types/sections/id/indivisualSidePanel";
 import * as InputTypes from "@/types/components/input";
 import * as SelectTypes from "@/types/components/select";
 import * as AlertTypes from "@/types/components/alert";
@@ -69,10 +68,6 @@ axios.defaults.baseURL = process.env.BASE_URL || "http://localhost:5000/api";
 const isBrowser = typeof window !== "undefined";
 
 const init = {
-  dataFrameWarning: {
-    title: "",
-    data: {},
-  },
   shape: {
     size: {
       t: { w: 150, h: 75 },
@@ -874,7 +869,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseCenter.x.toFixed(1)) ===
-        Number(targetShape.getCenter().m.x.toFixed(1)) ||
+          Number(targetShape.getCenter().m.x.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.x - b.p.x);
@@ -901,7 +896,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseCenter.y.toFixed(1)) ===
-        Number(targetShape.getCenter().m.y.toFixed(1)) ||
+          Number(targetShape.getCenter().m.y.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.y - b.p.y);
@@ -930,7 +925,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.l.toFixed(1)) ===
-        Number(targetShape.getEdge().l.toFixed(1)) ||
+          Number(targetShape.getEdge().l.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.y - b.p.y);
@@ -953,7 +948,7 @@ const getAlignLines = (
     .filter((targetShape) => {
       return (
         Number(baseEdge.l.toFixed(1)) ===
-        Number(targetShape.getEdge().r.toFixed(1)) ||
+          Number(targetShape.getEdge().r.toFixed(1)) ||
         targetShape.id === baseShape.id
       );
     })
@@ -982,7 +977,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.t.toFixed(1)) ===
-        Number(targetShape.getEdge().t.toFixed(1)) ||
+          Number(targetShape.getEdge().t.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.x - b.p.x);
@@ -1005,7 +1000,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.t.toFixed(1)) ===
-        Number(targetShape.getEdge().b.toFixed(1)) ||
+          Number(targetShape.getEdge().b.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.x - b.p.x);
@@ -1033,7 +1028,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.r.toFixed(1)) ===
-        Number(targetShape.getEdge().r.toFixed(1)) ||
+          Number(targetShape.getEdge().r.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.y - b.p.y);
@@ -1059,7 +1054,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.r.toFixed(1)) ===
-        Number(targetShape.getEdge().l.toFixed(1)) ||
+          Number(targetShape.getEdge().l.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.y - b.p.y);
@@ -1087,7 +1082,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.b.toFixed(1)) ===
-        Number(targetShape.getEdge().b.toFixed(1)) ||
+          Number(targetShape.getEdge().b.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.x - b.p.x);
@@ -1113,7 +1108,7 @@ const getAlignLines = (
     .filter(
       (targetShape) =>
         Number(baseEdge.b.toFixed(1)) ===
-        Number(targetShape.getEdge().t.toFixed(1)) ||
+          Number(targetShape.getEdge().t.toFixed(1)) ||
         targetShape.id === baseShape.id
     )
     .sort((a, b) => a.p.x - b.p.x);
@@ -1184,9 +1179,9 @@ const frameSelect = (
       const theEdge = shape.getEdge();
 
       const l =
-        normalSelectAreaP.start.x < normalSelectAreaP.end.x
-          ? normalSelectAreaP.start.x
-          : normalSelectAreaP.end.x,
+          normalSelectAreaP.start.x < normalSelectAreaP.end.x
+            ? normalSelectAreaP.start.x
+            : normalSelectAreaP.end.x,
         t =
           normalSelectAreaP.start.y < normalSelectAreaP.end.y
             ? normalSelectAreaP.start.y
@@ -2457,12 +2452,12 @@ const resizeShape = (
     shape: null | undefined | Terminal | Process | Data | Desicion;
     ghost: null | undefined | Terminal | Process | Data | Desicion;
     target:
-    | null
-    | undefined
-    | CoreTypes.PressingTarget.lt
-    | CoreTypes.PressingTarget.rt
-    | CoreTypes.PressingTarget.rb
-    | CoreTypes.PressingTarget.lb;
+      | null
+      | undefined
+      | CoreTypes.PressingTarget.lt
+      | CoreTypes.PressingTarget.rt
+      | CoreTypes.PressingTarget.rb
+      | CoreTypes.PressingTarget.lb;
   },
   offsetP: CommonTypes.Vec
 ) => {
@@ -2774,12 +2769,6 @@ export default function IdPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
 
-  const [dataFrame, setDataFrame] = useState<
-    { p: CommonTypes.Vec } | undefined
-  >(undefined);
-  const [dbClickedShape, setDbClickedShape] = useState<
-    Terminal | Data | Process | Desicion | null
-  >(null);
   const [space, setSpace] = useState(false);
   const [control, setControl] = useState(false);
   const [scale, setScale] = useState(1);
@@ -2790,13 +2779,7 @@ export default function IdPage() {
   const [isRenameFrameOpen, setIsRenameFrameOpen] = useState(false);
   const [isProfileFrameOpen, setIsProfileFrameOpen] = useState(false);
   const [steps, setSteps] = useState<PageTypes.Steps>([]);
-  const [datas, setDatas] = useState<PageIdTypes.Datas>([
-    { id: "id1", name: "data1" },
-    { id: "id2", name: "data2" },
-    { id: "id3", name: "data3" },
-  ]);
-  const [dataFrameWarning, setDataFrameWarning] =
-    useState<DataFrameTypes.Warning>(init.dataFrameWarning);
+  const [datas, setDatas] = useState<PageIdTypes.Datas>([]);
   const [isProjectsModalOpen, setIsProjectsModalOpen] = useState(false);
   const [projects, setProjects] = useState<
     ProjectAPITypes.GetProjects["resData"]
@@ -2814,6 +2797,19 @@ export default function IdPage() {
   const [indivisual, setIndivisual] = useState<
     null | Terminal | Process | Data | Desicion
   >(null);
+  const [isEditingIndivisual, setIsEditingIndivisual] = useState(false);
+  const [createImportDatas, setCreateImportDatas] =
+    useState<IndivisaulSidePanelTypes.CreateDatas>([]);
+  const [addImportDatas, setAddImportDatas] =
+    useState<IndivisaulSidePanelTypes.AddDatas>([]);
+  const [createUsingDatas, setCreateUsingDatas] =
+    useState<IndivisaulSidePanelTypes.CreateDatas>([]);
+  const [addUsingDatas, setAddUsingDatas] =
+    useState<IndivisaulSidePanelTypes.AddDatas>([]);
+  const [createDeleteDatas, setCreateDeleteDatas] =
+    useState<IndivisaulSidePanelTypes.CreateDatas>([]);
+  const [addDeleteDatas, setAddDeleteDatas] =
+    useState<IndivisaulSidePanelTypes.AddDatas>([]);
 
   const checkData = (shapes: (Terminal | Process | Data | Desicion)[]) => {
     const dataShapes: Data[] = [];
@@ -2910,7 +2906,6 @@ export default function IdPage() {
   };
 
   const checkSteps = () => {
-    console.log("shapes", shapes);
     setSteps(cloneDeep(shapes));
   };
 
@@ -3061,9 +3056,9 @@ export default function IdPage() {
     e.preventDefault();
 
     const p = {
-      x: e.nativeEvent.offsetX,
-      y: e.nativeEvent.offsetY,
-    },
+        x: e.nativeEvent.offsetX,
+        y: e.nativeEvent.offsetY,
+      },
       offsetP = {
         x: p.x - lastP.x,
         y: p.y - lastP.y,
@@ -3073,7 +3068,6 @@ export default function IdPage() {
     const movingViewport = space && leftMouseBtn;
 
     if (movingViewport) {
-      setDataFrame(undefined);
       offset.x += normalOffsetP.x;
       offset.y += normalOffsetP.y;
     }
@@ -3208,12 +3202,6 @@ export default function IdPage() {
       };
     }
 
-    if (dbClickedShape) {
-      setDataFrame({
-        p: getFramePosition(dbClickedShape, offset, scale),
-      });
-    }
-
     lastP = p;
 
     drawCanvas(offset, scale);
@@ -3311,14 +3299,21 @@ export default function IdPage() {
 
     shapes.forEach((shape) => {
       if (!shape.checkBoundry(getNormalP(p, offset, scale))) return;
-      setDataFrameWarning(init.dataFrameWarning);
-      setDbClickedShape(shape);
       setIsIndivisualSidePanelOpen(true);
       setIndivisual(shape);
-      setDataFrame({
-        p: getFramePosition(shape, offset, scale),
-      });
     });
+
+    const resetIndivisualSidePanel = () => {
+      setIsEditingIndivisual(false);
+      setCreateImportDatas([]);
+      setAddImportDatas([]);
+      setCreateUsingDatas([]);
+      setAddUsingDatas([]);
+      setCreateDeleteDatas([]);
+      setAddDeleteDatas([]);
+    };
+
+    resetIndivisualSidePanel();
   };
 
   function handleKeyDown(this: Window, e: KeyboardEvent) {
@@ -3350,30 +3345,6 @@ export default function IdPage() {
       setSpace(false);
     }
   }
-
-  const onClickCreateShapeButton = (
-    e: React.MouseEvent<HTMLButtonElement>,
-    type: CommonTypes.Type
-  ) => {
-    e.stopPropagation();
-    e.preventDefault();
-    if (!isBrowser) return;
-    actionRecords.register(CommonTypes.Action.add);
-
-    let intiShape = getInitializedShape(type, offset, scale);
-    shapes.push(intiShape);
-
-    actionRecords.finish(CommonTypes.Action.add);
-
-    // actions.push({
-    //   type: CommonTypes.Action.add,
-    // }); // temp close
-
-    checkData(shapes);
-    checkSteps();
-    drawCanvas(offset, scale);
-    drawScreenshot(offset, scale);
-  };
 
   const onClickUndoButton = () => {
     undo(ctx, offset, scale);
@@ -3748,19 +3719,7 @@ export default function IdPage() {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, [dataFrame, dbClickedShape, space, steps, control]);
-
-  const createShapeButtons = [
-    { shape: CommonTypes.Type["terminator"], icon: IconTypes.Type.ellipse },
-    { shape: CommonTypes.Type["process"], icon: IconTypes.Type.square },
-    { shape: CommonTypes.Type["data"], icon: IconTypes.Type.parallelogram },
-    { shape: CommonTypes.Type["decision"], icon: IconTypes.Type.dimond },
-  ].map((type) => ({
-    type: type.shape,
-    icon: (
-      <Icon type={type.icon} w={16} h={16} fill={tailwindColors.white["500"]} />
-    ),
-  }));
+  }, [space, steps, control]);
 
   return (
     <>
@@ -3961,20 +3920,22 @@ export default function IdPage() {
           >
             <h3
               data-tab={PageIdTypes.OverallType.step}
-              className={`flex-1 flex justify-center text-lg font-semibold py-2 px-5 ${overallType === PageIdTypes.OverallType.step
-                ? "border-b-2 border-secondary-500 text-black-2"
-                : "border-b-1 text-grey-4"
-                }`}
+              className={`flex-1 flex justify-center text-lg font-semibold py-2 px-5 ${
+                overallType === PageIdTypes.OverallType.step
+                  ? "border-b-2 border-secondary-500 text-black-2"
+                  : "border-b-1 text-grey-4"
+              }`}
             >
               <span>Step</span>
             </h3>
             <div className="border-r border-grey-5" />
             <h3
               data-tab={PageIdTypes.OverallType.data}
-              className={`flex-1 flex justify-center text-lg font-semibold py-2 px-5 ${overallType === PageIdTypes.OverallType.data
-                ? "border-b-2 border-secondary-500 text-black-2"
-                : "border-b-1 text-grey-4"
-                }`}
+              className={`flex-1 flex justify-center text-lg font-semibold py-2 px-5 ${
+                overallType === PageIdTypes.OverallType.data
+                  ? "border-b-2 border-secondary-500 text-black-2"
+                  : "border-b-1 text-grey-4"
+              }`}
             >
               <span>Data</span>
             </h3>
@@ -4122,8 +4083,9 @@ export default function IdPage() {
       />
 
       <div
-        className={`fixed bottom-[16px] ${isIndivisualSidePanelOpen ? "right-[488px]" : "right-[144px]"
-          }`}
+        className={`fixed bottom-[16px] ${
+          isIndivisualSidePanelOpen ? "right-[488px]" : "right-[144px]"
+        }`}
         role="undo"
       >
         <SquareButton
@@ -4141,7 +4103,11 @@ export default function IdPage() {
         />
       </div>
 
-      <Zoom isIndivisualSidePanelOpen={isIndivisualSidePanelOpen} zoom={zoom} scale={scale} />
+      <Zoom
+        isIndivisualSidePanelOpen={isIndivisualSidePanelOpen}
+        zoom={zoom}
+        scale={scale}
+      />
 
       <IndivisaulSidePanel
         datas={datas}
@@ -4150,6 +4116,20 @@ export default function IdPage() {
         setIsIndivisualSidePanelOpen={setIsIndivisualSidePanelOpen}
         indivisual={indivisual}
         setIndivisual={setIndivisual}
+        isEditingIndivisual={isEditingIndivisual}
+        setIsEditingIndivisual={setIsEditingIndivisual}
+        createImportDatas={createImportDatas}
+        setCreateImportDatas={setCreateImportDatas}
+        addImportDatas={addImportDatas}
+        setAddImportDatas={setAddImportDatas}
+        createUsingDatas={createUsingDatas}
+        setCreateUsingDatas={setCreateUsingDatas}
+        addUsingDatas={addUsingDatas}
+        setAddUsingDatas={setAddUsingDatas}
+        createDeleteDatas={createDeleteDatas}
+        setCreateDeleteDatas={setCreateDeleteDatas}
+        addDeleteDatas={addDeleteDatas}
+        setAddDeleteDatas={setAddDeleteDatas}
       />
 
       <img id="screenshotImg" alt="Screenshot" style={{ display: "none" }} />
@@ -4170,8 +4150,9 @@ export default function IdPage() {
         />
         <canvas
           role="screenshot"
-          className={`invisible ${space ? "cursor-grab" : ""
-            } overflow-hidden absolute left-0 top-0 z-[-1]`}
+          className={`invisible ${
+            space ? "cursor-grab" : ""
+          } overflow-hidden absolute left-0 top-0 z-[-1]`}
           tabIndex={1}
           ref={(el) => {
             $screenshot = el;

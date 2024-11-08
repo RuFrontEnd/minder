@@ -20,30 +20,16 @@ import * as CommonTypes from "@/types/common";
 export default function IndivisualSidePanel(
   props: IndivisaulSidePanelTypes.Props
 ) {
-  const [isEditingIndivisual, setIsEditingIndivisual] = useState(false);
-  const [createImportDatas, setCreateImportDatas] =
-    useState<IndivisaulSidePanelTypes.CreateDatas>([]);
-  const [addImportDatas, setAddImportDatas] =
-    useState<IndivisaulSidePanelTypes.AddDatas>([]);
-  const [createUsingDatas, setCreateUsingDatas] =
-    useState<IndivisaulSidePanelTypes.CreateDatas>([]);
-  const [addUsingDatas, setAddUsingDatas] =
-    useState<IndivisaulSidePanelTypes.AddDatas>([]);
-  const [createDeleteDatas, setCreateDeleteDatas] =
-    useState<IndivisaulSidePanelTypes.CreateDatas>([]);
-  const [addDeleteDatas, setAddDeleteDatas] =
-    useState<IndivisaulSidePanelTypes.AddDatas>([]);
-
   const dataOptions = props.datas.map((data) => data.name);
 
   const closeEditing = () => {
-    setCreateImportDatas([]);
-    setAddImportDatas([]);
-    setCreateUsingDatas([]);
-    setAddUsingDatas([]);
-    setCreateDeleteDatas([]);
-    setAddDeleteDatas([]);
-    setIsEditingIndivisual(false);
+    props.setCreateImportDatas([]);
+    props.setAddImportDatas([]);
+    props.setCreateUsingDatas([]);
+    props.setAddUsingDatas([]);
+    props.setCreateDeleteDatas([]);
+    props.setAddDeleteDatas([]);
+    props.setIsEditingIndivisual(false);
   };
 
   const onClickSidePanelSwitch: SidePanelTypes.Props["onClickSwitch"] = (e) => {
@@ -53,7 +39,7 @@ export default function IndivisualSidePanel(
 
   const onClickEditIcon = () => {
     if (props.indivisual?.importDatas) {
-      setAddImportDatas(
+      props.setAddImportDatas(
         props.indivisual.importDatas.map((data) => ({
           val: data.text,
           comment: null,
@@ -62,7 +48,7 @@ export default function IndivisualSidePanel(
       );
     }
 
-    setIsEditingIndivisual(true);
+    props.setIsEditingIndivisual(true);
   };
 
   const onClickCancelButton = () => {
@@ -71,9 +57,9 @@ export default function IndivisualSidePanel(
 
   const onClickSaveButton = () => {
     const getUnfilledDatas = () => {
-      const _createImportDatas = cloneDeep(createImportDatas);
-      const _createUsingDatas = cloneDeep(createUsingDatas);
-      const _createDeleteDatas = cloneDeep(createDeleteDatas);
+      const _createImportDatas = cloneDeep(props.createImportDatas);
+      const _createUsingDatas = cloneDeep(props.createUsingDatas);
+      const _createDeleteDatas = cloneDeep(props.createDeleteDatas);
 
       _createImportDatas.forEach((_datas) => {
         _datas.status = null;
@@ -115,32 +101,32 @@ export default function IndivisualSidePanel(
       const usingMap: { [data: string]: boolean } = {};
       const deleteMap: { [data: string]: boolean } = {};
 
-      createImportDatas.forEach((data) => {
+      props.createImportDatas.forEach((data) => {
         if (!data.val) return;
         importMap[data.val] = data.val in importMap;
       });
 
-      addImportDatas.forEach((data) => {
+      props.addImportDatas.forEach((data) => {
         if (!data.val) return;
         importMap[data.val] = data.val in importMap;
       });
 
-      createUsingDatas.forEach((data) => {
+      props.createUsingDatas.forEach((data) => {
         if (!data.val) return;
         usingMap[data.val] = data.val in usingMap;
       });
 
-      addUsingDatas.forEach((data) => {
+      props.addUsingDatas.forEach((data) => {
         if (!data.val) return;
         usingMap[data.val] = data.val in usingMap;
       });
 
-      createDeleteDatas.forEach((data) => {
+      props.createDeleteDatas.forEach((data) => {
         if (!data.val) return;
         deleteMap[data.val] = data.val in deleteMap;
       });
 
-      addDeleteDatas.forEach((data) => {
+      props.addDeleteDatas.forEach((data) => {
         if (!data.val) return;
         deleteMap[data.val] = data.val in deleteMap;
       });
@@ -167,9 +153,9 @@ export default function IndivisualSidePanel(
         data.status = InputTypes.Status.error;
       });
 
-      const _addImportDatas = cloneDeep(addImportDatas);
-      const _addUsingDatas = cloneDeep(addUsingDatas);
-      const _addDeleteDatas = cloneDeep(addDeleteDatas);
+      const _addImportDatas = cloneDeep(props.addImportDatas);
+      const _addUsingDatas = cloneDeep(props.addUsingDatas);
+      const _addDeleteDatas = cloneDeep(props.addDeleteDatas);
 
       _addImportDatas.forEach((data) => {
         data.status = null;
@@ -233,12 +219,12 @@ export default function IndivisualSidePanel(
           (data) => data.status === InputTypes.Status.error
         ) > -1
       ) {
-        setCreateImportDatas(lastResult.createImportDatas);
-        setCreateUsingDatas(lastResult.createUsingDatas);
-        setCreateDeleteDatas(lastResult.createDeleteDatas);
-        setAddImportDatas(lastResult.addImportDatas);
-        setAddUsingDatas(lastResult.addUsingDatas);
-        setAddDeleteDatas(lastResult.addDeleteDatas);
+        props.setCreateImportDatas(lastResult.createImportDatas);
+        props.setCreateUsingDatas(lastResult.createUsingDatas);
+        props.setCreateDeleteDatas(lastResult.createDeleteDatas);
+        props.setAddImportDatas(lastResult.addImportDatas);
+        props.setAddUsingDatas(lastResult.addUsingDatas);
+        props.setAddDeleteDatas(lastResult.addDeleteDatas);
         return false;
       }
 
@@ -334,7 +320,7 @@ export default function IndivisualSidePanel(
       props.indivisual.importDatas = _importDatas;
       props.indivisual.usingDatas = _usingDatas;
       props.indivisual.deleteDatas = _deleteDatas;
-      setIsEditingIndivisual(false);
+      props.setIsEditingIndivisual(false);
 
       return {
         createImportDatas: lastResult.createImportDatas,
@@ -409,7 +395,7 @@ export default function IndivisualSidePanel(
       onClickSwitch={onClickSidePanelSwitch}
     >
       <div className={"p-4 h-full"}>
-        {isEditingIndivisual ? (
+        {props.isEditingIndivisual ? (
           <div className="flex justify-end items-center" role="edit_indivisual">
             <Button
               role="cancel_edit_indivisual"
@@ -440,11 +426,13 @@ export default function IndivisualSidePanel(
         )}
         <div
           className="flex flex-col"
-          style={{ height: `calc(100% - ${isEditingIndivisual ? 28 : 16}px)` }}
+          style={{
+            height: `calc(100% - ${props.isEditingIndivisual ? 28 : 16}px)`,
+          }}
         >
           <div>
             <p className="text-sm px-1">title</p>
-            {isEditingIndivisual ? (
+            {props.isEditingIndivisual ? (
               <Input
                 value={props.indivisual?.title}
                 // onChange={onChangeTitle}
@@ -459,37 +447,37 @@ export default function IndivisualSidePanel(
             style={{ height: "calc(33.333% - 17.333px)" }}
             className="flex-1"
             text={"Import Data"}
-            isEditing={isEditingIndivisual}
+            isEditing={props.isEditingIndivisual}
             options={dataOptions}
             datas={props.indivisual?.importDatas || []}
-            createDatas={createImportDatas}
-            setCreateDatas={setCreateImportDatas}
-            addDatas={addImportDatas}
-            setAddDatas={setAddImportDatas}
+            createDatas={props.createImportDatas}
+            setCreateDatas={props.setCreateImportDatas}
+            addDatas={props.addImportDatas}
+            setAddDatas={props.setAddImportDatas}
           />
           <DataBox
             style={{ height: "calc(33.333% - 17.333px)" }}
             className="flex-1"
             text={"Using Data"}
-            isEditing={isEditingIndivisual}
+            isEditing={props.isEditingIndivisual}
             options={dataOptions}
             datas={props.indivisual?.usingDatas || []}
-            createDatas={createUsingDatas}
-            setCreateDatas={setCreateUsingDatas}
-            addDatas={addUsingDatas}
-            setAddDatas={setAddUsingDatas}
+            createDatas={props.createUsingDatas}
+            setCreateDatas={props.setCreateUsingDatas}
+            addDatas={props.addUsingDatas}
+            setAddDatas={props.setAddUsingDatas}
           />
           <DataBox
             style={{ height: "calc(33.333% - 17.333px)" }}
             className="flex-1"
             text={"Delete Data"}
-            isEditing={isEditingIndivisual}
+            isEditing={props.isEditingIndivisual}
             options={dataOptions}
             datas={props.indivisual?.deleteDatas || []}
-            createDatas={createDeleteDatas}
-            setCreateDatas={setCreateDeleteDatas}
-            addDatas={addDeleteDatas}
-            setAddDatas={setAddDeleteDatas}
+            createDatas={props.createDeleteDatas}
+            setCreateDatas={props.setCreateDeleteDatas}
+            addDatas={props.addDeleteDatas}
+            setAddDatas={props.setAddDeleteDatas}
           />
         </div>
       </div>
