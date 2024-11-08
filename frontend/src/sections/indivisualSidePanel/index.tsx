@@ -334,38 +334,39 @@ export default function IndivisualSidePanel(
       createUsingDatas: IndivisaulSidePanelTypes.CreateDatas;
       createDeleteDatas: IndivisaulSidePanelTypes.CreateDatas;
     }) => {
-      const originalDatas = cloneDeep(props.datas);
+      const hasExistData: { [data: string]: boolean } = {};
+      const newDatas = cloneDeep(props.datas);
 
-      const newDatas = new Set<{
-        id: string;
-        name: string;
-      }>(originalDatas);
+      newDatas.forEach((data) => {
+        hasExistData[data.name] = true;
+      });
 
       lastResult.createImportDatas.forEach((data) => {
-        if (!data.val) return;
-        newDatas.add({
+        if (!data.val || hasExistData[data.val]) return;
+        newDatas.push({
           id: data.val,
           name: data.val,
         });
       });
 
       lastResult.createUsingDatas.forEach((data) => {
-        if (!data.val) return;
-        newDatas.add({
+        if (!data.val || hasExistData[data.val]) return;
+        newDatas.push({
           id: data.val,
           name: data.val,
         });
       });
 
       lastResult.createDeleteDatas.forEach((data) => {
-        if (!data.val) return;
-        newDatas.add({
+        if (!data.val || hasExistData[data.val]) return;
+        newDatas.push({
           id: data.val,
           name: data.val,
         });
       });
 
       props.setDatas(Array.from(newDatas));
+      
       return true;
     };
 
