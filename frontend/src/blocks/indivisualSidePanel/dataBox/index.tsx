@@ -87,6 +87,7 @@ export default function DataBox(props: DataBoxTypes.Props) {
             onClick={onClickAddDataButton}
             text="Add"
             size={SimpleButtonTypes.Size.sm}
+            disabled={props.options.length === 0}
           />
         </div>
       )}

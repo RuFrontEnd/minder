@@ -5,7 +5,7 @@ import * as SimpleButtonTypes from "@/types/components/simpleButton";
 const SimpleButton = (props: SimpleButtonTypes.Props) => {
   const statusStyle = (() => {
     if (props.disabled) {
-      return "cursor-default";
+      return "text-grey-5 cursor-default pointer-events-none";
     }
     if (props.danger) {
       return "text-error-500";
@@ -34,7 +34,7 @@ const SimpleButton = (props: SimpleButtonTypes.Props) => {
     <button
       role={props.role}
       className={`flex items-center ${sizeStyle} ${statusStyle} ${props.className}`}
-      onClick={props.onClick}
+      onClick={props.disabled ? undefined : props.onClick}
     >
       {props.loading && (
         <ReactLoading
