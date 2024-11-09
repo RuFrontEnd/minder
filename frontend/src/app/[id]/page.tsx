@@ -2137,6 +2137,7 @@ const checkConnect = (p: CommonTypes.Vec) => {
   });
 
   if (!to.d && !to.shape) {
+
     disconnect(
       curves.findIndex((curve) => curve.shape.id === pressingCurve?.shape.id)
     );
@@ -2173,6 +2174,7 @@ const checkConnect = (p: CommonTypes.Vec) => {
 };
 
 const disconnect = (curveI: number) => {
+  if (curveI < 0) return;
   curves.splice(curveI, 1);
 };
 
