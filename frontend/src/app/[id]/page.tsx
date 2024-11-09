@@ -3346,15 +3346,11 @@ export default function IdPage() {
     }
   }
 
-  const onClickUndoButton = () => {
-    undo(ctx, offset, scale);
-  };
-
   const onClickOverallSidePanelSwitch = () => {
     setIsOverallSidePanelOpen((open) => !open);
   };
 
-  const onClickProfile = () => {
+  const onClickHambugar = () => {
     setIsProfileFrameOpen((isProfileFrameOpen) => !isProfileFrameOpen);
   };
 
@@ -3779,131 +3775,7 @@ export default function IdPage() {
           </section>
         </div>
       </Modal>
-      <header className="fixed -translate-x-1/2 z-50 left-1/2 p-4 w-[720px]">
-        <ul className="container mx-auto grid grid-cols-3 py-3 px-4 rounded-full body-font bg-primary-500 shadow-md">
-          <li>
-            <a className="flex title-font font-medium items-center text-gray-900 mb-4 md:mb-0">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                className="w-10 h-10 text-white p-2 bg-secondary-500 rounded-full"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke="#FFFFFF"
-                  d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
-                ></path>
-              </svg>
-              <span className="ml-3 text-xl text-white-500">Minder</span>
-            </a>
-          </li>
-          <li className="justify-self-center self-center text-base">
-            <div>
-              <nav
-                className="cursor-pointer flex items-center relative [&:hover>div:nth-child(2)]:translate-x-full [&:hover>div:nth-child(2)]:opacity-100 transition ease-in-out duration-150"
-                onClick={onClickProjectName}
-              >
-                <a className="text-white-500">{projectName.val}</a>
-                <div className="absolute right-0 translate-x-[0px] opacity-0 transition ease-in-out duration-150 ps-1">
-                  <PencilSquareIcon
-                    width={20}
-                    height={20}
-                    fill={tailwindColors.white["500"]}
-                  />
-                </div>
-              </nav>
-              <motion.div
-                className={`${isRenameFrameOpen ? "block" : "hidden"}`}
-                variants={{
-                  open: {
-                    display: "block",
-                    opacity: 1,
-                    y: "4px",
-                  },
-                  closed: {
-                    transitionEnd: {
-                      display: "none",
-                    },
-                    opacity: 0,
-                    y: "-2px",
-                  },
-                }}
-                initial={isRenameFrameOpen ? "open" : "closed"}
-                animate={isRenameFrameOpen ? "open" : "closed"}
-                transition={{ type: "easeInOut", duration: 0.15 }}
-              >
-                <Frame
-                  className={
-                    "absolute -bottom-[6px] left-1/2 -translate-x-1/2 translate-y-full w-[300px]"
-                  }
-                >
-                  <div className="flex">
-                    <Input
-                      value={projectName.inputVal}
-                      onChange={onChangeProjectName}
-                    />
-                    <Button
-                      className="ms-4"
-                      text="Save"
-                      onClick={onClickSaveProjectNameButton}
-                    />
-                  </div>
-                </Frame>
-              </motion.div>
-            </div>
-          </li>
-          <li className="flex justify-self-end self-center text-base">
-            <Button
-              info
-              className={"mr-4"}
-              onClick={onClickSaveButton}
-              text={"Save"}
-            />
-            <div className="relative">
-              <div
-                className="w-10 h-10 inline-flex items-center justify-center rounded-full bg-secondary-500 text-black-2 flex-shrink-0 cursor-pointer"
-                onClick={onClickProfile}
-              >
-                L
-              </div>
-              <motion.div
-                className={`${isProfileFrameOpen ? "block" : "hidden"}`}
-                variants={{
-                  open: {
-                    display: "block",
-                    opacity: 1,
-                    y: "4px",
-                  },
-                  closed: {
-                    transitionEnd: {
-                      display: "none",
-                    },
-                    opacity: 0,
-                    y: "-2px",
-                  },
-                }}
-                initial={isProfileFrameOpen ? "open" : "closed"}
-                animate={isProfileFrameOpen ? "open" : "closed"}
-                transition={{ type: "easeInOut", duration: 0.15 }}
-              >
-                <Frame className="absolute top-full right-0 translate-y-[8px]">
-                  <Button text={"Projects"} onClick={onClickProjectsButton} />
-                  <Button
-                    className="mt-2"
-                    text={"Log Out"}
-                    onClick={onClickLogOutButton}
-                    danger
-                  />
-                </Frame>
-              </motion.div>
-            </div>
-          </li>
-        </ul>
-      </header>
+
       <SidePanel
         open={isOverAllSidePanelOpen}
         w={"360px"}
@@ -4066,23 +3938,127 @@ export default function IdPage() {
             </>
           )}
         </ul>
+        <div className="absolute top-0 -right-20 translate-x-full">
+          <div className="relative">
+            <SquareButton
+              role="profile_menu"
+              size={32}
+              shadow
+              content={
+                <Icon
+                  type={IconTypes.Type.bars}
+                  w={14}
+                  h={14}
+                  fill={tailwindColors.grey["1"]}
+                />
+              }
+              onClick={onClickHambugar}
+            />
+            <motion.div
+              className={`absolute top-10 left-0`}
+              variants={{
+                open: {
+                  display: "block",
+                  opacity: 1,
+                  y: "4px",
+                },
+                closed: {
+                  transitionEnd: {
+                    display: "none",
+                  },
+                  opacity: 0,
+                  y: "-2px",
+                },
+              }}
+              initial={isProfileFrameOpen ? "open" : "closed"}
+              animate={isProfileFrameOpen ? "open" : "closed"}
+              transition={{ type: "easeInOut", duration: 0.15 }}
+            >
+              <Frame>
+                <Button text={"Projects"} onClick={onClickProjectsButton} />
+                <Button
+                  className="mt-2"
+                  text={"Log Out"}
+                  onClick={onClickLogOutButton}
+                  danger
+                />
+              </Frame>
+            </motion.div>
+          </div>
+        </div>
+        <div
+          className="absolute top-0 -right-32 translate-x-full text-base"
+          role="project_name"
+        >
+          <div className="relative bg-white-500 px-5 py-1 rounded-lg shadow-md">
+            <nav
+              className="cursor-pointer flex items-center relative [&:hover>div:nth-child(2)]:translate-x-full [&:hover>div:nth-child(2)]:opacity-100 transition ease-in-out duration-150"
+              onClick={onClickProjectName}
+            >
+              <a className="text-grey-1">{projectName.val}</a>
+              <div className="absolute right-0 translate-x-[0px] opacity-0 transition ease-in-out duration-150 ps-1">
+                <PencilSquareIcon
+                  width={20}
+                  height={20}
+                  fill={tailwindColors.white["500"]}
+                />
+              </div>
+            </nav>
+            <motion.div
+              className={`${
+                isRenameFrameOpen ? "block" : "hidden"
+              } absolute top-9 left-0 -translate-x-1/2 translate-y-full`}
+              variants={{
+                open: {
+                  display: "block",
+                  opacity: 1,
+                  y: "4px",
+                },
+                closed: {
+                  transitionEnd: {
+                    display: "none",
+                  },
+                  opacity: 0,
+                  y: "-2px",
+                },
+              }}
+              initial={isRenameFrameOpen ? "open" : "closed"}
+              animate={isRenameFrameOpen ? "open" : "closed"}
+              transition={{ type: "easeInOut", duration: 0.15 }}
+            >
+              <Frame className={"w-[240px] p-2"} role="frame">
+                <div className="flex">
+                  <Input
+                    value={projectName.inputVal}
+                    onChange={onChangeProjectName}
+                  />
+                  <SimpleButton
+                    className="px-2"
+                    text="Save"
+                    onClick={onClickSaveProjectNameButton}
+                  />
+                </div>
+              </Frame>
+            </motion.div>
+          </div>
+        </div>
+        <CreateShapeButtons
+          className="absolute top-1/2 -right-4 translate-x-full -translate-y-1/2"
+          isOverAllSidePanelOpen={isOverAllSidePanelOpen}
+          actionRecords={actionRecords}
+          shapes={shapes}
+          offset={offset}
+          scale={scale}
+          reload={() => {
+            checkData(shapes);
+            checkSteps();
+            drawCanvas(offset, scale);
+            drawScreenshot(offset, scale);
+          }}
+        />
       </SidePanel>
 
-      <CreateShapeButtons
-        isOverAllSidePanelOpen={isOverAllSidePanelOpen}
-        actionRecords={actionRecords}
-        shapes={shapes}
-        offset={offset}
-        scale={scale}
-        reload={() => {
-          checkData(shapes);
-          checkSteps();
-          drawCanvas(offset, scale);
-          drawScreenshot(offset, scale);
-        }}
-      />
-
-      <div
+      {/* <div
         className={`fixed bottom-[16px] ${
           isIndivisualSidePanelOpen ? "right-[488px]" : "right-[144px]"
         }`}
@@ -4107,7 +4083,7 @@ export default function IdPage() {
         isIndivisualSidePanelOpen={isIndivisualSidePanelOpen}
         zoom={zoom}
         scale={scale}
-      />
+      /> */}
 
       <IndivisaulSidePanel
         datas={datas}
@@ -4130,6 +4106,11 @@ export default function IdPage() {
         setCreateDeleteDatas={setCreateDeleteDatas}
         addDeleteDatas={addDeleteDatas}
         setAddDeleteDatas={setAddDeleteDatas}
+        undo={() => {
+          undo(ctx, offset, scale);
+        }}
+        zoom={zoom}
+        scale={scale}
       />
 
       <img id="screenshotImg" alt="Screenshot" style={{ display: "none" }} />

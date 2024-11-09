@@ -1,12 +1,14 @@
 "use client";
 import React, { useState, ChangeEvent } from "react";
+import Zoom from "@/sections/zoom";
 import DataBox from "@/blocks/indivisualSidePanel/dataBox";
 import SidePanel from "@/components/sidePanel";
 import Button from "@/components/button";
 import Input from "@/components/input";
 import Icon from "@/components/icon";
-import Divider from "@/components/divider";
+import SquareButton from "@/components/squareButton";
 import { cloneDeep } from "lodash";
+import { tailwindColors } from "@/variables/colors";
 import * as handleUtils from "@/utils/handle";
 import * as InputTypes from "@/types/components/input";
 import * as SelectTypes from "@/types/components/select";
@@ -399,6 +401,10 @@ export default function IndivisualSidePanel(
     ]);
   };
 
+  const onClickUndoButton = () => {
+    props.undo();
+  };
+
   return (
     <SidePanel
       role={"indivisual"}
@@ -495,7 +501,37 @@ export default function IndivisualSidePanel(
             setAddDatas={props.setAddDeleteDatas}
           />
         </div>
+        <Button
+          className="absolute top-0 -left-44 -translate-x-full flex justify-self-end self-center text-base"
+          info
+          onClick={() => {}}
+          text={"Check"}
+        />
+        <Button
+          className="absolute top-0 -left-20 -translate-x-full flex justify-self-end self-center text-base"
+          info
+          onClick={() => {}}
+          text={"Save"}
+        />
       </div>
+      <SquareButton
+        className="absolute bottom-0 -left-36 -translate-x-full"
+        size={32}
+        shadow
+        content={
+          <Icon
+            type={IconTypes.Type.rotateCcw}
+            w={14}
+            h={14}
+            fill={tailwindColors.grey["1"]}
+          />
+        }
+        onClick={onClickUndoButton}
+      />
+      <Zoom
+        zoom={props.zoom}
+        scale={props.scale}
+      />
     </SidePanel>
   );
 }

@@ -6,10 +6,7 @@ import * as IconTypes from "@/types/components/icon";
 import * as SquareButtonTypes from "@/types/components/squareButton";
 import * as ZoomTypes from "@/types/sections/id/zoom";
 
-export default function Zoom(
-  props: ZoomTypes.Props
-) {
-
+export default function Zoom(props: ZoomTypes.Props) {
   const onClickScalePlusIcon = () => {
     const $canvas = document.querySelector("canvas");
     if (!$canvas) return;
@@ -40,11 +37,10 @@ export default function Zoom(
 
   return (
     <div
-      className={`fixed bottom-[16px] ${props.isIndivisualSidePanelOpen ? "right-[360px]" : "right-[16px]"
-        } rounded-lg shadow-md bg-white-500`}
+      className={`absolute bottom-0 -left-4 -translate-x-full`}
       role="zoom"
     >
-      <div className="justify-self-end">
+      <div className="justify-self-end rounded-lg shadow-md bg-white-500">
         <div className="flex items-center">
           <SquareButton
             part={SquareButtonTypes.Part.left}
@@ -63,11 +59,7 @@ export default function Zoom(
             part={SquareButtonTypes.Part.middle}
             w={48}
             h={32}
-            content={
-              <>
-                {Math.ceil(props.scale * 100)}%
-              </>
-            }
+            content={<>{Math.ceil(props.scale * 100)}%</>}
             onClick={onClickScaleNumber}
           />
           <SquareButton

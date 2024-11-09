@@ -11,6 +11,7 @@ type Props = {
   id?: string;
   className?: string;
   style?: Object;
+  role?: string;
   tabIndex?: number;
   content?: ReactNode;
   size?: number;

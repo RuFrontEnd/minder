@@ -5,6 +5,7 @@ import Data from "@/shapes/data";
 import Desicion from "@/shapes/decision";
 import * as InputTypes from "@/types/components/input";
 import * as SelectTypes from "@/types/components/input";
+import * as CommonTypes from "@/types/common";
 
 type CreateDatas = {
   val: null | string;
@@ -46,6 +47,15 @@ type Props = {
   setCreateDeleteDatas: Dispatch<SetStateAction<CreateDatas>>;
   addDeleteDatas: AddDatas;
   setAddDeleteDatas: Dispatch<SetStateAction<AddDatas>>;
+  undo: () => void;
+  zoom: (
+    delta: number,
+    client: {
+      x: number;
+      y: number;
+    }
+  ) => void;
+  scale: number;
 };
 
 export type { Props, CreateDatas, AddDatas };

@@ -361,6 +361,22 @@ c0.6,0.6,0.6,1.6,0,2.1l-4.9,4.9c-0.6,0.6-0.6,1.3,0.4,1.3c0.3,0,0.7,0,0.7,0L30.3,
           <path d="M432 256c0 17.7-14.3 32-32 32L48 288c-17.7 0-32-14.3-32-32s14.3-32 32-32l352 0c17.7 0 32 14.3 32 32z" />
         </svg>
       )}
+      {props.type === IconTypes.Type.bars && (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          role={props.role}
+          style={{
+            width: props.w || defaultVal.w,
+            height: props.h || defaultVal.h,
+            fill: props.fill || defaultVal.fill,
+          }}
+          className={props.className}
+          viewBox="0 0 448 512"
+          onClick={props.disabled ? undefined : props.onClick}
+        >
+          <path d="M0 96C0 78.3 14.3 64 32 64l384 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 128C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32l384 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 288c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32L32 448c-17.7 0-32-14.3-32-32s14.3-32 32-32l384 0c17.7 0 32 14.3 32 32z" />
+        </svg>
+      )}
     </>
   );
 }

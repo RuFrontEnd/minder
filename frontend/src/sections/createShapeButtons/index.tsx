@@ -121,12 +121,10 @@ export default function CreateShapeButtons(
 
   return (
     <section
-      className={`${props.className} fixed top-1/2 -translate-y-1/2 ${
-        props.isOverAllSidePanelOpen ? "left-[344px]" : "left-0"
-      }`}
+      className={`${props.className}`}
       role="create_shapes"
     >
-      <div className="p-4">
+      <div>
         <div className="flex flex-col bg-white-500 p-1 shadow-md rounded-md">
           {createShapeButtons.map((createShapeButton) => (
             <SquareButton

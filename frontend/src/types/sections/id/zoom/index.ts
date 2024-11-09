@@ -1,5 +1,4 @@
 type Props = {
-  isIndivisualSidePanelOpen: boolean;
   zoom: (
     delta: number,
     client: {
