@@ -12,6 +12,14 @@ import * as IconTypes from "@/types/components/icon";
 import * as SimpleButtonTypes from "@/types/components/simpleButton";
 import * as DataBoxTypes from "@/types/blocks/indivisualSidePanel/dataBox";
 
+const NoData = (
+  <div className="flex justify-center items-center h-full p-1">
+    <div className="flex-1 flex justify-center items-center h-full bg-grey-7 rounded-md">
+      <p className="text-black-2 text-grey-4">No Data</p>
+    </div>
+  </div>
+);
+
 export default function DataBox(props: DataBoxTypes.Props) {
   const onClickCreateDataButton = () => {
     const _createDatas = cloneDeep(props.createDatas);
@@ -95,11 +103,11 @@ export default function DataBox(props: DataBoxTypes.Props) {
         className="flex-1 overflow-auto"
         style={{ height: "calc(100% - 52px)" }}
       >
-        {props.datas.length > 0 ||
-        props.createDatas.length > 0 ||
-        props.addDatas.length > 0 ? (
+        {props.isEditing ? (
           <>
-            {props.createDatas.length > 0 || props.addDatas.length > 0 ? (
+            {props.createDatas.length === 0 && props.addDatas.length === 0 ? (
+              <>{NoData}</>
+            ) : (
               <>
                 {props.createDatas.map((createData, createDataI) => (
                   <li className="py-1 flex">
@@ -151,6 +159,12 @@ export default function DataBox(props: DataBoxTypes.Props) {
                   </li>
                 ))}
               </>
+            )}
+          </>
+        ) : (
+          <>
+            {props.datas.length === 0 ? (
+              <>{NoData}</>
             ) : (
               <>
                 {props.datas.map((data) => (
@@ -161,12 +175,6 @@ export default function DataBox(props: DataBoxTypes.Props) {
               </>
             )}
           </>
-        ) : (
-          <div className="flex justify-center items-center h-full p-1">
-            <div className="flex-1 flex justify-center items-center h-full bg-grey-7 rounded-md">
-              <p className="text-black-2 text-grey-4">No Data</p>
-            </div>
-          </div>
         )}
       </ul>
     </section>
