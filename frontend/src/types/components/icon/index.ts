@@ -17,6 +17,7 @@ enum Type {
   plus = "plus",
   minus = "minus",
   bars = "bars",
+  sight = "sight",
 }
 
 type Props = {

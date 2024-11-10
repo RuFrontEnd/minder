@@ -2137,7 +2137,6 @@ const checkConnect = (p: CommonTypes.Vec) => {
   });
 
   if (!to.d && !to.shape) {
-
     disconnect(
       curves.findIndex((curve) => curve.shape.id === pressingCurve?.shape.id)
     );
@@ -3362,7 +3361,7 @@ export default function IdPage() {
     await fetchProjects();
   };
 
-  const onClickStep = (shapeP: CommonTypes.Vec) => {
+  const onClickPositioningButton = (shapeP: CommonTypes.Vec) => {
     if (!isBrowser) return;
 
     offset = {
@@ -3629,6 +3628,12 @@ export default function IdPage() {
     setCreateDateValue(null);
   };
 
+  const onDeleteDataButton = (dataName: string) => {
+    const _datas = cloneDeep(datas);
+
+    setDatas(_datas.filter((_data) => _data.name !== dataName));
+  };
+
   useEffect(() => {
     if (!isBrowser) return;
 
@@ -3853,54 +3858,29 @@ export default function IdPage() {
                     <Accordion
                       showArrow={false}
                       title={
-                        <>
-                          <div className="flex items-center">
-                            <Icon
-                              type={icon.type}
-                              w={20}
-                              h={20}
-                              fill={icon.color}
-                            />
-                            <p className="ms-2">{step.title}</p>
-                          </div>
-                        </>
-                      }
-                      hoverRender={
-                        <div className="h-full justify-end items-center">
-                          <div
-                            onClick={(e) => {
-                              e.stopPropagation();
-                            }}
-                          >
-                            <svg
-                              width={18}
-                              height={18}
-                              xmlns="http://www.w3.org/2000/svg"
-                              xmlnsXlink="http://www.w3.org/1999/xlink"
-                              version="1.1"
-                              x="0px"
-                              y="0px"
-                              viewBox="0 0 100 100"
-                              enable-background="new 0 0 100 100"
-                              xmlSpace="preserve"
-                            >
-                              <path
-                                fill="#233C53"
-                                d="M84.6,45C82.4,29.7,70.3,17.5,55,15.3V5H45v10.3C29.7,17.5,17.6,29.7,15.4,45H5v10h10.4C17.6,70.3,29.7,82.4,45,84.6V95h10  V84.6C70.3,82.4,82.4,70.3,84.6,55H95V45H84.6z M50,75c-13.8,0-25-11.2-25-25s11.2-25,25-25s25,11.2,25,25S63.8,75,50,75z"
-                              />
-                              <circle cx="50" cy="50" r="10" />
-                            </svg>
-                          </div>
+                        <div className="flex items-center">
+                          <Icon
+                            type={icon.type}
+                            w={20}
+                            h={20}
+                            fill={icon.color}
+                          />
+                          <p className="ms-2">{step.title}</p>
                         </div>
                       }
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onClickStep(step.p);
-                        // onClickaAccordionArrow(stepId); // TODO: open after content is added
-                      }}
-                    >
-                      {/* <Editor className="ps-6" shape={step.shape} /> TODO: open after content is added */}
-                    </Accordion>
+                      hoverRender={
+                        <Icon
+                          className="cursor-pointer justify-end items-center"
+                          type={IconTypes.Type.sight}
+                          w={18}
+                          h={18}
+                          stroke={tailwindColors.error["500"]}
+                          onClick={() => {
+                            onClickPositioningButton(step.p);
+                          }}
+                        />
+                      }
+                    />
                   </li>
                 );
               })}
@@ -3915,27 +3895,35 @@ export default function IdPage() {
                   onChange={onChangeCreateDataInput}
                 />
                 <SimpleButton
-                  onClick={onClickCreateDataButton}
                   text="Create"
                   className="ms-3 me-1"
                   size={SimpleButtonTypes.Size.md}
+                  onClick={onClickCreateDataButton}
                 />
               </div>
               {datas.map((data) => (
-                <>
-                  <li key={data.id}>
-                    <Accordion
-                      showArrow={false}
-                      title={
-                        <>
-                          <div className="flex items-center">
-                            <p className="ms-2">{data.name}</p>
-                          </div>
-                        </>
-                      }
-                    ></Accordion>
-                  </li>
-                </>
+                <li key={data.id}>
+                  <Accordion
+                    showArrow={false}
+                    title={
+                      <div className="flex items-center">
+                        <p className="ms-2">{data.name}</p>
+                      </div>
+                    }
+                    hoverRender={
+                      <Icon
+                        className="cursor-pointer"
+                        type={IconTypes.Type.x}
+                        w={16}
+                        h={24}
+                        stroke={tailwindColors.error["500"]}
+                        onClick={() => {
+                          onDeleteDataButton(data.name);
+                        }}
+                      />
+                    }
+                  />
+                </li>
               ))}
             </>
           )}
@@ -4059,33 +4047,6 @@ export default function IdPage() {
           }}
         />
       </SidePanel>
-
-      {/* <div
-        className={`fixed bottom-[16px] ${
-          isIndivisualSidePanelOpen ? "right-[488px]" : "right-[144px]"
-        }`}
-        role="undo"
-      >
-        <SquareButton
-          size={32}
-          shadow
-          content={
-            <Icon
-              type={IconTypes.Type.rotateCcw}
-              w={14}
-              h={14}
-              fill={tailwindColors.grey["1"]}
-            />
-          }
-          onClick={onClickUndoButton}
-        />
-      </div>
-
-      <Zoom
-        isIndivisualSidePanelOpen={isIndivisualSidePanelOpen}
-        zoom={zoom}
-        scale={scale}
-      /> */}
 
       <IndivisaulSidePanel
         datas={datas}
