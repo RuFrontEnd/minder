@@ -77,8 +77,7 @@ export default function IndivisualSidePanel(
     closeEditing();
   };
 
-  const onClickSaveButton = () => {
-    console.log("props.indivisual", props.indivisual);
+  const onClickSaveEditingButton = () => {
     const getUnfilledDatas = () => {
       const _createImportDatas = cloneDeep(props.createImportDatas);
       const _createUsingDatas = cloneDeep(props.createUsingDatas);
@@ -405,6 +404,143 @@ export default function IndivisualSidePanel(
     props.undo();
   };
 
+  const onClickCheckButton = () => {
+    // // main.js
+    const worker = new Worker(
+      new URL("@/workers/checkData/index.ts", import.meta.url),
+      { type: "module" }
+    );
+    // 分块发送数据
+    function sendChunks(data: any, worker: any, chunkSize: any) {
+      let index = 0;
+
+      function sendNextChunk() {
+        if (index < data.length) {
+          const chunk = data.slice(index, index + chunkSize);
+          worker.postMessage(JSON.stringify({ shapes: chunk, done: false })); // 发送当前 chunk 到 Worker
+          index += chunkSize;
+          setTimeout(sendNextChunk, 0); // 使用 setTimeout 调度下一个块
+        } else {
+          worker.postMessage(JSON.stringify({ shapes: [], done: true })); // 全部发送完后，通知 Worker
+        }
+      }
+
+      sendNextChunk();
+    }
+
+    // 调用分块传输函数
+    sendChunks(props.shapes, worker, 1);
+
+    // console.log(props.shapes, props.curves);
+
+    // console.log(JSON.stringify(props.shapes));
+
+    // 发送数据到 Worker
+    // worker.postMessage(JSON.stringify(props.shapes));
+
+    // 接收 Worker 返回的结果
+    worker.onmessage = (event) => {
+      console.log("data from Worker:", event);
+      console.log("event.data from Worker:", event.data);
+      // console.log("JSON.parse(event.data) from Worker:", JSON.parse(event.data));
+    };
+
+    // 处理 Worker 错误
+    worker.onerror = function (error) {
+      console.error("Error in Worker:", error);
+    };
+  };
+
+  // const onClickSaveButton: MouseEventHandler<HTMLSpanElement> = () => {
+  //   const $canvas = document.querySelector("canvas");
+  //   const $screenshot: HTMLCanvasElement | null = document.querySelector(
+  //     "canvas[role='screenshot']"
+  //   );
+
+  //   if (!$canvas || !$screenshot || selectedProjectId === null) return;
+
+  //   const modifyData: ProjectAPITypes.UpdateProject["data"] = {
+  //     orders: [],
+  //     shapes: {},
+  //     curves: {},
+  //     data: {},
+  //     img: $screenshot.toDataURL("image/png"),
+  //   };
+
+  //   shapes.forEach((shape) => {
+  //     modifyData.orders.push(shape.id);
+
+  //     if (
+  //       !(shape instanceof Terminal) &&
+  //       !(shape instanceof Process) &&
+  //       !(shape instanceof Data) &&
+  //       !(shape instanceof Desicion)
+  //     )
+  //       return;
+
+  //     // modifyData.shapes[shape.id] = {
+  //     //   w: shape.w,
+  //     //   h: shape.h,
+  //     //   title: shape.title,
+  //     //   type: (() => {
+  //     //     if (shape instanceof Terminal) {
+  //     //       return CommonTypes.Type.terminator;
+  //     //     } else if (shape instanceof Process) {
+  //     //       return CommonTypes.Type.process;
+  //     //     } else if (shape instanceof Data) {
+  //     //       return CommonTypes.Type.data;
+  //     //     } else if (shape instanceof Desicion) {
+  //     //       return CommonTypes.Type.decision;
+  //     //     }
+
+  //     //     return CommonTypes.Type.process;
+  //     //   })(),
+  //     //   p: shape.p,
+  //     //   curves: (() => {
+  //     //     const curves: {
+  //     //       l: string[];
+  //     //       t: string[];
+  //     //       r: string[];
+  //     //       b: string[];
+  //     //     } = { l: [], t: [], r: [], b: [] };
+
+  //     //     return curves;
+  //     //   })(),
+  //     //   data: (() => {
+  //     //     if (shape instanceof Data) {
+  //     //       return shape.data.map((dataItem) => {
+  //     //         modifyData.data[dataItem.id] = dataItem.text;
+
+  //     //         return dataItem.id;
+  //     //       });
+  //     //     }
+
+  //     //     return [];
+  //     //   })(),
+  //     //   selectedData: shape.selectedData.map(
+  //     //     (selectedDataItem) => selectedDataItem.id
+  //     //   ),
+  //     //   deletedData: shape.deletedData.map((deleteData) => deleteData.id),
+  //     //   text: shape instanceof Desicion ? shape?.text : null,
+  //     // };
+  //   });
+
+  //   projectAPIs
+  //     .updateProject(selectedProjectId, modifyData)
+  //     .then((res: AxiosResponse<ProjectAPITypes.UpdateProject["resData"]>) => {
+  //       if (res.status !== 200) return;
+  //       const projectI = projects.findIndex(
+  //         (project) => project.id === res.data.data.id
+  //       );
+
+  //       if (!projectI) return;
+  //       const _projects = cloneDeep(projects);
+  //       _projects[projectI].img = res.data.data.img;
+
+  //       setProjects(_projects);
+  //     });
+  // }; // temp close
+
   return (
     <SidePanel
       role={"indivisual"}
@@ -431,7 +567,7 @@ export default function IndivisualSidePanel(
               text="Save"
               className="ms-2"
               size={ButtonTypes.Size.sm}
-              onClick={onClickSaveButton}
+              onClick={onClickSaveEditingButton}
             />
           </div>
         ) : (
@@ -504,7 +640,7 @@ export default function IndivisualSidePanel(
         <Button
           className="absolute top-0 -left-44 -translate-x-full flex justify-self-end self-center text-base"
           info
-          onClick={() => {}}
+          onClick={onClickCheckButton}
           text={"Check"}
         />
         <Button
@@ -528,10 +664,7 @@ export default function IndivisualSidePanel(
         }
         onClick={onClickUndoButton}
       />
-      <Zoom
-        zoom={props.zoom}
-        scale={props.scale}
-      />
+      <Zoom zoom={props.zoom} scale={props.scale} />
     </SidePanel>
   );
 }

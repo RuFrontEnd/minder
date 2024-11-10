@@ -6,7 +6,12 @@ import * as CommonTypes from "@/types/common";
 
 const inter = Inter({ subsets: ["latin"] });
 
-const ds = [CommonTypes.Direction.l, CommonTypes.Direction.t, CommonTypes.Direction.r, CommonTypes.Direction.b];
+const ds = [
+  CommonTypes.Direction.l,
+  CommonTypes.Direction.t,
+  CommonTypes.Direction.r,
+  CommonTypes.Direction.b,
+];
 
 export default class Core {
   id: string;
@@ -24,12 +29,12 @@ export default class Core {
       stroke: number;
     };
   } = {
-      distance: 48,
-      size: {
-        fill: 4,
-        stroke: 2,
-      },
-    };
+    distance: 48,
+    size: {
+      fill: 4,
+      stroke: 2,
+    },
+  };
   private strokeSize = 1;
   private __w__: number;
   private __h__: number;
@@ -42,6 +47,7 @@ export default class Core {
   private __deleteDatas__: CommonTypes.Datas;
   status: CoreTypes.Status;
   private __minCurveHandlerDistance__: number;
+  private __isStart__: boolean;
 
   constructor(
     id: string,
@@ -69,6 +75,7 @@ export default class Core {
     this.__deleteDatas__ = [];
     this.status = CoreTypes.Status.normal;
     this.__minCurveHandlerDistance__ = 60;
+    this.__isStart__ = false;
   }
 
   set p(value: CommonTypes.Vec) {
@@ -133,6 +140,14 @@ export default class Core {
 
   get deleteDatas() {
     return this.__deleteDatas__;
+  }
+
+  set isStart(val: boolean) {
+    this.__isStart__ = val;
+  }
+
+  get isStart() {
+    return this.__isStart__;
   }
 
   getP(offset: CommonTypes.Vec = { x: 0, y: 0 }, scale: number = 1) {
@@ -304,11 +319,14 @@ export default class Core {
       );
     };
 
-    const checkOnTriangle = (edgePoints: [CommonTypes.Vec, CommonTypes.Vec, CommonTypes.Vec], p: CommonTypes.Vec) => {
+    const checkOnTriangle = (
+      edgePoints: [CommonTypes.Vec, CommonTypes.Vec, CommonTypes.Vec],
+      p: CommonTypes.Vec
+    ) => {
       const isRatio1Match =
         edgePoints[0].x -
-        edgePoints[0].x / edgePoints[1].x -
-        edgePoints[1].x ===
+          edgePoints[0].x / edgePoints[1].x -
+          edgePoints[1].x ===
         edgePoints[0].x - edgePoints[0].x / p.x - p.x;
 
       const isPInSideEdgePoint1 =
@@ -319,8 +337,8 @@ export default class Core {
 
       const isRatio2Match =
         edgePoints[1].x -
-        edgePoints[2].x / edgePoints[1].x -
-        edgePoints[2].x ===
+          edgePoints[2].x / edgePoints[1].x -
+          edgePoints[2].x ===
         edgePoints[1].x - edgePoints[1].x / p.x - p.x;
 
       const isPInSideEdgePoint2 =
@@ -331,8 +349,8 @@ export default class Core {
 
       const isRatio3Match =
         edgePoints[2].x -
-        edgePoints[0].x / edgePoints[2].x -
-        edgePoints[0].x ===
+          edgePoints[0].x / edgePoints[2].x -
+          edgePoints[0].x ===
         edgePoints[2].x - edgePoints[2].x / p.x - p.x;
 
       const isPInSideEdgePoint3 =
@@ -488,9 +506,9 @@ export default class Core {
     for (const d of ds) {
       if (
         (p.x - center.__curveTrigger__[d].x) *
-        (p.x - center.__curveTrigger__[d].x) +
-        (p.y - center.__curveTrigger__[d].y) *
-        (p.y - center.__curveTrigger__[d].y) <
+          (p.x - center.__curveTrigger__[d].x) +
+          (p.y - center.__curveTrigger__[d].y) *
+            (p.y - center.__curveTrigger__[d].y) <
         this.__curveTrigger__.size.fill * this.__curveTrigger__.size.fill
       ) {
         return CommonTypes.Direction[d];

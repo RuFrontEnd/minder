@@ -97,10 +97,119 @@ const init = {
   multiSelectShapeIds: [],
 };
 
+const a = new Terminal(
+  "terminator_1731237541265",
+  150,
+  75,
+  { x: 597, y: 281.5 },
+  "terminator"
+);
+a.isStart = true
+const b = new Data("data_1731237555697", 150, 75, { x: 597, y: 502.5 }, "data");
+b.importDatas = [
+  {
+    id: "data1",
+    text: "data1",
+    status: CommonTypes.DataStatus.default,
+  },
+  {
+    id: "data2",
+    text: "data2",
+    status: CommonTypes.DataStatus.default,
+  },
+];
+const c = new Desicion(
+  "decision_1731237570732",
+  150,
+  75,
+  { x: 832, y: 502.5 },
+  "decision"
+);
+c.usingDatas = [
+  {
+    id: "data1",
+    text: "data1",
+    status: CommonTypes.DataStatus.default,
+  },
+];
+const d = new Process(
+  "process_1731237541657",
+  150,
+  75,
+  { x: 1072, y: 502.5 },
+  "process_1"
+);
+d.usingDatas = [
+  {
+    id: "data2",
+    text: "data2",
+    status: CommonTypes.DataStatus.default,
+  },
+];
+const e = new Process(
+  "process_1731237583896",
+  150,
+  75,
+  { x: 832, y: 706.5 },
+  "process_2"
+);
+e.usingDatas = [
+  {
+    id: "data1",
+    text: "data1",
+    status: CommonTypes.DataStatus.default,
+  },
+];
+
 let ctx: CanvasRenderingContext2D | null | undefined = null,
   ctx_screenshot: CanvasRenderingContext2D | null | undefined = null,
-  shapes: (Terminal | Process | Data | Desicion)[] = [],
-  curves: PageIdTypes.Curves = [],
+  shapes: (Terminal | Process | Data | Desicion)[] = [a, b, c, d, e],
+  curves: PageIdTypes.Curves = [
+    {
+      from: { shape: shapes[0], d: CommonTypes.Direction.b },
+      shape: new Curve(
+        "curve_1731238521605",
+        { x: 597, y: 319 },
+        { x: 597, y: 416 },
+        { x: 597, y: 368 },
+        { x: 597, y: 453 }
+      ),
+      to: { shape: shapes[2], d: CommonTypes.Direction.t },
+    },
+    {
+      from: { shape: shapes[1], d: CommonTypes.Direction.r },
+      shape: new Curve(
+        "curve_1731238523747",
+        { x: 672, y: 502.5 },
+        { x: 738.5, y: 502.5 },
+        { x: 690.5, y: 502.5 },
+        { x: 745, y: 502.5 }
+      ),
+      to: { shape: shapes[2], d: CommonTypes.Direction.l },
+    },
+    {
+      from: { shape: shapes[2], d: CommonTypes.Direction.r },
+      shape: new Curve(
+        "curve_1731238525806",
+        { x: 907, y: 502.5 },
+        { x: 976, y: 502.5 },
+        { x: 928, y: 502.5 },
+        { x: 985, y: 502.5 }
+      ),
+      to: { shape: shapes[3], d: CommonTypes.Direction.l },
+    },
+    {
+      from: { shape: shapes[2], d: CommonTypes.Direction.b },
+      shape: new Curve(
+        "curve_1731238527503",
+        { x: 832, y: 540 },
+        { x: 832, y: 628.5 },
+        { x: 832, y: 580.5 },
+        { x: 832, y: 657 }
+      ),
+      to: { shape: shapes[4], d: CommonTypes.Direction.t },
+    },
+  ],
   tests: any[] = [], // TODO: should be deleted
   pressing: PageIdTypes.Pressing = null,
   pressingCurve: PageIdTypes.PressingCurve = null,
@@ -162,18 +271,6 @@ const getActionRecords = () => {
 };
 
 const actionRecords = getActionRecords();
-
-const getFramePosition = (
-  shape: Core,
-  offset: CommonTypes.Vec,
-  scale: number
-) => {
-  const frameOffset = 12;
-  return {
-    x: shape.getP(offset, scale).x + shape.getScaleSize().w / 2 + frameOffset,
-    y: shape.getP(offset, scale).y,
-  };
-};
 
 const getNormalP = (
   p: CommonTypes.Vec,
@@ -1531,6 +1628,8 @@ const movePressingCurve = (
 ) => {
   if (!ctx || !pressingCurve) return;
 
+  console.log("pressingCurve.from.shape", pressingCurve.from.shape);
+
   const [toD, p2] = (() => {
     for (let i = 0; i < shapes.length; i++) {
       const shape = shapes[i];
@@ -2163,9 +2262,7 @@ const checkConnect = (p: CommonTypes.Vec) => {
         d: to.d,
       }
     );
-    // actions.push({
-    //   type: CommonTypes.Action.connect,
-    // }); // temp close
+
     actionRecords.finish(CommonTypes.Action.connect);
   }
 
@@ -2380,21 +2477,9 @@ const draw = (
     });
   }
 
-  // draw curves in shapes
-  // shapes.forEach((shape) => {
-  //   if (!ctx) return;
-
-  //   shape.drawCurve(ctx);
-  // });
   if (!pressingCurve?.to) {
     pressingCurve?.shape.draw(ctx, offset, scale);
   }
-
-  // shapes.forEach((shape) => {
-  //   console.log('shape', shape)
-  //   if(!ctx) return
-  //   shape.drawRecievingPoint(ctx, offset, scale)
-  // })
 
   if (!isScreenshot) {
     // draw selectArea
@@ -2570,198 +2655,16 @@ const undo = (
 ) => {
   if (!ctx || !shapes) return;
 
-  // TODO: temp close
   const action = actions.peek();
   if (!action) return;
   shapes = action?.shapes;
   curves = action?.curves;
-
-  // switch (action?.type) {
-  //   case CommonTypes.Action.add:
-  //     shapes.pop();
-  //     break;
-
-  //   case CommonTypes.Action.delete:
-  //     shapes.splice(action.target.i, 0, action.target.shape);
-  //     for(let i =action.target.curves.length-1; i>-1; i--){
-  //       curves.splice(action.target.curves[i].i, 0,action.target.curves[i].shape)
-  //     }
-
-  //     break;
-
-  //   // case CommonTypes.Action.resize:
-  //   case CommonTypes.Action.move: {
-  //     const returnToOrigin = () => {
-  //       action.target.move(action.displacement);
-  //     };
-
-  //     returnToOrigin();
-  //     moveCurve(action.target);
-  //     break;
-  //   }
-
-  //   case CommonTypes.Action.connect: {
-  //     disconnect(curves.length - 1);
-  //     // TODO: should check data
-  //     break;
-  //   }
-
-  //   case CommonTypes.Action.disconnect: {
-  //     connect(action.curve.shape, action.curve.from, action.curve.to);
-  //     moveCurve(action.curve.to.shape);
-  //     // TODO: should check data
-  //     break;
-  //   }
-  // }
 
   actions.pop();
 
   drawCanvas(offset, scale);
   drawScreenshot(offset, scale);
 };
-
-// const Editor = (props: { className: string; shape: Core }) => {
-//   const [title, setTitle] = useState<CommonTypes.Title>(""),
-//     [selections, setSelections] = useState<DataFrameTypes.Selections>({}),
-//     [data, setData] = useState<CommonTypes.Data>([]);
-
-//   const onChangeTitle = (e: React.ChangeEvent<HTMLInputElement>) => {
-//     setTitle(e.currentTarget.value);
-//   };
-
-//   const onClickCheckedBox = (DataText: CommonTypes.DataItem["text"]) => {
-//     const _selections: DataFrameTypes.Selections = cloneDeep(selections);
-
-//     _selections[DataText] = !_selections[DataText];
-
-//     setSelections(_selections);
-//   };
-
-//   const onClickPlus = () => {
-//     const _data = cloneDeep(data);
-//     _data.push({ id: uuidv4(), text: "" });
-//     setData(_data);
-//   };
-
-//   const onClickMinus = (id: string) => {
-//     const _data = cloneDeep(data).filter((datdItem) => datdItem.id !== id);
-//     setData(_data);
-//   };
-
-//   const onChangeData = (e: React.ChangeEvent<HTMLInputElement>, i: number) => {
-//     const _data = cloneDeep(data);
-//     _data[i].text = e.currentTarget.value;
-//     setData(_data);
-//   };
-
-//   const onClickConfirm = () => {
-//     const selectedData = (() => {
-//       const data: CommonTypes.Data = [];
-
-//       props.shape.options.forEach((option) => {
-//         if (selections[option.text]) {
-//           data.push(option);
-//         }
-//       });
-
-//       props.shape.redundancies.forEach((option) => {
-//         if (selections[option.text]) {
-//           data.push(option);
-//         }
-//       });
-
-//       return data;
-//     })();
-
-//     // onConfirm(title, data, selectedData);
-//   };
-
-//   useEffect(() => {
-//     setTitle(props.shape.title);
-
-//     const _selections: DataFrameTypes.Selections = (() => {
-//       const output: DataFrameTypes.Selections = {};
-
-//       props.shape.options.forEach((option) => {
-//         output[option.text] = false;
-//       });
-
-//       props.shape.selectedData.forEach((selectedDataItem) => {
-//         output[selectedDataItem.text] = true;
-//       });
-
-//       return output;
-//     })();
-
-//     setSelections(_selections);
-
-//     if (props.shape instanceof Data) {
-//       setData(props.shape.data);
-//     }
-//   }, [props.shape]);
-
-//   return (
-//     <div className={props.className && props.className}>
-//       <div>
-//         {props.shape instanceof Data && (
-//           <div>
-//             <p className="mb-1">Data</p>
-//             {/* <div
-//               className="w-6 h-6 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 cursor-pointer"
-//               onClick={onClickScalePlusIcon}
-//             >
-//               +
-//             </div> */}
-//             <ul className="ps-2">
-//               {props.shape.data.map((dataItem) => (
-//                 <li className="mb-1"> · {dataItem.text}</li>
-//               ))}
-//             </ul>
-//           </div>
-//         )}
-//         {(props.shape instanceof Process ||
-//           props.shape instanceof Data ||
-//           props.shape instanceof Desicion) && (
-//           <>
-//             <div>
-//               <p className="mb-1">Data Usage</p>
-//               <ul className="ps-2">
-//                 {props.shape.options.map((option) => (
-//                   <li className="mb-1">
-//                     <span className="bg-indigo-100 text-indigo-500 w-4 h-4 rounded-full inline-flex items-center justify-center">
-//                       {selections[option.text] && (
-//                         <svg
-//                           fill="none"
-//                           stroke="currentColor"
-//                           strokeLinecap="round"
-//                           strokeLinejoin="round"
-//                           strokeWidth="3"
-//                           className="w-3 h-3"
-//                           viewBox="0 0 24 24"
-//                         >
-//                           <path d="M20 6L9 17l-5-5"></path>
-//                         </svg>
-//                       )}
-//                     </span>
-//                     {option.text}
-//                   </li>
-//                 ))}
-//               </ul>
-//             </div>
-//             <div>
-//               <div className="mb-1">Redundancies</div>
-//               <ul className="ps-2">
-//                 {props.shape.redundancies.map((redundancy) => (
-//                   <li className="mb-1"> · {redundancy.text}</li>
-//                 ))}
-//               </ul>
-//             </div>
-//           </>
-//         )}
-//       </div>
-//     </div>
-//   );
-// }; TODO: open after content is added
 
 export default function IdPage() {
   let { current: $canvas } = useRef<HTMLCanvasElement | null>(null);
@@ -2811,100 +2714,6 @@ export default function IdPage() {
     useState<IndivisaulSidePanelTypes.CreateDatas>([]);
   const [addDeleteDatas, setAddDeleteDatas] =
     useState<IndivisaulSidePanelTypes.AddDatas>([]);
-
-  const checkData = (shapes: (Terminal | Process | Data | Desicion)[]) => {
-    const dataShapes: Data[] = [];
-
-    // shapes.forEach((shape) => {
-    //   shape.options = [];
-    //   if (shape instanceof Data) {
-    //     dataShapes.push(shape);
-    //   }
-    // });
-
-    // dataShapes.forEach((dataShape) => {
-    // traversal all relational steps
-    // const queue: (Core | Terminal | Process | Data | Desicion)[] = [
-    //   dataShape,
-    // ],
-    //   locks: { [curveId: string]: boolean } = {}, // prevent from graph cycle
-    //   deletedDataMap: { [text: string]: boolean } = {};
-
-    // while (queue.length !== 0) {
-    //   const shape = queue[0];
-
-    //   ds.forEach((d) => {
-    //     shape.curves[d].forEach((curve) => {
-    //       const theSendToShape = curve.sendTo?.shape;
-
-    //       if (!theSendToShape) return;
-
-    //       dataShape.data.forEach((dataItem) => {
-    //         if (
-    //           theSendToShape.options.some(
-    //             (option) => option.text === dataItem.text
-    //           ) ||
-    //           deletedDataMap[dataItem.text]
-    //         )
-    //           return;
-    //         theSendToShape.options.push(dataItem);
-    //       });
-
-    //       theSendToShape.deletedData.forEach((deleteDataItem) => {
-    //         deletedDataMap[deleteDataItem.text] = true;
-    //       });
-
-    //       if (!locks[curve.shape.id]) {
-    //         queue.push(theSendToShape);
-    //         locks[curve.shape.id] = true;
-    //       }
-    //     });
-    //   });
-
-    //   queue.shift();
-    // }
-    // });
-
-    // check all correspondants of shapes' between options and selectedData
-    // shapes.forEach((shape) => {
-    //   shape.getRedundancies();
-    // });
-
-    // const errorShapes: Core[] = shapes.filter(
-    //   (shape) => shape.status === CoreTypes.Status.error
-    // );
-
-    // errorShapes.forEach((errorShape) => {
-    //   // traversal all relational steps
-    //   const queue: (Core | Terminal | Process | Data | Desicion)[] = [
-    //     errorShape,
-    //   ],
-    //     locks: { [curveId: string]: boolean } = {}; // prevent from graph cycle
-
-    //   while (queue.length !== 0) {
-    //     const shape = queue[0];
-
-    //     if (shape.status !== CoreTypes.Status.error) {
-    //       shape.status = CoreTypes.Status.disabled;
-    //     }
-
-    // ds.forEach((d) => {
-    //   shape.curves[d].forEach((curve) => {
-    //     const theSendToShape = curve.sendTo?.shape;
-
-    //     if (!theSendToShape) return;
-
-    //     if (!locks[curve.shape.id]) {
-    //       queue.push(theSendToShape);
-    //       locks[curve.shape.id] = true;
-    //     }
-    //   });
-    // });
-
-    // queue.shift();
-    // }
-    // });
-  };
 
   const checkSteps = () => {
     setSteps(cloneDeep(shapes));
@@ -3273,7 +3082,6 @@ export default function IdPage() {
       }
     }
 
-    checkData(shapes);
     checkSteps();
 
     selectionFrameP = null;
@@ -3282,8 +3090,6 @@ export default function IdPage() {
     alginLines = [];
 
     drawCanvas(offset, scale);
-
-    console.log("actions", actions);
   };
 
   const onMouseWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
@@ -3372,96 +3178,6 @@ export default function IdPage() {
     drawCanvas(offset, scale);
   };
 
-  const onClickSaveButton: MouseEventHandler<HTMLSpanElement> = () => {
-    const $canvas = document.querySelector("canvas");
-    const $screenshot: HTMLCanvasElement | null = document.querySelector(
-      "canvas[role='screenshot']"
-    );
-
-    if (!$canvas || !$screenshot || selectedProjectId === null) return;
-
-    const modifyData: ProjectAPITypes.UpdateProject["data"] = {
-      orders: [],
-      shapes: {},
-      curves: {},
-      data: {},
-      img: $screenshot.toDataURL("image/png"),
-    };
-
-    shapes.forEach((shape) => {
-      modifyData.orders.push(shape.id);
-
-      if (
-        !(shape instanceof Terminal) &&
-        !(shape instanceof Process) &&
-        !(shape instanceof Data) &&
-        !(shape instanceof Desicion)
-      )
-        return;
-
-      // modifyData.shapes[shape.id] = {
-      //   w: shape.w,
-      //   h: shape.h,
-      //   title: shape.title,
-      //   type: (() => {
-      //     if (shape instanceof Terminal) {
-      //       return CommonTypes.Type.terminator;
-      //     } else if (shape instanceof Process) {
-      //       return CommonTypes.Type.process;
-      //     } else if (shape instanceof Data) {
-      //       return CommonTypes.Type.data;
-      //     } else if (shape instanceof Desicion) {
-      //       return CommonTypes.Type.decision;
-      //     }
-
-      //     return CommonTypes.Type.process;
-      //   })(),
-      //   p: shape.p,
-      //   curves: (() => {
-      //     const curves: {
-      //       l: string[];
-      //       t: string[];
-      //       r: string[];
-      //       b: string[];
-      //     } = { l: [], t: [], r: [], b: [] };
-
-      //     return curves;
-      //   })(),
-      //   data: (() => {
-      //     if (shape instanceof Data) {
-      //       return shape.data.map((dataItem) => {
-      //         modifyData.data[dataItem.id] = dataItem.text;
-
-      //         return dataItem.id;
-      //       });
-      //     }
-
-      //     return [];
-      //   })(),
-      //   selectedData: shape.selectedData.map(
-      //     (selectedDataItem) => selectedDataItem.id
-      //   ),
-      //   deletedData: shape.deletedData.map((deleteData) => deleteData.id),
-      //   text: shape instanceof Desicion ? shape?.text : null,
-      // };
-    });
-
-    projectAPIs
-      .updateProject(selectedProjectId, modifyData)
-      .then((res: AxiosResponse<ProjectAPITypes.UpdateProject["resData"]>) => {
-        if (res.status !== 200) return;
-        const projectI = projects.findIndex(
-          (project) => project.id === res.data.data.id
-        );
-
-        if (!projectI) return;
-        const _projects = cloneDeep(projects);
-        _projects[projectI].img = res.data.data.img;
-
-        setProjects(_projects);
-      });
-  };
-
   const onClickProjectCard = (id: ProjectTypes.Project["id"]) => {
     setSelectedProjectId(id);
   };
@@ -3484,7 +3200,6 @@ export default function IdPage() {
       );
       shapes = initShapes;
       multiSelectShapeIds = cloneDeep(init.multiSelectShapeIds);
-      checkData(shapes);
       checkSteps();
       drawCanvas(offset, scale);
       drawScreenshot(offset, scale);
@@ -3642,44 +3357,7 @@ export default function IdPage() {
       await fetchProjects();
       await initProject(Number(params.id));
 
-      // offset = { x: 0, y: 0 };
-
-      // const arrow = new Arrow(
-      //   `arrow_${Date.now()}`,
-      //   100,
-      //   100,
-      //   "#000",
-      //   { x: 500, y: 500 },
-      //   (0 / 360) * Math.PI
-      // );
-      // arrow.selecting = true;
-      // arrow.scale = 1;
-      // arrow.offset = { x: 0, y: 0 };
-
-      // const curve = new Curve(
-      //   "curve_01",
-      //   {
-      //     x: 500,
-      //     y: 500,
-      //   },
-      //   {
-      //     x: 500,
-      //     y: 400,
-      //   },
-      //   {
-      //     x: 500,
-      //     y: 300,
-      //   },
-      //   {
-      //     x: 500,
-      //     y: 200,
-      //   }
-      // );
-      // curve.selecting = true;
-      // curve.scale = 1.5;
-      // curve.offset = { x: 50, y: 50 };
-      // tests.push(arrow);
-      // tests.push(curve);
+      shapes = [a, b, c, d, e];
 
       drawCanvas(offset, scale);
       drawScreenshot(offset, scale);
@@ -4040,7 +3718,6 @@ export default function IdPage() {
           offset={offset}
           scale={scale}
           reload={() => {
-            checkData(shapes);
             checkSteps();
             drawCanvas(offset, scale);
             drawScreenshot(offset, scale);
@@ -4049,6 +3726,8 @@ export default function IdPage() {
       </SidePanel>
 
       <IndivisaulSidePanel
+        shapes={shapes}
+        curves={curves}
         datas={datas}
         setDatas={setDatas}
         isIndivisualSidePanelOpen={isIndivisualSidePanelOpen}

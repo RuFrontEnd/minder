@@ -6,6 +6,7 @@ import Desicion from "@/shapes/decision";
 import * as InputTypes from "@/types/components/input";
 import * as SelectTypes from "@/types/components/input";
 import * as CommonTypes from "@/types/common";
+import * as PageIdTypes from "@/types/app/pageId";
 
 type CreateDatas = {
   val: null | string;
@@ -20,6 +21,8 @@ type AddDatas = {
 }[];
 
 type Props = {
+  shapes: (Terminal | Process | Data | Desicion)[];
+  curves: PageIdTypes.Curves;
   datas: {
     id: string;
     name: string;
