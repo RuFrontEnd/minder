@@ -33,12 +33,16 @@ const Button = (props: ButtonTypes.Props) => {
 
   return (
     <button
+      tabIndex={-1}
       id={props.id}
       role={props.role}
       className={`${statusStyle} ${sizeStyle} whitespace-nowrap flex justify-center items-center border-0 focus:outline-none rounded break-keep ${
         props.className && props.className
       }`}
       onClick={props.loading ? undefined : props.onClick}
+      onMouseDown={(e) => {
+        e.preventDefault();
+      }}
     >
       {props.text}
       {props.loading && (

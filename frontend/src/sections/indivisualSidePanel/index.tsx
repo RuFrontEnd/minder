@@ -19,6 +19,8 @@ import * as ButtonTypes from "@/types/components/button";
 import * as IndivisaulSidePanelTypes from "@/types/sections/id/indivisualSidePanel";
 import * as CommonTypes from "@/types/common";
 
+let worker: null | Worker = null;
+
 export default function IndivisualSidePanel(
   props: IndivisaulSidePanelTypes.Props
 ) {
@@ -405,8 +407,11 @@ export default function IndivisualSidePanel(
   };
 
   const onClickCheckButton = () => {
-    // // main.js
-    const worker = new Worker(
+    if (!!worker) {
+      worker.terminate();
+    }
+    // main.js
+    worker = new Worker(
       new URL("@/workers/checkData/index.ts", import.meta.url),
       { type: "module" }
     );
@@ -441,7 +446,7 @@ export default function IndivisualSidePanel(
     // 接收 Worker 返回的结果
     worker.onmessage = (event) => {
       console.log("data from Worker:", event);
-      console.log("event.data from Worker:", event.data);
+      console.log("event.data from Worker:", event.data.shapes);
       // console.log("JSON.parse(event.data) from Worker:", JSON.parse(event.data));
     };
 

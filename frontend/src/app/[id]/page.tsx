@@ -104,7 +104,7 @@ const a = new Terminal(
   { x: 597, y: 281.5 },
   "terminator"
 );
-a.isStart = true
+a.isStart = true;
 const b = new Data("data_1731237555697", 150, 75, { x: 597, y: 502.5 }, "data");
 b.importDatas = [
   {
@@ -147,7 +147,7 @@ d.usingDatas = [
   },
 ];
 const e = new Process(
-  "process_1731237583896",
+  "process_2031237583896",
   150,
   75,
   { x: 832, y: 706.5 },
@@ -155,15 +155,28 @@ const e = new Process(
 );
 e.usingDatas = [
   {
-    id: "data1",
-    text: "data1",
+    id: "data3",
+    text: "data3",
     status: CommonTypes.DataStatus.default,
   },
+];
+const f = new Terminal(
+  "terminator_2031237541265",
+  150,
+  75,
+  { x:97, y: 2.5 }, 
+  "terminator"
+);
+f.isStart = true;
+const g = new Data("data_1731237555697", 150, 75, { x: 97, y: 202.5 }, "data");
+g.importDatas = [
+
+
 ];
 
 let ctx: CanvasRenderingContext2D | null | undefined = null,
   ctx_screenshot: CanvasRenderingContext2D | null | undefined = null,
-  shapes: (Terminal | Process | Data | Desicion)[] = [a, b, c, d, e],
+  shapes: (Terminal | Process | Data | Desicion)[] = [a, b, c, d, e, f, g],
   curves: PageIdTypes.Curves = [
     {
       from: { shape: shapes[0], d: CommonTypes.Direction.b },
@@ -208,6 +221,17 @@ let ctx: CanvasRenderingContext2D | null | undefined = null,
         { x: 832, y: 657 }
       ),
       to: { shape: shapes[4], d: CommonTypes.Direction.t },
+    },
+    {
+      from: { shape: shapes[5], d: CommonTypes.Direction.b },
+      shape: new Curve(
+        "curve_2031238521605",
+        { x: 97, y: 40 },
+        { x: 97, y: 64.5 },
+        { x: 97, y: 129 },
+        { x: 97, y: 154  }
+      ),
+      to: { shape: shapes[6], d: CommonTypes.Direction.t },
     },
   ],
   tests: any[] = [], // TODO: should be deleted
@@ -2683,7 +2707,10 @@ export default function IdPage() {
   const [isRenameFrameOpen, setIsRenameFrameOpen] = useState(false);
   const [isProfileFrameOpen, setIsProfileFrameOpen] = useState(false);
   const [steps, setSteps] = useState<PageTypes.Steps>([]);
-  const [datas, setDatas] = useState<PageIdTypes.Datas>([]);
+  const [datas, setDatas] = useState<PageIdTypes.Datas>([
+    { id: "data1", name: "data1" },
+    { id: "data2", name: "data2" },
+  ]);
   const [isProjectsModalOpen, setIsProjectsModalOpen] = useState(false);
   const [projects, setProjects] = useState<
     ProjectAPITypes.GetProjects["resData"]
@@ -3357,7 +3384,7 @@ export default function IdPage() {
       await fetchProjects();
       await initProject(Number(params.id));
 
-      shapes = [a, b, c, d, e];
+      shapes = [a, b, c, d, e, f, g];
 
       drawCanvas(offset, scale);
       drawScreenshot(offset, scale);

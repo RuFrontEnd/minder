@@ -2,8 +2,17 @@ import Terminal from "@/shapes/terminal";
 import Process from "@/shapes/process";
 import Data from "@/shapes/data";
 import Desicion from "@/shapes/decision";
+import * as handleUtils from "@/utils/handle";
 
 const checkData = (shapes: (Terminal | Process | Data | Desicion)[]) => {
+  self.postMessage({ shapes: shapes });
+
+  const group = (shapes: (Terminal | Process | Data | Desicion)[]) => {
+
+    return true;
+  };
+
+  handleUtils.handle([() => group(shapes)]);
   // const dataShapes: Data[] = [];
 
   // shapes.forEach((shape) => {
@@ -96,7 +105,9 @@ const checkData = (shapes: (Terminal | Process | Data | Desicion)[]) => {
   // }
   // });
 
-  return [{ test: 1 }, { test: 2 }, { test: 3 }, { test: 4 }, { test: 5 }];
+  return Array.from({ length: 1000000 }, (_, i) => i + 1);
+
+  // [{ test: 1 }, { test: 2 }, { test: 3 }, { test: 4 }, { test: 5 }];
 };
 
 let shapes: (Terminal | Process | Data | Desicion)[] = [];
@@ -112,16 +123,16 @@ self.onmessage = function (event: MessageEvent<string>) {
   } else {
     const logs = checkData(shapes);
     let index = 0;
-    let chunckSize = 1;
+    let chunckSize = 10000;
 
     const sendChunck = () => {
       if (index > logs.length) return;
       const chunck = logs.slice(index, index + chunckSize);
       self.postMessage(chunck);
       index += chunckSize;
-      sendChunck()
+      setTimeout(sendChunck, 0);
     };
 
-    sendChunck();
+    // sendChunck();
   }
 };
