@@ -18,6 +18,10 @@ import * as SidePanelTypes from "@/types/components/sidePanel";
 import * as ButtonTypes from "@/types/components/button";
 import * as IndivisaulSidePanelTypes from "@/types/sections/id/indivisualSidePanel";
 import * as CommonTypes from "@/types/common";
+import Terminal from "@/shapes/terminal";
+import Process from "@/shapes/process";
+import Data from "@/shapes/data";
+import Decision from "@/shapes/decision";
 
 let worker: null | Worker = null;
 
@@ -415,26 +419,38 @@ export default function IndivisualSidePanel(
       new URL("@/workers/checkData/index.ts", import.meta.url),
       { type: "module" }
     );
-    // 分块发送数据
-    function sendChunks(data: any, worker: any, chunkSize: any) {
-      let index = 0;
 
-      function sendNextChunk() {
-        if (index < data.length) {
-          const chunk = data.slice(index, index + chunkSize);
-          worker.postMessage(JSON.stringify({ shapes: chunk, done: false })); // 发送当前 chunk 到 Worker
+    const sendChuncks = (
+      shapes: (Terminal | Process | Data | Decision)[],
+      curves: CommonTypes.ConnectionCurves,
+      worker: any
+    ) => {
+      const length = Math.max(shapes.length, curves.length);
+      let index = 0;
+      const chunkSize = 1;
+
+      const sendNextChunk = () => {
+        if (index < length) {
+          const _shapes = shapes.slice(index, index + chunkSize);
+          const _curves = curves.slice(index, index + chunkSize);
+          worker.postMessage(
+            JSON.stringify({ shapes: _shapes, curves: _curves, done: false })
+          );
           index += chunkSize;
-          setTimeout(sendNextChunk, 0); // 使用 setTimeout 调度下一个块
+          setTimeout(sendNextChunk, 0);
         } else {
-          worker.postMessage(JSON.stringify({ shapes: [], done: true })); // 全部发送完后，通知 Worker
+          worker.postMessage(
+            JSON.stringify({ shapes: [], curves: [], done: true })
+          );
         }
-      }
+      };
 
       sendNextChunk();
-    }
+    };
+
+    sendChuncks(props.shapes, props.curves, worker);
 
     // 调用分块传输函数
-    sendChunks(props.shapes, worker, 1);
 
     // console.log(props.shapes, props.curves);
 
@@ -445,8 +461,7 @@ export default function IndivisualSidePanel(
 
     // 接收 Worker 返回的结果
     worker.onmessage = (event) => {
-      console.log("data from Worker:", event);
-      console.log("event.data from Worker:", event.data.shapes);
+      console.log(event.data.ms, event.data.log);
       // console.log("JSON.parse(event.data) from Worker:", JSON.parse(event.data));
     };
 
@@ -479,7 +494,7 @@ export default function IndivisualSidePanel(
   //       !(shape instanceof Terminal) &&
   //       !(shape instanceof Process) &&
   //       !(shape instanceof Data) &&
-  //       !(shape instanceof Desicion)
+  //       !(shape instanceof Decision)
   //     )
   //       return;
 
@@ -494,7 +509,7 @@ export default function IndivisualSidePanel(
   //     //       return CommonTypes.Type.process;
   //     //     } else if (shape instanceof Data) {
   //     //       return CommonTypes.Type.data;
-  //     //     } else if (shape instanceof Desicion) {
+  //     //     } else if (shape instanceof Decision) {
   //     //       return CommonTypes.Type.decision;
   //     //     }
 
@@ -526,7 +541,7 @@ export default function IndivisualSidePanel(
   //     //     (selectedDataItem) => selectedDataItem.id
   //     //   ),
   //     //   deletedData: shape.deletedData.map((deleteData) => deleteData.id),
-  //     //   text: shape instanceof Desicion ? shape?.text : null,
+  //     //   text: shape instanceof Decision ? shape?.text : null,
   //     // };
   //   });
 

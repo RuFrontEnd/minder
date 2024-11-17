@@ -164,20 +164,17 @@ const f = new Terminal(
   "terminator_2031237541265",
   150,
   75,
-  { x:97, y: 2.5 }, 
+  { x: 97, y: 2.5 },
   "terminator"
 );
 f.isStart = true;
 const g = new Data("data_1731237555697", 150, 75, { x: 97, y: 202.5 }, "data");
-g.importDatas = [
-
-
-];
+g.importDatas = [];
 
 let ctx: CanvasRenderingContext2D | null | undefined = null,
   ctx_screenshot: CanvasRenderingContext2D | null | undefined = null,
   shapes: (Terminal | Process | Data | Desicion)[] = [a, b, c, d, e, f, g],
-  curves: PageIdTypes.Curves = [
+  curves: CommonTypes.ConnectionCurves = [
     {
       from: { shape: shapes[0], d: CommonTypes.Direction.b },
       shape: new Curve(
@@ -229,7 +226,7 @@ let ctx: CanvasRenderingContext2D | null | undefined = null,
         { x: 97, y: 40 },
         { x: 97, y: 64.5 },
         { x: 97, y: 129 },
-        { x: 97, y: 154  }
+        { x: 97, y: 154 }
       ),
       to: { shape: shapes[6], d: CommonTypes.Direction.t },
     },
@@ -266,7 +263,7 @@ const getActionRecords = () => {
   const records: {
     [type: string]: {
       shapes: null | (Terminal | Process | Data | Desicion)[];
-      curves: null | PageIdTypes.Curves;
+      curves: null | CommonTypes.ConnectionCurves;
     };
   } = {};
 

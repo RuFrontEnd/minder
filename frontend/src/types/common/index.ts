@@ -1,5 +1,8 @@
 import Core from "@/shapes/core";
+import Termainal from "@/shapes/terminal";
 import Process from "@/shapes/process";
+import DataShape from "@/shapes/data";
+import Decision from "@/shapes/decision";
 import Curve from "@/shapes/curve";
 
 type Id = string;
@@ -67,5 +70,17 @@ enum Action {
   multiResize = "multiResize",
 }
 
-export type { Id, W, H, C, Vec, Shapes, Title, Data, Datas };
+type ConnectionCurves = {
+  shape: Curve;
+  from: {
+    shape: Termainal | Process | DataShape | Decision;
+    d: Direction;
+  };
+  to: {
+    shape: Termainal | Process | DataShape | Decision;
+    d: Direction;
+  };
+}[];
+
+export type { Id, W, H, C, Vec, Shapes, Title, Data, Datas, ConnectionCurves };
 export { Direction, Corner, Type, SelectAreaTarget, Action, DataStatus };

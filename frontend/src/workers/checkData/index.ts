@@ -2,13 +2,14 @@ import Terminal from "@/shapes/terminal";
 import Process from "@/shapes/process";
 import Data from "@/shapes/data";
 import Desicion from "@/shapes/decision";
+import * as CommonTypes from "@/types/common";
 import * as handleUtils from "@/utils/handle";
+import * as CheckDataTypes from "@/types/workers/checkData";
 
 const checkData = (shapes: (Terminal | Process | Data | Desicion)[]) => {
   self.postMessage({ shapes: shapes });
 
   const group = (shapes: (Terminal | Process | Data | Desicion)[]) => {
-
     return true;
   };
 
@@ -109,30 +110,53 @@ const checkData = (shapes: (Terminal | Process | Data | Desicion)[]) => {
 
   // [{ test: 1 }, { test: 2 }, { test: 3 }, { test: 4 }, { test: 5 }];
 };
-
 let shapes: (Terminal | Process | Data | Desicion)[] = [];
+let curves: CommonTypes.ConnectionCurves = [];
 
 self.onmessage = function (event: MessageEvent<string>) {
-  const currentChunck: {
-    shapes: (Terminal | Process | Data | Desicion)[];
-    done: boolean;
-  } = JSON.parse(event.data);
+  const currentChunck: CheckDataTypes.EventData = JSON.parse(event.data);
 
-  if (currentChunck.shapes.length > 0 && !currentChunck.done) {
-    shapes = [...shapes, ...currentChunck.shapes];
-  } else {
-    const logs = checkData(shapes);
-    let index = 0;
-    let chunckSize = 10000;
+  const gatherChunks = (currentChunck: CheckDataTypes.EventData) => {
+    if (currentChunck.shapes.length !== 0) {
+      shapes = [...shapes, ...currentChunck.shapes];
+    }
 
-    const sendChunck = () => {
-      if (index > logs.length) return;
-      const chunck = logs.slice(index, index + chunckSize);
-      self.postMessage(chunck);
-      index += chunckSize;
-      setTimeout(sendChunck, 0);
-    };
+    if (currentChunck.curves.length !== 0) {
+      curves = [...curves, ...currentChunck.curves];
+    }
 
-    // sendChunck();
-  }
+    if (
+      currentChunck.shapes.length === 0 &&
+      currentChunck.curves.length === 0 &&
+      currentChunck.done
+    ) {
+      return true;
+    }
+
+    self.postMessage({ ms: "shapes", log: shapes });
+    self.postMessage({ ms: "curves", log: curves });
+
+    return false;
+  };
+
+  const postConsole = () => {
+    self.postMessage({ ms: "work", log: "work" });
+    return false;
+  };
+
+  handleUtils.handle([() => gatherChunks(currentChunck), () => postConsole()]);
 };
+
+// const logs = checkData(shapes);
+// let index = 0;
+// let chunckSize = 10000;
+
+// const sendChunck = () => {
+//   if (index > logs.length) return;
+//   const chunck = logs.slice(index, index + chunckSize);
+//   self.postMessage(chunck);
+//   index += chunckSize;
+//   setTimeout(sendChunck, 0);
+// };
+
+// sendChunck();

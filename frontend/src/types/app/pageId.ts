@@ -49,18 +49,6 @@ type Sticking = {
   };
 };
 
-type Curves = {
-  shape: Curve;
-  from: {
-    shape: Terminal | Process | Data | Desicion;
-    d: CommonTypes.Direction;
-  };
-  to: {
-    shape: Terminal | Process | Data | Desicion;
-    d: CommonTypes.Direction;
-  };
-}[];
-
 type MultiSelectShapeIds = string[];
 
 // type ActionTarget = {
@@ -106,7 +94,7 @@ type MultiSelectShapeIds = string[];
 type Actions = Stack<{
   type: CommonTypes.Action;
   shapes: (Terminal | Process | Data | Desicion)[];
-  curves: Curves;
+  curves: CommonTypes.ConnectionCurves;
 }>;
 
 enum OverallType {
@@ -128,7 +116,6 @@ export type {
   // ActionDeleteTarget,
   // ActionTargets,
   Actions,
-  Curves,
   MultiSelectShapeIds,
   Datas,
 };
