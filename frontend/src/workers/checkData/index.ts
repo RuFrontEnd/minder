@@ -7,48 +7,31 @@ import * as handleUtils from "@/utils/handle";
 import * as CheckDataTypes from "@/types/workers/checkData";
 import { cloneDeep } from "lodash";
 
+const ds = [
+  CommonTypes.Direction.l,
+  CommonTypes.Direction.t,
+  CommonTypes.Direction.r,
+  CommonTypes.Direction.b,
+];
+
 const checkData = (
-  shapes: (Terminal | Process | Data | Desicion)[],
+  shapes: CheckDataTypes.Shapes,
   curves: CommonTypes.ConnectionCurves
 ) => {
-  self.postMessage({ ms: "shapes", log: shapes });
-  self.postMessage({ ms: "curves", log: curves });
+  // self.postMessage({ ms: "shapes", log: shapes });
+  // self.postMessage({ ms: "curves", log: curves });
 
-  const createGraph = (
-    shapes: (Terminal | Process | Data | Desicion)[],
+  const createSteps = (
+    shapes: CheckDataTypes.Shapes,
     curves: CommonTypes.ConnectionCurves
   ) => {
-    const graph: {
-      [index: number]: {
-        id: string;
-        from: {
-          l: string[];
-          t: string[];
-          r: string[];
-          b: string[];
-        };
-        to: {
-          l: string[];
-          t: string[];
-          r: string[];
-          b: string[];
-        };
-        datas: {
-          import: CommonTypes.Datas;
-          using: CommonTypes.Datas;
-          delete: CommonTypes.Datas;
-        };
-      };
-    } = {};
-    const shapesIMap: { [id: string]: number } = {};
+    const steps: CheckDataTypes.Steps = {};
     const cloneShapes = cloneDeep(shapes);
     const cloneCurves = cloneDeep(curves);
 
-    cloneShapes.forEach((shape, shapeI) => {
-      shapesIMap[shape.id] = shapeI;
-
-      graph[shapeI] = {
-        id: shape.id,
+    cloneShapes.forEach((shape) => {
+      // self.postMessage({ ms: "shape", log: shape });
+      steps[shape.id] = {
         from: {
           l: [],
           t: [],
@@ -62,27 +45,61 @@ const checkData = (
           b: [],
         },
         datas: {
-          import: shape.importDatas,
-          using: shape.usingDatas,
-          delete: shape.deleteDatas,
+          import: shape.__importDatas__,
+          using: shape.__usingDatas__,
+          delete: shape.__deleteDatas__,
         },
       };
     });
 
     cloneCurves.forEach((curve) => {
-      const fromShapeI = shapesIMap[curve.from.shape.id];
-      const toShapeI = shapesIMap[curve.to.shape.id];
-
-      graph[fromShapeI]["to"][curve.from.d].push(curve.to.shape.id);
-      graph[toShapeI]["from"][curve.to.d].push(curve.from.shape.id);
+      steps[curve.from.shape.id]["to"][curve.from.d].push(curve.to.shape.id);
+      steps[curve.to.shape.id]["from"][curve.to.d].push(curve.from.shape.id);
     });
 
-    self.postMessage({ ms: graph, log: graph });
+    // self.postMessage({ ms: "steps", log: steps });
+
+    return {
+      steps: steps,
+    };
+  };
+
+  const group = (lastResult: { steps: CheckDataTypes.Steps }) => {
+    self.postMessage({ ms: "lastResult.steps", log: lastResult.steps });
+
+    const groups: any = [];
+    const visited: any = {};
+
+    Object.keys(lastResult.steps).forEach((stepId) => {
+      if (visited[stepId]) return;
+      const queue = [stepId];
+      const currentGroup: any = [];
+      while (queue.length !== 0) {
+        const currentStepId = queue[0];
+        if (visited[currentStepId]) {
+          queue.shift();
+          continue;
+        }
+        currentGroup.push(currentStepId);
+        visited[currentStepId] = true;
+        const nextSteps = lastResult.steps[currentStepId].to;
+        Object.entries(nextSteps).forEach(([_, nextStepIds]) => {
+          nextStepIds.forEach((nextStepId) => {
+            if (!visited[nextStepId]) {
+              queue.push(nextStepId);
+            }
+          });
+        });
+      }
+      groups.push(currentGroup);
+    });
+
+    self.postMessage({ ms: "groups", log: groups });
 
     return true;
   };
 
-  handleUtils.handle([() => createGraph(shapes, curves)]);
+  handleUtils.handle([() => createSteps(shapes, curves), group]);
   // const dataShapes: Data[] = [];
 
   // shapes.forEach((shape) => {
@@ -177,7 +194,7 @@ const checkData = (
 
   return true;
 };
-let shapes: (Terminal | Process | Data | Desicion)[] = [];
+let shapes: CheckDataTypes.Shapes = [];
 let curves: CommonTypes.ConnectionCurves = [];
 
 self.onmessage = function (event: MessageEvent<string>) {
@@ -204,7 +221,7 @@ self.onmessage = function (event: MessageEvent<string>) {
   };
 
   const postConsole = () => {
-    self.postMessage({ ms: "work", log: "work" });
+    // self.postMessage({ ms: "work", log: "work" });
     return false;
   };
 
