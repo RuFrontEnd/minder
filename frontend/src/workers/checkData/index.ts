@@ -5,15 +5,84 @@ import Desicion from "@/shapes/decision";
 import * as CommonTypes from "@/types/common";
 import * as handleUtils from "@/utils/handle";
 import * as CheckDataTypes from "@/types/workers/checkData";
+import { cloneDeep } from "lodash";
 
-const checkData = (shapes: (Terminal | Process | Data | Desicion)[]) => {
-  self.postMessage({ shapes: shapes });
+const checkData = (
+  shapes: (Terminal | Process | Data | Desicion)[],
+  curves: CommonTypes.ConnectionCurves
+) => {
+  self.postMessage({ ms: "shapes", log: shapes });
+  self.postMessage({ ms: "curves", log: curves });
 
-  const group = (shapes: (Terminal | Process | Data | Desicion)[]) => {
+  const createGraph = (
+    shapes: (Terminal | Process | Data | Desicion)[],
+    curves: CommonTypes.ConnectionCurves
+  ) => {
+    const graph: {
+      [index: number]: {
+        id: string;
+        from: {
+          l: string[];
+          t: string[];
+          r: string[];
+          b: string[];
+        };
+        to: {
+          l: string[];
+          t: string[];
+          r: string[];
+          b: string[];
+        };
+        datas: {
+          import: CommonTypes.Datas;
+          using: CommonTypes.Datas;
+          delete: CommonTypes.Datas;
+        };
+      };
+    } = {};
+    const shapesIMap: { [id: string]: number } = {};
+    const cloneShapes = cloneDeep(shapes);
+    const cloneCurves = cloneDeep(curves);
+
+    cloneShapes.forEach((shape, shapeI) => {
+      shapesIMap[shape.id] = shapeI;
+
+      graph[shapeI] = {
+        id: shape.id,
+        from: {
+          l: [],
+          t: [],
+          r: [],
+          b: [],
+        },
+        to: {
+          l: [],
+          t: [],
+          r: [],
+          b: [],
+        },
+        datas: {
+          import: shape.importDatas,
+          using: shape.usingDatas,
+          delete: shape.deleteDatas,
+        },
+      };
+    });
+
+    cloneCurves.forEach((curve) => {
+      const fromShapeI = shapesIMap[curve.from.shape.id];
+      const toShapeI = shapesIMap[curve.to.shape.id];
+
+      graph[fromShapeI]["to"][curve.from.d].push(curve.to.shape.id);
+      graph[toShapeI]["from"][curve.to.d].push(curve.from.shape.id);
+    });
+
+    self.postMessage({ ms: graph, log: graph });
+
     return true;
   };
 
-  handleUtils.handle([() => group(shapes)]);
+  handleUtils.handle([() => createGraph(shapes, curves)]);
   // const dataShapes: Data[] = [];
 
   // shapes.forEach((shape) => {
@@ -106,9 +175,7 @@ const checkData = (shapes: (Terminal | Process | Data | Desicion)[]) => {
   // }
   // });
 
-  return Array.from({ length: 1000000 }, (_, i) => i + 1);
-
-  // [{ test: 1 }, { test: 2 }, { test: 3 }, { test: 4 }, { test: 5 }];
+  return true;
 };
 let shapes: (Terminal | Process | Data | Desicion)[] = [];
 let curves: CommonTypes.ConnectionCurves = [];
@@ -133,9 +200,6 @@ self.onmessage = function (event: MessageEvent<string>) {
       return true;
     }
 
-    self.postMessage({ ms: "shapes", log: shapes });
-    self.postMessage({ ms: "curves", log: curves });
-
     return false;
   };
 
@@ -144,7 +208,11 @@ self.onmessage = function (event: MessageEvent<string>) {
     return false;
   };
 
-  handleUtils.handle([() => gatherChunks(currentChunck), () => postConsole()]);
+  handleUtils.handle([
+    () => gatherChunks(currentChunck),
+    () => checkData(shapes, curves),
+    () => postConsole(),
+  ]);
 };
 
 // const logs = checkData(shapes);

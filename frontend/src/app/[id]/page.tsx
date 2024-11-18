@@ -168,7 +168,7 @@ const f = new Terminal(
   "terminator"
 );
 f.isStart = true;
-const g = new Data("data_1731237555697", 150, 75, { x: 97, y: 202.5 }, "data");
+const g = new Data("data_2031237555697", 150, 75, { x: 97, y: 202.5 }, "data");
 g.importDatas = [];
 
 let ctx: CanvasRenderingContext2D | null | undefined = null,
@@ -184,7 +184,7 @@ let ctx: CanvasRenderingContext2D | null | undefined = null,
         { x: 597, y: 368 },
         { x: 597, y: 453 }
       ),
-      to: { shape: shapes[2], d: CommonTypes.Direction.t },
+      to: { shape: shapes[1], d: CommonTypes.Direction.t },
     },
     {
       from: { shape: shapes[1], d: CommonTypes.Direction.r },
