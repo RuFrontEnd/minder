@@ -59,7 +59,7 @@ const SidePanel = (props: SidePanelTypes.Props) => {
           {children}
           {onClickSwitch && (
             <div
-              className={`absolute top-[32px] ${
+              className={`absolute top-[128px] ${
                 horizentalD === SidePanelTypes.HorizentalD.r
                   ? "left-[-8px] -translate-x-full"
                   : "right-[-8px] translate-x-full"
