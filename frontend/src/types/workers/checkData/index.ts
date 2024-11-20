@@ -87,5 +87,10 @@ type Steps = {
   [stepId: string]: Step;
 };
 
+type EndSteps = ({
+  id: string;
+} & Step)[];
 
-export type { Shapes, EventData, Steps };
+type MissingDatas = { [dataText: string]: string[] }[];
+
+export type { Shapes, EventData, Step, Steps, EndSteps, MissingDatas };

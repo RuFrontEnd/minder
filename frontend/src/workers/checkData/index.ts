@@ -5,7 +5,7 @@ import Desicion from "@/shapes/decision";
 import * as CommonTypes from "@/types/common";
 import * as handleUtils from "@/utils/handle";
 import * as CheckDataTypes from "@/types/workers/checkData";
-import { cloneDeep } from "lodash";
+import { cloneDeep, isEmpty } from "lodash";
 
 const ds = [
   CommonTypes.Direction.l,
@@ -30,7 +30,6 @@ const checkData = (
     const cloneCurves = cloneDeep(curves);
 
     cloneShapes.forEach((shape) => {
-      // self.postMessage({ ms: "shape", log: shape });
       steps[shape.id] = {
         from: {
           l: [],
@@ -57,140 +56,96 @@ const checkData = (
       steps[curve.to.shape.id]["from"][curve.to.d].push(curve.from.shape.id);
     });
 
-    // self.postMessage({ ms: "steps", log: steps });
-
     return {
       steps: steps,
     };
   };
 
-  const group = (lastResult: { steps: CheckDataTypes.Steps }) => {
-    self.postMessage({ ms: "lastResult.steps", log: lastResult.steps });
+  class EndStep {
+    id: string;
+    from: CheckDataTypes.Step["from"];
+    to: CheckDataTypes.Step["to"];
+    datas: CheckDataTypes.Step["datas"];
 
-    const groups: any = [];
-    const visited: any = {};
+    constructor(stepId: string, step: CheckDataTypes.Steps[number]) {
+      this.id = stepId;
+      this.from = step.from;
+      this.to = step.to;
+      this.datas = step.datas;
+    }
+  }
 
-    Object.keys(lastResult.steps).forEach((stepId) => {
-      if (visited[stepId]) return;
-      const queue = [stepId];
-      const currentGroup: any = [];
+  const findEndStpes = (lastResult: { steps: CheckDataTypes.Steps }) => {
+    const endSteps: CheckDataTypes.EndSteps = [];
+    Object.entries(lastResult.steps).forEach(([stepId, step]) => {
+      if (
+        step.to.l.length !== 0 ||
+        step.to.t.length !== 0 ||
+        step.to.r.length !== 0 ||
+        step.to.b.length !== 0
+      )
+        return;
+
+      endSteps.push(new EndStep(stepId, step));
+    });
+
+    return {
+      steps: lastResult.steps,
+      endSteps: endSteps,
+    };
+  };
+
+  const checkMissingDatas = (lastResult: {
+    steps: CheckDataTypes.Steps;
+    endSteps: CheckDataTypes.EndSteps;
+  }) => {
+    const visited: { [stepId: string]: boolean } = {};
+    const missingDatas: CheckDataTypes.MissingDatas = [];
+
+    lastResult.endSteps.forEach((endStep) => {
+      const queue = [endStep];
+      const currentMissingData: CheckDataTypes.MissingDatas[number] = {};
+
       while (queue.length !== 0) {
-        const currentStepId = queue[0];
-        if (visited[currentStepId]) {
-          queue.shift();
-          continue;
-        }
-        currentGroup.push(currentStepId);
-        visited[currentStepId] = true;
-        const nextSteps = lastResult.steps[currentStepId].to;
-        Object.entries(nextSteps).forEach(([_, nextStepIds]) => {
-          nextStepIds.forEach((nextStepId) => {
-            if (!visited[nextStepId]) {
-              queue.push(nextStepId);
-            }
+        const currentStep = queue[0];
+        currentStep.datas.using.forEach((usingData) => {
+          if (currentMissingData[usingData.text]) {
+            currentMissingData[usingData.text].push(currentStep.id);
+          } else {
+            currentMissingData[usingData.text] = [currentStep.id];
+          }
+        });
+
+        currentStep.datas.import.forEach((importData) => {
+          if (!currentMissingData[importData.text]) return;
+          delete currentMissingData[importData.text];
+        });
+
+        visited[currentStep.id] = true;
+        queue.pop();
+
+        ds.forEach((d) => {
+          currentStep.from[d].forEach((fromStepId) => {
+            if (visited[fromStepId]) return;
+            queue.push(new EndStep(fromStepId, lastResult.steps[fromStepId]));
           });
         });
       }
-      groups.push(currentGroup);
+
+      if (isEmpty(currentMissingData)) return;
+      missingDatas.push(currentMissingData);
     });
 
-    self.postMessage({ ms: "groups", log: groups });
+    self.postMessage({ ms: "missingDatas", log: missingDatas });
 
     return true;
   };
 
-  handleUtils.handle([() => createSteps(shapes, curves), group]);
-  // const dataShapes: Data[] = [];
-
-  // shapes.forEach((shape) => {
-  //   shape.options = [];
-  //   if (shape instanceof Data) {
-  //     dataShapes.push(shape);
-  //   }
-  // });
-
-  // dataShapes.forEach((dataShape) => {
-  // traversal all relational steps
-  // const queue: (Core | Terminal | Process | Data | Desicion)[] = [
-  //   dataShape,
-  // ],
-  //   locks: { [curveId: string]: boolean } = {}, // prevent from graph cycle
-  //   deletedDataMap: { [text: string]: boolean } = {};
-
-  // while (queue.length !== 0) {
-  //   const shape = queue[0];
-
-  //   ds.forEach((d) => {
-  //     shape.curves[d].forEach((curve) => {
-  //       const theSendToShape = curve.sendTo?.shape;
-
-  //       if (!theSendToShape) return;
-
-  //       dataShape.data.forEach((dataItem) => {
-  //         if (
-  //           theSendToShape.options.some(
-  //             (option) => option.text === dataItem.text
-  //           ) ||
-  //           deletedDataMap[dataItem.text]
-  //         )
-  //           return;
-  //         theSendToShape.options.push(dataItem);
-  //       });
-
-  //       theSendToShape.deletedData.forEach((deleteDataItem) => {
-  //         deletedDataMap[deleteDataItem.text] = true;
-  //       });
-
-  //       if (!locks[curve.shape.id]) {
-  //         queue.push(theSendToShape);
-  //         locks[curve.shape.id] = true;
-  //       }
-  //     });
-  //   });
-
-  //   queue.shift();
-  // }
-  // });
-
-  // check all correspondants of shapes' between options and selectedData
-  // shapes.forEach((shape) => {
-  //   shape.getRedundancies();
-  // });
-
-  // const errorShapes: Core[] = shapes.filter(
-  //   (shape) => shape.status === CoreTypes.Status.error
-  // );
-
-  // errorShapes.forEach((errorShape) => {
-  //   // traversal all relational steps
-  //   const queue: (Core | Terminal | Process | Data | Desicion)[] = [
-  //     errorShape,
-  //   ],
-  //     locks: { [curveId: string]: boolean } = {}; // prevent from graph cycle
-
-  //   while (queue.length !== 0) {
-  //     const shape = queue[0];
-
-  //     if (shape.status !== CoreTypes.Status.error) {
-  //       shape.status = CoreTypes.Status.disabled;
-  //     }
-
-  // ds.forEach((d) => {
-  //   shape.curves[d].forEach((curve) => {
-  //     const theSendToShape = curve.sendTo?.shape;
-
-  //     if (!theSendToShape) return;
-
-  //     if (!locks[curve.shape.id]) {
-  //       queue.push(theSendToShape);
-  //       locks[curve.shape.id] = true;
-  //     }
-  //   });
-  // });
-
-  // queue.shift();
-  // }
-  // });
+  handleUtils.handle([
+    () => createSteps(shapes, curves),
+    findEndStpes,
+    checkMissingDatas,
+  ]);
 
   return true;
 };
