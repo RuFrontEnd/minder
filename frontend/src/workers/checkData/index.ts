@@ -134,6 +134,7 @@ const checkData = (
 
       if (isEmpty(currentMissingData)) return;
       missingDatas.push(currentMissingData);
+      // TODO: consider about circulation
     });
 
     return {

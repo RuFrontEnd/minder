@@ -220,7 +220,7 @@ let ctx: CanvasRenderingContext2D | null | undefined = null,
       to: { shape: shapes[4], d: CommonTypes.Direction.t },
     },
     {
-      from: { shape: shapes[4], d: CommonTypes.Direction.t },
+      from: { shape: shapes[3], d: CommonTypes.Direction.t },
       shape: new Curve(
         "curve_1732195734178",
         { x: 1072, y: 465 },
