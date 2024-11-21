@@ -87,10 +87,20 @@ type Steps = {
   [stepId: string]: Step;
 };
 
-type EndSteps = ({
+type CheckPointSteps = ({
   id: string;
 } & Step)[];
 
 type MissingDatas = { [dataText: string]: string[] }[];
 
-export type { Shapes, EventData, Step, Steps, EndSteps, MissingDatas };
+type Visited = { [stepId: string]: boolean }
+
+export type {
+  Shapes,
+  EventData,
+  Step,
+  Steps,
+  CheckPointSteps,
+  MissingDatas,
+  Visited
+};
