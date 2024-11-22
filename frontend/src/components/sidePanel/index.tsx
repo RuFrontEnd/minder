@@ -62,7 +62,7 @@ const SidePanel = (props: SidePanelTypes.Props) => {
                   <RoundButton
                     outerRing={false}
                     size={28}
-                    className="mx-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
+                    className="m-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
                     content={
                       <Icon
                         className={`transform ${
@@ -154,7 +154,7 @@ const SidePanel = (props: SidePanelTypes.Props) => {
                   <RoundButton
                     outerRing={false}
                     size={28}
-                    className="mx-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
+                    className="m-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
                     content={
                       <Icon
                         className={`transform ${
