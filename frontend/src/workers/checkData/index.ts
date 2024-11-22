@@ -28,6 +28,7 @@ const checkData = (
 
     cloneShapes.forEach((shape) => {
       steps[shape.id] = {
+        id: shape.id,
         from: {
           l: [],
           t: [],
@@ -58,159 +59,44 @@ const checkData = (
     };
   };
 
-  class CheckPointStep {
-    id: string;
-    from: CheckDataTypes.Step["from"];
-    to: CheckDataTypes.Step["to"];
-    datas: CheckDataTypes.Step["datas"];
-
-    constructor(stepId: string, step: CheckDataTypes.Step) {
-      this.id = stepId;
-      this.from = step.from;
-      this.to = step.to;
-      this.datas = step.datas;
-    }
-  }
-
-  const findEndStpes = (lastResult: { steps: CheckDataTypes.Steps }) => {
-    const endSteps: CheckDataTypes.CheckPointSteps = [];
-
-    Object.entries(lastResult.steps).forEach(([stepId, step]) => {
-      if (
-        step.to.l.length !== 0 ||
-        step.to.t.length !== 0 ||
-        step.to.r.length !== 0 ||
-        step.to.b.length !== 0
-      )
-        return;
-
-      endSteps.push(new CheckPointStep(stepId, step));
-    });
-
-    return {
-      steps: lastResult.steps,
-      endSteps: endSteps,
-    };
-  };
-
-  const checkMissingDatasFromEndSteps = (lastResult: {
-    steps: CheckDataTypes.Steps;
-    endSteps: CheckDataTypes.CheckPointSteps;
-  }) => {
-    const visited: CheckDataTypes.Visited = {};
+  const checkData = (lastResult: { steps: CheckDataTypes.Steps }) => {
     const missingDatas: CheckDataTypes.MissingDatas = [];
 
-    lastResult.endSteps.forEach((endStep) => {
-      const queue = [endStep];
-      const currentMissingData: CheckDataTypes.MissingDatas[number] = {};
+    Object.values(lastResult.steps).forEach((step) => {
+      const currentMissingDatas: {
+        [dataText: string]: boolean;
+      } = {};
+      step.datas.using.forEach((usingData) => {
+        currentMissingDatas[usingData.text] = true;
+      });
 
-      while (queue.length !== 0) {
-        const currentStep = queue[0];
-        currentStep.datas.using.forEach((usingData) => {
-          if (currentMissingData[usingData.text]) {
-            currentMissingData[usingData.text].push(currentStep.id);
-          } else {
-            currentMissingData[usingData.text] = [currentStep.id];
-          }
-        });
-
-        currentStep.datas.import.forEach((importData) => {
-          if (!currentMissingData[importData.text]) return;
-          delete currentMissingData[importData.text];
-        });
-
-        visited[currentStep.id] = true;
-        queue.pop();
-
-        ds.forEach((d) => {
-          currentStep.from[d].forEach((fromStepId) => {
-            if (visited[fromStepId]) return;
-            queue.push(
-              new CheckPointStep(fromStepId, lastResult.steps[fromStepId])
-            );
-          });
-        });
-      }
-
-      if (isEmpty(currentMissingData)) return;
-      missingDatas.push(currentMissingData);
-      // TODO: consider about circulation
-    });
-
-    return {
-      steps: lastResult.steps,
-      visitedByEndSteps: visited,
-      missingDatas: missingDatas,
-    };
-  };
-
-  const findCircularStpes = (lastResult: {
-    steps: CheckDataTypes.Steps;
-    visitedByEndSteps: CheckDataTypes.Visited;
-    missingDatas: CheckDataTypes.MissingDatas;
-  }) => {
-    const circularSteps: CheckDataTypes.CheckPointSteps = [];
-
-    Object.entries(lastResult.steps).forEach(([stepId, step]) => {
-      if (lastResult.visitedByEndSteps[stepId]) return;
-
-      circularSteps.push(new CheckPointStep(stepId, step));
-    });
-
-    return {
-      steps: lastResult.steps,
-      circularSteps: circularSteps,
-      missingDatas: lastResult.missingDatas,
-    };
-  };
-
-  const checkMissingDatasFromCircularSteps = (lastResult: {
-    steps: CheckDataTypes.Steps;
-    circularSteps: CheckDataTypes.CheckPointSteps;
-    missingDatas: CheckDataTypes.MissingDatas;
-  }) => {
-    const visited: { [stepId: string]: boolean } = {};
-    const missingDatas: CheckDataTypes.MissingDatas = [
-      ...lastResult.missingDatas,
-    ];
-
-    lastResult.circularSteps.forEach((step) => {
-      if (visited[step.id]) return;
-
+      const visited: CheckDataTypes.Visited = {};
       const queue = [step];
-      const currentMissingData: CheckDataTypes.MissingDatas[number] = {};
 
       while (queue.length !== 0) {
-        const currentStep = queue[0];
+        const currentStep = queue.shift(); // 从队列头部移除元素
 
-        currentStep.datas.using.forEach((usingData) => {
-          if (currentMissingData[usingData.text]) {
-            currentMissingData[usingData.text].push(currentStep.id);
-          } else {
-            currentMissingData[usingData.text] = [currentStep.id];
+        if (!currentStep || visited[currentStep.id]) continue; // 跳过已访问节点
+        visited[currentStep.id] = true; // 标记为已访问
+
+        currentStep.datas.import.forEach((importData) => {
+          if (currentMissingDatas[importData.text]) {
+            delete currentMissingDatas[importData.text];
           }
         });
 
-        currentStep.datas.import.forEach((importData) => {
-          if (!currentMissingData[importData.text]) return;
-          delete currentMissingData[importData.text];
-        });
-
-        visited[currentStep.id] = true;
-        queue.pop();
-
         ds.forEach((d) => {
           currentStep.from[d].forEach((fromStepId) => {
-            if (visited[fromStepId]) return;
-            queue.push(
-              new CheckPointStep(fromStepId, lastResult.steps[fromStepId])
-            );
+            if (!visited[fromStepId]) {
+              queue.push(lastResult.steps[fromStepId]);
+            }
           });
         });
       }
 
-      if (isEmpty(currentMissingData)) return;
-      missingDatas.push(currentMissingData);
+      Object.keys(currentMissingDatas).forEach((currentMissingData) => {
+        missingDatas.push({ stepId: step.id, data: currentMissingData });
+      });
     });
 
     self.postMessage({ ms: "missingDatas", log: missingDatas });
@@ -218,13 +104,7 @@ const checkData = (
     return true;
   };
 
-  handleUtils.handle([
-    () => createSteps(shapes, curves),
-    findEndStpes,
-    checkMissingDatasFromEndSteps,
-    findCircularStpes,
-    checkMissingDatasFromCircularSteps,
-  ]);
+  handleUtils.handle([() => createSteps(shapes, curves), checkData]);
 
   return true;
 };

@@ -160,20 +160,36 @@ e.usingDatas = [
     status: CommonTypes.DataStatus.default,
   },
 ];
-const f = new Terminal(
-  "terminator_2031237541265",
+// const f = new Terminal(
+//   "terminator_2031237541265",
+//   150,
+//   75,
+//   { x: 97, y: 2.5 },
+//   "terminator"
+// );
+// f.isStart = true;
+// const g = new Data("data_2031237555697", 150, 75, { x: 97, y: 202.5 }, "data");
+// g.importDatas = [];
+const h = new Process(
+  "process_3_1732277499200",
   150,
   75,
-  { x: 97, y: 2.5 },
-  "terminator"
+  { x: 832, y: 127.5 },
+  "process_3"
 );
-f.isStart = true;
-const g = new Data("data_2031237555697", 150, 75, { x: 97, y: 202.5 }, "data");
-g.importDatas = [];
+h.usingDatas = [];
 
 let ctx: CanvasRenderingContext2D | null | undefined = null,
   ctx_screenshot: CanvasRenderingContext2D | null | undefined = null,
-  shapes: (Terminal | Process | Data | Desicion)[] = [a, b, c, d, e, f, g],
+  shapes: (Terminal | Process | Data | Desicion)[] = [
+    a,
+    b,
+    c,
+    d,
+    e,
+    // f, g
+    h,
+  ],
   curves: CommonTypes.ConnectionCurves = [
     {
       from: { shape: shapes[0], d: CommonTypes.Direction.b },
@@ -233,14 +249,25 @@ let ctx: CanvasRenderingContext2D | null | undefined = null,
     {
       from: { shape: shapes[5], d: CommonTypes.Direction.b },
       shape: new Curve(
-        "curve_2031238521605",
-        { x: 97, y: 40 },
-        { x: 97, y: 64.5 },
-        { x: 97, y: 129 },
-        { x: 97, y: 154 }
+        "curve_1732277502268",
+        { x: 832, y: 165 },
+        { x: 832, y: 339 },
+        { x: 832, y: 291 },
+        { x: 832, y: 453 }
       ),
-      to: { shape: shapes[6], d: CommonTypes.Direction.t },
+      to: { shape: shapes[2], d: CommonTypes.Direction.t },
     },
+    // {
+    //   from: { shape: shapes[5], d: CommonTypes.Direction.b },
+    //   shape: new Curve(
+    //     "curve_2031238521605",
+    //     { x: 97, y: 40 },
+    //     { x: 97, y: 64.5 },
+    //     { x: 97, y: 129 },
+    //     { x: 97, y: 154 }
+    //   ),
+    //   to: { shape: shapes[6], d: CommonTypes.Direction.t },
+    // },
   ],
   tests: any[] = [], // TODO: should be deleted
   pressing: PageIdTypes.Pressing = null,
@@ -3390,7 +3417,15 @@ export default function IdPage() {
       await fetchProjects();
       await initProject(Number(params.id));
 
-      shapes = [a, b, c, d, e, f, g];
+      shapes = [
+        a,
+        b,
+        c,
+        d,
+        e,
+        // f, g
+        h
+      ];
 
       drawCanvas(offset, scale);
       drawScreenshot(offset, scale);

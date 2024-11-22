@@ -666,7 +666,10 @@ export default function IndivisualSidePanel(
         <Button
           className="absolute top-0 -left-20 -translate-x-full flex justify-self-end self-center text-base"
           info
-          onClick={() => {}}
+          onClick={() => {
+            console.log("props.shapes", props.shapes);
+            console.log("props.curves", props.curves);
+          }}
           text={"Save"}
         />
       </div>

@@ -64,6 +64,7 @@ type EventData = {
 };
 
 type Step = {
+  id: string;
   from: {
     l: string[];
     t: string[];
@@ -91,9 +92,9 @@ type CheckPointSteps = ({
   id: string;
 } & Step)[];
 
-type MissingDatas = { [dataText: string]: string[] }[];
+type MissingDatas = { stepId: string; data: string }[];
 
-type Visited = { [stepId: string]: boolean }
+type Visited = { [stepId: string]: boolean };
 
 export type {
   Shapes,
@@ -102,5 +103,5 @@ export type {
   Steps,
   CheckPointSteps,
   MissingDatas,
-  Visited
+  Visited,
 };
