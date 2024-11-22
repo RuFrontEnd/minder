@@ -406,10 +406,6 @@ export default function IndivisualSidePanel(
     ]);
   };
 
-  const onClickUndoButton = () => {
-    props.undo();
-  };
-
   const onClickCheckButton = () => {
     if (!!worker) {
       worker.terminate();
@@ -673,21 +669,6 @@ export default function IndivisualSidePanel(
           text={"Save"}
         />
       </div>
-      <SquareButton
-        className="absolute bottom-0 -left-36 -translate-x-full"
-        size={32}
-        shadow
-        content={
-          <Icon
-            type={IconTypes.Type.rotateCcw}
-            w={14}
-            h={14}
-            fill={tailwindColors.grey["1"]}
-          />
-        }
-        onClick={onClickUndoButton}
-      />
-      <Zoom zoom={props.zoom} scale={props.scale} />
     </SidePanel>
   );
 }

@@ -3844,14 +3844,16 @@ export default function IdPage() {
         setCreateDeleteDatas={setCreateDeleteDatas}
         addDeleteDatas={addDeleteDatas}
         setAddDeleteDatas={setAddDeleteDatas}
+      />
+
+      <Console
+        zoom={zoom}
+        scale={scale}
         undo={() => {
           undo(ctx, offset, scale);
         }}
-        zoom={zoom}
-        scale={scale}
+        isOverAllSidePanelOpen={isOverAllSidePanelOpen}
       />
-
-      <Console />
 
       <img id="screenshotImg" alt="Screenshot" style={{ display: "none" }} />
       <div className={"flex"}>

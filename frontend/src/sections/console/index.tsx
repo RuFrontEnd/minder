@@ -23,23 +23,50 @@ import Process from "@/shapes/process";
 import Data from "@/shapes/data";
 import Decision from "@/shapes/decision";
 
-let worker: null | Worker = null;
-
 export default function Console(
   props: any
   // IndivisaulSidePanelTypes.Props
 ) {
-  const [isOpenConsole, setIsOpenConsole] = useState(false)
+  const [isOpenConsole, setIsOpenConsole] = useState(false);
+
+  const onClickUndoButton = () => {
+    props.undo();
+  };
+
   return (
     <SidePanel
-      role={"indivisual"}
+      role={"console"}
       open={isOpenConsole}
       flow={SidePanelTypes.Flow.column}
-      horizentalD={SidePanelTypes.HorizentalD.m}
+      horizentalD={
+        props.isOverAllSidePanelOpen
+          ? SidePanelTypes.HorizentalD.r
+          : SidePanelTypes.HorizentalD.m
+      }
       verticalD={SidePanelTypes.VerticalD.b}
-      w={"calc(100vh)"}
-      h={"360px"}
-      onClickSwitch={()=>{setIsOpenConsole(isOpenConsole => !isOpenConsole)}}
-    ></SidePanel>
+      w={props.isOverAllSidePanelOpen ? "calc(100vw - 344px)" : "calc(100vw)"}
+      h={"284px"}
+      onClickSwitch={() => {
+        setIsOpenConsole((isOpenConsole) => !isOpenConsole);
+      }}
+    >
+      <div className="absolute top-0 right-0 -translate-y-full pb-4 flex">
+        <SquareButton
+          className="mr-4"
+          size={32}
+          shadow
+          content={
+            <Icon
+              type={IconTypes.Type.rotateCcw}
+              w={14}
+              h={14}
+              fill={tailwindColors.grey["1"]}
+            />
+          }
+          onClick={onClickUndoButton}
+        />
+        <Zoom zoom={props.zoom} scale={props.scale} />
+      </div>
+    </SidePanel>
   );
 }

@@ -36,10 +36,7 @@ export default function Zoom(props: ZoomTypes.Props) {
   };
 
   return (
-    <div
-      className={`absolute bottom-0 -left-4 -translate-x-full`}
-      role="zoom"
-    >
+    <div role="zoom">
       <div className="justify-self-end rounded-lg shadow-md bg-white-500">
         <div className="flex items-center">
           <SquareButton

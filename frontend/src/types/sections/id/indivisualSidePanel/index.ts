@@ -22,7 +22,7 @@ type AddDatas = {
 
 type Props = {
   shapes: (Terminal | Process | Data | Desicion)[];
-  curves: PageIdTypes.Curves;
+  curves: CommonTypes.ConnectionCurves;
   datas: {
     id: string;
     name: string;
@@ -50,15 +50,6 @@ type Props = {
   setCreateDeleteDatas: Dispatch<SetStateAction<CreateDatas>>;
   addDeleteDatas: AddDatas;
   setAddDeleteDatas: Dispatch<SetStateAction<AddDatas>>;
-  undo: () => void;
-  zoom: (
-    delta: number,
-    client: {
-      x: number;
-      y: number;
-    }
-  ) => void;
-  scale: number;
 };
 
 export type { Props, CreateDatas, AddDatas };
