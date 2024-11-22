@@ -1,8 +1,14 @@
 import { MouseEventHandler, ReactNode } from "react";
 
+enum Flow {
+  row = "row",
+  column = "column",
+}
+
 enum HorizentalD {
   l = "l",
   r = "r",
+  m = "m",
 }
 
 enum VerticalD {
@@ -18,6 +24,7 @@ type Props = {
   open?: boolean;
   w?: string;
   h?: string;
+  flow?: Flow;
   horizentalD?: HorizentalD;
   verticalD?: VerticalD;
   children?: ReactNode;
@@ -26,4 +33,4 @@ type Props = {
 
 export type { Props };
 
-export { HorizentalD, VerticalD };
+export { HorizentalD, VerticalD, Flow };

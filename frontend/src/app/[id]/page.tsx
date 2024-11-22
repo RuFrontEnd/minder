@@ -33,6 +33,7 @@ import StatusText from "@/components/statusText";
 import Divider from "@/components/divider";
 import SquareButton from "@/components/squareButton";
 import IndivisaulSidePanel from "@/sections/indivisualSidePanel";
+import Console from "@/sections/console";
 import CreateShapeButtons from "@/sections/createShapeButtons";
 import Zoom from "@/sections/zoom";
 import { motion, steps } from "framer-motion";
@@ -3849,6 +3850,8 @@ export default function IdPage() {
         zoom={zoom}
         scale={scale}
       />
+
+      <Console />
 
       <img id="screenshotImg" alt="Screenshot" style={{ display: "none" }} />
       <div className={"flex"}>
