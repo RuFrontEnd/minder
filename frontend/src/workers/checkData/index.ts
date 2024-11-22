@@ -74,10 +74,10 @@ const checkData = (
       const queue = [step];
 
       while (queue.length !== 0) {
-        const currentStep = queue.shift(); // 从队列头部移除元素
+        const currentStep = queue.shift();
 
-        if (!currentStep || visited[currentStep.id]) continue; // 跳过已访问节点
-        visited[currentStep.id] = true; // 标记为已访问
+        if (!currentStep || visited[currentStep.id]) continue;
+        visited[currentStep.id] = true;
 
         currentStep.datas.import.forEach((importData) => {
           if (currentMissingDatas[importData.text]) {
