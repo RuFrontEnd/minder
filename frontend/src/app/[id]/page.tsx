@@ -281,7 +281,7 @@ let ctx: CanvasRenderingContext2D | null | undefined = null,
         { x: 1096.5, y: 706.5 },
         { x: 1134, y: 706.5 }
       ),
-      to: { shape: shapes[6], d: CommonTypes.Direction.t },
+      to: { shape: shapes[6], d: CommonTypes.Direction.l },
     },
     // {
     //   from: { shape: shapes[5], d: CommonTypes.Direction.b },
