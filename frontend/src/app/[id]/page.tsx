@@ -178,6 +178,20 @@ const h = new Process(
   "process_3"
 );
 h.usingDatas = [];
+const i = new Process(
+  "process_4_1732279874784",
+  150,
+  75,
+  { x: 1221, y: 706.5 },
+  "process_4"
+);
+i.usingDatas = [
+  {
+    id: "data4",
+    text: "data4",
+    status: CommonTypes.DataStatus.default,
+  },
+];
 
 let ctx: CanvasRenderingContext2D | null | undefined = null,
   ctx_screenshot: CanvasRenderingContext2D | null | undefined = null,
@@ -189,6 +203,7 @@ let ctx: CanvasRenderingContext2D | null | undefined = null,
     e,
     // f, g
     h,
+    i,
   ],
   curves: CommonTypes.ConnectionCurves = [
     {
@@ -256,6 +271,17 @@ let ctx: CanvasRenderingContext2D | null | undefined = null,
         { x: 832, y: 453 }
       ),
       to: { shape: shapes[2], d: CommonTypes.Direction.t },
+    },
+    {
+      from: { shape: shapes[3], d: CommonTypes.Direction.b },
+      shape: new Curve(
+        "curve_1732277502268",
+        { x: 1071, y: 540 },
+        { x: 1071, y: 635.25 },
+        { x: 1096.5, y: 706.5 },
+        { x: 1134, y: 706.5 }
+      ),
+      to: { shape: shapes[6], d: CommonTypes.Direction.t },
     },
     // {
     //   from: { shape: shapes[5], d: CommonTypes.Direction.b },
@@ -3424,7 +3450,8 @@ export default function IdPage() {
         d,
         e,
         // f, g
-        h
+        h,
+        i,
       ];
 
       drawCanvas(offset, scale);
