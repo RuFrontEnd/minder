@@ -5,6 +5,12 @@ enum Flow {
   column = "column",
 }
 
+enum SwitchButtonD {
+  start = "start",
+  m = "m",
+  end = "end",
+}
+
 enum HorizentalD {
   l = "l",
   r = "r",
@@ -25,6 +31,7 @@ type Props = {
   w?: string;
   h?: string;
   flow?: Flow;
+  switchButtonD?: SwitchButtonD;
   horizentalD?: HorizentalD;
   verticalD?: VerticalD;
   children?: ReactNode;
@@ -33,4 +40,4 @@ type Props = {
 
 export type { Props };
 
-export { HorizentalD, VerticalD, Flow };
+export { SwitchButtonD, HorizentalD, VerticalD, Flow };

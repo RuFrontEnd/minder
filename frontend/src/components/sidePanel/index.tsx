@@ -6,6 +6,30 @@ import * as IconTypes from "@/types/components/icon";
 import * as SidePanelTypes from "@/types/components/sidePanel";
 
 const SidePanel = (props: SidePanelTypes.Props) => {
+  const switchButtonPositionStyle = {
+    row: (() => {
+      if (props.switchButtonD === SidePanelTypes.SwitchButtonD.start) {
+        return "top-[128px]";
+      } else if (props.switchButtonD === SidePanelTypes.SwitchButtonD.m) {
+        return "top-1/2 -translate-y-1/2";
+      } else if (props.switchButtonD === SidePanelTypes.SwitchButtonD.end) {
+        return "bottom-[128px]";
+      }
+
+      return "top-[128px]";
+    })(),
+    column: (() => {
+      if (props.switchButtonD === SidePanelTypes.SwitchButtonD.start) {
+        return "left-[128px]";
+      } else if (props.switchButtonD === SidePanelTypes.SwitchButtonD.m) {
+        return "left-1/2 -translate-x-1/2";
+      } else if (props.switchButtonD === SidePanelTypes.SwitchButtonD.end) {
+        return "right-[128px]";
+      }
+
+      return "left-[128px]";
+    })(),
+  };
   return (
     <>
       {props.flow === SidePanelTypes.Flow.row && (
@@ -52,11 +76,13 @@ const SidePanel = (props: SidePanelTypes.Props) => {
               {props.children}
               {props.onClickSwitch && (
                 <div
-                  className={`absolute top-[128px] ${
-                    props.horizentalD === SidePanelTypes.HorizentalD.r
-                      ? "left-[-8px] -translate-x-full"
-                      : "right-[-8px] translate-x-full"
-                  } `}
+                  className={`absolute
+                    ${switchButtonPositionStyle.row}
+                    ${
+                      props.horizentalD === SidePanelTypes.HorizentalD.r
+                        ? "left-[-8px] -translate-x-full"
+                        : "right-[-8px] translate-x-full"
+                    } `}
                   onClick={props.onClickSwitch}
                 >
                   <RoundButton
@@ -144,11 +170,14 @@ const SidePanel = (props: SidePanelTypes.Props) => {
               {props.children}
               {props.onClickSwitch && (
                 <div
-                  className={`absolute left-[128px] ${
-                    props.verticalD === SidePanelTypes.VerticalD.b
-                      ? "top-[-8px] -translate-y-full"
-                      : "bottom-[-8px] translate-y-full"
-                  } `}
+                  className={`absolute 
+                    ${switchButtonPositionStyle.column}
+                    ${
+                      props.verticalD === SidePanelTypes.VerticalD.b
+                        ? "top-[-8px] -translate-y-full"
+                        : "bottom-[-8px] translate-y-full"
+                    }
+                    `}
                   onClick={props.onClickSwitch}
                 >
                   <RoundButton
@@ -190,6 +219,7 @@ const SidePanel = (props: SidePanelTypes.Props) => {
 
 SidePanel.defaultProps = {
   flow: SidePanelTypes.Flow.row,
+  switchButtonD: SidePanelTypes.SwitchButtonD.start,
   horizentalD: SidePanelTypes.HorizentalD.l,
   verticalD: SidePanelTypes.VerticalD.t,
 };

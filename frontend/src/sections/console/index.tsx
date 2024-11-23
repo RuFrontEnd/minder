@@ -38,6 +38,7 @@ export default function Console(
       role={"console"}
       open={isOpenConsole}
       flow={SidePanelTypes.Flow.column}
+      switchButtonD={SidePanelTypes.SwitchButtonD.m}
       horizentalD={(() => {
         if (props.isOverAllSidePanelOpen && props.isIndivisualSidePanelOpen)
           return SidePanelTypes.HorizentalD.m;
