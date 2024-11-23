@@ -34,7 +34,6 @@ import Divider from "@/components/divider";
 import SquareButton from "@/components/squareButton";
 import IndivisaulSidePanel from "@/sections/indivisualSidePanel";
 import Console from "@/sections/console";
-import CreateShapeButtons from "@/sections/createShapeButtons";
 import Zoom from "@/sections/zoom";
 import { motion, steps } from "framer-motion";
 import { cloneDeep } from "lodash";
@@ -130,6 +129,13 @@ c.usingDatas = [
   {
     id: "data1",
     text: "data1",
+    status: CommonTypes.DataStatus.default,
+  },
+];
+c.deleteDatas = [
+  {
+    id: "data2",
+    text: "data2",
     status: CommonTypes.DataStatus.default,
   },
 ];
@@ -2770,6 +2776,8 @@ export default function IdPage() {
   const [datas, setDatas] = useState<PageIdTypes.Datas>([
     { id: "data1", name: "data1" },
     { id: "data2", name: "data2" },
+    { id: "data3", name: "data3" },
+    { id: "data4", name: "data4" },
   ]);
   const [isProjectsModalOpen, setIsProjectsModalOpen] = useState(false);
   const [projects, setProjects] = useState<
@@ -3806,19 +3814,6 @@ export default function IdPage() {
             </motion.div>
           </div>
         </div>
-        <CreateShapeButtons
-          className="absolute top-1/2 -right-4 translate-x-full -translate-y-1/2"
-          isOverAllSidePanelOpen={isOverAllSidePanelOpen}
-          actionRecords={actionRecords}
-          shapes={shapes}
-          offset={offset}
-          scale={scale}
-          reload={() => {
-            checkSteps();
-            drawCanvas(offset, scale);
-            drawScreenshot(offset, scale);
-          }}
-        />
       </SidePanel>
 
       <IndivisaulSidePanel
@@ -3847,13 +3842,20 @@ export default function IdPage() {
       />
 
       <Console
-        zoom={zoom}
+        offset={offset}
         scale={scale}
+        zoom={zoom}
         undo={() => {
           undo(ctx, offset, scale);
         }}
         isOverAllSidePanelOpen={isOverAllSidePanelOpen}
         isIndivisualSidePanelOpen={isIndivisualSidePanelOpen}
+        actionRecords={actionRecords}
+        reload={() => {
+          checkSteps();
+          drawCanvas(offset, scale);
+          drawScreenshot(offset, scale);
+        }}
       />
 
       <img id="screenshotImg" alt="Screenshot" style={{ display: "none" }} />

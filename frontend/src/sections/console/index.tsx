@@ -3,6 +3,7 @@ import React, { useState, ChangeEvent } from "react";
 import Zoom from "@/sections/zoom";
 import DataBox from "@/blocks/indivisualSidePanel/dataBox";
 import SidePanel from "@/components/sidePanel";
+import CreateShapeButtons from "@/sections/createShapeButtons";
 import Button from "@/components/button";
 import Input from "@/components/input";
 import Icon from "@/components/icon";
@@ -38,7 +39,7 @@ export default function Console(
       role={"console"}
       open={isOpenConsole}
       flow={SidePanelTypes.Flow.column}
-      switchButtonD={SidePanelTypes.SwitchButtonD.m}
+      switchButtonD={SidePanelTypes.SwitchButtonD.start}
       horizentalD={(() => {
         if (props.isOverAllSidePanelOpen && props.isIndivisualSidePanelOpen)
           return SidePanelTypes.HorizentalD.m;
@@ -65,7 +66,17 @@ export default function Console(
         setIsOpenConsole((isOpenConsole) => !isOpenConsole);
       }}
     >
-      <div className="absolute -top-4 right-0 -translate-y-full flex">
+      <div className="absolute -top-4 -translate-y-full left-1/2 -translate-x-1/2">
+        <CreateShapeButtons
+          isOverAllSidePanelOpen={props.isOverAllSidePanelOpen}
+          actionRecords={props.actionRecords}
+          shapes={props.shapes}
+          offset={props.offset}
+          scale={props.scale}
+          reload={props.reload}
+        />
+      </div>
+      <div className="absolute -top-4 -translate-y-full right-0 flex">
         <SquareButton
           className="mr-4"
           size={32}

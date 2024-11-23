@@ -9,25 +9,25 @@ const SidePanel = (props: SidePanelTypes.Props) => {
   const switchButtonPositionStyle = {
     row: (() => {
       if (props.switchButtonD === SidePanelTypes.SwitchButtonD.start) {
-        return "top-[128px]";
+        return "top-4";
       } else if (props.switchButtonD === SidePanelTypes.SwitchButtonD.m) {
         return "top-1/2 -translate-y-1/2";
       } else if (props.switchButtonD === SidePanelTypes.SwitchButtonD.end) {
-        return "bottom-[128px]";
+        return "bottom-4";
       }
 
-      return "top-[128px]";
+      return "top-4";
     })(),
     column: (() => {
       if (props.switchButtonD === SidePanelTypes.SwitchButtonD.start) {
-        return "left-[128px]";
+        return "left-4";
       } else if (props.switchButtonD === SidePanelTypes.SwitchButtonD.m) {
         return "left-1/2 -translate-x-1/2";
       } else if (props.switchButtonD === SidePanelTypes.SwitchButtonD.end) {
-        return "right-[128px]";
+        return "right-4";
       }
 
-      return "left-[128px]";
+      return "left-4";
     })(),
   };
   return (

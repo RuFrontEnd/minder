@@ -120,26 +120,21 @@ export default function CreateShapeButtons(
   };
 
   return (
-    <section
-      className={`${props.className}`}
-      role="create_shapes"
-    >
-      <div>
-        <div className="flex flex-col bg-white-500 p-1 shadow-md rounded-md">
-          {createShapeButtons.map((createShapeButton) => (
-            <SquareButton
-              size={40}
-              content={createShapeButton.icon}
-              onClick={(e) => {
-                onClickCreateShapeButton(e, createShapeButton.type);
-              }}
-              onKeyDown={(e) => {
-                e.preventDefault();
-                return false;
-              }}
-            />
-          ))}
-        </div>
+    <section role="create_shapes">
+      <div className="flex bg-white-500 p-1 shadow-md rounded-md">
+        {createShapeButtons.map((createShapeButton) => (
+          <SquareButton
+            size={40}
+            content={createShapeButton.icon}
+            onClick={(e) => {
+              onClickCreateShapeButton(e, createShapeButton.type);
+            }}
+            onKeyDown={(e) => {
+              e.preventDefault();
+              return false;
+            }}
+          />
+        ))}
       </div>
     </section>
   );
