@@ -80,15 +80,15 @@ const SidePanel = (props: SidePanelTypes.Props) => {
                     ${switchButtonPositionStyle.row}
                     ${
                       props.horizentalD === SidePanelTypes.HorizentalD.r
-                        ? "left-[-8px] -translate-x-full"
-                        : "right-[-8px] translate-x-full"
+                        ? "-left-4 -translate-x-full"
+                        : "-right-4 translate-x-full"
                     } `}
                   onClick={props.onClickSwitch}
                 >
                   <RoundButton
                     outerRing={false}
                     size={28}
-                    className="m-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
+                    className="w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
                     content={
                       <Icon
                         className={`transform ${
@@ -174,8 +174,8 @@ const SidePanel = (props: SidePanelTypes.Props) => {
                     ${switchButtonPositionStyle.column}
                     ${
                       props.verticalD === SidePanelTypes.VerticalD.b
-                        ? "top-[-8px] -translate-y-full"
-                        : "bottom-[-8px] translate-y-full"
+                        ? "-top-4 -translate-y-full"
+                        : "-bottom-4 translate-y-full"
                     }
                     `}
                   onClick={props.onClickSwitch}
@@ -183,7 +183,7 @@ const SidePanel = (props: SidePanelTypes.Props) => {
                   <RoundButton
                     outerRing={false}
                     size={28}
-                    className="m-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
+                    className="w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
                     content={
                       <Icon
                         className={`transform ${

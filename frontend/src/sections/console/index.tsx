@@ -65,7 +65,7 @@ export default function Console(
         setIsOpenConsole((isOpenConsole) => !isOpenConsole);
       }}
     >
-      <div className="absolute top-0 right-0 -translate-y-full pb-4 flex">
+      <div className="absolute -top-4 right-0 -translate-y-full flex">
         <SquareButton
           className="mr-4"
           size={32}
