@@ -38,13 +38,27 @@ export default function Console(
       role={"console"}
       open={isOpenConsole}
       flow={SidePanelTypes.Flow.column}
-      horizentalD={
-        props.isOverAllSidePanelOpen
-          ? SidePanelTypes.HorizentalD.r
-          : SidePanelTypes.HorizentalD.m
-      }
+      horizentalD={(() => {
+        if (props.isOverAllSidePanelOpen && props.isIndivisualSidePanelOpen)
+          return SidePanelTypes.HorizentalD.m;
+
+        if (props.isOverAllSidePanelOpen) return SidePanelTypes.HorizentalD.r;
+
+        if (props.isIndivisualSidePanelOpen)
+          return SidePanelTypes.HorizentalD.l;
+
+        return SidePanelTypes.HorizentalD.m;
+      })()}
       verticalD={SidePanelTypes.VerticalD.b}
-      w={props.isOverAllSidePanelOpen ? "calc(100vw - 344px)" : "calc(100vw)"}
+      w={(() => {
+        if (props.isOverAllSidePanelOpen && props.isIndivisualSidePanelOpen)
+          return "calc(100vw - 688px)";
+
+        if (props.isOverAllSidePanelOpen || props.isIndivisualSidePanelOpen)
+          return "calc(100vw - 344px)";
+
+        return "calc(100vw)";
+      })()}
       h={"284px"}
       onClickSwitch={() => {
         setIsOpenConsole((isOpenConsole) => !isOpenConsole);

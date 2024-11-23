@@ -3853,6 +3853,7 @@ export default function IdPage() {
           undo(ctx, offset, scale);
         }}
         isOverAllSidePanelOpen={isOverAllSidePanelOpen}
+        isIndivisualSidePanelOpen={isIndivisualSidePanelOpen}
       />
 
       <img id="screenshotImg" alt="Screenshot" style={{ display: "none" }} />
