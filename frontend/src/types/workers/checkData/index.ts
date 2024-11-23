@@ -65,6 +65,7 @@ type EventData = {
 
 type Step = {
   id: string;
+  index: number;
   from: {
     l: string[];
     t: string[];
@@ -92,7 +93,7 @@ type CheckPointSteps = ({
   id: string;
 } & Step)[];
 
-type MissingDatas = { stepId: string; data: string }[];
+type MissingDatas = { stepId: string; index: number; data: string }[];
 
 type Visited = { [stepId: string]: boolean };
 

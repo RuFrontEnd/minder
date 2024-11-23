@@ -26,9 +26,10 @@ const checkData = (
     const cloneShapes = cloneDeep(shapes);
     const cloneCurves = cloneDeep(curves);
 
-    cloneShapes.forEach((shape) => {
+    cloneShapes.forEach((shape, shapeI) => {
       steps[shape.id] = {
         id: shape.id,
+        index: shapeI,
         from: {
           l: [],
           t: [],
@@ -95,7 +96,11 @@ const checkData = (
       }
 
       Object.keys(currentMissingDatas).forEach((currentMissingData) => {
-        missingDatas.push({ stepId: step.id, data: currentMissingData });
+        missingDatas.push({
+          stepId: step.id,
+          index: step.index,
+          data: currentMissingData,
+        });
       });
     });
 
