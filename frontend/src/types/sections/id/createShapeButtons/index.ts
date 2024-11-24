@@ -11,7 +11,6 @@ type ActionRecords = {
 };
 
 type Props = {
-  className?: string;
   isOverAllSidePanelOpen: boolean;
   actionRecords: ActionRecords;
   shapes: (Terminal | Process | Data | Desicion)[];

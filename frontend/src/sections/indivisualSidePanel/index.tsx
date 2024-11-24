@@ -274,7 +274,6 @@ export default function IndivisualSidePanel(
       addUsingDatas: IndivisaulSidePanelTypes.AddDatas;
       addDeleteDatas: IndivisaulSidePanelTypes.AddDatas;
     }) => {
-      console.log("lastResult", lastResult);
       if (!props.indivisual) return false;
       const _importDatas: CommonTypes.Datas = [];
       const _usingDatas: CommonTypes.Datas = [];

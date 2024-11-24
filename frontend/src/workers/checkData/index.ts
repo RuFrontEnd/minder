@@ -26,6 +26,8 @@ const checkData = (
     const cloneShapes = cloneDeep(shapes);
     const cloneCurves = cloneDeep(curves);
 
+    self.postMessage({ ms: "cloneShapes", log: cloneShapes });
+
     cloneShapes.forEach((shape, shapeI) => {
       steps[shape.id] = {
         id: shape.id,
@@ -46,6 +48,8 @@ const checkData = (
           import: shape.__importDatas__,
           using: shape.__usingDatas__,
           delete: shape.__deleteDatas__,
+          options: {},
+          removals: {},
         },
       };
     });
@@ -55,22 +59,29 @@ const checkData = (
       steps[curve.to.shape.id]["from"][curve.to.d].push(curve.from.shape.id);
     });
 
+    self.postMessage({ ms: "steps", log: steps });
+
     return {
       steps: steps,
     };
   };
 
   const checkData = (lastResult: { steps: CheckDataTypes.Steps }) => {
-    const missingDatas: CheckDataTypes.MissingDatas = [];
+    self.postMessage({
+      ms: "lastResult.steps",
+      log: lastResult.steps,
+    });
 
     Object.values(lastResult.steps).forEach((step) => {
-      const currentMissingDatas: {
-        [dataText: string]: boolean;
-      } = {};
-      step.datas.using.forEach((usingData) => {
-        currentMissingDatas[usingData.text] = true;
+      self.postMessage({
+        ms: "----",
+        log: "----",
       });
-
+      self.postMessage({
+        ms: "step",
+        log: step,
+      });
+      const currentOptionAvailabilties: CheckDataTypes.ExternalDatas = {};
       const visited: CheckDataTypes.Visited = {};
       const queue = [step];
 
@@ -78,33 +89,53 @@ const checkData = (
         const currentStep = queue.shift();
 
         if (!currentStep || visited[currentStep.id]) continue;
+
+        if (step.id === currentStep.id) {
+          step.datas.import.forEach((importData) => {
+            currentOptionAvailabilties[importData.text] = true;
+          });
+
+          step.datas.delete.forEach((deleteData) => {
+            delete currentOptionAvailabilties[deleteData.text];
+          });
+        } else {
+          currentStep.datas.import.forEach((importData) => {
+            if (!(importData.text in currentOptionAvailabilties)) return;
+            currentOptionAvailabilties[importData.text] = true;
+          });
+
+          currentStep.datas.delete.forEach((deleteData) => {
+            if (!(deleteData.text in currentOptionAvailabilties)) return;
+            currentOptionAvailabilties[deleteData.text] = false;
+          });
+        }
+
+        self.postMessage({ ms: "currentStep.id", log: currentStep.id });
+        self.postMessage({ ms: "currentOptionAvailabilties", log: currentOptionAvailabilties });
+
+        Object.entries(currentOptionAvailabilties).forEach(
+          ([data, isAvailable]) => {
+
+            self.postMessage({ ms: "data", log: data });
+            self.postMessage({ ms: "isAvailable", log: isAvailable });
+            if (!isAvailable) return;
+            currentStep.datas.options[data] = true;
+          }
+        );
+
         visited[currentStep.id] = true;
 
-        currentStep.datas.import.forEach((importData) => {
-          if (currentMissingDatas[importData.text]) {
-            delete currentMissingDatas[importData.text];
-          }
-        });
-
         ds.forEach((d) => {
-          currentStep.from[d].forEach((fromStepId) => {
-            if (!visited[fromStepId]) {
-              queue.push(lastResult.steps[fromStepId]);
+          currentStep.to[d].forEach((toStepId) => {
+            if (!visited[toStepId]) {
+              queue.push(lastResult.steps[toStepId]);
             }
           });
         });
       }
-
-      Object.keys(currentMissingDatas).forEach((currentMissingData) => {
-        missingDatas.push({
-          stepId: step.id,
-          index: step.index,
-          data: currentMissingData,
-        });
-      });
     });
 
-    self.postMessage({ ms: "missingDatas", log: missingDatas });
+    self.postMessage({ ms: "lastResult.steps", log: lastResult.steps });
 
     return true;
   };

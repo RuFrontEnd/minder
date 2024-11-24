@@ -4,6 +4,9 @@ import Data from "@/shapes/data";
 import Desicion from "@/shapes/decision";
 import * as CommonTypes from "@/types/common";
 
+type ExternalData = { id: string; text: string };
+type ExternalDatas = { [text: string]: boolean };
+
 type Shapes = {
   anchor: {
     size: {
@@ -82,6 +85,8 @@ type Step = {
     import: CommonTypes.Datas;
     using: CommonTypes.Datas;
     delete: CommonTypes.Datas;
+    options: ExternalDatas;
+    removals: ExternalDatas;
   };
 };
 
@@ -105,4 +110,6 @@ export type {
   CheckPointSteps,
   MissingDatas,
   Visited,
+  ExternalData,
+  ExternalDatas
 };
