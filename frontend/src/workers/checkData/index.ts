@@ -5,7 +5,7 @@ import Desicion from "@/shapes/decision";
 import * as CommonTypes from "@/types/common";
 import * as handleUtils from "@/utils/handle";
 import * as CheckDataTypes from "@/types/workers/checkData";
-import { cloneDeep, isEmpty } from "lodash";
+import { cloneDeep } from "lodash";
 
 const ds = [
   CommonTypes.Direction.l,
@@ -27,6 +27,7 @@ const checkData = (
     const cloneCurves = cloneDeep(curves);
 
     self.postMessage({ ms: "cloneShapes", log: cloneShapes });
+    self.postMessage({ ms: "cloneCurves", log: cloneCurves });
 
     cloneShapes.forEach((shape, shapeI) => {
       steps[shape.id] = {
@@ -48,8 +49,11 @@ const checkData = (
           import: shape.__importDatas__,
           using: shape.__usingDatas__,
           delete: shape.__deleteDatas__,
-          options: {},
-          removals: {},
+          canUse: {},
+        },
+        records: {
+          gottenBy: {},
+          removedBy: {},
         },
       };
     });
@@ -74,14 +78,16 @@ const checkData = (
 
     Object.values(lastResult.steps).forEach((step) => {
       self.postMessage({
-        ms: "----",
-        log: "----",
+        ms: "----------------------------------------",
+        log: ""
       });
       self.postMessage({
         ms: "step",
         log: step,
       });
-      const currentOptionAvailabilties: CheckDataTypes.ExternalDatas = {};
+      const currentCanUseDatas: CheckDataTypes.CanUseDatas = {};
+      const currentGottenDatas: CheckDataTypes.RecordDatas = {};
+      const currentRemovedDatas: CheckDataTypes.RecordDatas = {};
       const visited: CheckDataTypes.Visited = {};
       const queue = [step];
 
@@ -92,36 +98,86 @@ const checkData = (
 
         if (step.id === currentStep.id) {
           step.datas.import.forEach((importData) => {
-            currentOptionAvailabilties[importData.text] = true;
+            currentGottenDatas[importData.text] = new Set([currentStep.id]);
+
+            currentCanUseDatas[importData.text] = true;
           });
 
           step.datas.delete.forEach((deleteData) => {
-            delete currentOptionAvailabilties[deleteData.text];
+            currentRemovedDatas[deleteData.text] = new Set([currentStep.id]);
+
+            delete currentCanUseDatas[deleteData.text];
           });
         } else {
           currentStep.datas.import.forEach((importData) => {
-            if (!(importData.text in currentOptionAvailabilties)) return;
-            currentOptionAvailabilties[importData.text] = true;
+            if (importData.text in currentGottenDatas) {
+              currentGottenDatas[importData.text].add(currentStep.id);
+            } else {
+              currentGottenDatas[importData.text] = new Set([currentStep.id]);
+            }
+
+            if (!(importData.text in currentCanUseDatas)) return;
+            currentCanUseDatas[importData.text] = true;
           });
 
           currentStep.datas.delete.forEach((deleteData) => {
-            if (!(deleteData.text in currentOptionAvailabilties)) return;
-            currentOptionAvailabilties[deleteData.text] = false;
+            if (deleteData.text in currentRemovedDatas) {
+              currentRemovedDatas[deleteData.text].add(currentStep.id);
+            } else {
+              currentRemovedDatas[deleteData.text] = new Set([currentStep.id]);
+            }
+
+            if (!(deleteData.text in currentCanUseDatas)) return;
+            currentCanUseDatas[deleteData.text] = false;
           });
         }
 
         self.postMessage({ ms: "currentStep.id", log: currentStep.id });
-        self.postMessage({ ms: "currentOptionAvailabilties", log: currentOptionAvailabilties });
+        self.postMessage({
+          ms: "currentGottenDatas",
+          log: currentGottenDatas,
+        });
+        self.postMessage({
+          ms: "currentRemovedDatas",
+          log: currentRemovedDatas,
+        });
 
-        Object.entries(currentOptionAvailabilties).forEach(
-          ([data, isAvailable]) => {
-
-            self.postMessage({ ms: "data", log: data });
-            self.postMessage({ ms: "isAvailable", log: isAvailable });
+        Object.entries(currentCanUseDatas).forEach(
+          ([dataText, isAvailable]) => {
             if (!isAvailable) return;
-            currentStep.datas.options[data] = true;
+            currentStep.datas.canUse[dataText] = true;
           }
         );
+
+        currentStep.datas.using.forEach((data) => {
+          if (data.text in currentGottenDatas) {
+            currentGottenDatas[data.text].forEach((stepId) => {
+              self.postMessage({
+                ms: "currentStep.records.gottenBy",
+                log: currentStep.records.gottenBy,
+              });
+              if (currentStep.records.gottenBy[data.text]) {
+                currentStep.records.gottenBy[data.text].add(stepId);
+              } else {
+                currentStep.records.gottenBy[data.text] = new Set([stepId]);
+              }
+            });
+          }
+
+          if (data.text in currentRemovedDatas) {
+            currentRemovedDatas[data.text].forEach((stepId) => {
+              self.postMessage({
+                ms: "currentStep.records.removedBy",
+                log: currentStep.records.removedBy,
+              });
+              if (currentStep.records.removedBy[data.text]) {
+                currentStep.records.removedBy[data.text].add(stepId);
+              } else {
+                currentStep.records.removedBy[data.text] = new Set([stepId]);
+              }
+            });
+          }
+        });
 
         visited[currentStep.id] = true;
 

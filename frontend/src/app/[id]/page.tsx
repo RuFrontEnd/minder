@@ -199,6 +199,20 @@ i.usingDatas = [
     status: CommonTypes.DataStatus.default,
   },
 ];
+const j = new Process(
+  "process_5_1732453853446",
+  150,
+  75,
+  { x: 1221, y: 127.5 },
+  "process_5"
+);
+j.deleteDatas = [
+  {
+    id: "data2",
+    text: "data2",
+    status: CommonTypes.DataStatus.default,
+  },
+];
 
 let ctx: CanvasRenderingContext2D | null | undefined = null,
   ctx_screenshot: CanvasRenderingContext2D | null | undefined = null,
@@ -211,6 +225,7 @@ let ctx: CanvasRenderingContext2D | null | undefined = null,
     // f, g
     h,
     i,
+    j
   ],
   curves: CommonTypes.ConnectionCurves = [
     {
@@ -289,6 +304,17 @@ let ctx: CanvasRenderingContext2D | null | undefined = null,
         { x: 1134, y: 706.5 }
       ),
       to: { shape: shapes[6], d: CommonTypes.Direction.l },
+    },
+    {
+      from: { shape: shapes[7], d: CommonTypes.Direction.b },
+      shape: new Curve(
+        "curve_1732277502268",
+        { x: 1221, y: 165 },
+        { x: 1221, y: 345.75 },
+        { x: 1196, y: 502.5 },
+        { x: 1159, y: 502.5 }
+      ),
+      to: { shape: shapes[3], d: CommonTypes.Direction.r },
     },
     // {
     //   from: { shape: shapes[5], d: CommonTypes.Direction.b },
@@ -3461,6 +3487,7 @@ export default function IdPage() {
         // f, g
         h,
         i,
+        j
       ];
 
       drawCanvas(offset, scale);
@@ -3842,6 +3869,7 @@ export default function IdPage() {
       />
 
       <Console
+        shapes={shapes}
         offset={offset}
         scale={scale}
         zoom={zoom}
