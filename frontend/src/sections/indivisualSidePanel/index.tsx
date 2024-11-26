@@ -567,52 +567,56 @@ export default function IndivisualSidePanel(
       onClickSwitch={onClickSidePanelSwitch}
     >
       <div className={"p-4 h-full"}>
-        {props.isEditingIndivisual ? (
-          <div className="flex justify-end items-center" role="edit_indivisual">
-            <Button
-              role="cancel_edit_indivisual"
-              vice
-              text="Cancel"
-              className="ms-2"
-              size={ButtonTypes.Size.sm}
-              onClick={onClickCancelButton}
-            />
-            <Button
-              role="save_edit_indivisual"
-              text="Save"
-              className="ms-2"
-              size={ButtonTypes.Size.sm}
-              onClick={onClickSaveEditingButton}
-            />
-          </div>
-        ) : (
-          <Icon
-            role="begin_edit_indivisual"
-            className={"justify-self-end cursor-pointer"}
-            type={IconTypes.Type.pencilSquare}
-            w={16}
-            h={16}
-            disabled={!props.indivisual}
-            onClick={onClickEditIcon}
-          />
-        )}
         <div
           className="flex flex-col"
           style={{
             height: `calc(100% - ${props.isEditingIndivisual ? 28 : 16}px)`,
           }}
         >
-          <div>
-            <p className="text-sm px-1">title</p>
+          <div className="flex items-center">
             {props.isEditingIndivisual ? (
-              <Input
-                value={props.indivisual?.title}
-                // onChange={onChangeTitle}
-              />
+              <>
+                <Input
+                  className="flex-1"
+                  value={props.indivisual?.title}
+                  // onChange={onChangeTitle}
+                />
+                <div
+                  className="flex justify-end items-center"
+                  role="edit_indivisual"
+                >
+                  <Button
+                    role="cancel_edit_indivisual"
+                    vice
+                    text="Cancel"
+                    className="ms-2"
+                    size={ButtonTypes.Size.sm}
+                    onClick={onClickCancelButton}
+                  />
+                  <Button
+                    role="save_edit_indivisual"
+                    text="Save"
+                    className="ms-2"
+                    size={ButtonTypes.Size.sm}
+                    onClick={onClickSaveEditingButton}
+                  />
+                </div>
+              </>
             ) : (
-              <p className="text-black-2 px-3 py-1">
-                {props.indivisual?.title || "-"}
-              </p>
+              <>
+                <p className="flex-1 text-md font-semibold text-black-2 px-3 py-1">
+                  {props.indivisual?.title || "-"}
+                </p>
+                <Icon
+                  role="begin_edit_indivisual"
+                  className={"justify-self-end cursor-pointer"}
+                  type={IconTypes.Type.pencilSquare}
+                  w={16}
+                  h={16}
+                  disabled={!props.indivisual}
+                  onClick={onClickEditIcon}
+                />
+              </>
             )}
           </div>
           <DataBox

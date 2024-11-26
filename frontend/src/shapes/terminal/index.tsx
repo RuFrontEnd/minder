@@ -43,10 +43,9 @@ export default class Terminal extends Core {
           scaleSize.h
         );
         ctx.closePath();
-      } else if (scaleSize.w < scaleSize.h) {
+      } else {
         let r = scaleSize.w / 2;
         ctx.beginPath();
-        ctx.moveTo(screenP.x, screenP.y);
         ctx.arc(0, -scaleSize.h / 2 + r, r, 0, 2 * Math.PI);
         ctx.arc(0, scaleSize.h / 2 - r, r, 0, 2 * Math.PI);
         ctx.fill();
