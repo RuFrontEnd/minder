@@ -626,7 +626,7 @@ export default function IndivisualSidePanel(
               </>
             ) : (
               <>
-                <p className="flex-1 text-md font-semibold text-black-2 px-3 py-1">
+                <p className="flex-1 text-md font-semibold text-black-2 px-3 py-1 min-w-0 truncate">
                   {props.indivisual?.title || "-"}
                 </p>
                 <Icon
