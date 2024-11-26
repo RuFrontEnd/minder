@@ -599,6 +599,7 @@ export default function IndivisualSidePanel(
             {props.isEditingIndivisual ? (
               <>
                 <Input
+                  role="edit_indivisual_title"
                   className="flex-1"
                   value={editingTitle}
                   onChange={onChangeTitle}

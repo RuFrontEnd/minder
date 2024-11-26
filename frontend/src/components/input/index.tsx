@@ -22,7 +22,7 @@ const Input = (props: InputTypes.Props) => {
     })();
 
   return (
-    <div className={props.className} id={props.id}>
+    <div className={props.className} id={props.id} role={props.role}>
       {props.label && (
         <label
           htmlFor={props.name}

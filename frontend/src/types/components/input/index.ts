@@ -9,6 +9,7 @@ enum Status {
 type Props = {
   id?: string;
   className?: string;
+  role?: string;
   label?: HTMLInputTypeAttribute;
   placeholder?: string;
   type?: HTMLInputTypeAttribute;
