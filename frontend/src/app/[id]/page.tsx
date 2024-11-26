@@ -225,7 +225,7 @@ let ctx: CanvasRenderingContext2D | null | undefined = null,
     // f, g
     h,
     i,
-    j
+    j,
   ],
   curves: CommonTypes.ConnectionCurves = [
     {
@@ -3487,7 +3487,7 @@ export default function IdPage() {
         // f, g
         h,
         i,
-        j
+        j,
       ];
 
       drawCanvas(offset, scale);
@@ -3866,6 +3866,9 @@ export default function IdPage() {
         setCreateDeleteDatas={setCreateDeleteDatas}
         addDeleteDatas={addDeleteDatas}
         setAddDeleteDatas={setAddDeleteDatas}
+        draw={() => {
+          drawCanvas(offset, scale);
+        }}
       />
 
       <Console

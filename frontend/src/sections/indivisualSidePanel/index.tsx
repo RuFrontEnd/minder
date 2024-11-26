@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, ChangeEvent } from "react";
+import React, { useState, ChangeEventHandler } from "react";
 import Zoom from "@/sections/zoom";
 import DataBox from "@/blocks/indivisualSidePanel/dataBox";
 import SidePanel from "@/components/sidePanel";
@@ -29,6 +29,7 @@ export default function IndivisualSidePanel(
   props: IndivisaulSidePanelTypes.Props
 ) {
   const dataOptions = props.datas.map((data) => data.name);
+  const [editingTitle, setEditingTitle] = useState<null | string>(null);
 
   const closeEditing = () => {
     props.setCreateImportDatas([]);
@@ -38,6 +39,7 @@ export default function IndivisualSidePanel(
     props.setCreateDeleteDatas([]);
     props.setAddDeleteDatas([]);
     props.setIsEditingIndivisual(false);
+    setEditingTitle(props.indivisual?.title || null);
   };
 
   const onClickSidePanelSwitch: SidePanelTypes.Props["onClickSwitch"] = (e) => {
@@ -46,6 +48,9 @@ export default function IndivisualSidePanel(
   };
 
   const onClickEditIcon = () => {
+    if (!props.indivisual) return false;
+    setEditingTitle(props.indivisual?.title);
+
     if (props.indivisual?.importDatas) {
       props.setAddImportDatas(
         props.indivisual.importDatas.map((data) => ({
@@ -390,7 +395,19 @@ export default function IndivisualSidePanel(
       return true;
     };
 
+    const reviseTitle = () => {
+      if (!editingTitle || !props.indivisual) return true;
+
+      props.indivisual.title = editingTitle;
+
+      const _indivisual = cloneDeep(props.indivisual);
+      props.setIndivisual(_indivisual);
+
+      return true;
+    };
+
     const finishEditing = () => {
+      props.draw();
       closeEditing();
       return false;
     };
@@ -401,6 +418,7 @@ export default function IndivisualSidePanel(
       validate,
       setDatasToShape,
       syncToOverallData,
+      reviseTitle,
       finishEditing,
     ]);
   };
@@ -464,6 +482,10 @@ export default function IndivisualSidePanel(
     worker.onerror = function (error) {
       console.error("Error in Worker:", error);
     };
+  };
+
+  const onChangeTitle: ChangeEventHandler<HTMLInputElement> = (e) => {
+    setEditingTitle(e.target.value);
   };
 
   // const onClickSaveButton: MouseEventHandler<HTMLSpanElement> = () => {
@@ -578,8 +600,8 @@ export default function IndivisualSidePanel(
               <>
                 <Input
                   className="flex-1"
-                  value={props.indivisual?.title}
-                  // onChange={onChangeTitle}
+                  value={editingTitle}
+                  onChange={onChangeTitle}
                 />
                 <div
                   className="flex justify-end items-center"

@@ -50,6 +50,7 @@ type Props = {
   setCreateDeleteDatas: Dispatch<SetStateAction<CreateDatas>>;
   addDeleteDatas: AddDatas;
   setAddDeleteDatas: Dispatch<SetStateAction<AddDatas>>;
+  draw: () => void;
 };
 
 export type { Props, CreateDatas, AddDatas };
