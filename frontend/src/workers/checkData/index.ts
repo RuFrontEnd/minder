@@ -23,13 +23,11 @@ const checkData = (
     curves: CommonTypes.ConnectionCurves
   ) => {
     const steps: CheckDataTypes.Steps = {};
-    const cloneShapes = cloneDeep(shapes);
-    const cloneCurves = cloneDeep(curves);
 
-    self.postMessage({ ms: "cloneShapes", log: cloneShapes });
-    self.postMessage({ ms: "cloneCurves", log: cloneCurves });
+    // self.postMessage({ ms: "shapes", log: shapes });
+    // self.postMessage({ ms: "curves", log: curves });
 
-    cloneShapes.forEach((shape, shapeI) => {
+    shapes.forEach((shape, shapeI) => {
       steps[shape.id] = {
         id: shape.id,
         index: shapeI,
@@ -58,33 +56,24 @@ const checkData = (
       };
     });
 
-    cloneCurves.forEach((curve) => {
+    curves.forEach((curve) => {
       steps[curve.from.shape.id]["to"][curve.from.d].push(curve.to.shape.id);
       steps[curve.to.shape.id]["from"][curve.to.d].push(curve.from.shape.id);
     });
 
-    self.postMessage({ ms: "steps", log: steps });
+    // self.postMessage({ ms: "steps", log: steps });
 
     return {
       steps: steps,
+      shapes: shapes,
     };
   };
 
-  const checkData = (lastResult: { steps: CheckDataTypes.Steps }) => {
-    self.postMessage({
-      ms: "lastResult.steps",
-      log: lastResult.steps,
-    });
-
+  const checkData = (lastResult: {
+    steps: CheckDataTypes.Steps;
+    shapes: CheckDataTypes.Shapes;
+  }) => {
     Object.values(lastResult.steps).forEach((step) => {
-      self.postMessage({
-        ms: "----------------------------------------",
-        log: ""
-      });
-      self.postMessage({
-        ms: "step",
-        log: step,
-      });
       const currentCanUseDatas: CheckDataTypes.CanUseDatas = {};
       const currentGottenDatas: CheckDataTypes.RecordDatas = {};
       const currentRemovedDatas: CheckDataTypes.RecordDatas = {};
@@ -132,16 +121,6 @@ const checkData = (
           });
         }
 
-        self.postMessage({ ms: "currentStep.id", log: currentStep.id });
-        self.postMessage({
-          ms: "currentGottenDatas",
-          log: currentGottenDatas,
-        });
-        self.postMessage({
-          ms: "currentRemovedDatas",
-          log: currentRemovedDatas,
-        });
-
         Object.entries(currentCanUseDatas).forEach(
           ([dataText, isAvailable]) => {
             if (!isAvailable) return;
@@ -152,10 +131,6 @@ const checkData = (
         currentStep.datas.using.forEach((data) => {
           if (data.text in currentGottenDatas) {
             currentGottenDatas[data.text].forEach((stepId) => {
-              self.postMessage({
-                ms: "currentStep.records.gottenBy",
-                log: currentStep.records.gottenBy,
-              });
               if (currentStep.records.gottenBy[data.text]) {
                 currentStep.records.gottenBy[data.text].add(stepId);
               } else {
@@ -166,10 +141,6 @@ const checkData = (
 
           if (data.text in currentRemovedDatas) {
             currentRemovedDatas[data.text].forEach((stepId) => {
-              self.postMessage({
-                ms: "currentStep.records.removedBy",
-                log: currentStep.records.removedBy,
-              });
               if (currentStep.records.removedBy[data.text]) {
                 currentStep.records.removedBy[data.text].add(stepId);
               } else {
@@ -191,15 +162,66 @@ const checkData = (
       }
     });
 
-    self.postMessage({ ms: "lastResult.steps", log: lastResult.steps });
-
-    return true;
+    return {
+      steps: lastResult.steps,
+      shapes: lastResult.shapes,
+    };
   };
 
-  handleUtils.handle([() => createSteps(shapes, curves), checkData]);
+  let output: { messages: null | CheckDataTypes.Message } = { messages: null };
 
-  return true;
+  const createMessages = (lastResult: {
+    steps: CheckDataTypes.Steps;
+    shapes: CheckDataTypes.Shapes;
+  }) => {
+    // self.postMessage({ ms: "lastResult.steps", log: lastResult.steps });
+    const messages: CheckDataTypes.Message = {
+      errors: [],
+      warnings: [],
+    };
+
+    Object.entries(lastResult.steps).forEach(([stepId, step]) => {
+      step.datas.using.forEach((stepUsingData) => {
+        if (step.datas.canUse[stepUsingData.text]) return;
+        const shapeI = shapes.findIndex((shape) => shape.id === stepId);
+        const dataI = shapes[shapeI].__usingDatas__.findIndex(
+          (shapeUsingData) => shapeUsingData.text === stepUsingData.text
+        );
+
+        messages.errors.push({
+          shape: {
+            id: stepId,
+            i: shapeI,
+          },
+          data: {
+            id: stepUsingData.id,
+            i: dataI,
+            text: stepUsingData.text,
+            status: CommonTypes.DataStatus.error,
+          },
+          console: {
+            message: `${stepUsingData.text} is either not imported or already removed by preceding steps.`,
+          },
+        });
+      });
+    });
+
+    // self.postMessage({ ms: "messages", log: messages });
+
+    output = { messages: messages };
+
+    return false;
+  };
+
+  handleUtils.handle([
+    () => createSteps(shapes, curves),
+    checkData,
+    createMessages,
+  ]);
+
+  return output;
 };
+
 let shapes: CheckDataTypes.Shapes = [];
 let curves: CommonTypes.ConnectionCurves = [];
 
@@ -226,28 +248,62 @@ self.onmessage = function (event: MessageEvent<string>) {
     return false;
   };
 
-  const postConsole = () => {
-    // self.postMessage({ ms: "work", log: "work" });
+  const postToMainThread = async (lastResult: {
+    messages: CheckDataTypes.Message;
+  }) => {
+    if (!lastResult.messages) return false;
+
+    const sendChunks = async (
+      messages: CheckDataTypes.TypeMessages,
+      type: CheckDataTypes.MessageType
+    ) => {
+      let index = 0;
+      const chunkSize = 1;
+
+      const delay = (ms: number) =>
+        new Promise((resolve) => setTimeout(resolve, ms));
+
+      const sendNextChunk = async () => {
+        if (index < messages.length) {
+          self.postMessage({
+            type: type,
+            messages: messages.slice(index, index + chunkSize),
+            done: false,
+          });
+          index += chunkSize;
+
+          // 延迟发送下一个区块
+          await delay(0);
+          await sendNextChunk();
+        } else {
+          // 所有块都已发送，标记为完成
+          self.postMessage({
+            type: type,
+            messages: [],
+            done: true,
+          });
+        }
+      };
+
+      await sendNextChunk();
+    };
+
+    // 按顺序发送 errors 和 warnings
+    await sendChunks(
+      lastResult.messages.errors,
+      CheckDataTypes.MessageType.error
+    );
+    await sendChunks(
+      lastResult.messages.warnings,
+      CheckDataTypes.MessageType.warning
+    );
+
     return false;
   };
 
   handleUtils.handle([
     () => gatherChunks(currentChunck),
     () => checkData(shapes, curves),
-    () => postConsole(),
+    postToMainThread,
   ]);
 };
-
-// const logs = checkData(shapes);
-// let index = 0;
-// let chunckSize = 10000;
-
-// const sendChunck = () => {
-//   if (index > logs.length) return;
-//   const chunck = logs.slice(index, index + chunckSize);
-//   self.postMessage(chunck);
-//   index += chunckSize;
-//   setTimeout(sendChunck, 0);
-// };
-
-// sendChunck();

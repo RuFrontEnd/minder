@@ -356,6 +356,10 @@ const ds = [
   CommonTypes.Direction.b,
 ];
 
+const updateShapes = (newShapes: (Terminal | Process | Data | Desicion)[]) => {
+  shapes = newShapes;
+};
+
 const getActionRecords = () => {
   const records: {
     [type: string]: {
@@ -3254,7 +3258,7 @@ export default function IdPage() {
     if (e.key === " " && !space) {
       setSpace(true);
     } else if (e.key === "Backspace") {
-      console.log('document.activeElement', document.activeElement)
+      console.log("document.activeElement", document.activeElement);
       const $canvas = document.querySelector("canvas");
       if (!$canvas || !ctx) return;
 
@@ -3870,6 +3874,7 @@ export default function IdPage() {
         draw={() => {
           drawCanvas(offset, scale);
         }}
+        updateShapes={updateShapes}
       />
 
       <Console

@@ -18,12 +18,18 @@ import * as SidePanelTypes from "@/types/components/sidePanel";
 import * as ButtonTypes from "@/types/components/button";
 import * as IndivisaulSidePanelTypes from "@/types/sections/id/indivisualSidePanel";
 import * as CommonTypes from "@/types/common";
+import * as CheckDataTypes from "@/types/workers/checkData";
 import Terminal from "@/shapes/terminal";
 import Process from "@/shapes/process";
 import Data from "@/shapes/data";
 import Decision from "@/shapes/decision";
 
 let worker: null | Worker = null;
+const isCheckDataDone = {
+  error: false,
+  warning: false,
+};
+let checkedShapes: null | (Terminal | Process | Data | Decision)[] = null;
 
 export default function IndivisualSidePanel(
   props: IndivisaulSidePanelTypes.Props
@@ -473,9 +479,44 @@ export default function IndivisualSidePanel(
     // worker.postMessage(JSON.stringify(props.shapes));
 
     // 接收 Worker 返回的结果
-    worker.onmessage = (event) => {
-      console.log(event.data.ms, event.data.log);
-      // console.log("JSON.parse(event.data) from Worker:", JSON.parse(event.data));
+    worker.onmessage = (
+      event: MessageEvent<{
+        type: CheckDataTypes.MessageType;
+        messages: CheckDataTypes.TypeMessages;
+        done: boolean;
+      }>
+    ) => {
+      if (!checkedShapes) {
+        checkedShapes = cloneDeep(props.shapes);
+      }
+
+      event.data.messages.forEach((message) => {
+        if (!checkedShapes) return;
+
+        checkedShapes[message.shape.i].usingDatas[message.data.i].status =
+          message.data.status;
+      });
+
+      if (
+        event.data.type === CheckDataTypes.MessageType.error &&
+        event.data.done
+      ) {
+        isCheckDataDone.error = true;
+      } else if (
+        event.data.type === CheckDataTypes.MessageType.warning &&
+        event.data.done
+      ) {
+        isCheckDataDone.warning = true;
+      }
+
+      if (isCheckDataDone.error && isCheckDataDone.warning) {
+        props.updateShapes(checkedShapes);
+
+        isCheckDataDone.error = false;
+        isCheckDataDone.warning = false;
+
+        worker?.terminate();
+      }
     };
 
     // 处理 Worker 错误

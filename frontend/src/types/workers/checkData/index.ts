@@ -105,6 +105,34 @@ type MissingDatas = { stepId: string; index: number; data: string }[];
 
 type Visited = { [stepId: string]: boolean };
 
+type TypeMessage = {
+  shape: {
+    id: string;
+    i: number;
+  };
+  data: {
+    id: string;
+    i: number;
+    text: string;
+    status: CommonTypes.DataStatus;
+  };
+  console: {
+    message: string;
+  };
+};
+
+type TypeMessages = TypeMessage[];
+
+type Message = {
+  errors: TypeMessages;
+  warnings: TypeMessages;
+};
+
+enum MessageType {
+  error = "error",
+  warning = "warning",
+}
+
 export type {
   Shapes,
   EventData,
@@ -115,4 +143,9 @@ export type {
   Visited,
   CanUseDatas,
   RecordDatas,
+  Message,
+  TypeMessage,
+  TypeMessages,
 };
+
+export { MessageType };

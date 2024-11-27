@@ -51,6 +51,7 @@ type Props = {
   addDeleteDatas: AddDatas;
   setAddDeleteDatas: Dispatch<SetStateAction<AddDatas>>;
   draw: () => void;
+  updateShapes: (newShapes: (Terminal | Process | Data | Desicion)[]) => void;
 };
 
 export type { Props, CreateDatas, AddDatas };

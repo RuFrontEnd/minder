@@ -83,4 +83,11 @@ type ConnectionCurves = {
 }[];
 
 export type { Id, W, H, C, Vec, Shapes, Title, Data, Datas, ConnectionCurves };
-export { Direction, Corner, Type, SelectAreaTarget, Action, DataStatus };
+export {
+  Direction,
+  Corner,
+  Type,
+  SelectAreaTarget,
+  Action,
+  DataStatus,
+};
