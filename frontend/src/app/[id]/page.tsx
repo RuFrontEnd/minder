@@ -356,10 +356,6 @@ const ds = [
   CommonTypes.Direction.b,
 ];
 
-const updateShapes = (newShapes: (Terminal | Process | Data | Desicion)[]) => {
-  shapes = newShapes;
-};
-
 const getActionRecords = () => {
   const records: {
     [type: string]: {
@@ -2840,9 +2836,17 @@ export default function IdPage() {
   const [addDeleteDatas, setAddDeleteDatas] =
     useState<IndivisaulSidePanelTypes.AddDatas>([]);
 
-  const checkSteps = () => {
-    setSteps(cloneDeep(shapes));
-  };
+    
+    const checkSteps = () => {
+      setSteps(cloneDeep(shapes));
+    };
+
+    const updateShapes = (
+      newShapes: (Terminal | Process | Data | Desicion)[]
+    ) => {
+      shapes = newShapes;
+      checkSteps()
+    };
 
   const zoom = (
     delta: number,
