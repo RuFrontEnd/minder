@@ -2836,17 +2836,17 @@ export default function IdPage() {
   const [addDeleteDatas, setAddDeleteDatas] =
     useState<IndivisaulSidePanelTypes.AddDatas>([]);
 
-    
-    const checkSteps = () => {
-      setSteps(cloneDeep(shapes));
-    };
+  const checkSteps = () => {
+    setSteps(cloneDeep(shapes));
+  };
 
-    const updateShapes = (
-      newShapes: (Terminal | Process | Data | Desicion)[]
-    ) => {
-      shapes = newShapes;
-      checkSteps()
-    };
+  const updateShapes = (
+    newShapes: (Terminal | Process | Data | Desicion)[]
+  ) => {
+    shapes = newShapes;
+    checkSteps();
+    setIndivisual(shapes.find((shape) => indivisual?.id === shape.id) || null);
+  };
 
   const zoom = (
     delta: number,
