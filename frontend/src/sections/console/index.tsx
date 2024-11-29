@@ -23,6 +23,7 @@ import Terminal from "@/shapes/terminal";
 import Process from "@/shapes/process";
 import Data from "@/shapes/data";
 import Decision from "@/shapes/decision";
+import Divider from "@/components/divider";
 
 export default function Console(
   props: any
@@ -66,6 +67,10 @@ export default function Console(
         setIsOpenConsole((isOpenConsole) => !isOpenConsole);
       }}
     >
+      <div className="h-full p-4">
+        <p className="px-2 text-lg font-semibold text-grey-1">Console</p>
+        <Divider className="w-full" margin={{ y: 4 }} />
+      </div>
       <div className="absolute -top-4 -translate-y-full left-1/2 -translate-x-1/2">
         <CreateShapeButtons
           isOverAllSidePanelOpen={props.isOverAllSidePanelOpen}
