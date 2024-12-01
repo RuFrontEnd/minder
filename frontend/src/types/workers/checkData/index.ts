@@ -118,6 +118,7 @@ type TypeMessage = {
   };
   console: {
     message: string;
+    status: CommonTypes.DataStatus;
   };
 };
 

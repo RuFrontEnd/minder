@@ -2835,6 +2835,7 @@ export default function IdPage() {
     useState<IndivisaulSidePanelTypes.CreateDatas>([]);
   const [addDeleteDatas, setAddDeleteDatas] =
     useState<IndivisaulSidePanelTypes.AddDatas>([]);
+  const [consoles, setConsoles] = useState<any>([]);
 
   const checkSteps = () => {
     setSteps(cloneDeep(shapes));
@@ -3879,6 +3880,8 @@ export default function IdPage() {
           drawCanvas(offset, scale);
         }}
         updateShapes={updateShapes}
+        consoles={consoles}
+        setConsoles={setConsoles}
       />
 
       <Console
@@ -3897,6 +3900,7 @@ export default function IdPage() {
           drawCanvas(offset, scale);
           drawScreenshot(offset, scale);
         }}
+        consoles={consoles}
       />
 
       <img id="screenshotImg" alt="Screenshot" style={{ display: "none" }} />

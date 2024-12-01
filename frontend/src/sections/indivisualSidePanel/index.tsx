@@ -478,6 +478,8 @@ export default function IndivisualSidePanel(
     // 发送数据到 Worker
     // worker.postMessage(JSON.stringify(props.shapes));
 
+    const newConsoles: any = [];
+
     // 接收 Worker 返回的结果
     worker.onmessage = (
       event: MessageEvent<{
@@ -495,6 +497,10 @@ export default function IndivisualSidePanel(
 
         checkedShapes[message.shape.i].usingDatas[message.data.i].status =
           message.data.status;
+        newConsoles.push({
+          message: message.console.message,
+          status: message.console.status,
+        });
       });
 
       if (
@@ -515,8 +521,13 @@ export default function IndivisualSidePanel(
         isCheckDataDone.error = false;
         isCheckDataDone.warning = false;
 
+        console.log("newConsoles", newConsoles);
+
+        props.setConsoles(newConsoles);
         worker?.terminate();
       }
+
+      console.log("event.data.messages", event.data.messages);
     };
 
     // 处理 Worker 错误

@@ -201,6 +201,7 @@ const checkData = (
           },
           console: {
             message: `${stepUsingData.text} is either not imported or already removed by preceding steps.`,
+            status: CommonTypes.DataStatus.error,
           },
         });
       });

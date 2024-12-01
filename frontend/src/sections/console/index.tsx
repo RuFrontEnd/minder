@@ -70,6 +70,21 @@ export default function Console(
       <div className="h-full p-4">
         <p className="px-2 text-lg font-semibold text-grey-1">Console</p>
         <Divider className="w-full" margin={{ y: 4 }} />
+        <ul>
+          {props.consoles.map((consoleItem: any) => {
+            const status = (() => {
+              switch (consoleItem.status) {
+                case CommonTypes.DataStatus.error:
+                  return "text-error-500";
+              }
+            })();
+            return (
+              <li className={`px-2 mb-1 ${status || ""} cursor-pointer underline-offset-2 hover:underline`}>
+                {consoleItem.message}
+              </li>
+            );
+          })}
+        </ul>
       </div>
       <div className="absolute -top-4 -translate-y-full left-1/2 -translate-x-1/2">
         <CreateShapeButtons
