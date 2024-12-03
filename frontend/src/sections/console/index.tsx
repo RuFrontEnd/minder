@@ -33,6 +33,8 @@ export default function Console(
     props.undo();
   };
 
+  console.log("props.consoles", props.consoles);
+
   return (
     <SidePanel
       role={"console"}
