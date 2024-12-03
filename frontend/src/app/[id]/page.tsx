@@ -62,6 +62,7 @@ import * as SidePanelTypes from "@/types/components/sidePanel";
 import * as ButtonTypes from "@/types/components/button";
 import * as SimpleButtonTypes from "@/types/components/simpleButton";
 import * as StatusTextTypes from "@/types/components/statusText";
+import * as CheckDataTypes from "@/types/workers/checkData";
 
 axios.defaults.baseURL = process.env.BASE_URL || "http://localhost:5000/api";
 
@@ -227,6 +228,7 @@ let ctx: CanvasRenderingContext2D | null | undefined = null,
     i,
     j,
   ],
+  checkedShapes: null | (Terminal | Process | Data | Desicion)[] = null,
   curves: CommonTypes.ConnectionCurves = [
     {
       from: { shape: shapes[0], d: CommonTypes.Direction.b },
@@ -347,7 +349,13 @@ let ctx: CanvasRenderingContext2D | null | undefined = null,
     },
   },
   alginLines: { from: CommonTypes.Vec; to: CommonTypes.Vec }[] = [],
-  actions: PageIdTypes.Actions = new Stack(40);
+  actions: PageIdTypes.Actions = new Stack(40),
+  worker: null | Worker = null;
+
+  const isCheckDataDone = {
+    error: false,
+    warning: false,
+  };
 
 const ds = [
   CommonTypes.Direction.l,
@@ -2798,6 +2806,7 @@ export default function IdPage() {
     useState(false);
   const [isRenameFrameOpen, setIsRenameFrameOpen] = useState(false);
   const [isProfileFrameOpen, setIsProfileFrameOpen] = useState(false);
+  const [isConsoleOpen, setIsConsoleOpen] = useState(false);
   const [steps, setSteps] = useState<PageTypes.Steps>([]);
   const [datas, setDatas] = useState<PageIdTypes.Datas>([
     { id: "data1", name: "data1" },
@@ -3474,6 +3483,102 @@ export default function IdPage() {
     setCreateDateValue(null);
   };
 
+  const onClickCheckButton = () => {
+    if (!!worker) {
+      worker.terminate();
+    }
+    // main.js
+    worker = new Worker(
+      new URL("@/workers/checkData/index.ts", import.meta.url),
+      { type: "module" }
+    );
+
+    const sendChuncks = (
+      shapes: (Terminal | Process | Data | Desicion)[],
+      curves: CommonTypes.ConnectionCurves,
+      worker: any
+    ) => {
+      const length = Math.max(shapes.length, curves.length);
+      let index = 0;
+      const chunkSize = 1;
+
+      const sendNextChunk = () => {
+        if (index < length) {
+          const _shapes = shapes.slice(index, index + chunkSize);
+          const _curves = curves.slice(index, index + chunkSize);
+          worker.postMessage(
+            JSON.stringify({ shapes: _shapes, curves: _curves, done: false })
+          );
+          index += chunkSize;
+          setTimeout(sendNextChunk, 0);
+        } else {
+          worker.postMessage(
+            JSON.stringify({ shapes: [], curves: [], done: true })
+          );
+        }
+      };
+
+      sendNextChunk();
+    };
+
+    sendChuncks(shapes, curves, worker);
+
+    const newConsoles: any = [];
+
+    worker.onmessage = (
+      event: MessageEvent<{
+        type: CheckDataTypes.MessageType;
+        messages: CheckDataTypes.TypeMessages;
+        done: boolean;
+      }>
+    ) => {
+      if (!checkedShapes) {
+        checkedShapes = cloneDeep(shapes);
+      }
+
+      event.data.messages.forEach((message) => {
+        if (!checkedShapes) return;
+
+        checkedShapes[message.shape.i].usingDatas[message.data.i].status =
+          message.data.status;
+        newConsoles.push({
+          message: message.console.message,
+          status: message.console.status,
+        });
+      });
+
+      if (
+        event.data.type === CheckDataTypes.MessageType.error &&
+        event.data.done
+      ) {
+        isCheckDataDone.error = true;
+      } else if (
+        event.data.type === CheckDataTypes.MessageType.warning &&
+        event.data.done
+      ) {
+        isCheckDataDone.warning = true;
+      }
+
+      if (isCheckDataDone.error && isCheckDataDone.warning) {
+        updateShapes(checkedShapes);
+
+        isCheckDataDone.error = false;
+        isCheckDataDone.warning = false;
+
+        console.log("newConsoles", newConsoles);
+
+        setConsoles(newConsoles);
+        worker?.terminate();
+      }
+
+      console.log("event.data.messages", event.data.messages);
+    };
+    
+    worker.onerror = function (error) {
+      console.error("Error in Worker:", error);
+    };
+  };
+
   const onDeleteDataButton = (dataName: string) => {
     const _datas = cloneDeep(datas);
 
@@ -3601,6 +3706,13 @@ export default function IdPage() {
           </section>
         </div>
       </Modal>
+
+      <Button
+        className="fixed top-4 left-1/2 -translate-x-1/2 flex justify-self-end self-center text-base"
+        info
+        onClick={onClickCheckButton}
+        text={"Check"}
+      />
 
       <SidePanel
         open={isOverAllSidePanelOpen}
@@ -3894,6 +4006,8 @@ export default function IdPage() {
         }}
         isOverAllSidePanelOpen={isOverAllSidePanelOpen}
         isIndivisualSidePanelOpen={isIndivisualSidePanelOpen}
+        isConsoleOpen={isConsoleOpen}
+        setIsConsoleOpen={setIsConsoleOpen}
         actionRecords={actionRecords}
         reload={() => {
           checkSteps();

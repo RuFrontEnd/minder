@@ -29,8 +29,6 @@ export default function Console(
   props: any
   // IndivisaulSidePanelTypes.Props
 ) {
-  const [isOpenConsole, setIsOpenConsole] = useState(false);
-
   const onClickUndoButton = () => {
     props.undo();
   };
@@ -38,7 +36,7 @@ export default function Console(
   return (
     <SidePanel
       role={"console"}
-      open={isOpenConsole}
+      open={props.isConsoleOpen}
       flow={SidePanelTypes.Flow.column}
       switchButtonD={SidePanelTypes.SwitchButtonD.start}
       horizentalD={(() => {
@@ -64,7 +62,7 @@ export default function Console(
       })()}
       h={"284px"}
       onClickSwitch={() => {
-        setIsOpenConsole((isOpenConsole) => !isOpenConsole);
+        props.setIsConsoleOpen((isOpenConsole: any) => !isOpenConsole);
       }}
     >
       <div className="h-full p-4">
@@ -79,7 +77,11 @@ export default function Console(
               }
             })();
             return (
-              <li className={`px-2 mb-1 ${status || ""} cursor-pointer underline-offset-2 hover:underline`}>
+              <li
+                className={`px-2 mb-1 ${
+                  status || ""
+                } cursor-pointer underline-offset-2 hover:underline`}
+              >
                 {consoleItem.message}
               </li>
             );

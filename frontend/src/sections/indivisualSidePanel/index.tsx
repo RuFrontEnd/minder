@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, ChangeEventHandler } from "react";
-import Zoom from "@/sections/zoom";
 import DataBox from "@/blocks/indivisualSidePanel/dataBox";
 import SidePanel from "@/components/sidePanel";
 import Button from "@/components/button";
@@ -19,17 +18,6 @@ import * as ButtonTypes from "@/types/components/button";
 import * as IndivisaulSidePanelTypes from "@/types/sections/id/indivisualSidePanel";
 import * as CommonTypes from "@/types/common";
 import * as CheckDataTypes from "@/types/workers/checkData";
-import Terminal from "@/shapes/terminal";
-import Process from "@/shapes/process";
-import Data from "@/shapes/data";
-import Decision from "@/shapes/decision";
-
-let worker: null | Worker = null;
-const isCheckDataDone = {
-  error: false,
-  warning: false,
-};
-let checkedShapes: null | (Terminal | Process | Data | Decision)[] = null;
 
 export default function IndivisualSidePanel(
   props: IndivisaulSidePanelTypes.Props
@@ -429,113 +417,6 @@ export default function IndivisualSidePanel(
     ]);
   };
 
-  const onClickCheckButton = () => {
-    if (!!worker) {
-      worker.terminate();
-    }
-    // main.js
-    worker = new Worker(
-      new URL("@/workers/checkData/index.ts", import.meta.url),
-      { type: "module" }
-    );
-
-    const sendChuncks = (
-      shapes: (Terminal | Process | Data | Decision)[],
-      curves: CommonTypes.ConnectionCurves,
-      worker: any
-    ) => {
-      const length = Math.max(shapes.length, curves.length);
-      let index = 0;
-      const chunkSize = 1;
-
-      const sendNextChunk = () => {
-        if (index < length) {
-          const _shapes = shapes.slice(index, index + chunkSize);
-          const _curves = curves.slice(index, index + chunkSize);
-          worker.postMessage(
-            JSON.stringify({ shapes: _shapes, curves: _curves, done: false })
-          );
-          index += chunkSize;
-          setTimeout(sendNextChunk, 0);
-        } else {
-          worker.postMessage(
-            JSON.stringify({ shapes: [], curves: [], done: true })
-          );
-        }
-      };
-
-      sendNextChunk();
-    };
-
-    sendChuncks(props.shapes, props.curves, worker);
-
-    // 调用分块传输函数
-
-    // console.log(props.shapes, props.curves);
-
-    // console.log(JSON.stringify(props.shapes));
-
-    // 发送数据到 Worker
-    // worker.postMessage(JSON.stringify(props.shapes));
-
-    const newConsoles: any = [];
-
-    // 接收 Worker 返回的结果
-    worker.onmessage = (
-      event: MessageEvent<{
-        type: CheckDataTypes.MessageType;
-        messages: CheckDataTypes.TypeMessages;
-        done: boolean;
-      }>
-    ) => {
-      if (!checkedShapes) {
-        checkedShapes = cloneDeep(props.shapes);
-      }
-
-      event.data.messages.forEach((message) => {
-        if (!checkedShapes) return;
-
-        checkedShapes[message.shape.i].usingDatas[message.data.i].status =
-          message.data.status;
-        newConsoles.push({
-          message: message.console.message,
-          status: message.console.status,
-        });
-      });
-
-      if (
-        event.data.type === CheckDataTypes.MessageType.error &&
-        event.data.done
-      ) {
-        isCheckDataDone.error = true;
-      } else if (
-        event.data.type === CheckDataTypes.MessageType.warning &&
-        event.data.done
-      ) {
-        isCheckDataDone.warning = true;
-      }
-
-      if (isCheckDataDone.error && isCheckDataDone.warning) {
-        props.updateShapes(checkedShapes);
-
-        isCheckDataDone.error = false;
-        isCheckDataDone.warning = false;
-
-        console.log("newConsoles", newConsoles);
-
-        props.setConsoles(newConsoles);
-        worker?.terminate();
-      }
-
-      console.log("event.data.messages", event.data.messages);
-    };
-
-    // 处理 Worker 错误
-    worker.onerror = function (error) {
-      console.error("Error in Worker:", error);
-    };
-  };
-
   const onChangeTitle: ChangeEventHandler<HTMLInputElement> = (e) => {
     setEditingTitle(e.target.value);
   };
@@ -731,21 +612,18 @@ export default function IndivisualSidePanel(
             setAddDatas={props.setAddDeleteDatas}
           />
         </div>
-        <Button
+        {/* <Button
           className="absolute top-0 -left-44 -translate-x-full flex justify-self-end self-center text-base"
           info
           onClick={onClickCheckButton}
           text={"Check"}
-        />
-        <Button
+        /> */}
+        {/* <Button
           className="absolute top-0 -left-20 -translate-x-full flex justify-self-end self-center text-base"
           info
-          onClick={() => {
-            console.log("props.shapes", props.shapes);
-            console.log("props.curves", props.curves);
-          }}
+          onClick={() => {}}
           text={"Save"}
-        />
+        /> */}
       </div>
     </SidePanel>
   );
