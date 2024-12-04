@@ -67,6 +67,7 @@ type EventData = {
 };
 
 type Step = {
+  title: string;
   id: string;
   index: number;
   from: {

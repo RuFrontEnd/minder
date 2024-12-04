@@ -29,6 +29,7 @@ const checkData = (
 
     shapes.forEach((shape, shapeI) => {
       steps[shape.id] = {
+        title: shape.title,
         id: shape.id,
         index: shapeI,
         from: {
@@ -174,7 +175,7 @@ const checkData = (
     steps: CheckDataTypes.Steps;
     shapes: CheckDataTypes.Shapes;
   }) => {
-    // self.postMessage({ ms: "lastResult.steps", log: lastResult.steps });
+    self.postMessage({ ms: "lastResult.steps", log: lastResult.steps });
     const messages: CheckDataTypes.Message = {
       errors: [],
       warnings: [],
@@ -182,7 +183,11 @@ const checkData = (
 
     Object.entries(lastResult.steps).forEach(([stepId, step]) => {
       step.datas.using.forEach((stepUsingData) => {
-        if (step.datas.canUse[stepUsingData.text]) return;
+        if (
+          step.datas.canUse[stepUsingData.text] ||
+          step.records.removedBy[stepUsingData.text]
+        )
+          return;
         const shapeI = shapes.findIndex((shape) => shape.id === stepId);
         const dataI = shapes[shapeI].__usingDatas__.findIndex(
           (shapeUsingData) => shapeUsingData.text === stepUsingData.text
@@ -200,11 +205,40 @@ const checkData = (
             status: CommonTypes.DataStatus.error,
           },
           console: {
-            message: `${stepUsingData.text} is either not imported or already removed by preceding steps.`,
+            message: `［${step.title}］ ${stepUsingData.text} is not imported by preceding steps.`,
             status: CommonTypes.DataStatus.error,
           },
         });
       });
+
+      Object.entries(step.records.removedBy).forEach(
+        ([removedData, removedBystepIds]) => {
+          removedBystepIds.forEach((removedBystepId) => {
+            const shapeI = shapes.findIndex((shape) => shape.id === stepId);
+            const dataI = shapes[shapeI].__usingDatas__.findIndex(
+              (shapeUsingData) => shapeUsingData.text === removedData
+            );
+            const removedByStep = lastResult.steps[removedBystepId].title;
+
+            messages.errors.push({
+              shape: {
+                id: stepId,
+                i: shapeI,
+              },
+              data: {
+                id: removedData,
+                i: dataI,
+                text: removedData,
+                status: CommonTypes.DataStatus.error,
+              },
+              console: {
+                message: `［${step.title}］ ${removedData} has been removed by "${removedByStep}".`,
+                status: CommonTypes.DataStatus.error,
+              },
+            });
+          });
+        }
+      );
     });
 
     // self.postMessage({ ms: "messages", log: messages });

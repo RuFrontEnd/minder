@@ -352,10 +352,10 @@ let ctx: CanvasRenderingContext2D | null | undefined = null,
   actions: PageIdTypes.Actions = new Stack(40),
   worker: null | Worker = null;
 
-  const isCheckDataDone = {
-    error: false,
-    warning: false,
-  };
+const isCheckDataDone = {
+  error: false,
+  warning: false,
+};
 
 const ds = [
   CommonTypes.Direction.l,
@@ -2911,6 +2911,17 @@ export default function IdPage() {
     }
   };
 
+  const positioning = (shapeP: CommonTypes.Vec) => {
+    if (!isBrowser) return;
+
+    offset = {
+      x: window.innerWidth / 2 / scale - shapeP.x,
+      y: window.innerHeight / 2 / scale - shapeP.y,
+    };
+
+    drawCanvas(offset, scale);
+  };
+
   const onMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     e.preventDefault();
     setLeftMouseBtn(true);
@@ -3308,14 +3319,7 @@ export default function IdPage() {
   };
 
   const onClickPositioningButton = (shapeP: CommonTypes.Vec) => {
-    if (!isBrowser) return;
-
-    offset = {
-      x: window.innerWidth / 2 / scale - shapeP.x,
-      y: window.innerHeight / 2 / scale - shapeP.y,
-    };
-
-    drawCanvas(offset, scale);
+    positioning(shapeP);
   };
 
   const onClickProjectCard = (id: ProjectTypes.Project["id"]) => {
@@ -3530,8 +3534,17 @@ export default function IdPage() {
         type: CheckDataTypes.MessageType;
         messages: CheckDataTypes.TypeMessages;
         done: boolean;
+        ms: string;
+        log: string;
       }>
     ) => {
+      if (event.data.ms) {
+        console.log(event.data.ms, event.data.log);
+        return;
+      }
+
+      console.log("event.data.messages", event.data.messages);
+
       if (!checkedShapes) {
         checkedShapes = cloneDeep(shapes);
       }
@@ -3542,6 +3555,7 @@ export default function IdPage() {
         checkedShapes[message.shape.i].usingDatas[message.data.i].status =
           message.data.status;
         newConsoles.push({
+          shape: message.shape,
           message: message.console.message,
           status: message.console.status,
         });
@@ -3570,10 +3584,8 @@ export default function IdPage() {
         setConsoles(newConsoles);
         worker?.terminate();
       }
-
-      console.log("event.data.messages", event.data.messages);
     };
-    
+
     worker.onerror = function (error) {
       console.error("Error in Worker:", error);
     };
@@ -4006,6 +4018,7 @@ export default function IdPage() {
         }}
         isOverAllSidePanelOpen={isOverAllSidePanelOpen}
         isIndivisualSidePanelOpen={isIndivisualSidePanelOpen}
+        setIsIndivisualSidePanelOpen={setIsIndivisualSidePanelOpen}
         isConsoleOpen={isConsoleOpen}
         setIsConsoleOpen={setIsConsoleOpen}
         actionRecords={actionRecords}
@@ -4015,6 +4028,9 @@ export default function IdPage() {
           drawScreenshot(offset, scale);
         }}
         consoles={consoles}
+        positioning={positioning}
+        indivisual={indivisual}
+        setIndivisual={setIndivisual}
       />
 
       <img id="screenshotImg" alt="Screenshot" style={{ display: "none" }} />

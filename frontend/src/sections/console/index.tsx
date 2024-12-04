@@ -33,7 +33,13 @@ export default function Console(
     props.undo();
   };
 
-  console.log("props.consoles", props.consoles);
+  const onClickMessage = (shapeId: string) => {
+    const targetShape = props.shapes.find((shape: any) => shape.id === shapeId);
+    if (!targetShape) return;
+    props.positioning(targetShape.p);
+    props.setIndivisual(targetShape);
+    props.setIsIndivisualSidePanelOpen(true);
+  };
 
   return (
     <SidePanel
@@ -83,6 +89,9 @@ export default function Console(
                 className={`px-2 mb-1 ${
                   status || ""
                 } cursor-pointer underline-offset-2 hover:underline`}
+                onClick={() => {
+                  onClickMessage(consoleItem.shape.id);
+                }}
               >
                 {consoleItem.message}
               </li>
