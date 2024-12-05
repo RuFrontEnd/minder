@@ -205,7 +205,7 @@ const checkData = (
             status: CommonTypes.DataStatus.error,
           },
           console: {
-            message: `［${step.title}］ ${stepUsingData.text} is not imported by preceding steps.`,
+            message: `[ ${step.title} ] "${stepUsingData.text}" is not imported by preceding steps.`,
             status: CommonTypes.DataStatus.error,
           },
         });
@@ -232,7 +232,7 @@ const checkData = (
                 status: CommonTypes.DataStatus.error,
               },
               console: {
-                message: `［${step.title}］ ${removedData} has been removed by "${removedByStep}".`,
+                message: `[ ${step.title} ] "${removedData}" has been removed by "${removedByStep}".`,
                 status: CommonTypes.DataStatus.error,
               },
             });
