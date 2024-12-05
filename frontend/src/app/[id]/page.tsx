@@ -2790,11 +2790,6 @@ const undo = (
   drawScreenshot(offset, scale);
 };
 
-const terminateDataChecking = ()=>{
-  worker?.terminate()
-  candidates = null
-}
-
 export default function IdPage() {
   let { current: $canvas } = useRef<HTMLCanvasElement | null>(null);
   let { current: $screenshot } = useRef<HTMLCanvasElement | null>(null);
@@ -2850,6 +2845,7 @@ export default function IdPage() {
   const [addDeleteDatas, setAddDeleteDatas] =
     useState<IndivisaulSidePanelTypes.AddDatas>([]);
   const [consoles, setConsoles] = useState<any>([]);
+  const [isCheckingData, setIsCheckingData] = useState(false);
 
   const checkSteps = () => {
     setSteps(cloneDeep(shapes));
@@ -2925,6 +2921,12 @@ export default function IdPage() {
     };
 
     drawCanvas(offset, scale);
+  };
+
+  const terminateDataChecking = () => {
+    worker?.terminate();
+    candidates = null;
+    setIsCheckingData(false)
   };
 
   const onMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -3505,6 +3507,7 @@ export default function IdPage() {
     if (!!worker) {
       worker.terminate();
     }
+    setIsCheckingData(true)
     // main.js
     worker = new Worker(
       new URL("@/workers/checkData/index.ts", import.meta.url),
@@ -3594,9 +3597,9 @@ export default function IdPage() {
         isCheckDataDone.warning = false;
 
         console.log("newConsoles", newConsoles);
-
+        
         setConsoles(newConsoles);
-        terminateDataChecking()
+        terminateDataChecking();
       }
     };
 
@@ -3737,7 +3740,8 @@ export default function IdPage() {
         className="fixed top-4 left-1/2 -translate-x-1/2 flex justify-self-end self-center text-base"
         info
         onClick={onClickCheckButton}
-        text={"Check"}
+        text={`Check${isCheckingData ? "ing" : ""}`}
+        loading={isCheckingData}
       />
 
       <SidePanel

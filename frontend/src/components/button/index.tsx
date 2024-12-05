@@ -44,16 +44,16 @@ const Button = (props: ButtonTypes.Props) => {
         e.preventDefault();
       }}
     >
-      {props.text}
       {props.loading && (
         <ReactLoading
-          className={"ml-2"}
+          className={"mr-2"}
           type={"spin"}
           color={tailwindColors.white["500"]}
           height={20}
           width={20}
         />
       )}
+      {props.text}
     </button>
   );
 };
