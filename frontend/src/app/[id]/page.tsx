@@ -228,7 +228,7 @@ let ctx: CanvasRenderingContext2D | null | undefined = null,
     i,
     j,
   ],
-  checkedShapes: null | (Terminal | Process | Data | Desicion)[] = null,
+  candidates: null | (Terminal | Process | Data | Desicion)[] = null,
   curves: CommonTypes.ConnectionCurves = [
     {
       from: { shape: shapes[0], d: CommonTypes.Direction.b },
@@ -2790,6 +2790,11 @@ const undo = (
   drawScreenshot(offset, scale);
 };
 
+const terminateDataChecking = ()=>{
+  worker?.terminate()
+  candidates = null
+}
+
 export default function IdPage() {
   let { current: $canvas } = useRef<HTMLCanvasElement | null>(null);
   let { current: $screenshot } = useRef<HTMLCanvasElement | null>(null);
@@ -3129,6 +3134,15 @@ export default function IdPage() {
             scale
           )
         );
+
+        const targetCandidate = candidates?.find(
+          (candidate) => candidate.id === pressing?.shape?.id
+        );
+        if (!!targetCandidate) {
+          targetCandidate.p = pressing.shape.p;
+          console.log("shapes", shapes);
+          console.log("candidates", candidates);
+        }
 
         moveCurve(pressing?.shape);
       }
@@ -3545,14 +3559,14 @@ export default function IdPage() {
 
       console.log("event.data.messages", event.data.messages);
 
-      if (!checkedShapes) {
-        checkedShapes = cloneDeep(shapes);
+      if (!candidates) {
+        candidates = cloneDeep(shapes);
       }
 
       event.data.messages.forEach((message) => {
-        if (!checkedShapes) return;
+        if (!candidates) return;
 
-        checkedShapes[message.shape.i].usingDatas[message.data.i].status =
+        candidates[message.shape.i].usingDatas[message.data.i].status =
           message.data.status;
         newConsoles.push({
           shape: message.shape,
@@ -3574,7 +3588,7 @@ export default function IdPage() {
       }
 
       if (isCheckDataDone.error && isCheckDataDone.warning) {
-        updateShapes(checkedShapes);
+        updateShapes(candidates);
 
         isCheckDataDone.error = false;
         isCheckDataDone.warning = false;
@@ -3582,7 +3596,7 @@ export default function IdPage() {
         console.log("newConsoles", newConsoles);
 
         setConsoles(newConsoles);
-        worker?.terminate();
+        terminateDataChecking()
       }
     };
 
@@ -4006,6 +4020,7 @@ export default function IdPage() {
         updateShapes={updateShapes}
         consoles={consoles}
         setConsoles={setConsoles}
+        terminateDataChecking={terminateDataChecking}
       />
 
       <Console

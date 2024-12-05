@@ -307,8 +307,7 @@ self.onmessage = function (event: MessageEvent<string>) {
           });
           index += chunkSize;
 
-          // 延迟发送下一个区块
-          await delay(0);
+          await delay(1500);
           await sendNextChunk();
         } else {
           // 所有块都已发送，标记为完成

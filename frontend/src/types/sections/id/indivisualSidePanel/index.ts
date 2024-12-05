@@ -54,6 +54,7 @@ type Props = {
   updateShapes: (newShapes: (Terminal | Process | Data | Desicion)[]) => void;
   consoles: any;
   setConsoles: any;
+  terminateDataChecking: () => void;
 };
 
 export type { Props, CreateDatas, AddDatas };

@@ -403,6 +403,7 @@ export default function IndivisualSidePanel(
     const finishEditing = () => {
       props.draw();
       closeEditing();
+      props.terminateDataChecking();
       return false;
     };
 
