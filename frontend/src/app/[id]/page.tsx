@@ -2926,7 +2926,7 @@ export default function IdPage() {
   const terminateDataChecking = () => {
     worker?.terminate();
     candidates = null;
-    setIsCheckingData(false)
+    setIsCheckingData(false);
   };
 
   const onMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -3507,7 +3507,7 @@ export default function IdPage() {
     if (!!worker) {
       worker.terminate();
     }
-    setIsCheckingData(true)
+    setIsCheckingData(true);
     // main.js
     worker = new Worker(
       new URL("@/workers/checkData/index.ts", import.meta.url),
@@ -3597,7 +3597,7 @@ export default function IdPage() {
         isCheckDataDone.warning = false;
 
         console.log("newConsoles", newConsoles);
-        
+
         setConsoles(newConsoles);
         terminateDataChecking();
       }
@@ -3781,7 +3781,7 @@ export default function IdPage() {
             </h3>
           </div>
         </div>
-        
+
         <ul
           style={{ height: "calc(100% - 52px)" }}
           className="overflow-y-auto overflow-x-hidden p-2"
@@ -3890,7 +3890,8 @@ export default function IdPage() {
             </>
           )}
         </ul>
-        <div className="absolute top-0 -right-20 translate-x-full">
+        {/* TODO: tmp close */}
+        {/* <div className="absolute top-0 -right-20 translate-x-full">
           <div className="relative">
             <SquareButton
               role="profile_menu"
@@ -3937,9 +3938,9 @@ export default function IdPage() {
               </Frame>
             </motion.div>
           </div>
-        </div>
+        </div> */}
         <div
-          className="absolute top-0 -right-32 translate-x-full text-base"
+          className="absolute top-0 -right-20 translate-x-full text-base"
           role="project_name"
         >
           <div className="relative bg-white-500 px-5 py-1 rounded-lg shadow-md">
