@@ -613,18 +613,34 @@ export default function IndivisualSidePanel(
             setAddDatas={props.setAddDeleteDatas}
           />
         </div>
-        {/* <Button
-          className="absolute top-0 -left-44 -translate-x-full flex justify-self-end self-center text-base"
-          info
-          onClick={onClickCheckButton}
-          text={"Check"}
-        /> */}
-        {/* <Button
+        <SquareButton
+          role="upload_file"
+          size={32}
+          shadow
+          className="absolute top-0 -left-32 -translate-x-full flex justify-self-end self-center text-base"
+          content={
+            <Icon
+              type={IconTypes.Type.upload}
+              w={16}
+              h={16}
+              fill={tailwindColors.grey["1"]}
+            />
+          }
+        />
+        <SquareButton
+          role="download_file"
+          size={32}
+          shadow
           className="absolute top-0 -left-20 -translate-x-full flex justify-self-end self-center text-base"
-          info
-          onClick={() => {}}
-          text={"Save"}
-        /> */}
+          content={
+            <Icon
+              type={IconTypes.Type.download}
+              w={16}
+              h={16}
+              fill={tailwindColors.grey["1"]}
+            />
+          }
+        />
       </div>
     </SidePanel>
   );

@@ -18,6 +18,8 @@ enum Type {
   minus = "minus",
   bars = "bars",
   sight = "sight",
+  download = "download",
+  upload = "upload",
 }
 
 type Props = {

@@ -403,6 +403,52 @@ c0.6,0.6,0.6,1.6,0,2.1l-4.9,4.9c-0.6,0.6-0.6,1.3,0.4,1.3c0.3,0,0.7,0,0.7,0L30.3,
           <circle cx="50" cy="50" r="10" />
         </svg>
       )}
+      {props.type === IconTypes.Type.download && (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          role={props.role}
+          style={{
+            width: props.w || defaultVal.w,
+            height: props.h || defaultVal.h,
+            stroke: props.stroke || defaultVal.stroke,
+          }}
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+      )}
+      {props.type === IconTypes.Type.upload && (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          role={props.role}
+          style={{
+            width: props.w || defaultVal.w,
+            height: props.h || defaultVal.h,
+            stroke: props.stroke || defaultVal.stroke,
+          }}
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="17 8 12 3 7 8"></polyline>
+          <line x1="12" y1="3" x2="12" y2="15"></line>
+        </svg>
+      )}
     </>
   );
 }
