@@ -2036,48 +2036,6 @@ const getMultSelectingMap = () => {
   return map;
 };
 
-const deleteMultiSelectShapes = () => {
-  if (multiSelectShapeIds.length === 0) return true;
-
-  const multiSelectingMap = getMultSelectingMap();
-
-  curves = curves.filter(
-    (curve) =>
-      !multiSelectingMap[curve.from.shape.id] &&
-      !multiSelectingMap[curve.to.shape.id]
-  );
-  shapes = shapes.filter((shape) => !multiSelectingMap[shape.id]);
-  multiSelectShapeIds = cloneDeep(init.multiSelectShapeIds);
-  return false;
-};
-
-const deleteSelectedShape = () => {
-  const selectedShapeI = shapes.findIndex((shape) => shape.selecting);
-
-  if (selectedShapeI === -1) return false;
-  actionRecords.register(CommonTypes.Action.delete);
-
-  curves = curves.filter(
-    (curve) =>
-      curve.from.shape.id !== shapes[selectedShapeI].id &&
-      curve.to.shape.id !== shapes[selectedShapeI].id
-  );
-
-  shapes.splice(selectedShapeI, 1);
-  actionRecords.finish(CommonTypes.Action.delete);
-
-  // actions.push({
-  //   type: CommonTypes.Action.delete,
-  //   target: {
-  //     shape: removedShape,
-  //     i: selectedShapeI,
-  //     curves: removedCurves,
-  //   },
-  // }); // TODO: temp close
-
-  return false;
-};
-
 const moveMultiSelectingShapes = (offsetP: CommonTypes.Vec) => {
   if (multiSelectShapeIds.length < 2) return;
   const multiSelectingMap = getMultSelectingMap();
@@ -2829,10 +2787,10 @@ export default function IdPage() {
   });
   const [overallType, setOverallType] = useState(PageIdTypes.OverallType.step);
   const [createDataValue, setCreateDateValue] = useState<null | string>(null);
+  const [isEditingIndivisual, setIsEditingIndivisual] = useState(false);
   const [indivisual, setIndivisual] = useState<
     null | Terminal | Process | Data | Desicion
   >(null);
-  const [isEditingIndivisual, setIsEditingIndivisual] = useState(false);
   const [createImportDatas, setCreateImportDatas] =
     useState<IndivisaulSidePanelTypes.CreateDatas>([]);
   const [addImportDatas, setAddImportDatas] =
@@ -3302,6 +3260,58 @@ export default function IdPage() {
       const $canvas = document.querySelector("canvas");
       if (!$canvas || !ctx) return;
 
+      const deleteMultiSelectShapes = () => {
+        if (multiSelectShapeIds.length === 0) return true;
+
+        const multiSelectingMap = getMultSelectingMap();
+
+        curves = curves.filter(
+          (curve) =>
+            !multiSelectingMap[curve.from.shape.id] &&
+            !multiSelectingMap[curve.to.shape.id]
+        );
+
+        if (!!indivisual && multiSelectingMap[indivisual?.id]) {
+          setIndivisual(null);
+        }
+
+        shapes = shapes.filter((shape) => !multiSelectingMap[shape.id]);
+        multiSelectShapeIds = cloneDeep(init.multiSelectShapeIds);
+
+        return false;
+      };
+
+      const deleteSelectedShape = () => {
+        const selectedShapeI = shapes.findIndex((shape) => shape.selecting);
+
+        if (selectedShapeI === -1) return false;
+        actionRecords.register(CommonTypes.Action.delete);
+
+        curves = curves.filter(
+          (curve) =>
+            curve.from.shape.id !== shapes[selectedShapeI].id &&
+            curve.to.shape.id !== shapes[selectedShapeI].id
+        );
+        
+        if (shapes[selectedShapeI].id === indivisual?.id) {
+          setIndivisual(null);
+        }
+
+        shapes.splice(selectedShapeI, 1);
+        actionRecords.finish(CommonTypes.Action.delete);
+
+        // actions.push({
+        //   type: CommonTypes.Action.delete,
+        //   target: {
+        //     shape: removedShape,
+        //     i: selectedShapeI,
+        //     curves: removedCurves,
+        //   },
+        // }); // TODO: temp close
+
+        return false;
+      };
+
       handleUtils.handle([deleteMultiSelectShapes, deleteSelectedShape]);
 
       drawCanvas(offset, scale);
@@ -3673,7 +3683,7 @@ export default function IdPage() {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, [space, steps, control]);
+  }, [space, steps, control, indivisual]);
 
   return (
     <>
