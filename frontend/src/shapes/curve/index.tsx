@@ -6,11 +6,6 @@ import * as CurveTypes from "@/types/shapes/curve";
 
 const threshold = 5;
 export default class Curve {
-  private initOffset = {
-    x: 0,
-    y: 0,
-  };
-  private initScale = 1;
   id: string;
   cpline: CurveTypes.Line;
   curve: CurveTypes.Line;
@@ -31,8 +26,6 @@ export default class Curve {
   };
   private arrow: null | Arrow;
   private __selecting__: boolean;
-  protected __offset__: Vec;
-  protected __scale__: number;
 
   constructor(id: string, p1: Vec, cp1: Vec, cp2: Vec, p2: Vec) {
     this.id = id;
@@ -69,8 +62,6 @@ export default class Curve {
         90 * (Math.PI / 180)
     );
     this.__selecting__ = false;
-    this.__offset__ = this.initOffset;
-    this.__scale__ = this.initScale;
   }
 
   get selecting() {
@@ -128,23 +119,6 @@ export default class Curve {
 
   get p2() {
     return this.__p2__;
-  }
-
-  set offset(value: Vec) {
-    this.__offset__ = value;
-
-    if (this.arrow && value && this.cp2) {
-      this.arrow.offset = value;
-      this.arrow.p = value;
-    }
-  }
-
-  set scale(value: number) {
-    this.__scale__ = value;
-
-    if (this.arrow && value && this.cp2) {
-      this.arrow.scale = value;
-    }
   }
 
   get arrowAttr() {

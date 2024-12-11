@@ -21,6 +21,7 @@ type AddDatas = {
 }[];
 
 type Props = {
+  projectName: string;
   shapes: (Terminal | Process | Data | Desicion)[];
   curves: CommonTypes.ConnectionCurves;
   datas: {

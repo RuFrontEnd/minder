@@ -105,7 +105,6 @@ const a = new Terminal(
   { x: 597, y: 281.5 },
   "terminator"
 );
-a.isStart = true;
 const b = new Data("data_1731237555697", 150, 75, { x: 597, y: 502.5 }, "data");
 b.importDatas = [
   {
@@ -223,7 +222,7 @@ let ctx: CanvasRenderingContext2D | null | undefined = null,
     // c,
     // d,
     // e,
-    // f, 
+    // f,
     // g,
     // h,
     // i,
@@ -424,7 +423,7 @@ const getScreenP = (
 };
 
 const getInitializedShape = (
-  type: CommonTypes.Type,
+  type: CommonTypes.ShapeType,
   offset: CommonTypes.Vec,
   scale: number = 1
 ) => {
@@ -433,7 +432,7 @@ const getInitializedShape = (
     y: -offset.y + window.innerHeight / 2 / scale,
   };
   switch (type) {
-    case CommonTypes.Type["terminator"]:
+    case CommonTypes.ShapeType["terminator"]:
       return new Terminal(
         `${type}_${Date.now()}`,
         init.shape.size.t.w,
@@ -441,7 +440,7 @@ const getInitializedShape = (
         initPosition,
         type
       );
-    case CommonTypes.Type["process"]:
+    case CommonTypes.ShapeType["process"]:
       return new Process(
         `${type}_${Date.now()}`,
         init.shape.size.p.w,
@@ -450,7 +449,7 @@ const getInitializedShape = (
         type
       );
 
-    case CommonTypes.Type["data"]:
+    case CommonTypes.ShapeType["data"]:
       return new Data(
         `${type}_${Date.now()}`,
         init.shape.size.d.w,
@@ -459,7 +458,7 @@ const getInitializedShape = (
         type
       );
 
-    case CommonTypes.Type["decision"]:
+    case CommonTypes.ShapeType["decision"]:
       return new Desicion(
         `${type}_${Date.now()}`,
         init.shape.size.dec.w,
@@ -484,7 +483,7 @@ const getInitializedShapes = (
 
   dataShapes.forEach(([id, info]) => {
     switch (info.type) {
-      case CommonTypes.Type.terminator:
+      case CommonTypes.ShapeType.terminator:
         const newTerminator = new Terminal(
           id,
           info.w,
@@ -530,7 +529,7 @@ const getInitializedShapes = (
         shapeMappings[id] = newTerminator;
 
         break;
-      case CommonTypes.Type.data:
+      case CommonTypes.ShapeType.data:
         const newData = new Data(id, info.w, info.h, info.p, info.title);
 
         // info.data.forEach((dataId) => {
@@ -558,7 +557,7 @@ const getInitializedShapes = (
         shapeMappings[id] = newData;
 
         break;
-      case CommonTypes.Type.process:
+      case CommonTypes.ShapeType.process:
         const newProcess = new Process(id, info.w, info.h, info.p, info.title);
 
         // info.selectedData.forEach((dataId) => {
@@ -579,7 +578,7 @@ const getInitializedShapes = (
         shapeMappings[id] = newProcess;
 
         break;
-      case CommonTypes.Type.decision:
+      case CommonTypes.ShapeType.decision:
         const newDesicion = new Desicion(
           id,
           info.w,
@@ -2810,11 +2809,12 @@ export default function IdPage() {
   const [isConsoleOpen, setIsConsoleOpen] = useState(false);
   const [steps, setSteps] = useState<PageTypes.Steps>([]);
   const [datas, setDatas] = useState<PageIdTypes.Datas>([
-    { id: "data1", name: "data1" },
-    { id: "data2", name: "data2" },
-    { id: "data3", name: "data3" },
-    { id: "data4", name: "data4" },
+    // { id: "data1", name: "data1" },
+    // { id: "data2", name: "data2" },
+    // { id: "data3", name: "data3" },
+    // { id: "data4", name: "data4" },
   ]);
+
   const [isProjectsModalOpen, setIsProjectsModalOpen] = useState(false);
   const [projects, setProjects] = useState<
     ProjectAPITypes.GetProjects["resData"]
@@ -3143,8 +3143,6 @@ export default function IdPage() {
         );
         if (!!targetCandidate) {
           targetCandidate.p = pressing.shape.p;
-          console.log("shapes", shapes);
-          console.log("candidates", candidates);
         }
 
         moveCurve(pressing?.shape);
@@ -3597,8 +3595,6 @@ export default function IdPage() {
         isCheckDataDone.error = false;
         isCheckDataDone.warning = false;
 
-        console.log("newConsoles", newConsoles);
-
         setConsoles(newConsoles);
         terminateDataChecking();
       }
@@ -3629,7 +3625,7 @@ export default function IdPage() {
       //   c,
       //   d,
       //   e,
-      //   f, 
+      //   f,
       //   g
       //   h,
       //   i,
@@ -4000,6 +3996,7 @@ export default function IdPage() {
       </SidePanel>
 
       <IndivisaulSidePanel
+        projectName={projectName.val}
         shapes={shapes}
         curves={curves}
         datas={datas}

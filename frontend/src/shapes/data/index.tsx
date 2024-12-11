@@ -8,6 +8,7 @@ import * as CommonTypes from "@/types/common";
 export default class Data extends Core {
   isFrameOpen: boolean;
   thersholdRatio: number;
+  type: CommonTypes.ShapeType.data = CommonTypes.ShapeType.data;
 
   constructor(
     id: CommonTypes.Id,

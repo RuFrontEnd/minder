@@ -26,25 +26,25 @@ export default function CreateShapeButtons(
 ) {
   const createShapeButtons = [
     {
-      shape: CommonTypes.Type["terminator"],
+      shape: CommonTypes.ShapeType["terminator"],
       icon: IconTypes.Type.ellipse,
       size: 24,
       color: tailwindColors.shape.terminal,
     },
     {
-      shape: CommonTypes.Type["process"],
+      shape: CommonTypes.ShapeType["process"],
       icon: IconTypes.Type.square,
       size: 24,
       color: tailwindColors.shape.process,
     },
     {
-      shape: CommonTypes.Type["data"],
+      shape: CommonTypes.ShapeType["data"],
       icon: IconTypes.Type.parallelogram,
       size: 24,
       color: tailwindColors.shape.data,
     },
     {
-      shape: CommonTypes.Type["decision"],
+      shape: CommonTypes.ShapeType["decision"],
       icon: IconTypes.Type.dimond,
       size: 24,
       color: tailwindColors.shape.decision,
@@ -57,7 +57,7 @@ export default function CreateShapeButtons(
   }));
 
   const getInitializedShape = (
-    type: CommonTypes.Type,
+    type: CommonTypes.ShapeType,
     offset: CommonTypes.Vec,
     scale: number = 1
   ) => {
@@ -66,7 +66,7 @@ export default function CreateShapeButtons(
       y: -offset.y + window.innerHeight / 2 / scale,
     };
     switch (type) {
-      case CommonTypes.Type["terminator"]:
+      case CommonTypes.ShapeType["terminator"]:
         return new Terminal(
           `${type}_${Date.now()}`,
           initShapeProperty.size.t.w,
@@ -74,7 +74,7 @@ export default function CreateShapeButtons(
           initPosition,
           type
         );
-      case CommonTypes.Type["process"]:
+      case CommonTypes.ShapeType["process"]:
         return new Process(
           `${type}_${Date.now()}`,
           initShapeProperty.size.p.w,
@@ -83,7 +83,7 @@ export default function CreateShapeButtons(
           type
         );
 
-      case CommonTypes.Type["data"]:
+      case CommonTypes.ShapeType["data"]:
         return new Data(
           `${type}_${Date.now()}`,
           initShapeProperty.size.d.w,
@@ -92,7 +92,7 @@ export default function CreateShapeButtons(
           type
         );
 
-      case CommonTypes.Type["decision"]:
+      case CommonTypes.ShapeType["decision"]:
         return new Desicion(
           `${type}_${Date.now()}`,
           initShapeProperty.size.dec.w,
@@ -105,7 +105,7 @@ export default function CreateShapeButtons(
 
   const onClickCreateShapeButton = (
     e: MouseEvent<HTMLButtonElement>,
-    type: CommonTypes.Type
+    type: CommonTypes.ShapeType
   ) => {
     e.stopPropagation();
     e.preventDefault();

@@ -11,6 +11,8 @@ const ds = [
   CommonTypes.Direction.b,
 ];
 export default class Desicion extends Core {
+  type: CommonTypes.ShapeType.decision = CommonTypes.ShapeType.decision;
+
   text: {
     l: DecisionTypes.Text;
     t: DecisionTypes.Text;

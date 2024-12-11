@@ -5,6 +5,8 @@ import * as TerminatorTypes from "@/types/shapes/terminator";
 import * as CommonTypes from "@/types/common";
 
 export default class Terminal extends Core {
+  type: CommonTypes.ShapeType.terminator = CommonTypes.ShapeType.terminator;
+
   constructor(
     id: CommonTypes.Id,
     w: CommonTypes.W,

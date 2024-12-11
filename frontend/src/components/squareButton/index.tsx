@@ -35,7 +35,7 @@ const SquareButton = (props: SquareButtonTypes.Props) => {
       }}
       className={`${
         props.className
-      } focus:outline-none text-grey-1 inline-flex items-center justify-center flex-shrink-0 cursor-pointer ${borderRadiusStyle} bg-white-500 hover:bg-grey-5 ${
+      } focus:outline-none text-grey-1 inline-flex items-center justify-center flex-shrink-0 cursor-pointer ${borderRadiusStyle} bg-white-500 hover:bg-grey-5 overflow-hidden ${
         props.shadow ? "shadow-md" : ""
       }`}
       tabIndex={props.tabIndex ? props.tabIndex : -1}

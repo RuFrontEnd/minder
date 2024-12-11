@@ -47,7 +47,6 @@ export default class Core {
   private __deleteDatas__: CommonTypes.Datas;
   status: CoreTypes.Status;
   private __minCurveHandlerDistance__: number;
-  private __isStart__: boolean;
 
   constructor(
     id: string,
@@ -75,7 +74,6 @@ export default class Core {
     this.__deleteDatas__ = [];
     this.status = CoreTypes.Status.normal;
     this.__minCurveHandlerDistance__ = 60;
-    this.__isStart__ = false;
   }
 
   set p(value: CommonTypes.Vec) {
@@ -142,13 +140,6 @@ export default class Core {
     return this.__deleteDatas__;
   }
 
-  set isStart(val: boolean) {
-    this.__isStart__ = val;
-  }
-
-  get isStart() {
-    return this.__isStart__;
-  }
 
   getP(offset: CommonTypes.Vec = { x: 0, y: 0 }, scale: number = 1) {
     return {

@@ -44,7 +44,7 @@ type Data = { id: string; text: string; status: DataStatus };
 
 type Datas = Data[];
 
-enum Type {
+enum ShapeType {
   terminator = "terminator",
   process = "process",
   data = "data",
@@ -86,7 +86,7 @@ export type { Id, W, H, C, Vec, Shapes, Title, Data, Datas, ConnectionCurves };
 export {
   Direction,
   Corner,
-  Type,
+  ShapeType,
   SelectAreaTarget,
   Action,
   DataStatus,

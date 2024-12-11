@@ -4,6 +4,8 @@ import { tailwindColors } from "@/variables/colors";
 import * as CommonTypes from "@/types/common";
 
 export default class Process extends Core {
+  type: CommonTypes.ShapeType.process = CommonTypes.ShapeType.process;
+
   constructor(
     id: CommonTypes.Id,
     w: CommonTypes.W,

@@ -9,6 +9,7 @@ import SquareButton from "@/components/squareButton";
 import { cloneDeep } from "lodash";
 import { tailwindColors } from "@/variables/colors";
 import * as handleUtils from "@/utils/handle";
+import * as fileUtils from "@/utils/file";
 import * as InputTypes from "@/types/components/input";
 import * as SelectTypes from "@/types/components/select";
 import * as IconTypes from "@/types/components/icon";
@@ -422,7 +423,50 @@ export default function IndivisualSidePanel(
     setEditingTitle(e.target.value);
   };
 
-  // const onClickSaveButton: MouseEventHandler<HTMLSpanElement> = () => {
+  const onClickDownloadButton = () => {
+    const data = {
+      project: props.projectName,
+      shapes: props.shapes.map((shape) => ({
+        id: shape.id,
+        type: shape.type,
+        title: shape.title,
+        p: shape.p,
+        size: {
+          w: shape.w,
+          h: shape.h,
+        },
+        data: {
+          import: shape.importDatas,
+          using: shape.usingDatas,
+          delete: shape.deleteDatas,
+        },
+      })),
+      curves: props.curves.map((curve) => ({
+        from: {
+          d: curve.from.d,
+          shapeId: curve.from.shape.id,
+        },
+        shape: {
+          id: curve.shape.id,
+          p1: curve.shape.p1,
+          cp1: curve.shape.cp1,
+          cp2: curve.shape.cp2,
+          p2: curve.shape.p2,
+        },
+        to: { d: curve.to.d, shapeId: curve.to.shape.id },
+      })),
+    };
+
+    fileUtils.download(
+      data,
+      "application/json",
+      `minder_data_${new Date().valueOf()}.json`
+    );
+  };
+
+  const onClickUploadButton = () => {
+    fileUtils.upload("application/json");
+  };
   //   const $canvas = document.querySelector("canvas");
   //   const $screenshot: HTMLCanvasElement | null = document.querySelector(
   //     "canvas[role='screenshot']"
@@ -455,16 +499,16 @@ export default function IndivisualSidePanel(
   //     //   title: shape.title,
   //     //   type: (() => {
   //     //     if (shape instanceof Terminal) {
-  //     //       return CommonTypes.Type.terminator;
+  //     //       return CommonTypes.ShapeType.terminator;
   //     //     } else if (shape instanceof Process) {
-  //     //       return CommonTypes.Type.process;
+  //     //       return CommonTypes.ShapeType.process;
   //     //     } else if (shape instanceof Data) {
-  //     //       return CommonTypes.Type.data;
+  //     //       return CommonTypes.ShapeType.data;
   //     //     } else if (shape instanceof Decision) {
-  //     //       return CommonTypes.Type.decision;
+  //     //       return CommonTypes.ShapeType.decision;
   //     //     }
 
-  //     //     return CommonTypes.Type.process;
+  //     //     return CommonTypes.ShapeType.process;
   //     //   })(),
   //     //   p: shape.p,
   //     //   curves: (() => {
@@ -619,19 +663,14 @@ export default function IndivisualSidePanel(
           shadow
           className="absolute top-0 -left-32 -translate-x-full flex justify-self-end self-center text-base"
           content={
-            <div className="relative">
-              <Icon
-                type={IconTypes.Type.upload}
-                w={16}
-                h={16}
-                fill={tailwindColors.grey["1"]}
-              />
-              <input
-                type="file"
-                className="opacity-0 w-[32px] h-[32px] absolute -top-2 -left-2"
-              />
-            </div>
+            <Icon
+              type={IconTypes.Type.upload}
+              w={16}
+              h={16}
+              fill={tailwindColors.grey["1"]}
+            />
           }
+          onClick={onClickUploadButton}
         />
         <SquareButton
           role="download_file"
@@ -646,6 +685,7 @@ export default function IndivisualSidePanel(
               fill={tailwindColors.grey["1"]}
             />
           }
+          onClick={onClickDownloadButton}
         />
       </div>
     </SidePanel>
