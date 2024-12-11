@@ -218,106 +218,107 @@ j.deleteDatas = [
 let ctx: CanvasRenderingContext2D | null | undefined = null,
   ctx_screenshot: CanvasRenderingContext2D | null | undefined = null,
   shapes: (Terminal | Process | Data | Desicion)[] = [
-    a,
-    b,
-    c,
-    d,
-    e,
-    // f, g
-    h,
-    i,
-    j,
+    // a,
+    // b,
+    // c,
+    // d,
+    // e,
+    // f, 
+    // g,
+    // h,
+    // i,
+    // j,
   ],
   candidates: null | (Terminal | Process | Data | Desicion)[] = null,
   curves: CommonTypes.ConnectionCurves = [
-    {
-      from: { shape: shapes[0], d: CommonTypes.Direction.b },
-      shape: new Curve(
-        "curve_1731238521605",
-        { x: 597, y: 319 },
-        { x: 597, y: 416 },
-        { x: 597, y: 368 },
-        { x: 597, y: 453 }
-      ),
-      to: { shape: shapes[1], d: CommonTypes.Direction.t },
-    },
-    {
-      from: { shape: shapes[1], d: CommonTypes.Direction.r },
-      shape: new Curve(
-        "curve_1731238523747",
-        { x: 672, y: 502.5 },
-        { x: 738.5, y: 502.5 },
-        { x: 690.5, y: 502.5 },
-        { x: 745, y: 502.5 }
-      ),
-      to: { shape: shapes[2], d: CommonTypes.Direction.l },
-    },
-    {
-      from: { shape: shapes[2], d: CommonTypes.Direction.r },
-      shape: new Curve(
-        "curve_1731238525806",
-        { x: 907, y: 502.5 },
-        { x: 976, y: 502.5 },
-        { x: 928, y: 502.5 },
-        { x: 985, y: 502.5 }
-      ),
-      to: { shape: shapes[3], d: CommonTypes.Direction.l },
-    },
-    {
-      from: { shape: shapes[2], d: CommonTypes.Direction.b },
-      shape: new Curve(
-        "curve_1731238527503",
-        { x: 832, y: 540 },
-        { x: 832, y: 628.5 },
-        { x: 832, y: 580.5 },
-        { x: 832, y: 657 }
-      ),
-      to: { shape: shapes[4], d: CommonTypes.Direction.t },
-    },
-    {
-      from: { shape: shapes[3], d: CommonTypes.Direction.t },
-      shape: new Curve(
-        "curve_1732195734178",
-        { x: 1072, y: 465 },
-        { x: 1072, y: 361.25 },
-        { x: 884, y: 281.5 },
-        { x: 684, y: 281.5 }
-      ),
-      to: { shape: shapes[0], d: CommonTypes.Direction.r },
-    },
-    {
-      from: { shape: shapes[5], d: CommonTypes.Direction.b },
-      shape: new Curve(
-        "curve_1732277502268",
-        { x: 832, y: 165 },
-        { x: 832, y: 339 },
-        { x: 832, y: 291 },
-        { x: 832, y: 453 }
-      ),
-      to: { shape: shapes[2], d: CommonTypes.Direction.t },
-    },
-    {
-      from: { shape: shapes[3], d: CommonTypes.Direction.b },
-      shape: new Curve(
-        "curve_1732277502268",
-        { x: 1071, y: 540 },
-        { x: 1071, y: 635.25 },
-        { x: 1096.5, y: 706.5 },
-        { x: 1134, y: 706.5 }
-      ),
-      to: { shape: shapes[6], d: CommonTypes.Direction.l },
-    },
-    {
-      from: { shape: shapes[7], d: CommonTypes.Direction.b },
-      shape: new Curve(
-        "curve_1732277502268",
-        { x: 1221, y: 165 },
-        { x: 1221, y: 345.75 },
-        { x: 1196, y: 502.5 },
-        { x: 1159, y: 502.5 }
-      ),
-      to: { shape: shapes[3], d: CommonTypes.Direction.r },
-    },
+    // {
+    //   from: { shape: shapes[0], d: CommonTypes.Direction.b },
+    //   shape: new Curve(
+    //     "curve_1731238521605",
+    //     { x: 597, y: 319 },
+    //     { x: 597, y: 416 },
+    //     { x: 597, y: 368 },
+    //     { x: 597, y: 453 }
+    //   ),
+    //   to: { shape: shapes[1], d: CommonTypes.Direction.t },
+    // },
+    // {
+    //   from: { shape: shapes[1], d: CommonTypes.Direction.r },
+    //   shape: new Curve(
+    //     "curve_1731238523747",
+    //     { x: 672, y: 502.5 },
+    //     { x: 738.5, y: 502.5 },
+    //     { x: 690.5, y: 502.5 },
+    //     { x: 745, y: 502.5 }
+    //   ),
+    //   to: { shape: shapes[2], d: CommonTypes.Direction.l },
+    // },
+    // {
+    //   from: { shape: shapes[2], d: CommonTypes.Direction.r },
+    //   shape: new Curve(
+    //     "curve_1731238525806",
+    //     { x: 907, y: 502.5 },
+    //     { x: 976, y: 502.5 },
+    //     { x: 928, y: 502.5 },
+    //     { x: 985, y: 502.5 }
+    //   ),
+    //   to: { shape: shapes[3], d: CommonTypes.Direction.l },
+    // },
+    // {
+    //   from: { shape: shapes[2], d: CommonTypes.Direction.b },
+    //   shape: new Curve(
+    //     "curve_1731238527503",
+    //     { x: 832, y: 540 },
+    //     { x: 832, y: 628.5 },
+    //     { x: 832, y: 580.5 },
+    //     { x: 832, y: 657 }
+    //   ),
+    //   to: { shape: shapes[4], d: CommonTypes.Direction.t },
+    // },
+    // {
+    //   from: { shape: shapes[3], d: CommonTypes.Direction.t },
+    //   shape: new Curve(
+    //     "curve_1732195734178",
+    //     { x: 1072, y: 465 },
+    //     { x: 1072, y: 361.25 },
+    //     { x: 884, y: 281.5 },
+    //     { x: 684, y: 281.5 }
+    //   ),
+    //   to: { shape: shapes[0], d: CommonTypes.Direction.r },
+    // },
+    // {
+    //   from: { shape: shapes[5], d: CommonTypes.Direction.b },
+    //   shape: new Curve(
+    //     "curve_1732277502268",
+    //     { x: 832, y: 165 },
+    //     { x: 832, y: 339 },
+    //     { x: 832, y: 291 },
+    //     { x: 832, y: 453 }
+    //   ),
+    //   to: { shape: shapes[2], d: CommonTypes.Direction.t },
+    // },
+    // {
+    //   from: { shape: shapes[3], d: CommonTypes.Direction.b },
+    //   shape: new Curve(
+    //     "curve_1732277502268",
+    //     { x: 1071, y: 540 },
+    //     { x: 1071, y: 635.25 },
+    //     { x: 1096.5, y: 706.5 },
+    //     { x: 1134, y: 706.5 }
+    //   ),
+    //   to: { shape: shapes[6], d: CommonTypes.Direction.l },
+    // },
+    // {
+    //   from: { shape: shapes[7], d: CommonTypes.Direction.b },
+    //   shape: new Curve(
+    //     "curve_1732277502268",
+    //     { x: 1221, y: 165 },
+    //     { x: 1221, y: 345.75 },
+    //     { x: 1196, y: 502.5 },
+    //     { x: 1159, y: 502.5 }
+    //   ),
+    //   to: { shape: shapes[3], d: CommonTypes.Direction.r },
+    // },
     // {
     //   from: { shape: shapes[5], d: CommonTypes.Direction.b },
     //   shape: new Curve(
@@ -3622,17 +3623,18 @@ export default function IdPage() {
       await fetchProjects();
       await initProject(Number(params.id));
 
-      shapes = [
-        a,
-        b,
-        c,
-        d,
-        e,
-        // f, g
-        h,
-        i,
-        j,
-      ];
+      // shapes = [
+      //   a,
+      //   b,
+      //   c,
+      //   d,
+      //   e,
+      //   f, 
+      //   g
+      //   h,
+      //   i,
+      //   j,
+      // ];
 
       drawCanvas(offset, scale);
       drawScreenshot(offset, scale);

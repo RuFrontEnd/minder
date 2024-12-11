@@ -619,12 +619,18 @@ export default function IndivisualSidePanel(
           shadow
           className="absolute top-0 -left-32 -translate-x-full flex justify-self-end self-center text-base"
           content={
-            <Icon
-              type={IconTypes.Type.upload}
-              w={16}
-              h={16}
-              fill={tailwindColors.grey["1"]}
-            />
+            <div className="relative">
+              <Icon
+                type={IconTypes.Type.upload}
+                w={16}
+                h={16}
+                fill={tailwindColors.grey["1"]}
+              />
+              <input
+                type="file"
+                className="opacity-0 w-[32px] h-[32px] absolute -top-2 -left-2"
+              />
+            </div>
           }
         />
         <SquareButton
