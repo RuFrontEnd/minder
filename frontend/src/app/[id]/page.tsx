@@ -3298,7 +3298,7 @@ export default function IdPage() {
     if (e.key === " " && !space) {
       setSpace(true);
     } else if (e.key === "Backspace") {
-      console.log("document.activeElement", document.activeElement);
+      if (document.activeElement?.tagName === "INPUT") return;
       const $canvas = document.querySelector("canvas");
       if (!$canvas || !ctx) return;
 
