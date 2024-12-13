@@ -465,7 +465,9 @@ export default function IndivisualSidePanel(
   };
 
   const onClickUploadButton = () => {
-    fileUtils.upload("application/json");
+    fileUtils.upload("application/json").then((json) => {
+      console.log('json', json);
+    });
   };
   //   const $canvas = document.querySelector("canvas");
   //   const $screenshot: HTMLCanvasElement | null = document.querySelector(
