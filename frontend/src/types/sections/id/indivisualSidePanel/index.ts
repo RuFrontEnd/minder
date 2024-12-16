@@ -22,6 +22,7 @@ type AddDatas = {
 
 type Props = {
   projectName: string;
+  setProjectName: Dispatch<SetStateAction<{ inputVal: string; val: string }>>;
   shapes: (Terminal | Process | Data | Desicion)[];
   curves: CommonTypes.ConnectionCurves;
   datas: {
@@ -53,6 +54,7 @@ type Props = {
   setAddDeleteDatas: Dispatch<SetStateAction<AddDatas>>;
   draw: () => void;
   updateShapes: (newShapes: (Terminal | Process | Data | Desicion)[]) => void;
+  updateCurves: (newCurves: CommonTypes.ConnectionCurves) => void;
   consoles: any;
   setConsoles: any;
   terminateDataChecking: () => void;

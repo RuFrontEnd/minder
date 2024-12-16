@@ -82,12 +82,56 @@ type ConnectionCurves = {
   };
 }[];
 
-export type { Id, W, H, C, Vec, Shapes, Title, Data, Datas, ConnectionCurves };
-export {
-  Direction,
-  Corner,
-  ShapeType,
-  SelectAreaTarget,
-  Action,
-  DataStatus,
+type UploadJSON = {
+  project: string;
+  shapes: {
+    id: string;
+    type: ShapeType;
+    title: string;
+    p: {
+      x: number;
+      y: number;
+    };
+    size: {
+      w: number;
+      h: number;
+    };
+    data: {
+      import: Data[];
+      using: Data[];
+      delete: Data[];
+    };
+  }[];
+  curves: {
+    from: {
+      d: Direction;
+      shapeId: string;
+    };
+    shape: {
+      id: string;
+      p1: Vec;
+      cp1: Vec;
+      cp2: Vec;
+      p2: Vec;
+    };
+    to: {
+      d: Direction;
+      shapeId: string;
+    };
+  }[];
 };
+
+export type {
+  Id,
+  W,
+  H,
+  C,
+  Vec,
+  Shapes,
+  Title,
+  Data,
+  Datas,
+  ConnectionCurves,
+  UploadJSON,
+};
+export { Direction, Corner, ShapeType, SelectAreaTarget, Action, DataStatus };

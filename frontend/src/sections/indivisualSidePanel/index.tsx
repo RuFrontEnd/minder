@@ -6,6 +6,11 @@ import Button from "@/components/button";
 import Input from "@/components/input";
 import Icon from "@/components/icon";
 import SquareButton from "@/components/squareButton";
+import Terminal from "@/shapes/terminal";
+import Process from "@/shapes/process";
+import Data from "@/shapes/data";
+import Decision from "@/shapes/decision";
+import Curve from "@/shapes/curve";
 import { cloneDeep } from "lodash";
 import { tailwindColors } from "@/variables/colors";
 import * as handleUtils from "@/utils/handle";
@@ -465,9 +470,70 @@ export default function IndivisualSidePanel(
   };
 
   const onClickUploadButton = () => {
-    fileUtils.upload("application/json").then((json) => {
-      console.log('json', json);
-    });
+    fileUtils
+      .upload("application/json")
+      .then((json: CommonTypes.UploadJSON) => {
+        console.log("json", json);
+
+        const shapeType = {
+          [CommonTypes.ShapeType.terminator]: Terminal,
+          [CommonTypes.ShapeType.process]: Process,
+          [CommonTypes.ShapeType.decision]: Decision,
+          [CommonTypes.ShapeType.data]: Data,
+        };
+
+        const newShapes = json.shapes.map(
+          (shape: CommonTypes.UploadJSON["shapes"][number]) =>
+            new shapeType[shape.type](
+              shape.id,
+              shape.size.w,
+              shape.size.h,
+              shape.p,
+              shape.title
+            )
+        );
+
+        const newCurves: CommonTypes.ConnectionCurves = json.curves.map(
+          (curve) => {
+            const newShape = {
+              from: newShapes.find(
+                (newShape) => newShape.id === curve.from.shapeId
+              ),
+              to: newShapes.find(
+                (newShape) => newShape.id === curve.to.shapeId
+              ),
+            };
+
+            if (!newShape.from || !newShape.to) {
+              throw new Error("shape not found"); // TODO: revise to error message for user
+            }
+
+            return {
+              shape: new Curve(
+                curve.shape.id,
+                curve.shape.p1,
+                curve.shape.cp1,
+                curve.shape.cp2,
+                curve.shape.p2
+              ),
+              from: {
+                shape: newShape.from,
+                d: curve.from.d,
+              },
+              to: {
+                shape: newShape.to,
+                d: curve.to.d,
+              },
+            };
+          }
+        );
+
+        console.log("newCurves");
+
+        props.setProjectName({ val: json.project, inputVal: json.project });
+        props.updateShapes(newShapes);
+        props.updateCurves(newCurves);
+      });
   };
   //   const $canvas = document.querySelector("canvas");
   //   const $screenshot: HTMLCanvasElement | null = document.querySelector(

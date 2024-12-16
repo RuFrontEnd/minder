@@ -2818,6 +2818,10 @@ export default function IdPage() {
     setIndivisual(shapes.find((shape) => indivisual?.id === shape.id) || null);
   };
 
+  const updateCurves = (newCurves: CommonTypes.ConnectionCurves)=>{
+    curves = newCurves;
+  }
+
   const zoom = (
     delta: number,
     client: {
@@ -4007,6 +4011,7 @@ export default function IdPage() {
 
       <IndivisaulSidePanel
         projectName={projectName.val}
+        setProjectName={setProjectName}
         shapes={shapes}
         curves={curves}
         datas={datas}
@@ -4033,6 +4038,7 @@ export default function IdPage() {
           drawCanvas(offset, scale);
         }}
         updateShapes={updateShapes}
+        updateCurves={updateCurves}
         consoles={consoles}
         setConsoles={setConsoles}
         terminateDataChecking={terminateDataChecking}
