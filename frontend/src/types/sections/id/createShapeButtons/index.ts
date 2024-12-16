@@ -16,6 +16,24 @@ type Props = {
   shapes: (Terminal | Process | Data | Desicion)[];
   offset: CommonTypes.Vec;
   scale: number;
+  initShapeSize: {
+    t: {
+      w: number;
+      h: number;
+    };
+    p: {
+      w: number;
+      h: number;
+    };
+    d: {
+      w: number;
+      h: number;
+    };
+    dec: {
+      w: number;
+      h: number;
+    };
+  };
   reload: () => void;
 };
 

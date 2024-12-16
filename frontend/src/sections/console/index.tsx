@@ -107,6 +107,7 @@ export default function Console(
           offset={props.offset}
           scale={props.scale}
           reload={props.reload}
+          initShapeSize={props.initShapeSize}
         />
       </div>
       <div className="absolute -top-4 -translate-y-full right-0 flex">

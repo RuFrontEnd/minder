@@ -74,7 +74,7 @@ const init = {
       t: { w: 150, h: 75 },
       p: { w: 150, h: 75 },
       d: { w: 150, h: 75 },
-      dec: { w: 100, h: 100 },
+      dec: { w: 150, h: 75 },
     },
   },
   authInfo: {
@@ -420,53 +420,6 @@ const getScreenP = (
     x: (p.x + offset.x) * scale,
     y: (p.y + offset.y) * scale,
   };
-};
-
-const getInitializedShape = (
-  type: CommonTypes.ShapeType,
-  offset: CommonTypes.Vec,
-  scale: number = 1
-) => {
-  const initPosition = {
-    x: -offset.x + window.innerWidth / 2 / scale,
-    y: -offset.y + window.innerHeight / 2 / scale,
-  };
-  switch (type) {
-    case CommonTypes.ShapeType["terminator"]:
-      return new Terminal(
-        `${type}_${Date.now()}`,
-        init.shape.size.t.w,
-        init.shape.size.t.h,
-        initPosition,
-        type
-      );
-    case CommonTypes.ShapeType["process"]:
-      return new Process(
-        `${type}_${Date.now()}`,
-        init.shape.size.p.w,
-        init.shape.size.p.h,
-        initPosition,
-        type
-      );
-
-    case CommonTypes.ShapeType["data"]:
-      return new Data(
-        `${type}_${Date.now()}`,
-        init.shape.size.d.w,
-        init.shape.size.d.h,
-        initPosition,
-        type
-      );
-
-    case CommonTypes.ShapeType["decision"]:
-      return new Desicion(
-        `${type}_${Date.now()}`,
-        init.shape.size.dec.w,
-        init.shape.size.dec.h,
-        initPosition,
-        type
-      );
-  }
 };
 
 const getInitializedShapes = (
@@ -4067,6 +4020,7 @@ export default function IdPage() {
         positioning={positioning}
         indivisual={indivisual}
         setIndivisual={setIndivisual}
+        initShapeSize={init.shape.size}
       />
 
       <img id="screenshotImg" alt="Screenshot" style={{ display: "none" }} />

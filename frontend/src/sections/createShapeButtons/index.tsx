@@ -12,14 +12,6 @@ import * as CommonTypes from "@/types/common";
 import * as CreateShapeButtonsTypes from "@/types/sections/id/createShapeButtons";
 
 const isBrowser = typeof window !== "undefined";
-const initShapeProperty = {
-  size: {
-    t: { w: 150, h: 75 },
-    p: { w: 150, h: 75 },
-    d: { w: 150, h: 75 },
-    dec: { w: 100, h: 100 },
-  },
-};
 
 export default function CreateShapeButtons(
   props: CreateShapeButtonsTypes.Props
@@ -69,16 +61,16 @@ export default function CreateShapeButtons(
       case CommonTypes.ShapeType["terminator"]:
         return new Terminal(
           `${type}_${Date.now()}`,
-          initShapeProperty.size.t.w,
-          initShapeProperty.size.t.h,
+          props.initShapeSize.t.w,
+          props.initShapeSize.t.h,
           initPosition,
           type
         );
       case CommonTypes.ShapeType["process"]:
         return new Process(
           `${type}_${Date.now()}`,
-          initShapeProperty.size.p.w,
-          initShapeProperty.size.p.h,
+          props.initShapeSize.p.w,
+          props.initShapeSize.p.h,
           initPosition,
           type
         );
@@ -86,8 +78,8 @@ export default function CreateShapeButtons(
       case CommonTypes.ShapeType["data"]:
         return new Data(
           `${type}_${Date.now()}`,
-          initShapeProperty.size.d.w,
-          initShapeProperty.size.d.h,
+          props.initShapeSize.d.w,
+          props.initShapeSize.d.h,
           initPosition,
           type
         );
@@ -95,8 +87,8 @@ export default function CreateShapeButtons(
       case CommonTypes.ShapeType["decision"]:
         return new Desicion(
           `${type}_${Date.now()}`,
-          initShapeProperty.size.dec.w,
-          initShapeProperty.size.dec.h,
+          props.initShapeSize.dec.w,
+          props.initShapeSize.dec.h,
           initPosition,
           type
         );
