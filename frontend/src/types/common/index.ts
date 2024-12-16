@@ -119,6 +119,7 @@ type UploadJSON = {
       shapeId: string;
     };
   }[];
+  consoles: any;
 };
 
 export type {

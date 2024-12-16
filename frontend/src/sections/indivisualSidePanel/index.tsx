@@ -460,6 +460,7 @@ export default function IndivisualSidePanel(
         },
         to: { d: curve.to.d, shapeId: curve.to.shape.id },
       })),
+      consoles: props.consoles,
     };
 
     fileUtils.download(
@@ -483,14 +484,21 @@ export default function IndivisualSidePanel(
         };
 
         const newShapes = json.shapes.map(
-          (shape: CommonTypes.UploadJSON["shapes"][number]) =>
-            new shapeType[shape.type](
+          (shape: CommonTypes.UploadJSON["shapes"][number]) => {
+            const newShape = new shapeType[shape.type](
               shape.id,
               shape.size.w,
               shape.size.h,
               shape.p,
               shape.title
-            )
+            );
+
+            newShape.usingDatas = shape.data.using;
+            newShape.importDatas = shape.data.import;
+            newShape.deleteDatas = shape.data.delete;
+
+            return newShape;
+          }
         );
 
         const newCurves: CommonTypes.ConnectionCurves = json.curves.map(
@@ -528,11 +536,10 @@ export default function IndivisualSidePanel(
           }
         );
 
-        console.log("newCurves");
-
         props.setProjectName({ val: json.project, inputVal: json.project });
         props.updateShapes(newShapes);
         props.updateCurves(newCurves);
+        props.setConsoles(json.consoles);
       });
   };
   //   const $canvas = document.querySelector("canvas");
