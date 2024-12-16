@@ -40,7 +40,13 @@ const SquareButton = (props: SquareButtonTypes.Props) => {
       }`}
       tabIndex={props.tabIndex ? props.tabIndex : -1}
       onClick={props.onClick}
-      onKeyDown={props.onKeyDown}
+      onKeyDown={(e) => {
+        e.preventDefault();
+        return false;
+      }}
+      onMouseDown={(e) => {
+        e.preventDefault();
+      }}
     >
       {props.content}
     </button>
