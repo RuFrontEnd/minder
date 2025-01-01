@@ -1710,7 +1710,20 @@ const movePressingCurve = (
 
       const quarterD = shape.checkQuarterArea(getNormalP(p, offset, scale));
       if (quarterD) {
-        return [quarterD, shape.getCenter()[quarterD]];
+        const p2 = shape.getCenter()[quarterD];
+        
+        if (
+          shape.type === CommonTypes.ShapeType.data &&
+          quarterD === CommonTypes.Direction.l
+        ) {
+          p2.x = p2.x + 8;
+        } else if (
+          shape.type === CommonTypes.ShapeType.data &&
+          quarterD === CommonTypes.Direction.r
+        ) {
+          p2.x = p2.x - 8;
+        }
+        return [quarterD, { x: p2.x, y: p2.y }];
       }
     }
 
@@ -1791,6 +1804,7 @@ const moveSenderCurve = (
 };
 
 const moveRecieverCurve = (
+  type: CommonTypes.ShapeType,
   fromD: CommonTypes.Direction,
   toD: CommonTypes.Direction,
   curve: null | undefined | Curve,
@@ -1801,6 +1815,17 @@ const moveRecieverCurve = (
 
   const p1 = curve.p1;
   const p2 = reciever.getCenter()[toD];
+  if (
+    type === CommonTypes.ShapeType.data &&
+    toD === CommonTypes.Direction.l
+  ) {
+    p2.x = p2.x + 8;
+  } else if (
+    type === CommonTypes.ShapeType.data &&
+    toD === CommonTypes.Direction.r
+  ) {
+    p2.x = p2.x - 8;
+  }
   const [cp1, cp2] = getCurveStickingCp1Cp2(fromD, toD, curve, p1, p2);
 
   if (!p1 || !p2 || !cp1 || !cp2) return;
@@ -1826,6 +1851,7 @@ const moveCurve = (
     }
     if (curve.to.shape.id === shape.id) {
       moveRecieverCurve(
+        shape.type,
         curve.from.d,
         curve.to.d,
         curve.shape,
@@ -3388,10 +3414,10 @@ export default function IdPage() {
     setIsProjectsModalOpen(false);
   };
 
-  const onClickLogOutButton = () => {
-    localStorage.removeItem("Authorization");
-    router.push("/");
-  };
+  // const onClickLogOutButton = () => {
+  //   localStorage.removeItem("Authorization");
+  //   router.push("/");
+  // };
 
   const onClickProjectName = () => {
     setIsRenameFrameOpen((isRenameFrameOpen) => !isRenameFrameOpen);
