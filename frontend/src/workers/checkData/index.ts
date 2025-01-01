@@ -5,6 +5,7 @@ import Desicion from "@/shapes/decision";
 import * as CommonTypes from "@/types/common";
 import * as handleUtils from "@/utils/handle";
 import * as CheckDataTypes from "@/types/workers/checkData";
+import * as CoreTypes from "@/types/shapes/core";
 import { cloneDeep } from "lodash";
 
 const ds = [
@@ -163,88 +164,89 @@ const checkData = (
       }
     });
 
+    // self.postMessage({ ms: "lastResult.steps", log: lastResult.steps });
+
     return {
       steps: lastResult.steps,
       shapes: lastResult.shapes,
     };
   };
 
-  let output: { messages: null | CheckDataTypes.Message } = { messages: null };
+  let output: CheckDataTypes.MessageShapes = [];
 
   const createMessages = (lastResult: {
     steps: CheckDataTypes.Steps;
     shapes: CheckDataTypes.Shapes;
   }) => {
-    self.postMessage({ ms: "lastResult.steps", log: lastResult.steps });
-    const messages: CheckDataTypes.Message = {
-      errors: [],
-      warnings: [],
-    };
+    const steps = Object.entries(lastResult.steps);
 
-    Object.entries(lastResult.steps).forEach(([stepId, step]) => {
+    const messageShapes: CheckDataTypes.MessageShapes = Array.from(
+      { length: steps.length },
+      () => ({
+        id: "",
+        status: CoreTypes.Status.normal,
+        datas: [],
+      })
+    );
+
+    steps.forEach(([stepId, step]) => {
+      const shapeI = shapes.findIndex((shape) => shape.id === stepId);
+      messageShapes[shapeI].id = stepId;
+
       step.datas.using.forEach((stepUsingData) => {
-        if (
-          step.datas.canUse[stepUsingData.text] ||
-          step.records.removedBy[stepUsingData.text]
-        )
-          return;
-        const shapeI = shapes.findIndex((shape) => shape.id === stepId);
         const dataI = shapes[shapeI].__usingDatas__.findIndex(
           (shapeUsingData) => shapeUsingData.text === stepUsingData.text
         );
-
-        messages.errors.push({
-          shape: {
-            id: stepId,
-            i: shapeI,
-          },
-          data: {
+        if (step.datas.canUse[stepUsingData.text]) {
+          messageShapes[shapeI].datas.push({
+            id: stepUsingData.id,
+            i: dataI,
+            text: stepUsingData.text,
+            status: CommonTypes.DataStatus.pass,
+            console: null,
+          });
+        } else if (
+          !step.datas.canUse[stepUsingData.text] &&
+          !step.records.gottenBy[stepUsingData.text]
+        ) {
+          messageShapes[shapeI].status = CoreTypes.Status.error;
+          messageShapes[shapeI].datas.push({
             id: stepUsingData.id,
             i: dataI,
             text: stepUsingData.text,
             status: CommonTypes.DataStatus.error,
-          },
-          console: {
-            message: `[ ${step.title} ] "${stepUsingData.text}" is not imported by preceding steps.`,
-            status: CommonTypes.DataStatus.error,
-          },
-        });
-      });
-
-      Object.entries(step.records.removedBy).forEach(
-        ([removedData, removedBystepIds]) => {
-          removedBystepIds.forEach((removedBystepId) => {
-            const shapeI = shapes.findIndex((shape) => shape.id === stepId);
-            const dataI = shapes[shapeI].__usingDatas__.findIndex(
-              (shapeUsingData) => shapeUsingData.text === removedData
-            );
-            const removedByStep = lastResult.steps[removedBystepId].title;
-
-            messages.errors.push({
-              shape: {
-                id: stepId,
-                i: shapeI,
-              },
-              data: {
-                id: removedData,
-                i: dataI,
-                text: removedData,
-                status: CommonTypes.DataStatus.error,
-              },
-              console: {
-                message: `[ ${step.title} ] "${removedData}" has been removed by "${removedByStep}".`,
-                status: CommonTypes.DataStatus.error,
-              },
-            });
+            console: {
+              message: `[ ${step.title} ] "${stepUsingData.text}" is not imported by preceding steps.`,
+              status: CommonTypes.DataStatus.error,
+            },
           });
+        } else if (
+          !step.datas.canUse[stepUsingData.text] &&
+          step.records.removedBy[stepUsingData.text]?.size > 0
+        ) {
+          messageShapes[shapeI].status = CoreTypes.Status.error;
+          step.records.removedBy[stepUsingData.text].forEach(
+            (removedByStepId) => {
+              const removedByStep = lastResult.steps[removedByStepId].title;
+              messageShapes[shapeI].datas.push({
+                id: stepUsingData.id,
+                i: dataI,
+                text: stepUsingData.text,
+                status: CommonTypes.DataStatus.pass,
+                console: {
+                  message: `[ ${step.title} ] "${stepUsingData.text}" has been removed by "${removedByStep}".`,
+                  status: CommonTypes.DataStatus.error,
+                },
+              });
+            }
+          );
         }
-      );
+      });
     });
 
-    // self.postMessage({ ms: "messages", log: messages });
+    // self.postMessage({ ms: "messageShapes", log: messageShapes });
 
-    output = { messages: messages };
-
+    output = messageShapes;
     return false;
   };
 
@@ -283,15 +285,12 @@ self.onmessage = function (event: MessageEvent<string>) {
     return false;
   };
 
-  const postToMainThread = async (lastResult: {
-    messages: CheckDataTypes.Message;
-  }) => {
-    if (!lastResult.messages) return false;
+  const postToMainThread = async (messageShapes: any) => {
+    if (!messageShapes) return false;
 
-    const sendChunks = async (
-      messages: CheckDataTypes.TypeMessages,
-      type: CheckDataTypes.MessageType
-    ) => {
+    self.postMessage({ ms: "messageShapes", log: messageShapes });
+
+    const sendChunks = async (messageShapes: CheckDataTypes.TypeMessages) => {
       let index = 0;
       const chunkSize = 1;
 
@@ -299,10 +298,9 @@ self.onmessage = function (event: MessageEvent<string>) {
         new Promise((resolve) => setTimeout(resolve, ms));
 
       const sendNextChunk = async () => {
-        if (index < messages.length) {
+        if (index < messageShapes.length) {
           self.postMessage({
-            type: type,
-            messages: messages.slice(index, index + chunkSize),
+            messageShapes: messageShapes.slice(index, index + chunkSize),
             done: false,
           });
           index += chunkSize;
@@ -310,10 +308,8 @@ self.onmessage = function (event: MessageEvent<string>) {
           await delay(1500);
           await sendNextChunk();
         } else {
-          // 所有块都已发送，标记为完成
           self.postMessage({
-            type: type,
-            messages: [],
+            messageShapes: [],
             done: true,
           });
         }
@@ -322,15 +318,7 @@ self.onmessage = function (event: MessageEvent<string>) {
       await sendNextChunk();
     };
 
-    // 按顺序发送 errors 和 warnings
-    await sendChunks(
-      lastResult.messages.errors,
-      CheckDataTypes.MessageType.error
-    );
-    await sendChunks(
-      lastResult.messages.warnings,
-      CheckDataTypes.MessageType.warning
-    );
+    await sendChunks(messageShapes);
 
     return false;
   };

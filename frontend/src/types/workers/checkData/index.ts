@@ -3,6 +3,7 @@ import Process from "@/shapes/process";
 import Data from "@/shapes/data";
 import Desicion from "@/shapes/decision";
 import * as CommonTypes from "@/types/common";
+import * as CoreTypes from '@/types/shapes/core'
 
 type CanUseDatas = { [text: string]: boolean };
 type RecordDatas = { [text: string]: Set<string> };
@@ -135,6 +136,21 @@ enum MessageType {
   warning = "warning",
 }
 
+type MessageShapes = {
+  id: string;
+  status: CoreTypes.Status;
+  datas: {
+    id: string;
+    i: number;
+    text: string;
+    status: string;
+    console: null | {
+      message: string;
+      status: string;
+    };
+  }[];
+}[];
+
 export type {
   Shapes,
   EventData,
@@ -148,6 +164,7 @@ export type {
   Message,
   TypeMessage,
   TypeMessages,
+  MessageShapes,
 };
 
 export { MessageType };

@@ -352,11 +352,6 @@ let ctx: CanvasRenderingContext2D | null | undefined = null,
   actions: PageIdTypes.Actions = new Stack(40),
   worker: null | Worker = null;
 
-const isCheckDataDone = {
-  error: false,
-  warning: false,
-};
-
 const ds = [
   CommonTypes.Direction.l,
   CommonTypes.Direction.t,
@@ -2769,11 +2764,13 @@ export default function IdPage() {
     shapes = newShapes;
     checkSteps();
     setIndivisual(shapes.find((shape) => indivisual?.id === shape.id) || null);
+    drawCanvas(offset, scale);
+    drawScreenshot(offset, scale);
   };
 
-  const updateCurves = (newCurves: CommonTypes.ConnectionCurves)=>{
+  const updateCurves = (newCurves: CommonTypes.ConnectionCurves) => {
     curves = newCurves;
-  }
+  };
 
   const zoom = (
     delta: number,
@@ -3249,7 +3246,7 @@ export default function IdPage() {
             curve.from.shape.id !== shapes[selectedShapeI].id &&
             curve.to.shape.id !== shapes[selectedShapeI].id
         );
-        
+
         if (shapes[selectedShapeI].id === indivisual?.id) {
           setIndivisual(null);
         }
@@ -3431,10 +3428,10 @@ export default function IdPage() {
     //     // fetchProjects();
     //   }
     // } catch (error) {
-      setProjectName({
-        val: projectName.inputVal,
-        inputVal: projectName.inputVal,
-      });
+    setProjectName({
+      val: projectName.inputVal,
+      inputVal: projectName.inputVal,
+    });
     // }
 
     setIsRenameFrameOpen(false);
@@ -3511,60 +3508,57 @@ export default function IdPage() {
     sendChuncks(shapes, curves, worker);
 
     const newConsoles: any = [];
+    let index = 0;
+    const chunkSize = 1;
 
     worker.onmessage = (
       event: MessageEvent<{
-        type: CheckDataTypes.MessageType;
-        messages: CheckDataTypes.TypeMessages;
+        messageShapes: CheckDataTypes.MessageShapes;
         done: boolean;
         ms: string;
         log: string;
       }>
     ) => {
-      if (event.data.ms) {
-        console.log(event.data.ms, event.data.log);
-        return;
+      if (event.data.ms && event.data.log) {
+        console.log(`${event.data.ms}`, event.data.log);
       }
-
-      console.log("event.data.messages", event.data.messages);
+      if (!event.data.messageShapes) return;
+      console.log(event.data, event.data);
 
       if (!candidates) {
         candidates = cloneDeep(shapes);
       }
 
-      event.data.messages.forEach((message) => {
+      event.data.messageShapes.forEach((messageShape, messageShapeI) => {
         if (!candidates) return;
+        const chunckI = index + messageShapeI;
+        candidates[chunckI].status = messageShape.status;
+        messageShape.datas.forEach((data: any) => {
+          if (!candidates) return;
+          console.log("data", data);
+          console.log(
+            "candidates[messageShapeI].usingDatas[data.i]",
+            candidates[messageShapeI].usingDatas[data.i]
+          );
 
-        candidates[message.shape.i].usingDatas[message.data.i].status =
-          message.data.status;
-        newConsoles.push({
-          shape: message.shape,
-          message: message.console.message,
-          status: message.console.status,
+          candidates[chunckI].usingDatas[data.i].status = data.status;
+
+          if (!data.console) return;
+
+          newConsoles.push({
+            shape: messageShape,
+            message: data.console.message,
+            status: data.console.status,
+          });
         });
       });
 
-      if (
-        event.data.type === CheckDataTypes.MessageType.error &&
-        event.data.done
-      ) {
-        isCheckDataDone.error = true;
-      } else if (
-        event.data.type === CheckDataTypes.MessageType.warning &&
-        event.data.done
-      ) {
-        isCheckDataDone.warning = true;
-      }
-
-      if (isCheckDataDone.error && isCheckDataDone.warning) {
+      if (event.data.done) {
         updateShapes(candidates);
-
-        isCheckDataDone.error = false;
-        isCheckDataDone.warning = false;
-
         setConsoles(newConsoles);
         terminateDataChecking();
       }
+      index += chunkSize;
     };
 
     worker.onerror = function (error) {
