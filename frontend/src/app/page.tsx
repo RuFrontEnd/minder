@@ -3076,6 +3076,7 @@ export default function IdPage() {
           )
         );
 
+        // sync with candidates when checking
         const targetCandidate = candidates?.find(
           (candidate) => candidate.id === pressing?.shape?.id
         );
@@ -3102,6 +3103,16 @@ export default function IdPage() {
           },
           getNormalP(offsetP, null, scale)
         );
+
+        // sync with candidates when checking
+        const targetCandidate = candidates?.find(
+          (candidate) => candidate.id === pressing?.shape?.id
+        );
+        if (!!targetCandidate) {
+          targetCandidate.p = pressing.shape.p;
+          targetCandidate.w = pressing.shape.w;
+          targetCandidate.h = pressing.shape.h;
+        }
       }
     }
 
