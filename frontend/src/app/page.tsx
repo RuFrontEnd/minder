@@ -98,239 +98,11 @@ const init = {
   multiSelectShapeIds: [],
 };
 
-const a = new Terminal(
-  "terminator_1731237541265",
-  150,
-  75,
-  { x: 597, y: 281.5 },
-  "terminator"
-);
-const b = new Data("data_1731237555697", 150, 75, { x: 597, y: 502.5 }, "data");
-b.importDatas = [
-  {
-    id: "data1",
-    text: "data1",
-    status: CommonTypes.DataStatus.default,
-  },
-  {
-    id: "data2",
-    text: "data2",
-    status: CommonTypes.DataStatus.default,
-  },
-];
-const c = new Desicion(
-  "decision_1731237570732",
-  150,
-  75,
-  { x: 832, y: 502.5 },
-  "decision"
-);
-c.usingDatas = [
-  {
-    id: "data1",
-    text: "data1",
-    status: CommonTypes.DataStatus.default,
-  },
-];
-c.deleteDatas = [
-  {
-    id: "data2",
-    text: "data2",
-    status: CommonTypes.DataStatus.default,
-  },
-];
-const d = new Process(
-  "process_1_1731237541657",
-  150,
-  75,
-  { x: 1072, y: 502.5 },
-  "process_1"
-);
-d.usingDatas = [
-  {
-    id: "data2",
-    text: "data2",
-    status: CommonTypes.DataStatus.default,
-  },
-];
-const e = new Process(
-  "process_2_1731237583896",
-  150,
-  75,
-  { x: 832, y: 706.5 },
-  "process_2"
-);
-e.usingDatas = [
-  {
-    id: "data3",
-    text: "data3",
-    status: CommonTypes.DataStatus.default,
-  },
-];
-// const f = new Terminal(
-//   "terminator_2031237541265",
-//   150,
-//   75,
-//   { x: 97, y: 2.5 },
-//   "terminator"
-// );
-// f.isStart = true;
-// const g = new Data("data_2031237555697", 150, 75, { x: 97, y: 202.5 }, "data");
-// g.importDatas = [];
-const h = new Process(
-  "process_3_1732277499200",
-  150,
-  75,
-  { x: 832, y: 127.5 },
-  "process_3"
-);
-h.usingDatas = [];
-const i = new Process(
-  "process_4_1732279874784",
-  150,
-  75,
-  { x: 1221, y: 706.5 },
-  "process_4"
-);
-i.usingDatas = [
-  {
-    id: "data4",
-    text: "data4",
-    status: CommonTypes.DataStatus.default,
-  },
-];
-const j = new Process(
-  "process_5_1732453853446",
-  150,
-  75,
-  { x: 1221, y: 127.5 },
-  "process_5"
-);
-j.deleteDatas = [
-  {
-    id: "data2",
-    text: "data2",
-    status: CommonTypes.DataStatus.default,
-  },
-];
-
 let ctx: CanvasRenderingContext2D | null | undefined = null,
   ctx_screenshot: CanvasRenderingContext2D | null | undefined = null,
-  shapes: (Terminal | Process | Data | Desicion)[] = [
-    // a,
-    // b,
-    // c,
-    // d,
-    // e,
-    // f,
-    // g,
-    // h,
-    // i,
-    // j,
-  ],
+  shapes: (Terminal | Process | Data | Desicion)[] = [],
   candidates: null | (Terminal | Process | Data | Desicion)[] = null,
-  curves: CommonTypes.ConnectionCurves = [
-    // {
-    //   from: { shape: shapes[0], d: CommonTypes.Direction.b },
-    //   shape: new Curve(
-    //     "curve_1731238521605",
-    //     { x: 597, y: 319 },
-    //     { x: 597, y: 416 },
-    //     { x: 597, y: 368 },
-    //     { x: 597, y: 453 }
-    //   ),
-    //   to: { shape: shapes[1], d: CommonTypes.Direction.t },
-    // },
-    // {
-    //   from: { shape: shapes[1], d: CommonTypes.Direction.r },
-    //   shape: new Curve(
-    //     "curve_1731238523747",
-    //     { x: 672, y: 502.5 },
-    //     { x: 738.5, y: 502.5 },
-    //     { x: 690.5, y: 502.5 },
-    //     { x: 745, y: 502.5 }
-    //   ),
-    //   to: { shape: shapes[2], d: CommonTypes.Direction.l },
-    // },
-    // {
-    //   from: { shape: shapes[2], d: CommonTypes.Direction.r },
-    //   shape: new Curve(
-    //     "curve_1731238525806",
-    //     { x: 907, y: 502.5 },
-    //     { x: 976, y: 502.5 },
-    //     { x: 928, y: 502.5 },
-    //     { x: 985, y: 502.5 }
-    //   ),
-    //   to: { shape: shapes[3], d: CommonTypes.Direction.l },
-    // },
-    // {
-    //   from: { shape: shapes[2], d: CommonTypes.Direction.b },
-    //   shape: new Curve(
-    //     "curve_1731238527503",
-    //     { x: 832, y: 540 },
-    //     { x: 832, y: 628.5 },
-    //     { x: 832, y: 580.5 },
-    //     { x: 832, y: 657 }
-    //   ),
-    //   to: { shape: shapes[4], d: CommonTypes.Direction.t },
-    // },
-    // {
-    //   from: { shape: shapes[3], d: CommonTypes.Direction.t },
-    //   shape: new Curve(
-    //     "curve_1732195734178",
-    //     { x: 1072, y: 465 },
-    //     { x: 1072, y: 361.25 },
-    //     { x: 884, y: 281.5 },
-    //     { x: 684, y: 281.5 }
-    //   ),
-    //   to: { shape: shapes[0], d: CommonTypes.Direction.r },
-    // },
-    // {
-    //   from: { shape: shapes[5], d: CommonTypes.Direction.b },
-    //   shape: new Curve(
-    //     "curve_1732277502268",
-    //     { x: 832, y: 165 },
-    //     { x: 832, y: 339 },
-    //     { x: 832, y: 291 },
-    //     { x: 832, y: 453 }
-    //   ),
-    //   to: { shape: shapes[2], d: CommonTypes.Direction.t },
-    // },
-    // {
-    //   from: { shape: shapes[3], d: CommonTypes.Direction.b },
-    //   shape: new Curve(
-    //     "curve_1732277502268",
-    //     { x: 1071, y: 540 },
-    //     { x: 1071, y: 635.25 },
-    //     { x: 1096.5, y: 706.5 },
-    //     { x: 1134, y: 706.5 }
-    //   ),
-    //   to: { shape: shapes[6], d: CommonTypes.Direction.l },
-    // },
-    // {
-    //   from: { shape: shapes[7], d: CommonTypes.Direction.b },
-    //   shape: new Curve(
-    //     "curve_1732277502268",
-    //     { x: 1221, y: 165 },
-    //     { x: 1221, y: 345.75 },
-    //     { x: 1196, y: 502.5 },
-    //     { x: 1159, y: 502.5 }
-    //   ),
-    //   to: { shape: shapes[3], d: CommonTypes.Direction.r },
-    // },
-    // {
-    //   from: { shape: shapes[5], d: CommonTypes.Direction.b },
-    //   shape: new Curve(
-    //     "curve_2031238521605",
-    //     { x: 97, y: 40 },
-    //     { x: 97, y: 64.5 },
-    //     { x: 97, y: 129 },
-    //     { x: 97, y: 154 }
-    //   ),
-    //   to: { shape: shapes[6], d: CommonTypes.Direction.t },
-    // },
-  ],
-  tests: any[] = [], // TODO: should be deleted
+  curves: CommonTypes.ConnectionCurves = [],
   pressing: PageIdTypes.Pressing = null,
   pressingCurve: PageIdTypes.PressingCurve = null,
   offset: CommonTypes.Vec = cloneDeep(init.offset),
@@ -350,7 +122,8 @@ let ctx: CanvasRenderingContext2D | null | undefined = null,
   },
   alginLines: { from: CommonTypes.Vec; to: CommonTypes.Vec }[] = [],
   actions: PageIdTypes.Actions = new Stack(40),
-  worker: null | Worker = null;
+  worker: null | Worker = null,
+  shapesProxy = null;
 
 const ds = [
   CommonTypes.Direction.l,
@@ -1711,7 +1484,7 @@ const movePressingCurve = (
       const quarterD = shape.checkQuarterArea(getNormalP(p, offset, scale));
       if (quarterD) {
         const p2 = shape.getCenter()[quarterD];
-        
+
         if (
           shape.type === CommonTypes.ShapeType.data &&
           quarterD === CommonTypes.Direction.l
@@ -1815,10 +1588,7 @@ const moveRecieverCurve = (
 
   const p1 = curve.p1;
   const p2 = reciever.getCenter()[toD];
-  if (
-    type === CommonTypes.ShapeType.data &&
-    toD === CommonTypes.Direction.l
-  ) {
+  if (type === CommonTypes.ShapeType.data && toD === CommonTypes.Direction.l) {
     p2.x = p2.x + 8;
   } else if (
     type === CommonTypes.ShapeType.data &&
@@ -2016,6 +1786,8 @@ const moveMultiSelectingShapes = (offsetP: CommonTypes.Vec) => {
   shapes.forEach((shape) => {
     if (!multiSelectingMap[shape.id]) return;
     shape.move(offsetP);
+
+    syncCandidates(shape);
   });
 };
 
@@ -2085,6 +1857,8 @@ const resizeMultiSelectingShapes = (
               y: shape.p.y + unitY / scale,
             };
           }
+
+          syncCandidates(shape)
         });
       }
       break;
@@ -2131,6 +1905,8 @@ const resizeMultiSelectingShapes = (
               y: shape.p.y + unitY / scale,
             };
           }
+
+          syncCandidates(shape)
         });
       }
       break;
@@ -2177,6 +1953,8 @@ const resizeMultiSelectingShapes = (
               y: shape.p.y + unitY / scale,
             };
           }
+
+          syncCandidates(shape)
         });
       }
       break;
@@ -2223,6 +2001,8 @@ const resizeMultiSelectingShapes = (
               y: shape.p.y + unitY / scale,
             };
           }
+
+          syncCandidates(shape)
         });
       }
 
@@ -2505,10 +2285,6 @@ const draw = (
   ctx?.fillRect(0, 0, window.innerWidth, window.innerHeight);
   ctx?.closePath();
 
-  tests.forEach((test) => {
-    test.draw(ctx);
-  });
-
   drawShapes(ctx, shapes, offset, scale);
   drawShapes(
     ctx,
@@ -2722,6 +2498,16 @@ const undo = (
   drawScreenshot(offset, scale);
 };
 
+const syncCandidates = (shape: Terminal | Process | Data | Desicion) => {
+  if (!candidates) return;
+  // sync with candidates when checking
+  const candidate = candidates?.find((candidate) => candidate.id === shape.id);
+  if (!candidate) return;
+  candidate.p = shape.p;
+  candidate.w = shape.w;
+  candidate.h = shape.h;
+};
+
 export default function IdPage() {
   let { current: $canvas } = useRef<HTMLCanvasElement | null>(null);
   let { current: $screenshot } = useRef<HTMLCanvasElement | null>(null);
@@ -2740,12 +2526,7 @@ export default function IdPage() {
   const [isProfileFrameOpen, setIsProfileFrameOpen] = useState(false);
   const [isConsoleOpen, setIsConsoleOpen] = useState(false);
   const [steps, setSteps] = useState<PageTypes.Steps>([]);
-  const [datas, setDatas] = useState<PageIdTypes.Datas>([
-    // { id: "data1", name: "data1" },
-    // { id: "data2", name: "data2" },
-    // { id: "data3", name: "data3" },
-    // { id: "data4", name: "data4" },
-  ]);
+  const [datas, setDatas] = useState<PageIdTypes.Datas>([]);
 
   const [isProjectsModalOpen, setIsProjectsModalOpen] = useState(false);
   const [projects, setProjects] = useState<
@@ -2865,6 +2646,7 @@ export default function IdPage() {
   const terminateDataChecking = () => {
     worker?.terminate();
     candidates = null;
+    shapesProxy = null;
     setIsCheckingData(false);
   };
 
@@ -3076,14 +2858,7 @@ export default function IdPage() {
           )
         );
 
-        // sync with candidates when checking
-        const targetCandidate = candidates?.find(
-          (candidate) => candidate.id === pressing?.shape?.id
-        );
-        if (!!targetCandidate) {
-          targetCandidate.p = pressing.shape.p;
-        }
-
+        syncCandidates(pressing?.shape);
         moveCurve(pressing?.shape);
       }
 
@@ -3104,15 +2879,7 @@ export default function IdPage() {
           getNormalP(offsetP, null, scale)
         );
 
-        // sync with candidates when checking
-        const targetCandidate = candidates?.find(
-          (candidate) => candidate.id === pressing?.shape?.id
-        );
-        if (!!targetCandidate) {
-          targetCandidate.p = pressing.shape.p;
-          targetCandidate.w = pressing.shape.w;
-          targetCandidate.h = pressing.shape.h;
-        }
+        syncCandidates(pressing?.shape);
       }
     }
 
@@ -3560,7 +3327,6 @@ export default function IdPage() {
         console.log(`${event.data.ms}`, event.data.log);
       }
       if (!event.data.messageShapes) return;
-      console.log(event.data, event.data);
 
       if (!candidates) {
         candidates = cloneDeep(shapes);
@@ -3616,20 +3382,6 @@ export default function IdPage() {
       // await verifyToken();
       // await fetchProjects();
       await initProject(Number(params.id));
-
-      // shapes = [
-      //   a,
-      //   b,
-      //   c,
-      //   d,
-      //   e,
-      //   f,
-      //   g
-      //   h,
-      //   i,
-      //   j,
-      // ];
-
       drawCanvas(offset, scale);
       drawScreenshot(offset, scale);
     })();
