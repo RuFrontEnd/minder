@@ -796,26 +796,37 @@ const getAlignP = (
 };
 
 const getAlignLines = (
-  shapes: (Terminal | Process | Data | Desicion)[],
-  baseShape?: null | Terminal | Process | Data | Desicion
+  targetShapes: (Terminal | Process | Data | Desicion)[],
+  base: {
+    m: CommonTypes.Vec;
+    l: number;
+    t: number;
+    r: number;
+    b: number;
+  }
 ) => {
-  if (!baseShape || shapes.length === 0) return [];
+  if (targetShapes.length === 0) return [];
   const lines: {
     from: CommonTypes.Vec;
     to: CommonTypes.Vec;
   }[] = [];
+  const targets = targetShapes.map((targetShape) => ({
+    m: targetShape.getCenter().m,
+    l: targetShape.getEdge().l,
+    t: targetShape.getEdge().t,
+    r: targetShape.getEdge().r,
+    b: targetShape.getEdge().b,
+  }));
 
-  const baseCenter = baseShape.getCenter().m;
+  console.log("targets", targets);
 
   // center x & center x
-  const align_center_x_shapes = shapes
+  const align_center_x_shapes = targets
     .filter(
-      (shape) =>
-        Number(baseCenter.x.toFixed(1)) ===
-          Number(shape.getCenter().m.x.toFixed(1)) ||
-        shape.id === baseShape.id
+      (target) => Number(base.m.x.toFixed(1)) === Number(target.m.x.toFixed(1))
     )
-    .sort((a, b) => a.p.x - b.p.x);
+    .concat([base])
+    .sort((a, b) => a.m.x - b.m.x);
 
   if (
     align_center_x_shapes[0] &&
@@ -823,26 +834,23 @@ const getAlignLines = (
   ) {
     lines.push({
       from: {
-        x: baseCenter.x,
-        y: align_center_x_shapes[0].getCenter().m.y,
+        x: base.m.x,
+        y: align_center_x_shapes[0].m.y,
       },
       to: {
-        x: baseCenter.x,
-        y: align_center_x_shapes[align_center_x_shapes.length - 1].getCenter().m
-          .y,
+        x: base.m.x,
+        y: align_center_x_shapes[align_center_x_shapes.length - 1].m.y,
       },
     });
   }
 
   // center y & center y
-  const align_center_y_shapes = shapes
+  const align_center_y_shapes = targets
     .filter(
-      (shape) =>
-        Number(baseCenter.y.toFixed(1)) ===
-          Number(shape.getCenter().m.y.toFixed(1)) ||
-        shape.id === baseShape.id
+      (target) => Number(base.m.y.toFixed(1)) === Number(target.m.y.toFixed(1))
     )
-    .sort((a, b) => a.p.y - b.p.y);
+    .concat([base])
+    .sort((a, b) => a.m.y - b.m.y);
 
   if (
     align_center_y_shapes[0] &&
@@ -850,52 +858,44 @@ const getAlignLines = (
   ) {
     lines.push({
       from: {
-        x: align_center_y_shapes[0].getCenter().m.x,
-        y: baseCenter.y,
+        x: align_center_y_shapes[0].m.x,
+        y: base.m.y,
       },
       to: {
-        x: align_center_y_shapes[align_center_y_shapes.length - 1].getCenter().m
-          .x,
-        y: baseCenter.y,
+        x: align_center_y_shapes[align_center_y_shapes.length - 1].m.x,
+        y: base.m.y,
       },
     });
   }
 
-  const baseEdge = baseShape.getEdge();
-
   // left & left
-  const align_left_shapes = shapes
+  const align_left_shapes = targets
     .filter(
-      (shape) =>
-        Number(baseEdge.l.toFixed(1)) ===
-          Number(shape.getEdge().l.toFixed(1)) ||
-        shape.id === baseShape.id
+      (target) => Number(base.l.toFixed(1)) === Number(target.l.toFixed(1))
     )
-    .sort((a, b) => a.p.y - b.p.y);
+    .concat([base])
+    .sort((a, b) => a.m.y - b.m.y);
 
   if (align_left_shapes[0] && align_left_shapes[align_left_shapes.length - 1]) {
     lines.push({
       from: {
-        x: baseEdge.l - 1,
-        y: align_left_shapes[0].getCenter().m.y,
+        x: base.l - 1,
+        y: align_left_shapes[0].m.y,
       },
       to: {
-        x: baseEdge.l - 1,
-        y: align_left_shapes[align_left_shapes.length - 1].getCenter().m.y,
+        x: base.l - 1,
+        y: align_left_shapes[align_left_shapes.length - 1].m.y,
       },
     });
   }
 
   // left & right
-  const align_left_to_right_shapes = shapes
-    .filter((shape) => {
-      return (
-        Number(baseEdge.l.toFixed(1)) ===
-          Number(shape.getEdge().r.toFixed(1)) ||
-        shape.id === baseShape.id
-      );
+  const align_left_to_right_shapes = targets
+    .filter((target) => {
+      return Number(base.l.toFixed(1)) === Number(target.r.toFixed(1));
     })
-    .sort((a, b) => a.p.y - b.p.y);
+    .concat([base])
+    .sort((a, b) => a.m.y - b.m.y);
 
   if (
     align_left_to_right_shapes[0] &&
@@ -903,50 +903,45 @@ const getAlignLines = (
   ) {
     lines.push({
       from: {
-        x: baseEdge.l - 1,
-        y: align_left_to_right_shapes[0].getCenter().m.y,
+        x: base.l - 1,
+        y: align_left_to_right_shapes[0].m.y,
       },
       to: {
-        x: baseEdge.l - 1,
-        y: align_left_to_right_shapes[
-          align_left_to_right_shapes.length - 1
-        ].getCenter().m.y,
+        x: base.l - 1,
+        y: align_left_to_right_shapes[align_left_to_right_shapes.length - 1].m
+          .y,
       },
     });
   }
 
   // top & top
-  const align_top_shapes = shapes
+  const align_top_shapes = targets
     .filter(
-      (shape) =>
-        Number(baseEdge.t.toFixed(1)) ===
-          Number(shape.getEdge().t.toFixed(1)) ||
-        shape.id === baseShape.id
+      (target) => Number(base.t.toFixed(1)) === Number(target.t.toFixed(1))
     )
-    .sort((a, b) => a.p.x - b.p.x);
+    .concat([base])
+    .sort((a, b) => a.m.x - b.m.x);
 
   if (align_top_shapes[0] && align_top_shapes[align_top_shapes.length - 1]) {
     lines.push({
       from: {
-        x: align_top_shapes[0].getCenter().m.x,
-        y: baseEdge.t - 1,
+        x: align_top_shapes[0].m.x,
+        y: base.t - 1,
       },
       to: {
-        x: align_top_shapes[align_top_shapes.length - 1].getCenter().m.x,
-        y: baseEdge.t - 1,
+        x: align_top_shapes[align_top_shapes.length - 1].m.x,
+        y: base.t - 1,
       },
     });
   }
 
   // top & bottom
-  const align_top_to_bottom_shapes = shapes
+  const align_top_to_bottom_shapes = targets
     .filter(
-      (shape) =>
-        Number(baseEdge.t.toFixed(1)) ===
-          Number(shape.getEdge().b.toFixed(1)) ||
-        shape.id === baseShape.id
+      (target) => Number(base.t.toFixed(1)) === Number(target.b.toFixed(1))
     )
-    .sort((a, b) => a.p.x - b.p.x);
+    .concat([base])
+    .sort((a, b) => a.m.x - b.m.x);
 
   if (
     align_top_to_bottom_shapes[0] &&
@@ -954,27 +949,24 @@ const getAlignLines = (
   ) {
     lines.push({
       from: {
-        x: align_top_to_bottom_shapes[0].getCenter().m.x,
-        y: baseEdge.t - 1,
+        x: align_top_to_bottom_shapes[0].m.x,
+        y: base.t - 1,
       },
       to: {
-        x: align_top_to_bottom_shapes[
-          align_top_to_bottom_shapes.length - 1
-        ].getCenter().m.x,
-        y: baseEdge.t - 1,
+        x: align_top_to_bottom_shapes[align_top_to_bottom_shapes.length - 1].m
+          .x,
+        y: base.t - 1,
       },
     });
   }
 
   // right & right
-  const align_right_shapes = shapes
+  const align_right_shapes = targets
     .filter(
-      (shape) =>
-        Number(baseEdge.r.toFixed(1)) ===
-          Number(shape.getEdge().r.toFixed(1)) ||
-        shape.id === baseShape.id
+      (target) => Number(base.r.toFixed(1)) === Number(target.r.toFixed(1))
     )
-    .sort((a, b) => a.p.y - b.p.y);
+    .concat([base])
+    .sort((a, b) => a.m.y - b.m.y);
 
   if (
     align_right_shapes[0] &&
@@ -982,25 +974,23 @@ const getAlignLines = (
   ) {
     lines.push({
       from: {
-        x: baseEdge.r + 1,
-        y: align_right_shapes[0].getCenter().m.y,
+        x: base.r + 1,
+        y: align_right_shapes[0].m.y,
       },
       to: {
-        x: baseEdge.r + 1,
-        y: align_right_shapes[align_right_shapes.length - 1].getCenter().m.y,
+        x: base.r + 1,
+        y: align_right_shapes[align_right_shapes.length - 1].m.y,
       },
     });
   }
 
   // right & left
-  const align_right_to_left_shapes = shapes
+  const align_right_to_left_shapes = targets
     .filter(
-      (shape) =>
-        Number(baseEdge.r.toFixed(1)) ===
-          Number(shape.getEdge().l.toFixed(1)) ||
-        shape.id === baseShape.id
+      (target) => Number(base.r.toFixed(1)) === Number(target.l.toFixed(1))
     )
-    .sort((a, b) => a.p.y - b.p.y);
+    .concat([base])
+    .sort((a, b) => a.m.y - b.m.y);
 
   if (
     align_right_to_left_shapes[0] &&
@@ -1008,27 +998,24 @@ const getAlignLines = (
   ) {
     lines.push({
       from: {
-        x: baseEdge.r + 1,
-        y: align_right_to_left_shapes[0].getCenter().m.y,
+        x: base.r + 1,
+        y: align_right_to_left_shapes[0].m.y,
       },
       to: {
-        x: baseEdge.r + 1,
-        y: align_right_to_left_shapes[
-          align_right_to_left_shapes.length - 1
-        ].getCenter().m.y,
+        x: base.r + 1,
+        y: align_right_to_left_shapes[align_right_to_left_shapes.length - 1].m
+          .y,
       },
     });
   }
 
   // bottom & bottom
-  const align_bottom_shapes = shapes
+  const align_bottom_shapes = targets
     .filter(
-      (shape) =>
-        Number(baseEdge.b.toFixed(1)) ===
-          Number(shape.getEdge().b.toFixed(1)) ||
-        shape.id === baseShape.id
+      (target) => Number(base.b.toFixed(1)) === Number(target.b.toFixed(1))
     )
-    .sort((a, b) => a.p.x - b.p.x);
+    .concat([base])
+    .sort((a, b) => a.m.x - b.m.x);
 
   if (
     align_bottom_shapes[0] &&
@@ -1036,25 +1023,23 @@ const getAlignLines = (
   ) {
     lines.push({
       from: {
-        x: align_bottom_shapes[0].getCenter().m.x,
-        y: baseEdge.b + 1,
+        x: align_bottom_shapes[0].m.x,
+        y: base.b + 1,
       },
       to: {
-        x: align_bottom_shapes[align_bottom_shapes.length - 1].getCenter().m.x,
-        y: baseEdge.b + 1,
+        x: align_bottom_shapes[align_bottom_shapes.length - 1].m.x,
+        y: base.b + 1,
       },
     });
   }
 
   // bottom & top
-  const align_bottom_to_top_shapes = shapes
+  const align_bottom_to_top_shapes = targets
     .filter(
-      (shape) =>
-        Number(baseEdge.b.toFixed(1)) ===
-          Number(shape.getEdge().t.toFixed(1)) ||
-        shape.id === baseShape.id
+      (target) => Number(base.b.toFixed(1)) === Number(target.t.toFixed(1))
     )
-    .sort((a, b) => a.p.x - b.p.x);
+    .concat([base])
+    .sort((a, b) => a.m.x - b.m.x);
 
   if (
     align_bottom_to_top_shapes[0] &&
@@ -1062,17 +1047,18 @@ const getAlignLines = (
   ) {
     lines.push({
       from: {
-        x: align_bottom_to_top_shapes[0].getCenter().m.x,
-        y: baseEdge.b + 1,
+        x: align_bottom_to_top_shapes[0].m.x,
+        y: base.b + 1,
       },
       to: {
-        x: align_bottom_to_top_shapes[
-          align_bottom_to_top_shapes.length - 1
-        ].getCenter().m.x,
-        y: baseEdge.b + 1,
+        x: align_bottom_to_top_shapes[align_bottom_to_top_shapes.length - 1].m
+          .x,
+        y: base.b + 1,
       },
     });
   }
+
+  console.log("lines", lines);
 
   return lines;
 };
@@ -1857,7 +1843,7 @@ const resizeMultiSelectingShapes = (
             };
           }
 
-          syncCandidates(shape)
+          syncCandidates(shape);
         });
       }
       break;
@@ -1905,7 +1891,7 @@ const resizeMultiSelectingShapes = (
             };
           }
 
-          syncCandidates(shape)
+          syncCandidates(shape);
         });
       }
       break;
@@ -1953,7 +1939,7 @@ const resizeMultiSelectingShapes = (
             };
           }
 
-          syncCandidates(shape)
+          syncCandidates(shape);
         });
       }
       break;
@@ -2001,7 +1987,7 @@ const resizeMultiSelectingShapes = (
             };
           }
 
-          syncCandidates(shape)
+          syncCandidates(shape);
         });
       }
 
@@ -2762,6 +2748,40 @@ export default function IdPage() {
       if (pressing?.target === CommonTypes.SelectAreaTarget.m) {
         actionRecords.register(CommonTypes.Action.multiMove);
         moveMultiSelectingShapes(normalOffsetP);
+
+        // align multi selecting shapes
+        const multiSelectingMap = getMultSelectingMap();
+        const shapesInView = getShapesInView(shapes);
+        const targetAlignShapes = shapesInView.filter(
+          (shapeInView) => !multiSelectingMap[shapeInView.id]
+        );
+        const alignBase = (()=>{
+          const base =         {
+            m: { x: -1, y: -1 },
+            l: Infinity,
+            t: Infinity,
+            r: -Infinity,
+            b: -Infinity,
+          };
+
+          shapes.forEach((shape) => {
+            if (!multiSelectingMap[shape.id]) return;
+            base.l = Math.min(base.l, shape.getEdge().l);
+            base.t = Math.min(base.t, shape.getEdge().t);
+            base.r = Math.max(base.r, shape.getEdge().r);
+            base.b = Math.max(base.b, shape.getEdge().b);
+          });
+
+          base.m = {
+            x: (base.l + base.r) / 2,
+            y: (base.t + base.b) / 2,
+          };
+
+          return base
+        })()
+        
+        alginLines = getAlignLines(targetAlignShapes, alignBase);
+
       } else if (
         pressing?.target === CommonTypes.SelectAreaTarget.lt ||
         pressing?.target === CommonTypes.SelectAreaTarget.rt ||
@@ -2785,9 +2805,18 @@ export default function IdPage() {
         actionRecords.register(CommonTypes.Action.move);
 
         const shapesInView = getShapesInView(shapes);
-        alginLines = getAlignLines(shapesInView, pressing.shape);
+        const targetAlignShapes = shapesInView.filter(
+          (shapeInView) => shapeInView.id !== pressing?.shape?.id
+        );
+        alginLines = getAlignLines(targetAlignShapes, {
+          m: pressing.shape.getCenter().m,
+          l: pressing.shape.getEdge().l,
+          t: pressing.shape.getEdge().t,
+          r: pressing.shape.getEdge().r,
+          b: pressing.shape.getEdge().b,
+        });
 
-        const alignP = getAlignP(shapesInView, pressing.ghost);
+        const alignP = getAlignP(targetAlignShapes, pressing.ghost);
 
         if (alignP?.x || alignP?.y) {
           pressing.shape.locate(alignP);
