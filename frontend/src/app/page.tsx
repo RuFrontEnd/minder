@@ -114,6 +114,19 @@ let ctx: CanvasRenderingContext2D | null | undefined = null,
   multiSelectShapeIds: PageIdTypes.MultiSelectShapeIds = cloneDeep(
     init.multiSelectShapeIds
   ),
+  multiSelectingCoordinate: {
+    m: { x: number; y: number };
+    l: number;
+    t: number;
+    r: number;
+    b: number;
+  } = {
+    m: { x: -Infinity, y: -Infinity },
+    l: Infinity,
+    t: Infinity,
+    r: -Infinity,
+    b: -Infinity,
+  },
   selectAnchor = {
     size: {
       fill: 4,
@@ -212,91 +225,17 @@ const getInitializedShapes = (
           info.title
         );
 
-        newTerminator.importDatas = [
-          {
-            id: "d1",
-            text: "account",
-            status: CommonTypes.DataStatus.default,
-          },
-          { id: "d2", text: "email", status: CommonTypes.DataStatus.pass },
-          {
-            id: "d3",
-            text: "password",
-            status: CommonTypes.DataStatus.warning,
-          },
-          {
-            id: "d4",
-            text: "card_number",
-            status: CommonTypes.DataStatus.error,
-          },
-        ];
-
-        // info.selectedData.forEach((dataId) => {
-        //   newTerminator.importDatas.push({
-        //     id: dataId,
-        //     text: data[dataId],
-        //   });
-        // });
-
-        // info.deletedData.forEach((dataId) => {
-        //   newTerminator.deletedData.push({
-        //     id: dataId,
-        //     text: data[dataId],
-        //   });
-        // });
-        // TODO: wait until backend has revised
-
         shapeMappings[id] = newTerminator;
-
         break;
       case CommonTypes.ShapeType.data:
         const newData = new Data(id, info.w, info.h, info.p, info.title);
 
-        // info.data.forEach((dataId) => {
-        //   newData.data.push({
-        //     id: dataId,
-        //     text: data[dataId],
-        //   });
-        // });
-
-        // info.selectedData.forEach((dataId) => {
-        //   newData.selectedData.push({
-        //     id: dataId,
-        //     text: data[dataId],
-        //   });
-        // });
-
-        // info.deletedData.forEach((dataId) => {
-        //   newData.deletedData.push({
-        //     id: dataId,
-        //     text: data[dataId],
-        //   });
-        // });
-        // TODO: wait until backend has revised
-
         shapeMappings[id] = newData;
-
         break;
       case CommonTypes.ShapeType.process:
         const newProcess = new Process(id, info.w, info.h, info.p, info.title);
 
-        // info.selectedData.forEach((dataId) => {
-        //   newProcess.selectedData.push({
-        //     id: dataId,
-        //     text: data[dataId],
-        //   });
-        // });
-
-        // info.deletedData.forEach((dataId) => {
-        //   newProcess.deletedData.push({
-        //     id: dataId,
-        //     text: data[dataId],
-        //   });
-        // });
-        // TODO: wait until backend has revised
-
         shapeMappings[id] = newProcess;
-
         break;
       case CommonTypes.ShapeType.decision:
         const newDesicion = new Desicion(
@@ -311,23 +250,7 @@ const getInitializedShapes = (
           newDesicion.text = info.text;
         }
 
-        // info.selectedData.forEach((dataId) => {
-        //   newDesicion.selectedData.push({
-        //     id: dataId,
-        //     text: data[dataId],
-        //   });
-        // });
-
-        // info.deletedData.forEach((dataId) => {
-        //   newDesicion.deletedData.push({
-        //     id: dataId,
-        //     text: data[dataId],
-        //   });
-        // });
-        // TODO: wait until backend has revised
-
         shapeMappings[id] = newDesicion;
-
         break;
     }
   });
@@ -1768,12 +1691,37 @@ const getMultSelectingMap = () => {
 const moveMultiSelectingShapes = (offsetP: CommonTypes.Vec) => {
   if (multiSelectShapeIds.length < 2) return;
   const multiSelectingMap = getMultSelectingMap();
+  const shapesInView = getShapesInView(shapes);
+  const targetAlignShapes = shapesInView.filter(
+    (shapeInView) => !multiSelectingMap[shapeInView.id]
+  );
+  const baseCoordinate = {
+    m: { x: -Infinity, y: -Infinity },
+    l: Infinity,
+    t: Infinity,
+    r: -Infinity,
+    b: -Infinity,
+  };
+
   shapes.forEach((shape) => {
     if (!multiSelectingMap[shape.id]) return;
     shape.move(offsetP);
 
+    const edge = shape.getEdge();
+    baseCoordinate.l = Math.min(baseCoordinate.l, edge.l);
+    baseCoordinate.t = Math.min(baseCoordinate.t, edge.t);
+    baseCoordinate.r = Math.max(baseCoordinate.r, edge.r);
+    baseCoordinate.b = Math.max(baseCoordinate.b, edge.b);
+
     syncCandidates(shape);
   });
+
+  baseCoordinate.m = {
+    x: (baseCoordinate.l + baseCoordinate.r) / 2,
+    y: (baseCoordinate.t + baseCoordinate.b) / 2,
+  };
+
+  alginLines = getAlignLines(targetAlignShapes, baseCoordinate);
 };
 
 const resizeMultiSelectingShapes = (
@@ -2691,11 +2639,46 @@ export default function IdPage() {
           _target = CommonTypes.SelectAreaTarget.lb;
         }
 
+        const multiSelectingMap = getMultSelectingMap();
+
+        shapes.forEach((shape) => {
+          if (!multiSelectingMap[shape.id]) return;
+
+          const edge = shape.getEdge();
+          multiSelectingCoordinate.l = Math.min(
+            multiSelectingCoordinate.l,
+            edge.l
+          );
+          multiSelectingCoordinate.t = Math.min(
+            multiSelectingCoordinate.t,
+            edge.t
+          );
+          multiSelectingCoordinate.r = Math.max(
+            multiSelectingCoordinate.r,
+            edge.r
+          );
+          multiSelectingCoordinate.b = Math.max(
+            multiSelectingCoordinate.b,
+            edge.b
+          );
+        });
+
+        multiSelectingCoordinate.m = {
+          x: (multiSelectingCoordinate.l + multiSelectingCoordinate.r) / 2,
+          y: (multiSelectingCoordinate.t + multiSelectingCoordinate.b) / 2,
+        };
+
         if (_target) {
           pressing = {
             origin: null,
             shape: null,
-            ghost: null,
+            ghost: new Process(
+              `${Date.now()}`,
+              Math.abs(multiSelectingCoordinate.l - multiSelectingCoordinate.r),
+              Math.abs(multiSelectingCoordinate.t - multiSelectingCoordinate.b),
+              multiSelectingCoordinate.m,
+              "#000000",
+            ),
             target: _target,
             direction: null,
           };
@@ -2748,40 +2731,6 @@ export default function IdPage() {
       if (pressing?.target === CommonTypes.SelectAreaTarget.m) {
         actionRecords.register(CommonTypes.Action.multiMove);
         moveMultiSelectingShapes(normalOffsetP);
-
-        // align multi selecting shapes
-        const multiSelectingMap = getMultSelectingMap();
-        const shapesInView = getShapesInView(shapes);
-        const targetAlignShapes = shapesInView.filter(
-          (shapeInView) => !multiSelectingMap[shapeInView.id]
-        );
-        const alignBase = (()=>{
-          const base =         {
-            m: { x: -1, y: -1 },
-            l: Infinity,
-            t: Infinity,
-            r: -Infinity,
-            b: -Infinity,
-          };
-
-          shapes.forEach((shape) => {
-            if (!multiSelectingMap[shape.id]) return;
-            base.l = Math.min(base.l, shape.getEdge().l);
-            base.t = Math.min(base.t, shape.getEdge().t);
-            base.r = Math.max(base.r, shape.getEdge().r);
-            base.b = Math.max(base.b, shape.getEdge().b);
-          });
-
-          base.m = {
-            x: (base.l + base.r) / 2,
-            y: (base.t + base.b) / 2,
-          };
-
-          return base
-        })()
-        
-        alginLines = getAlignLines(targetAlignShapes, alignBase);
-
       } else if (
         pressing?.target === CommonTypes.SelectAreaTarget.lt ||
         pressing?.target === CommonTypes.SelectAreaTarget.rt ||
