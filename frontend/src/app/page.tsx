@@ -122,8 +122,7 @@ let ctx: CanvasRenderingContext2D | null | undefined = null,
   },
   alginLines: { from: CommonTypes.Vec; to: CommonTypes.Vec }[] = [],
   actions: PageIdTypes.Actions = new Stack(40),
-  worker: null | Worker = null,
-  shapesProxy = null;
+  worker: null | Worker = null;
 
 const ds = [
   CommonTypes.Direction.l,
@@ -811,10 +810,10 @@ const getAlignLines = (
   // center x & center x
   const align_center_x_shapes = shapes
     .filter(
-      (targetShape) =>
+      (shape) =>
         Number(baseCenter.x.toFixed(1)) ===
-          Number(targetShape.getCenter().m.x.toFixed(1)) ||
-        targetShape.id === baseShape.id
+          Number(shape.getCenter().m.x.toFixed(1)) ||
+        shape.id === baseShape.id
     )
     .sort((a, b) => a.p.x - b.p.x);
 
@@ -838,10 +837,10 @@ const getAlignLines = (
   // center y & center y
   const align_center_y_shapes = shapes
     .filter(
-      (targetShape) =>
+      (shape) =>
         Number(baseCenter.y.toFixed(1)) ===
-          Number(targetShape.getCenter().m.y.toFixed(1)) ||
-        targetShape.id === baseShape.id
+          Number(shape.getCenter().m.y.toFixed(1)) ||
+        shape.id === baseShape.id
     )
     .sort((a, b) => a.p.y - b.p.y);
 
@@ -867,10 +866,10 @@ const getAlignLines = (
   // left & left
   const align_left_shapes = shapes
     .filter(
-      (targetShape) =>
+      (shape) =>
         Number(baseEdge.l.toFixed(1)) ===
-          Number(targetShape.getEdge().l.toFixed(1)) ||
-        targetShape.id === baseShape.id
+          Number(shape.getEdge().l.toFixed(1)) ||
+        shape.id === baseShape.id
     )
     .sort((a, b) => a.p.y - b.p.y);
 
@@ -889,11 +888,11 @@ const getAlignLines = (
 
   // left & right
   const align_left_to_right_shapes = shapes
-    .filter((targetShape) => {
+    .filter((shape) => {
       return (
         Number(baseEdge.l.toFixed(1)) ===
-          Number(targetShape.getEdge().r.toFixed(1)) ||
-        targetShape.id === baseShape.id
+          Number(shape.getEdge().r.toFixed(1)) ||
+        shape.id === baseShape.id
       );
     })
     .sort((a, b) => a.p.y - b.p.y);
@@ -919,10 +918,10 @@ const getAlignLines = (
   // top & top
   const align_top_shapes = shapes
     .filter(
-      (targetShape) =>
+      (shape) =>
         Number(baseEdge.t.toFixed(1)) ===
-          Number(targetShape.getEdge().t.toFixed(1)) ||
-        targetShape.id === baseShape.id
+          Number(shape.getEdge().t.toFixed(1)) ||
+        shape.id === baseShape.id
     )
     .sort((a, b) => a.p.x - b.p.x);
 
@@ -942,10 +941,10 @@ const getAlignLines = (
   // top & bottom
   const align_top_to_bottom_shapes = shapes
     .filter(
-      (targetShape) =>
+      (shape) =>
         Number(baseEdge.t.toFixed(1)) ===
-          Number(targetShape.getEdge().b.toFixed(1)) ||
-        targetShape.id === baseShape.id
+          Number(shape.getEdge().b.toFixed(1)) ||
+        shape.id === baseShape.id
     )
     .sort((a, b) => a.p.x - b.p.x);
 
@@ -970,10 +969,10 @@ const getAlignLines = (
   // right & right
   const align_right_shapes = shapes
     .filter(
-      (targetShape) =>
+      (shape) =>
         Number(baseEdge.r.toFixed(1)) ===
-          Number(targetShape.getEdge().r.toFixed(1)) ||
-        targetShape.id === baseShape.id
+          Number(shape.getEdge().r.toFixed(1)) ||
+        shape.id === baseShape.id
     )
     .sort((a, b) => a.p.y - b.p.y);
 
@@ -996,10 +995,10 @@ const getAlignLines = (
   // right & left
   const align_right_to_left_shapes = shapes
     .filter(
-      (targetShape) =>
+      (shape) =>
         Number(baseEdge.r.toFixed(1)) ===
-          Number(targetShape.getEdge().l.toFixed(1)) ||
-        targetShape.id === baseShape.id
+          Number(shape.getEdge().l.toFixed(1)) ||
+        shape.id === baseShape.id
     )
     .sort((a, b) => a.p.y - b.p.y);
 
@@ -1024,10 +1023,10 @@ const getAlignLines = (
   // bottom & bottom
   const align_bottom_shapes = shapes
     .filter(
-      (targetShape) =>
+      (shape) =>
         Number(baseEdge.b.toFixed(1)) ===
-          Number(targetShape.getEdge().b.toFixed(1)) ||
-        targetShape.id === baseShape.id
+          Number(shape.getEdge().b.toFixed(1)) ||
+        shape.id === baseShape.id
     )
     .sort((a, b) => a.p.x - b.p.x);
 
@@ -1050,10 +1049,10 @@ const getAlignLines = (
   // bottom & top
   const align_bottom_to_top_shapes = shapes
     .filter(
-      (targetShape) =>
+      (shape) =>
         Number(baseEdge.b.toFixed(1)) ===
-          Number(targetShape.getEdge().t.toFixed(1)) ||
-        targetShape.id === baseShape.id
+          Number(shape.getEdge().t.toFixed(1)) ||
+        shape.id === baseShape.id
     )
     .sort((a, b) => a.p.x - b.p.x);
 
@@ -2646,7 +2645,6 @@ export default function IdPage() {
   const terminateDataChecking = () => {
     worker?.terminate();
     candidates = null;
-    shapesProxy = null;
     setIsCheckingData(false);
   };
 
