@@ -1,4 +1,4 @@
-// TODO: fix browser zoom and re calculate shape offset / multi multiSelect resize in scale
+// TODO: init curve / multi select align
 "use client";
 import React, {
   useState,
@@ -15,6 +15,8 @@ import Process from "@/shapes/process";
 import Data from "@/shapes/data";
 import Desicion from "@/shapes/decision";
 import Curve from "@/shapes/curve";
+import SelectionFrame from "@/shapes/selectionFrame";
+import Selection from "@/shapes/selection";
 import Stack from "@/dataStructure/stack";
 import SidePanel from "@/components/sidePanel";
 import Accordion from "@/components/accordion";
@@ -96,6 +98,13 @@ const init = {
   },
   offset: { x: 0, y: 0 },
   multiSelectShapeIds: [],
+  multiSelectingCoordinate: {
+    m: { x: -Infinity, y: -Infinity },
+    l: Infinity,
+    t: Infinity,
+    r: -Infinity,
+    b: -Infinity,
+  },
 };
 
 let ctx: CanvasRenderingContext2D | null | undefined = null,
@@ -107,10 +116,8 @@ let ctx: CanvasRenderingContext2D | null | undefined = null,
   pressingCurve: PageIdTypes.PressingCurve = null,
   offset: CommonTypes.Vec = cloneDeep(init.offset),
   lastP: CommonTypes.Vec = { x: 0, y: 0 },
-  selectionFrameP: null | {
-    start: CommonTypes.Vec;
-    end: CommonTypes.Vec;
-  } = null,
+  selectionFrame: null | SelectionFrame = null,
+  selection: null | Selection = null,
   multiSelectShapeIds: PageIdTypes.MultiSelectShapeIds = cloneDeep(
     init.multiSelectShapeIds
   ),
@@ -120,13 +127,7 @@ let ctx: CanvasRenderingContext2D | null | undefined = null,
     t: number;
     r: number;
     b: number;
-  } = {
-    m: { x: -Infinity, y: -Infinity },
-    l: Infinity,
-    t: Infinity,
-    r: -Infinity,
-    b: -Infinity,
-  },
+  } = cloneDeep(init.multiSelectingCoordinate),
   selectAnchor = {
     size: {
       fill: 4,
@@ -1012,18 +1013,19 @@ const getShapesInView = (shapes: (Terminal | Process | Data | Desicion)[]) => {
 };
 
 const frameSelect = (
+  selectionFrame: null | undefined | SelectionFrame,
   offset: CommonTypes.Vec = { x: 0, y: 0 },
   scale: number = 1
 ) => {
+  console.log("selectionFrame", selectionFrame);
+  if (!selectionFrame) return [];
   // define which shape in select area
-  const shapesInSelectingAreaIds = (() => {
-    const ids: PageIdTypes.MultiSelectShapeIds = [];
-
-    if (!selectionFrameP) return [];
+  const shapesInSelectingArea = (() => {
+    const shapesInArea: Core[] = [];
 
     const normalSelectAreaP = {
-      start: getNormalP(selectionFrameP.start, offset, scale),
-      end: getNormalP(selectionFrameP.end, offset, scale),
+      start: getNormalP(selectionFrame.p.start, offset, scale),
+      end: getNormalP(selectionFrame.p.end, offset, scale),
     };
 
     shapes.forEach((shape) => {
@@ -1053,22 +1055,22 @@ const frameSelect = (
         y2 = Math.min(theEdge.b, b);
 
       if (x2 > x1 && y2 > y1) {
-        ids.push(shape.id);
+        shapesInArea.push(shape);
       }
     });
 
-    return ids;
+    return shapesInArea;
   })();
 
   // define select status
-  if (shapesInSelectingAreaIds.length === 1) {
+  if (shapesInSelectingArea.length === 1) {
     const targetShape = shapes.find(
-      (shape) => shape.id === shapesInSelectingAreaIds[0]
+      (shape) => shape.id === shapesInSelectingArea[0].id
     );
     if (!targetShape) return;
     targetShape.selecting = true;
-  } else if (shapesInSelectingAreaIds.length >= 2) {
-    multiSelectShapeIds = shapesInSelectingAreaIds;
+  } else if (shapesInSelectingArea.length >= 2) {
+    selection = new Selection(`selectionArea_${Date.now()}`, shapesInSelectingArea);
   }
 };
 
@@ -1678,270 +1680,262 @@ const deSelectShape = () => {
   return true;
 };
 
-const getMultSelectingMap = () => {
-  const map: { [id: string]: true } = {};
+// const locateMultiSelectingShapes = (p: {
+//   x: null | number;
+//   y: null | number;
+// }) => {
+//   if (multiSelectShapeIds.length < 2) return;
+//   const multiSelectingMap = getMultSelectingMap();
+//   const shapesInView = getShapesInView(shapes);
+//   const targetAlignShapes = shapesInView.filter(
+//     (shapeInView) => !multiSelectingMap[shapeInView.id]
+//   );
 
-  multiSelectShapeIds.forEach((multiSelectShapeId) => {
-    map[multiSelectShapeId] = true;
-  });
+//   shapes.forEach((shape) => {
+//     if (!multiSelectingMap[shape.id]) return;
+//     shape.locate(p);
+//     syncCandidates(shape);
+//   });
 
-  return map;
-};
+//   alginLines = getAlignLines(targetAlignShapes, multiSelectingCoordinate);
+// };
 
-const moveMultiSelectingShapes = (offsetP: CommonTypes.Vec) => {
-  if (multiSelectShapeIds.length < 2) return;
-  const multiSelectingMap = getMultSelectingMap();
-  const shapesInView = getShapesInView(shapes);
-  const targetAlignShapes = shapesInView.filter(
-    (shapeInView) => !multiSelectingMap[shapeInView.id]
-  );
-  const baseCoordinate = {
-    m: { x: -Infinity, y: -Infinity },
-    l: Infinity,
-    t: Infinity,
-    r: -Infinity,
-    b: -Infinity,
-  };
+// const moveMultiSelectingShapes = (offsetP: CommonTypes.Vec) => {
+//   if (multiSelectShapeIds.length < 2) return;
+//   const multiSelectingMap = getMultSelectingMap();
+//   const shapesInView = getShapesInView(shapes);
+//   const targetAlignShapes = shapesInView.filter(
+//     (shapeInView) => !multiSelectingMap[shapeInView.id]
+//   );
 
-  shapes.forEach((shape) => {
-    if (!multiSelectingMap[shape.id]) return;
-    shape.move(offsetP);
+//   shapes.forEach((shape) => {
+//     if (!multiSelectingMap[shape.id]) return;
+//     shape.move(offsetP);
 
-    const edge = shape.getEdge();
-    baseCoordinate.l = Math.min(baseCoordinate.l, edge.l);
-    baseCoordinate.t = Math.min(baseCoordinate.t, edge.t);
-    baseCoordinate.r = Math.max(baseCoordinate.r, edge.r);
-    baseCoordinate.b = Math.max(baseCoordinate.b, edge.b);
+//     syncCandidates(shape);
+//   });
 
-    syncCandidates(shape);
-  });
+//   alginLines = getAlignLines(targetAlignShapes, multiSelectingCoordinate);
+// };
 
-  baseCoordinate.m = {
-    x: (baseCoordinate.l + baseCoordinate.r) / 2,
-    y: (baseCoordinate.t + baseCoordinate.b) / 2,
-  };
+// const resizeMultiSelectingShapes = (
+//   target:
+//     | null
+//     | undefined
+//     | CommonTypes.SelectAreaTarget.lt
+//     | CommonTypes.SelectAreaTarget.rt
+//     | CommonTypes.SelectAreaTarget.rb
+//     | CommonTypes.SelectAreaTarget.lb,
+//   offsetP: CommonTypes.Vec,
+//   scale = 1
+// ) => {
+//   if (!target || multiSelectShapeIds.length < 2) return;
+//   const [multiSelectingAreaStartP, multiSelectingAreaEndP] =
+//     getMultiSelectingAreaP();
+//   const multiSelectingAreaP = {
+//     start: multiSelectingAreaStartP,
+//     end: multiSelectingAreaEndP,
+//   };
+//   const multiSelectingAreaSize = {
+//     w: Math.abs(multiSelectingAreaP.end.x - multiSelectingAreaP.start.x),
+//     h: Math.abs(multiSelectingAreaP.end.y - multiSelectingAreaP.start.y),
+//   };
 
-  alginLines = getAlignLines(targetAlignShapes, baseCoordinate);
-};
+//   switch (target) {
+//     case CommonTypes.SelectAreaTarget.lt:
+//       {
+//         const canResize = {
+//           x: multiSelectingAreaSize.w - offsetP.x > 0 || offsetP.x < 0,
+//           y: multiSelectingAreaSize.h - offsetP.y > 0 || offsetP.y < 0,
+//         };
+//         const multiSelectingMap = getMultSelectingMap();
 
-const resizeMultiSelectingShapes = (
-  target:
-    | null
-    | undefined
-    | CommonTypes.SelectAreaTarget.lt
-    | CommonTypes.SelectAreaTarget.rt
-    | CommonTypes.SelectAreaTarget.rb
-    | CommonTypes.SelectAreaTarget.lb,
-  offsetP: CommonTypes.Vec,
-  scale = 1
-) => {
-  if (!target || multiSelectShapeIds.length < 2) return;
-  const [multiSelectingAreaStartP, multiSelectingAreaEndP] =
-    getMultiSelectingAreaP();
-  const multiSelectingAreaP = {
-    start: multiSelectingAreaStartP,
-    end: multiSelectingAreaEndP,
-  };
-  const multiSelectingAreaSize = {
-    w: Math.abs(multiSelectingAreaP.end.x - multiSelectingAreaP.start.x),
-    h: Math.abs(multiSelectingAreaP.end.y - multiSelectingAreaP.start.y),
-  };
+//         shapes.forEach((shape) => {
+//           if (!multiSelectingMap[shape.id]) return;
 
-  switch (target) {
-    case CommonTypes.SelectAreaTarget.lt:
-      {
-        const canResize = {
-          x: multiSelectingAreaSize.w - offsetP.x > 0 || offsetP.x < 0,
-          y: multiSelectingAreaSize.h - offsetP.y > 0 || offsetP.y < 0,
-        };
-        const multiSelectingMap = getMultSelectingMap();
+//           const ratioW = shape.getScaleSize().w / multiSelectingAreaSize.w,
+//             unitW = offsetP.x * ratioW;
 
-        shapes.forEach((shape) => {
-          if (!multiSelectingMap[shape.id]) return;
+//           if (canResize.x) {
+//             shape.w = shape.w - unitW / scale;
 
-          const ratioW = shape.getScaleSize().w / multiSelectingAreaSize.w,
-            unitW = offsetP.x * ratioW;
+//             const dx = Math.abs(shape.p.x - multiSelectingAreaP.end.x),
+//               ratioX = dx / multiSelectingAreaSize.w,
+//               unitX = offsetP.x * ratioX;
 
-          if (canResize.x) {
-            shape.w = shape.w - unitW / scale;
+//             shape.p = {
+//               ...shape.p,
+//               x: shape.p.x + unitX / scale,
+//             };
+//           }
 
-            const dx = Math.abs(shape.p.x - multiSelectingAreaP.end.x),
-              ratioX = dx / multiSelectingAreaSize.w,
-              unitX = offsetP.x * ratioX;
+//           const ratioH = shape.getScaleSize().h / multiSelectingAreaSize.h,
+//             unitH = offsetP.y * ratioH;
 
-            shape.p = {
-              ...shape.p,
-              x: shape.p.x + unitX / scale,
-            };
-          }
+//           if (canResize.y) {
+//             shape.h = shape.h - unitH / scale;
 
-          const ratioH = shape.getScaleSize().h / multiSelectingAreaSize.h,
-            unitH = offsetP.y * ratioH;
+//             const dy = Math.abs(shape.p.y - multiSelectingAreaP.end.y),
+//               ratioY = dy / multiSelectingAreaSize.h,
+//               unitY = offsetP.y * ratioY;
 
-          if (canResize.y) {
-            shape.h = shape.h - unitH / scale;
+//             shape.p = {
+//               ...shape.p,
+//               y: shape.p.y + unitY / scale,
+//             };
+//           }
 
-            const dy = Math.abs(shape.p.y - multiSelectingAreaP.end.y),
-              ratioY = dy / multiSelectingAreaSize.h,
-              unitY = offsetP.y * ratioY;
+//           syncCandidates(shape);
+//         });
+//       }
+//       break;
 
-            shape.p = {
-              ...shape.p,
-              y: shape.p.y + unitY / scale,
-            };
-          }
+//     case CommonTypes.SelectAreaTarget.rt:
+//       {
+//         const canResize = {
+//           x: multiSelectingAreaSize.w + offsetP.x > 0 || offsetP.x > 0,
+//           y: multiSelectingAreaSize.h - offsetP.y > 0 || offsetP.y < 0,
+//         };
 
-          syncCandidates(shape);
-        });
-      }
-      break;
+//         const multiSelectingMap = getMultSelectingMap();
 
-    case CommonTypes.SelectAreaTarget.rt:
-      {
-        const canResize = {
-          x: multiSelectingAreaSize.w + offsetP.x > 0 || offsetP.x > 0,
-          y: multiSelectingAreaSize.h - offsetP.y > 0 || offsetP.y < 0,
-        };
+//         shapes.forEach((shape) => {
+//           if (!multiSelectingMap[shape.id]) return;
+//           const ratioW = shape.getScaleSize().w / multiSelectingAreaSize.w,
+//             unitW = offsetP.x * ratioW;
 
-        const multiSelectingMap = getMultSelectingMap();
+//           if (canResize.x) {
+//             shape.w = shape.w + unitW / scale;
 
-        shapes.forEach((shape) => {
-          if (!multiSelectingMap[shape.id]) return;
-          const ratioW = shape.getScaleSize().w / multiSelectingAreaSize.w,
-            unitW = offsetP.x * ratioW;
+//             const dx = Math.abs(shape.p.x - multiSelectingAreaP.start.x),
+//               ratioX = dx / multiSelectingAreaSize.w,
+//               unitX = offsetP.x * ratioX;
 
-          if (canResize.x) {
-            shape.w = shape.w + unitW / scale;
+//             shape.p = {
+//               ...shape.p,
+//               x: shape.p.x + unitX / scale,
+//             };
+//           }
 
-            const dx = Math.abs(shape.p.x - multiSelectingAreaP.start.x),
-              ratioX = dx / multiSelectingAreaSize.w,
-              unitX = offsetP.x * ratioX;
+//           const ratioH = shape.h / multiSelectingAreaSize.h,
+//             unitH = offsetP.y * ratioH;
 
-            shape.p = {
-              ...shape.p,
-              x: shape.p.x + unitX / scale,
-            };
-          }
+//           if (canResize.y) {
+//             shape.h = shape.getScaleSize().h - unitH / scale;
 
-          const ratioH = shape.h / multiSelectingAreaSize.h,
-            unitH = offsetP.y * ratioH;
+//             const dy = Math.abs(shape.p.y - multiSelectingAreaP.end.y),
+//               ratioY = dy / multiSelectingAreaSize.h,
+//               unitY = offsetP.y * ratioY;
 
-          if (canResize.y) {
-            shape.h = shape.getScaleSize().h - unitH / scale;
+//             shape.p = {
+//               ...shape.p,
+//               y: shape.p.y + unitY / scale,
+//             };
+//           }
 
-            const dy = Math.abs(shape.p.y - multiSelectingAreaP.end.y),
-              ratioY = dy / multiSelectingAreaSize.h,
-              unitY = offsetP.y * ratioY;
+//           syncCandidates(shape);
+//         });
+//       }
+//       break;
 
-            shape.p = {
-              ...shape.p,
-              y: shape.p.y + unitY / scale,
-            };
-          }
+//     case CommonTypes.SelectAreaTarget.rb:
+//       {
+//         const canResize = {
+//           x: multiSelectingAreaSize.w + offsetP.x > 0 || offsetP.x > 0,
+//           y: multiSelectingAreaSize.h + offsetP.y > 0 || offsetP.y > 0,
+//         };
 
-          syncCandidates(shape);
-        });
-      }
-      break;
+//         const multiSelectingMap = getMultSelectingMap();
 
-    case CommonTypes.SelectAreaTarget.rb:
-      {
-        const canResize = {
-          x: multiSelectingAreaSize.w + offsetP.x > 0 || offsetP.x > 0,
-          y: multiSelectingAreaSize.h + offsetP.y > 0 || offsetP.y > 0,
-        };
+//         shapes.forEach((shape) => {
+//           if (!multiSelectingMap[shape.id]) return;
+//           const ratioW = shape.getScaleSize().w / multiSelectingAreaSize.w,
+//             unitW = offsetP.x * ratioW;
 
-        const multiSelectingMap = getMultSelectingMap();
+//           if (canResize.x) {
+//             shape.w = shape.w + unitW / scale;
 
-        shapes.forEach((shape) => {
-          if (!multiSelectingMap[shape.id]) return;
-          const ratioW = shape.getScaleSize().w / multiSelectingAreaSize.w,
-            unitW = offsetP.x * ratioW;
+//             const dx = Math.abs(shape.p.x - multiSelectingAreaP.start.x),
+//               ratioX = dx / multiSelectingAreaSize.w,
+//               unitX = offsetP.x * ratioX;
 
-          if (canResize.x) {
-            shape.w = shape.w + unitW / scale;
+//             shape.p = {
+//               ...shape.p,
+//               x: shape.p.x + unitX / scale,
+//             };
+//           }
 
-            const dx = Math.abs(shape.p.x - multiSelectingAreaP.start.x),
-              ratioX = dx / multiSelectingAreaSize.w,
-              unitX = offsetP.x * ratioX;
+//           const ratioH = shape.getScaleSize().h / multiSelectingAreaSize.h,
+//             unitH = offsetP.y * ratioH;
 
-            shape.p = {
-              ...shape.p,
-              x: shape.p.x + unitX / scale,
-            };
-          }
+//           if (canResize.y) {
+//             shape.h = shape.h + unitH / scale;
 
-          const ratioH = shape.getScaleSize().h / multiSelectingAreaSize.h,
-            unitH = offsetP.y * ratioH;
+//             const dy = Math.abs(shape.p.y - multiSelectingAreaP.start.y),
+//               ratioY = dy / multiSelectingAreaSize.h,
+//               unitY = offsetP.y * ratioY;
 
-          if (canResize.y) {
-            shape.h = shape.h + unitH / scale;
+//             shape.p = {
+//               ...shape.p,
+//               y: shape.p.y + unitY / scale,
+//             };
+//           }
 
-            const dy = Math.abs(shape.p.y - multiSelectingAreaP.start.y),
-              ratioY = dy / multiSelectingAreaSize.h,
-              unitY = offsetP.y * ratioY;
+//           syncCandidates(shape);
+//         });
+//       }
+//       break;
 
-            shape.p = {
-              ...shape.p,
-              y: shape.p.y + unitY / scale,
-            };
-          }
+//     case CommonTypes.SelectAreaTarget.lb:
+//       {
+//         const canResize = {
+//           x: multiSelectingAreaSize.w - offsetP.x > 0 || offsetP.x < 0,
+//           y: multiSelectingAreaSize.h + offsetP.y > 0 || offsetP.y > 0,
+//         };
 
-          syncCandidates(shape);
-        });
-      }
-      break;
+//         const multiSelectingMap = getMultSelectingMap();
 
-    case CommonTypes.SelectAreaTarget.lb:
-      {
-        const canResize = {
-          x: multiSelectingAreaSize.w - offsetP.x > 0 || offsetP.x < 0,
-          y: multiSelectingAreaSize.h + offsetP.y > 0 || offsetP.y > 0,
-        };
+//         shapes.forEach((shape) => {
+//           if (!multiSelectingMap[shape.id]) return;
+//           const ratioW = shape.getScaleSize().w / multiSelectingAreaSize.w,
+//             unitW = offsetP.x * ratioW;
 
-        const multiSelectingMap = getMultSelectingMap();
+//           if (canResize.x) {
+//             shape.w = shape.w - unitW / scale;
 
-        shapes.forEach((shape) => {
-          if (!multiSelectingMap[shape.id]) return;
-          const ratioW = shape.getScaleSize().w / multiSelectingAreaSize.w,
-            unitW = offsetP.x * ratioW;
+//             const dx = Math.abs(shape.p.x - multiSelectingAreaP.end.x),
+//               ratioX = dx / multiSelectingAreaSize.w,
+//               unitX = offsetP.x * ratioX;
 
-          if (canResize.x) {
-            shape.w = shape.w - unitW / scale;
+//             shape.p = {
+//               ...shape.p,
+//               x: shape.p.x + unitX / scale,
+//             };
+//           }
 
-            const dx = Math.abs(shape.p.x - multiSelectingAreaP.end.x),
-              ratioX = dx / multiSelectingAreaSize.w,
-              unitX = offsetP.x * ratioX;
+//           const ratioH = shape.getScaleSize().h / multiSelectingAreaSize.h,
+//             unitH = offsetP.y * ratioH;
 
-            shape.p = {
-              ...shape.p,
-              x: shape.p.x + unitX / scale,
-            };
-          }
+//           if (canResize.y) {
+//             shape.h = shape.h + unitH / scale;
 
-          const ratioH = shape.getScaleSize().h / multiSelectingAreaSize.h,
-            unitH = offsetP.y * ratioH;
+//             const dy = Math.abs(shape.p.y - multiSelectingAreaP.start.y),
+//               ratioY = dy / multiSelectingAreaSize.h,
+//               unitY = offsetP.y * ratioY;
 
-          if (canResize.y) {
-            shape.h = shape.h + unitH / scale;
+//             shape.p = {
+//               ...shape.p,
+//               y: shape.p.y + unitY / scale,
+//             };
+//           }
 
-            const dy = Math.abs(shape.p.y - multiSelectingAreaP.start.y),
-              ratioY = dy / multiSelectingAreaSize.h,
-              unitY = offsetP.y * ratioY;
+//           syncCandidates(shape);
+//         });
+//       }
 
-            shape.p = {
-              ...shape.p,
-              y: shape.p.y + unitY / scale,
-            };
-          }
-
-          syncCandidates(shape);
-        });
-      }
-
-      break;
-  }
-};
+//       break;
+//   }
+// };
 
 const connect = (
   curve: Curve,
@@ -2083,121 +2077,121 @@ const drawAlignLines = (
   });
 };
 
-const getMultiSelectingAreaP = () => {
-  const startP = { x: -1, y: -1 };
-  const endP = { x: -1, y: -1 };
+// const getMultiSelectingAreaP = () => {
+//   const startP = { x: -1, y: -1 };
+//   const endP = { x: -1, y: -1 };
 
-  const multiSelectingMap = getMultSelectingMap();
+//   const multiSelectingMap = getMultSelectingMap();
 
-  shapes.forEach((shape) => {
-    if (!multiSelectingMap[shape.id]) return;
-    const theEdge = shape.getEdge();
-    if (startP.x === -1 || theEdge.l < startP.x) {
-      startP.x = theEdge.l;
-    }
-    if (startP.y === -1 || theEdge.t < startP.y) {
-      startP.y = theEdge.t;
-    }
-    if (endP.x === -1 || theEdge.r > endP.x) {
-      endP.x = theEdge.r;
-    }
-    if (endP.y === -1 || theEdge.b > endP.y) {
-      endP.y = theEdge.b;
-    }
-  });
+//   shapes.forEach((shape) => {
+//     if (!multiSelectingMap[shape.id]) return;
+//     const theEdge = shape.getEdge();
+//     if (startP.x === -1 || theEdge.l < startP.x) {
+//       startP.x = theEdge.l;
+//     }
+//     if (startP.y === -1 || theEdge.t < startP.y) {
+//       startP.y = theEdge.t;
+//     }
+//     if (endP.x === -1 || theEdge.r > endP.x) {
+//       endP.x = theEdge.r;
+//     }
+//     if (endP.y === -1 || theEdge.b > endP.y) {
+//       endP.y = theEdge.b;
+//     }
+//   });
 
-  return [startP, endP];
-};
+//   return [startP, endP];
+// };
 
-const drawMultiSelectedShapesArea = (
-  ctx: undefined | null | CanvasRenderingContext2D,
-  offset: CommonTypes.Vec = { x: 0, y: 0 },
-  scale: number = 1
-) => {
-  if (!ctx || multiSelectShapeIds.length < 2) return;
+// const drawMultiSelectedShapesArea = (
+//   ctx: undefined | null | CanvasRenderingContext2D,
+//   offset: CommonTypes.Vec = { x: 0, y: 0 },
+//   scale: number = 1
+// ) => {
+//   if (!ctx || multiSelectShapeIds.length < 2) return;
 
-  const [startP, endP] = getMultiSelectingAreaP();
+//   const [startP, endP] = getMultiSelectingAreaP();
 
-  if (startP.x === -1 || startP.y === -1 || endP.x === -1 || endP.y === -1)
-    return;
+//   if (startP.x === -1 || startP.y === -1 || endP.x === -1 || endP.y === -1)
+//     return;
 
-  const screenStartP = {
-    x: (startP.x + offset.x) * scale,
-    y: (startP.y + offset.y) * scale,
-  };
-  const screenEndP = {
-    x: (endP.x + offset.x) * scale,
-    y: (endP.y + offset.y) * scale,
-  };
+//   const screenStartP = {
+//     x: (startP.x + offset.x) * scale,
+//     y: (startP.y + offset.y) * scale,
+//   };
+//   const screenEndP = {
+//     x: (endP.x + offset.x) * scale,
+//     y: (endP.y + offset.y) * scale,
+//   };
 
-  // draw multiSelect area
-  ctx?.beginPath();
-  ctx.strokeStyle = tailwindColors.info["500"];
-  ctx.lineWidth = 1;
-  ctx.strokeRect(
-    screenStartP.x,
-    screenStartP.y,
-    screenEndP.x - screenStartP.x,
-    screenEndP.y - screenStartP.y
-  );
-  ctx?.closePath();
+//   // draw multiSelect area
+//   ctx?.beginPath();
+//   ctx.strokeStyle = tailwindColors.info["500"];
+//   ctx.lineWidth = 1;
+//   ctx.strokeRect(
+//     screenStartP.x,
+//     screenStartP.y,
+//     screenEndP.x - screenStartP.x,
+//     screenEndP.y - screenStartP.y
+//   );
+//   ctx?.closePath();
 
-  // draw multiSelect area anchors
-  ctx.fillStyle = "white";
-  ctx.lineWidth = selectAnchor.size.stroke;
+//   // draw multiSelect area anchors
+//   ctx.fillStyle = "white";
+//   ctx.lineWidth = selectAnchor.size.stroke;
 
-  ctx?.beginPath();
-  ctx.arc(
-    screenStartP.x,
-    screenStartP.y,
-    selectAnchor.size.fill,
-    0,
-    2 * Math.PI,
-    false
-  ); // left, top
-  ctx.stroke();
-  ctx.fill();
-  ctx?.closePath();
+//   ctx?.beginPath();
+//   ctx.arc(
+//     screenStartP.x,
+//     screenStartP.y,
+//     selectAnchor.size.fill,
+//     0,
+//     2 * Math.PI,
+//     false
+//   ); // left, top
+//   ctx.stroke();
+//   ctx.fill();
+//   ctx?.closePath();
 
-  ctx?.beginPath();
-  ctx.arc(
-    screenEndP.x,
-    screenStartP.y,
-    selectAnchor.size.fill,
-    0,
-    2 * Math.PI,
-    false
-  ); // right, top
-  ctx.stroke();
-  ctx.fill();
-  ctx?.closePath();
+//   ctx?.beginPath();
+//   ctx.arc(
+//     screenEndP.x,
+//     screenStartP.y,
+//     selectAnchor.size.fill,
+//     0,
+//     2 * Math.PI,
+//     false
+//   ); // right, top
+//   ctx.stroke();
+//   ctx.fill();
+//   ctx?.closePath();
 
-  ctx?.beginPath();
-  ctx.arc(
-    screenEndP.x,
-    screenEndP.y,
-    selectAnchor.size.fill,
-    0,
-    2 * Math.PI,
-    false
-  ); // right, bottom
-  ctx.stroke();
-  ctx.fill();
-  ctx?.closePath();
+//   ctx?.beginPath();
+//   ctx.arc(
+//     screenEndP.x,
+//     screenEndP.y,
+//     selectAnchor.size.fill,
+//     0,
+//     2 * Math.PI,
+//     false
+//   ); // right, bottom
+//   ctx.stroke();
+//   ctx.fill();
+//   ctx?.closePath();
 
-  ctx?.beginPath();
-  ctx.arc(
-    screenStartP.x,
-    screenEndP.y,
-    selectAnchor.size.fill,
-    0,
-    2 * Math.PI,
-    false
-  ); // left, bottom
-  ctx.stroke();
-  ctx.fill();
-  ctx?.closePath();
-};
+//   ctx?.beginPath();
+//   ctx.arc(
+//     screenStartP.x,
+//     screenEndP.y,
+//     selectAnchor.size.fill,
+//     0,
+//     2 * Math.PI,
+//     false
+//   ); // left, bottom
+//   ctx.stroke();
+//   ctx.fill();
+//   ctx?.closePath();
+// };
 
 const draw = (
   $canvas: HTMLCanvasElement,
@@ -2248,32 +2242,15 @@ const draw = (
 
   if (!isScreenshot) {
     // draw selectArea
-    if (selectionFrameP) {
-      ctx?.beginPath();
-
-      ctx.fillStyle = "#2436b155";
-      ctx.fillRect(
-        selectionFrameP?.start.x,
-        selectionFrameP?.start.y,
-        selectionFrameP?.end.x - selectionFrameP?.start.x,
-        selectionFrameP?.end.y - selectionFrameP?.start.y
-      );
-
-      ctx.strokeStyle = "#2436b1";
-      ctx.strokeRect(
-        selectionFrameP?.start.x,
-        selectionFrameP?.start.y,
-        selectionFrameP?.end.x - selectionFrameP?.start.x,
-        selectionFrameP?.end.y - selectionFrameP?.start.y
-      );
-
-      ctx?.closePath();
+    if (!!selectionFrame) {
+      selectionFrame.draw(ctx);
+    }
+    if(!!selection){
+      selection.draw(ctx)
     }
   }
 
-  if (!isScreenshot) {
-    drawMultiSelectedShapesArea(ctx, offset, scale);
-  }
+  pressing?.ghost?.draw(ctx);
 };
 
 const drawCanvas = (offset?: CommonTypes.Vec, scale?: number) => {
@@ -2594,11 +2571,11 @@ export default function IdPage() {
     if (space) {
       lastP = p;
     } else {
-      if (multiSelectShapeIds.length >= 2) {
+      if (!!selection) {
         // when multi multiSelect shapes
         let _target: null | CommonTypes.SelectAreaTarget = null;
         const [multiSelectingAreaStartP, multiSelectingAreaEndP] =
-          getMultiSelectingAreaP();
+        selection.getMultiSelectingAreaP();
         const pInSelectingArea = {
           m:
             normalP.x > multiSelectingAreaStartP.x &&
@@ -2637,48 +2614,47 @@ export default function IdPage() {
           _target = CommonTypes.SelectAreaTarget.rb;
         } else if (pInSelectingArea.lb) {
           _target = CommonTypes.SelectAreaTarget.lb;
+        }else{
+          selection = null
         }
 
-        const multiSelectingMap = getMultSelectingMap();
+        // const multiSelectingMap = getMultSelectingMap();
 
-        shapes.forEach((shape) => {
-          if (!multiSelectingMap[shape.id]) return;
+        // shapes.forEach((shape) => {
+        //   if (!multiSelectingMap[shape.id]) return;
 
-          const edge = shape.getEdge();
-          multiSelectingCoordinate.l = Math.min(
-            multiSelectingCoordinate.l,
-            edge.l
-          );
-          multiSelectingCoordinate.t = Math.min(
-            multiSelectingCoordinate.t,
-            edge.t
-          );
-          multiSelectingCoordinate.r = Math.max(
-            multiSelectingCoordinate.r,
-            edge.r
-          );
-          multiSelectingCoordinate.b = Math.max(
-            multiSelectingCoordinate.b,
-            edge.b
-          );
-        });
+        //   const edge = shape.getEdge();
+        //   console.log("multiSelectingCoordinate", multiSelectingCoordinate);
+        //   multiSelectingCoordinate.l = Math.min(
+        //     multiSelectingCoordinate.l,
+        //     edge.l
+        //   );
+        //   multiSelectingCoordinate.t = Math.min(
+        //     multiSelectingCoordinate.t,
+        //     edge.t
+        //   );
+        //   multiSelectingCoordinate.r = Math.max(
+        //     multiSelectingCoordinate.r,
+        //     edge.r
+        //   );
+        //   multiSelectingCoordinate.b = Math.max(
+        //     multiSelectingCoordinate.b,
+        //     edge.b
+        //   );
+        // });
 
-        multiSelectingCoordinate.m = {
-          x: (multiSelectingCoordinate.l + multiSelectingCoordinate.r) / 2,
-          y: (multiSelectingCoordinate.t + multiSelectingCoordinate.b) / 2,
-        };
+        // console.log("multiSelectingCoordinate", multiSelectingCoordinate);
+
+        // multiSelectingCoordinate.m = {
+        //   x: (multiSelectingCoordinate.l + multiSelectingCoordinate.r) / 2,
+        //   y: (multiSelectingCoordinate.t + multiSelectingCoordinate.b) / 2,
+        // };
 
         if (_target) {
           pressing = {
             origin: null,
             shape: null,
-            ghost: new Process(
-              `${Date.now()}`,
-              Math.abs(multiSelectingCoordinate.l - multiSelectingCoordinate.r),
-              Math.abs(multiSelectingCoordinate.t - multiSelectingCoordinate.b),
-              multiSelectingCoordinate.m,
-              "#000000",
-            ),
+            ghost:null,
             target: _target,
             direction: null,
           };
@@ -2697,10 +2673,10 @@ export default function IdPage() {
       }
 
       if (!pressing) {
-        selectionFrameP = {
+        selectionFrame = new SelectionFrame(`selectionFrame_${Date.now()}`, {
           start: p,
           end: p,
-        };
+        });
       }
     }
 
@@ -2727,10 +2703,96 @@ export default function IdPage() {
       offset.y += normalOffsetP.y;
     }
 
-    if (!movingViewport && multiSelectShapeIds.length >= 2) {
+    if (!movingViewport && pressing?.shape && !!selectionFrame) {
       if (pressing?.target === CommonTypes.SelectAreaTarget.m) {
         actionRecords.register(CommonTypes.Action.multiMove);
-        moveMultiSelectingShapes(normalOffsetP);
+
+        const shapesInView = getShapesInView(shapes);
+        const targetAlignShapes = shapesInView.filter(
+          (shapeInView) => shapeInView.id !== pressing?.shape?.id
+        );
+        const alignP = getAlignP(targetAlignShapes, pressing.ghost);
+
+        // moveMultiSelectingShapes(normalOffsetP)
+
+        if (alignP?.x || alignP?.y) {
+          // pressing.shape.locate(alignP);
+          // locateMultiSelectingShapes(alignP);
+        }
+
+        console.log("alignP", alignP);
+
+        if (alignP?.x && !alignP?.y) {
+          const moveP = getNormalP(
+            {
+              x: 0,
+              y: p.y - lastP.y,
+            },
+            null,
+            scale
+          );
+          // moveMultiSelectingShapes(moveP);
+        }
+
+        // if (!alignP?.x && alignP?.y) {
+        //   const moveP = getNormalP(
+        //     {
+        //       x: p.x - lastP.x,
+        //       y: 0,
+        //     },
+        //     null,
+        //     scale
+        //   )
+        //   pressing.shape.move(
+        //     getNormalP(
+        //       moveP,
+        //       null,
+        //       scale
+        //     )
+        //   );
+        //   moveMultiSelectingShapes(moveP);
+        // }
+
+        // if (!alignP?.x && !alignP?.y) {
+        //   if (pressing.ghost && pressing.shape.p.x !== pressing.ghost?.p.x) {
+        //     pressing.shape.locate({
+        //       x: pressing.ghost.getCenter().m.x,
+        //       y: null,
+        //     });
+        //   }
+
+        //   if (pressing.ghost && pressing.shape.p.y !== pressing.ghost?.p.y) {
+        //     pressing.shape.locate({
+        //       x: null,
+        //       y: pressing.ghost.getCenter().m.y,
+        //     });
+        //   }
+        //   pressing.shape.move(
+        //     getNormalP(
+        //       {
+        //         x: p.x - lastP.x,
+        //         y: p.y - lastP.y,
+        //       },
+        //       null,
+        //       scale
+        //     )
+        //   );
+        // }
+
+        pressing.ghost?.move(
+          getNormalP(
+            {
+              x: 0,
+              // x: p.x - lastP.x,
+              y: p.y - lastP.y,
+              // y: 0,
+            },
+            null,
+            scale
+          )
+        );
+
+        console.log("alignP", alignP);
       } else if (
         pressing?.target === CommonTypes.SelectAreaTarget.lt ||
         pressing?.target === CommonTypes.SelectAreaTarget.rt ||
@@ -2738,19 +2800,23 @@ export default function IdPage() {
         pressing?.target === CommonTypes.SelectAreaTarget.lb
       ) {
         actionRecords.register(CommonTypes.Action.multiResize);
-        resizeMultiSelectingShapes(pressing?.target, offsetP, scale);
+        // resizeMultiSelectingShapes(pressing?.target, offsetP, scale);
       }
 
-      const multiSelectingMap = getMultSelectingMap();
+      // const multiSelectingMap = getMultSelectingMap();
 
       shapes.forEach((shape) => {
-        if (!multiSelectingMap[shape.id]) return;
+        // if (!multiSelectingMap[shape.id]) return;
         moveCurve(shape);
       });
     }
 
-    if (!movingViewport && pressing?.shape) {
-      if (pressing?.shape && pressing?.target === CoreTypes.PressingTarget.m) {
+    if (
+      !movingViewport &&
+      pressing?.shape &&
+      multiSelectShapeIds.length === 0
+    ) {
+      if (pressing?.target === CoreTypes.PressingTarget.m) {
         actionRecords.register(CommonTypes.Action.move);
 
         const shapesInView = getShapesInView(shapes);
@@ -2862,11 +2928,8 @@ export default function IdPage() {
     if (!movingViewport && !!pressingCurve) {
       actionRecords.register(CommonTypes.Action.disconnect);
       movePressingCurve(ctx, pressingCurve, p, offset, scale);
-    } else if (!movingViewport && selectionFrameP) {
-      selectionFrameP = {
-        ...selectionFrameP,
-        end: p,
-      };
+    } else if (!movingViewport && !!selectionFrame) {
+      selectionFrame.drag(p);
     }
 
     lastP = p;
@@ -2884,7 +2947,7 @@ export default function IdPage() {
     };
 
     setLeftMouseBtn(false);
-    frameSelect(offset, scale);
+    frameSelect(selectionFrame, offset, scale);
     checkConnect(getNormalP(p, offset, scale));
 
     if (
@@ -2907,18 +2970,6 @@ export default function IdPage() {
       pressing?.target === CoreTypes.PressingTarget.lb
     ) {
       actionRecords.finish(CommonTypes.Action.resize);
-      // actions.push({
-      //   type: CommonTypes.Action.resize,
-      //   targets: [
-      //     {
-      //       id: pressing.shape.id,
-      //       index: shapes.findIndex(
-      //         (shape) => shape.id === pressing?.shape?.id
-      //       ),
-      //       origin: pressing.origin,
-      //     },
-      //   ],
-      // }); // temp close
     } else if (
       pressing?.target &&
       pressing?.shape &&
@@ -2928,23 +2979,16 @@ export default function IdPage() {
     ) {
       if (pressing?.target === CoreTypes.PressingTarget.m) {
         actionRecords.finish(CommonTypes.Action.move);
-        // actions.push({
-        //   type: CommonTypes.Action.move,
-        //   target: pressing.shape,
-        //   displacement: {
-        //     x: pressing.origin.p.x - pressing.shape.p.x,
-        //     y: pressing.origin.p.y - pressing.shape.p.y,
-        //   },
-        // }); // temp close
       }
     }
 
     checkSteps();
 
-    selectionFrameP = null;
+    selectionFrame = null;
     pressing = null;
     pressingCurve = null;
     alginLines = [];
+    multiSelectingCoordinate = cloneDeep(init.multiSelectingCoordinate);
 
     drawCanvas(offset, scale);
   };
@@ -2995,9 +3039,9 @@ export default function IdPage() {
       if (!$canvas || !ctx) return;
 
       const deleteMultiSelectShapes = () => {
-        if (multiSelectShapeIds.length === 0) return true;
+        if (!selection) return true;
 
-        const multiSelectingMap = getMultSelectingMap();
+        const multiSelectingMap = selection.getMultSelectingMap();
 
         curves = curves.filter(
           (curve) =>
@@ -3034,15 +3078,6 @@ export default function IdPage() {
         shapes.splice(selectedShapeI, 1);
         actionRecords.finish(CommonTypes.Action.delete);
 
-        // actions.push({
-        //   type: CommonTypes.Action.delete,
-        //   target: {
-        //     shape: removedShape,
-        //     i: selectedShapeI,
-        //     curves: removedCurves,
-        //   },
-        // }); // TODO: temp close
-
         return false;
       };
 
@@ -3067,15 +3102,15 @@ export default function IdPage() {
     setIsOverallSidePanelOpen((open) => !open);
   };
 
-  const onClickHambugar = () => {
-    setIsProfileFrameOpen((isProfileFrameOpen) => !isProfileFrameOpen);
-  };
+  // const onClickHambugar = () => {
+  //   setIsProfileFrameOpen((isProfileFrameOpen) => !isProfileFrameOpen);
+  // }; // TODO: tmp close
 
-  const onClickProjectsButton = async () => {
-    setIsProjectsModalOpen(true);
-    setIsProfileFrameOpen(false);
-    // await fetchProjects();
-  };
+  // const onClickProjectsButton = async () => {
+  //   setIsProjectsModalOpen(true);
+  //   setIsProfileFrameOpen(false);
+  //   // await fetchProjects();
+  // }; // TODO: tmp close
 
   const onClickPositioningButton = (shapeP: CommonTypes.Vec) => {
     positioning(shapeP);
@@ -3171,7 +3206,7 @@ export default function IdPage() {
   // const onClickLogOutButton = () => {
   //   localStorage.removeItem("Authorization");
   //   router.push("/");
-  // };
+  // }; // TODO: tmp close
 
   const onClickProjectName = () => {
     setIsRenameFrameOpen((isRenameFrameOpen) => !isRenameFrameOpen);

@@ -65,9 +65,13 @@ const config: Config = {
         },
         shape: {
           terminal: "#FFB100",
-          process: "#AB44F4",
+          process: "#AB44F455",
           data: "#1BC861",
           decision: "#5468E9",
+        },
+        selectionFrame: {
+          fill: "#2436b155",
+          stroke: "#2436b1",
         },
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
