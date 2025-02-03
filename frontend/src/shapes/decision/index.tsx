@@ -70,14 +70,14 @@ export default class Desicion extends Core {
   ) {
     super.draw(ctx, offest, scale, () => {
       const screenP = this.getP(offest, scale);
-      const x1 = -this.getScaleSize(scale).w / 2,
+      const x1 = -this.getSize(scale).w / 2,
         y1 = 0;
       const x2 = 0,
-        y2 = this.getScaleSize(scale).h / 2;
-      const x3 = this.getScaleSize(scale).w / 2,
+        y2 = this.getSize(scale).h / 2;
+      const x3 = this.getSize(scale).w / 2,
         y3 = 0;
       const x4 = 0,
-        y4 = -this.getScaleSize(scale).h / 2;
+        y4 = -this.getSize(scale).h / 2;
 
       ctx.save();
       ctx.translate(screenP.x, screenP.y);

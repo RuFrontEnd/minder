@@ -4,6 +4,7 @@ import React, {
   useState,
   useRef,
   useEffect,
+  useMemo,
   useCallback,
   ChangeEvent,
 } from "react";
@@ -49,6 +50,7 @@ import * as projectAPIs from "@/apis/project";
 import * as CoreTypes from "@/types/shapes/core";
 import * as CurveTypes from "@/types/shapes/curve";
 import * as CommonTypes from "@/types/common";
+import * as SelectionTypes from "@/types/shapes/selection";
 import * as PageTypes from "@/types/app/page";
 import * as IndivisaulSidePanelTypes from "@/types/sections/id/indivisualSidePanel";
 import * as InputTypes from "@/types/components/input";
@@ -112,7 +114,7 @@ let ctx: CanvasRenderingContext2D | null | undefined = null,
   shapes: (Terminal | Process | Data | Desicion)[] = [],
   candidates: null | (Terminal | Process | Data | Desicion)[] = null,
   curves: CommonTypes.ConnectionCurves = [],
-  pressing: PageIdTypes.Pressing = null,
+  pressingSelection: PageIdTypes.PressingSelection = null,
   pressingCurve: PageIdTypes.PressingCurve = null,
   offset: CommonTypes.Vec = cloneDeep(init.offset),
   lastP: CommonTypes.Vec = { x: 0, y: 0 },
@@ -1017,7 +1019,6 @@ const frameSelect = (
   offset: CommonTypes.Vec = { x: 0, y: 0 },
   scale: number = 1
 ) => {
-  console.log("selectionFrame", selectionFrame);
   if (!selectionFrame) return [];
   // define which shape in select area
   const shapesInSelectingArea = (() => {
@@ -1062,16 +1063,10 @@ const frameSelect = (
     return shapesInArea;
   })();
 
-  // define select status
-  if (shapesInSelectingArea.length === 1) {
-    const targetShape = shapes.find(
-      (shape) => shape.id === shapesInSelectingArea[0].id
-    );
-    if (!targetShape) return;
-    targetShape.selecting = true;
-  } else if (shapesInSelectingArea.length >= 2) {
-    selection = new Selection(`selectionArea_${Date.now()}`, shapesInSelectingArea);
-  }
+  selection = new Selection(
+    `selectionArea_${Date.now()}`,
+    shapesInSelectingArea
+  );
 };
 
 const getCurve = (
@@ -1378,12 +1373,14 @@ const getCurveStickingCp1Cp2 = (
 
 const movePressingCurve = (
   ctx: null | undefined | CanvasRenderingContext2D,
-  pressingCurve: PageIdTypes.PressingCurve,
+  pressingCurve: null | PageIdTypes.PressingCurve,
   p: CommonTypes.Vec,
   offset: CommonTypes.Vec = { x: 0, y: 0 },
-  scale: number = 1
+  scale: number = 1,
+  isMovingViewport: boolean = false
 ) => {
-  if (!ctx || !pressingCurve) return;
+  if (!ctx || !pressingCurve || isMovingViewport) return true;
+  actionRecords.register(CommonTypes.Action.disconnect);
 
   const [toD, p2] = (() => {
     for (let i = 0; i < shapes.length; i++) {
@@ -1423,7 +1420,7 @@ const movePressingCurve = (
       p1,
       p2
     );
-    if (!p1 || !cp1 || !cp2 || !p2) return;
+    if (!p1 || !cp1 || !cp2 || !p2) return true;
 
     pressingCurve?.shape.locateHandler(CurveTypes.PressingTarget.cp1, cp1);
     pressingCurve?.shape.locateHandler(CurveTypes.PressingTarget.cp2, cp2);
@@ -1464,6 +1461,17 @@ const movePressingCurve = (
     pressingCurve?.shape.locateHandler(CurveTypes.PressingTarget.cp2, cp2);
     pressingCurve.shape.locateHandler(CurveTypes.PressingTarget.p2, p2);
   }
+
+  return false;
+};
+
+const defineSelectionFrameRange = (
+  p: CommonTypes.Vec,
+  isMovingViewport: boolean = false
+) => {
+  if (isMovingViewport || !selectionFrame) return true;
+  selectionFrame?.drag(p);
+  return false;
 };
 
 const moveSenderCurve = (
@@ -1541,51 +1549,97 @@ const moveCurve = (
   }
 };
 
-const triggerCurve = (
+const startMovingViewport = (isPressingSpace: boolean, p: CommonTypes.Vec) => {
+  if (!isPressingSpace) return true;
+
+  lastP = p;
+  return false;
+};
+
+const pressSelection = (
   p: CommonTypes.Vec,
   offest: CommonTypes.Vec = { x: 0, y: 0 },
   scale: number = 0
 ) => {
-  const [triggerShape, curveTriggerD] = (() => {
-    let triggerShape: null | Terminal | Process | Desicion | Data = null;
-    let curveTriggerD: null | CommonTypes.Direction = null;
+  if (!selection) return true;
 
-    for (let i = shapes.length - 1; i > -1; i--) {
-      const shape = shapes[i];
-      const triggerD = shape.getTriggerDirection(getNormalP(p, offest, scale));
-      if (triggerD) {
-        triggerShape = shape;
-        curveTriggerD = triggerD;
-        break;
-      }
-    }
+  const _target = selection.checkBoundry(getNormalP(p, offest, scale), 0);
 
-    return [triggerShape, curveTriggerD];
-  })();
-
-  if (triggerShape && curveTriggerD) {
-    triggerShape.selecting = false;
-
-    pressingCurve = {
-      from: {
-        shape: triggerShape,
-        origin: cloneDeep(triggerShape),
-        d: curveTriggerD,
-      },
-      to: null,
-      shape: getCurve(
-        `curve_${Date.now()}`,
-        curveTriggerD,
-        triggerShape.w,
-        triggerShape.h,
-        triggerShape.p,
-        triggerShape.curveTrigger.distance
-      ),
+  if (!!_target) {
+    pressingSelection = {
+      selection: selection,
+      ghost: cloneDeep(selection),
+      target: _target,
     };
 
-    pressingCurve.shape.selecting = true;
+    return pressingSelection;
+  }
+
+  return true;
+};
+
+const startSelecting = (
+  p: CommonTypes.Vec,
+  prev: PageIdTypes.PressingSelection | null
+) => {
+  if (!prev) {
+    selectionFrame = new SelectionFrame(`selectionFrame_${Date.now()}`, {
+      start: p,
+      end: p,
+    });
     return false;
   }
+
+  return prev;
+};
+
+const triggerCurve = (
+  p: CommonTypes.Vec,
+  offest: CommonTypes.Vec = { x: 0, y: 0 },
+  scale: number = 0,
+  prev: PageIdTypes.PressingSelection | null
+) => {
+  // TODO
+  // const [triggerShape, curveTriggerD] = (() => {
+  //   let triggerShape: null | Terminal | Process | Desicion | Data = null;
+  //   let curveTriggerD: null | CommonTypes.Direction = null;
+
+  //   for (let i = shapes.length - 1; i > -1; i--) {
+  //     const shape = shapes[i];
+  //     const triggerD = shape.getTriggerDirection(getNormalP(p, offest, scale));
+  //     if (triggerD) {
+  //       triggerShape = shape;
+  //       curveTriggerD = triggerD;
+  //       break;
+  //     }
+  //   }
+
+  //   return [triggerShape, curveTriggerD];
+  // })();
+
+  // if (triggerShape && curveTriggerD) {
+  //   triggerShape.selecting = false;
+
+  //   pressingCurve = {
+  //     from: {
+  //       shape: triggerShape,
+  //       origin: cloneDeep(triggerShape),
+  //       d: curveTriggerD,
+  //     },
+  //     to: null,
+  //     shape: getCurve(
+  //       `curve_${Date.now()}`,
+  //       curveTriggerD,
+  //       triggerShape.w,
+  //       triggerShape.h,
+  //       triggerShape.p,
+  //       triggerShape.curveTrigger.distance
+  //     ),
+  //   };
+
+  //   pressingCurve.shape.selecting = true;
+  //   return false;
+  // }
 
   return true;
 };
@@ -1593,7 +1647,8 @@ const triggerCurve = (
 const selectCurve = (
   p: CommonTypes.Vec,
   offset: CommonTypes.Vec = { x: 0, y: 0 },
-  scale: number = 1
+  scale: number = 1,
+  prev: PageIdTypes.PressingSelection
 ) => {
   for (let i = curves.length - 1; i > -1; i--) {
     const curve = curves[i];
@@ -1625,6 +1680,12 @@ const selectCurve = (
   return true;
 };
 
+const adPressSelection = (prev: PageIdTypes.PressingSelection) => {
+  if (!prev) return true;
+
+  return true;
+};
+
 const deSelectCurve = () => {
   curves.forEach((curve) => {
     curve.shape.selecting = false;
@@ -1633,52 +1694,18 @@ const deSelectCurve = () => {
   return true;
 };
 
-const selectShape = (
-  p: CommonTypes.Vec,
-  offset: CommonTypes.Vec,
-  scale: number
-) => {
-  const normalP = getNormalP(p, offset, scale);
-  shapes.forEach((shape) => {
-    const _ghost = cloneDeep(shape);
-    _ghost.title = "ghost";
-    const pressingVertex = shape.checkVertexesBoundry(normalP);
-    if (pressingVertex) {
-      pressing = {
-        origin: cloneDeep(shape),
-        shape: shape,
-        ghost: _ghost,
-        curveId: null,
-        target: pressingVertex,
-        direction: null,
-      };
-    } else if (shape.checkBoundry(normalP)) {
-      pressing = {
-        origin: cloneDeep(shape),
-        shape: shape,
-        ghost: _ghost,
-        curveId: null,
-        target: CoreTypes.PressingTarget.m,
-        direction: null,
-      };
-    }
-  });
-
-  if (pressing?.shape) {
-    pressing.shape.selecting = true;
-    return false;
-  }
-
+const moveViewport = (p: CommonTypes.Vec) => {
+  lastP = p;
   return true;
 };
 
-const deSelectShape = () => {
-  shapes.forEach((shape) => {
-    shape.selecting = false;
-  });
+// const deSelectShape = () => {
+//   shapes.forEach((shape) => {
+//     shape.selecting = false;
+//   });
 
-  return true;
-};
+//   return true;
+// };
 
 // const locateMultiSelectingShapes = (p: {
 //   x: null | number;
@@ -1753,7 +1780,7 @@ const deSelectShape = () => {
 //         shapes.forEach((shape) => {
 //           if (!multiSelectingMap[shape.id]) return;
 
-//           const ratioW = shape.getScaleSize().w / multiSelectingAreaSize.w,
+//           const ratioW = shape.getSize().w / multiSelectingAreaSize.w,
 //             unitW = offsetP.x * ratioW;
 
 //           if (canResize.x) {
@@ -1769,7 +1796,7 @@ const deSelectShape = () => {
 //             };
 //           }
 
-//           const ratioH = shape.getScaleSize().h / multiSelectingAreaSize.h,
+//           const ratioH = shape.getSize().h / multiSelectingAreaSize.h,
 //             unitH = offsetP.y * ratioH;
 
 //           if (canResize.y) {
@@ -1801,7 +1828,7 @@ const deSelectShape = () => {
 
 //         shapes.forEach((shape) => {
 //           if (!multiSelectingMap[shape.id]) return;
-//           const ratioW = shape.getScaleSize().w / multiSelectingAreaSize.w,
+//           const ratioW = shape.getSize().w / multiSelectingAreaSize.w,
 //             unitW = offsetP.x * ratioW;
 
 //           if (canResize.x) {
@@ -1821,7 +1848,7 @@ const deSelectShape = () => {
 //             unitH = offsetP.y * ratioH;
 
 //           if (canResize.y) {
-//             shape.h = shape.getScaleSize().h - unitH / scale;
+//             shape.h = shape.getSize().h - unitH / scale;
 
 //             const dy = Math.abs(shape.p.y - multiSelectingAreaP.end.y),
 //               ratioY = dy / multiSelectingAreaSize.h,
@@ -1849,7 +1876,7 @@ const deSelectShape = () => {
 
 //         shapes.forEach((shape) => {
 //           if (!multiSelectingMap[shape.id]) return;
-//           const ratioW = shape.getScaleSize().w / multiSelectingAreaSize.w,
+//           const ratioW = shape.getSize().w / multiSelectingAreaSize.w,
 //             unitW = offsetP.x * ratioW;
 
 //           if (canResize.x) {
@@ -1865,7 +1892,7 @@ const deSelectShape = () => {
 //             };
 //           }
 
-//           const ratioH = shape.getScaleSize().h / multiSelectingAreaSize.h,
+//           const ratioH = shape.getSize().h / multiSelectingAreaSize.h,
 //             unitH = offsetP.y * ratioH;
 
 //           if (canResize.y) {
@@ -1897,7 +1924,7 @@ const deSelectShape = () => {
 
 //         shapes.forEach((shape) => {
 //           if (!multiSelectingMap[shape.id]) return;
-//           const ratioW = shape.getScaleSize().w / multiSelectingAreaSize.w,
+//           const ratioW = shape.getSize().w / multiSelectingAreaSize.w,
 //             unitW = offsetP.x * ratioW;
 
 //           if (canResize.x) {
@@ -1913,7 +1940,7 @@ const deSelectShape = () => {
 //             };
 //           }
 
-//           const ratioH = shape.getScaleSize().h / multiSelectingAreaSize.h,
+//           const ratioH = shape.getSize().h / multiSelectingAreaSize.h,
 //             unitH = offsetP.y * ratioH;
 
 //           if (canResize.y) {
@@ -2221,20 +2248,20 @@ const draw = (
   );
   drawAlignLines(ctx, alginLines, offset, scale);
 
-  if (!isScreenshot) {
-    // draw sending point
-    shapes.forEach((shape) => {
-      if (!ctx || !shape.selecting) return;
-      if (
-        shape instanceof Terminal ||
-        shape instanceof Process ||
-        shape instanceof Data ||
-        (shape instanceof Desicion && !(shape.getText().y && shape.getText().n))
-      ) {
-        shape.drawSendingPoint(ctx, offset, scale);
-      }
-    });
-  }
+  // if (!isScreenshot) {
+  //   // draw sending point
+  //   shapes.forEach((shape) => {
+  //     if (!ctx || !shape.selecting) return;
+  //     if (
+  //       shape instanceof Terminal ||
+  //       shape instanceof Process ||
+  //       shape instanceof Data ||
+  //       (shape instanceof Desicion && !(shape.getText().y && shape.getText().n))
+  //     ) {
+  //       shape.drawSendingPoint(ctx, offset, scale);
+  //     }
+  //   });
+  // }
 
   if (!pressingCurve?.to) {
     pressingCurve?.shape.draw(ctx, offset, scale);
@@ -2245,12 +2272,12 @@ const draw = (
     if (!!selectionFrame) {
       selectionFrame.draw(ctx);
     }
-    if(!!selection){
-      selection.draw(ctx)
+    if (!!selection) {
+      selection.draw(ctx, offset, scale);
     }
   }
 
-  pressing?.ghost?.draw(ctx);
+  pressingSelection?.ghost?.draw(ctx);
 };
 
 const drawCanvas = (offset?: CommonTypes.Vec, scale?: number) => {
@@ -2437,7 +2464,6 @@ export default function IdPage() {
   const [isConsoleOpen, setIsConsoleOpen] = useState(false);
   const [steps, setSteps] = useState<PageTypes.Steps>([]);
   const [datas, setDatas] = useState<PageIdTypes.Datas>([]);
-
   const [isProjectsModalOpen, setIsProjectsModalOpen] = useState(false);
   const [projects, setProjects] = useState<
     ProjectAPITypes.GetProjects["resData"]
@@ -2470,6 +2496,11 @@ export default function IdPage() {
     useState<IndivisaulSidePanelTypes.AddDatas>([]);
   const [consoles, setConsoles] = useState<any>([]);
   const [isCheckingData, setIsCheckingData] = useState(false);
+
+  const movingViewport = useMemo(
+    () => space && leftMouseBtn,
+    [space, leftMouseBtn]
+  );
 
   const checkSteps = () => {
     setSteps(cloneDeep(shapes));
@@ -2567,118 +2598,16 @@ export default function IdPage() {
       x: e.nativeEvent.offsetX,
       y: e.nativeEvent.offsetY,
     };
-    const normalP = getNormalP(p, offset, scale);
-    if (space) {
-      lastP = p;
-    } else {
-      if (!!selection) {
-        // when multi multiSelect shapes
-        let _target: null | CommonTypes.SelectAreaTarget = null;
-        const [multiSelectingAreaStartP, multiSelectingAreaEndP] =
-        selection.getMultiSelectingAreaP();
-        const pInSelectingArea = {
-          m:
-            normalP.x > multiSelectingAreaStartP.x &&
-            normalP.y > multiSelectingAreaStartP.y &&
-            normalP.x < multiSelectingAreaEndP.x &&
-            normalP.y < multiSelectingAreaEndP.y,
-          lt:
-            normalP.x > multiSelectingAreaStartP.x - selectAnchor.size.fill &&
-            normalP.y > multiSelectingAreaStartP.y - selectAnchor.size.fill &&
-            normalP.x < multiSelectingAreaStartP.x + selectAnchor.size.fill &&
-            normalP.y < multiSelectingAreaStartP.y + selectAnchor.size.fill,
-          rt:
-            normalP.x > multiSelectingAreaEndP.x - selectAnchor.size.fill &&
-            normalP.y > multiSelectingAreaStartP.y - selectAnchor.size.fill &&
-            normalP.x < multiSelectingAreaEndP.x + selectAnchor.size.fill &&
-            normalP.y < multiSelectingAreaStartP.y + selectAnchor.size.fill,
-          rb:
-            normalP.x > multiSelectingAreaEndP.x - selectAnchor.size.fill &&
-            normalP.y > multiSelectingAreaEndP.y - selectAnchor.size.fill &&
-            normalP.x < multiSelectingAreaEndP.x + selectAnchor.size.fill &&
-            normalP.y < multiSelectingAreaEndP.y + selectAnchor.size.fill,
-          lb:
-            normalP.x > multiSelectingAreaStartP.x - selectAnchor.size.fill &&
-            normalP.y > multiSelectingAreaEndP.y - selectAnchor.size.fill &&
-            normalP.x < multiSelectingAreaStartP.x + selectAnchor.size.fill &&
-            normalP.y < multiSelectingAreaEndP.y + selectAnchor.size.fill,
-        };
 
-        if (pInSelectingArea.m) {
-          _target = CommonTypes.SelectAreaTarget.m;
-        } else if (pInSelectingArea.lt) {
-          _target = CommonTypes.SelectAreaTarget.lt;
-        } else if (pInSelectingArea.rt) {
-          _target = CommonTypes.SelectAreaTarget.rt;
-        } else if (pInSelectingArea.rb) {
-          _target = CommonTypes.SelectAreaTarget.rb;
-        } else if (pInSelectingArea.lb) {
-          _target = CommonTypes.SelectAreaTarget.lb;
-        }else{
-          selection = null
-        }
-
-        // const multiSelectingMap = getMultSelectingMap();
-
-        // shapes.forEach((shape) => {
-        //   if (!multiSelectingMap[shape.id]) return;
-
-        //   const edge = shape.getEdge();
-        //   console.log("multiSelectingCoordinate", multiSelectingCoordinate);
-        //   multiSelectingCoordinate.l = Math.min(
-        //     multiSelectingCoordinate.l,
-        //     edge.l
-        //   );
-        //   multiSelectingCoordinate.t = Math.min(
-        //     multiSelectingCoordinate.t,
-        //     edge.t
-        //   );
-        //   multiSelectingCoordinate.r = Math.max(
-        //     multiSelectingCoordinate.r,
-        //     edge.r
-        //   );
-        //   multiSelectingCoordinate.b = Math.max(
-        //     multiSelectingCoordinate.b,
-        //     edge.b
-        //   );
-        // });
-
-        // console.log("multiSelectingCoordinate", multiSelectingCoordinate);
-
-        // multiSelectingCoordinate.m = {
-        //   x: (multiSelectingCoordinate.l + multiSelectingCoordinate.r) / 2,
-        //   y: (multiSelectingCoordinate.t + multiSelectingCoordinate.b) / 2,
-        // };
-
-        if (_target) {
-          pressing = {
-            origin: null,
-            shape: null,
-            ghost:null,
-            target: _target,
-            direction: null,
-          };
-        } else {
-          multiSelectShapeIds = cloneDeep(init.multiSelectShapeIds);
-        }
-      } else {
-        // when single multiSelect shape
-        handleUtils.handle([
-          () => triggerCurve(p, offset, scale),
-          () => deSelectShape(),
-          () => selectCurve(p, offset, scale),
-          () => deSelectCurve(),
-          () => selectShape(p, offset, scale),
-        ]);
-      }
-
-      if (!pressing) {
-        selectionFrame = new SelectionFrame(`selectionFrame_${Date.now()}`, {
-          start: p,
-          end: p,
-        });
-      }
-    }
+    handleUtils.handle([
+      () => startMovingViewport(space, p),
+      () => pressSelection(p, offset, scale),
+      (prev) => startSelecting(p, prev),
+      (prev) => triggerCurve(p, offset, scale, prev),
+      (prev) => selectCurve(p, offset, scale, prev),
+      (prev) => adPressSelection(prev),
+      () => deSelectCurve(),
+    ]);
 
     drawCanvas(offset, scale);
   };
@@ -2696,243 +2625,240 @@ export default function IdPage() {
       },
       normalOffsetP = getNormalP(offsetP, null, scale);
 
-    const movingViewport = space && leftMouseBtn;
-
     if (movingViewport) {
       offset.x += normalOffsetP.x;
       offset.y += normalOffsetP.y;
     }
 
-    if (!movingViewport && pressing?.shape && !!selectionFrame) {
-      if (pressing?.target === CommonTypes.SelectAreaTarget.m) {
-        actionRecords.register(CommonTypes.Action.multiMove);
+    handleUtils.handle([
+      () => moveViewport(p),
+      () =>
+        movePressingCurve(ctx, pressingCurve, p, offset, scale, movingViewport),
+      () => defineSelectionFrameRange(p, movingViewport),
+    ]);
 
-        const shapesInView = getShapesInView(shapes);
-        const targetAlignShapes = shapesInView.filter(
-          (shapeInView) => shapeInView.id !== pressing?.shape?.id
-        );
-        const alignP = getAlignP(targetAlignShapes, pressing.ghost);
+    // if (!movingViewport && pressing?.shape && !!selectionFrame) {
+    //   if (pressing?.target === CommonTypes.SelectAreaTarget.m) {
+    //     actionRecords.register(CommonTypes.Action.multiMove);
 
-        // moveMultiSelectingShapes(normalOffsetP)
+    //     const shapesInView = getShapesInView(shapes);
+    //     const targetAlignShapes = shapesInView.filter(
+    //       (shapeInView) => shapeInView.id !== pressing?.shape?.id
+    //     );
+    //     const alignP = getAlignP(targetAlignShapes, pressing.ghost);
 
-        if (alignP?.x || alignP?.y) {
-          // pressing.shape.locate(alignP);
-          // locateMultiSelectingShapes(alignP);
-        }
+    //     // moveMultiSelectingShapes(normalOffsetP)
 
-        console.log("alignP", alignP);
+    //     if (alignP?.x || alignP?.y) {
+    //       // pressing.shape.locate(alignP);
+    //       // locateMultiSelectingShapes(alignP);
+    //     }
 
-        if (alignP?.x && !alignP?.y) {
-          const moveP = getNormalP(
-            {
-              x: 0,
-              y: p.y - lastP.y,
-            },
-            null,
-            scale
-          );
-          // moveMultiSelectingShapes(moveP);
-        }
+    //     console.log("alignP", alignP);
 
-        // if (!alignP?.x && alignP?.y) {
-        //   const moveP = getNormalP(
-        //     {
-        //       x: p.x - lastP.x,
-        //       y: 0,
-        //     },
-        //     null,
-        //     scale
-        //   )
-        //   pressing.shape.move(
-        //     getNormalP(
-        //       moveP,
-        //       null,
-        //       scale
-        //     )
-        //   );
-        //   moveMultiSelectingShapes(moveP);
-        // }
+    //     if (alignP?.x && !alignP?.y) {
+    //       const moveP = getNormalP(
+    //         {
+    //           x: 0,
+    //           y: p.y - lastP.y,
+    //         },
+    //         null,
+    //         scale
+    //       );
+    //       // moveMultiSelectingShapes(moveP);
+    //     }
 
-        // if (!alignP?.x && !alignP?.y) {
-        //   if (pressing.ghost && pressing.shape.p.x !== pressing.ghost?.p.x) {
-        //     pressing.shape.locate({
-        //       x: pressing.ghost.getCenter().m.x,
-        //       y: null,
-        //     });
-        //   }
+    //     // if (!alignP?.x && alignP?.y) {
+    //     //   const moveP = getNormalP(
+    //     //     {
+    //     //       x: p.x - lastP.x,
+    //     //       y: 0,
+    //     //     },
+    //     //     null,
+    //     //     scale
+    //     //   )
+    //     //   pressing.shape.move(
+    //     //     getNormalP(
+    //     //       moveP,
+    //     //       null,
+    //     //       scale
+    //     //     )
+    //     //   );
+    //     //   moveMultiSelectingShapes(moveP);
+    //     // }
 
-        //   if (pressing.ghost && pressing.shape.p.y !== pressing.ghost?.p.y) {
-        //     pressing.shape.locate({
-        //       x: null,
-        //       y: pressing.ghost.getCenter().m.y,
-        //     });
-        //   }
-        //   pressing.shape.move(
-        //     getNormalP(
-        //       {
-        //         x: p.x - lastP.x,
-        //         y: p.y - lastP.y,
-        //       },
-        //       null,
-        //       scale
-        //     )
-        //   );
-        // }
+    //     // if (!alignP?.x && !alignP?.y) {
+    //     //   if (pressing.ghost && pressing.shape.p.x !== pressing.ghost?.p.x) {
+    //     //     pressing.shape.locate({
+    //     //       x: pressing.ghost.getCenter().m.x,
+    //     //       y: null,
+    //     //     });
+    //     //   }
 
-        pressing.ghost?.move(
-          getNormalP(
-            {
-              x: 0,
-              // x: p.x - lastP.x,
-              y: p.y - lastP.y,
-              // y: 0,
-            },
-            null,
-            scale
-          )
-        );
+    //     //   if (pressing.ghost && pressing.shape.p.y !== pressing.ghost?.p.y) {
+    //     //     pressing.shape.locate({
+    //     //       x: null,
+    //     //       y: pressing.ghost.getCenter().m.y,
+    //     //     });
+    //     //   }
+    //     //   pressing.shape.move(
+    //     //     getNormalP(
+    //     //       {
+    //     //         x: p.x - lastP.x,
+    //     //         y: p.y - lastP.y,
+    //     //       },
+    //     //       null,
+    //     //       scale
+    //     //     )
+    //     //   );
+    //     // }
 
-        console.log("alignP", alignP);
-      } else if (
-        pressing?.target === CommonTypes.SelectAreaTarget.lt ||
-        pressing?.target === CommonTypes.SelectAreaTarget.rt ||
-        pressing?.target === CommonTypes.SelectAreaTarget.rb ||
-        pressing?.target === CommonTypes.SelectAreaTarget.lb
-      ) {
-        actionRecords.register(CommonTypes.Action.multiResize);
-        // resizeMultiSelectingShapes(pressing?.target, offsetP, scale);
-      }
+    //     // pressing.ghost?.move(
+    //     //   getNormalP(
+    //     //     {
+    //     //       x: 0,
+    //     //       // x: p.x - lastP.x,
+    //     //       y: p.y - lastP.y,
+    //     //       // y: 0,
+    //     //     },
+    //     //     null,
+    //     //     scale
+    //     //   )
+    //     // );
 
-      // const multiSelectingMap = getMultSelectingMap();
+    //     // console.log("alignP", alignP);
+    //   }
+    //   // else if (
+    //   //   pressing?.target === CommonTypes.SelectAreaTarget.lt ||
+    //   //   pressing?.target === CommonTypes.SelectAreaTarget.rt ||
+    //   //   pressing?.target === CommonTypes.SelectAreaTarget.rb ||
+    //   //   pressing?.target === CommonTypes.SelectAreaTarget.lb
+    //   // ) {
+    //   //   actionRecords.register(CommonTypes.Action.multiResize);
+    //   //   // resizeMultiSelectingShapes(pressing?.target, offsetP, scale);
+    //   // }
 
-      shapes.forEach((shape) => {
-        // if (!multiSelectingMap[shape.id]) return;
-        moveCurve(shape);
-      });
-    }
+    //   // // const multiSelectingMap = getMultSelectingMap();
 
-    if (
-      !movingViewport &&
-      pressing?.shape &&
-      multiSelectShapeIds.length === 0
-    ) {
-      if (pressing?.target === CoreTypes.PressingTarget.m) {
-        actionRecords.register(CommonTypes.Action.move);
+    //   // shapes.forEach((shape) => {
+    //   //   // if (!multiSelectingMap[shape.id]) return;
+    //   //   moveCurve(shape);
+    //   // });
+    // }
 
-        const shapesInView = getShapesInView(shapes);
-        const targetAlignShapes = shapesInView.filter(
-          (shapeInView) => shapeInView.id !== pressing?.shape?.id
-        );
-        alginLines = getAlignLines(targetAlignShapes, {
-          m: pressing.shape.getCenter().m,
-          l: pressing.shape.getEdge().l,
-          t: pressing.shape.getEdge().t,
-          r: pressing.shape.getEdge().r,
-          b: pressing.shape.getEdge().b,
-        });
+    // if (
+    //   !movingViewport &&
+    //   pressing?.shape &&
+    //   multiSelectShapeIds.length === 0
+    // ) {
+    //   if (pressing?.target === CoreTypes.PressingTarget.m) {
+    //     actionRecords.register(CommonTypes.Action.move);
 
-        const alignP = getAlignP(targetAlignShapes, pressing.ghost);
+    //     const shapesInView = getShapesInView(shapes);
+    //     const targetAlignShapes = shapesInView.filter(
+    //       (shapeInView) => shapeInView.id !== pressing?.shape?.id
+    //     );
+    //     alginLines = getAlignLines(targetAlignShapes, {
+    //       m: pressing.shape.getCenter().m,
+    //       l: pressing.shape.getEdge().l,
+    //       t: pressing.shape.getEdge().t,
+    //       r: pressing.shape.getEdge().r,
+    //       b: pressing.shape.getEdge().b,
+    //     });
 
-        if (alignP?.x || alignP?.y) {
-          pressing.shape.locate(alignP);
-        }
+    //     const alignP = getAlignP(targetAlignShapes, pressing.ghost);
 
-        if (alignP?.x && !alignP?.y) {
-          pressing.shape.move(
-            getNormalP(
-              {
-                x: 0,
-                y: p.y - lastP.y,
-              },
-              null,
-              scale
-            )
-          );
-        }
+    //     if (alignP?.x || alignP?.y) {
+    //       pressing.shape.locate(alignP);
+    //     }
 
-        if (!alignP?.x && alignP?.y) {
-          pressing.shape.move(
-            getNormalP(
-              {
-                x: p.x - lastP.x,
-                y: 0,
-              },
-              null,
-              scale
-            )
-          );
-        }
+    //     if (alignP?.x && !alignP?.y) {
+    //       pressing.shape.move(
+    //         getNormalP(
+    //           {
+    //             x: 0,
+    //             y: p.y - lastP.y,
+    //           },
+    //           null,
+    //           scale
+    //         )
+    //       );
+    //     }
 
-        if (!alignP?.x && !alignP?.y) {
-          if (pressing.ghost && pressing.shape.p.x !== pressing.ghost?.p.x) {
-            pressing.shape.locate({
-              x: pressing.ghost.getCenter().m.x,
-              y: null,
-            });
-          }
+    //     if (!alignP?.x && alignP?.y) {
+    //       pressing.shape.move(
+    //         getNormalP(
+    //           {
+    //             x: p.x - lastP.x,
+    //             y: 0,
+    //           },
+    //           null,
+    //           scale
+    //         )
+    //       );
+    //     }
 
-          if (pressing.ghost && pressing.shape.p.y !== pressing.ghost?.p.y) {
-            pressing.shape.locate({
-              x: null,
-              y: pressing.ghost.getCenter().m.y,
-            });
-          }
-          pressing.shape.move(
-            getNormalP(
-              {
-                x: p.x - lastP.x,
-                y: p.y - lastP.y,
-              },
-              null,
-              scale
-            )
-          );
-        }
+    //     if (!alignP?.x && !alignP?.y) {
+    //       if (pressing.ghost && pressing.shape.p.x !== pressing.ghost?.p.x) {
+    //         pressing.shape.locate({
+    //           x: pressing.ghost.getCenter().m.x,
+    //           y: null,
+    //         });
+    //       }
 
-        pressing.ghost?.move(
-          getNormalP(
-            {
-              x: p.x - lastP.x,
-              y: p.y - lastP.y,
-            },
-            null,
-            scale
-          )
-        );
+    //       if (pressing.ghost && pressing.shape.p.y !== pressing.ghost?.p.y) {
+    //         pressing.shape.locate({
+    //           x: null,
+    //           y: pressing.ghost.getCenter().m.y,
+    //         });
+    //       }
+    //       pressing.shape.move(
+    //         getNormalP(
+    //           {
+    //             x: p.x - lastP.x,
+    //             y: p.y - lastP.y,
+    //           },
+    //           null,
+    //           scale
+    //         )
+    //       );
+    //     }
 
-        syncCandidates(pressing?.shape);
-        moveCurve(pressing?.shape);
-      }
+    //     pressing.ghost?.move(
+    //       getNormalP(
+    //         {
+    //           x: p.x - lastP.x,
+    //           y: p.y - lastP.y,
+    //         },
+    //         null,
+    //         scale
+    //       )
+    //     );
 
-      if (
-        pressing?.target === CoreTypes.PressingTarget.lt ||
-        pressing?.target === CoreTypes.PressingTarget.rt ||
-        pressing?.target === CoreTypes.PressingTarget.rb ||
-        pressing?.target === CoreTypes.PressingTarget.lb
-      ) {
-        actionRecords.register(CommonTypes.Action.resize);
-        resizeShape(
-          shapes,
-          {
-            shape: pressing.shape,
-            ghost: pressing.ghost,
-            target: pressing.target,
-          },
-          getNormalP(offsetP, null, scale)
-        );
+    //     syncCandidates(pressing?.shape);
+    //     moveCurve(pressing?.shape);
+    //   }
 
-        syncCandidates(pressing?.shape);
-      }
-    }
+    //   if (
+    //     pressing?.target === CoreTypes.PressingTarget.lt ||
+    //     pressing?.target === CoreTypes.PressingTarget.rt ||
+    //     pressing?.target === CoreTypes.PressingTarget.rb ||
+    //     pressing?.target === CoreTypes.PressingTarget.lb
+    //   ) {
+    //     actionRecords.register(CommonTypes.Action.resize);
+    //     resizeShape(
+    //       shapes,
+    //       {
+    //         shape: pressing.shape,
+    //         ghost: pressing.ghost,
+    //         target: pressing.target,
+    //       },
+    //       getNormalP(offsetP, null, scale)
+    //     );
 
-    if (!movingViewport && !!pressingCurve) {
-      actionRecords.register(CommonTypes.Action.disconnect);
-      movePressingCurve(ctx, pressingCurve, p, offset, scale);
-    } else if (!movingViewport && !!selectionFrame) {
-      selectionFrame.drag(p);
-    }
-
-    lastP = p;
+    //     syncCandidates(pressing?.shape);
+    //   }
+    // }
 
     drawCanvas(offset, scale);
     drawScreenshot(offset, scale);
@@ -2950,42 +2876,42 @@ export default function IdPage() {
     frameSelect(selectionFrame, offset, scale);
     checkConnect(getNormalP(p, offset, scale));
 
-    if (
-      multiSelectShapeIds.length >= 2 &&
-      pressing?.target === CommonTypes.SelectAreaTarget.m
-    ) {
-      actionRecords.finish(CommonTypes.Action.multiMove);
-    } else if (
-      multiSelectShapeIds.length >= 2 &&
-      (pressing?.target === CommonTypes.SelectAreaTarget.lt ||
-        pressing?.target === CommonTypes.SelectAreaTarget.rt ||
-        pressing?.target === CommonTypes.SelectAreaTarget.rb ||
-        pressing?.target === CommonTypes.SelectAreaTarget.lb)
-    ) {
-      actionRecords.finish(CommonTypes.Action.multiResize);
-    } else if (
-      pressing?.target === CoreTypes.PressingTarget.lt ||
-      pressing?.target === CoreTypes.PressingTarget.rt ||
-      pressing?.target === CoreTypes.PressingTarget.rb ||
-      pressing?.target === CoreTypes.PressingTarget.lb
-    ) {
-      actionRecords.finish(CommonTypes.Action.resize);
-    } else if (
-      pressing?.target &&
-      pressing?.shape &&
-      pressing?.origin &&
-      (pressing?.shape?.p.x !== pressing?.origin?.p.x ||
-        pressing?.shape?.p.y !== pressing?.origin?.p.y)
-    ) {
-      if (pressing?.target === CoreTypes.PressingTarget.m) {
-        actionRecords.finish(CommonTypes.Action.move);
-      }
-    }
+    // if (
+    //   multiSelectShapeIds.length >= 2 &&
+    //   pressing?.target === CommonTypes.SelectAreaTarget.m
+    // ) {
+    //   actionRecords.finish(CommonTypes.Action.multiMove);
+    // } else if (
+    //   multiSelectShapeIds.length >= 2 &&
+    //   (pressing?.target === CommonTypes.SelectAreaTarget.lt ||
+    //     pressing?.target === CommonTypes.SelectAreaTarget.rt ||
+    //     pressing?.target === CommonTypes.SelectAreaTarget.rb ||
+    //     pressing?.target === CommonTypes.SelectAreaTarget.lb)
+    // ) {
+    //   actionRecords.finish(CommonTypes.Action.multiResize);
+    // } else if (
+    //   pressing?.target === CoreTypes.PressingTarget.lt ||
+    //   pressing?.target === CoreTypes.PressingTarget.rt ||
+    //   pressing?.target === CoreTypes.PressingTarget.rb ||
+    //   pressing?.target === CoreTypes.PressingTarget.lb
+    // ) {
+    //   actionRecords.finish(CommonTypes.Action.resize);
+    // } else if (
+    //   pressing?.target &&
+    //   pressing?.shape &&
+    //   pressing?.origin &&
+    //   (pressing?.shape?.p.x !== pressing?.origin?.p.x ||
+    //     pressing?.shape?.p.y !== pressing?.origin?.p.y)
+    // ) {
+    //   if (pressing?.target === CoreTypes.PressingTarget.m) {
+    //     actionRecords.finish(CommonTypes.Action.move);
+    //   }
+    // }
 
     checkSteps();
 
     selectionFrame = null;
-    pressing = null;
+    pressingSelection = null;
     pressingCurve = null;
     alginLines = [];
     multiSelectingCoordinate = cloneDeep(init.multiSelectingCoordinate);
@@ -3060,23 +2986,24 @@ export default function IdPage() {
       };
 
       const deleteSelectedShape = () => {
-        const selectedShapeI = shapes.findIndex((shape) => shape.selecting);
+        // TODO:
+        // const selectedShapeI = shapes.findIndex((shape) => shape.selecting);
 
-        if (selectedShapeI === -1) return false;
-        actionRecords.register(CommonTypes.Action.delete);
+        // if (selectedShapeI === -1) return false;
+        // actionRecords.register(CommonTypes.Action.delete);
 
-        curves = curves.filter(
-          (curve) =>
-            curve.from.shape.id !== shapes[selectedShapeI].id &&
-            curve.to.shape.id !== shapes[selectedShapeI].id
-        );
+        // curves = curves.filter(
+        //   (curve) =>
+        //     curve.from.shape.id !== shapes[selectedShapeI].id &&
+        //     curve.to.shape.id !== shapes[selectedShapeI].id
+        // );
 
-        if (shapes[selectedShapeI].id === indivisual?.id) {
-          setIndivisual(null);
-        }
+        // if (shapes[selectedShapeI].id === indivisual?.id) {
+        //   setIndivisual(null);
+        // }
 
-        shapes.splice(selectedShapeI, 1);
-        actionRecords.finish(CommonTypes.Action.delete);
+        // shapes.splice(selectedShapeI, 1);
+        // actionRecords.finish(CommonTypes.Action.delete);
 
         return false;
       };

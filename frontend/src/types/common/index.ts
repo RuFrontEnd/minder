@@ -51,14 +51,6 @@ enum ShapeType {
   decision = "decision",
 }
 
-enum SelectAreaTarget {
-  m = "m",
-  lt = "lt",
-  rt = "rt",
-  rb = "rb",
-  lb = "lb",
-}
-
 enum Action {
   add = "add",
   delete = "delete",
@@ -135,4 +127,4 @@ export type {
   ConnectionCurves,
   UploadJSON,
 };
-export { Direction, Corner, ShapeType, SelectAreaTarget, Action, DataStatus };
+export { Direction, Corner, ShapeType, Action, DataStatus };

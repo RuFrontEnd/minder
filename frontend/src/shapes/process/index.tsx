@@ -23,7 +23,7 @@ export default class Process extends Core {
   ) {
     super.draw(ctx, offest, scale, () => {
       const screenP = this.getP(offest, scale);
-      const scaleSize = this.getScaleSize(scale);
+      const scaleSize = this.getSize(scale);
 
       ctx.save();
       ctx.translate(screenP.x, screenP.y);

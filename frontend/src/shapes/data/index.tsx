@@ -142,7 +142,7 @@ export default class Data extends Core {
 
     const centerToCornersDistance = this.getCenterToCornerDistance();
 
-    const scaleSize = this.getScaleSize();
+    const scaleSize = this.getSize();
 
     // left
     if (this.__receivePoint__.l.visible) {
