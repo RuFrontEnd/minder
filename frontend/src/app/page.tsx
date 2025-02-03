@@ -1578,9 +1578,22 @@ const pressSelection = (
   return true;
 };
 
-const startSelecting = (
+const clickSelect = (
   p: CommonTypes.Vec,
-  prev: PageIdTypes.PressingSelection | null
+  offset: CommonTypes.Vec = { x: 0, y: 0 },
+  scale: number = 1
+) => {
+  shapes.forEach((shape) => {
+    if (!shape.checkBoundry(getNormalP(p, offset, scale))) return;
+    selection = new Selection(`selectionArea_${uuidv4()}`, [shape]);
+  });
+
+  return true;
+};
+
+const startFrameSelecting = (
+  p: CommonTypes.Vec,
+  prev: null | PageIdTypes.PressingSelection
 ) => {
   if (!prev) {
     selectionFrame = new SelectionFrame(`selectionFrame_${Date.now()}`, {
@@ -1682,7 +1695,7 @@ const selectCurve = (
 
 const adPressSelection = (prev: PageIdTypes.PressingSelection) => {
   if (!prev) return true;
-
+  // TODO: should add feature
   return true;
 };
 
@@ -2607,8 +2620,9 @@ export default function IdPage() {
 
     handleUtils.handle([
       () => startMovingViewport(space, p),
+      () => clickSelect(p),
       () => pressSelection(p, offset, scale),
-      (prev) => startSelecting(p, prev),
+      (prev) => startFrameSelecting(p, prev),
       (prev) => triggerCurve(p, offset, scale, prev),
       (prev) => selectCurve(p, offset, scale, prev),
       (prev) => adPressSelection(prev),
