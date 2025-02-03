@@ -114,8 +114,8 @@ let ctx: CanvasRenderingContext2D | null | undefined = null,
   shapes: (Terminal | Process | Data | Desicion)[] = [],
   candidates: null | (Terminal | Process | Data | Desicion)[] = null,
   curves: CommonTypes.ConnectionCurves = [],
-  pressingSelection: PageIdTypes.PressingSelection = null,
-  pressingCurve: PageIdTypes.PressingCurve = null,
+  pressingSelection: null | PageIdTypes.PressingSelection = null,
+  pressingCurve: null | PageIdTypes.PressingCurve = null,
   offset: CommonTypes.Vec = cloneDeep(init.offset),
   lastP: CommonTypes.Vec = { x: 0, y: 0 },
   selectionFrame: null | SelectionFrame = null,
@@ -1559,7 +1559,7 @@ const startMovingViewport = (isPressingSpace: boolean, p: CommonTypes.Vec) => {
 const pressSelection = (
   p: CommonTypes.Vec,
   offest: CommonTypes.Vec = { x: 0, y: 0 },
-  scale: number = 0
+  scale: number = 1
 ) => {
   if (!selection) return true;
 
@@ -1696,6 +1696,13 @@ const deSelectCurve = () => {
 
 const moveViewport = (p: CommonTypes.Vec) => {
   lastP = p;
+  return true;
+};
+
+const moveShapes = (offsetP: CommonTypes.Vec, selection?: Selection) => {
+  if (!selection) return true;
+
+  selection.move(offsetP);
   return true;
 };
 
@@ -2274,10 +2281,9 @@ const draw = (
     }
     if (!!selection) {
       selection.draw(ctx, offset, scale);
-      pressingSelection?.ghost?.draw(ctx, offset, scale);
+      // pressingSelection?.ghost?.draw(ctx, offset, scale);
     }
   }
-
 };
 
 const drawCanvas = (offset?: CommonTypes.Vec, scale?: number) => {
@@ -2632,6 +2638,7 @@ export default function IdPage() {
 
     handleUtils.handle([
       () => moveViewport(p),
+      () => moveShapes(normalOffsetP, pressingSelection?.selection),
       () =>
         movePressingCurve(ctx, pressingCurve, p, offset, scale, movingViewport),
       () => defineSelectionFrameRange(p, movingViewport),

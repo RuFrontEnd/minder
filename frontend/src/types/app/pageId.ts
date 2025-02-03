@@ -12,13 +12,13 @@ import * as CurveTypes from "@/types/shapes/curve";
 import * as SelectionTypes from "@/types/shapes/selection";
 import * as InputTypes from "@/types/components/input";
 
-type PressingSelection = null | {
+type PressingSelection = {
   selection: Selection;
   ghost: Selection;
   target: SelectionTypes.PressingTarget;
 };
 
-type PressingCurve = null | {
+type PressingCurve = {
   from: {
     shape: Terminal | Process | Data | Desicion;
     origin: Terminal | Process | Data | Desicion;
