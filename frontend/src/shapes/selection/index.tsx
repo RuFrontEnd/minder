@@ -25,10 +25,6 @@ export default class Selection {
     fill: tailwindColors.selectionFrame.fill,
     stroke: tailwindColors.selectionFrame.stroke,
   };
-  private __p__: {
-    start: CommonTypes.Vec;
-    end: CommonTypes.Vec;
-  };
   private __w__: number = 0;
   private __h__: number = 0;
   private m: CommonTypes.Vec = { x: 0, y: 0 };
@@ -63,27 +59,6 @@ export default class Selection {
   constructor(id: string, shapes: Core[]) {
     this.id = id;
     this.__shapes__ = shapes;
-    const [_startP, _endP] = this.getMultiSelectingAreaP();
-    this.__p__ = {
-      start: _startP,
-      end: _endP,
-    };
-    this.__w__ = Math.abs(_startP.x - _endP.x);
-    this.__h__ = Math.abs(_startP.y - _endP.y);
-  }
-
-  private set p(p: { start: CommonTypes.Vec; end: CommonTypes.Vec }) {
-    this.__p__ = p;
-    this.m = {
-      x: (this.__p__.start.x + this.__p__.end.x) / 2,
-      y: (this.__p__.start.y + this.__p__.end.y) / 2,
-    };
-    this.__w__ = Math.abs(this.__p__.start.x - this.__p__.end.x);
-    this.__h__ = Math.abs(this.__p__.start.y - this.__p__.end.y);
-  }
-
-  get p() {
-    return this.__p__;
   }
 
   set shapes(_shapes: Core[]) {
@@ -94,7 +69,7 @@ export default class Selection {
     return this.__shapes__;
   }
 
-  getMultSelectingMap() {
+  getSelectingMap() {
     const map: { [id: string]: true } = {};
 
     this.__shapes__.forEach((shape) => {
@@ -104,26 +79,27 @@ export default class Selection {
     return map;
   }
 
-  getMultiSelectingAreaP() {
+  getP() {
     const startP = { x: -1, y: -1 };
     const endP = { x: -1, y: -1 };
 
-    const multiSelectingMap = this.getMultSelectingMap();
+    const selectingMap = this.getSelectingMap();
 
     this.__shapes__.forEach((shape) => {
-      if (!multiSelectingMap[shape.id]) return;
-      const theEdge = shape.getEdge();
-      if (startP.x === -1 || theEdge.l < startP.x) {
-        startP.x = theEdge.l;
+      if (!selectingMap[shape.id]) return;
+      const shapeEdge = shape.getEdge();
+
+      if (startP.x === -1 || shapeEdge.l < startP.x) {
+        startP.x = shapeEdge.l;
       }
-      if (startP.y === -1 || theEdge.t < startP.y) {
-        startP.y = theEdge.t;
+      if (startP.y === -1 || shapeEdge.t < startP.y) {
+        startP.y = shapeEdge.t;
       }
-      if (endP.x === -1 || theEdge.r > endP.x) {
-        endP.x = theEdge.r;
+      if (endP.x === -1 || shapeEdge.r > endP.x) {
+        endP.x = shapeEdge.r;
       }
-      if (endP.y === -1 || theEdge.b > endP.y) {
-        endP.y = theEdge.b;
+      if (endP.y === -1 || shapeEdge.b > endP.y) {
+        endP.y = shapeEdge.b;
       }
     });
 
@@ -134,9 +110,9 @@ export default class Selection {
     this.__shapes__.push(shape);
   }
 
-  move(offset: CommonTypes.Vec) {
+  move(offsetP: CommonTypes.Vec) {
     this.__shapes__.forEach((shape) => {
-      shape.move(offset);
+      shape.move(offsetP);
     });
   }
 
@@ -151,8 +127,7 @@ export default class Selection {
     offsetP: CommonTypes.Vec,
     scale = 1
   ) => {
-    const [multiSelectingAreaStartP, multiSelectingAreaEndP] =
-      this.getMultiSelectingAreaP();
+    const [multiSelectingAreaStartP, multiSelectingAreaEndP] = this.getP();
     const multiSelectingAreaP = {
       start: multiSelectingAreaStartP,
       end: multiSelectingAreaEndP,
@@ -161,7 +136,7 @@ export default class Selection {
       w: Math.abs(multiSelectingAreaP.end.x - multiSelectingAreaP.start.x),
       h: Math.abs(multiSelectingAreaP.end.y - multiSelectingAreaP.start.y),
     };
-    const multiSelectingMap = this.getMultSelectingMap();
+    const selectingMap = this.getSelectingMap();
 
     switch (target) {
       case SelectionTypes.PressingTarget.lt:
@@ -172,7 +147,7 @@ export default class Selection {
           };
 
           this.__shapes__.forEach((shape) => {
-            if (!multiSelectingMap[shape.id]) return;
+            if (!selectingMap[shape.id]) return;
 
             const ratioW = shape.getSize().w / multiSelectingAreaSize.w,
               unitW = offsetP.x * ratioW;
@@ -216,10 +191,10 @@ export default class Selection {
             y: multiSelectingAreaSize.h - offsetP.y > 0 || offsetP.y < 0,
           };
 
-          const multiSelectingMap = this.getMultSelectingMap();
+          const selectingMap = this.getSelectingMap();
 
           this.__shapes__.forEach((shape) => {
-            if (!multiSelectingMap[shape.id]) return;
+            if (!selectingMap[shape.id]) return;
             const ratioW = shape.getSize().w / multiSelectingAreaSize.w,
               unitW = offsetP.x * ratioW;
 
@@ -263,7 +238,7 @@ export default class Selection {
           };
 
           this.__shapes__.forEach((shape) => {
-            if (!multiSelectingMap[shape.id]) return;
+            if (!selectingMap[shape.id]) return;
             const ratioW = shape.getSize().w / multiSelectingAreaSize.w,
               unitW = offsetP.x * ratioW;
 
@@ -307,7 +282,7 @@ export default class Selection {
           };
 
           this.__shapes__.forEach((shape) => {
-            if (!multiSelectingMap[shape.id]) return;
+            if (!selectingMap[shape.id]) return;
             const ratioW = shape.getSize().w / multiSelectingAreaSize.w,
               unitW = offsetP.x * ratioW;
 
@@ -364,19 +339,23 @@ export default class Selection {
   }
 
   getEdge() {
+    const [startP, endP] = this.getP();
+
     return {
-      l: this.__p__.start.x,
-      t: this.__p__.start.y,
-      r: this.__p__.end.x,
-      b: this.__p__.end.y,
+      l: startP.x,
+      t: startP.y,
+      r: endP.x,
+      b: endP.y,
     };
   }
 
   getCenter(): SelectionTypes.GetCenterReturn {
     const edge = this.getEdge();
+    const [startP, endP] = this.getP();
+
     const _m = {
-      x: this.__p__.start.x + this.__p__.end.x,
-      y: this.__p__.start.x + this.__p__.end.x,
+      x: startP.x + endP.x,
+      y: startP.x + endP.x,
     };
 
     return {
@@ -441,43 +420,46 @@ export default class Selection {
   }
 
   checkBoundry(p: CommonTypes.Vec, threshold: number = 0) {
+    const [startP, endP] = this.getP();
+
     let dx, dy;
 
     // if corner
-    dx = this.p.start.x - p.x;
-    dy = this.p.start.y - p.y;
+    dx = startP.x - p.x;
+    dy = startP.y - p.y;
 
     if (dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill) {
       return SelectionTypes.PressingTarget.lt;
     }
 
-    dx = this.p.end.x - p.x;
-    dy = this.p.start.y - p.y;
+    dx = endP.x - p.x;
+    dy = startP.y - p.y;
 
     if (dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill) {
       return SelectionTypes.PressingTarget.rt;
     }
 
-    dx = this.p.end.x - p.x;
-    dy = this.p.end.y - p.y;
+    dx = endP.x - p.x;
+    dy = endP.y - p.y;
 
     if (dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill) {
       return SelectionTypes.PressingTarget.rb;
     }
 
-    dx = this.p.start.x - p.x;
-    dy = this.p.end.y - p.y;
+    dx = startP.x - p.x;
+    dy = endP.y - p.y;
 
     if (dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill) {
       return SelectionTypes.PressingTarget.lb;
     }
 
     // if inside
+
     if (
-      p.x > this.p.start.x - this.anchor.size.fill - threshold &&
-      p.y > this.p.start.y - this.anchor.size.fill - threshold &&
-      p.x < this.p.end.x + this.anchor.size.fill + threshold &&
-      p.y < this.p.end.y + this.anchor.size.fill + threshold
+      p.x > startP.x - this.anchor.size.fill - threshold &&
+      p.y > startP.y - this.anchor.size.fill - threshold &&
+      p.x < endP.x + this.anchor.size.fill + threshold &&
+      p.y < endP.y + this.anchor.size.fill + threshold
     ) {
       return SelectionTypes.PressingTarget.m;
     }
@@ -485,8 +467,8 @@ export default class Selection {
     // if trigger
     const edge = this.getEdge();
     const center = {
-      x: (this.p.start.x + this.p.end.x) / 2,
-      y: (this.p.start.y + this.p.end.y) / 2,
+      x: (startP.x + endP.x) / 2,
+      y: (startP.y + endP.y) / 2,
     };
     const curveTriggerP = {
       l: {
@@ -617,7 +599,7 @@ export default class Selection {
   ) {
     if (!ctx) return;
 
-    const [startP, endP] = this.getMultiSelectingAreaP();
+    const [startP, endP] = this.getP();
 
     if (startP.x === -1 || startP.y === -1 || endP.x === -1 || endP.y === -1)
       return;

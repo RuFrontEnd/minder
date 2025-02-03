@@ -1063,10 +1063,7 @@ const frameSelect = (
     return shapesInArea;
   })();
 
-  selection = new Selection(
-    `selectionArea_${Date.now()}`,
-    shapesInSelectingArea
-  );
+  selection = new Selection(`selectionArea_${uuidv4()}`, shapesInSelectingArea);
 };
 
 const getCurve = (
@@ -1474,6 +1471,10 @@ const defineSelectionFrameRange = (
   return false;
 };
 
+const recordLastP = (p: CommonTypes.Vec) => {
+  lastP = p
+}
+
 const moveSenderCurve = (
   fromD: CommonTypes.Direction,
   toD: CommonTypes.Direction,
@@ -1559,7 +1560,8 @@ const startMovingViewport = (isPressingSpace: boolean, p: CommonTypes.Vec) => {
 const pressSelection = (
   p: CommonTypes.Vec,
   offest: CommonTypes.Vec = { x: 0, y: 0 },
-  scale: number = 1
+  scale: number = 1,
+  selection: null | undefined | Selection
 ) => {
   if (!selection) return true;
 
@@ -1571,8 +1573,7 @@ const pressSelection = (
       ghost: cloneDeep(selection),
       target: _target,
     };
-
-    return pressingSelection;
+    return false;
   }
 
   return true;
@@ -1583,27 +1584,30 @@ const clickSelect = (
   offset: CommonTypes.Vec = { x: 0, y: 0 },
   scale: number = 1
 ) => {
-  shapes.forEach((shape) => {
-    if (!shape.checkBoundry(getNormalP(p, offset, scale))) return;
-    selection = new Selection(`selectionArea_${uuidv4()}`, [shape]);
-  });
+  for (const shape of shapes) {
+    if (shape.checkBoundry(getNormalP(p, offset, scale))) {
+      selection = new Selection(`selectionArea_${uuidv4()}`, [shape]);
+      pressingSelection = {
+        selection: selection,
+        ghost: cloneDeep(selection),
+        target: SelectionTypes.PressingTarget.m,
+      };
+      return false;
+    }
+  }
 
   return true;
 };
 
-const startFrameSelecting = (
-  p: CommonTypes.Vec,
-  prev: null | PageIdTypes.PressingSelection
-) => {
-  if (!prev) {
-    selectionFrame = new SelectionFrame(`selectionFrame_${Date.now()}`, {
-      start: p,
-      end: p,
-    });
-    return false;
-  }
+const startFrameSelecting = (p: CommonTypes.Vec) => {
+  selectionFrame = new SelectionFrame(`selectionFrame_${uuidv4()}`, {
+    start: p,
+    end: p,
+  });
 
-  return prev;
+  selection = null;
+
+  return false;
 };
 
 const triggerCurve = (
@@ -1641,7 +1645,7 @@ const triggerCurve = (
   //     },
   //     to: null,
   //     shape: getCurve(
-  //       `curve_${Date.now()}`,
+  //       `curve_${uuidv4()}`,
   //       curveTriggerD,
   //       triggerShape.w,
   //       triggerShape.h,
@@ -1693,10 +1697,9 @@ const selectCurve = (
   return true;
 };
 
-const adPressSelection = (prev: PageIdTypes.PressingSelection) => {
-  if (!prev) return true;
-  // TODO: should add feature
-  return true;
+const adPressSelection = () => {
+  pressingSelection = null;
+  return false;
 };
 
 const deSelectCurve = () => {
@@ -1707,16 +1710,17 @@ const deSelectCurve = () => {
   return true;
 };
 
-const moveViewport = (p: CommonTypes.Vec) => {
+const moveViewport = (p: CommonTypes.Vec, isPressingSpace:boolean) => {
+  if(!isPressingSpace) return true
   lastP = p;
-  return true;
+  return false;
 };
 
-const moveShapes = (offsetP: CommonTypes.Vec, selection?: Selection) => {
+const moveShapes = (offsetP: CommonTypes.Vec, selection: null | undefined | Selection) => {
   if (!selection) return true;
 
   selection.move(offsetP);
-  return true;
+  return false;
 };
 
 // const deSelectShape = () => {
@@ -2620,13 +2624,13 @@ export default function IdPage() {
 
     handleUtils.handle([
       () => startMovingViewport(space, p),
-      () => clickSelect(p),
-      () => pressSelection(p, offset, scale),
-      (prev) => startFrameSelecting(p, prev),
-      (prev) => triggerCurve(p, offset, scale, prev),
-      (prev) => selectCurve(p, offset, scale, prev),
-      (prev) => adPressSelection(prev),
-      () => deSelectCurve(),
+      () => pressSelection(p, offset, scale, selection),
+      () => clickSelect(p, offset, scale),
+      () => startFrameSelecting(p),
+      // (prev) => triggerCurve(p, offset, scale, prev),
+      // (prev) => selectCurve(p, offset, scale, prev),
+      // () => deSelectCurve(),
+      // () => adPressSelection(),
     ]);
 
     drawCanvas(offset, scale);
@@ -2651,12 +2655,14 @@ export default function IdPage() {
     }
 
     handleUtils.handle([
-      () => moveViewport(p),
+      () => moveViewport(p, space),
       () => moveShapes(normalOffsetP, pressingSelection?.selection),
-      () =>
-        movePressingCurve(ctx, pressingCurve, p, offset, scale, movingViewport),
       () => defineSelectionFrameRange(p, movingViewport),
+      // () =>
+      //   movePressingCurve(ctx, pressingCurve, p, offset, scale, movingViewport),
     ]);
+
+    recordLastP(p)
 
     // if (!movingViewport && pressing?.shape && !!selectionFrame) {
     //   if (pressing?.target === CommonTypes.SelectAreaTarget.m) {
@@ -2988,7 +2994,7 @@ export default function IdPage() {
       const deleteMultiSelectShapes = () => {
         if (!selection) return true;
 
-        const multiSelectingMap = selection.getMultSelectingMap();
+        const multiSelectingMap = selection.getSelectingMap();
 
         curves = curves.filter(
           (curve) =>

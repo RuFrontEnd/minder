@@ -53,7 +53,7 @@ export default class Curve {
     this.__cp1__ = cp1;
     this.__cp2__ = cp2;
     this.arrow = new Arrow(
-      `arrow_${Date.now()}`,
+      `arrow_${uuidv4()}`,
       this.__arrowAttr__.w,
       this.__arrowAttr__.h,
       this.__arrowAttr__.c,
