@@ -2274,10 +2274,10 @@ const draw = (
     }
     if (!!selection) {
       selection.draw(ctx, offset, scale);
+      pressingSelection?.ghost?.draw(ctx, offset, scale);
     }
   }
 
-  pressingSelection?.ghost?.draw(ctx);
 };
 
 const drawCanvas = (offset?: CommonTypes.Vec, scale?: number) => {
