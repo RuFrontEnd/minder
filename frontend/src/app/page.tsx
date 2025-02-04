@@ -208,100 +208,6 @@ const getScreenP = (
   };
 };
 
-const getInitializedShapes = (
-  orders: ProjectAPITypes.ProjectData["orders"],
-  shapes: ProjectAPITypes.ProjectData["shapes"],
-  curves: ProjectAPITypes.ProjectData["curves"],
-  data: ProjectAPITypes.ProjectData["data"]
-) => {
-  const shapeMappings: {
-    [shapeId: string]: Terminal | Process | Data | Desicion;
-  } = {};
-
-  const dataShapes = Object.entries(shapes);
-
-  dataShapes.forEach(([id, info]) => {
-    switch (info.type) {
-      case CommonTypes.ShapeType.terminator:
-        const newTerminator = new Terminal(
-          id,
-          info.w,
-          info.h,
-          info.p,
-          info.title
-        );
-
-        shapeMappings[id] = newTerminator;
-        break;
-      case CommonTypes.ShapeType.data:
-        const newData = new Data(id, info.w, info.h, info.p, info.title);
-
-        shapeMappings[id] = newData;
-        break;
-      case CommonTypes.ShapeType.process:
-        const newProcess = new Process(id, info.w, info.h, info.p, info.title);
-
-        shapeMappings[id] = newProcess;
-        break;
-      case CommonTypes.ShapeType.decision:
-        const newDesicion = new Desicion(
-          id,
-          info.w,
-          info.h,
-          info.p,
-          info.title
-        );
-
-        if (info.text) {
-          newDesicion.text = info.text;
-        }
-
-        shapeMappings[id] = newDesicion;
-        break;
-    }
-  });
-
-  console.log("dataShapes", dataShapes);
-
-  dataShapes.forEach(([shapeId, shapeInfo]) => {
-    ds.forEach((d) => {
-      if (shapeInfo.curves[d].length === 0) return;
-      shapeInfo.curves[d].forEach((curveId) => {
-        const curveInfo = curves[curveId];
-
-        // shapeMappings[shapeId].createCurve(
-        //   curveId,
-        //   d,
-        //   curveInfo.p1,
-        //   curveInfo.p2,
-        //   curveInfo.cp1,
-        //   curveInfo.cp2,
-        //   curveInfo.sendTo
-        //     ? {
-        //         shape: shapeMappings[curveInfo.sendTo.id],
-        //         d: curveInfo.sendTo.d,
-        //         bridgeId: curveId,
-        //       }
-        //     : null
-        // );
-
-        // if (curveInfo.sendTo) {
-        //   // initialize received shape
-        //   shapeMappings[curveInfo.sendTo.id].receiveFrom[
-        //     curveInfo.sendTo.d
-        //   ].push({
-        //     shape: shapeMappings[shapeId],
-        //     d: d,
-        //     bridgeId: curveId,
-        //   });
-        // }
-      });
-    });
-  });
-
-  return orders.map((orderId) => shapeMappings[orderId]);
-};
-
 const getScreenshotShapes = (
   shapes: (Terminal | Process | Data | Desicion)[]
 ) => {
@@ -2022,6 +1928,13 @@ const undo = (
   if (!action) return;
   shapes = action?.shapes;
   curves = action?.curves;
+  if (selection) {
+    const selectingMap = selection.getSelectingMap();
+    selection = new Selection(
+      selection.id,
+      shapes.filter((shape) => selectingMap[shape.id])
+    );
+  }
 
   actions.pop();
 
@@ -2046,8 +1959,6 @@ const syncCandidates = (shapes: CommonTypes.Shape[]) => {
 export default function IdPage() {
   let { current: $canvas } = useRef<HTMLCanvasElement | null>(null);
   let { current: $screenshot } = useRef<HTMLCanvasElement | null>(null);
-  const params = useParams<{ id: string }>();
-  const router = useRouter();
 
   const [space, setSpace] = useState(false);
   const [control, setControl] = useState(false);
@@ -2576,19 +2487,18 @@ export default function IdPage() {
   const deleteSelectingShapes = () => {
     if (!selection) return true;
 
-    const multiSelectingMap = selection.getSelectingMap();
+    const selectingMap = selection.getSelectingMap();
 
     curves = curves.filter(
       (curve) =>
-        !multiSelectingMap[curve.from.shape.id] &&
-        !multiSelectingMap[curve.to.shape.id]
+        !selectingMap[curve.from.shape.id] && !selectingMap[curve.to.shape.id]
     );
 
-    if (!!indivisual && multiSelectingMap[indivisual?.id]) {
+    if (!!indivisual && selectingMap[indivisual?.id]) {
       setIndivisual(null);
     }
 
-    shapes = shapes.filter((shape) => !multiSelectingMap[shape.id]);
+    shapes = shapes.filter((shape) => !selectingMap[shape.id]);
     deSelectShape();
   };
 

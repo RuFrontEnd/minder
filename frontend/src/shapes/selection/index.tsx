@@ -47,6 +47,10 @@ export default class Selection {
     this.__shapes__ = shapes;
   }
 
+  get id (){
+    return this.__id__
+  }
+
   set shapes(_shapes: CommonTypes.Shape[]) {
     this.shapes = _shapes;
   }
