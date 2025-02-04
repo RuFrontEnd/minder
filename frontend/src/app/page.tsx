@@ -2557,51 +2557,7 @@ export default function IdPage() {
       const $canvas = document.querySelector("canvas");
       if (!$canvas || !ctx) return;
 
-      const deleteMultiSelectShapes = () => {
-        if (!selection) return true;
-
-        const multiSelectingMap = selection.getSelectingMap();
-
-        curves = curves.filter(
-          (curve) =>
-            !multiSelectingMap[curve.from.shape.id] &&
-            !multiSelectingMap[curve.to.shape.id]
-        );
-
-        if (!!indivisual && multiSelectingMap[indivisual?.id]) {
-          setIndivisual(null);
-        }
-
-        shapes = shapes.filter((shape) => !multiSelectingMap[shape.id]);
-
-        return false;
-      };
-
-      const deleteSelectedShape = () => {
-        // TODO:
-        // const selectedShapeI = shapes.findIndex((shape) => shape.selecting);
-
-        // if (selectedShapeI === -1) return false;
-        // actionRecords.register(CommonTypes.Action.delete);
-
-        // curves = curves.filter(
-        //   (curve) =>
-        //     curve.from.shape.id !== shapes[selectedShapeI].id &&
-        //     curve.to.shape.id !== shapes[selectedShapeI].id
-        // );
-
-        // if (shapes[selectedShapeI].id === indivisual?.id) {
-        //   setIndivisual(null);
-        // }
-
-        // shapes.splice(selectedShapeI, 1);
-        // actionRecords.finish(CommonTypes.Action.delete);
-
-        return false;
-      };
-
-      handleUtils.handle([deleteMultiSelectShapes, deleteSelectedShape]);
-
+      deleteSelectingShapes();
       drawCanvas(offset, scale);
       drawScreenshot(offset, scale);
       checkSteps();
@@ -2797,6 +2753,25 @@ export default function IdPage() {
     setDatas(_datas);
 
     setCreateDateValue(null);
+  };
+
+  const deleteSelectingShapes = () => {
+    if (!selection) return true;
+
+    const multiSelectingMap = selection.getSelectingMap();
+
+    curves = curves.filter(
+      (curve) =>
+        !multiSelectingMap[curve.from.shape.id] &&
+        !multiSelectingMap[curve.to.shape.id]
+    );
+
+    if (!!indivisual && multiSelectingMap[indivisual?.id]) {
+      setIndivisual(null);
+    }
+
+    shapes = shapes.filter((shape) => !multiSelectingMap[shape.id]);
+    selection = null;
   };
 
   const onClickCheckButton = () => {
