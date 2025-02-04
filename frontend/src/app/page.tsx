@@ -1631,8 +1631,9 @@ const pressSelection = (
   return true;
 };
 
-const clickSelect = (p: CommonTypes.Vec) => {
-  for (const shape of shapes) {
+const selectShape = (p: CommonTypes.Vec) => {
+  for (let i = shapes.length - 1; i >= 0; i--) {
+    const shape = shapes[i];
     if (shape.checkBoundry(p)) {
       selection = new Selection(`selectionArea_${uuidv4()}`, [shape]);
       pressingSelection = {
@@ -2161,8 +2162,8 @@ export default function IdPage() {
       () => startMovingViewport(space, p),
       () => triggerCurve(normalP, selection),
       () => selectCurve(normalP),
+      () => selectShape(normalP),
       () => pressSelection(normalP, selection),
-      () => clickSelect(normalP),
       () => startFrameSelecting(p),
     ]);
 
