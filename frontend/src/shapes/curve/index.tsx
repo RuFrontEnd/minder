@@ -2,6 +2,7 @@
 import Arrow from "@/shapes/arrow";
 import { Vec } from "@/types/common";
 import { tailwindColors } from "@/variables/colors";
+import { v4 as uuidv4 } from "uuid";
 import * as CurveTypes from "@/types/shapes/curve";
 
 const threshold = 5;

@@ -2,7 +2,6 @@
 import { tailwindColors } from "@/variables/colors";
 import * as CommonTypes from "@/types/common";
 import * as SelectionTypes from "@/types/shapes/selection";
-import Core from "@/shapes/core";
 
 const ds: [
   SelectionTypes.PressingTarget.l,
@@ -17,25 +16,17 @@ const ds: [
 ];
 
 export default class Selection {
-  private id: string;
-  private c: {
+  private __id__: string;
+  private __c__: {
     fill: string;
     stroke: string;
   } = {
-    fill: tailwindColors.selectionFrame.fill,
-    stroke: tailwindColors.selectionFrame.stroke,
+    fill: tailwindColors.white["500"],
+    stroke: tailwindColors.info["500"],
   };
-  private __w__: number = 0;
-  private __h__: number = 0;
   private m: CommonTypes.Vec = { x: 0, y: 0 };
-  private __shapes__: Core[] = [];
-  private selectAnchor = {
-    size: {
-      fill: 4,
-      stroke: 2,
-    },
-  };
-  protected __curveTrigger__: {
+  private __shapes__: CommonTypes.Shape[] = [];
+  protected __sendingPoint__: {
     distance: number;
     size: {
       fill: number;
@@ -49,19 +40,19 @@ export default class Selection {
     },
   };
   private strokeSize = 1;
-  anchor = {
+  private __anchor__ = {
     size: {
       fill: 4,
       stroke: 2,
     },
   };
 
-  constructor(id: string, shapes: Core[]) {
-    this.id = id;
+  constructor(id: string, shapes: CommonTypes.Shape[]) {
+    this.__id__ = id;
     this.__shapes__ = shapes;
   }
 
-  set shapes(_shapes: Core[]) {
+  set shapes(_shapes: CommonTypes.Shape[]) {
     this.shapes = _shapes;
   }
 
@@ -105,7 +96,25 @@ export default class Selection {
     return [startP, endP];
   }
 
-  push(shape: Core) {
+  getM() {
+    const [startP, endP] = this.getP();
+
+    return {
+      x: (startP.x + endP.x) / 2,
+      y: (startP.y + endP.y) / 2,
+    };
+  }
+
+  getSize() {
+    const [startP, endP] = this.getP();
+
+    return {
+      w: Math.abs(endP.x - startP.x),
+      h: Math.abs(endP.y - startP.y),
+    };
+  }
+
+  push(shape: CommonTypes.Shape) {
     this.__shapes__.push(shape);
   }
 
@@ -345,12 +354,8 @@ export default class Selection {
 
   getCenter(): SelectionTypes.GetCenterReturn {
     const edge = this.getEdge();
-    const [startP, endP] = this.getP();
-
-    const _m = {
-      x: startP.x + endP.x,
-      y: startP.x + endP.x,
-    };
+    const _m = this.getM();
+    const size = this.getSize();
 
     return {
       m: _m,
@@ -374,40 +379,40 @@ export default class Selection {
         x: edge.l,
         y: edge.b,
       },
-      curveTrigger: {
+      sendingPoint: {
         l: {
-          x: edge.l - this.__curveTrigger__.distance,
+          x: edge.l - this.__sendingPoint__.distance,
           y: _m.y,
         },
         t: {
           x: _m.x,
-          y: edge.t - this.__curveTrigger__.distance,
+          y: edge.t - this.__sendingPoint__.distance,
         },
         r: {
-          x: edge.r + this.__curveTrigger__.distance,
+          x: edge.r + this.__sendingPoint__.distance,
           y: _m.y,
         },
         b: {
           x: _m.x,
-          y: edge.b + this.__curveTrigger__.distance,
+          y: edge.b + this.__sendingPoint__.distance,
         },
       },
       receivingPoints: {
         l: {
-          x: _m.x - this.__w__ / 2,
+          x: _m.x - size.w / 2,
           y: _m.y,
         },
         t: {
           x: _m.x,
-          y: _m.y - this.__h__ / 2,
+          y: _m.y - size.h / 2,
         },
         r: {
-          x: _m.x + this.__w__ / 2,
+          x: _m.x + size.w / 2,
           y: _m.y,
         },
         b: {
           x: _m.x,
-          y: _m.y + this.__h__ / 2,
+          y: _m.y + size.h / 2,
         },
       },
     };
@@ -422,169 +427,178 @@ export default class Selection {
     dx = startP.x - p.x;
     dy = startP.y - p.y;
 
-    if (dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill) {
+    if (
+      dx * dx + dy * dy <
+      this.__anchor__.size.fill * this.__anchor__.size.fill
+    ) {
       return SelectionTypes.PressingTarget.lt;
     }
 
     dx = endP.x - p.x;
     dy = startP.y - p.y;
 
-    if (dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill) {
+    if (
+      dx * dx + dy * dy <
+      this.__anchor__.size.fill * this.__anchor__.size.fill
+    ) {
       return SelectionTypes.PressingTarget.rt;
     }
 
     dx = endP.x - p.x;
     dy = endP.y - p.y;
 
-    if (dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill) {
+    if (
+      dx * dx + dy * dy <
+      this.__anchor__.size.fill * this.__anchor__.size.fill
+    ) {
       return SelectionTypes.PressingTarget.rb;
     }
 
     dx = startP.x - p.x;
     dy = endP.y - p.y;
 
-    if (dx * dx + dy * dy < this.anchor.size.fill * this.anchor.size.fill) {
+    if (
+      dx * dx + dy * dy <
+      this.__anchor__.size.fill * this.__anchor__.size.fill
+    ) {
       return SelectionTypes.PressingTarget.lb;
     }
 
     // if inside
-
     if (
-      p.x > startP.x - this.anchor.size.fill - threshold &&
-      p.y > startP.y - this.anchor.size.fill - threshold &&
-      p.x < endP.x + this.anchor.size.fill + threshold &&
-      p.y < endP.y + this.anchor.size.fill + threshold
+      p.x > startP.x - this.__anchor__.size.fill - threshold &&
+      p.y > startP.y - this.__anchor__.size.fill - threshold &&
+      p.x < endP.x + this.__anchor__.size.fill + threshold &&
+      p.y < endP.y + this.__anchor__.size.fill + threshold
     ) {
       return SelectionTypes.PressingTarget.m;
     }
 
-    // if trigger
-    const edge = this.getEdge();
-    const center = {
-      x: (startP.x + endP.x) / 2,
-      y: (startP.y + endP.y) / 2,
-    };
-    const curveTriggerP = {
-      l: {
-        x: edge.l - this.__curveTrigger__.distance,
-        y: center.y,
-      },
-      t: {
-        x: center.x,
-        y: edge.t - this.__curveTrigger__.distance,
-      },
-      r: {
-        x: edge.r + this.__curveTrigger__.distance,
-        y: center.y,
-      },
-      b: {
-        x: center.x,
-        y: edge.b + this.__curveTrigger__.distance,
-      },
-    };
+    // if click sending points
+    if (this.shapes.length === 1) {
+      const edge = this.getEdge();
+      const m = this.getM()
+      const sendingPointP = {
+        l: {
+          x: edge.l - this.__sendingPoint__.distance,
+          y: m.y,
+        },
+        t: {
+          x: m.x,
+          y: edge.t - this.__sendingPoint__.distance,
+        },
+        r: {
+          x: edge.r + this.__sendingPoint__.distance,
+          y: m.y,
+        },
+        b: {
+          x: m.x,
+          y: edge.b + this.__sendingPoint__.distance,
+        },
+      };
 
-    for (const d of ds) {
-      if (
-        (p.x - curveTriggerP[d].x) * (p.x - curveTriggerP[d].x) +
-          (p.y - curveTriggerP[d].y) * (p.y - curveTriggerP[d].y) <
-        this.__curveTrigger__.size.fill * this.__curveTrigger__.size.fill
-      ) {
-        return d;
+      const sendingPointPressingTargetStrategy = {
+        [SelectionTypes.PressingTarget.l]: SelectionTypes.PressingTarget.sl,
+        [SelectionTypes.PressingTarget.t]: SelectionTypes.PressingTarget.st,
+        [SelectionTypes.PressingTarget.r]: SelectionTypes.PressingTarget.sr,
+        [SelectionTypes.PressingTarget.b]: SelectionTypes.PressingTarget.sb,
+      };
+
+      for (const d of ds) {
+        if (
+          (p.x - sendingPointP[d].x) * (p.x - sendingPointP[d].x) +
+            (p.y - sendingPointP[d].y) * (p.y - sendingPointP[d].y) <
+          this.__sendingPoint__.size.fill * this.__sendingPoint__.size.fill
+        ) {
+          return sendingPointPressingTargetStrategy[d];
+        }
       }
     }
 
     return null;
   }
 
-  // getP(offset: CommonTypes.Vec = { x: 0, y: 0 }, scale: number = 1) {
-  //   return {
-  //     x: (this.__p__.x + offset.x) * scale,
-  //     y: (this.__p__.y + offset.y) * scale,
-  //   };
-  // }
+  drawSendingPoint(
+    ctx: CanvasRenderingContext2D,
+    offest: CommonTypes.Vec = { x: 0, y: 0 },
+    scale: number = 1
+  ) {
+    if (!ctx) return;
+    const m = this.getM();
+    const size = this.getSize();
+    const screenM = {
+      x: (m.x + offest.x) * scale,
+      y: (m.y + offest.y) * scale,
+    };
+    const scaleSize = { w: size.w * scale, h: size.h * scale };
+    const sendingPointDistance = this.__sendingPoint__.distance * scale;
 
-  // getSize(scale: number = 1) {
-  //   return {
-  //     w: this.w * scale,
-  //     h: this.h * scale,
-  //   };
-  // }
+    ctx.fillStyle = this.__c__.fill;
+    ctx.strokeStyle = this.__c__.stroke;
+    ctx.lineWidth = this.strokeSize;
 
-  // drawSendingPoint(
-  //   ctx: CanvasRenderingContext2D,
-  //   offest: CommonTypes.Vec = { x: 0, y: 0 },
-  //   scale: number = 1
-  // ) {
-  //   if (!ctx) return;
-  //   const screenP = this.getP(offest, scale);
-  //   const scaleSize = this.getSize(scale);
-  //   const curveTriggerDistance = this.__curveTrigger__.distance * scale;
-  //   // draw curve triggers
-  //   ctx.fillStyle = "white";
-  //   ctx.strokeStyle = "DeepSkyBlue";
-  //   ctx.lineWidth = this.strokeSize;
+    ctx.save();
 
-  //   ctx.save();
-  //   ctx.translate(screenP.x, screenP.y);
+    ctx.translate(screenM.x, screenM.y);
 
-  //   // left
-  //   ctx.beginPath();
-  //   ctx.arc(
-  //     -scaleSize.w / 2 - curveTriggerDistance,
-  //     0,
-  //     this.anchor.size.fill,
-  //     0,
-  //     2 * Math.PI,
-  //     false
-  //   );
-  //   ctx.stroke();
-  //   ctx.fill();
-  //   ctx.closePath();
+    // left
+    ctx.beginPath();
+    ctx.arc(
+      -scaleSize.w / 2 - sendingPointDistance,
+      0,
+      this.__anchor__.size.fill,
+      0,
+      2 * Math.PI,
+      false
+    );
+    ctx.stroke();
+    ctx.fill();
+    ctx.closePath();
 
-  //   // top
-  //   ctx.beginPath();
-  //   ctx.arc(
-  //     0,
-  //     -scaleSize.h / 2 - curveTriggerDistance,
-  //     this.anchor.size.fill,
-  //     0,
-  //     2 * Math.PI,
-  //     false
-  //   );
-  //   ctx.stroke();
-  //   ctx.fill();
-  //   ctx.closePath();
+    // top
+    ctx.beginPath();
+    ctx.arc(
+      0,
+      -scaleSize.h / 2 - sendingPointDistance,
+      this.__anchor__.size.fill,
+      0,
+      2 * Math.PI,
+      false
+    );
+    ctx.stroke();
+    ctx.fill();
+    ctx.closePath();
 
-  //   // right
-  //   ctx.beginPath();
-  //   ctx.arc(
-  //     scaleSize.w / 2 + curveTriggerDistance,
-  //     0,
-  //     this.anchor.size.fill,
-  //     0,
-  //     2 * Math.PI,
-  //     false
-  //   );
-  //   ctx.stroke();
-  //   ctx.fill();
-  //   ctx.closePath();
+    // right
+    ctx.beginPath();
+    ctx.arc(
+      scaleSize.w / 2 + sendingPointDistance,
+      0,
+      this.__anchor__.size.fill,
+      0,
+      2 * Math.PI,
+      false
+    );
+    ctx.stroke();
+    ctx.fill();
+    ctx.closePath();
 
-  //   // bottom
-  //   ctx.beginPath();
-  //   ctx.arc(
-  //     0,
-  //     scaleSize.h / 2 + curveTriggerDistance,
-  //     this.__curveTrigger__.size.fill,
-  //     0,
-  //     2 * Math.PI,
-  //     false
-  //   );
-  //   ctx.stroke();
-  //   ctx.fill();
-  //   ctx.closePath();
+    // bottom
+    ctx.beginPath();
+    ctx.arc(
+      0,
+      scaleSize.h / 2 + sendingPointDistance,
+      this.__sendingPoint__.size.fill,
+      0,
+      2 * Math.PI,
+      false
+    );
+    ctx.stroke();
+    ctx.fill();
+    ctx.closePath();
 
-  //   ctx.restore();
-  // }
+    ctx.restore();
+  }
 
   draw(
     ctx: undefined | null | CanvasRenderingContext2D,
@@ -607,7 +621,7 @@ export default class Selection {
       y: (endP.y + offset.y) * scale,
     };
 
-    // draw multiSelect area
+    // draw area
     ctx?.beginPath();
     ctx.strokeStyle = tailwindColors.info["500"];
     ctx.lineWidth = 1;
@@ -619,60 +633,67 @@ export default class Selection {
     );
     ctx?.closePath();
 
-    // draw multiSelect area anchors
+    // draw anchors
     ctx.fillStyle = "white";
-    ctx.lineWidth = this.selectAnchor.size.stroke;
-
+    ctx.lineWidth = this.__anchor__.size.stroke;
+    // left, top
     ctx?.beginPath();
     ctx.arc(
       screenStartP.x,
       screenStartP.y,
-      this.selectAnchor.size.fill,
+      this.__anchor__.size.fill,
       0,
       2 * Math.PI,
       false
-    ); // left, top
+    );
     ctx.stroke();
     ctx.fill();
     ctx?.closePath();
 
+    // right, top
     ctx?.beginPath();
     ctx.arc(
       screenEndP.x,
       screenStartP.y,
-      this.selectAnchor.size.fill,
+      this.__anchor__.size.fill,
       0,
       2 * Math.PI,
       false
-    ); // right, top
+    );
     ctx.stroke();
     ctx.fill();
     ctx?.closePath();
 
+    // right, bottom
     ctx?.beginPath();
     ctx.arc(
       screenEndP.x,
       screenEndP.y,
-      this.selectAnchor.size.fill,
+      this.__anchor__.size.fill,
       0,
       2 * Math.PI,
       false
-    ); // right, bottom
+    );
     ctx.stroke();
     ctx.fill();
     ctx?.closePath();
 
+    // left, bottom
     ctx?.beginPath();
     ctx.arc(
       screenStartP.x,
       screenEndP.y,
-      this.selectAnchor.size.fill,
+      this.__anchor__.size.fill,
       0,
       2 * Math.PI,
       false
-    ); // left, bottom
+    );
     ctx.stroke();
     ctx.fill();
     ctx?.closePath();
+
+    if (this.__shapes__.length === 1) {
+      this.drawSendingPoint(ctx, offset, scale);
+    }
   }
 }

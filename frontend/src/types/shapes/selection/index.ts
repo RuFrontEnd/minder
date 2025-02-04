@@ -10,10 +10,10 @@ enum PressingTarget {
   rt = CommonTypes.Corner.rt,
   rb = CommonTypes.Corner.rb,
   lb = CommonTypes.Corner.lb,
-  ls = "ls",
-  ts = "ts",
-  rs = "rs",
-  bs = "bs",
+  sl = "sl",
+  st = "st",
+  sr = "sr",
+  sb = "sb",
 }
 
 type GetCenterReturn = {};

@@ -1022,7 +1022,7 @@ const frameSelect = (
   if (!selectionFrame) return [];
   // define which shape in select area
   const shapesInSelectingArea = (() => {
-    const shapesInArea: Core[] = [];
+    const shapesInArea: CommonTypes.Shape[] = [];
 
     const normalSelectAreaP = {
       start: getNormalP(selectionFrame.p.start, offset, scale),
@@ -1557,6 +1557,51 @@ const startMovingViewport = (isPressingSpace: boolean, p: CommonTypes.Vec) => {
   return false;
 };
 
+const triggerCurve = (
+  p: CommonTypes.Vec,
+  selection: null | undefined | Selection
+) => {
+  if (!selection) return true;
+  const triggerPoint = selection.checkBoundry(p, 0);
+
+  if (
+    triggerPoint !== SelectionTypes.PressingTarget.sl &&
+    triggerPoint !== SelectionTypes.PressingTarget.st &&
+    triggerPoint !== SelectionTypes.PressingTarget.sr &&
+    triggerPoint !== SelectionTypes.PressingTarget.sb
+  )
+    return true;
+
+  const targetShape = selection.shapes[0];
+  const triggerDStrategy = {
+    [SelectionTypes.PressingTarget.sl]: CommonTypes.Direction.l,
+    [SelectionTypes.PressingTarget.st]: CommonTypes.Direction.t,
+    [SelectionTypes.PressingTarget.sr]: CommonTypes.Direction.r,
+    [SelectionTypes.PressingTarget.sb]: CommonTypes.Direction.b,
+  };
+  const triggerD = triggerDStrategy[triggerPoint];
+
+  pressingCurve = {
+    from: {
+      shape: targetShape,
+      origin: cloneDeep(targetShape),
+      d: triggerD,
+    },
+    to: null,
+    shape: getCurve(
+      `curve_${uuidv4()}`,
+      triggerD,
+      targetShape.w,
+      targetShape.h,
+      targetShape.p,
+      targetShape.curveTrigger.distance
+    ),
+  };
+
+  pressingCurve.shape.selecting = true;
+  return false;
+};
+
 const pressSelection = (
   p: CommonTypes.Vec,
   offest: CommonTypes.Vec = { x: 0, y: 0 },
@@ -1610,57 +1655,6 @@ const startFrameSelecting = (p: CommonTypes.Vec) => {
   return false;
 };
 
-const triggerCurve = (
-  p: CommonTypes.Vec,
-  offest: CommonTypes.Vec = { x: 0, y: 0 },
-  scale: number = 0,
-  prev: PageIdTypes.PressingSelection | null
-) => {
-  // TODO
-  // const [triggerShape, curveTriggerD] = (() => {
-  //   let triggerShape: null | Terminal | Process | Desicion | Data = null;
-  //   let curveTriggerD: null | CommonTypes.Direction = null;
-
-  //   for (let i = shapes.length - 1; i > -1; i--) {
-  //     const shape = shapes[i];
-  //     const triggerD = shape.getTriggerDirection(getNormalP(p, offest, scale));
-  //     if (triggerD) {
-  //       triggerShape = shape;
-  //       curveTriggerD = triggerD;
-  //       break;
-  //     }
-  //   }
-
-  //   return [triggerShape, curveTriggerD];
-  // })();
-
-  // if (triggerShape && curveTriggerD) {
-  //   triggerShape.selecting = false;
-
-  //   pressingCurve = {
-  //     from: {
-  //       shape: triggerShape,
-  //       origin: cloneDeep(triggerShape),
-  //       d: curveTriggerD,
-  //     },
-  //     to: null,
-  //     shape: getCurve(
-  //       `curve_${uuidv4()}`,
-  //       curveTriggerD,
-  //       triggerShape.w,
-  //       triggerShape.h,
-  //       triggerShape.p,
-  //       triggerShape.curveTrigger.distance
-  //     ),
-  //   };
-
-  //   pressingCurve.shape.selecting = true;
-  //   return false;
-  // }
-
-  return true;
-};
-
 const selectCurve = (
   p: CommonTypes.Vec,
   offset: CommonTypes.Vec = { x: 0, y: 0 },
@@ -1695,11 +1689,6 @@ const selectCurve = (
     }
   }
   return true;
-};
-
-const adPressSelection = () => {
-  pressingSelection = null;
-  return false;
 };
 
 const deSelectCurve = () => {
@@ -1746,271 +1735,6 @@ const resizeShapes = (
   pressingSelection.selection.resize(pressingSelection.target, offsetP);
   return false;
 };
-
-// const deSelectShape = () => {
-//   shapes.forEach((shape) => {
-//     shape.selecting = false;
-//   });
-
-//   return true;
-// };
-
-// const locateMultiSelectingShapes = (p: {
-//   x: null | number;
-//   y: null | number;
-// }) => {
-//   if (multiSelectShapeIds.length < 2) return;
-//   const multiSelectingMap = getMultSelectingMap();
-//   const shapesInView = getShapesInView(shapes);
-//   const targetAlignShapes = shapesInView.filter(
-//     (shapeInView) => !multiSelectingMap[shapeInView.id]
-//   );
-
-//   shapes.forEach((shape) => {
-//     if (!multiSelectingMap[shape.id]) return;
-//     shape.locate(p);
-//     syncCandidates(shape);
-//   });
-
-//   alginLines = getAlignLines(targetAlignShapes, multiSelectingCoordinate);
-// };
-
-// const moveMultiSelectingShapes = (offsetP: CommonTypes.Vec) => {
-//   if (multiSelectShapeIds.length < 2) return;
-//   const multiSelectingMap = getMultSelectingMap();
-//   const shapesInView = getShapesInView(shapes);
-//   const targetAlignShapes = shapesInView.filter(
-//     (shapeInView) => !multiSelectingMap[shapeInView.id]
-//   );
-
-//   shapes.forEach((shape) => {
-//     if (!multiSelectingMap[shape.id]) return;
-//     shape.move(offsetP);
-
-//     syncCandidates(shape);
-//   });
-
-//   alginLines = getAlignLines(targetAlignShapes, multiSelectingCoordinate);
-// };
-
-// const resizeMultiSelectingShapes = (
-//   target:
-//     | null
-//     | undefined
-//     | CommonTypes.SelectAreaTarget.lt
-//     | CommonTypes.SelectAreaTarget.rt
-//     | CommonTypes.SelectAreaTarget.rb
-//     | CommonTypes.SelectAreaTarget.lb,
-//   offsetP: CommonTypes.Vec,
-//   scale = 1
-// ) => {
-//   if (!target || multiSelectShapeIds.length < 2) return;
-//   const [multiSelectingAreaStartP, multiSelectingAreaEndP] =
-//     getMultiSelectingAreaP();
-//   const multiSelectingAreaP = {
-//     start: multiSelectingAreaStartP,
-//     end: multiSelectingAreaEndP,
-//   };
-//   const multiSelectingAreaSize = {
-//     w: Math.abs(multiSelectingAreaP.end.x - multiSelectingAreaP.start.x),
-//     h: Math.abs(multiSelectingAreaP.end.y - multiSelectingAreaP.start.y),
-//   };
-
-//   switch (target) {
-//     case CommonTypes.SelectAreaTarget.lt:
-//       {
-//         const canResize = {
-//           x: multiSelectingAreaSize.w - offsetP.x > 0 || offsetP.x < 0,
-//           y: multiSelectingAreaSize.h - offsetP.y > 0 || offsetP.y < 0,
-//         };
-//         const multiSelectingMap = getMultSelectingMap();
-
-//         shapes.forEach((shape) => {
-//           if (!multiSelectingMap[shape.id]) return;
-
-//           const ratioW = shape.getSize().w / multiSelectingAreaSize.w,
-//             unitW = offsetP.x * ratioW;
-
-//           if (canResize.x) {
-//             shape.w = shape.w - unitW / scale;
-
-//             const dx = Math.abs(shape.p.x - multiSelectingAreaP.end.x),
-//               ratioX = dx / multiSelectingAreaSize.w,
-//               unitX = offsetP.x * ratioX;
-
-//             shape.p = {
-//               ...shape.p,
-//               x: shape.p.x + unitX / scale,
-//             };
-//           }
-
-//           const ratioH = shape.getSize().h / multiSelectingAreaSize.h,
-//             unitH = offsetP.y * ratioH;
-
-//           if (canResize.y) {
-//             shape.h = shape.h - unitH / scale;
-
-//             const dy = Math.abs(shape.p.y - multiSelectingAreaP.end.y),
-//               ratioY = dy / multiSelectingAreaSize.h,
-//               unitY = offsetP.y * ratioY;
-
-//             shape.p = {
-//               ...shape.p,
-//               y: shape.p.y + unitY / scale,
-//             };
-//           }
-
-//           syncCandidates(shape);
-//         });
-//       }
-//       break;
-
-//     case CommonTypes.SelectAreaTarget.rt:
-//       {
-//         const canResize = {
-//           x: multiSelectingAreaSize.w + offsetP.x > 0 || offsetP.x > 0,
-//           y: multiSelectingAreaSize.h - offsetP.y > 0 || offsetP.y < 0,
-//         };
-
-//         const multiSelectingMap = getMultSelectingMap();
-
-//         shapes.forEach((shape) => {
-//           if (!multiSelectingMap[shape.id]) return;
-//           const ratioW = shape.getSize().w / multiSelectingAreaSize.w,
-//             unitW = offsetP.x * ratioW;
-
-//           if (canResize.x) {
-//             shape.w = shape.w + unitW / scale;
-
-//             const dx = Math.abs(shape.p.x - multiSelectingAreaP.start.x),
-//               ratioX = dx / multiSelectingAreaSize.w,
-//               unitX = offsetP.x * ratioX;
-
-//             shape.p = {
-//               ...shape.p,
-//               x: shape.p.x + unitX / scale,
-//             };
-//           }
-
-//           const ratioH = shape.h / multiSelectingAreaSize.h,
-//             unitH = offsetP.y * ratioH;
-
-//           if (canResize.y) {
-//             shape.h = shape.getSize().h - unitH / scale;
-
-//             const dy = Math.abs(shape.p.y - multiSelectingAreaP.end.y),
-//               ratioY = dy / multiSelectingAreaSize.h,
-//               unitY = offsetP.y * ratioY;
-
-//             shape.p = {
-//               ...shape.p,
-//               y: shape.p.y + unitY / scale,
-//             };
-//           }
-
-//           syncCandidates(shape);
-//         });
-//       }
-//       break;
-
-//     case CommonTypes.SelectAreaTarget.rb:
-//       {
-//         const canResize = {
-//           x: multiSelectingAreaSize.w + offsetP.x > 0 || offsetP.x > 0,
-//           y: multiSelectingAreaSize.h + offsetP.y > 0 || offsetP.y > 0,
-//         };
-
-//         const multiSelectingMap = getMultSelectingMap();
-
-//         shapes.forEach((shape) => {
-//           if (!multiSelectingMap[shape.id]) return;
-//           const ratioW = shape.getSize().w / multiSelectingAreaSize.w,
-//             unitW = offsetP.x * ratioW;
-
-//           if (canResize.x) {
-//             shape.w = shape.w + unitW / scale;
-
-//             const dx = Math.abs(shape.p.x - multiSelectingAreaP.start.x),
-//               ratioX = dx / multiSelectingAreaSize.w,
-//               unitX = offsetP.x * ratioX;
-
-//             shape.p = {
-//               ...shape.p,
-//               x: shape.p.x + unitX / scale,
-//             };
-//           }
-
-//           const ratioH = shape.getSize().h / multiSelectingAreaSize.h,
-//             unitH = offsetP.y * ratioH;
-
-//           if (canResize.y) {
-//             shape.h = shape.h + unitH / scale;
-
-//             const dy = Math.abs(shape.p.y - multiSelectingAreaP.start.y),
-//               ratioY = dy / multiSelectingAreaSize.h,
-//               unitY = offsetP.y * ratioY;
-
-//             shape.p = {
-//               ...shape.p,
-//               y: shape.p.y + unitY / scale,
-//             };
-//           }
-
-//           syncCandidates(shape);
-//         });
-//       }
-//       break;
-
-//     case CommonTypes.SelectAreaTarget.lb:
-//       {
-//         const canResize = {
-//           x: multiSelectingAreaSize.w - offsetP.x > 0 || offsetP.x < 0,
-//           y: multiSelectingAreaSize.h + offsetP.y > 0 || offsetP.y > 0,
-//         };
-
-//         const multiSelectingMap = getMultSelectingMap();
-
-//         shapes.forEach((shape) => {
-//           if (!multiSelectingMap[shape.id]) return;
-//           const ratioW = shape.getSize().w / multiSelectingAreaSize.w,
-//             unitW = offsetP.x * ratioW;
-
-//           if (canResize.x) {
-//             shape.w = shape.w - unitW / scale;
-
-//             const dx = Math.abs(shape.p.x - multiSelectingAreaP.end.x),
-//               ratioX = dx / multiSelectingAreaSize.w,
-//               unitX = offsetP.x * ratioX;
-
-//             shape.p = {
-//               ...shape.p,
-//               x: shape.p.x + unitX / scale,
-//             };
-//           }
-
-//           const ratioH = shape.getSize().h / multiSelectingAreaSize.h,
-//             unitH = offsetP.y * ratioH;
-
-//           if (canResize.y) {
-//             shape.h = shape.h + unitH / scale;
-
-//             const dy = Math.abs(shape.p.y - multiSelectingAreaP.start.y),
-//               ratioY = dy / multiSelectingAreaSize.h,
-//               unitY = offsetP.y * ratioY;
-
-//             shape.p = {
-//               ...shape.p,
-//               y: shape.p.y + unitY / scale,
-//             };
-//           }
-
-//           syncCandidates(shape);
-//         });
-//       }
-
-//       break;
-//   }
-// };
 
 const connect = (
   curve: Curve,
@@ -2645,13 +2369,14 @@ export default function IdPage() {
       x: e.nativeEvent.offsetX,
       y: e.nativeEvent.offsetY,
     };
+    const normalP = getNormalP(p, offset, scale);
 
     handleUtils.handle([
       () => startMovingViewport(space, p),
+      () => triggerCurve(normalP, selection),
       () => pressSelection(p, offset, scale, selection),
       () => clickSelect(p, offset, scale),
       () => startFrameSelecting(p),
-      // (prev) => triggerCurve(p, offset, scale, prev),
       // (prev) => selectCurve(p, offset, scale, prev),
       // () => deSelectCurve(),
       // () => adPressSelection(),

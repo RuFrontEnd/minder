@@ -114,6 +114,8 @@ type UploadJSON = {
   consoles: any;
 };
 
+type Shape = Termainal | Process | DataShape | Decision;
+
 export type {
   Id,
   W,
@@ -126,5 +128,6 @@ export type {
   Datas,
   ConnectionCurves,
   UploadJSON,
+  Shape
 };
 export { Direction, Corner, ShapeType, Action, DataStatus };
