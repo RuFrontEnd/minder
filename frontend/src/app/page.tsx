@@ -184,7 +184,7 @@ const getActionRecords = () => {
     },
     peekKey: () => {
       const lastKey = Array.from(records.keys()).pop();
-      return lastKey
+      return lastKey;
     },
   };
 };
@@ -1590,15 +1590,18 @@ const pressSelection = (
 const selectShape = (p: CommonTypes.Vec) => {
   for (let i = shapes.length - 1; i >= 0; i--) {
     const shape = shapes[i];
-    if (shape.checkBoundry(p)) {
-      selection = new Selection(`selectionArea_${uuidv4()}`, [shape]);
-      pressingSelection = {
-        selection: selection,
-        ghost: cloneDeep(selection),
-        target: SelectionTypes.PressingTarget.m,
-      };
-      return false;
-    }
+    if (!shape.checkBoundry(p)) continue;
+    deSelectCurve();
+
+    selection = new Selection(`selectionArea_${uuidv4()}`, [shape]);
+
+    pressingSelection = {
+      selection: selection,
+      ghost: cloneDeep(selection),
+      target: SelectionTypes.PressingTarget.m,
+    };
+    
+    return false;
   }
 
   return true;
