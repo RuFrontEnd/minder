@@ -1648,28 +1648,26 @@ const clickSelect = (p: CommonTypes.Vec) => {
 };
 
 const startFrameSelecting = (p: CommonTypes.Vec) => {
+  deSelect()
   selectionFrame = new SelectionFrame(`selectionFrame_${uuidv4()}`, {
     start: p,
     end: p,
   });
 
-  selection = null;
-
   return false;
 };
 
 const selectCurve = (
-  p: CommonTypes.Vec,
-  offset: CommonTypes.Vec = { x: 0, y: 0 },
-  scale: number = 1,
-  prev: PageIdTypes.PressingSelection
+  p: CommonTypes.Vec
 ) => {
   for (let i = curves.length - 1; i > -1; i--) {
     const curve = curves[i];
+
     if (
       curve.shape.selecting &&
-      curve.shape.checkControlPointsBoundry(getNormalP(p, offset, scale))
+      curve.shape.checkControlPointsBoundry(p)
     ) {
+      deSelectShape()
       pressingCurve = {
         from: {
           shape: curve.from.shape,
@@ -1686,20 +1684,30 @@ const selectCurve = (
 
       return false;
     }
-    if (curve.shape.checkBoundry(getNormalP(p, offset, scale))) {
+
+    if (curve.shape.checkBoundry(p)) {
+      deSelectShape()
       curve.shape.selecting = true;
       return false;
     }
   }
+
   return true;
 };
 
-const deSelectCurve = () => {
+const deSelectShape = ()=>{
+  selection = null;
+}
+
+const deSelectCurve = ()=>{
   curves.forEach((curve) => {
     curve.shape.selecting = false;
   });
+}
 
-  return true;
+const deSelect = () => {
+  deSelectShape()
+  deSelectCurve()
 };
 
 const moveViewport = (p: CommonTypes.Vec, isPressingSpace: boolean) => {
@@ -1739,7 +1747,7 @@ const resizeShapes = (
 
   pressingSelection.selection.resize(pressingSelection.target, offsetP);
   syncCurvePosition(shapes)
-  
+
   return false;
 };
 
@@ -1883,122 +1891,6 @@ const drawAlignLines = (
   });
 };
 
-// const getMultiSelectingAreaP = () => {
-//   const startP = { x: -1, y: -1 };
-//   const endP = { x: -1, y: -1 };
-
-//   const multiSelectingMap = getMultSelectingMap();
-
-//   shapes.forEach((shape) => {
-//     if (!multiSelectingMap[shape.id]) return;
-//     const theEdge = shape.getEdge();
-//     if (startP.x === -1 || theEdge.l < startP.x) {
-//       startP.x = theEdge.l;
-//     }
-//     if (startP.y === -1 || theEdge.t < startP.y) {
-//       startP.y = theEdge.t;
-//     }
-//     if (endP.x === -1 || theEdge.r > endP.x) {
-//       endP.x = theEdge.r;
-//     }
-//     if (endP.y === -1 || theEdge.b > endP.y) {
-//       endP.y = theEdge.b;
-//     }
-//   });
-
-//   return [startP, endP];
-// };
-
-// const drawMultiSelectedShapesArea = (
-//   ctx: undefined | null | CanvasRenderingContext2D,
-//   offset: CommonTypes.Vec = { x: 0, y: 0 },
-//   scale: number = 1
-// ) => {
-//   if (!ctx || multiSelectShapeIds.length < 2) return;
-
-//   const [startP, endP] = getMultiSelectingAreaP();
-
-//   if (startP.x === -1 || startP.y === -1 || endP.x === -1 || endP.y === -1)
-//     return;
-
-//   const screenStartP = {
-//     x: (startP.x + offset.x) * scale,
-//     y: (startP.y + offset.y) * scale,
-//   };
-//   const screenEndP = {
-//     x: (endP.x + offset.x) * scale,
-//     y: (endP.y + offset.y) * scale,
-//   };
-
-//   // draw multiSelect area
-//   ctx?.beginPath();
-//   ctx.strokeStyle = tailwindColors.info["500"];
-//   ctx.lineWidth = 1;
-//   ctx.strokeRect(
-//     screenStartP.x,
-//     screenStartP.y,
-//     screenEndP.x - screenStartP.x,
-//     screenEndP.y - screenStartP.y
-//   );
-//   ctx?.closePath();
-
-//   // draw multiSelect area anchors
-//   ctx.fillStyle = "white";
-//   ctx.lineWidth = selectAnchor.size.stroke;
-
-//   ctx?.beginPath();
-//   ctx.arc(
-//     screenStartP.x,
-//     screenStartP.y,
-//     selectAnchor.size.fill,
-//     0,
-//     2 * Math.PI,
-//     false
-//   ); // left, top
-//   ctx.stroke();
-//   ctx.fill();
-//   ctx?.closePath();
-
-//   ctx?.beginPath();
-//   ctx.arc(
-//     screenEndP.x,
-//     screenStartP.y,
-//     selectAnchor.size.fill,
-//     0,
-//     2 * Math.PI,
-//     false
-//   ); // right, top
-//   ctx.stroke();
-//   ctx.fill();
-//   ctx?.closePath();
-
-//   ctx?.beginPath();
-//   ctx.arc(
-//     screenEndP.x,
-//     screenEndP.y,
-//     selectAnchor.size.fill,
-//     0,
-//     2 * Math.PI,
-//     false
-//   ); // right, bottom
-//   ctx.stroke();
-//   ctx.fill();
-//   ctx?.closePath();
-
-//   ctx?.beginPath();
-//   ctx.arc(
-//     screenStartP.x,
-//     screenEndP.y,
-//     selectAnchor.size.fill,
-//     0,
-//     2 * Math.PI,
-//     false
-//   ); // left, bottom
-//   ctx.stroke();
-//   ctx.fill();
-//   ctx?.closePath();
-// };
-
 const draw = (
   $canvas: HTMLCanvasElement,
   ctx: CanvasRenderingContext2D,
@@ -2027,6 +1919,7 @@ const draw = (
   );
   drawAlignLines(ctx, alginLines, offset, scale);
 
+  // TODO: wait for matching backend features
   // if (!isScreenshot) {
   //   // draw sending point
   //   shapes.forEach((shape) => {
@@ -2079,122 +1972,6 @@ const drawScreenshot = (offset?: CommonTypes.Vec, scale?: number) => {
   );
 };
 
-const resizeShape = (
-  shapes: null | undefined | (Terminal | Process | Data | Desicion)[],
-  pressing: {
-    shape: null | undefined | Terminal | Process | Data | Desicion;
-    ghost: null | undefined | Terminal | Process | Data | Desicion;
-    target:
-      | null
-      | undefined
-      | CoreTypes.PressingTarget.lt
-      | CoreTypes.PressingTarget.rt
-      | CoreTypes.PressingTarget.rb
-      | CoreTypes.PressingTarget.lb;
-  },
-  offsetP: CommonTypes.Vec
-) => {
-  if (!shapes || !pressing.shape || !pressing.ghost || !pressing.target) return;
-
-  const shapesInView = getShapesInView(
-    shapes.filter((shape) => shape.id !== pressing?.shape?.id)
-  );
-
-  const directions = (() => {
-    switch (pressing.target) {
-      case CoreTypes.PressingTarget.lt:
-        return [CommonTypes.Direction.l, CommonTypes.Direction.t];
-
-      case CoreTypes.PressingTarget.rt:
-        return [CommonTypes.Direction.r, CommonTypes.Direction.t];
-
-      case CoreTypes.PressingTarget.rb:
-        return [CommonTypes.Direction.r, CommonTypes.Direction.b];
-
-      case CoreTypes.PressingTarget.lb:
-        return [CommonTypes.Direction.l, CommonTypes.Direction.b];
-    }
-  })();
-
-  if (!directions) return;
-
-  const center = {
-    shape: pressing.shape.getCenter(),
-    ghost: pressing.ghost.getCenter(),
-  };
-
-  const alignLines_vertical = getVertexAlignLines(
-    shapesInView,
-    center.shape[directions[0]]
-  );
-
-  const alginLines_horizental = getVertexAlignLines(
-    shapesInView,
-    center.shape[directions[1]]
-  );
-
-  alginLines = alignLines_vertical.concat(alginLines_horizental);
-
-  const alignVertixP = getAlignVertixP(
-    shapesInView,
-    center.ghost[pressing.target]
-  );
-
-  if (alignVertixP?.x && !alignVertixP?.y) {
-    pressing.shape.resize(
-      {
-        x: alignVertixP.x - center.shape[pressing.target].x,
-        y: offsetP.y,
-      },
-      pressing.target
-    );
-  }
-
-  if (!alignVertixP?.x && alignVertixP?.y) {
-    pressing.shape.resize(
-      {
-        x: offsetP.x,
-        y: alignVertixP.y - center.shape[pressing.target].y,
-      },
-      pressing.target
-    );
-  }
-
-  if (alignVertixP?.x && alignVertixP?.y) {
-    pressing.shape.resize(
-      {
-        x: alignVertixP.x - center.shape[pressing.target].x,
-        y: alignVertixP.y - center.shape[pressing.target].y,
-      },
-      pressing.target
-    );
-  }
-
-  if (!alignVertixP?.x && !alignVertixP?.y) {
-    if (pressing.shape.p.x !== pressing.ghost?.p.x) {
-      pressing.shape.resize(
-        {
-          x: center.ghost[pressing.target].x - center.shape[pressing.target].x,
-          y: 0,
-        },
-        pressing.target
-      );
-    }
-    if (pressing.shape.p.y !== pressing.ghost?.p.y) {
-      pressing.shape.resize(
-        {
-          x: 0,
-          y: center.ghost[pressing.target].y - center.shape[pressing.target].y,
-        },
-        pressing.target
-      );
-    }
-  }
-
-  pressing.ghost.resize(offsetP, pressing.target);
-  moveCurve(pressing?.shape);
-};
-
 const undo = (
   ctx: undefined | null | CanvasRenderingContext2D,
   offset?: CommonTypes.Vec,
@@ -2213,14 +1990,16 @@ const undo = (
   drawScreenshot(offset, scale);
 };
 
-const syncCandidates = (shape: Terminal | Process | Data | Desicion) => {
+const syncCandidates = (shapes: CommonTypes.Shape[]) => {
   if (!candidates) return;
   // sync with candidates when checking
-  const candidate = candidates?.find((candidate) => candidate.id === shape.id);
-  if (!candidate) return;
-  candidate.p = shape.p;
-  candidate.w = shape.w;
-  candidate.h = shape.h;
+  shapes.forEach(shape => {
+    const candidate = candidates?.find((candidate) => candidate.id === shape.id);
+    if (!candidate) return;
+    candidate.p = shape.p;
+    candidate.w = shape.w;
+    candidate.h = shape.h;
+  })
 };
 
 export default function IdPage() {
@@ -2381,14 +2160,13 @@ export default function IdPage() {
     handleUtils.handle([
       () => startMovingViewport(space, p),
       () => triggerCurve(normalP, selection),
+      () => selectCurve(normalP),
       () => pressSelection(normalP, selection),
       () => clickSelect(normalP),
       () => startFrameSelecting(p),
-      // (prev) => selectCurve(p, offset, scale, prev),
-      // () => deSelectCurve(),
-      // () => adPressSelection(),
     ]);
 
+    syncCandidates(shapes)
     drawCanvas(offset, scale);
   };
 
@@ -2644,6 +2422,7 @@ export default function IdPage() {
     //   }
     // }
 
+    syncCandidates(shapes)
     drawCanvas(offset, scale);
     drawScreenshot(offset, scale);
   };
@@ -2693,6 +2472,7 @@ export default function IdPage() {
     // }
 
     checkSteps();
+    syncCandidates(shapes)
 
     selectionFrame = null;
     pressingSelection = null;
