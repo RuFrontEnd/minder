@@ -6,13 +6,6 @@ import * as CommonTypes from "@/types/common";
 
 const inter = Inter({ subsets: ["latin"] });
 
-const ds = [
-  CommonTypes.Direction.l,
-  CommonTypes.Direction.t,
-  CommonTypes.Direction.r,
-  CommonTypes.Direction.b,
-];
-
 export default class Core {
   id: string;
   c: string;
@@ -22,20 +15,6 @@ export default class Core {
       stroke: 2,
     },
   };
-  protected __curveTrigger__: {
-    distance: number;
-    size: {
-      fill: number;
-      stroke: number;
-    };
-  } = {
-    distance: 48,
-    size: {
-      fill: 4,
-      stroke: 2,
-    },
-  };
-  private strokeSize = 1;
   private __w__: number;
   private __h__: number;
   title: CommonTypes.Title;
@@ -62,7 +41,6 @@ export default class Core {
     this.__h__ = h;
     this.__p__ = p;
     this.c = c;
-    // this.__selecting__ = false;
     this.__receivePoint__ = {
       l: { visible: false, activate: false },
       t: { visible: false, activate: false },
@@ -100,18 +78,6 @@ export default class Core {
     return this.__h__;
   }
 
-  // set selecting(_selecting: boolean) {
-  //   this.__selecting__ = _selecting;
-  // }
-
-  // get selecting() {
-  //   return this.__selecting__;
-  // }
-
-  get curveTrigger() {
-    return this.__curveTrigger__;
-  }
-
   get minCurveHandlerDistance() {
     return this.__minCurveHandlerDistance__;
   }
@@ -140,37 +106,17 @@ export default class Core {
     return this.__deleteDatas__;
   }
 
-
-  getP(offset: CommonTypes.Vec = { x: 0, y: 0 }, scale: number = 1) {
+  getEdge() {
     return {
-      x: (this.p.x + offset.x) * scale,
-      y: (this.p.y + offset.y) * scale,
+      l: this.p.x - this.w / 2,
+      t: this.p.y - this.h / 2,
+      r: this.p.x + this.w / 2,
+      b: this.p.y + this.h / 2,
     };
   }
 
-  getSize(scale: number = 1) {
-    return {
-      w: this.w * scale,
-      h: this.h * scale,
-    };
-  }
-
-  getEdge(offset: CommonTypes.Vec = { x: 0, y: 0 }, scale: number = 1) {
-    const screenP = this.getP(offset, scale);
-    const scaleSize = this.getSize(scale);
-    return {
-      l: screenP.x - scaleSize.w / 2,
-      t: screenP.y - scaleSize.h / 2,
-      r: screenP.x + scaleSize.w / 2,
-      b: screenP.y + scaleSize.h / 2,
-    };
-  }
-
-  getCenter(
-    offset: CommonTypes.Vec = { x: 0, y: 0 },
-    scale: number = 1
-  ): CoreTypes.GetCenterReturn {
-    const edge = this.getEdge(offset, scale);
+  getCenter(): CoreTypes.GetCenterReturn {
+    const edge = this.getEdge();
 
     return {
       m: this.p,
@@ -193,24 +139,6 @@ export default class Core {
       lb: {
         x: edge.l,
         y: edge.b,
-      },
-      __curveTrigger__: {
-        l: {
-          x: edge.l - this.__curveTrigger__.distance,
-          y: this.p.y,
-        },
-        t: {
-          x: this.p.x,
-          y: edge.t - this.__curveTrigger__.distance,
-        },
-        r: {
-          x: edge.r + this.__curveTrigger__.distance,
-          y: this.p.y,
-        },
-        b: {
-          x: this.p.x,
-          y: edge.b + this.__curveTrigger__.distance,
-        },
       },
       receivingPoints: {
         l: {
@@ -490,25 +418,6 @@ export default class Core {
     return null;
   }
 
-  // getTriggerDirection(p: CommonTypes.Vec) {
-  //   if (!this.selecting) return null;
-  //   const center = this.getCenter();
-
-  //   for (const d of ds) {
-  //     if (
-  //       (p.x - center.__curveTrigger__[d].x) *
-  //         (p.x - center.__curveTrigger__[d].x) +
-  //         (p.y - center.__curveTrigger__[d].y) *
-  //           (p.y - center.__curveTrigger__[d].y) <
-  //       this.__curveTrigger__.size.fill * this.__curveTrigger__.size.fill
-  //     ) {
-  //       return CommonTypes.Direction[d];
-  //     }
-  //   }
-
-  //   return null;
-  // }
-
   getIsReceiving() {
     return (
       !this.__receivePoint__.l.visible &&
@@ -695,16 +604,11 @@ export default class Core {
     scale: number = 1,
     drawShapePath: () => void
   ) {
-    const edge = this.getEdge(offest, scale);
-    const screenP = this.getP(offest, scale);
-    const scaleSize = this.getSize(scale);
-    const fillRectParams = {
-      x: edge.l - screenP.x,
-      y: edge.t - screenP.y,
-      w: scaleSize.w,
-      h: scaleSize.h,
+    const screenP = {
+      x: (this.p.x + offest.x) * scale,
+      y: (this.p.y + offest.y) * scale,
     };
-    // ctx.globalAlpha = 0.5; // TODO: for testing ghost
+    const scaleSize = { w: this.w * scale, h: this.h * scale };
 
     ctx.fillStyle = (() => {
       switch (this.status) {
@@ -727,6 +631,7 @@ export default class Core {
       ctx.fillText("error!", scaleSize.w / 2, -scaleSize.h / 2 - 10);
     }
 
+    // TODO: should be moved to Selection
     // if (this.getIsReceiving()) {
     //   ctx.save();
     //   ctx.translate(screenP.x, screenP.y);
@@ -820,83 +725,7 @@ export default class Core {
     // );
   }
 
-  // TODO: be moved to selection
-  // drawSendingPoint(
-  //   ctx: CanvasRenderingContext2D,
-  //   offest: CommonTypes.Vec = { x: 0, y: 0 },
-  //   scale: number = 1
-  // ) {
-  //   if (!ctx) return;
-  //   const screenP = this.getP(offest, scale);
-  //   const scaleSize = this.getSize(scale);
-  //   const curveTriggerDistance = this.__curveTrigger__.distance * scale;
-  //   // draw curve triggers
-  //   ctx.fillStyle = "white";
-  //   ctx.strokeStyle = "DeepSkyBlue";
-  //   ctx.lineWidth = this.strokeSize;
-
-  //   ctx.save();
-  //   ctx.translate(screenP.x, screenP.y);
-
-  //   // left
-  //   ctx.beginPath();
-  //   ctx.arc(
-  //     -scaleSize.w / 2 - curveTriggerDistance,
-  //     0,
-  //     this.anchor.size.fill,
-  //     0,
-  //     2 * Math.PI,
-  //     false
-  //   );
-  //   ctx.stroke();
-  //   ctx.fill();
-  //   ctx.closePath();
-
-  //   // top
-  //   ctx.beginPath();
-  //   ctx.arc(
-  //     0,
-  //     -scaleSize.h / 2 - curveTriggerDistance,
-  //     this.anchor.size.fill,
-  //     0,
-  //     2 * Math.PI,
-  //     false
-  //   );
-  //   ctx.stroke();
-  //   ctx.fill();
-  //   ctx.closePath();
-
-  //   // right
-  //   ctx.beginPath();
-  //   ctx.arc(
-  //     scaleSize.w / 2 + curveTriggerDistance,
-  //     0,
-  //     this.anchor.size.fill,
-  //     0,
-  //     2 * Math.PI,
-  //     false
-  //   );
-  //   ctx.stroke();
-  //   ctx.fill();
-  //   ctx.closePath();
-
-  //   // bottom
-  //   ctx.beginPath();
-  //   ctx.arc(
-  //     0,
-  //     scaleSize.h / 2 + curveTriggerDistance,
-  //     this.__curveTrigger__.size.fill,
-  //     0,
-  //     2 * Math.PI,
-  //     false
-  //   );
-  //   ctx.stroke();
-  //   ctx.fill();
-  //   ctx.closePath();
-
-  //   ctx.restore();
-  // }
-
+  // TODO: should be moved to selection
   // drawRecievingPoint(
   //   ctx: CanvasRenderingContext2D,
   //   offest: CommonTypes.Vec = { x: 0, y: 0 },

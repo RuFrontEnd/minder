@@ -100,7 +100,10 @@ export default class Data extends Core {
     scale: number = 1
   ) {
     super.draw(ctx, offest, scale, () => {
-      const screenP = this.getP(offest, scale);
+      const screenP = {
+        x: (this.p.x + offest.x) * scale,
+        y: (this.p.y + offest.y) * scale,
+      };
       const centerToCornersDistance = this.getCenterToCornerDistance();
 
       ctx.save();
@@ -128,11 +131,7 @@ export default class Data extends Core {
     });
   }
 
-  drawRecievingPoint(
-    ctx: CanvasRenderingContext2D,
-    offest: CommonTypes.Vec = { x: 0, y: 0 },
-    scale: number = 1
-  ) {
+  drawRecievingPoint(ctx: CanvasRenderingContext2D, scale: number = 1) {
     ctx.save();
     ctx.translate(this.p.x, this.p.y);
     // draw receiving points
@@ -142,7 +141,10 @@ export default class Data extends Core {
 
     const centerToCornersDistance = this.getCenterToCornerDistance();
 
-    const scaleSize = this.getSize();
+    const scaleSize = {
+      w: this.w * scale,
+      h: this.h * scale,
+    };
 
     // left
     if (this.__receivePoint__.l.visible) {

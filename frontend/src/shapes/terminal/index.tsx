@@ -27,8 +27,14 @@ export default class Terminal extends Core {
     scale: number = 1
   ) {
     super.draw(ctx, offest, scale, () => {
-      const scaleSize = this.getSize(scale);
-      const screenP = this.getP(offest, scale);
+      const screenP = {
+        x: (this.p.x + offest.x) * scale,
+        y: (this.p.y + offest.y) * scale,
+      };
+      const scaleSize = {
+        w: this.w * scale,
+        h: this.h * scale,
+      };
 
       ctx.save();
       ctx.translate(screenP.x, screenP.y);

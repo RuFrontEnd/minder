@@ -123,6 +123,33 @@ const ds = [
   CommonTypes.Direction.b,
 ];
 
+const curveThresholdStrategy = {
+  [CommonTypes.ShapeType.terminator]: {
+    l: 0,
+    t: 0,
+    r: 0,
+    b: 0,
+  },
+  [CommonTypes.ShapeType.process]: {
+    l: 0,
+    t: 0,
+    r: 0,
+    b: 0,
+  },
+  [CommonTypes.ShapeType.data]: {
+    l: 8,
+    t: 0,
+    r: -8,
+    b: 0,
+  },
+  [CommonTypes.ShapeType.decision]: {
+    l: 0,
+    t: 0,
+    r: 0,
+    b: 0,
+  },
+};
+
 const getActionRecords = () => {
   const records: {
     [type: string]: {
@@ -1048,7 +1075,17 @@ const getCurve = (
   w: number,
   h: number,
   p: CommonTypes.Vec,
-  distance: number
+  threshold: {
+    l: number;
+    t: number;
+    r: number;
+    b: number;
+  } = {
+    l: 0,
+    t: 0,
+    r: 0,
+    b: 0,
+  }
 ) => {
   let p1: CommonTypes.Vec = { x: 0, y: 0 };
   let p2: CommonTypes.Vec = { x: 0, y: 0 };
@@ -1056,11 +1093,12 @@ const getCurve = (
   let cp2: CommonTypes.Vec = { x: 0, y: 0 };
 
   const arrow_h = 12;
+  const distance = Selection.__sendingPoint__.distance;
 
   switch (d) {
     case CommonTypes.Direction.l:
       p1 = {
-        x: p.x - w / 2,
+        x: p.x - w / 2 + threshold.l,
         y: p.y,
       };
       p2 = {
@@ -1077,7 +1115,7 @@ const getCurve = (
     case CommonTypes.Direction.t:
       p1 = {
         x: p.x,
-        y: p.y - h / 2,
+        y: p.y - h / 2 + threshold.t,
       };
       p2 = {
         x: p1.x,
@@ -1092,7 +1130,7 @@ const getCurve = (
 
     case CommonTypes.Direction.r:
       p1 = {
-        x: p.x + w / 2,
+        x: p.x + w / 2 + threshold.r,
         y: p.y,
       };
       p2 = {
@@ -1109,7 +1147,7 @@ const getCurve = (
     case CommonTypes.Direction.b:
       p1 = {
         x: p.x,
-        y: p.y + h / 2,
+        y: p.y + h / 2 + threshold.b,
       };
       p2 = {
         x: p1.x,
@@ -1453,7 +1491,7 @@ const getShapeIdMap = (shapes: CommonTypes.Shape[]) => {
   return map;
 };
 
-const syncCurvePosition = (shapes:CommonTypes.Shape[]) => {
+const syncCurvePosition = (shapes: CommonTypes.Shape[]) => {
   const shapeIdMap = getShapeIdMap(shapes);
 
   curves.forEach((curve) => {
@@ -1470,7 +1508,6 @@ const syncCurvePosition = (shapes:CommonTypes.Shape[]) => {
     }
     if (isReciever) {
       moveRecieverCurve(
-        curve.to.shape.type,
         curve.from.d,
         curve.to.d,
         curve.shape,
@@ -1493,7 +1530,22 @@ const moveSenderCurve = (
   const sender = shapes.find((shape) => shape.id === senderId);
   if (!sender || !curve) return;
 
-  const p1 = sender.getCenter()[fromD];
+  const edgeM = sender.getCenter()[fromD];
+  const curveThreshold = curveThresholdStrategy[sender.type][fromD];
+  const threshold = {
+    x:
+      toD === CommonTypes.Direction.l || toD === CommonTypes.Direction.r
+        ? curveThreshold
+        : 0,
+    y:
+      toD === CommonTypes.Direction.t || toD === CommonTypes.Direction.b
+        ? curveThreshold
+        : 0,
+  };
+  const p1 = {
+    x: edgeM.x + threshold.x,
+    y: edgeM.y + threshold.y,
+  };
   const p2 = curve.p2;
   const [cp1, cp2] = getCurveStickingCp1Cp2(fromD, toD, curve, p1, p2);
 
@@ -1505,7 +1557,6 @@ const moveSenderCurve = (
 };
 
 const moveRecieverCurve = (
-  type: CommonTypes.ShapeType,
   fromD: CommonTypes.Direction,
   toD: CommonTypes.Direction,
   curve: null | undefined | Curve,
@@ -1515,15 +1566,22 @@ const moveRecieverCurve = (
   if (!reciever || !curve) return;
 
   const p1 = curve.p1;
-  const p2 = reciever.getCenter()[toD];
-  if (type === CommonTypes.ShapeType.data && toD === CommonTypes.Direction.l) {
-    p2.x = p2.x + 8;
-  } else if (
-    type === CommonTypes.ShapeType.data &&
-    toD === CommonTypes.Direction.r
-  ) {
-    p2.x = p2.x - 8;
-  }
+  const edgeM = reciever.getCenter()[toD];
+  const curveThreshold = curveThresholdStrategy[reciever.type][toD];
+  const threshold = {
+    x:
+      toD === CommonTypes.Direction.l || toD === CommonTypes.Direction.r
+        ? curveThreshold
+        : 0,
+    y:
+      toD === CommonTypes.Direction.t || toD === CommonTypes.Direction.b
+        ? curveThreshold
+        : 0,
+  };
+  const p2 = {
+    x: edgeM.x + threshold.x,
+    y: edgeM.y + threshold.y,
+  };
   const [cp1, cp2] = getCurveStickingCp1Cp2(fromD, toD, curve, p1, p2);
 
   if (!p1 || !p2 || !cp1 || !cp2) return;
@@ -1531,32 +1589,6 @@ const moveRecieverCurve = (
   curve.locateHandler(CurveTypes.PressingTarget.cp1, cp1);
   curve.locateHandler(CurveTypes.PressingTarget.cp2, cp2);
   curve.locateHandler(CurveTypes.PressingTarget.p2, p2);
-};
-
-const moveCurve = (
-  shape: null | undefined | Terminal | Process | Desicion | Data
-) => {
-  if (!shape) return;
-  for (let i = curves.length - 1; i > -1; i--) {
-    const curve = curves[i];
-    if (curve.from.shape.id === shape.id) {
-      moveSenderCurve(
-        curve.from.d,
-        curve.to.d,
-        curve.shape,
-        curve.from.shape.id
-      ); // TODO: just record curve.from.shape.id in pressingCurve
-    }
-    if (curve.to.shape.id === shape.id) {
-      moveRecieverCurve(
-        shape.type,
-        curve.from.d,
-        curve.to.d,
-        curve.shape,
-        curve.to.shape.id
-      ); // TODO: just record curve.to.shape.id in pressingCurve
-    }
-  }
 };
 
 const startMovingViewport = (isPressingSpace: boolean, p: CommonTypes.Vec) => {
@@ -1603,7 +1635,7 @@ const triggerCurve = (
       targetShape.w,
       targetShape.h,
       targetShape.p,
-      targetShape.curveTrigger.distance
+      curveThresholdStrategy[targetShape.type]
     ),
   };
 
@@ -1649,7 +1681,7 @@ const selectShape = (p: CommonTypes.Vec) => {
 };
 
 const startFrameSelecting = (p: CommonTypes.Vec) => {
-  deSelect()
+  deSelect();
   selectionFrame = new SelectionFrame(`selectionFrame_${uuidv4()}`, {
     start: p,
     end: p,
@@ -1658,17 +1690,12 @@ const startFrameSelecting = (p: CommonTypes.Vec) => {
   return false;
 };
 
-const selectCurve = (
-  p: CommonTypes.Vec
-) => {
+const selectCurve = (p: CommonTypes.Vec) => {
   for (let i = curves.length - 1; i > -1; i--) {
     const curve = curves[i];
 
-    if (
-      curve.shape.selecting &&
-      curve.shape.checkControlPointsBoundry(p)
-    ) {
-      deSelectShape()
+    if (curve.shape.selecting && curve.shape.checkControlPointsBoundry(p)) {
+      deSelectShape();
       pressingCurve = {
         from: {
           shape: curve.from.shape,
@@ -1687,7 +1714,7 @@ const selectCurve = (
     }
 
     if (curve.shape.checkBoundry(p)) {
-      deSelectShape()
+      deSelectShape();
       curve.shape.selecting = true;
       return false;
     }
@@ -1696,19 +1723,19 @@ const selectCurve = (
   return true;
 };
 
-const deSelectShape = ()=>{
+const deSelectShape = () => {
   selection = null;
-}
+};
 
-const deSelectCurve = ()=>{
+const deSelectCurve = () => {
   curves.forEach((curve) => {
     curve.shape.selecting = false;
   });
-}
+};
 
 const deSelect = () => {
-  deSelectShape()
-  deSelectCurve()
+  deSelectShape();
+  deSelectCurve();
 };
 
 const moveViewport = (p: CommonTypes.Vec, isPressingSpace: boolean) => {
@@ -1728,7 +1755,7 @@ const moveShapes = (
     return true;
 
   pressingSelection.selection.move(offsetP);
-  syncCurvePosition(shapes)
+  syncCurvePosition(shapes);
 
   return false;
 };
@@ -1747,7 +1774,7 @@ const resizeShapes = (
     return true;
 
   pressingSelection.selection.resize(pressingSelection.target, offsetP);
-  syncCurvePosition(shapes)
+  syncCurvePosition(shapes);
 
   return false;
 };
@@ -1994,13 +2021,15 @@ const undo = (
 const syncCandidates = (shapes: CommonTypes.Shape[]) => {
   if (!candidates) return;
   // sync with candidates when checking
-  shapes.forEach(shape => {
-    const candidate = candidates?.find((candidate) => candidate.id === shape.id);
+  shapes.forEach((shape) => {
+    const candidate = candidates?.find(
+      (candidate) => candidate.id === shape.id
+    );
     if (!candidate) return;
     candidate.p = shape.p;
     candidate.w = shape.w;
     candidate.h = shape.h;
-  })
+  });
 };
 
 export default function IdPage() {
@@ -2167,7 +2196,7 @@ export default function IdPage() {
       () => startFrameSelecting(p),
     ]);
 
-    syncCandidates(shapes)
+    syncCandidates(shapes);
     drawCanvas(offset, scale);
   };
 
@@ -2423,7 +2452,7 @@ export default function IdPage() {
     //   }
     // }
 
-    syncCandidates(shapes)
+    syncCandidates(shapes);
     drawCanvas(offset, scale);
     drawScreenshot(offset, scale);
   };
@@ -2473,7 +2502,7 @@ export default function IdPage() {
     // }
 
     checkSteps();
-    syncCandidates(shapes)
+    syncCandidates(shapes);
 
     selectionFrame = null;
     pressingSelection = null;

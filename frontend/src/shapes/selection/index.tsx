@@ -3,16 +3,11 @@ import { tailwindColors } from "@/variables/colors";
 import * as CommonTypes from "@/types/common";
 import * as SelectionTypes from "@/types/shapes/selection";
 
-const ds: [
-  SelectionTypes.PressingTarget.l,
-  SelectionTypes.PressingTarget.t,
-  SelectionTypes.PressingTarget.r,
-  SelectionTypes.PressingTarget.b
-] = [
-  SelectionTypes.PressingTarget.l,
-  SelectionTypes.PressingTarget.t,
-  SelectionTypes.PressingTarget.r,
-  SelectionTypes.PressingTarget.b,
+const ds = [
+  CommonTypes.Direction.l,
+  CommonTypes.Direction.t,
+  CommonTypes.Direction.r,
+  CommonTypes.Direction.b,
 ];
 
 export default class Selection {
@@ -26,7 +21,7 @@ export default class Selection {
   };
   private m: CommonTypes.Vec = { x: 0, y: 0 };
   private __shapes__: CommonTypes.Shape[] = [];
-  protected __sendingPoint__: {
+  static __sendingPoint__: {
     distance: number;
     size: {
       fill: number;
@@ -152,7 +147,7 @@ export default class Selection {
           this.__shapes__.forEach((shape) => {
             if (!selectingMap[shape.id]) return;
 
-            const ratioW = shape.getSize().w / range.w,
+            const ratioW = shape.w / range.w,
               unitW = offsetP.x * ratioW;
 
             if (canResize.x) {
@@ -168,7 +163,7 @@ export default class Selection {
               };
             }
 
-            const ratioH = shape.getSize().h / range.h,
+            const ratioH = shape.h / range.h,
               unitH = offsetP.y * ratioH;
 
             if (canResize.y) {
@@ -198,7 +193,7 @@ export default class Selection {
 
           this.__shapes__.forEach((shape) => {
             if (!selectingMap[shape.id]) return;
-            const ratioW = shape.getSize().w / range.w,
+            const ratioW = shape.w / range.w,
               unitW = offsetP.x * ratioW;
 
             if (canResize.x) {
@@ -218,7 +213,7 @@ export default class Selection {
               unitH = offsetP.y * ratioH;
 
             if (canResize.y) {
-              shape.h = shape.getSize().h - unitH;
+              shape.h = shape.h - unitH;
 
               const dy = Math.abs(shape.p.y - endP.y),
                 ratioY = dy / range.h,
@@ -242,7 +237,7 @@ export default class Selection {
 
           this.__shapes__.forEach((shape) => {
             if (!selectingMap[shape.id]) return;
-            const ratioW = shape.getSize().w / range.w,
+            const ratioW = shape.w / range.w,
               unitW = offsetP.x * ratioW;
 
             if (canResize.x) {
@@ -258,7 +253,7 @@ export default class Selection {
               };
             }
 
-            const ratioH = shape.getSize().h / range.h,
+            const ratioH = shape.h / range.h,
               unitH = offsetP.y * ratioH;
 
             if (canResize.y) {
@@ -286,7 +281,7 @@ export default class Selection {
 
           this.__shapes__.forEach((shape) => {
             if (!selectingMap[shape.id]) return;
-            const ratioW = shape.getSize().w / range.w,
+            const ratioW = shape.w / range.w,
               unitW = offsetP.x * ratioW;
 
             if (canResize.x) {
@@ -302,7 +297,7 @@ export default class Selection {
               };
             }
 
-            const ratioH = shape.getSize().h / range.h,
+            const ratioH = shape.h / range.h,
               unitH = offsetP.y * ratioH;
 
             if (canResize.y) {
@@ -359,10 +354,6 @@ export default class Selection {
 
     return {
       m: _m,
-      l: { x: edge.l, y: _m.y },
-      t: { x: _m.x, y: edge.t },
-      r: { x: edge.r, y: _m.y },
-      b: { x: _m.x, y: edge.b },
       lt: {
         x: edge.l,
         y: edge.t,
@@ -381,20 +372,20 @@ export default class Selection {
       },
       sendingPoint: {
         l: {
-          x: edge.l - this.__sendingPoint__.distance,
+          x: edge.l - Selection.__sendingPoint__.distance,
           y: _m.y,
         },
         t: {
           x: _m.x,
-          y: edge.t - this.__sendingPoint__.distance,
+          y: edge.t - Selection.__sendingPoint__.distance,
         },
         r: {
-          x: edge.r + this.__sendingPoint__.distance,
+          x: edge.r + Selection.__sendingPoint__.distance,
           y: _m.y,
         },
         b: {
           x: _m.x,
-          y: edge.b + this.__sendingPoint__.distance,
+          y: edge.b + Selection.__sendingPoint__.distance,
         },
       },
       receivingPoints: {
@@ -477,38 +468,38 @@ export default class Selection {
     // if click sending points
     if (this.shapes.length === 1) {
       const edge = this.getEdge();
-      const m = this.getM()
+      const m = this.getM();
       const sendingPointP = {
         l: {
-          x: edge.l - this.__sendingPoint__.distance,
+          x: edge.l - Selection.__sendingPoint__.distance,
           y: m.y,
         },
         t: {
           x: m.x,
-          y: edge.t - this.__sendingPoint__.distance,
+          y: edge.t - Selection.__sendingPoint__.distance,
         },
         r: {
-          x: edge.r + this.__sendingPoint__.distance,
+          x: edge.r + Selection.__sendingPoint__.distance,
           y: m.y,
         },
         b: {
           x: m.x,
-          y: edge.b + this.__sendingPoint__.distance,
+          y: edge.b + Selection.__sendingPoint__.distance,
         },
       };
 
       const sendingPointPressingTargetStrategy = {
-        [SelectionTypes.PressingTarget.l]: SelectionTypes.PressingTarget.sl,
-        [SelectionTypes.PressingTarget.t]: SelectionTypes.PressingTarget.st,
-        [SelectionTypes.PressingTarget.r]: SelectionTypes.PressingTarget.sr,
-        [SelectionTypes.PressingTarget.b]: SelectionTypes.PressingTarget.sb,
+        [CommonTypes.Direction.l]: SelectionTypes.PressingTarget.sl,
+        [CommonTypes.Direction.t]: SelectionTypes.PressingTarget.st,
+        [CommonTypes.Direction.r]: SelectionTypes.PressingTarget.sr,
+        [CommonTypes.Direction.b]: SelectionTypes.PressingTarget.sb,
       };
 
       for (const d of ds) {
         if (
           (p.x - sendingPointP[d].x) * (p.x - sendingPointP[d].x) +
             (p.y - sendingPointP[d].y) * (p.y - sendingPointP[d].y) <
-          this.__sendingPoint__.size.fill * this.__sendingPoint__.size.fill
+          Selection.__sendingPoint__.size.fill * Selection.__sendingPoint__.size.fill
         ) {
           return sendingPointPressingTargetStrategy[d];
         }
@@ -531,7 +522,7 @@ export default class Selection {
       y: (m.y + offest.y) * scale,
     };
     const scaleSize = { w: size.w * scale, h: size.h * scale };
-    const sendingPointDistance = this.__sendingPoint__.distance * scale;
+    const sendingPointDistance = Selection.__sendingPoint__.distance * scale;
 
     ctx.fillStyle = this.__c__.fill;
     ctx.strokeStyle = this.__c__.stroke;
@@ -588,7 +579,7 @@ export default class Selection {
     ctx.arc(
       0,
       scaleSize.h / 2 + sendingPointDistance,
-      this.__sendingPoint__.size.fill,
+      Selection.__sendingPoint__.size.fill,
       0,
       2 * Math.PI,
       false
