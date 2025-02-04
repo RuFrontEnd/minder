@@ -2191,8 +2191,8 @@ export default function IdPage() {
       () => startMovingViewport(space, p),
       () => triggerCurve(normalP, selection),
       () => selectCurve(normalP),
-      () => selectShape(normalP),
       () => pressSelection(normalP, selection),
+      () => selectShape(normalP),
       () => startFrameSelecting(p),
     ]);
 
