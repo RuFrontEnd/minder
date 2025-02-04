@@ -1369,14 +1369,10 @@ const getCurveStickingCp1Cp2 = (
 };
 
 const movePressingCurve = (
-  ctx: null | undefined | CanvasRenderingContext2D,
-  pressingCurve: null | PageIdTypes.PressingCurve,
   p: CommonTypes.Vec,
-  offset: CommonTypes.Vec = { x: 0, y: 0 },
-  scale: number = 1,
-  isMovingViewport: boolean = false
+  pressingCurve: null | undefined | PageIdTypes.PressingCurve,
 ) => {
-  if (!ctx || !pressingCurve || isMovingViewport) return true;
+  if (!pressingCurve) return true;
   actionRecords.register(CommonTypes.Action.disconnect);
 
   const [toD, p2] = (() => {
@@ -1385,7 +1381,7 @@ const movePressingCurve = (
 
       if (shape.id === pressingCurve.from.shape.id) continue;
 
-      const quarterD = shape.checkQuarterArea(getNormalP(p, offset, scale));
+      const quarterD = shape.checkQuarterArea(p);
       if (quarterD) {
         const p2 = shape.getCenter()[quarterD];
 
@@ -1424,7 +1420,7 @@ const movePressingCurve = (
     pressingCurve?.shape.locateHandler(CurveTypes.PressingTarget.p2, p2);
   } else {
     // move
-    const p2 = getNormalP(p, offset, scale);
+    const p2 = p;
     const cp1 = pressingCurve?.shape.p1;
     const cp2 = (() => {
       switch (pressingCurve.from.d) {
@@ -1604,13 +1600,11 @@ const triggerCurve = (
 
 const pressSelection = (
   p: CommonTypes.Vec,
-  offest: CommonTypes.Vec = { x: 0, y: 0 },
-  scale: number = 1,
   selection: null | undefined | Selection
 ) => {
   if (!selection) return true;
 
-  const _target = selection.checkBoundry(getNormalP(p, offest, scale), 0);
+  const _target = selection.checkBoundry(p, 0);
 
   if (!!_target) {
     pressingSelection = {
@@ -1624,13 +1618,9 @@ const pressSelection = (
   return true;
 };
 
-const clickSelect = (
-  p: CommonTypes.Vec,
-  offset: CommonTypes.Vec = { x: 0, y: 0 },
-  scale: number = 1
-) => {
+const clickSelect = (p: CommonTypes.Vec) => {
   for (const shape of shapes) {
-    if (shape.checkBoundry(getNormalP(p, offset, scale))) {
+    if (shape.checkBoundry(p)) {
       selection = new Selection(`selectionArea_${uuidv4()}`, [shape]);
       pressingSelection = {
         selection: selection,
@@ -2374,8 +2364,8 @@ export default function IdPage() {
     handleUtils.handle([
       () => startMovingViewport(space, p),
       () => triggerCurve(normalP, selection),
-      () => pressSelection(p, offset, scale, selection),
-      () => clickSelect(p, offset, scale),
+      () => pressSelection(normalP, selection),
+      () => clickSelect(normalP),
       () => startFrameSelecting(p),
       // (prev) => selectCurve(p, offset, scale, prev),
       // () => deSelectCurve(),
@@ -2396,6 +2386,7 @@ export default function IdPage() {
         x: p.x - lastP.x,
         y: p.y - lastP.y,
       },
+      normalP = getNormalP(p, offset, scale),
       normalOffsetP = getNormalP(offsetP, null, scale);
 
     if (movingViewport) {
@@ -2407,9 +2398,9 @@ export default function IdPage() {
       () => moveViewport(p, space),
       () => moveShapes(normalOffsetP, pressingSelection),
       () => resizeShapes(normalOffsetP, pressingSelection),
-      () => defineSelectionFrameRange(p, movingViewport),
-      // () =>
-      //   movePressingCurve(ctx, pressingCurve, p, offset, scale, movingViewport),
+      () => defineSelectionFrameRange(p),
+      () =>
+        movePressingCurve(normalP, pressingCurve),
     ]);
 
     recordLastP(p);
