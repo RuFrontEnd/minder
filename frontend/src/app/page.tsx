@@ -1472,8 +1472,8 @@ const defineSelectionFrameRange = (
 };
 
 const recordLastP = (p: CommonTypes.Vec) => {
-  lastP = p
-}
+  lastP = p;
+};
 
 const moveSenderCurve = (
   fromD: CommonTypes.Direction,
@@ -1710,16 +1710,40 @@ const deSelectCurve = () => {
   return true;
 };
 
-const moveViewport = (p: CommonTypes.Vec, isPressingSpace:boolean) => {
-  if(!isPressingSpace) return true
+const moveViewport = (p: CommonTypes.Vec, isPressingSpace: boolean) => {
+  if (!isPressingSpace) return true;
   lastP = p;
   return false;
 };
 
-const moveShapes = (offsetP: CommonTypes.Vec, selection: null | undefined | Selection) => {
-  if (!selection) return true;
+const moveShapes = (
+  offsetP: CommonTypes.Vec,
+  pressingSelection: null | undefined | PageIdTypes.PressingSelection
+) => {
+  if (
+    !pressingSelection?.selection ||
+    pressingSelection?.target !== SelectionTypes.PressingTarget.m
+  )
+    return true;
 
-  selection.move(offsetP);
+  pressingSelection.selection.move(offsetP);
+  return false;
+};
+
+const resizeShapes = (
+  offsetP: CommonTypes.Vec,
+  pressingSelection: null | undefined | PageIdTypes.PressingSelection
+) => {
+  if (
+    !pressingSelection?.selection ||
+    (pressingSelection?.target !== SelectionTypes.PressingTarget.lt &&
+      pressingSelection?.target !== SelectionTypes.PressingTarget.rt &&
+      pressingSelection?.target !== SelectionTypes.PressingTarget.lb &&
+      pressingSelection?.target !== SelectionTypes.PressingTarget.rb)
+  )
+    return true;
+
+  pressingSelection.selection.resize(pressingSelection.target, offsetP);
   return false;
 };
 
@@ -2656,13 +2680,14 @@ export default function IdPage() {
 
     handleUtils.handle([
       () => moveViewport(p, space),
-      () => moveShapes(normalOffsetP, pressingSelection?.selection),
+      () => moveShapes(normalOffsetP, pressingSelection),
+      () => resizeShapes(normalOffsetP, pressingSelection),
       () => defineSelectionFrameRange(p, movingViewport),
       // () =>
       //   movePressingCurve(ctx, pressingCurve, p, offset, scale, movingViewport),
     ]);
 
-    recordLastP(p)
+    recordLastP(p);
 
     // if (!movingViewport && pressing?.shape && !!selectionFrame) {
     //   if (pressing?.target === CommonTypes.SelectAreaTarget.m) {

@@ -82,7 +82,6 @@ export default class Selection {
   getP() {
     const startP = { x: -1, y: -1 };
     const endP = { x: -1, y: -1 };
-
     const selectingMap = this.getSelectingMap();
 
     this.__shapes__.forEach((shape) => {
@@ -124,17 +123,12 @@ export default class Selection {
       | SelectionTypes.PressingTarget.rt
       | SelectionTypes.PressingTarget.rb
       | SelectionTypes.PressingTarget.lb,
-    offsetP: CommonTypes.Vec,
-    scale = 1
+    offsetP: CommonTypes.Vec
   ) => {
-    const [multiSelectingAreaStartP, multiSelectingAreaEndP] = this.getP();
-    const multiSelectingAreaP = {
-      start: multiSelectingAreaStartP,
-      end: multiSelectingAreaEndP,
-    };
-    const multiSelectingAreaSize = {
-      w: Math.abs(multiSelectingAreaP.end.x - multiSelectingAreaP.start.x),
-      h: Math.abs(multiSelectingAreaP.end.y - multiSelectingAreaP.start.y),
+    const [startP, endP] = this.getP();
+    const range = {
+      w: Math.abs(endP.x - startP.x),
+      h: Math.abs(endP.y - startP.y),
     };
     const selectingMap = this.getSelectingMap();
 
@@ -142,42 +136,42 @@ export default class Selection {
       case SelectionTypes.PressingTarget.lt:
         {
           const canResize = {
-            x: multiSelectingAreaSize.w - offsetP.x > 0 || offsetP.x < 0,
-            y: multiSelectingAreaSize.h - offsetP.y > 0 || offsetP.y < 0,
+            x: range.w - offsetP.x > 0 || offsetP.x < 0,
+            y: range.h - offsetP.y > 0 || offsetP.y < 0,
           };
 
           this.__shapes__.forEach((shape) => {
             if (!selectingMap[shape.id]) return;
 
-            const ratioW = shape.getSize().w / multiSelectingAreaSize.w,
+            const ratioW = shape.getSize().w / range.w,
               unitW = offsetP.x * ratioW;
 
             if (canResize.x) {
-              shape.w = shape.w - unitW / scale;
+              shape.w = shape.w - unitW;
 
-              const dx = Math.abs(shape.p.x - multiSelectingAreaP.end.x),
-                ratioX = dx / multiSelectingAreaSize.w,
+              const dx = Math.abs(shape.p.x - endP.x),
+                ratioX = dx / range.w,
                 unitX = offsetP.x * ratioX;
 
               shape.p = {
                 ...shape.p,
-                x: shape.p.x + unitX / scale,
+                x: shape.p.x + unitX,
               };
             }
 
-            const ratioH = shape.getSize().h / multiSelectingAreaSize.h,
+            const ratioH = shape.getSize().h / range.h,
               unitH = offsetP.y * ratioH;
 
             if (canResize.y) {
-              shape.h = shape.h - unitH / scale;
+              shape.h = shape.h - unitH;
 
-              const dy = Math.abs(shape.p.y - multiSelectingAreaP.end.y),
-                ratioY = dy / multiSelectingAreaSize.h,
+              const dy = Math.abs(shape.p.y - endP.y),
+                ratioY = dy / range.h,
                 unitY = offsetP.y * ratioY;
 
               shape.p = {
                 ...shape.p,
-                y: shape.p.y + unitY / scale,
+                y: shape.p.y + unitY,
               };
             }
           });
@@ -187,43 +181,43 @@ export default class Selection {
       case SelectionTypes.PressingTarget.rt:
         {
           const canResize = {
-            x: multiSelectingAreaSize.w + offsetP.x > 0 || offsetP.x > 0,
-            y: multiSelectingAreaSize.h - offsetP.y > 0 || offsetP.y < 0,
+            x: range.w + offsetP.x > 0 || offsetP.x > 0,
+            y: range.h - offsetP.y > 0 || offsetP.y < 0,
           };
 
           const selectingMap = this.getSelectingMap();
 
           this.__shapes__.forEach((shape) => {
             if (!selectingMap[shape.id]) return;
-            const ratioW = shape.getSize().w / multiSelectingAreaSize.w,
+            const ratioW = shape.getSize().w / range.w,
               unitW = offsetP.x * ratioW;
 
             if (canResize.x) {
-              shape.w = shape.w + unitW / scale;
+              shape.w = shape.w + unitW;
 
-              const dx = Math.abs(shape.p.x - multiSelectingAreaP.start.x),
-                ratioX = dx / multiSelectingAreaSize.w,
+              const dx = Math.abs(shape.p.x - startP.x),
+                ratioX = dx / range.w,
                 unitX = offsetP.x * ratioX;
 
               shape.p = {
                 ...shape.p,
-                x: shape.p.x + unitX / scale,
+                x: shape.p.x + unitX,
               };
             }
 
-            const ratioH = shape.h / multiSelectingAreaSize.h,
+            const ratioH = shape.h / range.h,
               unitH = offsetP.y * ratioH;
 
             if (canResize.y) {
-              shape.h = shape.getSize().h - unitH / scale;
+              shape.h = shape.getSize().h - unitH;
 
-              const dy = Math.abs(shape.p.y - multiSelectingAreaP.end.y),
-                ratioY = dy / multiSelectingAreaSize.h,
+              const dy = Math.abs(shape.p.y - endP.y),
+                ratioY = dy / range.h,
                 unitY = offsetP.y * ratioY;
 
               shape.p = {
                 ...shape.p,
-                y: shape.p.y + unitY / scale,
+                y: shape.p.y + unitY,
               };
             }
           });
@@ -233,41 +227,41 @@ export default class Selection {
       case SelectionTypes.PressingTarget.rb:
         {
           const canResize = {
-            x: multiSelectingAreaSize.w + offsetP.x > 0 || offsetP.x > 0,
-            y: multiSelectingAreaSize.h + offsetP.y > 0 || offsetP.y > 0,
+            x: range.w + offsetP.x > 0 || offsetP.x > 0,
+            y: range.h + offsetP.y > 0 || offsetP.y > 0,
           };
 
           this.__shapes__.forEach((shape) => {
             if (!selectingMap[shape.id]) return;
-            const ratioW = shape.getSize().w / multiSelectingAreaSize.w,
+            const ratioW = shape.getSize().w / range.w,
               unitW = offsetP.x * ratioW;
 
             if (canResize.x) {
-              shape.w = shape.w + unitW / scale;
+              shape.w = shape.w + unitW;
 
-              const dx = Math.abs(shape.p.x - multiSelectingAreaP.start.x),
-                ratioX = dx / multiSelectingAreaSize.w,
+              const dx = Math.abs(shape.p.x - startP.x),
+                ratioX = dx / range.w,
                 unitX = offsetP.x * ratioX;
 
               shape.p = {
                 ...shape.p,
-                x: shape.p.x + unitX / scale,
+                x: shape.p.x + unitX,
               };
             }
 
-            const ratioH = shape.getSize().h / multiSelectingAreaSize.h,
+            const ratioH = shape.getSize().h / range.h,
               unitH = offsetP.y * ratioH;
 
             if (canResize.y) {
-              shape.h = shape.h + unitH / scale;
+              shape.h = shape.h + unitH;
 
-              const dy = Math.abs(shape.p.y - multiSelectingAreaP.start.y),
-                ratioY = dy / multiSelectingAreaSize.h,
+              const dy = Math.abs(shape.p.y - startP.y),
+                ratioY = dy / range.h,
                 unitY = offsetP.y * ratioY;
 
               shape.p = {
                 ...shape.p,
-                y: shape.p.y + unitY / scale,
+                y: shape.p.y + unitY,
               };
             }
           });
@@ -277,41 +271,41 @@ export default class Selection {
       case SelectionTypes.PressingTarget.lb:
         {
           const canResize = {
-            x: multiSelectingAreaSize.w - offsetP.x > 0 || offsetP.x < 0,
-            y: multiSelectingAreaSize.h + offsetP.y > 0 || offsetP.y > 0,
+            x: range.w - offsetP.x > 0 || offsetP.x < 0,
+            y: range.h + offsetP.y > 0 || offsetP.y > 0,
           };
 
           this.__shapes__.forEach((shape) => {
             if (!selectingMap[shape.id]) return;
-            const ratioW = shape.getSize().w / multiSelectingAreaSize.w,
+            const ratioW = shape.getSize().w / range.w,
               unitW = offsetP.x * ratioW;
 
             if (canResize.x) {
-              shape.w = shape.w - unitW / scale;
+              shape.w = shape.w - unitW;
 
-              const dx = Math.abs(shape.p.x - multiSelectingAreaP.end.x),
-                ratioX = dx / multiSelectingAreaSize.w,
+              const dx = Math.abs(shape.p.x - endP.x),
+                ratioX = dx / range.w,
                 unitX = offsetP.x * ratioX;
 
               shape.p = {
                 ...shape.p,
-                x: shape.p.x + unitX / scale,
+                x: shape.p.x + unitX,
               };
             }
 
-            const ratioH = shape.getSize().h / multiSelectingAreaSize.h,
+            const ratioH = shape.getSize().h / range.h,
               unitH = offsetP.y * ratioH;
 
             if (canResize.y) {
-              shape.h = shape.h + unitH / scale;
+              shape.h = shape.h + unitH;
 
-              const dy = Math.abs(shape.p.y - multiSelectingAreaP.start.y),
-                ratioY = dy / multiSelectingAreaSize.h,
+              const dy = Math.abs(shape.p.y - startP.y),
+                ratioY = dy / range.h,
                 unitY = offsetP.y * ratioY;
 
               shape.p = {
                 ...shape.p,
-                y: shape.p.y + unitY / scale,
+                y: shape.p.y + unitY,
               };
             }
           });
