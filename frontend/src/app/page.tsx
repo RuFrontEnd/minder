@@ -151,33 +151,40 @@ const curveThresholdStrategy = {
 };
 
 const getActionRecords = () => {
-  const records: {
-    [type: string]: {
-      shapes: null | (Terminal | Process | Data | Desicion)[];
-      curves: null | CommonTypes.ConnectionCurves;
-    };
-  } = {};
+  const records: Map<
+    string,
+    {
+      shapes: (Terminal | Process | Data | Desicion)[] | null;
+      curves: CommonTypes.ConnectionCurves | null;
+    }
+  > = new Map();
 
   return {
     register: (type: CommonTypes.Action) => {
-      if (records[type]) return;
-      records[type] = {
+      if (records.get(type)) return;
+      records.set(type, {
         shapes: cloneDeep(shapes),
         curves: cloneDeep(curves),
-      };
+      });
     },
     interrupt: (type: CommonTypes.Action) => {
-      if (!records[type]) return;
-      delete records[type];
+      if (!records.get(type)) return;
+      records.delete(type);
     },
     finish: (type: CommonTypes.Action) => {
-      if (!records[type]?.shapes || !records[type]?.curves) return;
+      const _shapes = records.get(type)?.shapes;
+      const _curves = records.get(type)?.curves;
+      if (!_shapes || !_curves) return;
       actions.push({
         type: type,
-        shapes: records[type].shapes,
-        curves: records[type].curves,
+        shapes: _shapes,
+        curves: _curves,
       });
-      delete records[type];
+      records.delete(type);
+    },
+    peekKey: () => {
+      const lastKey = Array.from(records.keys()).pop();
+      return lastKey
     },
   };
 };
@@ -1670,6 +1677,7 @@ const moveShapes = (
     pressingSelection?.target !== SelectionTypes.PressingTarget.m
   )
     return true;
+  actionRecords.register(CommonTypes.Action.move);
 
   pressingSelection.selection.move(offsetP);
   syncCurvePosition(shapes);
@@ -2355,6 +2363,10 @@ export default function IdPage() {
     checkConnect(getNormalP(p, offset, scale));
     checkSteps();
     syncCandidates(shapes);
+
+    if (actionRecords.peekKey() === CommonTypes.Action.move) {
+      actionRecords.finish(CommonTypes.Action.move);
+    }
 
     selectionFrame = null;
     pressingSelection = null;
