@@ -99,14 +99,6 @@ const init = {
     },
   },
   offset: { x: 0, y: 0 },
-  multiSelectShapeIds: [],
-  multiSelectingCoordinate: {
-    m: { x: -Infinity, y: -Infinity },
-    l: Infinity,
-    t: Infinity,
-    r: -Infinity,
-    b: -Infinity,
-  },
 };
 
 let ctx: CanvasRenderingContext2D | null | undefined = null,
@@ -120,22 +112,6 @@ let ctx: CanvasRenderingContext2D | null | undefined = null,
   lastP: CommonTypes.Vec = { x: 0, y: 0 },
   selectionFrame: null | SelectionFrame = null,
   selection: null | Selection = null,
-  multiSelectShapeIds: PageIdTypes.MultiSelectShapeIds = cloneDeep(
-    init.multiSelectShapeIds
-  ),
-  multiSelectingCoordinate: {
-    m: { x: number; y: number };
-    l: number;
-    t: number;
-    r: number;
-    b: number;
-  } = cloneDeep(init.multiSelectingCoordinate),
-  selectAnchor = {
-    size: {
-      fill: 4,
-      stroke: 2,
-    },
-  },
   alginLines: { from: CommonTypes.Vec; to: CommonTypes.Vec }[] = [],
   actions: PageIdTypes.Actions = new Stack(40),
   worker: null | Worker = null;
@@ -1370,7 +1346,7 @@ const getCurveStickingCp1Cp2 = (
 
 const movePressingCurve = (
   p: CommonTypes.Vec,
-  pressingCurve: null | undefined | PageIdTypes.PressingCurve,
+  pressingCurve: null | undefined | PageIdTypes.PressingCurve
 ) => {
   if (!pressingCurve) return true;
   actionRecords.register(CommonTypes.Action.disconnect);
@@ -1465,6 +1441,43 @@ const defineSelectionFrameRange = (
   if (isMovingViewport || !selectionFrame) return true;
   selectionFrame?.drag(p);
   return false;
+};
+
+const getShapeIdMap = (shapes: CommonTypes.Shape[]) => {
+  const map: { [id: string]: boolean } = {};
+
+  shapes.forEach((shape) => {
+    map[shape.id] = true;
+  });
+
+  return map;
+};
+
+const syncCurvePosition = (shapes:CommonTypes.Shape[]) => {
+  const shapeIdMap = getShapeIdMap(shapes);
+
+  curves.forEach((curve) => {
+    const isSender = shapeIdMap[curve.from.shape.id];
+    const isReciever = shapeIdMap[curve.to.shape.id];
+
+    if (isSender) {
+      moveSenderCurve(
+        curve.from.d,
+        curve.to.d,
+        curve.shape,
+        curve.from.shape.id
+      );
+    }
+    if (isReciever) {
+      moveRecieverCurve(
+        curve.to.shape.type,
+        curve.from.d,
+        curve.to.d,
+        curve.shape,
+        curve.to.shape.id
+      );
+    }
+  });
 };
 
 const recordLastP = (p: CommonTypes.Vec) => {
@@ -1706,6 +1719,8 @@ const moveShapes = (
     return true;
 
   pressingSelection.selection.move(offsetP);
+  syncCurvePosition(shapes)
+
   return false;
 };
 
@@ -1723,6 +1738,8 @@ const resizeShapes = (
     return true;
 
   pressingSelection.selection.resize(pressingSelection.target, offsetP);
+  syncCurvePosition(shapes)
+  
   return false;
 };
 
@@ -2399,8 +2416,7 @@ export default function IdPage() {
       () => moveShapes(normalOffsetP, pressingSelection),
       () => resizeShapes(normalOffsetP, pressingSelection),
       () => defineSelectionFrameRange(p),
-      () =>
-        movePressingCurve(normalP, pressingCurve),
+      () => movePressingCurve(normalP, pressingCurve),
     ]);
 
     recordLastP(p);
@@ -2682,7 +2698,6 @@ export default function IdPage() {
     pressingSelection = null;
     pressingCurve = null;
     alginLines = [];
-    multiSelectingCoordinate = cloneDeep(init.multiSelectingCoordinate);
 
     drawCanvas(offset, scale);
   };
@@ -2748,7 +2763,6 @@ export default function IdPage() {
         }
 
         shapes = shapes.filter((shape) => !multiSelectingMap[shape.id]);
-        multiSelectShapeIds = cloneDeep(init.multiSelectShapeIds);
 
         return false;
       };
@@ -2832,7 +2846,6 @@ export default function IdPage() {
         projectData.data
       );
       shapes = initShapes;
-      multiSelectShapeIds = cloneDeep(init.multiSelectShapeIds);
       checkSteps();
       drawCanvas(offset, scale);
       drawScreenshot(offset, scale);
