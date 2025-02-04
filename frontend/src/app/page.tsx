@@ -1,16 +1,11 @@
-// TODO: init curve / multi select align
 "use client";
 import React, {
   useState,
   useRef,
   useEffect,
   useMemo,
-  useCallback,
-  ChangeEvent,
 } from "react";
-import axios, { AxiosResponse } from "axios";
-import { useParams, useRouter } from "next/navigation";
-import Core from "@/shapes/core";
+import axios from "axios";
 import Terminal from "@/shapes/terminal";
 import Process from "@/shapes/process";
 import Data from "@/shapes/data";
@@ -23,49 +18,28 @@ import SidePanel from "@/components/sidePanel";
 import Accordion from "@/components/accordion";
 import Button from "@/components/button";
 import SimpleButton from "@/components/simpleButton";
-import Modal from "@/components/modal";
 import Input from "@/components/input";
-import Select from "@/components/select";
-import Alert from "@/components/alert";
-import Card from "@/components/card";
 import Frame from "@/components/frame";
 import PencilSquareIcon from "@/assets/svg/pencil-square.svg";
 import Icon from "@/components/icon";
-import RoundButton from "@/components/roundButton";
-import StatusText from "@/components/statusText";
-import Divider from "@/components/divider";
-import SquareButton from "@/components/squareButton";
 import IndivisaulSidePanel from "@/sections/indivisualSidePanel";
 import Console from "@/sections/console";
-import Zoom from "@/sections/zoom";
-import { motion, steps } from "framer-motion";
+import { motion } from "framer-motion";
 import { cloneDeep } from "lodash";
 import { v4 as uuidv4 } from "uuid";
 import { ChangeEventHandler, MouseEventHandler } from "react";
 import { tailwindColors } from "@/variables/colors";
-import * as statusConstants from "@/constants/stauts";
 import * as handleUtils from "@/utils/handle";
-import * as authAPIs from "@/apis/auth";
-import * as projectAPIs from "@/apis/project";
-import * as CoreTypes from "@/types/shapes/core";
 import * as CurveTypes from "@/types/shapes/curve";
 import * as CommonTypes from "@/types/common";
 import * as SelectionTypes from "@/types/shapes/selection";
 import * as PageTypes from "@/types/app/page";
 import * as IndivisaulSidePanelTypes from "@/types/sections/id/indivisualSidePanel";
 import * as InputTypes from "@/types/components/input";
-import * as SelectTypes from "@/types/components/select";
-import * as AlertTypes from "@/types/components/alert";
 import * as IconTypes from "@/types/components/icon";
-import * as AuthTypes from "@/types/apis/auth";
-import * as ProjectAPITypes from "@/types/apis/project";
-import * as ProjectTypes from "@/types/project";
-import * as APICommonTypes from "@/types/apis/common";
 import * as PageIdTypes from "@/types/app/pageId";
 import * as SidePanelTypes from "@/types/components/sidePanel";
-import * as ButtonTypes from "@/types/components/button";
 import * as SimpleButtonTypes from "@/types/components/simpleButton";
-import * as StatusTextTypes from "@/types/components/statusText";
 import * as CheckDataTypes from "@/types/workers/checkData";
 
 axios.defaults.baseURL = process.env.BASE_URL || "http://localhost:5000/api";
@@ -115,13 +89,6 @@ let ctx: CanvasRenderingContext2D | null | undefined = null,
   alginLines: { from: CommonTypes.Vec; to: CommonTypes.Vec }[] = [],
   actions: PageIdTypes.Actions = new Stack(40),
   worker: null | Worker = null;
-
-const ds = [
-  CommonTypes.Direction.l,
-  CommonTypes.Direction.t,
-  CommonTypes.Direction.r,
-  CommonTypes.Direction.b,
-];
 
 const curveThresholdStrategy = {
   [CommonTypes.ShapeType.terminator]: {
@@ -285,7 +252,7 @@ const getScreenshotShapes = (
   return screenshotShapes;
 };
 
-// TODO: wait for algin feature
+// TODO: wait for align feature
 // const getAlignVertixP = (
 //   shapes: (Terminal | Process | Data | Desicion)[],
 //   baseVertex?: CommonTypes.Vec
@@ -352,7 +319,7 @@ const getScreenshotShapes = (
 //   return output;
 // };
 
-// TODO: wait for algin feature
+// TODO: wait for align feature
 // const getVertexAlignLines = (
 //   shapes: (Terminal | Process | Data | Desicion)[],
 //   baseVertex?: CommonTypes.Vec
@@ -541,7 +508,7 @@ const getScreenshotShapes = (
 //   return lines;
 // };
 
-// TODO: wait for algin feature
+// TODO: wait for align feature
 // const getAlignP = (
 //   shapes: (Terminal | Process | Data | Desicion)[],
 //   baseShape?: null | Terminal | Process | Data | Desicion
@@ -643,7 +610,7 @@ const getScreenshotShapes = (
 //   return output;
 // };
 
-// TODO: wait for algin feature
+// TODO: wait for align feature
 // const getAlignLines = (
 //   targetShapes: (Terminal | Process | Data | Desicion)[],
 //   base: {
@@ -910,7 +877,7 @@ const getScreenshotShapes = (
 //   return lines;
 // };
 
-// TODO: wait for algin feature
+// TODO: wait for align feature
 // const getShapesInView = (shapes: (Terminal | Process | Data | Desicion)[]) => {
 //   const shapesInView: (Terminal | Process | Data | Desicion)[] = [];
 //   const viewport = {
