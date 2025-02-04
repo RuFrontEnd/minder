@@ -1600,7 +1600,7 @@ const selectShape = (p: CommonTypes.Vec) => {
       ghost: cloneDeep(selection),
       target: SelectionTypes.PressingTarget.m,
     };
-    
+
     return false;
   }
 
@@ -1700,6 +1700,8 @@ const resizeShapes = (
       pressingSelection?.target !== SelectionTypes.PressingTarget.rb)
   )
     return true;
+
+  actionRecords.register(CommonTypes.Action.resize);
 
   pressingSelection.selection.resize(pressingSelection.target, offsetP);
   syncCurvePosition(shapes);
@@ -2369,6 +2371,10 @@ export default function IdPage() {
 
     if (actionRecords.peekKey() === CommonTypes.Action.move) {
       actionRecords.finish(CommonTypes.Action.move);
+    }
+
+    if (actionRecords.peekKey() === CommonTypes.Action.resize) {
+      actionRecords.finish(CommonTypes.Action.resize);
     }
 
     selectionFrame = null;
