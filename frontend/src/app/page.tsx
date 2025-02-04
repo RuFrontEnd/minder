@@ -261,6 +261,8 @@ const getInitializedShapes = (
     }
   });
 
+  console.log("dataShapes", dataShapes);
+
   dataShapes.forEach(([shapeId, shapeInfo]) => {
     ds.forEach((d) => {
       if (shapeInfo.curves[d].length === 0) return;
@@ -350,6 +352,7 @@ const getScreenshotShapes = (
 
   if (shapes.length !== screenshotShapes.length) return [];
 
+  // TODO: wait for mathcing backend feature
   // screenshotShapes.forEach((screenshotShape, screenshotShapeI) => {
   //   ds.forEach((d) => {
   //     shapes[screenshotShapeI].curves[d].forEach((curve) => {
@@ -369,653 +372,656 @@ const getScreenshotShapes = (
   return screenshotShapes;
 };
 
-const getAlignVertixP = (
-  shapes: (Terminal | Process | Data | Desicion)[],
-  baseVertex?: CommonTypes.Vec
-) => {
-  let output: { x: null | number; y: null | number } = { x: null, y: null };
-  if (!baseVertex || shapes.length === 0) return output;
-
-  for (let i = 0; i < shapes.length; i++) {
-    const targetShape = shapes[i];
-    const targetCenter = targetShape.getCenter().m;
-    const targetEdge = targetShape.getEdge();
-    const threshold = 10;
-
-    // align center
-    // x
-    if (
-      baseVertex.x >= targetCenter.x - threshold &&
-      baseVertex.x <= targetCenter.x + threshold
-    ) {
-      output.x = targetCenter.x;
-    }
-
-    // y
-    if (
-      baseVertex.y >= targetCenter.y - threshold &&
-      baseVertex.y <= targetCenter.y + threshold
-    ) {
-      output.y = targetCenter.y;
-    }
-
-    // align left
-    if (
-      baseVertex.x >= targetEdge.l - threshold &&
-      baseVertex.x <= targetEdge.l + threshold
-    ) {
-      output.x = targetEdge.l;
-    }
-
-    // align right
-    if (
-      baseVertex.x >= targetEdge.r - threshold &&
-      baseVertex.x <= targetEdge.r + threshold
-    ) {
-      output.x = targetEdge.r;
-    }
-
-    // align top
-    if (
-      baseVertex.y >= targetEdge.t - threshold &&
-      baseVertex.y <= targetEdge.t + threshold
-    ) {
-      output.y = targetEdge.t;
-    }
-
-    // align bottom
-    if (
-      baseVertex.y >= targetEdge.b - threshold &&
-      baseVertex.y <= targetEdge.b + threshold
-    ) {
-      output.y = targetEdge.b;
-    }
-  }
-
-  return output;
-};
-
-const getVertexAlignLines = (
-  shapes: (Terminal | Process | Data | Desicion)[],
-  baseVertex?: CommonTypes.Vec
-) => {
-  if (!baseVertex || shapes.length === 0) return [];
-  const lines: {
-    from: CommonTypes.Vec;
-    to: CommonTypes.Vec;
-  }[] = [];
-
-  // align center
-  const vertexes_m = shapes
-    .map((targetShape) => targetShape.getCenter().m)
-    .concat(baseVertex);
-
-  // y
-  const align_center_y_vertexes = vertexes_m
-    .filter(
-      (vertex) =>
-        Number(baseVertex.y.toFixed(1)) === Number(vertex.y.toFixed(1))
-    )
-    .sort((a, b) => a.x - b.x);
-
-  if (
-    align_center_y_vertexes.length >= 2 &&
-    align_center_y_vertexes[0] &&
-    align_center_y_vertexes[align_center_y_vertexes.length - 1]
-  ) {
-    lines.push({
-      from: {
-        x: align_center_y_vertexes[0].x || baseVertex.x,
-        y: baseVertex.y,
-      },
-      to: {
-        x:
-          align_center_y_vertexes[align_center_y_vertexes.length - 1].x ||
-          baseVertex.x,
-        y: baseVertex.y,
-      },
-    });
-  }
-
-  // x
-  const align_center_x_vertexes = vertexes_m
-    .filter(
-      (vertex) =>
-        Number(baseVertex.x.toFixed(1)) === Number(vertex.x.toFixed(1))
-    )
-    .sort((a, b) => a.y - b.y);
-
-  if (
-    align_center_x_vertexes.length >= 2 &&
-    align_center_x_vertexes[0] &&
-    align_center_x_vertexes[align_center_x_vertexes.length - 1]
-  ) {
-    lines.push({
-      from: {
-        x: baseVertex.x,
-        y: align_center_x_vertexes[0].y || baseVertex.y,
-      },
-      to: {
-        x: baseVertex.x,
-        y:
-          align_center_x_vertexes[align_center_x_vertexes.length - 1].y ||
-          baseVertex.y,
-      },
-    });
-  }
-
-  // align left
-  const vertexes_l = shapes
-    .map((targetShape) => targetShape.getCenter().l)
-    .concat(baseVertex);
-
-  const align_l_vertexes = vertexes_l
-    .filter(
-      (vertex) =>
-        Number(baseVertex.x.toFixed(1)) === Number(vertex.x.toFixed(1))
-    )
-    .sort((a, b) => a.y - b.y);
-
-  if (
-    align_l_vertexes.length >= 2 &&
-    align_l_vertexes[0] &&
-    align_l_vertexes[align_l_vertexes.length - 1]
-  ) {
-    lines.push({
-      from: {
-        x: baseVertex.x,
-        y: align_l_vertexes[0].y || baseVertex.y,
-      },
-      to: {
-        x: baseVertex.x,
-        y: align_l_vertexes[align_l_vertexes.length - 1].y || baseVertex.y,
-      },
-    });
-  }
-
-  // align right
-  const vertexes_r = shapes
-    .map((targetShape) => targetShape.getCenter().r)
-    .concat(baseVertex);
-
-  const align_r_vertexes = vertexes_r
-    .filter(
-      (vertex) =>
-        Number(baseVertex.x.toFixed(1)) === Number(vertex.x.toFixed(1))
-    )
-    .sort((a, b) => a.y - b.y);
-
-  if (
-    align_r_vertexes.length >= 2 &&
-    align_r_vertexes[0] &&
-    align_r_vertexes[align_r_vertexes.length - 1]
-  ) {
-    lines.push({
-      from: {
-        x: baseVertex.x,
-        y: align_r_vertexes[0].y || baseVertex.y,
-      },
-      to: {
-        x: baseVertex.x,
-        y: align_r_vertexes[align_r_vertexes.length - 1].y || baseVertex.y,
-      },
-    });
-  }
-
-  // align top
-  const vertexes_t = shapes
-    .map((targetShape) => targetShape.getCenter().t)
-    .concat(baseVertex);
-
-  const align_t_vertexes = vertexes_t
-    .filter(
-      (vertex) =>
-        Number(baseVertex.y.toFixed(1)) === Number(vertex.y.toFixed(1))
-    )
-    .sort((a, b) => a.x - b.x);
-
-  if (
-    align_t_vertexes.length >= 2 &&
-    align_t_vertexes[0] &&
-    align_t_vertexes[align_t_vertexes.length - 1]
-  ) {
-    lines.push({
-      from: {
-        x: align_t_vertexes[0].x || baseVertex.x,
-        y: baseVertex.y,
-      },
-      to: {
-        x: align_t_vertexes[align_t_vertexes.length - 1].x || baseVertex.x,
-        y: baseVertex.y,
-      },
-    });
-  }
-
-  // align bottom
-  const vertexes_b = shapes
-    .map((targetShape) => targetShape.getCenter().b)
-    .concat(baseVertex);
-
-  const align_b_vertexes = vertexes_b
-    .filter(
-      (vertex) =>
-        Number(baseVertex.y.toFixed(1)) === Number(vertex.y.toFixed(1))
-    )
-    .sort((a, b) => a.x - b.x);
-
-  if (
-    align_b_vertexes.length >= 2 &&
-    align_b_vertexes[0] &&
-    align_b_vertexes[align_b_vertexes.length - 1]
-  ) {
-    lines.push({
-      from: {
-        x: align_b_vertexes[0].x || baseVertex.x,
-        y: baseVertex.y,
-      },
-      to: {
-        x: align_b_vertexes[align_b_vertexes.length - 1].x || baseVertex.x,
-        y: baseVertex.y,
-      },
-    });
-  }
-
-  return lines;
-};
-
-const getAlignP = (
-  shapes: (Terminal | Process | Data | Desicion)[],
-  baseShape?: null | Terminal | Process | Data | Desicion
-) => {
-  let output: { x: null | number; y: null | number } = { x: null, y: null };
-  if (!baseShape || shapes.length === 0) return output;
-
-  for (let i = 0; i < shapes.length; i++) {
-    const targetShape = shapes[i];
-    if (targetShape.id === baseShape.id) continue;
-
-    const targetEdge = targetShape.getEdge();
-    const targetCenter = targetShape.getCenter().m;
-    const baseEdge = baseShape.getEdge();
-    const baseCenter = baseShape.getCenter().m;
-    const threshold = 10;
-
-    // center x & center x
-    if (
-      baseCenter.x >= targetCenter.x - threshold &&
-      baseCenter.x <= targetCenter.x + threshold
-    ) {
-      output.x = targetCenter.x;
-    }
-
-    // center y & center y
-    if (
-      baseCenter.y >= targetCenter.y - threshold &&
-      baseCenter.y <= targetCenter.y + threshold
-    ) {
-      output.y = targetCenter.y;
-    }
-
-    // left & left
-    if (
-      baseEdge.l >= targetEdge.l - threshold &&
-      baseEdge.l <= targetEdge.l + threshold
-    ) {
-      output.x = targetEdge.l + baseShape.w / 2;
-    }
-
-    // left & right
-    if (
-      baseEdge.l >= targetEdge.r - threshold &&
-      baseEdge.l <= targetEdge.r + threshold
-    ) {
-      output.x = targetEdge.r + baseShape.w / 2;
-    }
-
-    // top & top
-    if (
-      baseEdge.t >= targetEdge.t - threshold &&
-      baseEdge.t <= targetEdge.t + threshold
-    ) {
-      output.y = targetEdge.t + baseShape.h / 2;
-    }
-
-    // top & bottom
-    if (
-      baseEdge.t >= targetEdge.b - threshold &&
-      baseEdge.t <= targetEdge.b + threshold
-    ) {
-      output.y = targetEdge.b + baseShape.h / 2;
-    }
-
-    // right & right
-    if (
-      baseEdge.r >= targetEdge.l - threshold &&
-      baseEdge.r <= targetEdge.l + threshold
-    ) {
-      output.x = targetEdge.l - baseShape.w / 2;
-    }
-
-    // right & left
-    if (
-      baseEdge.r >= targetEdge.r - threshold &&
-      baseEdge.r <= targetEdge.r + threshold
-    ) {
-      output.x = targetEdge.r - baseShape.w / 2;
-    }
-
-    // bottom & bottom
-    if (
-      baseEdge.b >= targetEdge.b - threshold &&
-      baseEdge.b <= targetEdge.b + threshold
-    ) {
-      output.y = targetEdge.b - baseShape.h / 2;
-    }
-
-    // bottom & top
-    if (
-      baseEdge.b >= targetEdge.t - threshold &&
-      baseEdge.b <= targetEdge.t + threshold
-    ) {
-      output.y = targetEdge.t - baseShape.h / 2;
-    }
-  }
-
-  return output;
-};
-
-const getAlignLines = (
-  targetShapes: (Terminal | Process | Data | Desicion)[],
-  base: {
-    m: CommonTypes.Vec;
-    l: number;
-    t: number;
-    r: number;
-    b: number;
-  }
-) => {
-  if (targetShapes.length === 0) return [];
-  const lines: {
-    from: CommonTypes.Vec;
-    to: CommonTypes.Vec;
-  }[] = [];
-  const targets = targetShapes.map((targetShape) => ({
-    m: targetShape.getCenter().m,
-    l: targetShape.getEdge().l,
-    t: targetShape.getEdge().t,
-    r: targetShape.getEdge().r,
-    b: targetShape.getEdge().b,
-  }));
-
-  console.log("targets", targets);
-
-  // center x & center x
-  const align_center_x_shapes = targets
-    .filter(
-      (target) => Number(base.m.x.toFixed(1)) === Number(target.m.x.toFixed(1))
-    )
-    .concat([base])
-    .sort((a, b) => a.m.x - b.m.x);
-
-  if (
-    align_center_x_shapes[0] &&
-    align_center_x_shapes[align_center_x_shapes.length - 1]
-  ) {
-    lines.push({
-      from: {
-        x: base.m.x,
-        y: align_center_x_shapes[0].m.y,
-      },
-      to: {
-        x: base.m.x,
-        y: align_center_x_shapes[align_center_x_shapes.length - 1].m.y,
-      },
-    });
-  }
-
-  // center y & center y
-  const align_center_y_shapes = targets
-    .filter(
-      (target) => Number(base.m.y.toFixed(1)) === Number(target.m.y.toFixed(1))
-    )
-    .concat([base])
-    .sort((a, b) => a.m.y - b.m.y);
-
-  if (
-    align_center_y_shapes[0] &&
-    align_center_y_shapes[align_center_y_shapes.length - 1]
-  ) {
-    lines.push({
-      from: {
-        x: align_center_y_shapes[0].m.x,
-        y: base.m.y,
-      },
-      to: {
-        x: align_center_y_shapes[align_center_y_shapes.length - 1].m.x,
-        y: base.m.y,
-      },
-    });
-  }
-
-  // left & left
-  const align_left_shapes = targets
-    .filter(
-      (target) => Number(base.l.toFixed(1)) === Number(target.l.toFixed(1))
-    )
-    .concat([base])
-    .sort((a, b) => a.m.y - b.m.y);
-
-  if (align_left_shapes[0] && align_left_shapes[align_left_shapes.length - 1]) {
-    lines.push({
-      from: {
-        x: base.l - 1,
-        y: align_left_shapes[0].m.y,
-      },
-      to: {
-        x: base.l - 1,
-        y: align_left_shapes[align_left_shapes.length - 1].m.y,
-      },
-    });
-  }
-
-  // left & right
-  const align_left_to_right_shapes = targets
-    .filter((target) => {
-      return Number(base.l.toFixed(1)) === Number(target.r.toFixed(1));
-    })
-    .concat([base])
-    .sort((a, b) => a.m.y - b.m.y);
-
-  if (
-    align_left_to_right_shapes[0] &&
-    align_left_to_right_shapes[align_left_to_right_shapes.length - 1]
-  ) {
-    lines.push({
-      from: {
-        x: base.l - 1,
-        y: align_left_to_right_shapes[0].m.y,
-      },
-      to: {
-        x: base.l - 1,
-        y: align_left_to_right_shapes[align_left_to_right_shapes.length - 1].m
-          .y,
-      },
-    });
-  }
-
-  // top & top
-  const align_top_shapes = targets
-    .filter(
-      (target) => Number(base.t.toFixed(1)) === Number(target.t.toFixed(1))
-    )
-    .concat([base])
-    .sort((a, b) => a.m.x - b.m.x);
-
-  if (align_top_shapes[0] && align_top_shapes[align_top_shapes.length - 1]) {
-    lines.push({
-      from: {
-        x: align_top_shapes[0].m.x,
-        y: base.t - 1,
-      },
-      to: {
-        x: align_top_shapes[align_top_shapes.length - 1].m.x,
-        y: base.t - 1,
-      },
-    });
-  }
-
-  // top & bottom
-  const align_top_to_bottom_shapes = targets
-    .filter(
-      (target) => Number(base.t.toFixed(1)) === Number(target.b.toFixed(1))
-    )
-    .concat([base])
-    .sort((a, b) => a.m.x - b.m.x);
-
-  if (
-    align_top_to_bottom_shapes[0] &&
-    align_top_to_bottom_shapes[align_top_to_bottom_shapes.length - 1]
-  ) {
-    lines.push({
-      from: {
-        x: align_top_to_bottom_shapes[0].m.x,
-        y: base.t - 1,
-      },
-      to: {
-        x: align_top_to_bottom_shapes[align_top_to_bottom_shapes.length - 1].m
-          .x,
-        y: base.t - 1,
-      },
-    });
-  }
-
-  // right & right
-  const align_right_shapes = targets
-    .filter(
-      (target) => Number(base.r.toFixed(1)) === Number(target.r.toFixed(1))
-    )
-    .concat([base])
-    .sort((a, b) => a.m.y - b.m.y);
-
-  if (
-    align_right_shapes[0] &&
-    align_right_shapes[align_right_shapes.length - 1]
-  ) {
-    lines.push({
-      from: {
-        x: base.r + 1,
-        y: align_right_shapes[0].m.y,
-      },
-      to: {
-        x: base.r + 1,
-        y: align_right_shapes[align_right_shapes.length - 1].m.y,
-      },
-    });
-  }
-
-  // right & left
-  const align_right_to_left_shapes = targets
-    .filter(
-      (target) => Number(base.r.toFixed(1)) === Number(target.l.toFixed(1))
-    )
-    .concat([base])
-    .sort((a, b) => a.m.y - b.m.y);
-
-  if (
-    align_right_to_left_shapes[0] &&
-    align_right_to_left_shapes[align_right_to_left_shapes.length - 1]
-  ) {
-    lines.push({
-      from: {
-        x: base.r + 1,
-        y: align_right_to_left_shapes[0].m.y,
-      },
-      to: {
-        x: base.r + 1,
-        y: align_right_to_left_shapes[align_right_to_left_shapes.length - 1].m
-          .y,
-      },
-    });
-  }
-
-  // bottom & bottom
-  const align_bottom_shapes = targets
-    .filter(
-      (target) => Number(base.b.toFixed(1)) === Number(target.b.toFixed(1))
-    )
-    .concat([base])
-    .sort((a, b) => a.m.x - b.m.x);
-
-  if (
-    align_bottom_shapes[0] &&
-    align_bottom_shapes[align_bottom_shapes.length - 1]
-  ) {
-    lines.push({
-      from: {
-        x: align_bottom_shapes[0].m.x,
-        y: base.b + 1,
-      },
-      to: {
-        x: align_bottom_shapes[align_bottom_shapes.length - 1].m.x,
-        y: base.b + 1,
-      },
-    });
-  }
-
-  // bottom & top
-  const align_bottom_to_top_shapes = targets
-    .filter(
-      (target) => Number(base.b.toFixed(1)) === Number(target.t.toFixed(1))
-    )
-    .concat([base])
-    .sort((a, b) => a.m.x - b.m.x);
-
-  if (
-    align_bottom_to_top_shapes[0] &&
-    align_bottom_to_top_shapes[align_bottom_to_top_shapes.length - 1]
-  ) {
-    lines.push({
-      from: {
-        x: align_bottom_to_top_shapes[0].m.x,
-        y: base.b + 1,
-      },
-      to: {
-        x: align_bottom_to_top_shapes[align_bottom_to_top_shapes.length - 1].m
-          .x,
-        y: base.b + 1,
-      },
-    });
-  }
-
-  console.log("lines", lines);
-
-  return lines;
-};
-
-const getShapesInView = (shapes: (Terminal | Process | Data | Desicion)[]) => {
-  const shapesInView: (Terminal | Process | Data | Desicion)[] = [];
-  const viewport = {
-    l: 0,
-    t: 0,
-    r: window.innerWidth,
-    b: window.innerHeight,
-  };
-
-  shapes.forEach((shape) => {
-    const edge = shape.getEdge();
-
-    if (
-      ((edge.l >= viewport.l && edge.l <= viewport.r) ||
-        (edge.r >= viewport.l && edge.r <= viewport.r)) &&
-      ((edge.t >= viewport.t && edge.t <= viewport.b) ||
-        (edge.b >= viewport.t && edge.b <= viewport.b))
-    ) {
-      shapesInView.push(shape);
-    }
-  });
-
-  return shapesInView;
-};
+// TODO: wait for algin feature
+// const getAlignVertixP = (
+//   shapes: (Terminal | Process | Data | Desicion)[],
+//   baseVertex?: CommonTypes.Vec
+// ) => {
+//   let output: { x: null | number; y: null | number } = { x: null, y: null };
+//   if (!baseVertex || shapes.length === 0) return output;
+
+//   for (let i = 0; i < shapes.length; i++) {
+//     const targetShape = shapes[i];
+//     const targetCenter = targetShape.getCenter().m;
+//     const targetEdge = targetShape.getEdge();
+//     const threshold = 10;
+
+//     // align center
+//     // x
+//     if (
+//       baseVertex.x >= targetCenter.x - threshold &&
+//       baseVertex.x <= targetCenter.x + threshold
+//     ) {
+//       output.x = targetCenter.x;
+//     }
+
+//     // y
+//     if (
+//       baseVertex.y >= targetCenter.y - threshold &&
+//       baseVertex.y <= targetCenter.y + threshold
+//     ) {
+//       output.y = targetCenter.y;
+//     }
+
+//     // align left
+//     if (
+//       baseVertex.x >= targetEdge.l - threshold &&
+//       baseVertex.x <= targetEdge.l + threshold
+//     ) {
+//       output.x = targetEdge.l;
+//     }
+
+//     // align right
+//     if (
+//       baseVertex.x >= targetEdge.r - threshold &&
+//       baseVertex.x <= targetEdge.r + threshold
+//     ) {
+//       output.x = targetEdge.r;
+//     }
+
+//     // align top
+//     if (
+//       baseVertex.y >= targetEdge.t - threshold &&
+//       baseVertex.y <= targetEdge.t + threshold
+//     ) {
+//       output.y = targetEdge.t;
+//     }
+
+//     // align bottom
+//     if (
+//       baseVertex.y >= targetEdge.b - threshold &&
+//       baseVertex.y <= targetEdge.b + threshold
+//     ) {
+//       output.y = targetEdge.b;
+//     }
+//   }
+
+//   return output;
+// };
+
+// TODO: wait for algin feature
+// const getVertexAlignLines = (
+//   shapes: (Terminal | Process | Data | Desicion)[],
+//   baseVertex?: CommonTypes.Vec
+// ) => {
+//   if (!baseVertex || shapes.length === 0) return [];
+//   const lines: {
+//     from: CommonTypes.Vec;
+//     to: CommonTypes.Vec;
+//   }[] = [];
+
+//   // align center
+//   const vertexes_m = shapes
+//     .map((targetShape) => targetShape.getCenter().m)
+//     .concat(baseVertex);
+
+//   // y
+//   const align_center_y_vertexes = vertexes_m
+//     .filter(
+//       (vertex) =>
+//         Number(baseVertex.y.toFixed(1)) === Number(vertex.y.toFixed(1))
+//     )
+//     .sort((a, b) => a.x - b.x);
+
+//   if (
+//     align_center_y_vertexes.length >= 2 &&
+//     align_center_y_vertexes[0] &&
+//     align_center_y_vertexes[align_center_y_vertexes.length - 1]
+//   ) {
+//     lines.push({
+//       from: {
+//         x: align_center_y_vertexes[0].x || baseVertex.x,
+//         y: baseVertex.y,
+//       },
+//       to: {
+//         x:
+//           align_center_y_vertexes[align_center_y_vertexes.length - 1].x ||
+//           baseVertex.x,
+//         y: baseVertex.y,
+//       },
+//     });
+//   }
+
+//   // x
+//   const align_center_x_vertexes = vertexes_m
+//     .filter(
+//       (vertex) =>
+//         Number(baseVertex.x.toFixed(1)) === Number(vertex.x.toFixed(1))
+//     )
+//     .sort((a, b) => a.y - b.y);
+
+//   if (
+//     align_center_x_vertexes.length >= 2 &&
+//     align_center_x_vertexes[0] &&
+//     align_center_x_vertexes[align_center_x_vertexes.length - 1]
+//   ) {
+//     lines.push({
+//       from: {
+//         x: baseVertex.x,
+//         y: align_center_x_vertexes[0].y || baseVertex.y,
+//       },
+//       to: {
+//         x: baseVertex.x,
+//         y:
+//           align_center_x_vertexes[align_center_x_vertexes.length - 1].y ||
+//           baseVertex.y,
+//       },
+//     });
+//   }
+
+//   // align left
+//   const vertexes_l = shapes
+//     .map((targetShape) => targetShape.getCenter().l)
+//     .concat(baseVertex);
+
+//   const align_l_vertexes = vertexes_l
+//     .filter(
+//       (vertex) =>
+//         Number(baseVertex.x.toFixed(1)) === Number(vertex.x.toFixed(1))
+//     )
+//     .sort((a, b) => a.y - b.y);
+
+//   if (
+//     align_l_vertexes.length >= 2 &&
+//     align_l_vertexes[0] &&
+//     align_l_vertexes[align_l_vertexes.length - 1]
+//   ) {
+//     lines.push({
+//       from: {
+//         x: baseVertex.x,
+//         y: align_l_vertexes[0].y || baseVertex.y,
+//       },
+//       to: {
+//         x: baseVertex.x,
+//         y: align_l_vertexes[align_l_vertexes.length - 1].y || baseVertex.y,
+//       },
+//     });
+//   }
+
+//   // align right
+//   const vertexes_r = shapes
+//     .map((targetShape) => targetShape.getCenter().r)
+//     .concat(baseVertex);
+
+//   const align_r_vertexes = vertexes_r
+//     .filter(
+//       (vertex) =>
+//         Number(baseVertex.x.toFixed(1)) === Number(vertex.x.toFixed(1))
+//     )
+//     .sort((a, b) => a.y - b.y);
+
+//   if (
+//     align_r_vertexes.length >= 2 &&
+//     align_r_vertexes[0] &&
+//     align_r_vertexes[align_r_vertexes.length - 1]
+//   ) {
+//     lines.push({
+//       from: {
+//         x: baseVertex.x,
+//         y: align_r_vertexes[0].y || baseVertex.y,
+//       },
+//       to: {
+//         x: baseVertex.x,
+//         y: align_r_vertexes[align_r_vertexes.length - 1].y || baseVertex.y,
+//       },
+//     });
+//   }
+
+//   // align top
+//   const vertexes_t = shapes
+//     .map((targetShape) => targetShape.getCenter().t)
+//     .concat(baseVertex);
+
+//   const align_t_vertexes = vertexes_t
+//     .filter(
+//       (vertex) =>
+//         Number(baseVertex.y.toFixed(1)) === Number(vertex.y.toFixed(1))
+//     )
+//     .sort((a, b) => a.x - b.x);
+
+//   if (
+//     align_t_vertexes.length >= 2 &&
+//     align_t_vertexes[0] &&
+//     align_t_vertexes[align_t_vertexes.length - 1]
+//   ) {
+//     lines.push({
+//       from: {
+//         x: align_t_vertexes[0].x || baseVertex.x,
+//         y: baseVertex.y,
+//       },
+//       to: {
+//         x: align_t_vertexes[align_t_vertexes.length - 1].x || baseVertex.x,
+//         y: baseVertex.y,
+//       },
+//     });
+//   }
+
+//   // align bottom
+//   const vertexes_b = shapes
+//     .map((targetShape) => targetShape.getCenter().b)
+//     .concat(baseVertex);
+
+//   const align_b_vertexes = vertexes_b
+//     .filter(
+//       (vertex) =>
+//         Number(baseVertex.y.toFixed(1)) === Number(vertex.y.toFixed(1))
+//     )
+//     .sort((a, b) => a.x - b.x);
+
+//   if (
+//     align_b_vertexes.length >= 2 &&
+//     align_b_vertexes[0] &&
+//     align_b_vertexes[align_b_vertexes.length - 1]
+//   ) {
+//     lines.push({
+//       from: {
+//         x: align_b_vertexes[0].x || baseVertex.x,
+//         y: baseVertex.y,
+//       },
+//       to: {
+//         x: align_b_vertexes[align_b_vertexes.length - 1].x || baseVertex.x,
+//         y: baseVertex.y,
+//       },
+//     });
+//   }
+
+//   return lines;
+// };
+
+// TODO: wait for algin feature
+// const getAlignP = (
+//   shapes: (Terminal | Process | Data | Desicion)[],
+//   baseShape?: null | Terminal | Process | Data | Desicion
+// ) => {
+//   let output: { x: null | number; y: null | number } = { x: null, y: null };
+//   if (!baseShape || shapes.length === 0) return output;
+
+//   for (let i = 0; i < shapes.length; i++) {
+//     const targetShape = shapes[i];
+//     if (targetShape.id === baseShape.id) continue;
+
+//     const targetEdge = targetShape.getEdge();
+//     const targetCenter = targetShape.getCenter().m;
+//     const baseEdge = baseShape.getEdge();
+//     const baseCenter = baseShape.getCenter().m;
+//     const threshold = 10;
+
+//     // center x & center x
+//     if (
+//       baseCenter.x >= targetCenter.x - threshold &&
+//       baseCenter.x <= targetCenter.x + threshold
+//     ) {
+//       output.x = targetCenter.x;
+//     }
+
+//     // center y & center y
+//     if (
+//       baseCenter.y >= targetCenter.y - threshold &&
+//       baseCenter.y <= targetCenter.y + threshold
+//     ) {
+//       output.y = targetCenter.y;
+//     }
+
+//     // left & left
+//     if (
+//       baseEdge.l >= targetEdge.l - threshold &&
+//       baseEdge.l <= targetEdge.l + threshold
+//     ) {
+//       output.x = targetEdge.l + baseShape.w / 2;
+//     }
+
+//     // left & right
+//     if (
+//       baseEdge.l >= targetEdge.r - threshold &&
+//       baseEdge.l <= targetEdge.r + threshold
+//     ) {
+//       output.x = targetEdge.r + baseShape.w / 2;
+//     }
+
+//     // top & top
+//     if (
+//       baseEdge.t >= targetEdge.t - threshold &&
+//       baseEdge.t <= targetEdge.t + threshold
+//     ) {
+//       output.y = targetEdge.t + baseShape.h / 2;
+//     }
+
+//     // top & bottom
+//     if (
+//       baseEdge.t >= targetEdge.b - threshold &&
+//       baseEdge.t <= targetEdge.b + threshold
+//     ) {
+//       output.y = targetEdge.b + baseShape.h / 2;
+//     }
+
+//     // right & right
+//     if (
+//       baseEdge.r >= targetEdge.l - threshold &&
+//       baseEdge.r <= targetEdge.l + threshold
+//     ) {
+//       output.x = targetEdge.l - baseShape.w / 2;
+//     }
+
+//     // right & left
+//     if (
+//       baseEdge.r >= targetEdge.r - threshold &&
+//       baseEdge.r <= targetEdge.r + threshold
+//     ) {
+//       output.x = targetEdge.r - baseShape.w / 2;
+//     }
+
+//     // bottom & bottom
+//     if (
+//       baseEdge.b >= targetEdge.b - threshold &&
+//       baseEdge.b <= targetEdge.b + threshold
+//     ) {
+//       output.y = targetEdge.b - baseShape.h / 2;
+//     }
+
+//     // bottom & top
+//     if (
+//       baseEdge.b >= targetEdge.t - threshold &&
+//       baseEdge.b <= targetEdge.t + threshold
+//     ) {
+//       output.y = targetEdge.t - baseShape.h / 2;
+//     }
+//   }
+
+//   return output;
+// };
+
+// TODO: wait for algin feature
+// const getAlignLines = (
+//   targetShapes: (Terminal | Process | Data | Desicion)[],
+//   base: {
+//     m: CommonTypes.Vec;
+//     l: number;
+//     t: number;
+//     r: number;
+//     b: number;
+//   }
+// ) => {
+//   if (targetShapes.length === 0) return [];
+//   const lines: {
+//     from: CommonTypes.Vec;
+//     to: CommonTypes.Vec;
+//   }[] = [];
+//   const targets = targetShapes.map((targetShape) => ({
+//     m: targetShape.getCenter().m,
+//     l: targetShape.getEdge().l,
+//     t: targetShape.getEdge().t,
+//     r: targetShape.getEdge().r,
+//     b: targetShape.getEdge().b,
+//   }));
+
+//   console.log("targets", targets);
+
+//   // center x & center x
+//   const align_center_x_shapes = targets
+//     .filter(
+//       (target) => Number(base.m.x.toFixed(1)) === Number(target.m.x.toFixed(1))
+//     )
+//     .concat([base])
+//     .sort((a, b) => a.m.x - b.m.x);
+
+//   if (
+//     align_center_x_shapes[0] &&
+//     align_center_x_shapes[align_center_x_shapes.length - 1]
+//   ) {
+//     lines.push({
+//       from: {
+//         x: base.m.x,
+//         y: align_center_x_shapes[0].m.y,
+//       },
+//       to: {
+//         x: base.m.x,
+//         y: align_center_x_shapes[align_center_x_shapes.length - 1].m.y,
+//       },
+//     });
+//   }
+
+//   // center y & center y
+//   const align_center_y_shapes = targets
+//     .filter(
+//       (target) => Number(base.m.y.toFixed(1)) === Number(target.m.y.toFixed(1))
+//     )
+//     .concat([base])
+//     .sort((a, b) => a.m.y - b.m.y);
+
+//   if (
+//     align_center_y_shapes[0] &&
+//     align_center_y_shapes[align_center_y_shapes.length - 1]
+//   ) {
+//     lines.push({
+//       from: {
+//         x: align_center_y_shapes[0].m.x,
+//         y: base.m.y,
+//       },
+//       to: {
+//         x: align_center_y_shapes[align_center_y_shapes.length - 1].m.x,
+//         y: base.m.y,
+//       },
+//     });
+//   }
+
+//   // left & left
+//   const align_left_shapes = targets
+//     .filter(
+//       (target) => Number(base.l.toFixed(1)) === Number(target.l.toFixed(1))
+//     )
+//     .concat([base])
+//     .sort((a, b) => a.m.y - b.m.y);
+
+//   if (align_left_shapes[0] && align_left_shapes[align_left_shapes.length - 1]) {
+//     lines.push({
+//       from: {
+//         x: base.l - 1,
+//         y: align_left_shapes[0].m.y,
+//       },
+//       to: {
+//         x: base.l - 1,
+//         y: align_left_shapes[align_left_shapes.length - 1].m.y,
+//       },
+//     });
+//   }
+
+//   // left & right
+//   const align_left_to_right_shapes = targets
+//     .filter((target) => {
+//       return Number(base.l.toFixed(1)) === Number(target.r.toFixed(1));
+//     })
+//     .concat([base])
+//     .sort((a, b) => a.m.y - b.m.y);
+
+//   if (
+//     align_left_to_right_shapes[0] &&
+//     align_left_to_right_shapes[align_left_to_right_shapes.length - 1]
+//   ) {
+//     lines.push({
+//       from: {
+//         x: base.l - 1,
+//         y: align_left_to_right_shapes[0].m.y,
+//       },
+//       to: {
+//         x: base.l - 1,
+//         y: align_left_to_right_shapes[align_left_to_right_shapes.length - 1].m
+//           .y,
+//       },
+//     });
+//   }
+
+//   // top & top
+//   const align_top_shapes = targets
+//     .filter(
+//       (target) => Number(base.t.toFixed(1)) === Number(target.t.toFixed(1))
+//     )
+//     .concat([base])
+//     .sort((a, b) => a.m.x - b.m.x);
+
+//   if (align_top_shapes[0] && align_top_shapes[align_top_shapes.length - 1]) {
+//     lines.push({
+//       from: {
+//         x: align_top_shapes[0].m.x,
+//         y: base.t - 1,
+//       },
+//       to: {
+//         x: align_top_shapes[align_top_shapes.length - 1].m.x,
+//         y: base.t - 1,
+//       },
+//     });
+//   }
+
+//   // top & bottom
+//   const align_top_to_bottom_shapes = targets
+//     .filter(
+//       (target) => Number(base.t.toFixed(1)) === Number(target.b.toFixed(1))
+//     )
+//     .concat([base])
+//     .sort((a, b) => a.m.x - b.m.x);
+
+//   if (
+//     align_top_to_bottom_shapes[0] &&
+//     align_top_to_bottom_shapes[align_top_to_bottom_shapes.length - 1]
+//   ) {
+//     lines.push({
+//       from: {
+//         x: align_top_to_bottom_shapes[0].m.x,
+//         y: base.t - 1,
+//       },
+//       to: {
+//         x: align_top_to_bottom_shapes[align_top_to_bottom_shapes.length - 1].m
+//           .x,
+//         y: base.t - 1,
+//       },
+//     });
+//   }
+
+//   // right & right
+//   const align_right_shapes = targets
+//     .filter(
+//       (target) => Number(base.r.toFixed(1)) === Number(target.r.toFixed(1))
+//     )
+//     .concat([base])
+//     .sort((a, b) => a.m.y - b.m.y);
+
+//   if (
+//     align_right_shapes[0] &&
+//     align_right_shapes[align_right_shapes.length - 1]
+//   ) {
+//     lines.push({
+//       from: {
+//         x: base.r + 1,
+//         y: align_right_shapes[0].m.y,
+//       },
+//       to: {
+//         x: base.r + 1,
+//         y: align_right_shapes[align_right_shapes.length - 1].m.y,
+//       },
+//     });
+//   }
+
+//   // right & left
+//   const align_right_to_left_shapes = targets
+//     .filter(
+//       (target) => Number(base.r.toFixed(1)) === Number(target.l.toFixed(1))
+//     )
+//     .concat([base])
+//     .sort((a, b) => a.m.y - b.m.y);
+
+//   if (
+//     align_right_to_left_shapes[0] &&
+//     align_right_to_left_shapes[align_right_to_left_shapes.length - 1]
+//   ) {
+//     lines.push({
+//       from: {
+//         x: base.r + 1,
+//         y: align_right_to_left_shapes[0].m.y,
+//       },
+//       to: {
+//         x: base.r + 1,
+//         y: align_right_to_left_shapes[align_right_to_left_shapes.length - 1].m
+//           .y,
+//       },
+//     });
+//   }
+
+//   // bottom & bottom
+//   const align_bottom_shapes = targets
+//     .filter(
+//       (target) => Number(base.b.toFixed(1)) === Number(target.b.toFixed(1))
+//     )
+//     .concat([base])
+//     .sort((a, b) => a.m.x - b.m.x);
+
+//   if (
+//     align_bottom_shapes[0] &&
+//     align_bottom_shapes[align_bottom_shapes.length - 1]
+//   ) {
+//     lines.push({
+//       from: {
+//         x: align_bottom_shapes[0].m.x,
+//         y: base.b + 1,
+//       },
+//       to: {
+//         x: align_bottom_shapes[align_bottom_shapes.length - 1].m.x,
+//         y: base.b + 1,
+//       },
+//     });
+//   }
+
+//   // bottom & top
+//   const align_bottom_to_top_shapes = targets
+//     .filter(
+//       (target) => Number(base.b.toFixed(1)) === Number(target.t.toFixed(1))
+//     )
+//     .concat([base])
+//     .sort((a, b) => a.m.x - b.m.x);
+
+//   if (
+//     align_bottom_to_top_shapes[0] &&
+//     align_bottom_to_top_shapes[align_bottom_to_top_shapes.length - 1]
+//   ) {
+//     lines.push({
+//       from: {
+//         x: align_bottom_to_top_shapes[0].m.x,
+//         y: base.b + 1,
+//       },
+//       to: {
+//         x: align_bottom_to_top_shapes[align_bottom_to_top_shapes.length - 1].m
+//           .x,
+//         y: base.b + 1,
+//       },
+//     });
+//   }
+
+//   return lines;
+// };
+
+// TODO: wait for algin feature
+// const getShapesInView = (shapes: (Terminal | Process | Data | Desicion)[]) => {
+//   const shapesInView: (Terminal | Process | Data | Desicion)[] = [];
+//   const viewport = {
+//     l: 0,
+//     t: 0,
+//     r: window.innerWidth,
+//     b: window.innerHeight,
+//   };
+
+//   shapes.forEach((shape) => {
+//     const edge = shape.getEdge();
+
+//     if (
+//       ((edge.l >= viewport.l && edge.l <= viewport.r) ||
+//         (edge.r >= viewport.l && edge.r <= viewport.r)) &&
+//       ((edge.t >= viewport.t && edge.t <= viewport.b) ||
+//         (edge.b >= viewport.t && edge.b <= viewport.b))
+//     ) {
+//       shapesInView.push(shape);
+//     }
+//   });
+
+//   return shapesInView;
+// };
 
 const frameSelect = (
   selectionFrame: null | undefined | SelectionFrame,
@@ -1397,20 +1403,25 @@ const movePressingCurve = (
 
       const quarterD = shape.checkQuarterArea(p);
       if (quarterD) {
-        const p2 = shape.getCenter()[quarterD];
+        const edgeM = shape.getCenter()[quarterD];
+        const curveThreshold = curveThresholdStrategy[shape.type][quarterD];
+        const threshold = {
+          x:
+            quarterD === CommonTypes.Direction.l ||
+            quarterD === CommonTypes.Direction.r
+              ? curveThreshold
+              : 0,
+          y:
+            quarterD === CommonTypes.Direction.t ||
+            quarterD === CommonTypes.Direction.b
+              ? curveThreshold
+              : 0,
+        };
 
-        if (
-          shape.type === CommonTypes.ShapeType.data &&
-          quarterD === CommonTypes.Direction.l
-        ) {
-          p2.x = p2.x + 8;
-        } else if (
-          shape.type === CommonTypes.ShapeType.data &&
-          quarterD === CommonTypes.Direction.r
-        ) {
-          p2.x = p2.x - 8;
-        }
-        return [quarterD, { x: p2.x, y: p2.y }];
+        return [
+          quarterD,
+          { x: edgeM.x + threshold.x, y: edgeM.y + threshold.y },
+        ];
       }
     }
 
@@ -2035,7 +2046,6 @@ const syncCandidates = (shapes: CommonTypes.Shape[]) => {
 export default function IdPage() {
   let { current: $canvas } = useRef<HTMLCanvasElement | null>(null);
   let { current: $screenshot } = useRef<HTMLCanvasElement | null>(null);
-  const qas = isBrowser && window.location.href.includes("qas");
   const params = useParams<{ id: string }>();
   const router = useRouter();
 
@@ -2047,17 +2057,9 @@ export default function IdPage() {
   const [isIndivisualSidePanelOpen, setIsIndivisualSidePanelOpen] =
     useState(false);
   const [isRenameFrameOpen, setIsRenameFrameOpen] = useState(false);
-  const [isProfileFrameOpen, setIsProfileFrameOpen] = useState(false);
   const [isConsoleOpen, setIsConsoleOpen] = useState(false);
   const [steps, setSteps] = useState<PageTypes.Steps>([]);
   const [datas, setDatas] = useState<PageIdTypes.Datas>([]);
-  const [isProjectsModalOpen, setIsProjectsModalOpen] = useState(false);
-  const [projects, setProjects] = useState<
-    ProjectAPITypes.GetProjects["resData"]
-  >([]);
-  const [selectedProjectId, setSelectedProjectId] = useState<
-    null | ProjectTypes.Project["id"]
-  >(null);
   const [hasEnter, setHasEnter] = useState(false);
   const [projectName, setProjectName] = useState({
     inputVal: "Untitled",
@@ -2137,29 +2139,6 @@ export default function IdPage() {
     drawCanvas(offset, _scale);
   };
 
-  // const fetchProjects = async () => {
-  //   const res: AxiosResponse<ProjectAPITypes.GetProjects["resData"], any> =
-  //     await projectAPIs.getProjecs();
-  //   setProjects(res.data);
-  // };
-
-  // const verifyToken = async () => {
-  //   const token = localStorage.getItem("Authorization");
-
-  //   if (token) {
-  //     const res: AxiosResponse<AuthTypes.JWTLogin["resData"]> =
-  //       await authAPIs.jwtLogin(token);
-
-  //     if (res.data.isPass) {
-  //       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-  //     } else {
-  //       router.push("/");
-  //     }
-  //   } else {
-  //     router.push("/");
-  //   }
-  // };
-
   const positioning = (shapeP: CommonTypes.Vec) => {
     if (!isBrowser) return;
 
@@ -2229,6 +2208,7 @@ export default function IdPage() {
 
     recordLastP(p);
 
+    // TODO: align feature
     // if (!movingViewport && pressing?.shape && !!selectionFrame) {
     //   if (pressing?.target === CommonTypes.SelectAreaTarget.m) {
     //     actionRecords.register(CommonTypes.Action.multiMove);
@@ -2239,14 +2219,10 @@ export default function IdPage() {
     //     );
     //     const alignP = getAlignP(targetAlignShapes, pressing.ghost);
 
-    //     // moveMultiSelectingShapes(normalOffsetP)
-
     //     if (alignP?.x || alignP?.y) {
     //       // pressing.shape.locate(alignP);
     //       // locateMultiSelectingShapes(alignP);
     //     }
-
-    //     console.log("alignP", alignP);
 
     //     if (alignP?.x && !alignP?.y) {
     //       const moveP = getNormalP(
@@ -2257,7 +2233,6 @@ export default function IdPage() {
     //         null,
     //         scale
     //       );
-    //       // moveMultiSelectingShapes(moveP);
     //     }
 
     //     // if (!alignP?.x && alignP?.y) {
@@ -2276,7 +2251,6 @@ export default function IdPage() {
     //     //       scale
     //     //     )
     //     //   );
-    //     //   moveMultiSelectingShapes(moveP);
     //     // }
 
     //     // if (!alignP?.x && !alignP?.y) {
@@ -2468,39 +2442,6 @@ export default function IdPage() {
     setLeftMouseBtn(false);
     frameSelect(selectionFrame, offset, scale);
     checkConnect(getNormalP(p, offset, scale));
-
-    // if (
-    //   multiSelectShapeIds.length >= 2 &&
-    //   pressing?.target === CommonTypes.SelectAreaTarget.m
-    // ) {
-    //   actionRecords.finish(CommonTypes.Action.multiMove);
-    // } else if (
-    //   multiSelectShapeIds.length >= 2 &&
-    //   (pressing?.target === CommonTypes.SelectAreaTarget.lt ||
-    //     pressing?.target === CommonTypes.SelectAreaTarget.rt ||
-    //     pressing?.target === CommonTypes.SelectAreaTarget.rb ||
-    //     pressing?.target === CommonTypes.SelectAreaTarget.lb)
-    // ) {
-    //   actionRecords.finish(CommonTypes.Action.multiResize);
-    // } else if (
-    //   pressing?.target === CoreTypes.PressingTarget.lt ||
-    //   pressing?.target === CoreTypes.PressingTarget.rt ||
-    //   pressing?.target === CoreTypes.PressingTarget.rb ||
-    //   pressing?.target === CoreTypes.PressingTarget.lb
-    // ) {
-    //   actionRecords.finish(CommonTypes.Action.resize);
-    // } else if (
-    //   pressing?.target &&
-    //   pressing?.shape &&
-    //   pressing?.origin &&
-    //   (pressing?.shape?.p.x !== pressing?.origin?.p.x ||
-    //     pressing?.shape?.p.y !== pressing?.origin?.p.y)
-    // ) {
-    //   if (pressing?.target === CoreTypes.PressingTarget.m) {
-    //     actionRecords.finish(CommonTypes.Action.move);
-    //   }
-    // }
-
     checkSteps();
     syncCandidates(shapes);
 
@@ -2577,110 +2518,9 @@ export default function IdPage() {
     setIsOverallSidePanelOpen((open) => !open);
   };
 
-  // const onClickHambugar = () => {
-  //   setIsProfileFrameOpen((isProfileFrameOpen) => !isProfileFrameOpen);
-  // }; // TODO: tmp close
-
-  // const onClickProjectsButton = async () => {
-  //   setIsProjectsModalOpen(true);
-  //   setIsProfileFrameOpen(false);
-  //   // await fetchProjects();
-  // }; // TODO: tmp close
-
   const onClickPositioningButton = (shapeP: CommonTypes.Vec) => {
     positioning(shapeP);
   };
-
-  const onClickProjectCard = (id: ProjectTypes.Project["id"]) => {
-    setSelectedProjectId(id);
-  };
-
-  const initProject = async (id: ProjectTypes.Project["id"]) => {
-    try {
-      const res: AxiosResponse<ProjectAPITypes.GetProject["resData"], any> =
-        await projectAPIs.getProject(id);
-
-      const projectData = res.data as ProjectAPITypes.ProjectData;
-
-      setScale(1);
-      setSelectedProjectId(id);
-      offset = cloneDeep(init.offset);
-      const initShapes = getInitializedShapes(
-        projectData.orders,
-        projectData.shapes,
-        projectData.curves,
-        projectData.data
-      );
-      shapes = initShapes;
-      checkSteps();
-      drawCanvas(offset, scale);
-      drawScreenshot(offset, scale);
-      setIsProjectsModalOpen(false);
-      setProjectName({
-        inputVal: projectData.projectName,
-        val: projectData.projectName,
-      });
-
-      if (!hasEnter) {
-        setHasEnter(true);
-      }
-    } catch (error) {
-      router.push("/");
-    }
-  };
-
-  const onClickConfrimProject = async (id: ProjectTypes.Project["id"]) => {
-    router.push(`/${id}`);
-  };
-
-  const onClickDeleteProject = async (id: ProjectTypes.Project["id"]) => {
-    const $canvas = document.querySelector("canvas");
-    if (!$canvas || !ctx) return;
-
-    try {
-      const res: AxiosResponse<ProjectAPITypes.DeleteProject["resData"]> =
-        await projectAPIs.deleteProject(id);
-
-      if (id === selectedProjectId) {
-        shapes = [];
-        setSelectedProjectId(null);
-        setHasEnter(false);
-        setProjects(
-          cloneDeep(projects).filter((project) => project.id !== res.data.id)
-        );
-      }
-    } catch (err) {
-      // TODO: handle error
-    }
-  };
-
-  const onClickNewProjectButton = async () => {
-    if (qas) {
-      setHasEnter(true);
-      setIsProjectsModalOpen(false);
-      return;
-    }
-    shapes = [];
-    const newProject: AxiosResponse<ProjectAPITypes.CreateProject["resData"]> =
-      await projectAPIs.createProject();
-
-    const res: AxiosResponse<ProjectAPITypes.GetProjects["resData"], any> =
-      await projectAPIs.getProjecs();
-
-    setIsProjectsModalOpen(false);
-    setProjects(res.data);
-    setSelectedProjectId(newProject.data.id);
-    setHasEnter(true);
-  };
-
-  const onClickProjectsModalX = () => {
-    setIsProjectsModalOpen(false);
-  };
-
-  // const onClickLogOutButton = () => {
-  //   localStorage.removeItem("Authorization");
-  //   router.push("/");
-  // }; // TODO: tmp close
 
   const onClickProjectName = () => {
     setIsRenameFrameOpen((isRenameFrameOpen) => !isRenameFrameOpen);
@@ -2695,33 +2535,11 @@ export default function IdPage() {
 
   const onClickSaveProjectNameButton: MouseEventHandler<
     HTMLButtonElement
-  > = async (e) => {
-    // if (!selectedProjectId) return;
-    // const res: AxiosResponse<
-    //   ProjectAPITypes.UpdateProjectName["resData"],
-    //   any
-    // > = await projectAPIs.updateProjectName(
-    //   selectedProjectId,
-    //   projectName.inputVal
-    // );
-
-    // try {
-    //   if (
-    //     res.status === 201 &&
-    //     res.data.status === statusConstants.SUCCESSFUL
-    //   ) {
-    //     setProjectName({
-    //       val: res.data.name,
-    //       inputVal: res.data.name,
-    //     });
-    //     // fetchProjects();
-    //   }
-    // } catch (error) {
+  > = async () => {
     setProjectName({
       val: projectName.inputVal,
       inputVal: projectName.inputVal,
     });
-    // }
 
     setIsRenameFrameOpen(false);
   };
@@ -2771,7 +2589,7 @@ export default function IdPage() {
     }
 
     shapes = shapes.filter((shape) => !multiSelectingMap[shape.id]);
-    selection = null;
+    deSelectShape();
   };
 
   const onClickCheckButton = () => {
@@ -2883,9 +2701,6 @@ export default function IdPage() {
     if (!isBrowser) return;
 
     (async () => {
-      // await verifyToken();
-      // await fetchProjects();
-      await initProject(Number(params.id));
       drawCanvas(offset, scale);
       drawScreenshot(offset, scale);
     })();
@@ -2931,63 +2746,6 @@ export default function IdPage() {
 
   return (
     <>
-      <Modal
-        isOpen={isProjectsModalOpen}
-        width="1120px"
-        onClickX={onClickProjectsModalX}
-      >
-        <div>
-          <section className="rounded-lg  bg-white-500 p-8 body-font">
-            <div className="mb-6 pb-3 ps-4 border-b border-grey-5 flex justify-between items-end">
-              <h2 className="text-gray-900 title-font text-lg font-semibold">
-                Projects
-              </h2>
-              <Button onClick={onClickNewProjectButton} text={"New Project"} />
-            </div>
-            <div className="grid grid-cols-3 gap-4 h-[500px] overflow-auto">
-              {projects.map((project) => (
-                <div>
-                  <Card
-                    className="cursor-pointer"
-                    key={project.id}
-                    text={
-                      <h2 className="title-font text-lg font-medium">
-                        {project.name}
-                      </h2>
-                    }
-                    selected={selectedProjectId === project.id}
-                    src={project.img}
-                    onClick={() => {
-                      onClickProjectCard(project.id);
-                    }}
-                  />
-                </div>
-              ))}
-            </div>
-            <div className="flex justify-end items-center mt-6 pt-3 border-t border-grey-5">
-              <Button
-                className="me-3"
-                onClick={() => {
-                  if (!selectedProjectId) return;
-                  onClickDeleteProject(selectedProjectId);
-                }}
-                text={"Delete"}
-                disabled={selectedProjectId === null}
-                danger
-              />
-              <Button
-                onClick={() => {
-                  if (!selectedProjectId) return;
-                  onClickConfrimProject(selectedProjectId);
-                }}
-                text={"Confirm"}
-                disabled={selectedProjectId === null}
-              />
-            </div>
-          </section>
-        </div>
-      </Modal>
-
       <Button
         className="fixed top-4 left-1/2 -translate-x-1/2 flex justify-self-end self-center text-base"
         info
@@ -3142,55 +2900,7 @@ export default function IdPage() {
             </>
           )}
         </ul>
-        {/* TODO: tmp close */}
-        {/* <div className="absolute top-0 -right-20 translate-x-full">
-          <div className="relative">
-            <SquareButton
-              role="profile_menu"
-              size={32}
-              shadow
-              content={
-                <Icon
-                  type={IconTypes.Type.bars}
-                  w={14}
-                  h={14}
-                  fill={tailwindColors.grey["1"]}
-                />
-              }
-              onClick={onClickHambugar}
-            />
-            <motion.div
-              className={`absolute top-10 left-0`}
-              variants={{
-                open: {
-                  display: "block",
-                  opacity: 1,
-                  y: "4px",
-                },
-                closed: {
-                  transitionEnd: {
-                    display: "none",
-                  },
-                  opacity: 0,
-                  y: "-2px",
-                },
-              }}
-              initial={isProfileFrameOpen ? "open" : "closed"}
-              animate={isProfileFrameOpen ? "open" : "closed"}
-              transition={{ type: "easeInOut", duration: 0.15 }}
-            >
-              <Frame>
-                <Button text={"Projects"} onClick={onClickProjectsButton} />
-                <Button
-                  className="mt-2"
-                  text={"Log Out"}
-                  onClick={onClickLogOutButton}
-                  danger
-                />
-              </Frame>
-            </motion.div>
-          </div>
-        </div> */}
+
         <div
           className="absolute top-0 -right-20 translate-x-full text-base"
           role="project_name"

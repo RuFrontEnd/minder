@@ -474,8 +474,6 @@ export default function IndivisualSidePanel(
     fileUtils
       .upload("application/json")
       .then((json: CommonTypes.UploadJSON) => {
-        console.log("json", json);
-
         const shapeType = {
           [CommonTypes.ShapeType.terminator]: Terminal,
           [CommonTypes.ShapeType.process]: Process,
@@ -540,96 +538,14 @@ export default function IndivisualSidePanel(
         props.updateShapes(newShapes);
         props.updateCurves(newCurves);
         props.setConsoles(json.consoles);
+      })
+      .catch(() => {
+        console.error("file format is not correct.");
+      })
+      .finally(() => {
+        props.draw();
       });
   };
-  //   const $canvas = document.querySelector("canvas");
-  //   const $screenshot: HTMLCanvasElement | null = document.querySelector(
-  //     "canvas[role='screenshot']"
-  //   );
-
-  //   if (!$canvas || !$screenshot || selectedProjectId === null) return;
-
-  //   const modifyData: ProjectAPITypes.UpdateProject["data"] = {
-  //     orders: [],
-  //     shapes: {},
-  //     curves: {},
-  //     data: {},
-  //     img: $screenshot.toDataURL("image/png"),
-  //   };
-
-  //   shapes.forEach((shape) => {
-  //     modifyData.orders.push(shape.id);
-
-  //     if (
-  //       !(shape instanceof Terminal) &&
-  //       !(shape instanceof Process) &&
-  //       !(shape instanceof Data) &&
-  //       !(shape instanceof Decision)
-  //     )
-  //       return;
-
-  //     // modifyData.shapes[shape.id] = {
-  //     //   w: shape.w,
-  //     //   h: shape.h,
-  //     //   title: shape.title,
-  //     //   type: (() => {
-  //     //     if (shape instanceof Terminal) {
-  //     //       return CommonTypes.ShapeType.terminator;
-  //     //     } else if (shape instanceof Process) {
-  //     //       return CommonTypes.ShapeType.process;
-  //     //     } else if (shape instanceof Data) {
-  //     //       return CommonTypes.ShapeType.data;
-  //     //     } else if (shape instanceof Decision) {
-  //     //       return CommonTypes.ShapeType.decision;
-  //     //     }
-
-  //     //     return CommonTypes.ShapeType.process;
-  //     //   })(),
-  //     //   p: shape.p,
-  //     //   curves: (() => {
-  //     //     const curves: {
-  //     //       l: string[];
-  //     //       t: string[];
-  //     //       r: string[];
-  //     //       b: string[];
-  //     //     } = { l: [], t: [], r: [], b: [] };
-
-  //     //     return curves;
-  //     //   })(),
-  //     //   data: (() => {
-  //     //     if (shape instanceof Data) {
-  //     //       return shape.data.map((dataItem) => {
-  //     //         modifyData.data[dataItem.id] = dataItem.text;
-
-  //     //         return dataItem.id;
-  //     //       });
-  //     //     }
-
-  //     //     return [];
-  //     //   })(),
-  //     //   selectedData: shape.selectedData.map(
-  //     //     (selectedDataItem) => selectedDataItem.id
-  //     //   ),
-  //     //   deletedData: shape.deletedData.map((deleteData) => deleteData.id),
-  //     //   text: shape instanceof Decision ? shape?.text : null,
-  //     // };
-  //   });
-
-  //   projectAPIs
-  //     .updateProject(selectedProjectId, modifyData)
-  //     .then((res: AxiosResponse<ProjectAPITypes.UpdateProject["resData"]>) => {
-  //       if (res.status !== 200) return;
-  //       const projectI = projects.findIndex(
-  //         (project) => project.id === res.data.data.id
-  //       );
-
-  //       if (!projectI) return;
-  //       const _projects = cloneDeep(projects);
-  //       _projects[projectI].img = res.data.data.img;
-
-  //       setProjects(_projects);
-  //     });
-  // }; // temp close
 
   return (
     <SidePanel
