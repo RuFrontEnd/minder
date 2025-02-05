@@ -28,7 +28,7 @@ export default class Selection {
       stroke: number;
     };
   } = {
-    distance: 48,
+    distance: 24,
     size: {
       fill: 4,
       stroke: 2,

@@ -1,10 +1,5 @@
 "use client";
-import React, {
-  useState,
-  useRef,
-  useEffect,
-  useMemo,
-} from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import axios from "axios";
 import Terminal from "@/shapes/terminal";
 import Process from "@/shapes/process";
@@ -49,10 +44,10 @@ const isBrowser = typeof window !== "undefined";
 const init = {
   shape: {
     size: {
-      t: { w: 150, h: 75 },
-      p: { w: 150, h: 75 },
-      d: { w: 150, h: 75 },
-      dec: { w: 150, h: 75 },
+      t: { w: 144, h: 72 },
+      p: { w: 144, h: 72 },
+      d: { w: 144, h: 72 },
+      dec: { w: 144, h: 72 },
     },
   },
   authInfo: {
@@ -1542,16 +1537,22 @@ const pressSelection = (
 
   const _target = selection.checkBoundry(p, 0);
 
-  if (!!_target) {
-    pressingSelection = {
-      selection: selection,
-      ghost: cloneDeep(selection),
-      target: _target,
-    };
-    return false;
-  }
+  if (
+    _target !== SelectionTypes.PressingTarget.lt &&
+    _target !== SelectionTypes.PressingTarget.rt &&
+    _target !== SelectionTypes.PressingTarget.rb &&
+    _target !== SelectionTypes.PressingTarget.lb &&
+    _target !== SelectionTypes.PressingTarget.m
+  )
+    return true;
 
-  return true;
+  pressingSelection = {
+    selection: selection,
+    ghost: cloneDeep(selection),
+    target: _target,
+  };
+
+  return false;
 };
 
 const selectShape = (p: CommonTypes.Vec) => {
@@ -2059,9 +2060,9 @@ export default function IdPage() {
 
     handleUtils.handle([
       () => startMovingViewport(space, p),
+      () => pressSelection(normalP, selection),
       () => triggerCurve(normalP, selection),
       () => selectCurve(normalP),
-      () => pressSelection(normalP, selection),
       () => selectShape(normalP),
       () => startFrameSelecting(p),
     ]);

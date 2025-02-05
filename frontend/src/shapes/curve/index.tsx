@@ -32,7 +32,7 @@ export default class Curve {
     this.id = id;
     this.cpline = {
       w: 1,
-      c: tailwindColors?.info["500"] || "#000000",
+      c: tailwindColors?.info["500"] || tailwindColors?.black["1"],
     };
     this.curve = {
       w: 1,
@@ -253,13 +253,14 @@ export default class Curve {
           Math.atan2(this.p2.y - this.cp2.y, this.p2.x - this.cp2.x) +
           90 * (Math.PI / 180);
       }
-    } else if (pressingTarget === CurveTypes.PressingTarget.p2) {
-      // should consider p2 and arrow
-      // this.p2 = {
-      //   x: this.p2.x + this.deScale(offset.x),
-      //   y: this.p2.y + this.deScale(offset.y),
-      // };
     }
+    // TODO: should consider p2 and arrow
+    // else if (pressingTarget === CurveTypes.PressingTarget.p2) {
+    // this.p2 = {
+    //   x: this.p2.x + this.deScale(offset.x),
+    //   y: this.p2.y + this.deScale(offset.y),
+    // };
+    // }
   }
 
   locateHandler(pressingTarget: CurveTypes.PressingTarget, p: Vec) {
@@ -390,97 +391,85 @@ export default class Curve {
     }
     ctx.restore();
 
-    if (this.selecting) {
-      // control lines
-      ctx.lineWidth = this.cpline.w;
-      ctx.strokeStyle = this.cpline.c;
-      ctx.fillStyle = this.cpline.c;
+    //   // control lines
+    // if (this.selecting) {
+    //   ctx.lineWidth = this.cpline.w;
+    //   ctx.strokeStyle = this.cpline.c;
+    //   ctx.fillStyle = this.cpline.c;
 
-      ctx.beginPath();
-      ctx.moveTo(screenP.p1.x, screenP.p1.y);
-      ctx.lineTo(screenP.cp1.x, screenP.cp1.y);
-      ctx.stroke();
-      ctx.closePath();
+    //   ctx.beginPath();
+    //   ctx.moveTo(screenP.p1.x, screenP.p1.y);
+    //   ctx.lineTo(screenP.cp1.x, screenP.cp1.y);
+    //   ctx.stroke();
+    //   ctx.closePath();
 
-      if (this.cp2) {
-        ctx.beginPath();
-        ctx.moveTo(screenP.p2.x, screenP.p2.y);
-        ctx.lineTo(screenP.cp2.x, screenP.cp2.y);
-        ctx.stroke();
-        ctx.closePath();
-      } else {
-        ctx.beginPath();
-        ctx.lineTo(screenP.p2.x, screenP.p2.y);
-        ctx.stroke();
-        ctx.closePath();
-      }
+    //   if (this.cp2) {
+    //     ctx.beginPath();
+    //     ctx.moveTo(screenP.p2.x, screenP.p2.y);
+    //     ctx.lineTo(screenP.cp2.x, screenP.cp2.y);
+    //     ctx.stroke();
+    //     ctx.closePath();
+    //   } else {
+    //     ctx.beginPath();
+    //     ctx.lineTo(screenP.p2.x, screenP.p2.y);
+    //     ctx.stroke();
+    //     ctx.closePath();
+    //   }
 
-      // control points
-      ctx.strokeStyle = this.controlPoint.strokeC;
-      ctx.fillStyle = this.controlPoint.c;
+    // TODO: close rendering control points.
+    // control points
+    // ctx.strokeStyle = this.controlPoint.strokeC;
+    // ctx.fillStyle = this.controlPoint.c;
 
-      // ctx.beginPath();
-      // ctx.arc(c.x, c.y, this.controlPoint.r, 0, 2 * Math.PI, true); // cp1 control point
-      // ctx.fill();
-      // ctx.stroke();
-      // ctx.closePath();
+    // TODO: close rendering p1.
+    // ctx.beginPath();
+    // ctx.arc(relativeScreenP.p1.x, relativeScreenP.p1.y, this.this.controlPoint.r(), 0, 2 * Math.PI, true); // p1 control point
+    // ctx.fill();
+    // ctx.stroke();
+    // ctx.closePath();
 
-      //   // TODO: temporarily close p1.
-      //   // ctx.beginPath();
-      //   // ctx.arc(relativeScreenP.p1.x, relativeScreenP.p1.y, this.this.controlPoint.r(), 0, 2 * Math.PI, true); // p1 control point
-      //   // ctx.fill();
-      //   // ctx.stroke();
-      //   // ctx.closePath();
+    // TODO: close rendering cp1.
+    // ctx.beginPath();
+    // ctx.arc(
+    //   screenP.cp1.x,
+    //   screenP.cp1.y,
+    //   this.controlPoint.r,
+    //   0,
+    //   2 * Math.PI,
+    //   true
+    // ); // cp1 control point
+    // ctx.fill();
+    // ctx.stroke();
+    // ctx.closePath();
 
-      ctx.beginPath();
-      ctx.arc(
-        screenP.cp1.x,
-        screenP.cp1.y,
-        this.controlPoint.r,
-        0,
-        2 * Math.PI,
-        true
-      ); // cp1 control point
-      ctx.fill();
-      ctx.stroke();
-      ctx.closePath();
+    // TODO: close rendering cp2.
+    // ctx.beginPath();
+    // ctx.arc(
+    //   screenP.cp2.x,
+    //   screenP.cp2.y,
+    //   this.controlPoint.r,
+    //   0,
+    //   2 * Math.PI,
+    //   true
+    // ); // cp2 control point
+    // ctx.fill();
+    // ctx.stroke();
+    // ctx.closePath();
 
-      ctx.beginPath();
-      ctx.arc(
-        screenP.cp2.x,
-        screenP.cp2.y,
-        this.controlPoint.r,
-        0,
-        2 * Math.PI,
-        true
-      ); // cp2 control point
-      ctx.fill();
-      ctx.stroke();
-      ctx.closePath();
-
-      // TODO: temporarily close p2.
-      // ctx.beginPath();
-      // ctx.arc(
-      //   relativeScreenP.p2.x,
-      //   relativeScreenP.p2.y,
-      //   this.controlPoint.r,
-      //   0,
-      //   2 * Math.PI,
-      //   true
-      // ); // p2 control point
-      // ctx.fill();
-      // ctx.stroke();
-      // ctx.closePath();
-
-      // ctx.strokeStyle = this.controlPoint.strokeC;
-      // ctx.fillStyle = this.controlPoint.c;
-
-      // ctx.beginPath();
-      // ctx.arc(rc.x, rc.y, this.controlPoint.r, 0, 2 * Math.PI, true)
-      // ctx.fill();
-      // ctx.stroke();
-      // ctx.closePath();
-    }
+    // TODO: close rendering p2.
+    // ctx.beginPath();
+    // ctx.arc(
+    //   relativeScreenP.p2.x,
+    //   relativeScreenP.p2.y,
+    //   this.controlPoint.r,
+    //   0,
+    //   2 * Math.PI,
+    //   true
+    // ); // p2 control point
+    // ctx.fill();
+    // ctx.stroke();
+    // ctx.closePath();
+    // }
 
     ctx.restore();
   }
