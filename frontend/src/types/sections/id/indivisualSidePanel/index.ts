@@ -58,6 +58,7 @@ type Props = {
   consoles: any;
   setConsoles: any;
   terminateDataChecking: () => void;
+  deSelect: () => void;
 };
 
 export type { Props, CreateDatas, AddDatas };

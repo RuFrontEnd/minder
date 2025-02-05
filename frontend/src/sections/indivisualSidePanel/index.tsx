@@ -474,6 +474,8 @@ export default function IndivisualSidePanel(
     fileUtils
       .upload("application/json")
       .then((json: CommonTypes.UploadJSON) => {
+        props.deSelect()
+
         const shapeType = {
           [CommonTypes.ShapeType.terminator]: Terminal,
           [CommonTypes.ShapeType.process]: Process,

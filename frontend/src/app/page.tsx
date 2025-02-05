@@ -2891,6 +2891,7 @@ export default function IdPage() {
         consoles={consoles}
         setConsoles={setConsoles}
         terminateDataChecking={terminateDataChecking}
+        deSelect={deSelect}
       />
 
       <Console
