@@ -1,7 +1,7 @@
 type Props = {
   className?: string;
   title: React.ReactNode;
-  open: boolean;
+  open?: boolean;
   children?: React.ReactNode;
   hoverRender?: React.ReactNode;
   showArrow?: boolean;

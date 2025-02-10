@@ -1,6 +1,7 @@
 "use client";
 import Core from "@/shapes/core";
-import * as CommonTypes from "@/types/shapes/common";
+import { tailwindColors } from "@/variables/colors";
+import * as CommonTypes from "@/types/common";
 import * as DecisionTypes from "@/types/shapes/decision";
 
 const ds = [
@@ -10,6 +11,8 @@ const ds = [
   CommonTypes.Direction.b,
 ];
 export default class Desicion extends Core {
+  type: CommonTypes.ShapeType.decision = CommonTypes.ShapeType.decision;
+
   text: {
     l: DecisionTypes.Text;
     t: DecisionTypes.Text;
@@ -24,7 +27,7 @@ export default class Desicion extends Core {
     p: CommonTypes.Vec,
     title: CommonTypes.Title
   ) {
-    super(id, w, h, p, "#5468E9", title);
+    super(id, w, h, p, tailwindColors.shape.decision, title);
     this.text = {
       l: null,
       t: null,
@@ -60,45 +63,31 @@ export default class Desicion extends Core {
     return output;
   }
 
-  initializeCurve(id: string, d: CommonTypes.Direction) {
-    super.initializeCurve(id, d);
-
-    // define curve text
-    const currentText = this.getText().text;
-
-    if (!currentText) return;
-
-    this.text[d] = currentText;
-  }
-
-  // TODO: curve 相關
-  removeCurve(d: CommonTypes.Direction, targetId: string) {
-    super.removeCurve(d, targetId);
-
-    this.text[d] = null;
-  }
-
-  onDataChange(
-    _title: CommonTypes.Title,
-    _selectedData: CommonTypes.Data,
-    _deletedData: CommonTypes.Data
+  draw(
+    ctx: CanvasRenderingContext2D,
+    offest: CommonTypes.Vec = { x: 0, y: 0 },
+    scale: number = 1
   ) {
-    this.title = _title;
-    this.selectedData = _selectedData;
-    this.deletedData = _deletedData;
-  }
-
-  draw(ctx: CanvasRenderingContext2D) {
-    super.draw(ctx, () => {
-      const x1 = -this.getScaleSize().w / 2,
+    super.draw(ctx, offest, scale, () => {
+      const screenP = {
+        x: (this.p.x + offest.x) * scale,
+        y: (this.p.y + offest.y) * scale,
+      };
+      const scaleSize = {
+        w: this.w * scale,
+        h: this.h * scale,
+      };
+      const x1 = -scaleSize.w / 2,
         y1 = 0;
       const x2 = 0,
-        y2 = this.getScaleSize().h / 2;
-      const x3 = this.getScaleSize().w / 2,
+        y2 = scaleSize.h / 2;
+      const x3 = scaleSize.w / 2,
         y3 = 0;
       const x4 = 0,
-        y4 = -this.getScaleSize().h / 2;
+        y4 = -scaleSize.h / 2;
 
+      ctx.save();
+      ctx.translate(screenP.x, screenP.y);
       ctx.beginPath();
       ctx.moveTo(x1, y1);
       ctx.lineTo(x2, y2);
@@ -106,159 +95,160 @@ export default class Desicion extends Core {
       ctx.lineTo(x4, y4);
       ctx.closePath();
       ctx.fill();
+      ctx.restore();
     });
   }
 
-  drawCurve(ctx: CanvasRenderingContext2D): void {
-    super.drawCurve(ctx);
-    ctx.save();
-    ctx.translate(this.getScreenP().x, this.getScreenP().y);
+  // drawCurve(ctx: CanvasRenderingContext2D): void {
+  //   super.drawCurve(ctx);
+  //   ctx.save();
+  //   ctx.translate(this.getScreenP().x, this.getScreenP().y);
 
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.font = `${14 * this.__scale__}px Arial`;
+  //   ctx.textAlign = "center";
+  //   ctx.textBaseline = "middle";
+  //   ctx.font = `${14 * this.__scale__}px Arial`;
 
-    const curve_l = this.curves.l[0],
-      curve_t = this.curves.t[0],
-      curve_r = this.curves.r[0],
-      curve_b = this.curves.b[0];
-    if (
-      curve_l &&
-      curve_l.shape?.p1 &&
-      curve_l.shape?.cp1 &&
-      curve_l.shape?.cp2 &&
-      curve_l.shape?.p2 &&
-      this.text.l
-    ) {
-      const bezierPoint = curve_l.shape.getBezierP(0.5, [
-        curve_l.shape.p1,
-        curve_l.shape.cp1,
-        curve_l.shape.cp2,
-        curve_l.shape.p2,
-      ]);
-      ctx.fillStyle = "#F6F7FA";
-      ctx.beginPath();
-      ctx.arc(
-        bezierPoint.x * this.__scale__,
-        bezierPoint.y * this.__scale__,
-        10 * this.__scale__,
-        0,
-        2 * Math.PI,
-        false
-      );
-      ctx.fill();
-      ctx.closePath();
+  //   const curve_l = this.curves.l[0],
+  //     curve_t = this.curves.t[0],
+  //     curve_r = this.curves.r[0],
+  //     curve_b = this.curves.b[0];
+  //   if (
+  //     curve_l &&
+  //     curve_l.shape?.p1 &&
+  //     curve_l.shape?.cp1 &&
+  //     curve_l.shape?.cp2 &&
+  //     curve_l.shape?.p2 &&
+  //     this.text.l
+  //   ) {
+  //     const bezierPoint = curve_l.shape.getBezierP(0.5, [
+  //       curve_l.shape.p1,
+  //       curve_l.shape.cp1,
+  //       curve_l.shape.cp2,
+  //       curve_l.shape.p2,
+  //     ]);
+  //     ctx.fillStyle = "#F6F7FA";
+  //     ctx.beginPath();
+  //     ctx.arc(
+  //       bezierPoint.x * this.__scale__,
+  //       bezierPoint.y * this.__scale__,
+  //       10 * this.__scale__,
+  //       0,
+  //       2 * Math.PI,
+  //       false
+  //     );
+  //     ctx.fill();
+  //     ctx.closePath();
 
-      ctx.fillStyle = "black";
-      ctx.fillText(
-        this.text.l,
-        bezierPoint.x * this.__scale__,
-        bezierPoint.y * this.__scale__ + 2
-      );
-    }
-    if (
-      curve_t &&
-      curve_t.shape?.p1 &&
-      curve_t.shape?.cp1 &&
-      curve_t.shape?.cp2 &&
-      curve_t.shape?.p2 &&
-      this.text.t
-    ) {
-      const bezierPoint = curve_t.shape.getBezierP(0.5, [
-        curve_t.shape.p1,
-        curve_t.shape.cp1,
-        curve_t.shape.cp2,
-        curve_t.shape.p2,
-      ]);
-      ctx.fillStyle = "#F6F7FA";
-      ctx.beginPath();
-      ctx.arc(
-        bezierPoint.x * this.__scale__,
-        bezierPoint.y * this.__scale__,
-        10 * this.__scale__,
-        0,
-        2 * Math.PI,
-        false
-      );
-      ctx.fill();
-      ctx.closePath();
+  //     ctx.fillStyle = "black";
+  //     ctx.fillText(
+  //       this.text.l,
+  //       bezierPoint.x * this.__scale__,
+  //       bezierPoint.y * this.__scale__ + 2
+  //     );
+  //   }
+  //   if (
+  //     curve_t &&
+  //     curve_t.shape?.p1 &&
+  //     curve_t.shape?.cp1 &&
+  //     curve_t.shape?.cp2 &&
+  //     curve_t.shape?.p2 &&
+  //     this.text.t
+  //   ) {
+  //     const bezierPoint = curve_t.shape.getBezierP(0.5, [
+  //       curve_t.shape.p1,
+  //       curve_t.shape.cp1,
+  //       curve_t.shape.cp2,
+  //       curve_t.shape.p2,
+  //     ]);
+  //     ctx.fillStyle = "#F6F7FA";
+  //     ctx.beginPath();
+  //     ctx.arc(
+  //       bezierPoint.x * this.__scale__,
+  //       bezierPoint.y * this.__scale__,
+  //       10 * this.__scale__,
+  //       0,
+  //       2 * Math.PI,
+  //       false
+  //     );
+  //     ctx.fill();
+  //     ctx.closePath();
 
-      ctx.fillStyle = "black";
-      ctx.fillText(
-        this.text.t,
-        bezierPoint.x * this.__scale__,
-        bezierPoint.y * this.__scale__ + 2
-      );
-    }
-    if (
-      curve_r &&
-      curve_r.shape?.p1 &&
-      curve_r.shape?.cp1 &&
-      curve_r.shape?.cp2 &&
-      curve_r.shape?.p2 &&
-      this.text.r
-    ) {
-      const bezierPoint = curve_r.shape.getBezierP(0.5, [
-        curve_r.shape.p1,
-        curve_r.shape.cp1,
-        curve_r.shape.cp2,
-        curve_r.shape.p2,
-      ]);
-      ctx.fillStyle = "#F6F7FA";
-      ctx.beginPath();
-      ctx.arc(
-        bezierPoint.x * this.__scale__,
-        bezierPoint.y * this.__scale__,
-        10 * this.__scale__,
-        0,
-        2 * Math.PI,
-        false
-      );
-      ctx.fill();
-      ctx.closePath();
+  //     ctx.fillStyle = "black";
+  //     ctx.fillText(
+  //       this.text.t,
+  //       bezierPoint.x * this.__scale__,
+  //       bezierPoint.y * this.__scale__ + 2
+  //     );
+  //   }
+  //   if (
+  //     curve_r &&
+  //     curve_r.shape?.p1 &&
+  //     curve_r.shape?.cp1 &&
+  //     curve_r.shape?.cp2 &&
+  //     curve_r.shape?.p2 &&
+  //     this.text.r
+  //   ) {
+  //     const bezierPoint = curve_r.shape.getBezierP(0.5, [
+  //       curve_r.shape.p1,
+  //       curve_r.shape.cp1,
+  //       curve_r.shape.cp2,
+  //       curve_r.shape.p2,
+  //     ]);
+  //     ctx.fillStyle = "#F6F7FA";
+  //     ctx.beginPath();
+  //     ctx.arc(
+  //       bezierPoint.x * this.__scale__,
+  //       bezierPoint.y * this.__scale__,
+  //       10 * this.__scale__,
+  //       0,
+  //       2 * Math.PI,
+  //       false
+  //     );
+  //     ctx.fill();
+  //     ctx.closePath();
 
-      ctx.fillStyle = "black";
-      ctx.fillText(
-        this.text.r,
-        bezierPoint.x * this.__scale__,
-        bezierPoint.y * this.__scale__ + 2
-      );
-    }
-    if (
-      curve_b &&
-      curve_b.shape?.p1 &&
-      curve_b.shape?.cp1 &&
-      curve_b.shape?.cp2 &&
-      curve_b.shape?.p2 &&
-      this.text.b
-    ) {
-      const bezierPoint = curve_b.shape.getBezierP(0.5, [
-        curve_b.shape.p1,
-        curve_b.shape.cp1,
-        curve_b.shape.cp2,
-        curve_b.shape.p2,
-      ]);
-      ctx.fillStyle = "#F6F7FA";
-      ctx.beginPath();
-      ctx.arc(
-        bezierPoint.x * this.__scale__,
-        bezierPoint.y * this.__scale__,
-        10 * this.__scale__,
-        0,
-        2 * Math.PI,
-        false
-      );
-      ctx.fill();
-      ctx.closePath();
+  //     ctx.fillStyle = "black";
+  //     ctx.fillText(
+  //       this.text.r,
+  //       bezierPoint.x * this.__scale__,
+  //       bezierPoint.y * this.__scale__ + 2
+  //     );
+  //   }
+  //   if (
+  //     curve_b &&
+  //     curve_b.shape?.p1 &&
+  //     curve_b.shape?.cp1 &&
+  //     curve_b.shape?.cp2 &&
+  //     curve_b.shape?.p2 &&
+  //     this.text.b
+  //   ) {
+  //     const bezierPoint = curve_b.shape.getBezierP(0.5, [
+  //       curve_b.shape.p1,
+  //       curve_b.shape.cp1,
+  //       curve_b.shape.cp2,
+  //       curve_b.shape.p2,
+  //     ]);
+  //     ctx.fillStyle = "#F6F7FA";
+  //     ctx.beginPath();
+  //     ctx.arc(
+  //       bezierPoint.x * this.__scale__,
+  //       bezierPoint.y * this.__scale__,
+  //       10 * this.__scale__,
+  //       0,
+  //       2 * Math.PI,
+  //       false
+  //     );
+  //     ctx.fill();
+  //     ctx.closePath();
 
-      ctx.fillStyle = "black";
-      ctx.fillText(
-        this.text.b,
-        bezierPoint.x * this.__scale__,
-        bezierPoint.y * this.__scale__ + 2
-      );
-    }
+  //     ctx.fillStyle = "black";
+  //     ctx.fillText(
+  //       this.text.b,
+  //       bezierPoint.x * this.__scale__,
+  //       bezierPoint.y * this.__scale__ + 2
+  //     );
+  //   }
 
-    ctx.restore();
-  }
+  //   ctx.restore();
+  // }
 }

@@ -1,6 +1,6 @@
 import Core from "@/shapes/core";
 import Curve from "@/shapes/curve";
-import * as CommonTypes from "@/types/shapes/common";
+import * as CommonTypes from "@/types/common";
 
 enum PressingTarget {
   // anchor points
@@ -97,12 +97,6 @@ type GetCenterReturn = {
   [CommonTypes.Corner.rt]: CommonTypes.Vec;
   [CommonTypes.Corner.rb]: CommonTypes.Vec;
   [CommonTypes.Corner.lb]: CommonTypes.Vec;
-  __curveTrigger__: {
-    l: CommonTypes.Vec;
-    t: CommonTypes.Vec;
-    r: CommonTypes.Vec;
-    b: CommonTypes.Vec;
-  };
   receivingPoints: {
     l: CommonTypes.Vec;
     t: CommonTypes.Vec;

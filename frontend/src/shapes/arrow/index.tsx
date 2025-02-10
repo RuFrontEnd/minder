@@ -1,5 +1,5 @@
 "use client";
-import { Vec } from "@/types/shapes/common";
+import { Vec } from "@/types/common";
 import { tailwindColors } from "@/variables/colors";
 import * as ArrowTypes from "@/types/shapes/arrow";
 export default class Arrow {
@@ -27,7 +27,6 @@ export default class Arrow {
     p: Vec,
     deg: number
   ) {
-    // TODO: add id
     this.__id__ = id;
     this.__w__ = w;
     this.__h__ = h;
@@ -130,22 +129,15 @@ export default class Arrow {
     return this.__vertex__;
   }
 
-  scalify(val: number) {
-    return val * this.__scale__;
-  }
 
-  deScale(val: number) {
-    return val / this.__scale__;
-  }
-
-  relativify(p: Vec) {
+  toPivot(p: Vec) {
     return {
       x: p.x - this.__p__.x,
       y: p.y - this.__p__.y,
     };
   }
 
-  correct(p: Vec) {
+  toOrigin(p: Vec) {
     return {
       x: p.x + this.__p__.x,
       y: p.y + this.__p__.y,
@@ -159,83 +151,39 @@ export default class Arrow {
     };
   }
 
-  offsetfy(p: Vec) {
-    return {
-      x: p.x + this.__offset__.x,
-      y: p.y + this.__offset__.y,
-    };
-  }
-
-  deOffset(p: Vec) {
-    return {
-      x: p.x - this.__offset__.x,
-      y: p.y - this.__offset__.y,
-    };
-  }
-
-  getVertex() {
-    return {
-      t: {
-        x: this.__p__.x,
-        y: this.__p__.y - this.__h__,
-      },
-      l: {
-        x: this.__p__.x - this.__w__ / 2,
-        y: this.__p__.y,
-      },
-      r: {
-        x: this.__p__.x + this.__w__ / 2,
-        y: this.__p__.y,
-      },
-    };
-  } // TOOD: should be replaced by getVtx
-
   getVtx(p: Vec, deg: number) {
     // move to origin and rotate then put back to original position
-    return this.correct(this.rotate(this.relativify(p), deg));
+    return this.toOrigin(this.rotate(this.toPivot(p), deg));
   }
 
-  checkBoundry(screenP: Vec) {
-    const deScaleP = {
-      x: this.deScale(screenP.x),
-      y: this.deScale(screenP.y),
-    };
-
-    const relativeP = this.relativify(this.deOffset(deScaleP));
-
-    const relativeVertex = {
-      t: this.relativify(this.__vertex__.t),
-      l: this.relativify(this.__vertex__.l),
-      r: this.relativify(this.__vertex__.r),
-    };
-
+  checkBoundry(p: Vec) {
     const vecs = [
       {
-        x: relativeVertex.r.x - relativeVertex.t.x,
-        y: relativeVertex.r.y - relativeVertex.t.y,
+        x: this.__vertex__.r.x - this.__vertex__.t.x,
+        y: this.__vertex__.r.y - this.__vertex__.t.y,
       },
       {
-        x: relativeVertex.l.x - relativeVertex.r.x,
-        y: relativeVertex.l.y - relativeVertex.r.y,
+        x: this.__vertex__.l.x - this.__vertex__.r.x,
+        y: this.__vertex__.l.y - this.__vertex__.r.y,
       },
       {
-        x: relativeVertex.t.x - relativeVertex.l.x,
-        y: relativeVertex.t.y - relativeVertex.l.y,
+        x: this.__vertex__.t.x - this.__vertex__.l.x,
+        y: this.__vertex__.t.y - this.__vertex__.l.y,
       },
     ];
 
     const target = [
       {
-        x: relativeP.x - relativeVertex.t.x,
-        y: relativeP.y - relativeVertex.t.y,
+        x: p.x - this.__vertex__.t.x,
+        y: p.y - this.__vertex__.t.y,
       },
       {
-        x: relativeP.x - relativeVertex.r.x,
-        y: relativeP.y - relativeVertex.r.y,
+        x: p.x - this.__vertex__.r.x,
+        y: p.y - this.__vertex__.r.y,
       },
       {
-        x: relativeP.x - relativeVertex.l.x,
-        y: relativeP.y - relativeVertex.l.y,
+        x: p.x - this.__vertex__.l.x,
+        y: p.y - this.__vertex__.l.y,
       },
     ];
 
@@ -249,23 +197,12 @@ export default class Arrow {
     );
   }
 
-  checkControlPointsBoundry(screenP: Vec) {
+  checkControlPointsBoundry(p: Vec) {
     if (!this.__selecting__) return null;
 
-    const deScaleP = {
-      x: this.deScale(screenP.x),
-      y: this.deScale(screenP.y),
-    };
-    const relativeP = this.relativify(this.deOffset(deScaleP));
-    const relativeVertex = {
-      t: this.relativify(this.__vertex__.t),
-      l: this.relativify(this.__vertex__.l),
-      r: this.relativify(this.__vertex__.r),
-    };
-
     if (
-      Math.pow(relativeP.x - relativeVertex.t.x, 2) +
-        Math.pow(relativeP.y - relativeVertex.t.y, 2) <
+      Math.pow(p.x - this.__vertex__.t.x, 2) +
+        Math.pow(p.y - this.__vertex__.t.y, 2) <
       Math.pow(5, 2)
     ) {
       return ArrowTypes.Vertex.t;
@@ -274,20 +211,11 @@ export default class Arrow {
     return null;
   }
 
-  draw(ctx: CanvasRenderingContext2D) {
+  draw(ctx: CanvasRenderingContext2D, offest: Vec = { x: 0, y: 0 }, scale: number = 1) {
     const scaleSize = {
-      w: this.scalify(this.__w__),
-      h: this.scalify(this.__h__),
+      w: this.__w__*scale,
+      h: this.__h__*scale,
     };
-
-    const offsetP = this.offsetfy(this.__p__);
-    const screenP = {
-      x: this.scalify(offsetP.x),
-      y: this.scalify(offsetP.y),
-    };
-
-    ctx.save();
-    ctx.translate(screenP.x, screenP.y);
 
     ctx.beginPath();
     ctx.fillStyle = this.__c__;
@@ -310,7 +238,5 @@ export default class Arrow {
       ctx.stroke();
       ctx.closePath();
     }
-
-    ctx.restore();
   }
 }

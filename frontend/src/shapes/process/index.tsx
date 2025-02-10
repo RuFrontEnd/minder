@@ -1,9 +1,11 @@
 "use client";
 import Core from "@/shapes/core";
-import * as CommonTypes from "@/types/shapes/common";
-import * as CoreTypes from "@/types/shapes/core";
+import { tailwindColors } from "@/variables/colors";
+import * as CommonTypes from "@/types/common";
 
 export default class Process extends Core {
+  type: CommonTypes.ShapeType.process = CommonTypes.ShapeType.process;
+
   constructor(
     id: CommonTypes.Id,
     w: CommonTypes.W,
@@ -11,31 +13,35 @@ export default class Process extends Core {
     p: CommonTypes.Vec,
     title: CommonTypes.Title
   ) {
-    super(id, w, h, p, "#AB44F4", title);
+    super(id, w, h, p, tailwindColors.shape.process, title);
   }
 
-  onDataChange = (
-    _title: CommonTypes.Title,
-    _selectedData: CommonTypes.Data,
-    _deletedData: CommonTypes.Data
-  ) => {
-    this.title = _title;
-    this.selectedData = _selectedData;
-    this.deletedData = _deletedData;
-  };
+  draw(
+    ctx: CanvasRenderingContext2D,
+    offest: CommonTypes.Vec = { x: 0, y: 0 },
+    scale: number = 1
+  ) {
+    super.draw(ctx, offest, scale, () => {
+      const screenP = {
+        x: (this.p.x + offest.x) * scale,
+        y: (this.p.y + offest.y) * scale,
+      };
+      const scaleSize = {
+        w: this.w * scale,
+        h: this.h * scale,
+      };
 
-  draw(ctx: CanvasRenderingContext2D) {
-    super.draw(ctx, () => {
-      const edge = this.getEdge();
-
+      ctx.save();
+      ctx.translate(screenP.x, screenP.y);
       ctx.beginPath();
       ctx.fillRect(
-        edge.l - this.getScreenP().x,
-        edge.t - this.getScreenP().y,
-        this.getScaleSize().w,
-        this.getScaleSize().h
+        -scaleSize.w / 2,
+        -scaleSize.h / 2,
+        scaleSize.w,
+        scaleSize.h
       );
       ctx.closePath();
+      ctx.restore();
     });
   }
 }

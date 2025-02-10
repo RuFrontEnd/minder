@@ -3,19 +3,31 @@ import Terminal from "@/shapes/terminal";
 import Process from "@/shapes/process";
 import Data from "@/shapes/data";
 import Desicion from "@/shapes/decision";
-import * as CommonTypes from "@/types/shapes/common";
-import * as CoreTypes from "@/types/shapes/core";
+import Curve from "@/shapes/curve";
+import Selection from "@/shapes/selection";
+import Stack from "@/dataStructure/stack";
+import * as CommonTypes from "@/types/common";
 import * as CurveTypes from "@/types/shapes/curve";
+import * as SelectionTypes from "@/types/shapes/selection";
 
-type Pressing = {
-  shape: null | Terminal | Process | Data | Desicion;
-  curveId?: null | CurveTypes.Id;
-  direction: null | CommonTypes.Direction; // TODO: should be removed in the future
-  target:
-    | null
-    | CoreTypes.PressingTarget
-    | CurveTypes.PressingTarget
-    | CommonTypes.SelectAreaTarget;
+type PressingSelection = {
+  selection: Selection;
+  ghost: Selection;
+  target: SelectionTypes.PressingTarget;
+};
+
+type PressingCurve = {
+  from: {
+    shape: Terminal | Process | Data | Desicion;
+    origin: Terminal | Process | Data | Desicion;
+    d: CommonTypes.Direction;
+  };
+  to: null | {
+    shape: Terminal | Process | Data | Desicion;
+    origin: Terminal | Process | Data | Desicion;
+    d: CommonTypes.Direction;
+  };
+  shape: Curve;
 };
 
 type Sticking = {
@@ -30,4 +42,31 @@ type Sticking = {
   };
 };
 
-export type { Pressing, Sticking };
+type MultiSelectShapeIds = string[];
+
+type Actions = Stack<{
+  type: CommonTypes.Action;
+  shapes: (Terminal | Process | Data | Desicion)[];
+  curves: CommonTypes.ConnectionCurves;
+}>;
+
+enum OverallType {
+  step = "step",
+  data = "data",
+}
+
+type Datas = {
+  id: string;
+  name: string;
+}[];
+
+export type {
+  PressingSelection,
+  PressingCurve,
+  Sticking,
+  Actions,
+  MultiSelectShapeIds,
+  Datas,
+};
+
+export { OverallType };

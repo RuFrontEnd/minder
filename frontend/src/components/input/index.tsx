@@ -22,18 +22,30 @@ const Input = (props: InputTypes.Props) => {
     })();
 
   return (
-    <div className={props.className} id={props.id}>
-      <label htmlFor={props.name} className={`leading-7 text-md text-grey-2 ms-1 duration-200 ease-in-out`}>
-        {props.label}
-      </label>
+    <div className={props.className} id={props.id} role={props.role}>
+      {props.label && (
+        <label
+          htmlFor={props.name}
+          className={`leading-7 text-md text-grey-2 ms-1 duration-200 ease-in-out`}
+        >
+          {props.label}
+        </label>
+      )}
       <input
+        style={{
+          width: props.w ? props.w : "100%",
+          height: props.h ? props.h : 32,
+        }}
+        placeholder={props.placeholder}
         type={props.type}
         name={props.name}
-        className={`w-full bg-white-500 rounded border ${borderColor} text-base outline-none text-grey-2 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out`}
+        className={`bg-white-500 rounded border ${borderColor} text-base outline-none text-grey-2 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out`}
         value={props.value || ""}
         onChange={props.onChange}
       />
-      {props.comment && <p className={`${textColor} text-sm ms-1 mt-1`}>{props.comment}</p>}
+      {props.comment && (
+        <p className={`${textColor} text-sm ms-1 mt-1`}>{props.comment}</p>
+      )}
     </div>
   );
 };
