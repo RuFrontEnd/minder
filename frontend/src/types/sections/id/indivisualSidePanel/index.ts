@@ -6,7 +6,6 @@ import Desicion from "@/shapes/decision";
 import * as InputTypes from "@/types/components/input";
 import * as SelectTypes from "@/types/components/input";
 import * as CommonTypes from "@/types/common";
-import * as PageIdTypes from "@/types/app/pageId";
 
 type CreateDatas = {
   val: null | string;
@@ -25,10 +24,7 @@ type Props = {
   setProjectName: Dispatch<SetStateAction<{ inputVal: string; val: string }>>;
   shapes: (Terminal | Process | Data | Desicion)[];
   curves: CommonTypes.ConnectionCurves;
-  datas: {
-    id: string;
-    name: string;
-  }[];
+  datas: CommonTypes.OverallDatas;
   setDatas: Dispatch<SetStateAction<Props["datas"]>>;
   isIndivisualSidePanelOpen: boolean;
   setIsIndivisualSidePanelOpen: Dispatch<

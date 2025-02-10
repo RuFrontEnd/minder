@@ -4,6 +4,7 @@ import Process from "@/shapes/process";
 import DataShape from "@/shapes/data";
 import Decision from "@/shapes/decision";
 import Curve from "@/shapes/curve";
+import * as CommonTypes from "@/types/common";
 
 type Id = string;
 
@@ -43,6 +44,10 @@ enum DataStatus {
 type Data = { id: string; text: string; status: DataStatus };
 
 type Datas = Data[];
+
+type OverallData = { id: string; name: string };
+
+type OverallDatas = OverallData[];
 
 enum ShapeType {
   terminator = "terminator",
@@ -111,6 +116,7 @@ type UploadJSON = {
       shapeId: string;
     };
   }[];
+  datas: CommonTypes.OverallDatas;
   consoles: any;
 };
 
@@ -126,8 +132,10 @@ export type {
   Title,
   Data,
   Datas,
+  OverallData,
+  OverallDatas,
   ConnectionCurves,
   UploadJSON,
-  Shape
+  Shape,
 };
 export { Direction, Corner, ShapeType, Action, DataStatus };
