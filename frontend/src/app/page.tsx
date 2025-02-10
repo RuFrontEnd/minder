@@ -1,3 +1,4 @@
+// indivsual data hover color / change shape type when editing shape / edit data name in overall datas / edit data name in indivisual / copy data / downloaded data with project name
 "use client";
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import axios from "axios";
@@ -2559,11 +2560,6 @@ export default function IdPage() {
         candidates[chunckI].status = messageShape.status;
         messageShape.datas.forEach((data: any) => {
           if (!candidates) return;
-          console.log("data", data);
-          console.log(
-            "candidates[messageShapeI].usingDatas[data.i]",
-            candidates[messageShapeI].usingDatas[data.i]
-          );
 
           candidates[chunckI].usingDatas[data.i].status = data.status;
 

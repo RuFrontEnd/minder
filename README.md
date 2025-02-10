@@ -30,16 +30,16 @@ FT
 - [x] auto calculate curve position
 - [x] align shapes
 - [x] undo
-- [ ] one-click remove redundancies
-- [ ] modulize steps
-- [ ] data remark
-- [ ] forget password
-- [ ] third-party sign in
-- [ ] copy
-- [ ] redo
-- [ ] optimizing UI
-- [ ] branding page
-- [ ] payment
+- [] one-click remove redundancies
+- [] modulize steps
+- [] data remark
+- [] forget password
+- [] third-party sign in
+- [] copy
+- [] redo
+- [] optimizing UI
+- [] branding page
+- [] payment
 
 BK
 - [X] register
