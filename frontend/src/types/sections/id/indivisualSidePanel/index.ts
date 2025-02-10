@@ -21,7 +21,7 @@ type AddDatas = {
 
 type Props = {
   projectName: string;
-  setProjectName: Dispatch<SetStateAction<{ inputVal: string; val: string }>>;
+  setProjectName: Dispatch<SetStateAction<CommonTypes.ProjectName>>
   shapes: (Terminal | Process | Data | Desicion)[];
   curves: CommonTypes.ConnectionCurves;
   datas: CommonTypes.OverallDatas;

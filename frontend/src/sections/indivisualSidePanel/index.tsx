@@ -474,7 +474,6 @@ export default function IndivisualSidePanel(
     fileUtils
       .upload("application/json")
       .then((json: CommonTypes.UploadJSON) => {
-        console.log('json', json)
         if (
           !("consoles" in json) ||
           !("curves" in json) ||

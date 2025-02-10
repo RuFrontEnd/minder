@@ -1,5 +1,5 @@
 import Core from "@/shapes/core";
-import Termainal from "@/shapes/terminal";
+import Terminal from "@/shapes/terminal";
 import Process from "@/shapes/process";
 import DataShape from "@/shapes/data";
 import Decision from "@/shapes/decision";
@@ -70,11 +70,11 @@ enum Action {
 type ConnectionCurves = {
   shape: Curve;
   from: {
-    shape: Termainal | Process | DataShape | Decision;
+    shape: Terminal | Process | DataShape | Decision;
     d: Direction;
   };
   to: {
-    shape: Termainal | Process | DataShape | Decision;
+    shape: Terminal | Process | DataShape | Decision;
     d: Direction;
   };
 }[];
@@ -120,7 +120,13 @@ type UploadJSON = {
   consoles: any;
 };
 
-type Shape = Termainal | Process | DataShape | Decision;
+type Shape = Terminal | Process | DataShape | Decision;
+
+type Positioning = (p: Vec) => void;
+
+type Steps = CommonTypes.Shape[];
+
+type ProjectName = { val: string; inputVal: string };
 
 export type {
   Id,
@@ -137,5 +143,8 @@ export type {
   ConnectionCurves,
   UploadJSON,
   Shape,
+  Positioning,
+  Steps,
+  ProjectName,
 };
 export { Direction, Corner, ShapeType, Action, DataStatus };
