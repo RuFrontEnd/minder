@@ -1,5 +1,5 @@
 "use client";
-import React, { useState} from "react";
+import React, { useState } from "react";
 import Terminal from "@/shapes/terminal";
 import Process from "@/shapes/process";
 import Data from "@/shapes/data";
@@ -23,13 +23,11 @@ import * as PageIdTypes from "@/types/app/pageId";
 import * as SidePanelTypes from "@/types/components/sidePanel";
 import * as SimpleButtonTypes from "@/types/components/simpleButton";
 
-export default function OverallSidePanel(
-  props: OverallSidePanelTypes.Props
-) {
+export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
   const [isOpen, setIsOpen] = useState(false);
   const [isRenameFrameOpen, setIsRenameFrameOpen] = useState(false);
   const [type, setType] = useState(PageIdTypes.OverallType.step);
-  const [createDataValue, setCreateDateValue] = useState<null | string>(null);
+  const [createDataValue, setCreateDataValue] = useState<null | string>(null);
 
   const onClickOverallSidePanelSwitch = () => {
     setIsOpen((open) => !open);
@@ -75,25 +73,44 @@ export default function OverallSidePanel(
   };
 
   const onChangeCreateDataInput: InputTypes.Props["onChange"] = (e) => {
-    setCreateDateValue(e.target.value);
+    setCreateDataValue(e.target.value);
   };
 
   const onClickCreateDataButton = () => {
-    const _datas = cloneDeep(props.datas);
-
     if (!createDataValue) return;
+
+    if (props.datas.findIndex((data) => data.name === createDataValue) !== -1) {
+      setCreateDataValue(null);
+      return;
+    }
+
+    const _datas = cloneDeep(props.datas);
 
     _datas.push({ id: Math.random().toString(), name: createDataValue }); // TODO: should be revised into post to backend
 
     props.setDatas(_datas);
 
-    setCreateDateValue(null);
+    setCreateDataValue(null);
   };
 
   const onDeleteDataButton = (dataName: string) => {
-    const _datas = cloneDeep(props.datas);
+    const newDatas = cloneDeep(props.datas).filter(
+      (data) => data.name !== dataName
+    );
+    props.setDatas(newDatas);
 
-    props.setDatas(_datas.filter((_data) => _data.name !== dataName));
+    // sync with shapes
+    const map: { [data: string]: boolean } = {};
+    newDatas.forEach((newData) => {
+      map[newData.name] = true;
+    });
+    const newShapes = cloneDeep(props.shapes);
+    newShapes.forEach((shape) => {
+      shape.usingDatas = shape.usingDatas.filter((data) => map[data.text]);
+      shape.importDatas = shape.importDatas.filter((data) => map[data.text]);
+      shape.deleteDatas = shape.deleteDatas.filter((data) => map[data.text]);
+    });
+    props.updateShapes(newShapes);
   };
 
   return (

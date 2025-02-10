@@ -1,4 +1,4 @@
-// indivsual data hover color / change shape type when editing shape / edit data name in overall datas / edit data name in indivisual / copy data / downloaded data with project name / clear overall data then remove all the data in every steps
+// indivsual data hover color / change shape type when editing shape / edit data name in overall datas / edit data name in indivisual / copy data / downloaded data with project name
 "use client";
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import axios from "axios";
@@ -895,7 +895,7 @@ const frameSelect = (
   if (!selectionFrame) return [];
   // define which shape in select area
   const shapesInSelectingArea = (() => {
-    const shapesInArea: CommonTypes.Shape[] = [];
+    const shapesInArea: CommonTypes.Shapes = [];
 
     const normalSelectAreaP = {
       start: getNormalP(selectionFrame.p.start, offset, scale),
@@ -1356,7 +1356,7 @@ const defineSelectionFrameRange = (
   return false;
 };
 
-const getShapeIdMap = (shapes: CommonTypes.Shape[]) => {
+const getShapeIdMap = (shapes: CommonTypes.Shapes) => {
   const map: { [id: string]: boolean } = {};
 
   shapes.forEach((shape) => {
@@ -1366,7 +1366,7 @@ const getShapeIdMap = (shapes: CommonTypes.Shape[]) => {
   return map;
 };
 
-const syncCurvePosition = (shapes: CommonTypes.Shape[]) => {
+const syncCurvePosition = (shapes: CommonTypes.Shapes) => {
   const shapeIdMap = getShapeIdMap(shapes);
 
   curves.forEach((curve) => {
@@ -1912,7 +1912,7 @@ const undo = (
   drawScreenshot(offset, scale);
 };
 
-const syncCandidates = (shapes: CommonTypes.Shape[]) => {
+const syncCandidates = (shapes: CommonTypes.Shapes) => {
   if (!candidates) return;
   // sync with candidates when checking
   shapes.forEach((shape) => {
@@ -1972,7 +1972,7 @@ export default function IdPage() {
   };
 
   const updateShapes = (
-    newShapes: (Terminal | Process | Data | Desicion)[]
+    newShapes: CommonTypes.Shapes
   ) => {
     shapes = newShapes;
     checkSteps();
@@ -2574,6 +2574,8 @@ export default function IdPage() {
         setDatas={setDatas}
         projectName={projectName}
         setProjectName={setProjectName}
+        updateShapes={updateShapes}
+        shapes={shapes}
       />
 
       <IndivisaulSidePanel

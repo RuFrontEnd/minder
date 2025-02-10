@@ -1,11 +1,8 @@
 import { Dispatch, SetStateAction } from "react";
-import Terminal from "@/shapes/terminal";
-import Process from "@/shapes/process";
-import Data from "@/shapes/data";
-import Desicion from "@/shapes/decision";
 import * as InputTypes from "@/types/components/input";
 import * as SelectTypes from "@/types/components/input";
 import * as CommonTypes from "@/types/common";
+import * as PageIdTypes from "@/types/app/pageId";
 
 type CreateDatas = {
   val: null | string;
@@ -24,8 +21,10 @@ type Props = {
   steps: CommonTypes.Steps;
   datas: CommonTypes.OverallDatas;
   setDatas: Dispatch<SetStateAction<Props["datas"]>>;
-  projectName:CommonTypes.ProjectName;
-  setProjectName:Dispatch<SetStateAction<Props["projectName"]>>;
+  projectName: CommonTypes.ProjectName;
+  setProjectName: Dispatch<SetStateAction<Props["projectName"]>>;
+  updateShapes: PageIdTypes.UpdateShapes;
+  shapes:CommonTypes.Shapes
 };
 
 export type { Props, CreateDatas, AddDatas };

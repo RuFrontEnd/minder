@@ -16,8 +16,6 @@ type C = string;
 
 type Vec = { x: number; y: number };
 
-type Shapes = Core | Process | Curve;
-
 enum Direction {
   l = "l",
   t = "t",
@@ -122,9 +120,11 @@ type UploadJSON = {
 
 type Shape = Terminal | Process | DataShape | Decision;
 
+type Shapes = (Terminal | Process | DataShape | Decision)[];
+
 type Positioning = (p: Vec) => void;
 
-type Steps = CommonTypes.Shape[];
+type Steps = CommonTypes.Shapes;
 
 type ProjectName = { val: string; inputVal: string };
 
