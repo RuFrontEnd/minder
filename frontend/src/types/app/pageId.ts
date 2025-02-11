@@ -60,6 +60,8 @@ type Datas = {
   name: string;
 }[];
 
+type UpdateShapes = (shapes: CommonTypes.Shapes) => void;
+
 export type {
   PressingSelection,
   PressingCurve,
@@ -67,6 +69,7 @@ export type {
   Actions,
   MultiSelectShapeIds,
   Datas,
+  UpdateShapes
 };
 
 export { OverallType };

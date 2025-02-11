@@ -18,12 +18,10 @@ import * as fileUtils from "@/utils/file";
 import * as InputTypes from "@/types/components/input";
 import * as SelectTypes from "@/types/components/select";
 import * as IconTypes from "@/types/components/icon";
-import * as PageIdTypes from "@/types/app/pageId";
 import * as SidePanelTypes from "@/types/components/sidePanel";
 import * as ButtonTypes from "@/types/components/button";
 import * as IndivisaulSidePanelTypes from "@/types/sections/id/indivisualSidePanel";
 import * as CommonTypes from "@/types/common";
-import * as CheckDataTypes from "@/types/workers/checkData";
 
 export default function IndivisualSidePanel(
   props: IndivisaulSidePanelTypes.Props
@@ -429,6 +427,7 @@ export default function IndivisualSidePanel(
   };
 
   const onClickDownloadButton = () => {
+    console.log('props.datas', props.datas)
     const data = {
       project: props.projectName,
       shapes: props.shapes.map((shape) => ({
@@ -460,13 +459,14 @@ export default function IndivisualSidePanel(
         },
         to: { d: curve.to.d, shapeId: curve.to.shape.id },
       })),
+      datas: props.datas,
       consoles: props.consoles,
     };
 
     fileUtils.download(
       data,
       "application/json",
-      `minder_data_${new Date().valueOf()}.json`
+      `minder_${props.projectName}_${new Date().valueOf()}.json`
     );
   };
 
@@ -474,7 +474,17 @@ export default function IndivisualSidePanel(
     fileUtils
       .upload("application/json")
       .then((json: CommonTypes.UploadJSON) => {
-        props.deSelect()
+        if (
+          !("consoles" in json) ||
+          !("curves" in json) ||
+          !("project" in json) ||
+          !("shapes" in json) ||
+          !("datas" in json)
+        ) {
+          throw new Error();
+        }
+
+        props.deSelect();
 
         const shapeType = {
           [CommonTypes.ShapeType.terminator]: Terminal,
@@ -540,9 +550,10 @@ export default function IndivisualSidePanel(
         props.updateShapes(newShapes);
         props.updateCurves(newCurves);
         props.setConsoles(json.consoles);
+        props.setDatas(json.datas);
       })
       .catch(() => {
-        console.error("file format is not correct.");
+        console.error("file format is incorrect.");
       })
       .finally(() => {
         props.draw();

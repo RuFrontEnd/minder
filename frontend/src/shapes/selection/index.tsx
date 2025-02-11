@@ -20,7 +20,7 @@ export default class Selection {
     stroke: tailwindColors.info["500"],
   };
   private m: CommonTypes.Vec = { x: 0, y: 0 };
-  private __shapes__: CommonTypes.Shape[] = [];
+  private __shapes__: CommonTypes.Shapes = [];
   static __sendingPoint__: {
     distance: number;
     size: {
@@ -42,7 +42,7 @@ export default class Selection {
     },
   };
 
-  constructor(id: string, shapes: CommonTypes.Shape[]) {
+  constructor(id: string, shapes: CommonTypes.Shapes) {
     this.__id__ = id;
     this.__shapes__ = shapes;
   }
@@ -51,7 +51,7 @@ export default class Selection {
     return this.__id__
   }
 
-  set shapes(_shapes: CommonTypes.Shape[]) {
+  set shapes(_shapes: CommonTypes.Shapes) {
     this.shapes = _shapes;
   }
 
