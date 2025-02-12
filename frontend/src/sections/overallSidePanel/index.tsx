@@ -15,6 +15,7 @@ import { motion } from "framer-motion";
 import { cloneDeep } from "lodash";
 import { ChangeEventHandler, MouseEventHandler } from "react";
 import { tailwindColors } from "@/variables/colors";
+import { v4 as uuidv4 } from "uuid";
 import * as CommonTypes from "@/types/common";
 import * as OverallSidePanelTypes from "@/types/sections/id/overallSidePanel";
 import * as InputTypes from "@/types/components/input";
@@ -86,7 +87,7 @@ export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
 
     const _datas = cloneDeep(props.datas);
 
-    _datas.push({ id: Math.random().toString(), name: createDataValue }); // TODO: should be revised into post to backend
+    _datas.push({ id:`overallData_${uuidv4()}`, name: createDataValue }); // TODO: should be revised into post to backend
 
     props.setDatas(_datas);
 

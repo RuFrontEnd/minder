@@ -427,7 +427,6 @@ export default function IndivisualSidePanel(
   };
 
   const onClickDownloadButton = () => {
-    console.log('props.datas', props.datas)
     const data = {
       project: props.projectName,
       shapes: props.shapes.map((shape) => ({
