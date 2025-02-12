@@ -1,4 +1,4 @@
-// indivsual data hover color / change shape type when editing shape / edit data name in overall datas / edit data name in indivisual / copy data / downloaded data with project name / data horizental sender curve position
+// indivsual data hover color / change shape type when editing shape / edit data name in overall datas / edit data name in indivisual / copy data / downloaded data with project name
 "use client";
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import axios from "axios";
@@ -1974,9 +1974,7 @@ export default function IdPage() {
     setSteps(cloneDeep(shapes));
   };
 
-  const updateShapes = (
-    newShapes: CommonTypes.Shapes
-  ) => {
+  const updateShapes = (newShapes: CommonTypes.Shapes) => {
     shapes = newShapes;
     checkSteps();
     setIndivisual(shapes.find((shape) => indivisual?.id === shape.id) || null);
@@ -2472,9 +2470,10 @@ export default function IdPage() {
         log: string;
       }>
     ) => {
-      if (event.data.ms && event.data.log) {
-        console.log(`${event.data.ms}`, event.data.log);
-      }
+      // for testing
+      // if (event.data.ms && event.data.log) {
+      //   console.log(`${event.data.ms}`, event.data.log);
+      // }
       if (!event.data.messageShapes) return;
 
       if (!candidates) {
@@ -2502,7 +2501,15 @@ export default function IdPage() {
 
       if (event.data.done) {
         updateShapes(candidates);
+        console.log("newConsoles", newConsoles);
         setConsoles(newConsoles);
+        if (
+          newConsoles.findIndex(
+            (newConsole: any) => newConsole.status === "error"
+          ) > -1
+        ) {
+          setIsConsoleOpen(true);
+        }
         terminateDataChecking();
       }
       index += chunkSize;
