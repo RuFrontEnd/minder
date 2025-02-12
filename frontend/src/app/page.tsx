@@ -1,4 +1,4 @@
-// indivsual data hover color / change shape type when editing shape / edit data name in overall datas / edit data name in indivisual / copy data / downloaded data with project name
+// indivsual data hover color / change shape type when editing shape / edit data name in overall datas / edit data name in indivisual / copy data / downloaded data with project name / data horizental sender curve position
 "use client";
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import axios from "axios";
@@ -1403,17 +1403,18 @@ const moveSenderCurve = (
   senderId: null | undefined | string
 ) => {
   const sender = shapes.find((shape) => shape.id === senderId);
+
   if (!sender || !curve) return;
 
   const edgeM = sender.getCenter()[fromD];
   const curveThreshold = curveThresholdStrategy[sender.type][fromD];
   const threshold = {
     x:
-      toD === CommonTypes.Direction.l || toD === CommonTypes.Direction.r
+      fromD === CommonTypes.Direction.l || fromD === CommonTypes.Direction.r
         ? curveThreshold
         : 0,
     y:
-      toD === CommonTypes.Direction.t || toD === CommonTypes.Direction.b
+      fromD === CommonTypes.Direction.t || fromD === CommonTypes.Direction.b
         ? curveThreshold
         : 0,
   };
@@ -1438,6 +1439,7 @@ const moveRecieverCurve = (
   recieverId: null | undefined | string
 ) => {
   const reciever = shapes.find((shape) => shape.id === recieverId);
+
   if (!reciever || !curve) return;
 
   const p1 = curve.p1;
@@ -1934,6 +1936,7 @@ export default function IdPage() {
   const [control, setControl] = useState(false);
   const [scale, setScale] = useState(1);
   const [leftMouseBtn, setLeftMouseBtn] = useState(false);
+  const [isOverAllSidePanelOpen, setIsOverAllSidePanelOpen] = useState(false);
   const [isIndivisualSidePanelOpen, setIsIndivisualSidePanelOpen] =
     useState(false);
   const [isConsoleOpen, setIsConsoleOpen] = useState(false);
@@ -2576,6 +2579,8 @@ export default function IdPage() {
         setProjectName={setProjectName}
         updateShapes={updateShapes}
         shapes={shapes}
+        isOverAllSidePanelOpen={isOverAllSidePanelOpen}
+        setIsOverAllSidePanelOpen={setIsOverAllSidePanelOpen}
       />
 
       <IndivisaulSidePanel
@@ -2622,6 +2627,7 @@ export default function IdPage() {
         undo={() => {
           undo(ctx, offset, scale);
         }}
+        isOverAllSidePanelOpen={isOverAllSidePanelOpen}
         isIndivisualSidePanelOpen={isIndivisualSidePanelOpen}
         setIsIndivisualSidePanelOpen={setIsIndivisualSidePanelOpen}
         isConsoleOpen={isConsoleOpen}
