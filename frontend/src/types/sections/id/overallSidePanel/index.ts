@@ -24,7 +24,11 @@ type Props = {
   projectName: CommonTypes.ProjectName;
   setProjectName: Dispatch<SetStateAction<Props["projectName"]>>;
   updateShapes: PageIdTypes.UpdateShapes;
-  shapes:CommonTypes.Shapes
+  shapes: CommonTypes.Shapes;
+  isOverAllSidePanelOpen: boolean;
+  setIsOverAllSidePanelOpen: Dispatch<
+    SetStateAction<Props["isOverAllSidePanelOpen"]>
+  >;
 };
 
 export type { Props, CreateDatas, AddDatas };

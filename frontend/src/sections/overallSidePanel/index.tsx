@@ -25,13 +25,12 @@ import * as SidePanelTypes from "@/types/components/sidePanel";
 import * as SimpleButtonTypes from "@/types/components/simpleButton";
 
 export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
-  const [isOpen, setIsOpen] = useState(false);
   const [isRenameFrameOpen, setIsRenameFrameOpen] = useState(false);
   const [type, setType] = useState(PageIdTypes.OverallType.step);
   const [createDataValue, setCreateDataValue] = useState<null | string>(null);
 
   const onClickOverallSidePanelSwitch = () => {
-    setIsOpen((open) => !open);
+    props.setIsOverAllSidePanelOpen((open) => !open);
   };
 
   const onClickPositioningButton = (shapeP: CommonTypes.Vec) => {
@@ -116,7 +115,7 @@ export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
 
   return (
     <SidePanel
-      open={isOpen}
+      open={props.isOverAllSidePanelOpen}
       w={"360px"}
       h={"calc(100vh)"}
       verticalD={SidePanelTypes.VerticalD.b}
