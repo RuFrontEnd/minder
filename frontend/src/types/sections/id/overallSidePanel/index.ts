@@ -17,7 +17,7 @@ type AddDatas = {
 }[];
 
 type Props = {
-  positioning: CommonTypes.Positioning;
+  positioning: PageIdTypes.Positioning;
   steps: CommonTypes.Steps;
   datas: CommonTypes.OverallDatas;
   setDatas: Dispatch<SetStateAction<Props["datas"]>>;

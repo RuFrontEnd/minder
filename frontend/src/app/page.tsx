@@ -1,4 +1,4 @@
-// indivsual data hover color / change shape type when editing shape / edit data name in overall datas / edit data name in indivisual / copy data / downloaded data with project name
+// indivsual data hover color / change shape type when editing shape / edit data name in overall datas / edit data name in indivisual / copy data / downloaded data with project name / icon component default should be empty
 "use client";
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import axios from "axios";
@@ -24,13 +24,13 @@ import * as SelectionTypes from "@/types/shapes/selection";
 import * as IndivisaulSidePanelTypes from "@/types/sections/id/indivisualSidePanel";
 import * as InputTypes from "@/types/components/input";
 import * as PageIdTypes from "@/types/app/pageId";
-import * as CheckDataTypes from "@/types/workers/checkData";
+import * as ConsoleTypes from "@/types/sections/id/console";
 
 axios.defaults.baseURL = process.env.BASE_URL || "http://localhost:5000/api";
 
 const isBrowser = typeof window !== "undefined";
 
-const init = {
+const init: PageIdTypes.Init = {
   shape: {
     size: {
       t: { w: 144, h: 72 },
@@ -1947,9 +1947,7 @@ export default function IdPage() {
     val: "Untitled",
   });
   const [isEditingIndivisual, setIsEditingIndivisual] = useState(false);
-  const [indivisual, setIndivisual] = useState<
-    null | Terminal | Process | Data | Desicion
-  >(null);
+  const [indivisual, setIndivisual] = useState<PageIdTypes.Indivisual>(null);
   const [createImportDatas, setCreateImportDatas] =
     useState<IndivisaulSidePanelTypes.CreateDatas>([]);
   const [addImportDatas, setAddImportDatas] =
@@ -1962,7 +1960,7 @@ export default function IdPage() {
     useState<IndivisaulSidePanelTypes.CreateDatas>([]);
   const [addDeleteDatas, setAddDeleteDatas] =
     useState<IndivisaulSidePanelTypes.AddDatas>([]);
-  const [consoles, setConsoles] = useState<any>([]);
+  const [consoles, setConsoles] = useState<ConsoleTypes.Consoles>([]);
   const [isCheckingData, setIsCheckingData] = useState(false);
 
   const movingViewport = useMemo(
@@ -1986,13 +1984,7 @@ export default function IdPage() {
     curves = newCurves;
   };
 
-  const zoom = (
-    delta: number,
-    client: {
-      x: number;
-      y: number;
-    }
-  ) => {
+  const zoom: PageIdTypes.Zoom = (delta, client) => {
     const $canvas = document.querySelector("canvas");
     if (!$canvas) return;
     const scaleAmount = -delta / 500;
@@ -2016,7 +2008,7 @@ export default function IdPage() {
     drawCanvas(offset, _scale);
   };
 
-  const positioning = (shapeP: CommonTypes.Vec) => {
+  const positioning: PageIdTypes.Positioning = (shapeP) => {
     if (!isBrowser) return;
 
     offset = {
@@ -2458,13 +2450,13 @@ export default function IdPage() {
 
     sendChuncks(shapes, curves, worker);
 
-    const newConsoles: any = [];
+    const newConsoles: ConsoleTypes.Consoles = [];
     let index = 0;
     const chunkSize = 1;
 
     worker.onmessage = (
       event: MessageEvent<{
-        messageShapes: CheckDataTypes.MessageShapes;
+        messageShapes: ConsoleTypes.Console["shape"][];
         done: boolean;
         ms: string;
         log: string;
@@ -2501,7 +2493,6 @@ export default function IdPage() {
 
       if (event.data.done) {
         updateShapes(candidates);
-        console.log("newConsoles", newConsoles);
         setConsoles(newConsoles);
         if (
           newConsoles.findIndex(
@@ -2647,7 +2638,6 @@ export default function IdPage() {
         }}
         consoles={consoles}
         positioning={positioning}
-        indivisual={indivisual}
         setIndivisual={setIndivisual}
         initShapeSize={init.shape.size}
       />

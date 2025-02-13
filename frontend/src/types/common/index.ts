@@ -1,4 +1,3 @@
-import Core from "@/shapes/core";
 import Terminal from "@/shapes/terminal";
 import Process from "@/shapes/process";
 import DataShape from "@/shapes/data";
@@ -35,6 +34,11 @@ type Title = string;
 enum DataStatus {
   default = "default",
   pass = "pass",
+  warning = "warning",
+  error = "error",
+}
+
+enum ConsoleStatus {
   warning = "warning",
   error = "error",
 }
@@ -122,8 +126,6 @@ type Shape = Terminal | Process | DataShape | Decision;
 
 type Shapes = (Terminal | Process | DataShape | Decision)[];
 
-type Positioning = (p: Vec) => void;
-
 type Steps = CommonTypes.Shapes;
 
 type ProjectName = { val: string; inputVal: string };
@@ -143,8 +145,7 @@ export type {
   ConnectionCurves,
   UploadJSON,
   Shape,
-  Positioning,
   Steps,
   ProjectName,
 };
-export { Direction, Corner, ShapeType, Action, DataStatus };
+export { Direction, Corner, ShapeType, Action, DataStatus, ConsoleStatus };

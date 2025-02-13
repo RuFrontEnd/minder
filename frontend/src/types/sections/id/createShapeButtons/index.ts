@@ -3,16 +3,11 @@ import Process from "@/shapes/process";
 import Data from "@/shapes/data";
 import Desicion from "@/shapes/decision";
 import * as CommonTypes from "@/types/common";
-
-type ActionRecords = {
-  register: (type: CommonTypes.Action) => void;
-  interrupt: (type: CommonTypes.Action) => void;
-  finish: (type: CommonTypes.Action) => void;
-};
+import * as PageIdTypes from "@/types/app/pageId";
 
 type Props = {
   isOverAllSidePanelOpen: boolean;
-  actionRecords: ActionRecords;
+  actionRecords: PageIdTypes.ActionRecords;
   shapes: (Terminal | Process | Data | Desicion)[];
   offset: CommonTypes.Vec;
   scale: number;
@@ -37,4 +32,4 @@ type Props = {
   reload: () => void;
 };
 
-export type { ActionRecords, Props };
+export type { Props };

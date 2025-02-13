@@ -9,6 +9,7 @@ import Stack from "@/dataStructure/stack";
 import * as CommonTypes from "@/types/common";
 import * as CurveTypes from "@/types/shapes/curve";
 import * as SelectionTypes from "@/types/shapes/selection";
+import * as InputTypes from "@/types/components/input";
 
 type PressingSelection = {
   selection: Selection;
@@ -62,6 +63,54 @@ type Datas = {
 
 type UpdateShapes = (shapes: CommonTypes.Shapes) => void;
 
+type Positioning = (p: CommonTypes.Vec) => void;
+
+type Indivisual = null | CommonTypes.Shape;
+
+type ActionRecords = {
+  register: (type: CommonTypes.Action) => void;
+  interrupt: (type: CommonTypes.Action) => void;
+  finish: (type: CommonTypes.Action) => void;
+  peekKey: () => string | undefined;
+};
+
+type Init = {
+  shape: {
+    size: {
+      t: { w: number; h: number };
+      p: { w: number; h: number };
+      d: { w: number; h: number };
+      dec: { w: number; h: number };
+    };
+  };
+  authInfo: {
+    account: {
+      value: undefined | string;
+      status: InputTypes.Status.normal;
+      comment: undefined | string;
+    };
+    password: {
+      value: undefined | string;
+      status: InputTypes.Status.normal;
+      comment: undefined | string;
+    };
+    email: {
+      value: undefined | string;
+      status: InputTypes.Status.normal;
+      comment: undefined | string;
+    };
+  };
+  offset: { x: 0; y: 0 };
+};
+
+type Zoom = (
+  delta: number,
+  client: {
+    x: number;
+    y: number;
+  }
+) => void;
+
 export type {
   PressingSelection,
   PressingCurve,
@@ -69,7 +118,12 @@ export type {
   Actions,
   MultiSelectShapeIds,
   Datas,
-  UpdateShapes
+  UpdateShapes,
+  Positioning,
+  Indivisual,
+  ActionRecords,
+  Init,
+  Zoom,
 };
 
 export { OverallType };
