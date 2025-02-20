@@ -362,6 +362,20 @@ export default class Curve {
     }
     ctx.restore();
 
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.font = `${14 * scale}px Arial`;
+
+    const middleP = this.getBezierMidP([
+      screenP.p1,
+      screenP.cp1,
+      screenP.cp2,
+      screenP.p2,
+    ]);
+
+    ctx.fillStyle = "black";
+    ctx.fillText("YYYYYY", middleP.x, middleP.y);
+
     // close p1, cp1, cp2, p2.
     // if (this.selecting) {
     // control lines

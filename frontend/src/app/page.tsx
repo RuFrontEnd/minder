@@ -2301,6 +2301,7 @@ export default function IdPage() {
   };
 
   const onMouseUp = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    console.log('curves', curves)
     e.preventDefault();
 
     const p = {
