@@ -1552,7 +1552,15 @@ const selectShape = (p: CommonTypes.Vec) => {
     if (!shape.checkBoundry(p)) continue;
     deSelectCurve();
 
-    selection = new Selection(`selectionArea_${uuidv4()}`, [shape]);
+    const isSendingPointDisabled =
+      shape instanceof Desicion &&
+      curves.filter((curve) => curve.from.shape.id === shape.id).length >= 2;
+
+    selection = new Selection(
+      `selectionArea_${uuidv4()}`,
+      [shape],
+      isSendingPointDisabled
+    );
 
     pressingSelection = {
       selection: selection,
@@ -2301,7 +2309,7 @@ export default function IdPage() {
   };
 
   const onMouseUp = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    console.log('curves', curves)
+    console.log("curves", curves);
     e.preventDefault();
 
     const p = {
@@ -2314,6 +2322,10 @@ export default function IdPage() {
     checkConnect(getNormalP(p, offset, scale));
     checkSteps();
     syncCandidates(shapes);
+
+    // if (!!selection) {
+    //   selection.shapes[0] instanceof Desicion;
+    // }
 
     if (actionRecords.peekKey() === CommonTypes.Action.move) {
       actionRecords.finish(CommonTypes.Action.move);

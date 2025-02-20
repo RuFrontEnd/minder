@@ -41,14 +41,20 @@ export default class Selection {
       stroke: 2,
     },
   };
+  private __isDisabledSendingPoint__ = false;
 
-  constructor(id: string, shapes: CommonTypes.Shapes) {
+  constructor(
+    id: string,
+    shapes: CommonTypes.Shapes,
+    isSendingPointDisabled: boolean = false
+  ) {
     this.__id__ = id;
     this.__shapes__ = shapes;
+    this.__isDisabledSendingPoint__ = isSendingPointDisabled;
   }
 
-  get id (){
-    return this.__id__
+  get id() {
+    return this.__id__;
   }
 
   set shapes(_shapes: CommonTypes.Shapes) {
@@ -57,6 +63,10 @@ export default class Selection {
 
   get shapes() {
     return this.__shapes__;
+  }
+
+  set isSendingPointDisabled(isDisabled: boolean) {
+    this.__isDisabledSendingPoint__ = isDisabled;
   }
 
   getSelectingMap() {
@@ -503,7 +513,8 @@ export default class Selection {
         if (
           (p.x - sendingPointP[d].x) * (p.x - sendingPointP[d].x) +
             (p.y - sendingPointP[d].y) * (p.y - sendingPointP[d].y) <
-          Selection.__sendingPoint__.size.fill * Selection.__sendingPoint__.size.fill
+          Selection.__sendingPoint__.size.fill *
+            Selection.__sendingPoint__.size.fill
         ) {
           return sendingPointPressingTargetStrategy[d];
         }
@@ -687,7 +698,7 @@ export default class Selection {
     ctx.fill();
     ctx?.closePath();
 
-    if (this.__shapes__.length === 1) {
+    if (this.__shapes__.length === 1 && !this.__isDisabledSendingPoint__) {
       this.drawSendingPoint(ctx, offset, scale);
     }
   }
