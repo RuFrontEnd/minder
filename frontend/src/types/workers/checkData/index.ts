@@ -1,7 +1,3 @@
-import Terminal from "@/shapes/terminal";
-import Process from "@/shapes/process";
-import Data from "@/shapes/data";
-import Desicion from "@/shapes/decision";
 import * as CommonTypes from "@/types/common";
 import * as CoreTypes from '@/types/shapes/core'
 
@@ -145,7 +141,7 @@ type MessageShapes = {
     text: string;
     status: string;
     console: null | {
-      message: string;
+      message: CommonTypes.DataStatus;
       status: string;
     };
   }[];

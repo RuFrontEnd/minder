@@ -2,6 +2,7 @@
 import Arrow from "@/shapes/arrow";
 import { Vec } from "@/types/common";
 import { tailwindColors } from "@/variables/colors";
+import { v4 as uuidv4 } from "uuid";
 import * as CurveTypes from "@/types/shapes/curve";
 
 const threshold = 5;
@@ -31,7 +32,7 @@ export default class Curve {
     this.id = id;
     this.cpline = {
       w: 1,
-      c: tailwindColors?.info["500"] || "#000000",
+      c: tailwindColors?.info["500"] || tailwindColors?.black["1"],
     };
     this.curve = {
       w: 1,
@@ -53,7 +54,7 @@ export default class Curve {
     this.__cp1__ = cp1;
     this.__cp2__ = cp2;
     this.arrow = new Arrow(
-      `arrow_${Date.now()}`,
+      `arrow_${uuidv4()}`,
       this.__arrowAttr__.w,
       this.__arrowAttr__.h,
       this.__arrowAttr__.c,
@@ -333,34 +334,6 @@ export default class Curve {
     // curve
     ctx.moveTo(screenP.p1.x, screenP.p1.y);
     ctx.fillStyle = "red";
-    // ctx.fillText(
-    //   `p1 x:${this.screenfy(this.p1).x.toFixed(1)} y:${this.screenfy(
-    //     this.p1
-    //   ).y.toFixed(1)}`,
-    //   0,
-    //   0
-    // );
-    // ctx.fillText(
-    //   `cp1 x:${this.screenfy(this.__cp1__).x.toFixed(1)} y:${this.screenfy(
-    //     this.__cp1__
-    //   ).y.toFixed(1)}`,
-    //   relativeScreenP.cp1.x,
-    //   relativeScreenP.cp1.y
-    // );
-    // ctx.fillText(
-    //   `cp2 x:${this.screenfy(this.__cp2__).x.toFixed(1)} y:${this.screenfy(
-    //     this.__cp2__
-    //   ).y.toFixed(1)}`,
-    //   relativeScreenP.cp2.x,
-    //   relativeScreenP.cp2.y
-    // );
-    // ctx.fillText(
-    //   `p2 x:${this.screenfy(this.__p2__).x.toFixed(1)} y:${this.screenfy(
-    //     this.__p2__
-    //   ).y.toFixed(1)}`,
-    //   relativeScreenP.p2.x,
-    //   relativeScreenP.p2.y
-    // );
 
     if (this.cp2) {
       ctx.bezierCurveTo(
@@ -389,97 +362,111 @@ export default class Curve {
     }
     ctx.restore();
 
-    if (this.selecting) {
-      // control lines
-      ctx.lineWidth = this.cpline.w;
-      ctx.strokeStyle = this.cpline.c;
-      ctx.fillStyle = this.cpline.c;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.font = `${14 * scale}px Arial`;
 
-      ctx.beginPath();
-      ctx.moveTo(screenP.p1.x, screenP.p1.y);
-      ctx.lineTo(screenP.cp1.x, screenP.cp1.y);
-      ctx.stroke();
-      ctx.closePath();
+    const middleP = this.getBezierMidP([
+      screenP.p1,
+      screenP.cp1,
+      screenP.cp2,
+      screenP.p2,
+    ]);
 
-      if (this.cp2) {
-        ctx.beginPath();
-        ctx.moveTo(screenP.p2.x, screenP.p2.y);
-        ctx.lineTo(screenP.cp2.x, screenP.cp2.y);
-        ctx.stroke();
-        ctx.closePath();
-      } else {
-        ctx.beginPath();
-        ctx.lineTo(screenP.p2.x, screenP.p2.y);
-        ctx.stroke();
-        ctx.closePath();
-      }
+    ctx.fillStyle = "black";
+    ctx.fillText("YYYYYY", middleP.x, middleP.y);
 
-      // control points
-      ctx.strokeStyle = this.controlPoint.strokeC;
-      ctx.fillStyle = this.controlPoint.c;
+    // close p1, cp1, cp2, p2.
+    // if (this.selecting) {
+    // control lines
+    // ctx.lineWidth = this.cpline.w;
+    // ctx.strokeStyle = this.cpline.c;
+    // ctx.fillStyle = this.cpline.c;
 
-      // ctx.beginPath();
-      // ctx.arc(c.x, c.y, this.controlPoint.r, 0, 2 * Math.PI, true); // cp1 control point
-      // ctx.fill();
-      // ctx.stroke();
-      // ctx.closePath();
+    // ctx.beginPath();
+    // ctx.moveTo(screenP.p1.x, screenP.p1.y);
+    // ctx.lineTo(screenP.cp1.x, screenP.cp1.y);
+    // ctx.stroke();
+    // ctx.closePath();
 
-      //   // TODO: temporarily close p1.
-      //   // ctx.beginPath();
-      //   // ctx.arc(relativeScreenP.p1.x, relativeScreenP.p1.y, this.this.controlPoint.r(), 0, 2 * Math.PI, true); // p1 control point
-      //   // ctx.fill();
-      //   // ctx.stroke();
-      //   // ctx.closePath();
+    // if (this.cp2) {
+    //   ctx.beginPath();
+    //   ctx.moveTo(screenP.p2.x, screenP.p2.y);
+    //   ctx.lineTo(screenP.cp2.x, screenP.cp2.y);
+    //   ctx.stroke();
+    //   ctx.closePath();
+    // } else {
+    //   ctx.beginPath();
+    //   ctx.lineTo(screenP.p2.x, screenP.p2.y);
+    //   ctx.stroke();
+    //   ctx.closePath();
+    // }
 
-      ctx.beginPath();
-      ctx.arc(
-        screenP.cp1.x,
-        screenP.cp1.y,
-        this.controlPoint.r,
-        0,
-        2 * Math.PI,
-        true
-      ); // cp1 control point
-      ctx.fill();
-      ctx.stroke();
-      ctx.closePath();
+    // control points
+    // ctx.strokeStyle = this.controlPoint.strokeC;
+    // ctx.fillStyle = this.controlPoint.c;
 
-      ctx.beginPath();
-      ctx.arc(
-        screenP.cp2.x,
-        screenP.cp2.y,
-        this.controlPoint.r,
-        0,
-        2 * Math.PI,
-        true
-      ); // cp2 control point
-      ctx.fill();
-      ctx.stroke();
-      ctx.closePath();
+    // ctx.beginPath();
+    // ctx.arc(c.x, c.y, this.controlPoint.r, 0, 2 * Math.PI, true); // cp1 control point
+    // ctx.fill();
+    // ctx.stroke();
+    // ctx.closePath();
 
-      // TODO: temporarily close p2.
-      // ctx.beginPath();
-      // ctx.arc(
-      //   relativeScreenP.p2.x,
-      //   relativeScreenP.p2.y,
-      //   this.controlPoint.r,
-      //   0,
-      //   2 * Math.PI,
-      //   true
-      // ); // p2 control point
-      // ctx.fill();
-      // ctx.stroke();
-      // ctx.closePath();
+    //   // TODO: temporarily close p1.
+    //   // ctx.beginPath();
+    //   // ctx.arc(relativeScreenP.p1.x, relativeScreenP.p1.y, this.this.controlPoint.r(), 0, 2 * Math.PI, true); // p1 control point
+    //   // ctx.fill();
+    //   // ctx.stroke();
+    //   // ctx.closePath();
 
-      // ctx.strokeStyle = this.controlPoint.strokeC;
-      // ctx.fillStyle = this.controlPoint.c;
+    // ctx.beginPath();
+    // ctx.arc(
+    //   screenP.cp1.x,
+    //   screenP.cp1.y,
+    //   this.controlPoint.r,
+    //   0,
+    //   2 * Math.PI,
+    //   true
+    // ); // cp1 control point
+    // ctx.fill();
+    // ctx.stroke();
+    // ctx.closePath();
 
-      // ctx.beginPath();
-      // ctx.arc(rc.x, rc.y, this.controlPoint.r, 0, 2 * Math.PI, true)
-      // ctx.fill();
-      // ctx.stroke();
-      // ctx.closePath();
-    }
+    // ctx.beginPath();
+    // ctx.arc(
+    //   screenP.cp2.x,
+    //   screenP.cp2.y,
+    //   this.controlPoint.r,
+    //   0,
+    //   2 * Math.PI,
+    //   true
+    // ); // cp2 control point
+    // ctx.fill();
+    // ctx.stroke();
+    // ctx.closePath();
+
+    // ctx.beginPath();
+    // ctx.arc(
+    //   relativeScreenP.p2.x,
+    //   relativeScreenP.p2.y,
+    //   this.controlPoint.r,
+    //   0,
+    //   2 * Math.PI,
+    //   true
+    // ); // p2 control point
+    // ctx.fill();
+    // ctx.stroke();
+    // ctx.closePath();
+
+    // ctx.strokeStyle = this.controlPoint.strokeC;
+    // ctx.fillStyle = this.controlPoint.c;
+
+    // ctx.beginPath();
+    // ctx.arc(rc.x, rc.y, this.controlPoint.r, 0, 2 * Math.PI, true)
+    // ctx.fill();
+    // ctx.stroke();
+    // ctx.closePath();
+    // }
 
     ctx.restore();
   }

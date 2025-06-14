@@ -97,12 +97,6 @@ type GetCenterReturn = {
   [CommonTypes.Corner.rt]: CommonTypes.Vec;
   [CommonTypes.Corner.rb]: CommonTypes.Vec;
   [CommonTypes.Corner.lb]: CommonTypes.Vec;
-  __curveTrigger__: {
-    l: CommonTypes.Vec;
-    t: CommonTypes.Vec;
-    r: CommonTypes.Vec;
-    b: CommonTypes.Vec;
-  };
   receivingPoints: {
     l: CommonTypes.Vec;
     t: CommonTypes.Vec;

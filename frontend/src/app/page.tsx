@@ -1,80 +1,42 @@
-// TODO: fix browser zoom and re calculate shape offset / multi multiSelect resize in scale
+// indivsual data hover color / change shape type when editing shape / edit data name in overall datas / edit data name in indivisual / copy data / downloaded data with project name / icon component default should be empty
 "use client";
-import React, {
-  useState,
-  useRef,
-  useEffect,
-  useCallback,
-  ChangeEvent,
-} from "react";
-import axios, { AxiosResponse } from "axios";
-import { useParams, useRouter } from "next/navigation";
-import Core from "@/shapes/core";
+import React, { useState, useRef, useEffect, useMemo } from "react";
+import axios from "axios";
 import Terminal from "@/shapes/terminal";
 import Process from "@/shapes/process";
 import Data from "@/shapes/data";
 import Desicion from "@/shapes/decision";
 import Curve from "@/shapes/curve";
+import SelectionFrame from "@/shapes/selectionFrame";
+import Selection from "@/shapes/selection";
 import Stack from "@/dataStructure/stack";
-import SidePanel from "@/components/sidePanel";
-import Accordion from "@/components/accordion";
 import Button from "@/components/button";
-import SimpleButton from "@/components/simpleButton";
-import Modal from "@/components/modal";
-import Input from "@/components/input";
-import Select from "@/components/select";
-import Alert from "@/components/alert";
-import Card from "@/components/card";
-import Frame from "@/components/frame";
-import PencilSquareIcon from "@/assets/svg/pencil-square.svg";
-import Icon from "@/components/icon";
-import RoundButton from "@/components/roundButton";
-import StatusText from "@/components/statusText";
-import Divider from "@/components/divider";
-import SquareButton from "@/components/squareButton";
+import OverallSidePanel from "@/sections/overallSidePanel";
 import IndivisaulSidePanel from "@/sections/indivisualSidePanel";
 import Console from "@/sections/console";
-import Zoom from "@/sections/zoom";
-import { motion, steps } from "framer-motion";
 import { cloneDeep } from "lodash";
 import { v4 as uuidv4 } from "uuid";
-import { ChangeEventHandler, MouseEventHandler } from "react";
 import { tailwindColors } from "@/variables/colors";
-import * as statusConstants from "@/constants/stauts";
 import * as handleUtils from "@/utils/handle";
-import * as authAPIs from "@/apis/auth";
-import * as projectAPIs from "@/apis/project";
-import * as CoreTypes from "@/types/shapes/core";
 import * as CurveTypes from "@/types/shapes/curve";
 import * as CommonTypes from "@/types/common";
-import * as PageTypes from "@/types/app/page";
+import * as SelectionTypes from "@/types/shapes/selection";
 import * as IndivisaulSidePanelTypes from "@/types/sections/id/indivisualSidePanel";
 import * as InputTypes from "@/types/components/input";
-import * as SelectTypes from "@/types/components/select";
-import * as AlertTypes from "@/types/components/alert";
-import * as IconTypes from "@/types/components/icon";
-import * as AuthTypes from "@/types/apis/auth";
-import * as ProjectAPITypes from "@/types/apis/project";
-import * as ProjectTypes from "@/types/project";
-import * as APICommonTypes from "@/types/apis/common";
 import * as PageIdTypes from "@/types/app/pageId";
-import * as SidePanelTypes from "@/types/components/sidePanel";
-import * as ButtonTypes from "@/types/components/button";
-import * as SimpleButtonTypes from "@/types/components/simpleButton";
-import * as StatusTextTypes from "@/types/components/statusText";
-import * as CheckDataTypes from "@/types/workers/checkData";
+import * as ConsoleTypes from "@/types/sections/id/console";
 
 axios.defaults.baseURL = process.env.BASE_URL || "http://localhost:5000/api";
 
 const isBrowser = typeof window !== "undefined";
 
-const init = {
+const init: PageIdTypes.Init = {
   shape: {
     size: {
-      t: { w: 150, h: 75 },
-      p: { w: 150, h: 75 },
-      d: { w: 150, h: 75 },
-      dec: { w: 150, h: 75 },
+      t: { w: 144, h: 72 },
+      p: { w: 144, h: 72 },
+      d: { w: 144, h: 72 },
+      dec: { w: 144, h: 72 },
     },
   },
   authInfo: {
@@ -95,298 +57,85 @@ const init = {
     },
   },
   offset: { x: 0, y: 0 },
-  multiSelectShapeIds: [],
 };
-
-const a = new Terminal(
-  "terminator_1731237541265",
-  150,
-  75,
-  { x: 597, y: 281.5 },
-  "terminator"
-);
-const b = new Data("data_1731237555697", 150, 75, { x: 597, y: 502.5 }, "data");
-b.importDatas = [
-  {
-    id: "data1",
-    text: "data1",
-    status: CommonTypes.DataStatus.default,
-  },
-  {
-    id: "data2",
-    text: "data2",
-    status: CommonTypes.DataStatus.default,
-  },
-];
-const c = new Desicion(
-  "decision_1731237570732",
-  150,
-  75,
-  { x: 832, y: 502.5 },
-  "decision"
-);
-c.usingDatas = [
-  {
-    id: "data1",
-    text: "data1",
-    status: CommonTypes.DataStatus.default,
-  },
-];
-c.deleteDatas = [
-  {
-    id: "data2",
-    text: "data2",
-    status: CommonTypes.DataStatus.default,
-  },
-];
-const d = new Process(
-  "process_1_1731237541657",
-  150,
-  75,
-  { x: 1072, y: 502.5 },
-  "process_1"
-);
-d.usingDatas = [
-  {
-    id: "data2",
-    text: "data2",
-    status: CommonTypes.DataStatus.default,
-  },
-];
-const e = new Process(
-  "process_2_1731237583896",
-  150,
-  75,
-  { x: 832, y: 706.5 },
-  "process_2"
-);
-e.usingDatas = [
-  {
-    id: "data3",
-    text: "data3",
-    status: CommonTypes.DataStatus.default,
-  },
-];
-// const f = new Terminal(
-//   "terminator_2031237541265",
-//   150,
-//   75,
-//   { x: 97, y: 2.5 },
-//   "terminator"
-// );
-// f.isStart = true;
-// const g = new Data("data_2031237555697", 150, 75, { x: 97, y: 202.5 }, "data");
-// g.importDatas = [];
-const h = new Process(
-  "process_3_1732277499200",
-  150,
-  75,
-  { x: 832, y: 127.5 },
-  "process_3"
-);
-h.usingDatas = [];
-const i = new Process(
-  "process_4_1732279874784",
-  150,
-  75,
-  { x: 1221, y: 706.5 },
-  "process_4"
-);
-i.usingDatas = [
-  {
-    id: "data4",
-    text: "data4",
-    status: CommonTypes.DataStatus.default,
-  },
-];
-const j = new Process(
-  "process_5_1732453853446",
-  150,
-  75,
-  { x: 1221, y: 127.5 },
-  "process_5"
-);
-j.deleteDatas = [
-  {
-    id: "data2",
-    text: "data2",
-    status: CommonTypes.DataStatus.default,
-  },
-];
 
 let ctx: CanvasRenderingContext2D | null | undefined = null,
   ctx_screenshot: CanvasRenderingContext2D | null | undefined = null,
-  shapes: (Terminal | Process | Data | Desicion)[] = [
-    // a,
-    // b,
-    // c,
-    // d,
-    // e,
-    // f,
-    // g,
-    // h,
-    // i,
-    // j,
-  ],
+  shapes: (Terminal | Process | Data | Desicion)[] = [],
   candidates: null | (Terminal | Process | Data | Desicion)[] = null,
-  curves: CommonTypes.ConnectionCurves = [
-    // {
-    //   from: { shape: shapes[0], d: CommonTypes.Direction.b },
-    //   shape: new Curve(
-    //     "curve_1731238521605",
-    //     { x: 597, y: 319 },
-    //     { x: 597, y: 416 },
-    //     { x: 597, y: 368 },
-    //     { x: 597, y: 453 }
-    //   ),
-    //   to: { shape: shapes[1], d: CommonTypes.Direction.t },
-    // },
-    // {
-    //   from: { shape: shapes[1], d: CommonTypes.Direction.r },
-    //   shape: new Curve(
-    //     "curve_1731238523747",
-    //     { x: 672, y: 502.5 },
-    //     { x: 738.5, y: 502.5 },
-    //     { x: 690.5, y: 502.5 },
-    //     { x: 745, y: 502.5 }
-    //   ),
-    //   to: { shape: shapes[2], d: CommonTypes.Direction.l },
-    // },
-    // {
-    //   from: { shape: shapes[2], d: CommonTypes.Direction.r },
-    //   shape: new Curve(
-    //     "curve_1731238525806",
-    //     { x: 907, y: 502.5 },
-    //     { x: 976, y: 502.5 },
-    //     { x: 928, y: 502.5 },
-    //     { x: 985, y: 502.5 }
-    //   ),
-    //   to: { shape: shapes[3], d: CommonTypes.Direction.l },
-    // },
-    // {
-    //   from: { shape: shapes[2], d: CommonTypes.Direction.b },
-    //   shape: new Curve(
-    //     "curve_1731238527503",
-    //     { x: 832, y: 540 },
-    //     { x: 832, y: 628.5 },
-    //     { x: 832, y: 580.5 },
-    //     { x: 832, y: 657 }
-    //   ),
-    //   to: { shape: shapes[4], d: CommonTypes.Direction.t },
-    // },
-    // {
-    //   from: { shape: shapes[3], d: CommonTypes.Direction.t },
-    //   shape: new Curve(
-    //     "curve_1732195734178",
-    //     { x: 1072, y: 465 },
-    //     { x: 1072, y: 361.25 },
-    //     { x: 884, y: 281.5 },
-    //     { x: 684, y: 281.5 }
-    //   ),
-    //   to: { shape: shapes[0], d: CommonTypes.Direction.r },
-    // },
-    // {
-    //   from: { shape: shapes[5], d: CommonTypes.Direction.b },
-    //   shape: new Curve(
-    //     "curve_1732277502268",
-    //     { x: 832, y: 165 },
-    //     { x: 832, y: 339 },
-    //     { x: 832, y: 291 },
-    //     { x: 832, y: 453 }
-    //   ),
-    //   to: { shape: shapes[2], d: CommonTypes.Direction.t },
-    // },
-    // {
-    //   from: { shape: shapes[3], d: CommonTypes.Direction.b },
-    //   shape: new Curve(
-    //     "curve_1732277502268",
-    //     { x: 1071, y: 540 },
-    //     { x: 1071, y: 635.25 },
-    //     { x: 1096.5, y: 706.5 },
-    //     { x: 1134, y: 706.5 }
-    //   ),
-    //   to: { shape: shapes[6], d: CommonTypes.Direction.l },
-    // },
-    // {
-    //   from: { shape: shapes[7], d: CommonTypes.Direction.b },
-    //   shape: new Curve(
-    //     "curve_1732277502268",
-    //     { x: 1221, y: 165 },
-    //     { x: 1221, y: 345.75 },
-    //     { x: 1196, y: 502.5 },
-    //     { x: 1159, y: 502.5 }
-    //   ),
-    //   to: { shape: shapes[3], d: CommonTypes.Direction.r },
-    // },
-    // {
-    //   from: { shape: shapes[5], d: CommonTypes.Direction.b },
-    //   shape: new Curve(
-    //     "curve_2031238521605",
-    //     { x: 97, y: 40 },
-    //     { x: 97, y: 64.5 },
-    //     { x: 97, y: 129 },
-    //     { x: 97, y: 154 }
-    //   ),
-    //   to: { shape: shapes[6], d: CommonTypes.Direction.t },
-    // },
-  ],
-  tests: any[] = [], // TODO: should be deleted
-  pressing: PageIdTypes.Pressing = null,
-  pressingCurve: PageIdTypes.PressingCurve = null,
+  curves: CommonTypes.ConnectionCurves = [],
+  pressingSelection: null | PageIdTypes.PressingSelection = null,
+  pressingCurve: null | PageIdTypes.PressingCurve = null,
   offset: CommonTypes.Vec = cloneDeep(init.offset),
   lastP: CommonTypes.Vec = { x: 0, y: 0 },
-  selectionFrameP: null | {
-    start: CommonTypes.Vec;
-    end: CommonTypes.Vec;
-  } = null,
-  multiSelectShapeIds: PageIdTypes.MultiSelectShapeIds = cloneDeep(
-    init.multiSelectShapeIds
-  ),
-  selectAnchor = {
-    size: {
-      fill: 4,
-      stroke: 2,
-    },
-  },
+  selectionFrame: null | SelectionFrame = null,
+  selection: null | Selection = null,
   alginLines: { from: CommonTypes.Vec; to: CommonTypes.Vec }[] = [],
   actions: PageIdTypes.Actions = new Stack(40),
   worker: null | Worker = null;
 
-const ds = [
-  CommonTypes.Direction.l,
-  CommonTypes.Direction.t,
-  CommonTypes.Direction.r,
-  CommonTypes.Direction.b,
-];
+const curveThresholdStrategy = {
+  [CommonTypes.ShapeType.terminator]: {
+    l: 0,
+    t: 0,
+    r: 0,
+    b: 0,
+  },
+  [CommonTypes.ShapeType.process]: {
+    l: 0,
+    t: 0,
+    r: 0,
+    b: 0,
+  },
+  [CommonTypes.ShapeType.data]: {
+    l: 8,
+    t: 0,
+    r: -8,
+    b: 0,
+  },
+  [CommonTypes.ShapeType.decision]: {
+    l: 0,
+    t: 0,
+    r: 0,
+    b: 0,
+  },
+};
 
 const getActionRecords = () => {
-  const records: {
-    [type: string]: {
-      shapes: null | (Terminal | Process | Data | Desicion)[];
-      curves: null | CommonTypes.ConnectionCurves;
-    };
-  } = {};
+  const records: Map<
+    string,
+    {
+      shapes: (Terminal | Process | Data | Desicion)[] | null;
+      curves: CommonTypes.ConnectionCurves | null;
+    }
+  > = new Map();
 
   return {
     register: (type: CommonTypes.Action) => {
-      if (records[type]) return;
-      records[type] = {
+      if (records.get(type)) return;
+      records.set(type, {
         shapes: cloneDeep(shapes),
         curves: cloneDeep(curves),
-      };
+      });
     },
     interrupt: (type: CommonTypes.Action) => {
-      if (!records[type]) return;
-      delete records[type];
+      if (!records.get(type)) return;
+      records.delete(type);
     },
     finish: (type: CommonTypes.Action) => {
-      if (!records[type]?.shapes || !records[type]?.curves) return;
+      const _shapes = records.get(type)?.shapes;
+      const _curves = records.get(type)?.curves;
+      if (!_shapes || !_curves) return;
       actions.push({
         type: type,
-        shapes: records[type].shapes,
-        curves: records[type].curves,
+        shapes: _shapes,
+        curves: _curves,
       });
-      delete records[type];
+      records.delete(type);
+    },
+    peekKey: () => {
+      const lastKey = Array.from(records.keys()).pop();
+      return lastKey;
     },
   };
 };
@@ -415,188 +164,6 @@ const getScreenP = (
     x: (p.x + offset.x) * scale,
     y: (p.y + offset.y) * scale,
   };
-};
-
-const getInitializedShapes = (
-  orders: ProjectAPITypes.ProjectData["orders"],
-  shapes: ProjectAPITypes.ProjectData["shapes"],
-  curves: ProjectAPITypes.ProjectData["curves"],
-  data: ProjectAPITypes.ProjectData["data"]
-) => {
-  const shapeMappings: {
-    [shapeId: string]: Terminal | Process | Data | Desicion;
-  } = {};
-
-  const dataShapes = Object.entries(shapes);
-
-  dataShapes.forEach(([id, info]) => {
-    switch (info.type) {
-      case CommonTypes.ShapeType.terminator:
-        const newTerminator = new Terminal(
-          id,
-          info.w,
-          info.h,
-          info.p,
-          info.title
-        );
-
-        newTerminator.importDatas = [
-          {
-            id: "d1",
-            text: "account",
-            status: CommonTypes.DataStatus.default,
-          },
-          { id: "d2", text: "email", status: CommonTypes.DataStatus.pass },
-          {
-            id: "d3",
-            text: "password",
-            status: CommonTypes.DataStatus.warning,
-          },
-          {
-            id: "d4",
-            text: "card_number",
-            status: CommonTypes.DataStatus.error,
-          },
-        ];
-
-        // info.selectedData.forEach((dataId) => {
-        //   newTerminator.importDatas.push({
-        //     id: dataId,
-        //     text: data[dataId],
-        //   });
-        // });
-
-        // info.deletedData.forEach((dataId) => {
-        //   newTerminator.deletedData.push({
-        //     id: dataId,
-        //     text: data[dataId],
-        //   });
-        // });
-        // TODO: wait until backend has revised
-
-        shapeMappings[id] = newTerminator;
-
-        break;
-      case CommonTypes.ShapeType.data:
-        const newData = new Data(id, info.w, info.h, info.p, info.title);
-
-        // info.data.forEach((dataId) => {
-        //   newData.data.push({
-        //     id: dataId,
-        //     text: data[dataId],
-        //   });
-        // });
-
-        // info.selectedData.forEach((dataId) => {
-        //   newData.selectedData.push({
-        //     id: dataId,
-        //     text: data[dataId],
-        //   });
-        // });
-
-        // info.deletedData.forEach((dataId) => {
-        //   newData.deletedData.push({
-        //     id: dataId,
-        //     text: data[dataId],
-        //   });
-        // });
-        // TODO: wait until backend has revised
-
-        shapeMappings[id] = newData;
-
-        break;
-      case CommonTypes.ShapeType.process:
-        const newProcess = new Process(id, info.w, info.h, info.p, info.title);
-
-        // info.selectedData.forEach((dataId) => {
-        //   newProcess.selectedData.push({
-        //     id: dataId,
-        //     text: data[dataId],
-        //   });
-        // });
-
-        // info.deletedData.forEach((dataId) => {
-        //   newProcess.deletedData.push({
-        //     id: dataId,
-        //     text: data[dataId],
-        //   });
-        // });
-        // TODO: wait until backend has revised
-
-        shapeMappings[id] = newProcess;
-
-        break;
-      case CommonTypes.ShapeType.decision:
-        const newDesicion = new Desicion(
-          id,
-          info.w,
-          info.h,
-          info.p,
-          info.title
-        );
-
-        if (info.text) {
-          newDesicion.text = info.text;
-        }
-
-        // info.selectedData.forEach((dataId) => {
-        //   newDesicion.selectedData.push({
-        //     id: dataId,
-        //     text: data[dataId],
-        //   });
-        // });
-
-        // info.deletedData.forEach((dataId) => {
-        //   newDesicion.deletedData.push({
-        //     id: dataId,
-        //     text: data[dataId],
-        //   });
-        // });
-        // TODO: wait until backend has revised
-
-        shapeMappings[id] = newDesicion;
-
-        break;
-    }
-  });
-
-  dataShapes.forEach(([shapeId, shapeInfo]) => {
-    ds.forEach((d) => {
-      if (shapeInfo.curves[d].length === 0) return;
-      shapeInfo.curves[d].forEach((curveId) => {
-        const curveInfo = curves[curveId];
-
-        // shapeMappings[shapeId].createCurve(
-        //   curveId,
-        //   d,
-        //   curveInfo.p1,
-        //   curveInfo.p2,
-        //   curveInfo.cp1,
-        //   curveInfo.cp2,
-        //   curveInfo.sendTo
-        //     ? {
-        //         shape: shapeMappings[curveInfo.sendTo.id],
-        //         d: curveInfo.sendTo.d,
-        //         bridgeId: curveId,
-        //       }
-        //     : null
-        // );
-
-        // if (curveInfo.sendTo) {
-        //   // initialize received shape
-        //   shapeMappings[curveInfo.sendTo.id].receiveFrom[
-        //     curveInfo.sendTo.d
-        //   ].push({
-        //     shape: shapeMappings[shapeId],
-        //     d: d,
-        //     bridgeId: curveId,
-        //   });
-        // }
-      });
-    });
-  });
-
-  return orders.map((orderId) => shapeMappings[orderId]);
 };
 
 const getScreenshotShapes = (
@@ -649,6 +216,7 @@ const getScreenshotShapes = (
 
   if (shapes.length !== screenshotShapes.length) return [];
 
+  // TODO: wait for mathcing backend feature
   // screenshotShapes.forEach((screenshotShape, screenshotShapeI) => {
   //   ds.forEach((d) => {
   //     shapes[screenshotShapeI].curves[d].forEach((curve) => {
@@ -668,681 +236,670 @@ const getScreenshotShapes = (
   return screenshotShapes;
 };
 
-const getAlignVertixP = (
-  shapes: (Terminal | Process | Data | Desicion)[],
-  baseVertex?: CommonTypes.Vec
-) => {
-  let output: { x: null | number; y: null | number } = { x: null, y: null };
-  if (!baseVertex || shapes.length === 0) return output;
-
-  for (let i = 0; i < shapes.length; i++) {
-    const targetShape = shapes[i];
-    const targetCenter = targetShape.getCenter().m;
-    const targetEdge = targetShape.getEdge();
-    const threshold = 10;
-
-    // align center
-    // x
-    if (
-      baseVertex.x >= targetCenter.x - threshold &&
-      baseVertex.x <= targetCenter.x + threshold
-    ) {
-      output.x = targetCenter.x;
-    }
-
-    // y
-    if (
-      baseVertex.y >= targetCenter.y - threshold &&
-      baseVertex.y <= targetCenter.y + threshold
-    ) {
-      output.y = targetCenter.y;
-    }
-
-    // align left
-    if (
-      baseVertex.x >= targetEdge.l - threshold &&
-      baseVertex.x <= targetEdge.l + threshold
-    ) {
-      output.x = targetEdge.l;
-    }
-
-    // align right
-    if (
-      baseVertex.x >= targetEdge.r - threshold &&
-      baseVertex.x <= targetEdge.r + threshold
-    ) {
-      output.x = targetEdge.r;
-    }
-
-    // align top
-    if (
-      baseVertex.y >= targetEdge.t - threshold &&
-      baseVertex.y <= targetEdge.t + threshold
-    ) {
-      output.y = targetEdge.t;
-    }
-
-    // align bottom
-    if (
-      baseVertex.y >= targetEdge.b - threshold &&
-      baseVertex.y <= targetEdge.b + threshold
-    ) {
-      output.y = targetEdge.b;
-    }
-  }
-
-  return output;
-};
-
-const getVertexAlignLines = (
-  shapes: (Terminal | Process | Data | Desicion)[],
-  baseVertex?: CommonTypes.Vec
-) => {
-  if (!baseVertex || shapes.length === 0) return [];
-  const lines: {
-    from: CommonTypes.Vec;
-    to: CommonTypes.Vec;
-  }[] = [];
-
-  // align center
-  const vertexes_m = shapes
-    .map((targetShape) => targetShape.getCenter().m)
-    .concat(baseVertex);
-
-  // y
-  const align_center_y_vertexes = vertexes_m
-    .filter(
-      (vertex) =>
-        Number(baseVertex.y.toFixed(1)) === Number(vertex.y.toFixed(1))
-    )
-    .sort((a, b) => a.x - b.x);
-
-  if (
-    align_center_y_vertexes.length >= 2 &&
-    align_center_y_vertexes[0] &&
-    align_center_y_vertexes[align_center_y_vertexes.length - 1]
-  ) {
-    lines.push({
-      from: {
-        x: align_center_y_vertexes[0].x || baseVertex.x,
-        y: baseVertex.y,
-      },
-      to: {
-        x:
-          align_center_y_vertexes[align_center_y_vertexes.length - 1].x ||
-          baseVertex.x,
-        y: baseVertex.y,
-      },
-    });
-  }
-
-  // x
-  const align_center_x_vertexes = vertexes_m
-    .filter(
-      (vertex) =>
-        Number(baseVertex.x.toFixed(1)) === Number(vertex.x.toFixed(1))
-    )
-    .sort((a, b) => a.y - b.y);
-
-  if (
-    align_center_x_vertexes.length >= 2 &&
-    align_center_x_vertexes[0] &&
-    align_center_x_vertexes[align_center_x_vertexes.length - 1]
-  ) {
-    lines.push({
-      from: {
-        x: baseVertex.x,
-        y: align_center_x_vertexes[0].y || baseVertex.y,
-      },
-      to: {
-        x: baseVertex.x,
-        y:
-          align_center_x_vertexes[align_center_x_vertexes.length - 1].y ||
-          baseVertex.y,
-      },
-    });
-  }
-
-  // align left
-  const vertexes_l = shapes
-    .map((targetShape) => targetShape.getCenter().l)
-    .concat(baseVertex);
-
-  const align_l_vertexes = vertexes_l
-    .filter(
-      (vertex) =>
-        Number(baseVertex.x.toFixed(1)) === Number(vertex.x.toFixed(1))
-    )
-    .sort((a, b) => a.y - b.y);
-
-  if (
-    align_l_vertexes.length >= 2 &&
-    align_l_vertexes[0] &&
-    align_l_vertexes[align_l_vertexes.length - 1]
-  ) {
-    lines.push({
-      from: {
-        x: baseVertex.x,
-        y: align_l_vertexes[0].y || baseVertex.y,
-      },
-      to: {
-        x: baseVertex.x,
-        y: align_l_vertexes[align_l_vertexes.length - 1].y || baseVertex.y,
-      },
-    });
-  }
-
-  // align right
-  const vertexes_r = shapes
-    .map((targetShape) => targetShape.getCenter().r)
-    .concat(baseVertex);
-
-  const align_r_vertexes = vertexes_r
-    .filter(
-      (vertex) =>
-        Number(baseVertex.x.toFixed(1)) === Number(vertex.x.toFixed(1))
-    )
-    .sort((a, b) => a.y - b.y);
-
-  if (
-    align_r_vertexes.length >= 2 &&
-    align_r_vertexes[0] &&
-    align_r_vertexes[align_r_vertexes.length - 1]
-  ) {
-    lines.push({
-      from: {
-        x: baseVertex.x,
-        y: align_r_vertexes[0].y || baseVertex.y,
-      },
-      to: {
-        x: baseVertex.x,
-        y: align_r_vertexes[align_r_vertexes.length - 1].y || baseVertex.y,
-      },
-    });
-  }
-
-  // align top
-  const vertexes_t = shapes
-    .map((targetShape) => targetShape.getCenter().t)
-    .concat(baseVertex);
-
-  const align_t_vertexes = vertexes_t
-    .filter(
-      (vertex) =>
-        Number(baseVertex.y.toFixed(1)) === Number(vertex.y.toFixed(1))
-    )
-    .sort((a, b) => a.x - b.x);
-
-  if (
-    align_t_vertexes.length >= 2 &&
-    align_t_vertexes[0] &&
-    align_t_vertexes[align_t_vertexes.length - 1]
-  ) {
-    lines.push({
-      from: {
-        x: align_t_vertexes[0].x || baseVertex.x,
-        y: baseVertex.y,
-      },
-      to: {
-        x: align_t_vertexes[align_t_vertexes.length - 1].x || baseVertex.x,
-        y: baseVertex.y,
-      },
-    });
-  }
-
-  // align bottom
-  const vertexes_b = shapes
-    .map((targetShape) => targetShape.getCenter().b)
-    .concat(baseVertex);
-
-  const align_b_vertexes = vertexes_b
-    .filter(
-      (vertex) =>
-        Number(baseVertex.y.toFixed(1)) === Number(vertex.y.toFixed(1))
-    )
-    .sort((a, b) => a.x - b.x);
-
-  if (
-    align_b_vertexes.length >= 2 &&
-    align_b_vertexes[0] &&
-    align_b_vertexes[align_b_vertexes.length - 1]
-  ) {
-    lines.push({
-      from: {
-        x: align_b_vertexes[0].x || baseVertex.x,
-        y: baseVertex.y,
-      },
-      to: {
-        x: align_b_vertexes[align_b_vertexes.length - 1].x || baseVertex.x,
-        y: baseVertex.y,
-      },
-    });
-  }
-
-  return lines;
-};
-
-const getAlignP = (
-  shapes: (Terminal | Process | Data | Desicion)[],
-  baseShape?: null | Terminal | Process | Data | Desicion
-) => {
-  let output: { x: null | number; y: null | number } = { x: null, y: null };
-  if (!baseShape || shapes.length === 0) return output;
-
-  for (let i = 0; i < shapes.length; i++) {
-    const targetShape = shapes[i];
-    if (targetShape.id === baseShape.id) continue;
-
-    const targetEdge = targetShape.getEdge();
-    const targetCenter = targetShape.getCenter().m;
-    const baseEdge = baseShape.getEdge();
-    const baseCenter = baseShape.getCenter().m;
-    const threshold = 10;
-
-    // center x & center x
-    if (
-      baseCenter.x >= targetCenter.x - threshold &&
-      baseCenter.x <= targetCenter.x + threshold
-    ) {
-      output.x = targetCenter.x;
-    }
-
-    // center y & center y
-    if (
-      baseCenter.y >= targetCenter.y - threshold &&
-      baseCenter.y <= targetCenter.y + threshold
-    ) {
-      output.y = targetCenter.y;
-    }
-
-    // left & left
-    if (
-      baseEdge.l >= targetEdge.l - threshold &&
-      baseEdge.l <= targetEdge.l + threshold
-    ) {
-      output.x = targetEdge.l + baseShape.w / 2;
-    }
-
-    // left & right
-    if (
-      baseEdge.l >= targetEdge.r - threshold &&
-      baseEdge.l <= targetEdge.r + threshold
-    ) {
-      output.x = targetEdge.r + baseShape.w / 2;
-    }
-
-    // top & top
-    if (
-      baseEdge.t >= targetEdge.t - threshold &&
-      baseEdge.t <= targetEdge.t + threshold
-    ) {
-      output.y = targetEdge.t + baseShape.h / 2;
-    }
-
-    // top & bottom
-    if (
-      baseEdge.t >= targetEdge.b - threshold &&
-      baseEdge.t <= targetEdge.b + threshold
-    ) {
-      output.y = targetEdge.b + baseShape.h / 2;
-    }
-
-    // right & right
-    if (
-      baseEdge.r >= targetEdge.l - threshold &&
-      baseEdge.r <= targetEdge.l + threshold
-    ) {
-      output.x = targetEdge.l - baseShape.w / 2;
-    }
-
-    // right & left
-    if (
-      baseEdge.r >= targetEdge.r - threshold &&
-      baseEdge.r <= targetEdge.r + threshold
-    ) {
-      output.x = targetEdge.r - baseShape.w / 2;
-    }
-
-    // bottom & bottom
-    if (
-      baseEdge.b >= targetEdge.b - threshold &&
-      baseEdge.b <= targetEdge.b + threshold
-    ) {
-      output.y = targetEdge.b - baseShape.h / 2;
-    }
-
-    // bottom & top
-    if (
-      baseEdge.b >= targetEdge.t - threshold &&
-      baseEdge.b <= targetEdge.t + threshold
-    ) {
-      output.y = targetEdge.t - baseShape.h / 2;
-    }
-  }
-
-  return output;
-};
-
-const getAlignLines = (
-  shapes: (Terminal | Process | Data | Desicion)[],
-  baseShape?: null | Terminal | Process | Data | Desicion
-) => {
-  if (!baseShape || shapes.length === 0) return [];
-  const lines: {
-    from: CommonTypes.Vec;
-    to: CommonTypes.Vec;
-  }[] = [];
-
-  const baseCenter = baseShape.getCenter().m;
-
-  // center x & center x
-  const align_center_x_shapes = shapes
-    .filter(
-      (targetShape) =>
-        Number(baseCenter.x.toFixed(1)) ===
-          Number(targetShape.getCenter().m.x.toFixed(1)) ||
-        targetShape.id === baseShape.id
-    )
-    .sort((a, b) => a.p.x - b.p.x);
-
-  if (
-    align_center_x_shapes[0] &&
-    align_center_x_shapes[align_center_x_shapes.length - 1]
-  ) {
-    lines.push({
-      from: {
-        x: baseCenter.x,
-        y: align_center_x_shapes[0].getCenter().m.y,
-      },
-      to: {
-        x: baseCenter.x,
-        y: align_center_x_shapes[align_center_x_shapes.length - 1].getCenter().m
-          .y,
-      },
-    });
-  }
-
-  // center y & center y
-  const align_center_y_shapes = shapes
-    .filter(
-      (targetShape) =>
-        Number(baseCenter.y.toFixed(1)) ===
-          Number(targetShape.getCenter().m.y.toFixed(1)) ||
-        targetShape.id === baseShape.id
-    )
-    .sort((a, b) => a.p.y - b.p.y);
-
-  if (
-    align_center_y_shapes[0] &&
-    align_center_y_shapes[align_center_y_shapes.length - 1]
-  ) {
-    lines.push({
-      from: {
-        x: align_center_y_shapes[0].getCenter().m.x,
-        y: baseCenter.y,
-      },
-      to: {
-        x: align_center_y_shapes[align_center_y_shapes.length - 1].getCenter().m
-          .x,
-        y: baseCenter.y,
-      },
-    });
-  }
-
-  const baseEdge = baseShape.getEdge();
-
-  // left & left
-  const align_left_shapes = shapes
-    .filter(
-      (targetShape) =>
-        Number(baseEdge.l.toFixed(1)) ===
-          Number(targetShape.getEdge().l.toFixed(1)) ||
-        targetShape.id === baseShape.id
-    )
-    .sort((a, b) => a.p.y - b.p.y);
-
-  if (align_left_shapes[0] && align_left_shapes[align_left_shapes.length - 1]) {
-    lines.push({
-      from: {
-        x: baseEdge.l - 1,
-        y: align_left_shapes[0].getCenter().m.y,
-      },
-      to: {
-        x: baseEdge.l - 1,
-        y: align_left_shapes[align_left_shapes.length - 1].getCenter().m.y,
-      },
-    });
-  }
-
-  // left & right
-  const align_left_to_right_shapes = shapes
-    .filter((targetShape) => {
-      return (
-        Number(baseEdge.l.toFixed(1)) ===
-          Number(targetShape.getEdge().r.toFixed(1)) ||
-        targetShape.id === baseShape.id
-      );
-    })
-    .sort((a, b) => a.p.y - b.p.y);
-
-  if (
-    align_left_to_right_shapes[0] &&
-    align_left_to_right_shapes[align_left_to_right_shapes.length - 1]
-  ) {
-    lines.push({
-      from: {
-        x: baseEdge.l - 1,
-        y: align_left_to_right_shapes[0].getCenter().m.y,
-      },
-      to: {
-        x: baseEdge.l - 1,
-        y: align_left_to_right_shapes[
-          align_left_to_right_shapes.length - 1
-        ].getCenter().m.y,
-      },
-    });
-  }
-
-  // top & top
-  const align_top_shapes = shapes
-    .filter(
-      (targetShape) =>
-        Number(baseEdge.t.toFixed(1)) ===
-          Number(targetShape.getEdge().t.toFixed(1)) ||
-        targetShape.id === baseShape.id
-    )
-    .sort((a, b) => a.p.x - b.p.x);
-
-  if (align_top_shapes[0] && align_top_shapes[align_top_shapes.length - 1]) {
-    lines.push({
-      from: {
-        x: align_top_shapes[0].getCenter().m.x,
-        y: baseEdge.t - 1,
-      },
-      to: {
-        x: align_top_shapes[align_top_shapes.length - 1].getCenter().m.x,
-        y: baseEdge.t - 1,
-      },
-    });
-  }
-
-  // top & bottom
-  const align_top_to_bottom_shapes = shapes
-    .filter(
-      (targetShape) =>
-        Number(baseEdge.t.toFixed(1)) ===
-          Number(targetShape.getEdge().b.toFixed(1)) ||
-        targetShape.id === baseShape.id
-    )
-    .sort((a, b) => a.p.x - b.p.x);
-
-  if (
-    align_top_to_bottom_shapes[0] &&
-    align_top_to_bottom_shapes[align_top_to_bottom_shapes.length - 1]
-  ) {
-    lines.push({
-      from: {
-        x: align_top_to_bottom_shapes[0].getCenter().m.x,
-        y: baseEdge.t - 1,
-      },
-      to: {
-        x: align_top_to_bottom_shapes[
-          align_top_to_bottom_shapes.length - 1
-        ].getCenter().m.x,
-        y: baseEdge.t - 1,
-      },
-    });
-  }
-
-  // right & right
-  const align_right_shapes = shapes
-    .filter(
-      (targetShape) =>
-        Number(baseEdge.r.toFixed(1)) ===
-          Number(targetShape.getEdge().r.toFixed(1)) ||
-        targetShape.id === baseShape.id
-    )
-    .sort((a, b) => a.p.y - b.p.y);
-
-  if (
-    align_right_shapes[0] &&
-    align_right_shapes[align_right_shapes.length - 1]
-  ) {
-    lines.push({
-      from: {
-        x: baseEdge.r + 1,
-        y: align_right_shapes[0].getCenter().m.y,
-      },
-      to: {
-        x: baseEdge.r + 1,
-        y: align_right_shapes[align_right_shapes.length - 1].getCenter().m.y,
-      },
-    });
-  }
-
-  // right & left
-  const align_right_to_left_shapes = shapes
-    .filter(
-      (targetShape) =>
-        Number(baseEdge.r.toFixed(1)) ===
-          Number(targetShape.getEdge().l.toFixed(1)) ||
-        targetShape.id === baseShape.id
-    )
-    .sort((a, b) => a.p.y - b.p.y);
-
-  if (
-    align_right_to_left_shapes[0] &&
-    align_right_to_left_shapes[align_right_to_left_shapes.length - 1]
-  ) {
-    lines.push({
-      from: {
-        x: baseEdge.r + 1,
-        y: align_right_to_left_shapes[0].getCenter().m.y,
-      },
-      to: {
-        x: baseEdge.r + 1,
-        y: align_right_to_left_shapes[
-          align_right_to_left_shapes.length - 1
-        ].getCenter().m.y,
-      },
-    });
-  }
-
-  // bottom & bottom
-  const align_bottom_shapes = shapes
-    .filter(
-      (targetShape) =>
-        Number(baseEdge.b.toFixed(1)) ===
-          Number(targetShape.getEdge().b.toFixed(1)) ||
-        targetShape.id === baseShape.id
-    )
-    .sort((a, b) => a.p.x - b.p.x);
-
-  if (
-    align_bottom_shapes[0] &&
-    align_bottom_shapes[align_bottom_shapes.length - 1]
-  ) {
-    lines.push({
-      from: {
-        x: align_bottom_shapes[0].getCenter().m.x,
-        y: baseEdge.b + 1,
-      },
-      to: {
-        x: align_bottom_shapes[align_bottom_shapes.length - 1].getCenter().m.x,
-        y: baseEdge.b + 1,
-      },
-    });
-  }
-
-  // bottom & top
-  const align_bottom_to_top_shapes = shapes
-    .filter(
-      (targetShape) =>
-        Number(baseEdge.b.toFixed(1)) ===
-          Number(targetShape.getEdge().t.toFixed(1)) ||
-        targetShape.id === baseShape.id
-    )
-    .sort((a, b) => a.p.x - b.p.x);
-
-  if (
-    align_bottom_to_top_shapes[0] &&
-    align_bottom_to_top_shapes[align_bottom_to_top_shapes.length - 1]
-  ) {
-    lines.push({
-      from: {
-        x: align_bottom_to_top_shapes[0].getCenter().m.x,
-        y: baseEdge.b + 1,
-      },
-      to: {
-        x: align_bottom_to_top_shapes[
-          align_bottom_to_top_shapes.length - 1
-        ].getCenter().m.x,
-        y: baseEdge.b + 1,
-      },
-    });
-  }
-
-  return lines;
-};
-
-const getShapesInView = (shapes: (Terminal | Process | Data | Desicion)[]) => {
-  const shapesInView: (Terminal | Process | Data | Desicion)[] = [];
-  const viewport = {
-    l: 0,
-    t: 0,
-    r: window.innerWidth,
-    b: window.innerHeight,
-  };
-
-  shapes.forEach((shape) => {
-    const edge = shape.getEdge();
-
-    if (
-      ((edge.l >= viewport.l && edge.l <= viewport.r) ||
-        (edge.r >= viewport.l && edge.r <= viewport.r)) &&
-      ((edge.t >= viewport.t && edge.t <= viewport.b) ||
-        (edge.b >= viewport.t && edge.b <= viewport.b))
-    ) {
-      shapesInView.push(shape);
-    }
-  });
-
-  return shapesInView;
-};
+// TODO: wait for align feature
+// const getAlignVertixP = (
+//   shapes: (Terminal | Process | Data | Desicion)[],
+//   baseVertex?: CommonTypes.Vec
+// ) => {
+//   let output: { x: null | number; y: null | number } = { x: null, y: null };
+//   if (!baseVertex || shapes.length === 0) return output;
+
+//   for (let i = 0; i < shapes.length; i++) {
+//     const targetShape = shapes[i];
+//     const targetCenter = targetShape.getCenter().m;
+//     const targetEdge = targetShape.getEdge();
+//     const threshold = 10;
+
+//     // align center
+//     // x
+//     if (
+//       baseVertex.x >= targetCenter.x - threshold &&
+//       baseVertex.x <= targetCenter.x + threshold
+//     ) {
+//       output.x = targetCenter.x;
+//     }
+
+//     // y
+//     if (
+//       baseVertex.y >= targetCenter.y - threshold &&
+//       baseVertex.y <= targetCenter.y + threshold
+//     ) {
+//       output.y = targetCenter.y;
+//     }
+
+//     // align left
+//     if (
+//       baseVertex.x >= targetEdge.l - threshold &&
+//       baseVertex.x <= targetEdge.l + threshold
+//     ) {
+//       output.x = targetEdge.l;
+//     }
+
+//     // align right
+//     if (
+//       baseVertex.x >= targetEdge.r - threshold &&
+//       baseVertex.x <= targetEdge.r + threshold
+//     ) {
+//       output.x = targetEdge.r;
+//     }
+
+//     // align top
+//     if (
+//       baseVertex.y >= targetEdge.t - threshold &&
+//       baseVertex.y <= targetEdge.t + threshold
+//     ) {
+//       output.y = targetEdge.t;
+//     }
+
+//     // align bottom
+//     if (
+//       baseVertex.y >= targetEdge.b - threshold &&
+//       baseVertex.y <= targetEdge.b + threshold
+//     ) {
+//       output.y = targetEdge.b;
+//     }
+//   }
+
+//   return output;
+// };
+
+// TODO: wait for align feature
+// const getVertexAlignLines = (
+//   shapes: (Terminal | Process | Data | Desicion)[],
+//   baseVertex?: CommonTypes.Vec
+// ) => {
+//   if (!baseVertex || shapes.length === 0) return [];
+//   const lines: {
+//     from: CommonTypes.Vec;
+//     to: CommonTypes.Vec;
+//   }[] = [];
+
+//   // align center
+//   const vertexes_m = shapes
+//     .map((targetShape) => targetShape.getCenter().m)
+//     .concat(baseVertex);
+
+//   // y
+//   const align_center_y_vertexes = vertexes_m
+//     .filter(
+//       (vertex) =>
+//         Number(baseVertex.y.toFixed(1)) === Number(vertex.y.toFixed(1))
+//     )
+//     .sort((a, b) => a.x - b.x);
+
+//   if (
+//     align_center_y_vertexes.length >= 2 &&
+//     align_center_y_vertexes[0] &&
+//     align_center_y_vertexes[align_center_y_vertexes.length - 1]
+//   ) {
+//     lines.push({
+//       from: {
+//         x: align_center_y_vertexes[0].x || baseVertex.x,
+//         y: baseVertex.y,
+//       },
+//       to: {
+//         x:
+//           align_center_y_vertexes[align_center_y_vertexes.length - 1].x ||
+//           baseVertex.x,
+//         y: baseVertex.y,
+//       },
+//     });
+//   }
+
+//   // x
+//   const align_center_x_vertexes = vertexes_m
+//     .filter(
+//       (vertex) =>
+//         Number(baseVertex.x.toFixed(1)) === Number(vertex.x.toFixed(1))
+//     )
+//     .sort((a, b) => a.y - b.y);
+
+//   if (
+//     align_center_x_vertexes.length >= 2 &&
+//     align_center_x_vertexes[0] &&
+//     align_center_x_vertexes[align_center_x_vertexes.length - 1]
+//   ) {
+//     lines.push({
+//       from: {
+//         x: baseVertex.x,
+//         y: align_center_x_vertexes[0].y || baseVertex.y,
+//       },
+//       to: {
+//         x: baseVertex.x,
+//         y:
+//           align_center_x_vertexes[align_center_x_vertexes.length - 1].y ||
+//           baseVertex.y,
+//       },
+//     });
+//   }
+
+//   // align left
+//   const vertexes_l = shapes
+//     .map((targetShape) => targetShape.getCenter().l)
+//     .concat(baseVertex);
+
+//   const align_l_vertexes = vertexes_l
+//     .filter(
+//       (vertex) =>
+//         Number(baseVertex.x.toFixed(1)) === Number(vertex.x.toFixed(1))
+//     )
+//     .sort((a, b) => a.y - b.y);
+
+//   if (
+//     align_l_vertexes.length >= 2 &&
+//     align_l_vertexes[0] &&
+//     align_l_vertexes[align_l_vertexes.length - 1]
+//   ) {
+//     lines.push({
+//       from: {
+//         x: baseVertex.x,
+//         y: align_l_vertexes[0].y || baseVertex.y,
+//       },
+//       to: {
+//         x: baseVertex.x,
+//         y: align_l_vertexes[align_l_vertexes.length - 1].y || baseVertex.y,
+//       },
+//     });
+//   }
+
+//   // align right
+//   const vertexes_r = shapes
+//     .map((targetShape) => targetShape.getCenter().r)
+//     .concat(baseVertex);
+
+//   const align_r_vertexes = vertexes_r
+//     .filter(
+//       (vertex) =>
+//         Number(baseVertex.x.toFixed(1)) === Number(vertex.x.toFixed(1))
+//     )
+//     .sort((a, b) => a.y - b.y);
+
+//   if (
+//     align_r_vertexes.length >= 2 &&
+//     align_r_vertexes[0] &&
+//     align_r_vertexes[align_r_vertexes.length - 1]
+//   ) {
+//     lines.push({
+//       from: {
+//         x: baseVertex.x,
+//         y: align_r_vertexes[0].y || baseVertex.y,
+//       },
+//       to: {
+//         x: baseVertex.x,
+//         y: align_r_vertexes[align_r_vertexes.length - 1].y || baseVertex.y,
+//       },
+//     });
+//   }
+
+//   // align top
+//   const vertexes_t = shapes
+//     .map((targetShape) => targetShape.getCenter().t)
+//     .concat(baseVertex);
+
+//   const align_t_vertexes = vertexes_t
+//     .filter(
+//       (vertex) =>
+//         Number(baseVertex.y.toFixed(1)) === Number(vertex.y.toFixed(1))
+//     )
+//     .sort((a, b) => a.x - b.x);
+
+//   if (
+//     align_t_vertexes.length >= 2 &&
+//     align_t_vertexes[0] &&
+//     align_t_vertexes[align_t_vertexes.length - 1]
+//   ) {
+//     lines.push({
+//       from: {
+//         x: align_t_vertexes[0].x || baseVertex.x,
+//         y: baseVertex.y,
+//       },
+//       to: {
+//         x: align_t_vertexes[align_t_vertexes.length - 1].x || baseVertex.x,
+//         y: baseVertex.y,
+//       },
+//     });
+//   }
+
+//   // align bottom
+//   const vertexes_b = shapes
+//     .map((targetShape) => targetShape.getCenter().b)
+//     .concat(baseVertex);
+
+//   const align_b_vertexes = vertexes_b
+//     .filter(
+//       (vertex) =>
+//         Number(baseVertex.y.toFixed(1)) === Number(vertex.y.toFixed(1))
+//     )
+//     .sort((a, b) => a.x - b.x);
+
+//   if (
+//     align_b_vertexes.length >= 2 &&
+//     align_b_vertexes[0] &&
+//     align_b_vertexes[align_b_vertexes.length - 1]
+//   ) {
+//     lines.push({
+//       from: {
+//         x: align_b_vertexes[0].x || baseVertex.x,
+//         y: baseVertex.y,
+//       },
+//       to: {
+//         x: align_b_vertexes[align_b_vertexes.length - 1].x || baseVertex.x,
+//         y: baseVertex.y,
+//       },
+//     });
+//   }
+
+//   return lines;
+// };
+
+// TODO: wait for align feature
+// const getAlignP = (
+//   shapes: (Terminal | Process | Data | Desicion)[],
+//   baseShape?: null | Terminal | Process | Data | Desicion
+// ) => {
+//   let output: { x: null | number; y: null | number } = { x: null, y: null };
+//   if (!baseShape || shapes.length === 0) return output;
+
+//   for (let i = 0; i < shapes.length; i++) {
+//     const targetShape = shapes[i];
+//     if (targetShape.id === baseShape.id) continue;
+
+//     const targetEdge = targetShape.getEdge();
+//     const targetCenter = targetShape.getCenter().m;
+//     const baseEdge = baseShape.getEdge();
+//     const baseCenter = baseShape.getCenter().m;
+//     const threshold = 10;
+
+//     // center x & center x
+//     if (
+//       baseCenter.x >= targetCenter.x - threshold &&
+//       baseCenter.x <= targetCenter.x + threshold
+//     ) {
+//       output.x = targetCenter.x;
+//     }
+
+//     // center y & center y
+//     if (
+//       baseCenter.y >= targetCenter.y - threshold &&
+//       baseCenter.y <= targetCenter.y + threshold
+//     ) {
+//       output.y = targetCenter.y;
+//     }
+
+//     // left & left
+//     if (
+//       baseEdge.l >= targetEdge.l - threshold &&
+//       baseEdge.l <= targetEdge.l + threshold
+//     ) {
+//       output.x = targetEdge.l + baseShape.w / 2;
+//     }
+
+//     // left & right
+//     if (
+//       baseEdge.l >= targetEdge.r - threshold &&
+//       baseEdge.l <= targetEdge.r + threshold
+//     ) {
+//       output.x = targetEdge.r + baseShape.w / 2;
+//     }
+
+//     // top & top
+//     if (
+//       baseEdge.t >= targetEdge.t - threshold &&
+//       baseEdge.t <= targetEdge.t + threshold
+//     ) {
+//       output.y = targetEdge.t + baseShape.h / 2;
+//     }
+
+//     // top & bottom
+//     if (
+//       baseEdge.t >= targetEdge.b - threshold &&
+//       baseEdge.t <= targetEdge.b + threshold
+//     ) {
+//       output.y = targetEdge.b + baseShape.h / 2;
+//     }
+
+//     // right & right
+//     if (
+//       baseEdge.r >= targetEdge.l - threshold &&
+//       baseEdge.r <= targetEdge.l + threshold
+//     ) {
+//       output.x = targetEdge.l - baseShape.w / 2;
+//     }
+
+//     // right & left
+//     if (
+//       baseEdge.r >= targetEdge.r - threshold &&
+//       baseEdge.r <= targetEdge.r + threshold
+//     ) {
+//       output.x = targetEdge.r - baseShape.w / 2;
+//     }
+
+//     // bottom & bottom
+//     if (
+//       baseEdge.b >= targetEdge.b - threshold &&
+//       baseEdge.b <= targetEdge.b + threshold
+//     ) {
+//       output.y = targetEdge.b - baseShape.h / 2;
+//     }
+
+//     // bottom & top
+//     if (
+//       baseEdge.b >= targetEdge.t - threshold &&
+//       baseEdge.b <= targetEdge.t + threshold
+//     ) {
+//       output.y = targetEdge.t - baseShape.h / 2;
+//     }
+//   }
+
+//   return output;
+// };
+
+// TODO: wait for align feature
+// const getAlignLines = (
+//   targetShapes: (Terminal | Process | Data | Desicion)[],
+//   base: {
+//     m: CommonTypes.Vec;
+//     l: number;
+//     t: number;
+//     r: number;
+//     b: number;
+//   }
+// ) => {
+//   if (targetShapes.length === 0) return [];
+//   const lines: {
+//     from: CommonTypes.Vec;
+//     to: CommonTypes.Vec;
+//   }[] = [];
+//   const targets = targetShapes.map((targetShape) => ({
+//     m: targetShape.getCenter().m,
+//     l: targetShape.getEdge().l,
+//     t: targetShape.getEdge().t,
+//     r: targetShape.getEdge().r,
+//     b: targetShape.getEdge().b,
+//   }));
+
+//   console.log("targets", targets);
+
+//   // center x & center x
+//   const align_center_x_shapes = targets
+//     .filter(
+//       (target) => Number(base.m.x.toFixed(1)) === Number(target.m.x.toFixed(1))
+//     )
+//     .concat([base])
+//     .sort((a, b) => a.m.x - b.m.x);
+
+//   if (
+//     align_center_x_shapes[0] &&
+//     align_center_x_shapes[align_center_x_shapes.length - 1]
+//   ) {
+//     lines.push({
+//       from: {
+//         x: base.m.x,
+//         y: align_center_x_shapes[0].m.y,
+//       },
+//       to: {
+//         x: base.m.x,
+//         y: align_center_x_shapes[align_center_x_shapes.length - 1].m.y,
+//       },
+//     });
+//   }
+
+//   // center y & center y
+//   const align_center_y_shapes = targets
+//     .filter(
+//       (target) => Number(base.m.y.toFixed(1)) === Number(target.m.y.toFixed(1))
+//     )
+//     .concat([base])
+//     .sort((a, b) => a.m.y - b.m.y);
+
+//   if (
+//     align_center_y_shapes[0] &&
+//     align_center_y_shapes[align_center_y_shapes.length - 1]
+//   ) {
+//     lines.push({
+//       from: {
+//         x: align_center_y_shapes[0].m.x,
+//         y: base.m.y,
+//       },
+//       to: {
+//         x: align_center_y_shapes[align_center_y_shapes.length - 1].m.x,
+//         y: base.m.y,
+//       },
+//     });
+//   }
+
+//   // left & left
+//   const align_left_shapes = targets
+//     .filter(
+//       (target) => Number(base.l.toFixed(1)) === Number(target.l.toFixed(1))
+//     )
+//     .concat([base])
+//     .sort((a, b) => a.m.y - b.m.y);
+
+//   if (align_left_shapes[0] && align_left_shapes[align_left_shapes.length - 1]) {
+//     lines.push({
+//       from: {
+//         x: base.l - 1,
+//         y: align_left_shapes[0].m.y,
+//       },
+//       to: {
+//         x: base.l - 1,
+//         y: align_left_shapes[align_left_shapes.length - 1].m.y,
+//       },
+//     });
+//   }
+
+//   // left & right
+//   const align_left_to_right_shapes = targets
+//     .filter((target) => {
+//       return Number(base.l.toFixed(1)) === Number(target.r.toFixed(1));
+//     })
+//     .concat([base])
+//     .sort((a, b) => a.m.y - b.m.y);
+
+//   if (
+//     align_left_to_right_shapes[0] &&
+//     align_left_to_right_shapes[align_left_to_right_shapes.length - 1]
+//   ) {
+//     lines.push({
+//       from: {
+//         x: base.l - 1,
+//         y: align_left_to_right_shapes[0].m.y,
+//       },
+//       to: {
+//         x: base.l - 1,
+//         y: align_left_to_right_shapes[align_left_to_right_shapes.length - 1].m
+//           .y,
+//       },
+//     });
+//   }
+
+//   // top & top
+//   const align_top_shapes = targets
+//     .filter(
+//       (target) => Number(base.t.toFixed(1)) === Number(target.t.toFixed(1))
+//     )
+//     .concat([base])
+//     .sort((a, b) => a.m.x - b.m.x);
+
+//   if (align_top_shapes[0] && align_top_shapes[align_top_shapes.length - 1]) {
+//     lines.push({
+//       from: {
+//         x: align_top_shapes[0].m.x,
+//         y: base.t - 1,
+//       },
+//       to: {
+//         x: align_top_shapes[align_top_shapes.length - 1].m.x,
+//         y: base.t - 1,
+//       },
+//     });
+//   }
+
+//   // top & bottom
+//   const align_top_to_bottom_shapes = targets
+//     .filter(
+//       (target) => Number(base.t.toFixed(1)) === Number(target.b.toFixed(1))
+//     )
+//     .concat([base])
+//     .sort((a, b) => a.m.x - b.m.x);
+
+//   if (
+//     align_top_to_bottom_shapes[0] &&
+//     align_top_to_bottom_shapes[align_top_to_bottom_shapes.length - 1]
+//   ) {
+//     lines.push({
+//       from: {
+//         x: align_top_to_bottom_shapes[0].m.x,
+//         y: base.t - 1,
+//       },
+//       to: {
+//         x: align_top_to_bottom_shapes[align_top_to_bottom_shapes.length - 1].m
+//           .x,
+//         y: base.t - 1,
+//       },
+//     });
+//   }
+
+//   // right & right
+//   const align_right_shapes = targets
+//     .filter(
+//       (target) => Number(base.r.toFixed(1)) === Number(target.r.toFixed(1))
+//     )
+//     .concat([base])
+//     .sort((a, b) => a.m.y - b.m.y);
+
+//   if (
+//     align_right_shapes[0] &&
+//     align_right_shapes[align_right_shapes.length - 1]
+//   ) {
+//     lines.push({
+//       from: {
+//         x: base.r + 1,
+//         y: align_right_shapes[0].m.y,
+//       },
+//       to: {
+//         x: base.r + 1,
+//         y: align_right_shapes[align_right_shapes.length - 1].m.y,
+//       },
+//     });
+//   }
+
+//   // right & left
+//   const align_right_to_left_shapes = targets
+//     .filter(
+//       (target) => Number(base.r.toFixed(1)) === Number(target.l.toFixed(1))
+//     )
+//     .concat([base])
+//     .sort((a, b) => a.m.y - b.m.y);
+
+//   if (
+//     align_right_to_left_shapes[0] &&
+//     align_right_to_left_shapes[align_right_to_left_shapes.length - 1]
+//   ) {
+//     lines.push({
+//       from: {
+//         x: base.r + 1,
+//         y: align_right_to_left_shapes[0].m.y,
+//       },
+//       to: {
+//         x: base.r + 1,
+//         y: align_right_to_left_shapes[align_right_to_left_shapes.length - 1].m
+//           .y,
+//       },
+//     });
+//   }
+
+//   // bottom & bottom
+//   const align_bottom_shapes = targets
+//     .filter(
+//       (target) => Number(base.b.toFixed(1)) === Number(target.b.toFixed(1))
+//     )
+//     .concat([base])
+//     .sort((a, b) => a.m.x - b.m.x);
+
+//   if (
+//     align_bottom_shapes[0] &&
+//     align_bottom_shapes[align_bottom_shapes.length - 1]
+//   ) {
+//     lines.push({
+//       from: {
+//         x: align_bottom_shapes[0].m.x,
+//         y: base.b + 1,
+//       },
+//       to: {
+//         x: align_bottom_shapes[align_bottom_shapes.length - 1].m.x,
+//         y: base.b + 1,
+//       },
+//     });
+//   }
+
+//   // bottom & top
+//   const align_bottom_to_top_shapes = targets
+//     .filter(
+//       (target) => Number(base.b.toFixed(1)) === Number(target.t.toFixed(1))
+//     )
+//     .concat([base])
+//     .sort((a, b) => a.m.x - b.m.x);
+
+//   if (
+//     align_bottom_to_top_shapes[0] &&
+//     align_bottom_to_top_shapes[align_bottom_to_top_shapes.length - 1]
+//   ) {
+//     lines.push({
+//       from: {
+//         x: align_bottom_to_top_shapes[0].m.x,
+//         y: base.b + 1,
+//       },
+//       to: {
+//         x: align_bottom_to_top_shapes[align_bottom_to_top_shapes.length - 1].m
+//           .x,
+//         y: base.b + 1,
+//       },
+//     });
+//   }
+
+//   return lines;
+// };
+
+// TODO: wait for align feature
+// const getShapesInView = (shapes: (Terminal | Process | Data | Desicion)[]) => {
+//   const shapesInView: (Terminal | Process | Data | Desicion)[] = [];
+//   const viewport = {
+//     l: 0,
+//     t: 0,
+//     r: window.innerWidth,
+//     b: window.innerHeight,
+//   };
+
+//   shapes.forEach((shape) => {
+//     const edge = shape.getEdge();
+
+//     if (
+//       ((edge.l >= viewport.l && edge.l <= viewport.r) ||
+//         (edge.r >= viewport.l && edge.r <= viewport.r)) &&
+//       ((edge.t >= viewport.t && edge.t <= viewport.b) ||
+//         (edge.b >= viewport.t && edge.b <= viewport.b))
+//     ) {
+//       shapesInView.push(shape);
+//     }
+//   });
+
+//   return shapesInView;
+// };
 
 const frameSelect = (
+  selectionFrame: null | undefined | SelectionFrame,
   offset: CommonTypes.Vec = { x: 0, y: 0 },
   scale: number = 1
 ) => {
+  if (!selectionFrame) return [];
   // define which shape in select area
-  const shapesInSelectingAreaIds = (() => {
-    const ids: PageIdTypes.MultiSelectShapeIds = [];
-
-    if (!selectionFrameP) return [];
+  const shapesInSelectingArea = (() => {
+    const shapesInArea: CommonTypes.Shapes = [];
 
     const normalSelectAreaP = {
-      start: getNormalP(selectionFrameP.start, offset, scale),
-      end: getNormalP(selectionFrameP.end, offset, scale),
+      start: getNormalP(selectionFrame.p.start, offset, scale),
+      end: getNormalP(selectionFrame.p.end, offset, scale),
     };
 
     shapes.forEach((shape) => {
@@ -1372,23 +929,14 @@ const frameSelect = (
         y2 = Math.min(theEdge.b, b);
 
       if (x2 > x1 && y2 > y1) {
-        ids.push(shape.id);
+        shapesInArea.push(shape);
       }
     });
 
-    return ids;
+    return shapesInArea;
   })();
 
-  // define select status
-  if (shapesInSelectingAreaIds.length === 1) {
-    const targetShape = shapes.find(
-      (shape) => shape.id === shapesInSelectingAreaIds[0]
-    );
-    if (!targetShape) return;
-    targetShape.selecting = true;
-  } else if (shapesInSelectingAreaIds.length >= 2) {
-    multiSelectShapeIds = shapesInSelectingAreaIds;
-  }
+  selection = new Selection(`selectionArea_${uuidv4()}`, shapesInSelectingArea);
 };
 
 const getCurve = (
@@ -1397,7 +945,17 @@ const getCurve = (
   w: number,
   h: number,
   p: CommonTypes.Vec,
-  distance: number
+  threshold: {
+    l: number;
+    t: number;
+    r: number;
+    b: number;
+  } = {
+    l: 0,
+    t: 0,
+    r: 0,
+    b: 0,
+  }
 ) => {
   let p1: CommonTypes.Vec = { x: 0, y: 0 };
   let p2: CommonTypes.Vec = { x: 0, y: 0 };
@@ -1405,11 +963,12 @@ const getCurve = (
   let cp2: CommonTypes.Vec = { x: 0, y: 0 };
 
   const arrow_h = 12;
+  const distance = Selection.__sendingPoint__.distance;
 
   switch (d) {
     case CommonTypes.Direction.l:
       p1 = {
-        x: p.x - w / 2,
+        x: p.x - w / 2 + threshold.l,
         y: p.y,
       };
       p2 = {
@@ -1426,7 +985,7 @@ const getCurve = (
     case CommonTypes.Direction.t:
       p1 = {
         x: p.x,
-        y: p.y - h / 2,
+        y: p.y - h / 2 + threshold.t,
       };
       p2 = {
         x: p1.x,
@@ -1441,7 +1000,7 @@ const getCurve = (
 
     case CommonTypes.Direction.r:
       p1 = {
-        x: p.x + w / 2,
+        x: p.x + w / 2 + threshold.r,
         y: p.y,
       };
       p2 = {
@@ -1458,7 +1017,7 @@ const getCurve = (
     case CommonTypes.Direction.b:
       p1 = {
         x: p.x,
-        y: p.y + h / 2,
+        y: p.y + h / 2 + threshold.b,
       };
       p2 = {
         x: p1.x,
@@ -1694,13 +1253,11 @@ const getCurveStickingCp1Cp2 = (
 };
 
 const movePressingCurve = (
-  ctx: null | undefined | CanvasRenderingContext2D,
-  pressingCurve: PageIdTypes.PressingCurve,
   p: CommonTypes.Vec,
-  offset: CommonTypes.Vec = { x: 0, y: 0 },
-  scale: number = 1
+  pressingCurve: null | undefined | PageIdTypes.PressingCurve
 ) => {
-  if (!ctx || !pressingCurve) return;
+  if (!pressingCurve) return true;
+  actionRecords.register(CommonTypes.Action.disconnect);
 
   const [toD, p2] = (() => {
     for (let i = 0; i < shapes.length; i++) {
@@ -1708,22 +1265,27 @@ const movePressingCurve = (
 
       if (shape.id === pressingCurve.from.shape.id) continue;
 
-      const quarterD = shape.checkQuarterArea(getNormalP(p, offset, scale));
+      const quarterD = shape.checkQuarterArea(p);
       if (quarterD) {
-        const p2 = shape.getCenter()[quarterD];
-        
-        if (
-          shape.type === CommonTypes.ShapeType.data &&
-          quarterD === CommonTypes.Direction.l
-        ) {
-          p2.x = p2.x + 8;
-        } else if (
-          shape.type === CommonTypes.ShapeType.data &&
-          quarterD === CommonTypes.Direction.r
-        ) {
-          p2.x = p2.x - 8;
-        }
-        return [quarterD, { x: p2.x, y: p2.y }];
+        const edgeM = shape.getCenter()[quarterD];
+        const curveThreshold = curveThresholdStrategy[shape.type][quarterD];
+        const threshold = {
+          x:
+            quarterD === CommonTypes.Direction.l ||
+            quarterD === CommonTypes.Direction.r
+              ? curveThreshold
+              : 0,
+          y:
+            quarterD === CommonTypes.Direction.t ||
+            quarterD === CommonTypes.Direction.b
+              ? curveThreshold
+              : 0,
+        };
+
+        return [
+          quarterD,
+          { x: edgeM.x + threshold.x, y: edgeM.y + threshold.y },
+        ];
       }
     }
 
@@ -1740,14 +1302,14 @@ const movePressingCurve = (
       p1,
       p2
     );
-    if (!p1 || !cp1 || !cp2 || !p2) return;
+    if (!p1 || !cp1 || !cp2 || !p2) return true;
 
     pressingCurve?.shape.locateHandler(CurveTypes.PressingTarget.cp1, cp1);
     pressingCurve?.shape.locateHandler(CurveTypes.PressingTarget.cp2, cp2);
     pressingCurve?.shape.locateHandler(CurveTypes.PressingTarget.p2, p2);
   } else {
     // move
-    const p2 = getNormalP(p, offset, scale);
+    const p2 = p;
     const cp1 = pressingCurve?.shape.p1;
     const cp2 = (() => {
       switch (pressingCurve.from.d) {
@@ -1781,6 +1343,57 @@ const movePressingCurve = (
     pressingCurve?.shape.locateHandler(CurveTypes.PressingTarget.cp2, cp2);
     pressingCurve.shape.locateHandler(CurveTypes.PressingTarget.p2, p2);
   }
+
+  return false;
+};
+
+const defineSelectionFrameRange = (
+  p: CommonTypes.Vec,
+  isMovingViewport: boolean = false
+) => {
+  if (isMovingViewport || !selectionFrame) return true;
+  selectionFrame?.drag(p);
+  return false;
+};
+
+const getShapeIdMap = (shapes: CommonTypes.Shapes) => {
+  const map: { [id: string]: boolean } = {};
+
+  shapes.forEach((shape) => {
+    map[shape.id] = true;
+  });
+
+  return map;
+};
+
+const syncCurvePosition = (shapes: CommonTypes.Shapes) => {
+  const shapeIdMap = getShapeIdMap(shapes);
+
+  curves.forEach((curve) => {
+    const isSender = shapeIdMap[curve.from.shape.id];
+    const isReciever = shapeIdMap[curve.to.shape.id];
+
+    if (isSender) {
+      moveSenderCurve(
+        curve.from.d,
+        curve.to.d,
+        curve.shape,
+        curve.from.shape.id
+      );
+    }
+    if (isReciever) {
+      moveRecieverCurve(
+        curve.from.d,
+        curve.to.d,
+        curve.shape,
+        curve.to.shape.id
+      );
+    }
+  });
+};
+
+const recordLastP = (p: CommonTypes.Vec) => {
+  lastP = p;
 };
 
 const moveSenderCurve = (
@@ -1790,9 +1403,25 @@ const moveSenderCurve = (
   senderId: null | undefined | string
 ) => {
   const sender = shapes.find((shape) => shape.id === senderId);
+
   if (!sender || !curve) return;
 
-  const p1 = sender.getCenter()[fromD];
+  const edgeM = sender.getCenter()[fromD];
+  const curveThreshold = curveThresholdStrategy[sender.type][fromD];
+  const threshold = {
+    x:
+      fromD === CommonTypes.Direction.l || fromD === CommonTypes.Direction.r
+        ? curveThreshold
+        : 0,
+    y:
+      fromD === CommonTypes.Direction.t || fromD === CommonTypes.Direction.b
+        ? curveThreshold
+        : 0,
+  };
+  const p1 = {
+    x: edgeM.x + threshold.x,
+    y: edgeM.y + threshold.y,
+  };
   const p2 = curve.p2;
   const [cp1, cp2] = getCurveStickingCp1Cp2(fromD, toD, curve, p1, p2);
 
@@ -1804,28 +1433,32 @@ const moveSenderCurve = (
 };
 
 const moveRecieverCurve = (
-  type: CommonTypes.ShapeType,
   fromD: CommonTypes.Direction,
   toD: CommonTypes.Direction,
   curve: null | undefined | Curve,
   recieverId: null | undefined | string
 ) => {
   const reciever = shapes.find((shape) => shape.id === recieverId);
+
   if (!reciever || !curve) return;
 
   const p1 = curve.p1;
-  const p2 = reciever.getCenter()[toD];
-  if (
-    type === CommonTypes.ShapeType.data &&
-    toD === CommonTypes.Direction.l
-  ) {
-    p2.x = p2.x + 8;
-  } else if (
-    type === CommonTypes.ShapeType.data &&
-    toD === CommonTypes.Direction.r
-  ) {
-    p2.x = p2.x - 8;
-  }
+  const edgeM = reciever.getCenter()[toD];
+  const curveThreshold = curveThresholdStrategy[reciever.type][toD];
+  const threshold = {
+    x:
+      toD === CommonTypes.Direction.l || toD === CommonTypes.Direction.r
+        ? curveThreshold
+        : 0,
+    y:
+      toD === CommonTypes.Direction.t || toD === CommonTypes.Direction.b
+        ? curveThreshold
+        : 0,
+  };
+  const p2 = {
+    x: edgeM.x + threshold.x,
+    y: edgeM.y + threshold.y,
+  };
   const [cp1, cp2] = getCurveStickingCp1Cp2(fromD, toD, curve, p1, p2);
 
   if (!p1 || !p2 || !cp1 || !cp2) return;
@@ -1835,92 +1468,128 @@ const moveRecieverCurve = (
   curve.locateHandler(CurveTypes.PressingTarget.p2, p2);
 };
 
-const moveCurve = (
-  shape: null | undefined | Terminal | Process | Desicion | Data
-) => {
-  if (!shape) return;
-  for (let i = curves.length - 1; i > -1; i--) {
-    const curve = curves[i];
-    if (curve.from.shape.id === shape.id) {
-      moveSenderCurve(
-        curve.from.d,
-        curve.to.d,
-        curve.shape,
-        curve.from.shape.id
-      ); // TODO: just record curve.from.shape.id in pressingCurve
-    }
-    if (curve.to.shape.id === shape.id) {
-      moveRecieverCurve(
-        shape.type,
-        curve.from.d,
-        curve.to.d,
-        curve.shape,
-        curve.to.shape.id
-      ); // TODO: just record curve.to.shape.id in pressingCurve
-    }
-  }
+const startMovingViewport = (isPressingSpace: boolean, p: CommonTypes.Vec) => {
+  if (!isPressingSpace) return true;
+
+  lastP = p;
+  return false;
 };
 
 const triggerCurve = (
   p: CommonTypes.Vec,
-  offest: CommonTypes.Vec = { x: 0, y: 0 },
-  scale: number = 0
+  selection: null | undefined | Selection
 ) => {
-  const [triggerShape, curveTriggerD] = (() => {
-    let triggerShape: null | Terminal | Process | Desicion | Data = null;
-    let curveTriggerD: null | CommonTypes.Direction = null;
+  if (!selection) return true;
+  const triggerPoint = selection.checkBoundry(p, 0);
 
-    for (let i = shapes.length - 1; i > -1; i--) {
-      const shape = shapes[i];
-      const triggerD = shape.getTriggerDirection(getNormalP(p, offest, scale));
-      if (triggerD) {
-        triggerShape = shape;
-        curveTriggerD = triggerD;
-        break;
-      }
-    }
+  if (
+    triggerPoint !== SelectionTypes.PressingTarget.sl &&
+    triggerPoint !== SelectionTypes.PressingTarget.st &&
+    triggerPoint !== SelectionTypes.PressingTarget.sr &&
+    triggerPoint !== SelectionTypes.PressingTarget.sb
+  )
+    return true;
 
-    return [triggerShape, curveTriggerD];
-  })();
+  const targetShape = selection.shapes[0];
+  const triggerDStrategy = {
+    [SelectionTypes.PressingTarget.sl]: CommonTypes.Direction.l,
+    [SelectionTypes.PressingTarget.st]: CommonTypes.Direction.t,
+    [SelectionTypes.PressingTarget.sr]: CommonTypes.Direction.r,
+    [SelectionTypes.PressingTarget.sb]: CommonTypes.Direction.b,
+  };
+  const triggerD = triggerDStrategy[triggerPoint];
 
-  if (triggerShape && curveTriggerD) {
-    triggerShape.selecting = false;
+  pressingCurve = {
+    from: {
+      shape: targetShape,
+      origin: cloneDeep(targetShape),
+      d: triggerD,
+    },
+    to: null,
+    shape: getCurve(
+      `curve_${uuidv4()}`,
+      triggerD,
+      targetShape.w,
+      targetShape.h,
+      targetShape.p,
+      curveThresholdStrategy[targetShape.type]
+    ),
+  };
 
-    pressingCurve = {
-      from: {
-        shape: triggerShape,
-        origin: cloneDeep(triggerShape),
-        d: curveTriggerD,
-      },
-      to: null,
-      shape: getCurve(
-        `curve_${Date.now()}`,
-        curveTriggerD,
-        triggerShape.w,
-        triggerShape.h,
-        triggerShape.p,
-        triggerShape.curveTrigger.distance
-      ),
+  pressingCurve.shape.selecting = true;
+  return false;
+};
+
+const pressSelection = (
+  p: CommonTypes.Vec,
+  selection: null | undefined | Selection
+) => {
+  if (!selection) return true;
+
+  const _target = selection.checkBoundry(p, 0);
+
+  if (
+    _target !== SelectionTypes.PressingTarget.lt &&
+    _target !== SelectionTypes.PressingTarget.rt &&
+    _target !== SelectionTypes.PressingTarget.rb &&
+    _target !== SelectionTypes.PressingTarget.lb &&
+    _target !== SelectionTypes.PressingTarget.m
+  )
+    return true;
+
+  pressingSelection = {
+    selection: selection,
+    ghost: cloneDeep(selection),
+    target: _target,
+  };
+
+  return false;
+};
+
+const selectShape = (p: CommonTypes.Vec) => {
+  for (let i = shapes.length - 1; i >= 0; i--) {
+    const shape = shapes[i];
+    if (!shape.checkBoundry(p)) continue;
+    deSelectCurve();
+
+    const isSendingPointDisabled =
+      shape instanceof Desicion &&
+      curves.filter((curve) => curve.from.shape.id === shape.id).length >= 2;
+
+    selection = new Selection(
+      `selectionArea_${uuidv4()}`,
+      [shape],
+      isSendingPointDisabled
+    );
+
+    pressingSelection = {
+      selection: selection,
+      ghost: cloneDeep(selection),
+      target: SelectionTypes.PressingTarget.m,
     };
 
-    pressingCurve.shape.selecting = true;
     return false;
   }
 
   return true;
 };
 
-const selectCurve = (
-  p: CommonTypes.Vec,
-  offset: CommonTypes.Vec = { x: 0, y: 0 },
-  scale: number = 1
-) => {
+const startFrameSelecting = (p: CommonTypes.Vec) => {
+  deSelect();
+  selectionFrame = new SelectionFrame(`selectionFrame_${uuidv4()}`, {
+    start: p,
+    end: p,
+  });
+
+  return false;
+};
+
+const selectCurve = (p: CommonTypes.Vec) => {
   for (let i = curves.length - 1; i > -1; i--) {
     const curve = curves[i];
-    if (
-      curve.shape.selecting &&
-      curve.shape.checkControlPointsBoundry(getNormalP(p, offset, scale))
-    ) {
+
+    if (curve.shape.selecting && curve.shape.checkControlPointsBoundry(p)) {
+      deSelectShape();
       pressingCurve = {
         from: {
           shape: curve.from.shape,
@@ -1937,297 +1606,74 @@ const selectCurve = (
 
       return false;
     }
-    if (curve.shape.checkBoundry(getNormalP(p, offset, scale))) {
+
+    if (curve.shape.checkBoundry(p)) {
+      deSelectShape();
       curve.shape.selecting = true;
       return false;
     }
-  }
-  return true;
-};
-
-const deSelectCurve = () => {
-  curves.forEach((curve) => {
-    curve.shape.selecting = false;
-  });
-
-  return true;
-};
-
-const selectShape = (
-  p: CommonTypes.Vec,
-  offset: CommonTypes.Vec,
-  scale: number
-) => {
-  const normalP = getNormalP(p, offset, scale);
-  shapes.forEach((shape) => {
-    const _ghost = cloneDeep(shape);
-    _ghost.title = "ghost";
-    const pressingVertex = shape.checkVertexesBoundry(normalP);
-    if (pressingVertex) {
-      pressing = {
-        origin: cloneDeep(shape),
-        shape: shape,
-        ghost: _ghost,
-        curveId: null,
-        target: pressingVertex,
-        direction: null,
-      };
-    } else if (shape.checkBoundry(normalP)) {
-      pressing = {
-        origin: cloneDeep(shape),
-        shape: shape,
-        ghost: _ghost,
-        curveId: null,
-        target: CoreTypes.PressingTarget.m,
-        direction: null,
-      };
-    }
-  });
-
-  if (pressing?.shape) {
-    pressing.shape.selecting = true;
-    return false;
   }
 
   return true;
 };
 
 const deSelectShape = () => {
-  shapes.forEach((shape) => {
-    shape.selecting = false;
-  });
-
-  return true;
+  selection = null;
 };
 
-const getMultSelectingMap = () => {
-  const map: { [id: string]: true } = {};
-
-  multiSelectShapeIds.forEach((multiSelectShapeId) => {
-    map[multiSelectShapeId] = true;
-  });
-
-  return map;
-};
-
-const moveMultiSelectingShapes = (offsetP: CommonTypes.Vec) => {
-  if (multiSelectShapeIds.length < 2) return;
-  const multiSelectingMap = getMultSelectingMap();
-  shapes.forEach((shape) => {
-    if (!multiSelectingMap[shape.id]) return;
-    shape.move(offsetP);
+const deSelectCurve = () => {
+  curves.forEach((curve) => {
+    curve.shape.selecting = false;
   });
 };
 
-const resizeMultiSelectingShapes = (
-  target:
-    | null
-    | undefined
-    | CommonTypes.SelectAreaTarget.lt
-    | CommonTypes.SelectAreaTarget.rt
-    | CommonTypes.SelectAreaTarget.rb
-    | CommonTypes.SelectAreaTarget.lb,
+const deSelect = () => {
+  deSelectShape();
+  deSelectCurve();
+};
+
+const moveViewport = (p: CommonTypes.Vec, isPressingSpace: boolean) => {
+  if (!isPressingSpace) return true;
+  lastP = p;
+  return false;
+};
+
+const moveShapes = (
   offsetP: CommonTypes.Vec,
-  scale = 1
+  pressingSelection: null | undefined | PageIdTypes.PressingSelection
 ) => {
-  if (!target || multiSelectShapeIds.length < 2) return;
-  const [multiSelectingAreaStartP, multiSelectingAreaEndP] =
-    getMultiSelectingAreaP();
-  const multiSelectingAreaP = {
-    start: multiSelectingAreaStartP,
-    end: multiSelectingAreaEndP,
-  };
-  const multiSelectingAreaSize = {
-    w: Math.abs(multiSelectingAreaP.end.x - multiSelectingAreaP.start.x),
-    h: Math.abs(multiSelectingAreaP.end.y - multiSelectingAreaP.start.y),
-  };
+  if (
+    !pressingSelection?.selection ||
+    pressingSelection?.target !== SelectionTypes.PressingTarget.m
+  )
+    return true;
+  actionRecords.register(CommonTypes.Action.move);
 
-  switch (target) {
-    case CommonTypes.SelectAreaTarget.lt:
-      {
-        const canResize = {
-          x: multiSelectingAreaSize.w - offsetP.x > 0 || offsetP.x < 0,
-          y: multiSelectingAreaSize.h - offsetP.y > 0 || offsetP.y < 0,
-        };
-        const multiSelectingMap = getMultSelectingMap();
+  pressingSelection.selection.move(offsetP);
+  syncCurvePosition(shapes);
 
-        shapes.forEach((shape) => {
-          if (!multiSelectingMap[shape.id]) return;
+  return false;
+};
 
-          const ratioW = shape.getScaleSize().w / multiSelectingAreaSize.w,
-            unitW = offsetP.x * ratioW;
+const resizeShapes = (
+  offsetP: CommonTypes.Vec,
+  pressingSelection: null | undefined | PageIdTypes.PressingSelection
+) => {
+  if (
+    !pressingSelection?.selection ||
+    (pressingSelection?.target !== SelectionTypes.PressingTarget.lt &&
+      pressingSelection?.target !== SelectionTypes.PressingTarget.rt &&
+      pressingSelection?.target !== SelectionTypes.PressingTarget.lb &&
+      pressingSelection?.target !== SelectionTypes.PressingTarget.rb)
+  )
+    return true;
 
-          if (canResize.x) {
-            shape.w = shape.w - unitW / scale;
+  actionRecords.register(CommonTypes.Action.resize);
 
-            const dx = Math.abs(shape.p.x - multiSelectingAreaP.end.x),
-              ratioX = dx / multiSelectingAreaSize.w,
-              unitX = offsetP.x * ratioX;
+  pressingSelection.selection.resize(pressingSelection.target, offsetP);
+  syncCurvePosition(shapes);
 
-            shape.p = {
-              ...shape.p,
-              x: shape.p.x + unitX / scale,
-            };
-          }
-
-          const ratioH = shape.getScaleSize().h / multiSelectingAreaSize.h,
-            unitH = offsetP.y * ratioH;
-
-          if (canResize.y) {
-            shape.h = shape.h - unitH / scale;
-
-            const dy = Math.abs(shape.p.y - multiSelectingAreaP.end.y),
-              ratioY = dy / multiSelectingAreaSize.h,
-              unitY = offsetP.y * ratioY;
-
-            shape.p = {
-              ...shape.p,
-              y: shape.p.y + unitY / scale,
-            };
-          }
-        });
-      }
-      break;
-
-    case CommonTypes.SelectAreaTarget.rt:
-      {
-        const canResize = {
-          x: multiSelectingAreaSize.w + offsetP.x > 0 || offsetP.x > 0,
-          y: multiSelectingAreaSize.h - offsetP.y > 0 || offsetP.y < 0,
-        };
-
-        const multiSelectingMap = getMultSelectingMap();
-
-        shapes.forEach((shape) => {
-          if (!multiSelectingMap[shape.id]) return;
-          const ratioW = shape.getScaleSize().w / multiSelectingAreaSize.w,
-            unitW = offsetP.x * ratioW;
-
-          if (canResize.x) {
-            shape.w = shape.w + unitW / scale;
-
-            const dx = Math.abs(shape.p.x - multiSelectingAreaP.start.x),
-              ratioX = dx / multiSelectingAreaSize.w,
-              unitX = offsetP.x * ratioX;
-
-            shape.p = {
-              ...shape.p,
-              x: shape.p.x + unitX / scale,
-            };
-          }
-
-          const ratioH = shape.h / multiSelectingAreaSize.h,
-            unitH = offsetP.y * ratioH;
-
-          if (canResize.y) {
-            shape.h = shape.getScaleSize().h - unitH / scale;
-
-            const dy = Math.abs(shape.p.y - multiSelectingAreaP.end.y),
-              ratioY = dy / multiSelectingAreaSize.h,
-              unitY = offsetP.y * ratioY;
-
-            shape.p = {
-              ...shape.p,
-              y: shape.p.y + unitY / scale,
-            };
-          }
-        });
-      }
-      break;
-
-    case CommonTypes.SelectAreaTarget.rb:
-      {
-        const canResize = {
-          x: multiSelectingAreaSize.w + offsetP.x > 0 || offsetP.x > 0,
-          y: multiSelectingAreaSize.h + offsetP.y > 0 || offsetP.y > 0,
-        };
-
-        const multiSelectingMap = getMultSelectingMap();
-
-        shapes.forEach((shape) => {
-          if (!multiSelectingMap[shape.id]) return;
-          const ratioW = shape.getScaleSize().w / multiSelectingAreaSize.w,
-            unitW = offsetP.x * ratioW;
-
-          if (canResize.x) {
-            shape.w = shape.w + unitW / scale;
-
-            const dx = Math.abs(shape.p.x - multiSelectingAreaP.start.x),
-              ratioX = dx / multiSelectingAreaSize.w,
-              unitX = offsetP.x * ratioX;
-
-            shape.p = {
-              ...shape.p,
-              x: shape.p.x + unitX / scale,
-            };
-          }
-
-          const ratioH = shape.getScaleSize().h / multiSelectingAreaSize.h,
-            unitH = offsetP.y * ratioH;
-
-          if (canResize.y) {
-            shape.h = shape.h + unitH / scale;
-
-            const dy = Math.abs(shape.p.y - multiSelectingAreaP.start.y),
-              ratioY = dy / multiSelectingAreaSize.h,
-              unitY = offsetP.y * ratioY;
-
-            shape.p = {
-              ...shape.p,
-              y: shape.p.y + unitY / scale,
-            };
-          }
-        });
-      }
-      break;
-
-    case CommonTypes.SelectAreaTarget.lb:
-      {
-        const canResize = {
-          x: multiSelectingAreaSize.w - offsetP.x > 0 || offsetP.x < 0,
-          y: multiSelectingAreaSize.h + offsetP.y > 0 || offsetP.y > 0,
-        };
-
-        const multiSelectingMap = getMultSelectingMap();
-
-        shapes.forEach((shape) => {
-          if (!multiSelectingMap[shape.id]) return;
-          const ratioW = shape.getScaleSize().w / multiSelectingAreaSize.w,
-            unitW = offsetP.x * ratioW;
-
-          if (canResize.x) {
-            shape.w = shape.w - unitW / scale;
-
-            const dx = Math.abs(shape.p.x - multiSelectingAreaP.end.x),
-              ratioX = dx / multiSelectingAreaSize.w,
-              unitX = offsetP.x * ratioX;
-
-            shape.p = {
-              ...shape.p,
-              x: shape.p.x + unitX / scale,
-            };
-          }
-
-          const ratioH = shape.getScaleSize().h / multiSelectingAreaSize.h,
-            unitH = offsetP.y * ratioH;
-
-          if (canResize.y) {
-            shape.h = shape.h + unitH / scale;
-
-            const dy = Math.abs(shape.p.y - multiSelectingAreaP.start.y),
-              ratioY = dy / multiSelectingAreaSize.h,
-              unitY = offsetP.y * ratioY;
-
-            shape.p = {
-              ...shape.p,
-              y: shape.p.y + unitY / scale,
-            };
-          }
-        });
-      }
-
-      break;
-  }
+  return false;
 };
 
 const connect = (
@@ -2370,122 +1816,6 @@ const drawAlignLines = (
   });
 };
 
-const getMultiSelectingAreaP = () => {
-  const startP = { x: -1, y: -1 };
-  const endP = { x: -1, y: -1 };
-
-  const multiSelectingMap = getMultSelectingMap();
-
-  shapes.forEach((shape) => {
-    if (!multiSelectingMap[shape.id]) return;
-    const theEdge = shape.getEdge();
-    if (startP.x === -1 || theEdge.l < startP.x) {
-      startP.x = theEdge.l;
-    }
-    if (startP.y === -1 || theEdge.t < startP.y) {
-      startP.y = theEdge.t;
-    }
-    if (endP.x === -1 || theEdge.r > endP.x) {
-      endP.x = theEdge.r;
-    }
-    if (endP.y === -1 || theEdge.b > endP.y) {
-      endP.y = theEdge.b;
-    }
-  });
-
-  return [startP, endP];
-};
-
-const drawMultiSelectedShapesArea = (
-  ctx: undefined | null | CanvasRenderingContext2D,
-  offset: CommonTypes.Vec = { x: 0, y: 0 },
-  scale: number = 1
-) => {
-  if (!ctx || multiSelectShapeIds.length < 2) return;
-
-  const [startP, endP] = getMultiSelectingAreaP();
-
-  if (startP.x === -1 || startP.y === -1 || endP.x === -1 || endP.y === -1)
-    return;
-
-  const screenStartP = {
-    x: (startP.x + offset.x) * scale,
-    y: (startP.y + offset.y) * scale,
-  };
-  const screenEndP = {
-    x: (endP.x + offset.x) * scale,
-    y: (endP.y + offset.y) * scale,
-  };
-
-  // draw multiSelect area
-  ctx?.beginPath();
-  ctx.strokeStyle = tailwindColors.info["500"];
-  ctx.lineWidth = 1;
-  ctx.strokeRect(
-    screenStartP.x,
-    screenStartP.y,
-    screenEndP.x - screenStartP.x,
-    screenEndP.y - screenStartP.y
-  );
-  ctx?.closePath();
-
-  // draw multiSelect area anchors
-  ctx.fillStyle = "white";
-  ctx.lineWidth = selectAnchor.size.stroke;
-
-  ctx?.beginPath();
-  ctx.arc(
-    screenStartP.x,
-    screenStartP.y,
-    selectAnchor.size.fill,
-    0,
-    2 * Math.PI,
-    false
-  ); // left, top
-  ctx.stroke();
-  ctx.fill();
-  ctx?.closePath();
-
-  ctx?.beginPath();
-  ctx.arc(
-    screenEndP.x,
-    screenStartP.y,
-    selectAnchor.size.fill,
-    0,
-    2 * Math.PI,
-    false
-  ); // right, top
-  ctx.stroke();
-  ctx.fill();
-  ctx?.closePath();
-
-  ctx?.beginPath();
-  ctx.arc(
-    screenEndP.x,
-    screenEndP.y,
-    selectAnchor.size.fill,
-    0,
-    2 * Math.PI,
-    false
-  ); // right, bottom
-  ctx.stroke();
-  ctx.fill();
-  ctx?.closePath();
-
-  ctx?.beginPath();
-  ctx.arc(
-    screenStartP.x,
-    screenEndP.y,
-    selectAnchor.size.fill,
-    0,
-    2 * Math.PI,
-    false
-  ); // left, bottom
-  ctx.stroke();
-  ctx.fill();
-  ctx?.closePath();
-};
-
 const draw = (
   $canvas: HTMLCanvasElement,
   ctx: CanvasRenderingContext2D,
@@ -2505,10 +1835,6 @@ const draw = (
   ctx?.fillRect(0, 0, window.innerWidth, window.innerHeight);
   ctx?.closePath();
 
-  tests.forEach((test) => {
-    test.draw(ctx);
-  });
-
   drawShapes(ctx, shapes, offset, scale);
   drawShapes(
     ctx,
@@ -2518,20 +1844,21 @@ const draw = (
   );
   drawAlignLines(ctx, alginLines, offset, scale);
 
-  if (!isScreenshot) {
-    // draw sending point
-    shapes.forEach((shape) => {
-      if (!ctx || !shape.selecting) return;
-      if (
-        shape instanceof Terminal ||
-        shape instanceof Process ||
-        shape instanceof Data ||
-        (shape instanceof Desicion && !(shape.getText().y && shape.getText().n))
-      ) {
-        shape.drawSendingPoint(ctx, offset, scale);
-      }
-    });
-  }
+  // TODO: wait for matching backend features
+  // if (!isScreenshot) {
+  //   // draw sending point
+  //   shapes.forEach((shape) => {
+  //     if (!ctx || !shape.selecting) return;
+  //     if (
+  //       shape instanceof Terminal ||
+  //       shape instanceof Process ||
+  //       shape instanceof Data ||
+  //       (shape instanceof Desicion && !(shape.getText().y && shape.getText().n))
+  //     ) {
+  //       shape.drawSendingPoint(ctx, offset, scale);
+  //     }
+  //   });
+  // }
 
   if (!pressingCurve?.to) {
     pressingCurve?.shape.draw(ctx, offset, scale);
@@ -2539,31 +1866,13 @@ const draw = (
 
   if (!isScreenshot) {
     // draw selectArea
-    if (selectionFrameP) {
-      ctx?.beginPath();
-
-      ctx.fillStyle = "#2436b155";
-      ctx.fillRect(
-        selectionFrameP?.start.x,
-        selectionFrameP?.start.y,
-        selectionFrameP?.end.x - selectionFrameP?.start.x,
-        selectionFrameP?.end.y - selectionFrameP?.start.y
-      );
-
-      ctx.strokeStyle = "#2436b1";
-      ctx.strokeRect(
-        selectionFrameP?.start.x,
-        selectionFrameP?.start.y,
-        selectionFrameP?.end.x - selectionFrameP?.start.x,
-        selectionFrameP?.end.y - selectionFrameP?.start.y
-      );
-
-      ctx?.closePath();
+    if (!!selectionFrame) {
+      selectionFrame.draw(ctx);
     }
-  }
-
-  if (!isScreenshot) {
-    drawMultiSelectedShapesArea(ctx, offset, scale);
+    if (!!selection) {
+      selection.draw(ctx, offset, scale);
+      // pressingSelection?.ghost?.draw(ctx, offset, scale);
+    }
   }
 };
 
@@ -2588,122 +1897,6 @@ const drawScreenshot = (offset?: CommonTypes.Vec, scale?: number) => {
   );
 };
 
-const resizeShape = (
-  shapes: null | undefined | (Terminal | Process | Data | Desicion)[],
-  pressing: {
-    shape: null | undefined | Terminal | Process | Data | Desicion;
-    ghost: null | undefined | Terminal | Process | Data | Desicion;
-    target:
-      | null
-      | undefined
-      | CoreTypes.PressingTarget.lt
-      | CoreTypes.PressingTarget.rt
-      | CoreTypes.PressingTarget.rb
-      | CoreTypes.PressingTarget.lb;
-  },
-  offsetP: CommonTypes.Vec
-) => {
-  if (!shapes || !pressing.shape || !pressing.ghost || !pressing.target) return;
-
-  const shapesInView = getShapesInView(
-    shapes.filter((shape) => shape.id !== pressing?.shape?.id)
-  );
-
-  const directions = (() => {
-    switch (pressing.target) {
-      case CoreTypes.PressingTarget.lt:
-        return [CommonTypes.Direction.l, CommonTypes.Direction.t];
-
-      case CoreTypes.PressingTarget.rt:
-        return [CommonTypes.Direction.r, CommonTypes.Direction.t];
-
-      case CoreTypes.PressingTarget.rb:
-        return [CommonTypes.Direction.r, CommonTypes.Direction.b];
-
-      case CoreTypes.PressingTarget.lb:
-        return [CommonTypes.Direction.l, CommonTypes.Direction.b];
-    }
-  })();
-
-  if (!directions) return;
-
-  const center = {
-    shape: pressing.shape.getCenter(),
-    ghost: pressing.ghost.getCenter(),
-  };
-
-  const alignLines_vertical = getVertexAlignLines(
-    shapesInView,
-    center.shape[directions[0]]
-  );
-
-  const alginLines_horizental = getVertexAlignLines(
-    shapesInView,
-    center.shape[directions[1]]
-  );
-
-  alginLines = alignLines_vertical.concat(alginLines_horizental);
-
-  const alignVertixP = getAlignVertixP(
-    shapesInView,
-    center.ghost[pressing.target]
-  );
-
-  if (alignVertixP?.x && !alignVertixP?.y) {
-    pressing.shape.resize(
-      {
-        x: alignVertixP.x - center.shape[pressing.target].x,
-        y: offsetP.y,
-      },
-      pressing.target
-    );
-  }
-
-  if (!alignVertixP?.x && alignVertixP?.y) {
-    pressing.shape.resize(
-      {
-        x: offsetP.x,
-        y: alignVertixP.y - center.shape[pressing.target].y,
-      },
-      pressing.target
-    );
-  }
-
-  if (alignVertixP?.x && alignVertixP?.y) {
-    pressing.shape.resize(
-      {
-        x: alignVertixP.x - center.shape[pressing.target].x,
-        y: alignVertixP.y - center.shape[pressing.target].y,
-      },
-      pressing.target
-    );
-  }
-
-  if (!alignVertixP?.x && !alignVertixP?.y) {
-    if (pressing.shape.p.x !== pressing.ghost?.p.x) {
-      pressing.shape.resize(
-        {
-          x: center.ghost[pressing.target].x - center.shape[pressing.target].x,
-          y: 0,
-        },
-        pressing.target
-      );
-    }
-    if (pressing.shape.p.y !== pressing.ghost?.p.y) {
-      pressing.shape.resize(
-        {
-          x: 0,
-          y: center.ghost[pressing.target].y - center.shape[pressing.target].y,
-        },
-        pressing.target
-      );
-    }
-  }
-
-  pressing.ghost.resize(offsetP, pressing.target);
-  moveCurve(pressing?.shape);
-};
-
 const undo = (
   ctx: undefined | null | CanvasRenderingContext2D,
   offset?: CommonTypes.Vec,
@@ -2715,6 +1908,13 @@ const undo = (
   if (!action) return;
   shapes = action?.shapes;
   curves = action?.curves;
+  if (selection) {
+    const selectingMap = selection.getSelectingMap();
+    selection = new Selection(
+      selection.id,
+      shapes.filter((shape) => selectingMap[shape.id])
+    );
+  }
 
   actions.pop();
 
@@ -2722,49 +1922,40 @@ const undo = (
   drawScreenshot(offset, scale);
 };
 
+const syncCandidates = (shapes: CommonTypes.Shapes) => {
+  if (!candidates) return;
+  // sync with candidates when checking
+  shapes.forEach((shape) => {
+    const candidate = candidates?.find(
+      (candidate) => candidate.id === shape.id
+    );
+    if (!candidate) return;
+    candidate.p = shape.p;
+    candidate.w = shape.w;
+    candidate.h = shape.h;
+  });
+};
+
 export default function IdPage() {
   let { current: $canvas } = useRef<HTMLCanvasElement | null>(null);
   let { current: $screenshot } = useRef<HTMLCanvasElement | null>(null);
-  const qas = isBrowser && window.location.href.includes("qas");
-  const params = useParams<{ id: string }>();
-  const router = useRouter();
 
   const [space, setSpace] = useState(false);
   const [control, setControl] = useState(false);
   const [scale, setScale] = useState(1);
   const [leftMouseBtn, setLeftMouseBtn] = useState(false);
-  const [isOverAllSidePanelOpen, setIsOverallSidePanelOpen] = useState(false);
+  const [isOverAllSidePanelOpen, setIsOverAllSidePanelOpen] = useState(false);
   const [isIndivisualSidePanelOpen, setIsIndivisualSidePanelOpen] =
     useState(false);
-  const [isRenameFrameOpen, setIsRenameFrameOpen] = useState(false);
-  const [isProfileFrameOpen, setIsProfileFrameOpen] = useState(false);
   const [isConsoleOpen, setIsConsoleOpen] = useState(false);
-  const [steps, setSteps] = useState<PageTypes.Steps>([]);
-  const [datas, setDatas] = useState<PageIdTypes.Datas>([
-    // { id: "data1", name: "data1" },
-    // { id: "data2", name: "data2" },
-    // { id: "data3", name: "data3" },
-    // { id: "data4", name: "data4" },
-  ]);
-
-  const [isProjectsModalOpen, setIsProjectsModalOpen] = useState(false);
-  const [projects, setProjects] = useState<
-    ProjectAPITypes.GetProjects["resData"]
-  >([]);
-  const [selectedProjectId, setSelectedProjectId] = useState<
-    null | ProjectTypes.Project["id"]
-  >(null);
-  const [hasEnter, setHasEnter] = useState(false);
+  const [steps, setSteps] = useState<CommonTypes.Steps>([]);
+  const [datas, setDatas] = useState<PageIdTypes.Datas>([]);
   const [projectName, setProjectName] = useState({
     inputVal: "Untitled",
     val: "Untitled",
   });
-  const [overallType, setOverallType] = useState(PageIdTypes.OverallType.step);
-  const [createDataValue, setCreateDateValue] = useState<null | string>(null);
   const [isEditingIndivisual, setIsEditingIndivisual] = useState(false);
-  const [indivisual, setIndivisual] = useState<
-    null | Terminal | Process | Data | Desicion
-  >(null);
+  const [indivisual, setIndivisual] = useState<PageIdTypes.Indivisual>(null);
   const [createImportDatas, setCreateImportDatas] =
     useState<IndivisaulSidePanelTypes.CreateDatas>([]);
   const [addImportDatas, setAddImportDatas] =
@@ -2777,16 +1968,19 @@ export default function IdPage() {
     useState<IndivisaulSidePanelTypes.CreateDatas>([]);
   const [addDeleteDatas, setAddDeleteDatas] =
     useState<IndivisaulSidePanelTypes.AddDatas>([]);
-  const [consoles, setConsoles] = useState<any>([]);
+  const [consoles, setConsoles] = useState<ConsoleTypes.Consoles>([]);
   const [isCheckingData, setIsCheckingData] = useState(false);
+
+  const movingViewport = useMemo(
+    () => space && leftMouseBtn,
+    [space, leftMouseBtn]
+  );
 
   const checkSteps = () => {
     setSteps(cloneDeep(shapes));
   };
 
-  const updateShapes = (
-    newShapes: (Terminal | Process | Data | Desicion)[]
-  ) => {
+  const updateShapes = (newShapes: CommonTypes.Shapes) => {
     shapes = newShapes;
     checkSteps();
     setIndivisual(shapes.find((shape) => indivisual?.id === shape.id) || null);
@@ -2798,13 +1992,7 @@ export default function IdPage() {
     curves = newCurves;
   };
 
-  const zoom = (
-    delta: number,
-    client: {
-      x: number;
-      y: number;
-    }
-  ) => {
+  const zoom: PageIdTypes.Zoom = (delta, client) => {
     const $canvas = document.querySelector("canvas");
     if (!$canvas) return;
     const scaleAmount = -delta / 500;
@@ -2828,30 +2016,7 @@ export default function IdPage() {
     drawCanvas(offset, _scale);
   };
 
-  // const fetchProjects = async () => {
-  //   const res: AxiosResponse<ProjectAPITypes.GetProjects["resData"], any> =
-  //     await projectAPIs.getProjecs();
-  //   setProjects(res.data);
-  // };
-
-  // const verifyToken = async () => {
-  //   const token = localStorage.getItem("Authorization");
-
-  //   if (token) {
-  //     const res: AxiosResponse<AuthTypes.JWTLogin["resData"]> =
-  //       await authAPIs.jwtLogin(token);
-
-  //     if (res.data.isPass) {
-  //       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-  //     } else {
-  //       router.push("/");
-  //     }
-  //   } else {
-  //     router.push("/");
-  //   }
-  // };
-
-  const positioning = (shapeP: CommonTypes.Vec) => {
+  const positioning: PageIdTypes.Positioning = (shapeP) => {
     if (!isBrowser) return;
 
     offset = {
@@ -2877,84 +2042,17 @@ export default function IdPage() {
       y: e.nativeEvent.offsetY,
     };
     const normalP = getNormalP(p, offset, scale);
-    if (space) {
-      lastP = p;
-    } else {
-      if (multiSelectShapeIds.length >= 2) {
-        // when multi multiSelect shapes
-        let _target: null | CommonTypes.SelectAreaTarget = null;
-        const [multiSelectingAreaStartP, multiSelectingAreaEndP] =
-          getMultiSelectingAreaP();
-        const pInSelectingArea = {
-          m:
-            normalP.x > multiSelectingAreaStartP.x &&
-            normalP.y > multiSelectingAreaStartP.y &&
-            normalP.x < multiSelectingAreaEndP.x &&
-            normalP.y < multiSelectingAreaEndP.y,
-          lt:
-            normalP.x > multiSelectingAreaStartP.x - selectAnchor.size.fill &&
-            normalP.y > multiSelectingAreaStartP.y - selectAnchor.size.fill &&
-            normalP.x < multiSelectingAreaStartP.x + selectAnchor.size.fill &&
-            normalP.y < multiSelectingAreaStartP.y + selectAnchor.size.fill,
-          rt:
-            normalP.x > multiSelectingAreaEndP.x - selectAnchor.size.fill &&
-            normalP.y > multiSelectingAreaStartP.y - selectAnchor.size.fill &&
-            normalP.x < multiSelectingAreaEndP.x + selectAnchor.size.fill &&
-            normalP.y < multiSelectingAreaStartP.y + selectAnchor.size.fill,
-          rb:
-            normalP.x > multiSelectingAreaEndP.x - selectAnchor.size.fill &&
-            normalP.y > multiSelectingAreaEndP.y - selectAnchor.size.fill &&
-            normalP.x < multiSelectingAreaEndP.x + selectAnchor.size.fill &&
-            normalP.y < multiSelectingAreaEndP.y + selectAnchor.size.fill,
-          lb:
-            normalP.x > multiSelectingAreaStartP.x - selectAnchor.size.fill &&
-            normalP.y > multiSelectingAreaEndP.y - selectAnchor.size.fill &&
-            normalP.x < multiSelectingAreaStartP.x + selectAnchor.size.fill &&
-            normalP.y < multiSelectingAreaEndP.y + selectAnchor.size.fill,
-        };
 
-        if (pInSelectingArea.m) {
-          _target = CommonTypes.SelectAreaTarget.m;
-        } else if (pInSelectingArea.lt) {
-          _target = CommonTypes.SelectAreaTarget.lt;
-        } else if (pInSelectingArea.rt) {
-          _target = CommonTypes.SelectAreaTarget.rt;
-        } else if (pInSelectingArea.rb) {
-          _target = CommonTypes.SelectAreaTarget.rb;
-        } else if (pInSelectingArea.lb) {
-          _target = CommonTypes.SelectAreaTarget.lb;
-        }
+    handleUtils.handle([
+      () => startMovingViewport(space, p),
+      () => pressSelection(normalP, selection),
+      () => triggerCurve(normalP, selection),
+      () => selectCurve(normalP),
+      () => selectShape(normalP),
+      () => startFrameSelecting(p),
+    ]);
 
-        if (_target) {
-          pressing = {
-            origin: null,
-            shape: null,
-            ghost: null,
-            target: _target,
-            direction: null,
-          };
-        } else {
-          multiSelectShapeIds = cloneDeep(init.multiSelectShapeIds);
-        }
-      } else {
-        // when single multiSelect shape
-        handleUtils.handle([
-          () => triggerCurve(p, offset, scale),
-          () => deSelectShape(),
-          () => selectCurve(p, offset, scale),
-          () => deSelectCurve(),
-          () => selectShape(p, offset, scale),
-        ]);
-      }
-
-      if (!pressing) {
-        selectionFrameP = {
-          start: p,
-          end: p,
-        };
-      }
-    }
-
+    syncCandidates(shapes);
     drawCanvas(offset, scale);
   };
 
@@ -2969,170 +2067,249 @@ export default function IdPage() {
         x: p.x - lastP.x,
         y: p.y - lastP.y,
       },
+      normalP = getNormalP(p, offset, scale),
       normalOffsetP = getNormalP(offsetP, null, scale);
-
-    const movingViewport = space && leftMouseBtn;
 
     if (movingViewport) {
       offset.x += normalOffsetP.x;
       offset.y += normalOffsetP.y;
     }
 
-    if (!movingViewport && multiSelectShapeIds.length >= 2) {
-      if (pressing?.target === CommonTypes.SelectAreaTarget.m) {
-        actionRecords.register(CommonTypes.Action.multiMove);
-        moveMultiSelectingShapes(normalOffsetP);
-      } else if (
-        pressing?.target === CommonTypes.SelectAreaTarget.lt ||
-        pressing?.target === CommonTypes.SelectAreaTarget.rt ||
-        pressing?.target === CommonTypes.SelectAreaTarget.rb ||
-        pressing?.target === CommonTypes.SelectAreaTarget.lb
-      ) {
-        actionRecords.register(CommonTypes.Action.multiResize);
-        resizeMultiSelectingShapes(pressing?.target, offsetP, scale);
-      }
+    handleUtils.handle([
+      () => moveViewport(p, space),
+      () => moveShapes(normalOffsetP, pressingSelection),
+      () => resizeShapes(normalOffsetP, pressingSelection),
+      () => defineSelectionFrameRange(p),
+      () => movePressingCurve(normalP, pressingCurve),
+    ]);
 
-      const multiSelectingMap = getMultSelectingMap();
+    recordLastP(p);
 
-      shapes.forEach((shape) => {
-        if (!multiSelectingMap[shape.id]) return;
-        moveCurve(shape);
-      });
-    }
+    // TODO: align feature
+    // if (!movingViewport && pressing?.shape && !!selectionFrame) {
+    //   if (pressing?.target === CommonTypes.SelectAreaTarget.m) {
+    //     actionRecords.register(CommonTypes.Action.multiMove);
 
-    if (!movingViewport && pressing?.shape) {
-      if (pressing?.shape && pressing?.target === CoreTypes.PressingTarget.m) {
-        actionRecords.register(CommonTypes.Action.move);
+    //     const shapesInView = getShapesInView(shapes);
+    //     const targetAlignShapes = shapesInView.filter(
+    //       (shapeInView) => shapeInView.id !== pressing?.shape?.id
+    //     );
+    //     const alignP = getAlignP(targetAlignShapes, pressing.ghost);
 
-        const shapesInView = getShapesInView(shapes);
-        alginLines = getAlignLines(shapesInView, pressing.shape);
+    //     if (alignP?.x || alignP?.y) {
+    //       // pressing.shape.locate(alignP);
+    //       // locateMultiSelectingShapes(alignP);
+    //     }
 
-        const alignP = getAlignP(shapesInView, pressing.ghost);
+    //     if (alignP?.x && !alignP?.y) {
+    //       const moveP = getNormalP(
+    //         {
+    //           x: 0,
+    //           y: p.y - lastP.y,
+    //         },
+    //         null,
+    //         scale
+    //       );
+    //     }
 
-        if (alignP?.x || alignP?.y) {
-          pressing.shape.locate(alignP);
-        }
+    //     // if (!alignP?.x && alignP?.y) {
+    //     //   const moveP = getNormalP(
+    //     //     {
+    //     //       x: p.x - lastP.x,
+    //     //       y: 0,
+    //     //     },
+    //     //     null,
+    //     //     scale
+    //     //   )
+    //     //   pressing.shape.move(
+    //     //     getNormalP(
+    //     //       moveP,
+    //     //       null,
+    //     //       scale
+    //     //     )
+    //     //   );
+    //     // }
 
-        if (alignP?.x && !alignP?.y) {
-          pressing.shape.move(
-            getNormalP(
-              {
-                x: 0,
-                y: p.y - lastP.y,
-              },
-              null,
-              scale
-            )
-          );
-        }
+    //     // if (!alignP?.x && !alignP?.y) {
+    //     //   if (pressing.ghost && pressing.shape.p.x !== pressing.ghost?.p.x) {
+    //     //     pressing.shape.locate({
+    //     //       x: pressing.ghost.getCenter().m.x,
+    //     //       y: null,
+    //     //     });
+    //     //   }
 
-        if (!alignP?.x && alignP?.y) {
-          pressing.shape.move(
-            getNormalP(
-              {
-                x: p.x - lastP.x,
-                y: 0,
-              },
-              null,
-              scale
-            )
-          );
-        }
+    //     //   if (pressing.ghost && pressing.shape.p.y !== pressing.ghost?.p.y) {
+    //     //     pressing.shape.locate({
+    //     //       x: null,
+    //     //       y: pressing.ghost.getCenter().m.y,
+    //     //     });
+    //     //   }
+    //     //   pressing.shape.move(
+    //     //     getNormalP(
+    //     //       {
+    //     //         x: p.x - lastP.x,
+    //     //         y: p.y - lastP.y,
+    //     //       },
+    //     //       null,
+    //     //       scale
+    //     //     )
+    //     //   );
+    //     // }
 
-        if (!alignP?.x && !alignP?.y) {
-          if (pressing.ghost && pressing.shape.p.x !== pressing.ghost?.p.x) {
-            pressing.shape.locate({
-              x: pressing.ghost.getCenter().m.x,
-              y: null,
-            });
-          }
+    //     // pressing.ghost?.move(
+    //     //   getNormalP(
+    //     //     {
+    //     //       x: 0,
+    //     //       // x: p.x - lastP.x,
+    //     //       y: p.y - lastP.y,
+    //     //       // y: 0,
+    //     //     },
+    //     //     null,
+    //     //     scale
+    //     //   )
+    //     // );
 
-          if (pressing.ghost && pressing.shape.p.y !== pressing.ghost?.p.y) {
-            pressing.shape.locate({
-              x: null,
-              y: pressing.ghost.getCenter().m.y,
-            });
-          }
-          pressing.shape.move(
-            getNormalP(
-              {
-                x: p.x - lastP.x,
-                y: p.y - lastP.y,
-              },
-              null,
-              scale
-            )
-          );
-        }
+    //     // console.log("alignP", alignP);
+    //   }
+    //   // else if (
+    //   //   pressing?.target === CommonTypes.SelectAreaTarget.lt ||
+    //   //   pressing?.target === CommonTypes.SelectAreaTarget.rt ||
+    //   //   pressing?.target === CommonTypes.SelectAreaTarget.rb ||
+    //   //   pressing?.target === CommonTypes.SelectAreaTarget.lb
+    //   // ) {
+    //   //   actionRecords.register(CommonTypes.Action.multiResize);
+    //   //   // resizeMultiSelectingShapes(pressing?.target, offsetP, scale);
+    //   // }
 
-        pressing.ghost?.move(
-          getNormalP(
-            {
-              x: p.x - lastP.x,
-              y: p.y - lastP.y,
-            },
-            null,
-            scale
-          )
-        );
+    //   // // const multiSelectingMap = getMultSelectingMap();
 
-        // sync with candidates when checking
-        const targetCandidate = candidates?.find(
-          (candidate) => candidate.id === pressing?.shape?.id
-        );
-        if (!!targetCandidate) {
-          targetCandidate.p = pressing.shape.p;
-        }
+    //   // shapes.forEach((shape) => {
+    //   //   // if (!multiSelectingMap[shape.id]) return;
+    //   //   moveCurve(shape);
+    //   // });
+    // }
 
-        moveCurve(pressing?.shape);
-      }
+    // if (
+    //   !movingViewport &&
+    //   pressing?.shape &&
+    //   multiSelectShapeIds.length === 0
+    // ) {
+    //   if (pressing?.target === CoreTypes.PressingTarget.m) {
+    //     actionRecords.register(CommonTypes.Action.move);
 
-      if (
-        pressing?.target === CoreTypes.PressingTarget.lt ||
-        pressing?.target === CoreTypes.PressingTarget.rt ||
-        pressing?.target === CoreTypes.PressingTarget.rb ||
-        pressing?.target === CoreTypes.PressingTarget.lb
-      ) {
-        actionRecords.register(CommonTypes.Action.resize);
-        resizeShape(
-          shapes,
-          {
-            shape: pressing.shape,
-            ghost: pressing.ghost,
-            target: pressing.target,
-          },
-          getNormalP(offsetP, null, scale)
-        );
+    //     const shapesInView = getShapesInView(shapes);
+    //     const targetAlignShapes = shapesInView.filter(
+    //       (shapeInView) => shapeInView.id !== pressing?.shape?.id
+    //     );
+    //     alginLines = getAlignLines(targetAlignShapes, {
+    //       m: pressing.shape.getCenter().m,
+    //       l: pressing.shape.getEdge().l,
+    //       t: pressing.shape.getEdge().t,
+    //       r: pressing.shape.getEdge().r,
+    //       b: pressing.shape.getEdge().b,
+    //     });
 
-        // sync with candidates when checking
-        const targetCandidate = candidates?.find(
-          (candidate) => candidate.id === pressing?.shape?.id
-        );
-        if (!!targetCandidate) {
-          targetCandidate.p = pressing.shape.p;
-          targetCandidate.w = pressing.shape.w;
-          targetCandidate.h = pressing.shape.h;
-        }
-      }
-    }
+    //     const alignP = getAlignP(targetAlignShapes, pressing.ghost);
 
-    if (!movingViewport && !!pressingCurve) {
-      actionRecords.register(CommonTypes.Action.disconnect);
-      movePressingCurve(ctx, pressingCurve, p, offset, scale);
-    } else if (!movingViewport && selectionFrameP) {
-      selectionFrameP = {
-        ...selectionFrameP,
-        end: p,
-      };
-    }
+    //     if (alignP?.x || alignP?.y) {
+    //       pressing.shape.locate(alignP);
+    //     }
 
-    lastP = p;
+    //     if (alignP?.x && !alignP?.y) {
+    //       pressing.shape.move(
+    //         getNormalP(
+    //           {
+    //             x: 0,
+    //             y: p.y - lastP.y,
+    //           },
+    //           null,
+    //           scale
+    //         )
+    //       );
+    //     }
 
+    //     if (!alignP?.x && alignP?.y) {
+    //       pressing.shape.move(
+    //         getNormalP(
+    //           {
+    //             x: p.x - lastP.x,
+    //             y: 0,
+    //           },
+    //           null,
+    //           scale
+    //         )
+    //       );
+    //     }
+
+    //     if (!alignP?.x && !alignP?.y) {
+    //       if (pressing.ghost && pressing.shape.p.x !== pressing.ghost?.p.x) {
+    //         pressing.shape.locate({
+    //           x: pressing.ghost.getCenter().m.x,
+    //           y: null,
+    //         });
+    //       }
+
+    //       if (pressing.ghost && pressing.shape.p.y !== pressing.ghost?.p.y) {
+    //         pressing.shape.locate({
+    //           x: null,
+    //           y: pressing.ghost.getCenter().m.y,
+    //         });
+    //       }
+    //       pressing.shape.move(
+    //         getNormalP(
+    //           {
+    //             x: p.x - lastP.x,
+    //             y: p.y - lastP.y,
+    //           },
+    //           null,
+    //           scale
+    //         )
+    //       );
+    //     }
+
+    //     pressing.ghost?.move(
+    //       getNormalP(
+    //         {
+    //           x: p.x - lastP.x,
+    //           y: p.y - lastP.y,
+    //         },
+    //         null,
+    //         scale
+    //       )
+    //     );
+
+    //     syncCandidates(pressing?.shape);
+    //     moveCurve(pressing?.shape);
+    //   }
+
+    //   if (
+    //     pressing?.target === CoreTypes.PressingTarget.lt ||
+    //     pressing?.target === CoreTypes.PressingTarget.rt ||
+    //     pressing?.target === CoreTypes.PressingTarget.rb ||
+    //     pressing?.target === CoreTypes.PressingTarget.lb
+    //   ) {
+    //     actionRecords.register(CommonTypes.Action.resize);
+    //     resizeShape(
+    //       shapes,
+    //       {
+    //         shape: pressing.shape,
+    //         ghost: pressing.ghost,
+    //         target: pressing.target,
+    //       },
+    //       getNormalP(offsetP, null, scale)
+    //     );
+
+    //     syncCandidates(pressing?.shape);
+    //   }
+    // }
+
+    syncCandidates(shapes);
     drawCanvas(offset, scale);
     drawScreenshot(offset, scale);
   };
 
   const onMouseUp = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    console.log("curves", curves);
     e.preventDefault();
 
     const p = {
@@ -3141,65 +2318,25 @@ export default function IdPage() {
     };
 
     setLeftMouseBtn(false);
-    frameSelect(offset, scale);
+    frameSelect(selectionFrame, offset, scale);
     checkConnect(getNormalP(p, offset, scale));
+    checkSteps();
+    syncCandidates(shapes);
 
-    if (
-      multiSelectShapeIds.length >= 2 &&
-      pressing?.target === CommonTypes.SelectAreaTarget.m
-    ) {
-      actionRecords.finish(CommonTypes.Action.multiMove);
-    } else if (
-      multiSelectShapeIds.length >= 2 &&
-      (pressing?.target === CommonTypes.SelectAreaTarget.lt ||
-        pressing?.target === CommonTypes.SelectAreaTarget.rt ||
-        pressing?.target === CommonTypes.SelectAreaTarget.rb ||
-        pressing?.target === CommonTypes.SelectAreaTarget.lb)
-    ) {
-      actionRecords.finish(CommonTypes.Action.multiResize);
-    } else if (
-      pressing?.target === CoreTypes.PressingTarget.lt ||
-      pressing?.target === CoreTypes.PressingTarget.rt ||
-      pressing?.target === CoreTypes.PressingTarget.rb ||
-      pressing?.target === CoreTypes.PressingTarget.lb
-    ) {
-      actionRecords.finish(CommonTypes.Action.resize);
-      // actions.push({
-      //   type: CommonTypes.Action.resize,
-      //   targets: [
-      //     {
-      //       id: pressing.shape.id,
-      //       index: shapes.findIndex(
-      //         (shape) => shape.id === pressing?.shape?.id
-      //       ),
-      //       origin: pressing.origin,
-      //     },
-      //   ],
-      // }); // temp close
-    } else if (
-      pressing?.target &&
-      pressing?.shape &&
-      pressing?.origin &&
-      (pressing?.shape?.p.x !== pressing?.origin?.p.x ||
-        pressing?.shape?.p.y !== pressing?.origin?.p.y)
-    ) {
-      if (pressing?.target === CoreTypes.PressingTarget.m) {
-        actionRecords.finish(CommonTypes.Action.move);
-        // actions.push({
-        //   type: CommonTypes.Action.move,
-        //   target: pressing.shape,
-        //   displacement: {
-        //     x: pressing.origin.p.x - pressing.shape.p.x,
-        //     y: pressing.origin.p.y - pressing.shape.p.y,
-        //   },
-        // }); // temp close
-      }
+    // if (!!selection) {
+    //   selection.shapes[0] instanceof Desicion;
+    // }
+
+    if (actionRecords.peekKey() === CommonTypes.Action.move) {
+      actionRecords.finish(CommonTypes.Action.move);
     }
 
-    checkSteps();
+    if (actionRecords.peekKey() === CommonTypes.Action.resize) {
+      actionRecords.finish(CommonTypes.Action.resize);
+    }
 
-    selectionFrameP = null;
-    pressing = null;
+    selectionFrame = null;
+    pressingSelection = null;
     pressingCurve = null;
     alginLines = [];
 
@@ -3251,60 +2388,7 @@ export default function IdPage() {
       const $canvas = document.querySelector("canvas");
       if (!$canvas || !ctx) return;
 
-      const deleteMultiSelectShapes = () => {
-        if (multiSelectShapeIds.length === 0) return true;
-
-        const multiSelectingMap = getMultSelectingMap();
-
-        curves = curves.filter(
-          (curve) =>
-            !multiSelectingMap[curve.from.shape.id] &&
-            !multiSelectingMap[curve.to.shape.id]
-        );
-
-        if (!!indivisual && multiSelectingMap[indivisual?.id]) {
-          setIndivisual(null);
-        }
-
-        shapes = shapes.filter((shape) => !multiSelectingMap[shape.id]);
-        multiSelectShapeIds = cloneDeep(init.multiSelectShapeIds);
-
-        return false;
-      };
-
-      const deleteSelectedShape = () => {
-        const selectedShapeI = shapes.findIndex((shape) => shape.selecting);
-
-        if (selectedShapeI === -1) return false;
-        actionRecords.register(CommonTypes.Action.delete);
-
-        curves = curves.filter(
-          (curve) =>
-            curve.from.shape.id !== shapes[selectedShapeI].id &&
-            curve.to.shape.id !== shapes[selectedShapeI].id
-        );
-
-        if (shapes[selectedShapeI].id === indivisual?.id) {
-          setIndivisual(null);
-        }
-
-        shapes.splice(selectedShapeI, 1);
-        actionRecords.finish(CommonTypes.Action.delete);
-
-        // actions.push({
-        //   type: CommonTypes.Action.delete,
-        //   target: {
-        //     shape: removedShape,
-        //     i: selectedShapeI,
-        //     curves: removedCurves,
-        //   },
-        // }); // TODO: temp close
-
-        return false;
-      };
-
-      handleUtils.handle([deleteMultiSelectShapes, deleteSelectedShape]);
-
+      deleteSelectingShapes();
       drawCanvas(offset, scale);
       drawScreenshot(offset, scale);
       checkSteps();
@@ -3320,187 +2404,22 @@ export default function IdPage() {
     }
   }
 
-  const onClickOverallSidePanelSwitch = () => {
-    setIsOverallSidePanelOpen((open) => !open);
-  };
+  const deleteSelectingShapes = () => {
+    if (!selection) return true;
 
-  const onClickHambugar = () => {
-    setIsProfileFrameOpen((isProfileFrameOpen) => !isProfileFrameOpen);
-  };
+    const selectingMap = selection.getSelectingMap();
 
-  const onClickProjectsButton = async () => {
-    setIsProjectsModalOpen(true);
-    setIsProfileFrameOpen(false);
-    // await fetchProjects();
-  };
+    curves = curves.filter(
+      (curve) =>
+        !selectingMap[curve.from.shape.id] && !selectingMap[curve.to.shape.id]
+    );
 
-  const onClickPositioningButton = (shapeP: CommonTypes.Vec) => {
-    positioning(shapeP);
-  };
-
-  const onClickProjectCard = (id: ProjectTypes.Project["id"]) => {
-    setSelectedProjectId(id);
-  };
-
-  const initProject = async (id: ProjectTypes.Project["id"]) => {
-    try {
-      const res: AxiosResponse<ProjectAPITypes.GetProject["resData"], any> =
-        await projectAPIs.getProject(id);
-
-      const projectData = res.data as ProjectAPITypes.ProjectData;
-
-      setScale(1);
-      setSelectedProjectId(id);
-      offset = cloneDeep(init.offset);
-      const initShapes = getInitializedShapes(
-        projectData.orders,
-        projectData.shapes,
-        projectData.curves,
-        projectData.data
-      );
-      shapes = initShapes;
-      multiSelectShapeIds = cloneDeep(init.multiSelectShapeIds);
-      checkSteps();
-      drawCanvas(offset, scale);
-      drawScreenshot(offset, scale);
-      setIsProjectsModalOpen(false);
-      setProjectName({
-        inputVal: projectData.projectName,
-        val: projectData.projectName,
-      });
-
-      if (!hasEnter) {
-        setHasEnter(true);
-      }
-    } catch (error) {
-      router.push("/");
+    if (!!indivisual && selectingMap[indivisual?.id]) {
+      setIndivisual(null);
     }
-  };
 
-  const onClickConfrimProject = async (id: ProjectTypes.Project["id"]) => {
-    router.push(`/${id}`);
-  };
-
-  const onClickDeleteProject = async (id: ProjectTypes.Project["id"]) => {
-    const $canvas = document.querySelector("canvas");
-    if (!$canvas || !ctx) return;
-
-    try {
-      const res: AxiosResponse<ProjectAPITypes.DeleteProject["resData"]> =
-        await projectAPIs.deleteProject(id);
-
-      if (id === selectedProjectId) {
-        shapes = [];
-        setSelectedProjectId(null);
-        setHasEnter(false);
-        setProjects(
-          cloneDeep(projects).filter((project) => project.id !== res.data.id)
-        );
-      }
-    } catch (err) {
-      // TODO: handle error
-    }
-  };
-
-  const onClickNewProjectButton = async () => {
-    if (qas) {
-      setHasEnter(true);
-      setIsProjectsModalOpen(false);
-      return;
-    }
-    shapes = [];
-    const newProject: AxiosResponse<ProjectAPITypes.CreateProject["resData"]> =
-      await projectAPIs.createProject();
-
-    const res: AxiosResponse<ProjectAPITypes.GetProjects["resData"], any> =
-      await projectAPIs.getProjecs();
-
-    setIsProjectsModalOpen(false);
-    setProjects(res.data);
-    setSelectedProjectId(newProject.data.id);
-    setHasEnter(true);
-  };
-
-  const onClickProjectsModalX = () => {
-    setIsProjectsModalOpen(false);
-  };
-
-  // const onClickLogOutButton = () => {
-  //   localStorage.removeItem("Authorization");
-  //   router.push("/");
-  // };
-
-  const onClickProjectName = () => {
-    setIsRenameFrameOpen((isRenameFrameOpen) => !isRenameFrameOpen);
-  };
-
-  const onChangeProjectName: ChangeEventHandler<HTMLInputElement> = (e) => {
-    setProjectName((projectName) => ({
-      ...projectName,
-      inputVal: e.target.value,
-    }));
-  };
-
-  const onClickSaveProjectNameButton: MouseEventHandler<
-    HTMLButtonElement
-  > = async (e) => {
-    // if (!selectedProjectId) return;
-    // const res: AxiosResponse<
-    //   ProjectAPITypes.UpdateProjectName["resData"],
-    //   any
-    // > = await projectAPIs.updateProjectName(
-    //   selectedProjectId,
-    //   projectName.inputVal
-    // );
-
-    // try {
-    //   if (
-    //     res.status === 201 &&
-    //     res.data.status === statusConstants.SUCCESSFUL
-    //   ) {
-    //     setProjectName({
-    //       val: res.data.name,
-    //       inputVal: res.data.name,
-    //     });
-    //     // fetchProjects();
-    //   }
-    // } catch (error) {
-    setProjectName({
-      val: projectName.inputVal,
-      inputVal: projectName.inputVal,
-    });
-    // }
-
-    setIsRenameFrameOpen(false);
-  };
-
-  const onClickOverallSidePanelTab = (e: React.MouseEvent<HTMLDivElement>) => {
-    const dataTab = (e.target as HTMLElement | null)
-      ?.closest("[data-tab]")
-      ?.getAttribute("data-tab");
-
-    const isOverallType = (value: any): value is PageIdTypes.OverallType =>
-      Object.values(PageIdTypes.OverallType).includes(value);
-
-    if (!dataTab || !isOverallType(dataTab)) return;
-
-    setOverallType(dataTab);
-  };
-
-  const onChangeCreateDataInput: InputTypes.Props["onChange"] = (e) => {
-    setCreateDateValue(e.target.value);
-  };
-
-  const onClickCreateDataButton = () => {
-    const _datas = cloneDeep(datas);
-
-    if (!createDataValue) return;
-
-    _datas.push({ id: Math.random().toString(), name: createDataValue }); // TODO: should be revised into post to backend
-
-    setDatas(_datas);
-
-    setCreateDateValue(null);
+    shapes = shapes.filter((shape) => !selectingMap[shape.id]);
+    deSelectShape();
   };
 
   const onClickCheckButton = () => {
@@ -3544,23 +2463,23 @@ export default function IdPage() {
 
     sendChuncks(shapes, curves, worker);
 
-    const newConsoles: any = [];
+    const newConsoles: ConsoleTypes.Consoles = [];
     let index = 0;
     const chunkSize = 1;
 
     worker.onmessage = (
       event: MessageEvent<{
-        messageShapes: CheckDataTypes.MessageShapes;
+        messageShapes: ConsoleTypes.Console["shape"][];
         done: boolean;
         ms: string;
         log: string;
       }>
     ) => {
-      if (event.data.ms && event.data.log) {
-        console.log(`${event.data.ms}`, event.data.log);
-      }
+      // for testing
+      // if (event.data.ms && event.data.log) {
+      //   console.log(`${event.data.ms}`, event.data.log);
+      // }
       if (!event.data.messageShapes) return;
-      console.log(event.data, event.data);
 
       if (!candidates) {
         candidates = cloneDeep(shapes);
@@ -3572,11 +2491,6 @@ export default function IdPage() {
         candidates[chunckI].status = messageShape.status;
         messageShape.datas.forEach((data: any) => {
           if (!candidates) return;
-          console.log("data", data);
-          console.log(
-            "candidates[messageShapeI].usingDatas[data.i]",
-            candidates[messageShapeI].usingDatas[data.i]
-          );
 
           candidates[chunckI].usingDatas[data.i].status = data.status;
 
@@ -3593,6 +2507,13 @@ export default function IdPage() {
       if (event.data.done) {
         updateShapes(candidates);
         setConsoles(newConsoles);
+        if (
+          newConsoles.findIndex(
+            (newConsole: any) => newConsole.status === "error"
+          ) > -1
+        ) {
+          setIsConsoleOpen(true);
+        }
         terminateDataChecking();
       }
       index += chunkSize;
@@ -3603,33 +2524,10 @@ export default function IdPage() {
     };
   };
 
-  const onDeleteDataButton = (dataName: string) => {
-    const _datas = cloneDeep(datas);
-
-    setDatas(_datas.filter((_data) => _data.name !== dataName));
-  };
-
   useEffect(() => {
     if (!isBrowser) return;
 
     (async () => {
-      // await verifyToken();
-      // await fetchProjects();
-      await initProject(Number(params.id));
-
-      // shapes = [
-      //   a,
-      //   b,
-      //   c,
-      //   d,
-      //   e,
-      //   f,
-      //   g
-      //   h,
-      //   i,
-      //   j,
-      // ];
-
       drawCanvas(offset, scale);
       drawScreenshot(offset, scale);
     })();
@@ -3675,63 +2573,6 @@ export default function IdPage() {
 
   return (
     <>
-      <Modal
-        isOpen={isProjectsModalOpen}
-        width="1120px"
-        onClickX={onClickProjectsModalX}
-      >
-        <div>
-          <section className="rounded-lg  bg-white-500 p-8 body-font">
-            <div className="mb-6 pb-3 ps-4 border-b border-grey-5 flex justify-between items-end">
-              <h2 className="text-gray-900 title-font text-lg font-semibold">
-                Projects
-              </h2>
-              <Button onClick={onClickNewProjectButton} text={"New Project"} />
-            </div>
-            <div className="grid grid-cols-3 gap-4 h-[500px] overflow-auto">
-              {projects.map((project) => (
-                <div>
-                  <Card
-                    className="cursor-pointer"
-                    key={project.id}
-                    text={
-                      <h2 className="title-font text-lg font-medium">
-                        {project.name}
-                      </h2>
-                    }
-                    selected={selectedProjectId === project.id}
-                    src={project.img}
-                    onClick={() => {
-                      onClickProjectCard(project.id);
-                    }}
-                  />
-                </div>
-              ))}
-            </div>
-            <div className="flex justify-end items-center mt-6 pt-3 border-t border-grey-5">
-              <Button
-                className="me-3"
-                onClick={() => {
-                  if (!selectedProjectId) return;
-                  onClickDeleteProject(selectedProjectId);
-                }}
-                text={"Delete"}
-                disabled={selectedProjectId === null}
-                danger
-              />
-              <Button
-                onClick={() => {
-                  if (!selectedProjectId) return;
-                  onClickConfrimProject(selectedProjectId);
-                }}
-                text={"Confirm"}
-                disabled={selectedProjectId === null}
-              />
-            </div>
-          </section>
-        </div>
-      </Modal>
-
       <Button
         className="fixed top-4 left-1/2 -translate-x-1/2 flex justify-self-end self-center text-base"
         info
@@ -3740,258 +2581,18 @@ export default function IdPage() {
         loading={isCheckingData}
       />
 
-      <SidePanel
-        open={isOverAllSidePanelOpen}
-        w={"360px"}
-        h={"calc(100vh)"}
-        verticalD={SidePanelTypes.VerticalD.b}
-        onClickSwitch={onClickOverallSidePanelSwitch}
-      >
-        <div>
-          <div
-            className="flex border-b border-grey-5 cursor-pointer"
-            onClick={(e) => {
-              onClickOverallSidePanelTab(e);
-            }}
-          >
-            <h3
-              data-tab={PageIdTypes.OverallType.step}
-              className={`flex-1 flex justify-center text-lg font-semibold py-2 px-5 ${
-                overallType === PageIdTypes.OverallType.step
-                  ? "border-b-2 border-secondary-500 text-black-2"
-                  : "border-b-1 text-grey-4"
-              }`}
-            >
-              <span>Step</span>
-            </h3>
-            <div className="border-r border-grey-5" />
-            <h3
-              data-tab={PageIdTypes.OverallType.data}
-              className={`flex-1 flex justify-center text-lg font-semibold py-2 px-5 ${
-                overallType === PageIdTypes.OverallType.data
-                  ? "border-b-2 border-secondary-500 text-black-2"
-                  : "border-b-1 text-grey-4"
-              }`}
-            >
-              <span>Data</span>
-            </h3>
-          </div>
-        </div>
-
-        <ul
-          style={{ height: "calc(100% - 52px)" }}
-          className="overflow-y-auto overflow-x-hidden p-2"
-        >
-          {overallType === PageIdTypes.OverallType.step && (
-            <>
-              {steps.map((step) => {
-                const icon = (() => {
-                  let _type = undefined;
-                  let _color = undefined;
-                  if (step instanceof Terminal) {
-                    _type = IconTypes.Type.ellipse;
-                    _color = tailwindColors.shape.terminal;
-                  }
-                  if (step instanceof Process) {
-                    _type = IconTypes.Type.square;
-                    _color = tailwindColors.shape.process;
-                  }
-                  if (step instanceof Data) {
-                    _type = IconTypes.Type.parallelogram;
-                    _color = tailwindColors.shape.data;
-                  }
-                  if (step instanceof Desicion) {
-                    _type = IconTypes.Type.dimond;
-                    _color = tailwindColors.shape.decision;
-                  }
-
-                  return {
-                    type: _type,
-                    color: _color,
-                  };
-                })();
-
-                return (
-                  <li key={step.id}>
-                    <Accordion
-                      showArrow={false}
-                      title={
-                        <div className="flex items-center">
-                          <Icon
-                            type={icon.type}
-                            w={20}
-                            h={20}
-                            fill={icon.color}
-                          />
-                          <p className="ms-2">{step.title}</p>
-                        </div>
-                      }
-                      hoverRender={
-                        <Icon
-                          className="cursor-pointer justify-end items-center"
-                          type={IconTypes.Type.sight}
-                          w={18}
-                          h={18}
-                          stroke={tailwindColors.error["500"]}
-                          onClick={() => {
-                            onClickPositioningButton(step.p);
-                          }}
-                        />
-                      }
-                    />
-                  </li>
-                );
-              })}
-            </>
-          )}
-          {overallType === PageIdTypes.OverallType.data && (
-            <>
-              <div className="flex m-2">
-                <Input
-                  className="flex-1"
-                  value={createDataValue}
-                  onChange={onChangeCreateDataInput}
-                />
-                <SimpleButton
-                  text="Create"
-                  className="ms-3 me-1"
-                  size={SimpleButtonTypes.Size.md}
-                  onClick={onClickCreateDataButton}
-                />
-              </div>
-              {datas.map((data) => (
-                <li key={data.id}>
-                  <Accordion
-                    showArrow={false}
-                    title={
-                      <div className="flex items-center">
-                        <p className="ms-2">{data.name}</p>
-                      </div>
-                    }
-                    hoverRender={
-                      <Icon
-                        className="cursor-pointer"
-                        type={IconTypes.Type.x}
-                        w={16}
-                        h={24}
-                        stroke={tailwindColors.error["500"]}
-                        onClick={() => {
-                          onDeleteDataButton(data.name);
-                        }}
-                      />
-                    }
-                  />
-                </li>
-              ))}
-            </>
-          )}
-        </ul>
-        {/* TODO: tmp close */}
-        {/* <div className="absolute top-0 -right-20 translate-x-full">
-          <div className="relative">
-            <SquareButton
-              role="profile_menu"
-              size={32}
-              shadow
-              content={
-                <Icon
-                  type={IconTypes.Type.bars}
-                  w={14}
-                  h={14}
-                  fill={tailwindColors.grey["1"]}
-                />
-              }
-              onClick={onClickHambugar}
-            />
-            <motion.div
-              className={`absolute top-10 left-0`}
-              variants={{
-                open: {
-                  display: "block",
-                  opacity: 1,
-                  y: "4px",
-                },
-                closed: {
-                  transitionEnd: {
-                    display: "none",
-                  },
-                  opacity: 0,
-                  y: "-2px",
-                },
-              }}
-              initial={isProfileFrameOpen ? "open" : "closed"}
-              animate={isProfileFrameOpen ? "open" : "closed"}
-              transition={{ type: "easeInOut", duration: 0.15 }}
-            >
-              <Frame>
-                <Button text={"Projects"} onClick={onClickProjectsButton} />
-                <Button
-                  className="mt-2"
-                  text={"Log Out"}
-                  onClick={onClickLogOutButton}
-                  danger
-                />
-              </Frame>
-            </motion.div>
-          </div>
-        </div> */}
-        <div
-          className="absolute top-0 -right-20 translate-x-full text-base"
-          role="project_name"
-        >
-          <div className="relative bg-white-500 px-5 py-1 rounded-lg shadow-md">
-            <nav
-              className="cursor-pointer flex items-center relative [&:hover>div:nth-child(2)]:translate-x-full [&:hover>div:nth-child(2)]:opacity-100 transition ease-in-out duration-150"
-              onClick={onClickProjectName}
-            >
-              <a className="text-grey-1">{projectName.val}</a>
-              <div className="absolute right-0 translate-x-[0px] opacity-0 transition ease-in-out duration-150 ps-1">
-                <PencilSquareIcon
-                  width={20}
-                  height={20}
-                  fill={tailwindColors.white["500"]}
-                />
-              </div>
-            </nav>
-            <motion.div
-              className={`${
-                isRenameFrameOpen ? "block" : "hidden"
-              } absolute top-9 left-0 -translate-x-1/2 translate-y-full`}
-              variants={{
-                open: {
-                  display: "block",
-                  opacity: 1,
-                  y: "4px",
-                },
-                closed: {
-                  transitionEnd: {
-                    display: "none",
-                  },
-                  opacity: 0,
-                  y: "-2px",
-                },
-              }}
-              initial={isRenameFrameOpen ? "open" : "closed"}
-              animate={isRenameFrameOpen ? "open" : "closed"}
-              transition={{ type: "easeInOut", duration: 0.15 }}
-            >
-              <Frame className={"w-[240px] p-2"} role="frame">
-                <div className="flex">
-                  <Input
-                    value={projectName.inputVal}
-                    onChange={onChangeProjectName}
-                  />
-                  <SimpleButton
-                    className="px-2"
-                    text="Save"
-                    onClick={onClickSaveProjectNameButton}
-                  />
-                </div>
-              </Frame>
-            </motion.div>
-          </div>
-        </div>
-      </SidePanel>
+      <OverallSidePanel
+        steps={steps}
+        positioning={positioning}
+        datas={datas}
+        setDatas={setDatas}
+        projectName={projectName}
+        setProjectName={setProjectName}
+        updateShapes={updateShapes}
+        shapes={shapes}
+        isOverAllSidePanelOpen={isOverAllSidePanelOpen}
+        setIsOverAllSidePanelOpen={setIsOverAllSidePanelOpen}
+      />
 
       <IndivisaulSidePanel
         projectName={projectName.val}
@@ -4026,6 +2627,7 @@ export default function IdPage() {
         consoles={consoles}
         setConsoles={setConsoles}
         terminateDataChecking={terminateDataChecking}
+        deSelect={deSelect}
       />
 
       <Console
@@ -4049,7 +2651,6 @@ export default function IdPage() {
         }}
         consoles={consoles}
         positioning={positioning}
-        indivisual={indivisual}
         setIndivisual={setIndivisual}
         initShapeSize={init.shape.size}
       />

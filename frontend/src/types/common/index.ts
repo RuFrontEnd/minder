@@ -1,9 +1,9 @@
-import Core from "@/shapes/core";
-import Termainal from "@/shapes/terminal";
+import Terminal from "@/shapes/terminal";
 import Process from "@/shapes/process";
 import DataShape from "@/shapes/data";
 import Decision from "@/shapes/decision";
 import Curve from "@/shapes/curve";
+import * as CommonTypes from "@/types/common";
 
 type Id = string;
 
@@ -14,8 +14,6 @@ type H = number;
 type C = string;
 
 type Vec = { x: number; y: number };
-
-type Shapes = Core | Process | Curve;
 
 enum Direction {
   l = "l",
@@ -40,23 +38,24 @@ enum DataStatus {
   error = "error",
 }
 
+enum ConsoleStatus {
+  warning = "warning",
+  error = "error",
+}
+
 type Data = { id: string; text: string; status: DataStatus };
 
 type Datas = Data[];
+
+type OverallData = { id: string; name: string };
+
+type OverallDatas = OverallData[];
 
 enum ShapeType {
   terminator = "terminator",
   process = "process",
   data = "data",
   decision = "decision",
-}
-
-enum SelectAreaTarget {
-  m = "m",
-  lt = "lt",
-  rt = "rt",
-  rb = "rb",
-  lb = "lb",
 }
 
 enum Action {
@@ -73,11 +72,11 @@ enum Action {
 type ConnectionCurves = {
   shape: Curve;
   from: {
-    shape: Termainal | Process | DataShape | Decision;
+    shape: Terminal | Process | DataShape | Decision;
     d: Direction;
   };
   to: {
-    shape: Termainal | Process | DataShape | Decision;
+    shape: Terminal | Process | DataShape | Decision;
     d: Direction;
   };
 }[];
@@ -119,8 +118,17 @@ type UploadJSON = {
       shapeId: string;
     };
   }[];
+  datas: CommonTypes.OverallDatas;
   consoles: any;
 };
+
+type Shape = Terminal | Process | DataShape | Decision;
+
+type Shapes = (Terminal | Process | DataShape | Decision)[];
+
+type Steps = CommonTypes.Shapes;
+
+type ProjectName = { val: string; inputVal: string };
 
 export type {
   Id,
@@ -132,7 +140,12 @@ export type {
   Title,
   Data,
   Datas,
+  OverallData,
+  OverallDatas,
   ConnectionCurves,
   UploadJSON,
+  Shape,
+  Steps,
+  ProjectName,
 };
-export { Direction, Corner, ShapeType, SelectAreaTarget, Action, DataStatus };
+export { Direction, Corner, ShapeType, Action, DataStatus, ConsoleStatus };

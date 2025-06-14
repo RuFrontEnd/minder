@@ -69,6 +69,10 @@ const config: Config = {
           data: "#1BC861",
           decision: "#5468E9",
         },
+        selectionFrame: {
+          fill: "#2436b155",
+          stroke: "#2436b1",
+        },
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {

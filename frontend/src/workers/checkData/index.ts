@@ -1,12 +1,7 @@
-import Terminal from "@/shapes/terminal";
-import Process from "@/shapes/process";
-import Data from "@/shapes/data";
-import Desicion from "@/shapes/decision";
 import * as CommonTypes from "@/types/common";
 import * as handleUtils from "@/utils/handle";
 import * as CheckDataTypes from "@/types/workers/checkData";
 import * as CoreTypes from "@/types/shapes/core";
-import { cloneDeep } from "lodash";
 
 const ds = [
   CommonTypes.Direction.l,
@@ -24,9 +19,6 @@ const checkData = (
     curves: CommonTypes.ConnectionCurves
   ) => {
     const steps: CheckDataTypes.Steps = {};
-
-    // self.postMessage({ ms: "shapes", log: shapes });
-    // self.postMessage({ ms: "curves", log: curves });
 
     shapes.forEach((shape, shapeI) => {
       steps[shape.id] = {
@@ -62,8 +54,6 @@ const checkData = (
       steps[curve.from.shape.id]["to"][curve.from.d].push(curve.to.shape.id);
       steps[curve.to.shape.id]["from"][curve.to.d].push(curve.from.shape.id);
     });
-
-    // self.postMessage({ ms: "steps", log: steps });
 
     return {
       steps: steps,
@@ -164,8 +154,6 @@ const checkData = (
       }
     });
 
-    // self.postMessage({ ms: "lastResult.steps", log: lastResult.steps });
-
     return {
       steps: lastResult.steps,
       shapes: lastResult.shapes,
@@ -244,8 +232,6 @@ const checkData = (
       });
     });
 
-    // self.postMessage({ ms: "messageShapes", log: messageShapes });
-
     output = messageShapes;
     return false;
   };
@@ -294,8 +280,8 @@ self.onmessage = function (event: MessageEvent<string>) {
       let index = 0;
       const chunkSize = 1;
 
-      const delay = (ms: number) =>
-        new Promise((resolve) => setTimeout(resolve, ms));
+      // const delay = (ms: number) =>
+      //   new Promise((resolve) => setTimeout(resolve, ms)); // for testing
 
       const sendNextChunk = async () => {
         if (index < messageShapes.length) {
@@ -305,7 +291,7 @@ self.onmessage = function (event: MessageEvent<string>) {
           });
           index += chunkSize;
 
-          await delay(1500);
+          // await delay(1500); // for testing
           await sendNextChunk();
         } else {
           self.postMessage({

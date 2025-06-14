@@ -7,6 +7,7 @@ import SquareButton from "@/components/squareButton";
 import Icon from "@/components/icon";
 import { MouseEvent } from "react";
 import { tailwindColors } from "@/variables/colors";
+import { v4 as uuidv4 } from "uuid";
 import * as IconTypes from "@/types/components/icon";
 import * as CommonTypes from "@/types/common";
 import * as CreateShapeButtonsTypes from "@/types/sections/id/createShapeButtons";
@@ -60,7 +61,7 @@ export default function CreateShapeButtons(
     switch (type) {
       case CommonTypes.ShapeType["terminator"]:
         return new Terminal(
-          `${type}_${Date.now()}`,
+          `${type}_${uuidv4()}`,
           props.initShapeSize.t.w,
           props.initShapeSize.t.h,
           initPosition,
@@ -68,7 +69,7 @@ export default function CreateShapeButtons(
         );
       case CommonTypes.ShapeType["process"]:
         return new Process(
-          `${type}_${Date.now()}`,
+          `${type}_${uuidv4()}`,
           props.initShapeSize.p.w,
           props.initShapeSize.p.h,
           initPosition,
@@ -77,7 +78,7 @@ export default function CreateShapeButtons(
 
       case CommonTypes.ShapeType["data"]:
         return new Data(
-          `${type}_${Date.now()}`,
+          `${type}_${uuidv4()}`,
           props.initShapeSize.d.w,
           props.initShapeSize.d.h,
           initPosition,
@@ -86,7 +87,7 @@ export default function CreateShapeButtons(
 
       case CommonTypes.ShapeType["decision"]:
         return new Desicion(
-          `${type}_${Date.now()}`,
+          `${type}_${uuidv4()}`,
           props.initShapeSize.dec.w,
           props.initShapeSize.dec.h,
           initPosition,

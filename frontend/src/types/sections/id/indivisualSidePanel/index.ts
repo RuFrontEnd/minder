@@ -22,19 +22,16 @@ type AddDatas = {
 
 type Props = {
   projectName: string;
-  setProjectName: Dispatch<SetStateAction<{ inputVal: string; val: string }>>;
+  setProjectName: Dispatch<SetStateAction<CommonTypes.ProjectName>>
   shapes: (Terminal | Process | Data | Desicion)[];
   curves: CommonTypes.ConnectionCurves;
-  datas: {
-    id: string;
-    name: string;
-  }[];
+  datas: CommonTypes.OverallDatas;
   setDatas: Dispatch<SetStateAction<Props["datas"]>>;
   isIndivisualSidePanelOpen: boolean;
   setIsIndivisualSidePanelOpen: Dispatch<
     SetStateAction<Props["isIndivisualSidePanelOpen"]>
   >;
-  indivisual: null | Terminal | Process | Data | Desicion;
+  indivisual: PageIdTypes.Indivisual;
   setIndivisual: Dispatch<SetStateAction<Props["indivisual"]>>;
   isEditingIndivisual: boolean;
   setIsEditingIndivisual: Dispatch<
@@ -58,6 +55,7 @@ type Props = {
   consoles: any;
   setConsoles: any;
   terminateDataChecking: () => void;
+  deSelect: () => void;
 };
 
 export type { Props, CreateDatas, AddDatas };
