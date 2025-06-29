@@ -126,7 +126,7 @@ export default class Curve {
     return this.__arrowAttr__;
   }
 
-  getBezierP(t: number, controlPs: Vec[]) {
+  private getBezierP(t: number, controlPs: Vec[]) {
     const x =
       Math.pow(1 - t, 3) * controlPs[0].x +
       3 * Math.pow(1 - t, 2) * t * controlPs[1].x +
@@ -142,7 +142,40 @@ export default class Curve {
     return { x, y };
   }
 
-  getBezierMidP = (controlPs: Vec[]) => this.getBezierP(0.5, controlPs);
+  private getBezierLength(controlPs: Vec[], steps = 100) {
+    let total = 0;
+    let prev = this.getBezierP(0, controlPs);
+    const points: { t: number; len: number }[] = [{ t: 0, len: 0 }];
+
+    for (let i = 1; i <= steps; i++) {
+      const t = i / steps;
+      const curr = this.getBezierP(t, controlPs);
+      const d = Math.hypot(curr.x - prev.x, curr.y - prev.y);
+      total += d;
+      points.push({ t, len: total });
+      prev = curr;
+    }
+
+    return { total, points };
+  }
+
+  getBezierMidP(controlPs: Vec[]) {
+    const { total, points } = this.getBezierLength(controlPs);
+    const half = total / 2;
+
+    for (let i = 1; i < points.length; i++) {
+      const prev = points[i - 1];
+      const next = points[i];
+
+      if (next.len >= half) {
+        const ratio = (half - prev.len) / (next.len - prev.len);
+        const t = prev.t + ratio * (next.t - prev.t);
+        return this.getBezierP(t, controlPs);
+      }
+    }
+
+    return this.getBezierP(1, controlPs); // fallback
+  }
 
   // Get the distance between two points
   getDistance(p1: Vec, p2: Vec) {
