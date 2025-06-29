@@ -423,7 +423,7 @@ export default class Selection {
     };
   }
 
-  checkBoundry(p: CommonTypes.Vec, threshold: number = 0) {
+  checkBoundry(p: CommonTypes.Vec, threshold: number = 0, scale: number) {
     const [startP, endP] = this.getP();
 
     let dx, dy;
@@ -432,40 +432,30 @@ export default class Selection {
     dx = startP.x - p.x;
     dy = startP.y - p.y;
 
-    if (
-      dx * dx + dy * dy <
-      this.__anchor__.size.fill * this.__anchor__.size.fill
-    ) {
+    const anchorArea = Math.pow(this.__anchor__.size.fill * (1 / scale), 2);
+
+    if (dx * dx + dy * dy < anchorArea) {
       return SelectionTypes.PressingTarget.lt;
     }
 
     dx = endP.x - p.x;
     dy = startP.y - p.y;
 
-    if (
-      dx * dx + dy * dy <
-      this.__anchor__.size.fill * this.__anchor__.size.fill
-    ) {
+    if (dx * dx + dy * dy < anchorArea) {
       return SelectionTypes.PressingTarget.rt;
     }
 
     dx = endP.x - p.x;
     dy = endP.y - p.y;
 
-    if (
-      dx * dx + dy * dy <
-      this.__anchor__.size.fill * this.__anchor__.size.fill
-    ) {
+    if (dx * dx + dy * dy < anchorArea) {
       return SelectionTypes.PressingTarget.rb;
     }
 
     dx = startP.x - p.x;
     dy = endP.y - p.y;
 
-    if (
-      dx * dx + dy * dy <
-      this.__anchor__.size.fill * this.__anchor__.size.fill
-    ) {
+    if (dx * dx + dy * dy < anchorArea) {
       return SelectionTypes.PressingTarget.lb;
     }
 
@@ -483,6 +473,7 @@ export default class Selection {
     if (this.shapes.length === 1) {
       const edge = this.getEdge();
       const m = this.getM();
+
       const sendingPointP = {
         l: {
           x: edge.l - Selection.__sendingPoint__.distance,
@@ -513,8 +504,7 @@ export default class Selection {
         if (
           (p.x - sendingPointP[d].x) * (p.x - sendingPointP[d].x) +
             (p.y - sendingPointP[d].y) * (p.y - sendingPointP[d].y) <
-          Selection.__sendingPoint__.size.fill *
-            Selection.__sendingPoint__.size.fill
+          Math.pow((Selection.__sendingPoint__.size.fill * 1) / scale, 2)
         ) {
           return sendingPointPressingTargetStrategy[d];
         }

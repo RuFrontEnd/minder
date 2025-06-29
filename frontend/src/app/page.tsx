@@ -1477,10 +1477,11 @@ const startMovingViewport = (isPressingSpace: boolean, p: CommonTypes.Vec) => {
 
 const triggerCurve = (
   p: CommonTypes.Vec,
-  selection: null | undefined | Selection
+  selection: null | undefined | Selection,
+  scale: number
 ) => {
   if (!selection) return true;
-  const triggerPoint = selection.checkBoundry(p, 0);
+  const triggerPoint = selection.checkBoundry(p, 0, scale);
 
   if (
     triggerPoint !== SelectionTypes.PressingTarget.sl &&
@@ -1522,11 +1523,12 @@ const triggerCurve = (
 
 const pressSelection = (
   p: CommonTypes.Vec,
-  selection: null | undefined | Selection
+  selection: null | undefined | Selection,
+  scale: number
 ) => {
   if (!selection) return true;
 
-  const _target = selection.checkBoundry(p, 0);
+  const _target = selection.checkBoundry(p, 0, scale);
 
   if (
     _target !== SelectionTypes.PressingTarget.lt &&
@@ -2045,8 +2047,8 @@ export default function IdPage() {
 
     handleUtils.handle([
       () => startMovingViewport(space, p),
-      () => pressSelection(normalP, selection),
-      () => triggerCurve(normalP, selection),
+      () => pressSelection(normalP, selection, scale),
+      () => triggerCurve(normalP, selection, scale),
       () => selectCurve(normalP),
       () => selectShape(normalP),
       () => startFrameSelecting(p),
@@ -2309,7 +2311,6 @@ export default function IdPage() {
   };
 
   const onMouseUp = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    console.log("curves", curves);
     e.preventDefault();
 
     const p = {
