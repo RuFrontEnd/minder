@@ -86,7 +86,7 @@ export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
 
     const _datas = cloneDeep(props.datas);
 
-    _datas.push({ id:`overallData_${uuidv4()}`, name: createDataValue }); // TODO: should be revised into post to backend
+    _datas.push({ id: `overallData_${uuidv4()}`, name: createDataValue }); // TODO: should be revised into post to backend
 
     props.setDatas(_datas);
 
@@ -191,13 +191,17 @@ export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
                     showArrow={false}
                     title={
                       <div className="flex items-center">
-                        <Icon
-                          type={icon.type}
-                          w={20}
-                          h={20}
-                          fill={icon.color}
-                        />
-                        <p className="ms-2">{step.title}</p>
+                        <div className="basis-[20px]">
+                          <Icon
+                            type={icon.type}
+                            w={20}
+                            h={20}
+                            fill={icon.color}
+                          />
+                        </div>
+                        <div className="basis-full">
+                          <p className="ms-2">{step.title}</p>
+                        </div>
                       </div>
                     }
                     hoverRender={
