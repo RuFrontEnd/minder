@@ -955,7 +955,8 @@ const getCurve = (
     t: 0,
     r: 0,
     b: 0,
-  }
+  },
+  text = ""
 ) => {
   let p1: CommonTypes.Vec = { x: 0, y: 0 };
   let p2: CommonTypes.Vec = { x: 0, y: 0 };
@@ -1031,7 +1032,7 @@ const getCurve = (
       break;
   }
 
-  return new Curve(id, p1, cp1, cp2, p2);
+  return new Curve(id, p1, cp1, cp2, p2, text);
 };
 
 const getCurveStickingCp1Cp2 = (
@@ -1500,6 +1501,8 @@ const triggerCurve = (
   };
   const triggerD = triggerDStrategy[triggerPoint];
 
+  curves.find((curve) => curve.from.shape.id === targetShape.id)?.shape.text;
+
   pressingCurve = {
     from: {
       shape: targetShape,
@@ -1513,11 +1516,18 @@ const triggerCurve = (
       targetShape.w,
       targetShape.h,
       targetShape.p,
-      curveThresholdStrategy[targetShape.type]
+      curveThresholdStrategy[targetShape.type],
+      targetShape instanceof Desicion
+        ? curves.find((curve) => curve.from.shape.id === targetShape.id)?.shape
+            ?.text === "Y"
+          ? "N"
+          : "Y"
+        : ""
     ),
   };
 
   pressingCurve.shape.selecting = true;
+
   return false;
 };
 
@@ -1549,31 +1559,24 @@ const pressSelection = (
 };
 
 const selectShape = (p: CommonTypes.Vec) => {
-  for (let i = shapes.length - 1; i >= 0; i--) {
-    const shape = shapes[i];
-    if (!shape.checkBoundry(p)) continue;
-    deSelectCurve();
+  const shape = shapes.find((shape) => shape.checkBoundry(p));
+  if (!shape) return true;
 
-    const isSendingPointDisabled =
-      shape instanceof Desicion &&
-      curves.filter((curve) => curve.from.shape.id === shape.id).length >= 2;
+  deSelectCurve();
 
-    selection = new Selection(
-      `selectionArea_${uuidv4()}`,
-      [shape],
-      isSendingPointDisabled
-    );
+  selection = new Selection(
+    `selectionArea_${uuidv4()}`,
+    [shape],
+    getIsSelectionDisableSendingPoint(shape)
+  );
 
-    pressingSelection = {
-      selection: selection,
-      ghost: cloneDeep(selection),
-      target: SelectionTypes.PressingTarget.m,
-    };
+  pressingSelection = {
+    selection: selection,
+    ghost: cloneDeep(selection),
+    target: SelectionTypes.PressingTarget.m,
+  };
 
-    return false;
-  }
-
-  return true;
+  return false;
 };
 
 const startFrameSelecting = (p: CommonTypes.Vec) => {
@@ -1778,6 +1781,20 @@ const disconnect = (curveI: number) => {
   curves.splice(curveI, 1);
 };
 
+const getIsSelectionDisableSendingPoint = (
+  shape: undefined | CommonTypes.Shape
+) => {
+  if (!shape) return false;
+
+  if (shape instanceof Desicion) {
+    return (
+      curves.filter((curve) => curve.from.shape.id === shape.id).length === 2
+    );
+  }
+
+  return false;
+};
+
 const drawShapes = (
   ctx: null | CanvasRenderingContext2D,
   shapes: (Terminal | Process | Data | Desicion | Curve)[],
@@ -1792,6 +1809,20 @@ const drawShapes = (
   });
 
   // pressing?.ghost?.draw(ctx); // TODO: for testing align
+};
+
+const drawCurves = (
+  ctx: null | CanvasRenderingContext2D,
+  curves: Curve[],
+  offset?: CommonTypes.Vec,
+  scale?: number
+) => {
+  if (!ctx) return;
+
+  curves.forEach((curve) => {
+    if (!ctx) return;
+    curve.draw(ctx, offset, scale);
+  });
 };
 
 const drawAlignLines = (
@@ -1838,7 +1869,7 @@ const draw = (
   ctx?.closePath();
 
   drawShapes(ctx, shapes, offset, scale);
-  drawShapes(
+  drawCurves(
     ctx,
     curves.map((curve) => curve.shape),
     offset,
@@ -1865,6 +1896,8 @@ const draw = (
   if (!pressingCurve?.to) {
     pressingCurve?.shape.draw(ctx, offset, scale);
   }
+
+  // console.log("selection", selection);
 
   if (!isScreenshot) {
     // draw selectArea
@@ -2324,9 +2357,11 @@ export default function IdPage() {
     checkSteps();
     syncCandidates(shapes);
 
-    // if (!!selection) {
-    //   selection.shapes[0] instanceof Desicion;
-    // }
+    if (!!selection) {
+      selection.isSendingPointDisabled = getIsSelectionDisableSendingPoint(
+        selection.shapes[0]
+      );
+    }
 
     if (actionRecords.peekKey() === CommonTypes.Action.move) {
       actionRecords.finish(CommonTypes.Action.move);

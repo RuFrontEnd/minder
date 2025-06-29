@@ -36,33 +36,6 @@ export default class Desicion extends Core {
     };
   }
 
-  getText() {
-    let numOfText = 0,
-      _y = false,
-      _n = false;
-
-    ds.forEach((d) => {
-      if (numOfText === 2) return;
-      if (this.text[d] === "Y") {
-        _y = true;
-      } else if (this.text[d] === "N") {
-        _n = true;
-      }
-    });
-
-    const output: {
-      y: boolean;
-      n: boolean;
-      text: DecisionTypes.Text;
-    } = {
-      y: _y,
-      n: _n,
-      text: _y && _n ? null : _y ? "N" : "Y",
-    };
-
-    return output;
-  }
-
   draw(
     ctx: CanvasRenderingContext2D,
     offest: CommonTypes.Vec = { x: 0, y: 0 },

@@ -16,6 +16,7 @@ export default class Curve {
     r: number;
   };
   radius: number;
+  text: string;
   private __p1__: Vec;
   private __cp1__: Vec;
   private __cp2__: Vec;
@@ -28,7 +29,14 @@ export default class Curve {
   private arrow: null | Arrow;
   private __selecting__: boolean;
 
-  constructor(id: string, p1: Vec, cp1: Vec, cp2: Vec, p2: Vec) {
+  constructor(
+    id: string,
+    p1: Vec,
+    cp1: Vec,
+    cp2: Vec,
+    p2: Vec,
+    text: string = ""
+  ) {
     this.id = id;
     this.cpline = {
       w: 1,
@@ -63,6 +71,7 @@ export default class Curve {
         90 * (Math.PI / 180)
     );
     this.__selecting__ = false;
+    this.text = text;
   }
 
   get selecting() {
@@ -399,15 +408,17 @@ export default class Curve {
     ctx.textBaseline = "middle";
     ctx.font = `${14 * scale}px Arial`;
 
-    const middleP = this.getBezierMidP([
-      screenP.p1,
-      screenP.cp1,
-      screenP.cp2,
-      screenP.p2,
-    ]);
+    if (this.text) {
+      const middleP = this.getBezierMidP([
+        screenP.p1,
+        screenP.cp1,
+        screenP.cp2,
+        screenP.p2,
+      ]);
 
-    ctx.fillStyle = "black";
-    ctx.fillText("YYYYYY", middleP.x, middleP.y);
+      ctx.fillStyle = "black";
+      ctx.fillText(this.text, middleP.x, middleP.y);
+    }
 
     // close p1, cp1, cp2, p2.
     // if (this.selecting) {
