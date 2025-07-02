@@ -1559,7 +1559,7 @@ const pressSelection = (
 };
 
 const selectShape = (p: CommonTypes.Vec) => {
-  const shape = shapes.find((shape) => shape.checkBoundry(p));
+  const shape = shapes.findLast((shape) => shape.checkBoundry(p));
   if (!shape) return true;
 
   deSelectCurve();
