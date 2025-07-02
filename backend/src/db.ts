@@ -1,14 +1,15 @@
 // DataBase
 import dotenv from "dotenv";
-import mysql from "mysql2/promise";
+import { Pool } from "pg";
 
 const env = dotenv.config().parsed;
 
-let pool = mysql.createPool({
-  database: env?.DATABASE ? env.DATABASE : "",
-  host: env?.DATABASE_HOST ? env.DATABASE_HOST : "",
-  user: env?.DATABASE_USER ? env.DATABASE_USER : "",
-  password: env?.DATABASE_PASSWORD ? env.DATABASE_PASSWORD : "",
+const pool = new Pool({
+  database: env?.DATABASE || "",
+  host: env?.DATABASE_HOST || "",
+  user: env?.DATABASE_USER || "",
+  password: env?.DATABASE_PASSWORD || "",
+  port: env?.DATABASE_PORT ? parseInt(env.DATABASE_PORT, 10) : 5432, // Default PostgreSQL port
 });
 
 export default pool;

@@ -59,22 +59,22 @@ export default class Project {
         });
       }
       if (!!tokenInfo?.userId) {
-        const projects = await this.projectService.getProjects(
-          Number(tokenInfo.userId)
-        );
-        const userIds = projects.map((project) => project.id);
+        // const projects = await this.projectService.getProjects(
+        //   Number(tokenInfo.userId)
+        // );
+        // const userIds = projects.map((project) => project.id);
 
-        if (userIds.includes(Number(req.params.id))) {
-          const project = await this.projectService.getProject(
-            Number(req.params.id)
-          );
-          res.status(200).send(project);
-        } else {
-          return res.status(400).send({
-            status: statuses.ERROR,
-            message: "The project is not belong to the current user.",
-          });
-        }
+        // if (userIds.includes(Number(req.params.id))) {
+        //   const project = await this.projectService.getProject(
+        //     Number(req.params.id)
+        //   );
+        //   res.status(200).send(project);
+        // } else {
+        //   return res.status(400).send({
+        //     status: statuses.ERROR,
+        //     message: "The project is not belong to the current user.",
+        //   });
+        // }
       } else {
         return res.status(400).send({
           status: statuses.ERROR,
@@ -97,14 +97,14 @@ export default class Project {
     const { decoded } = req.body;
 
     try {
-      const newProject = await this.projectService.createProject(
-        String(decoded.userId)
-      );
+      // const newProject = await this.projectService.createProject(
+      //   String(decoded.userId)
+      // );
 
       res.status(201).send({
         status: statuses.SUCCESSFUL,
         message: "Create project successfully!",
-        ...newProject,
+        // ...newProject,
       });
     } catch (err) {
       res.status(400).send(getError(err));

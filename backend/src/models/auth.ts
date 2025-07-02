@@ -4,14 +4,16 @@ import { RowDataPacket } from "mysql2";
 export default class Auth {
   // 檢查是否已存在相同的帳號
   async checkDuplicateAccountName(account: string) {
-    if (!pool) return;
-    const [
-      rows,
-    ] = await pool.query(
-      "SELECT COUNT(*) AS count FROM users WHERE account = ?",
-      [account]
-    );
-    return (rows as RowDataPacket[])[0].count > 0;
+    // if (!pool) return;
+    // const [
+    //   rows,
+    // ] = await pool.query(
+    //   "SELECT COUNT(*) AS count FROM users WHERE account = ?",
+    //   [account]
+    // );
+    // return (rows as RowDataPacket[])[0].count > 0;
+
+    return false
   }
 
   async create(account: string, email: string, hash: string) {
@@ -22,10 +24,12 @@ export default class Auth {
   }
 
   async findByAccount(account: string): Promise<RowDataPacket[] | null> {
-    const [rows] = await pool.query("SELECT * FROM users WHERE account = ?", [
-      account,
-    ]);
-    return rows as RowDataPacket[];
+    // const [rows] = await pool.query("SELECT * FROM users WHERE account = ?", [
+    //   account,
+    // ]);
+    // return rows as RowDataPacket[];
+
+    return []
   }
 
   echo() {

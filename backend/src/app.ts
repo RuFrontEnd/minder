@@ -8,10 +8,10 @@ import * as routes from "./routes";
 (async function () {
   // connect mysql
   try {
-    await pool.getConnection();
-    console.log(colors.green(`[mysql] connect succeed`));
+    await pool.connect();
+    console.log(colors.green(`[postgresql] connect succeed`));
   } catch (err) {
-    console.log(colors.red(`[mysql] ${err}`));
+    console.log(colors.red(`[postgresql] ${err}`));
   }
 
   // connect mongodb
