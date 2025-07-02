@@ -1,8 +1,10 @@
 "use client";
 import React, { useState, ChangeEventHandler } from "react";
+import SignIn from "@/blocks/indivisualSidePanel/signIn";
 import DataBox from "@/blocks/indivisualSidePanel/dataBox";
 import SidePanel from "@/components/sidePanel";
 import Button from "@/components/button";
+import SimpleButton from "@/components/simpleButton";
 import Input from "@/components/input";
 import Icon from "@/components/icon";
 import SquareButton from "@/components/squareButton";
@@ -560,137 +562,146 @@ export default function IndivisualSidePanel(
   };
 
   return (
-    <SidePanel
-      role={"indivisual"}
-      open={props.isIndivisualSidePanelOpen}
-      horizentalD={SidePanelTypes.HorizentalD.r}
-      verticalD={SidePanelTypes.VerticalD.b}
-      w={"360px"}
-      h={"calc(100vh)"}
-      onClickSwitch={onClickSidePanelSwitch}
-    >
-      <div className={"p-4 h-full"}>
-        <div
-          className="flex flex-col"
-          style={{
-            height: `calc(100% - ${props.isEditingIndivisual ? 28 : 16}px)`,
-          }}
-        >
-          <div className="flex items-center">
-            {props.isEditingIndivisual ? (
-              <>
-                <Input
-                  role="edit_indivisual_title"
-                  className="flex-1"
-                  value={editingTitle}
-                  onChange={onChangeTitle}
-                />
-                <div
-                  className="flex justify-end items-center"
-                  role="edit_indivisual"
-                >
-                  <Button
-                    role="cancel_edit_indivisual"
-                    vice
-                    text="Cancel"
-                    className="ms-2"
-                    size={ButtonTypes.Size.sm}
-                    onClick={onClickCancelButton}
+    <>
+      <SidePanel
+        role={"indivisual"}
+        open={props.isIndivisualSidePanelOpen}
+        horizentalD={SidePanelTypes.HorizentalD.r}
+        verticalD={SidePanelTypes.VerticalD.b}
+        w={"360px"}
+        h={"calc(100vh)"}
+        onClickSwitch={onClickSidePanelSwitch}
+      >
+        <div className={"p-4 h-full"}>
+          <div
+            className="flex flex-col"
+            style={{
+              height: `calc(100% - ${props.isEditingIndivisual ? 28 : 16}px)`,
+            }}
+          >
+            <div className="flex items-center">
+              {props.isEditingIndivisual ? (
+                <>
+                  <Input
+                    role="edit_indivisual_title"
+                    className="flex-1"
+                    value={editingTitle}
+                    onChange={onChangeTitle}
                   />
-                  <Button
-                    role="save_edit_indivisual"
-                    text="Save"
-                    className="ms-2"
-                    size={ButtonTypes.Size.sm}
-                    onClick={onClickSaveEditingButton}
+                  <div
+                    className="flex justify-end items-center"
+                    role="edit_indivisual"
+                  >
+                    <Button
+                      role="cancel_edit_indivisual"
+                      vice
+                      text="Cancel"
+                      className="ms-2"
+                      size={ButtonTypes.Size.sm}
+                      onClick={onClickCancelButton}
+                    />
+                    <Button
+                      role="save_edit_indivisual"
+                      text="Save"
+                      className="ms-2"
+                      size={ButtonTypes.Size.sm}
+                      onClick={onClickSaveEditingButton}
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="flex-1 text-md font-semibold text-black-2 px-3 py-1 min-w-0 truncate">
+                    {props.indivisual?.title || "-"}
+                  </p>
+                  <Icon
+                    role="begin_edit_indivisual"
+                    className={"justify-self-end cursor-pointer"}
+                    type={IconTypes.Type.pencilSquare}
+                    w={16}
+                    h={16}
+                    disabled={!props.indivisual}
+                    onClick={onClickEditIcon}
                   />
-                </div>
-              </>
-            ) : (
-              <>
-                <p className="flex-1 text-md font-semibold text-black-2 px-3 py-1 min-w-0 truncate">
-                  {props.indivisual?.title || "-"}
-                </p>
-                <Icon
-                  role="begin_edit_indivisual"
-                  className={"justify-self-end cursor-pointer"}
-                  type={IconTypes.Type.pencilSquare}
-                  w={16}
-                  h={16}
-                  disabled={!props.indivisual}
-                  onClick={onClickEditIcon}
-                />
-              </>
-            )}
+                </>
+              )}
+            </div>
+            <DataBox
+              style={{ height: "calc(33.333% - 17.333px)" }}
+              className="flex-1"
+              text={"Import Data"}
+              isEditing={props.isEditingIndivisual}
+              options={dataOptions}
+              datas={props.indivisual?.importDatas || []}
+              createDatas={props.createImportDatas}
+              setCreateDatas={props.setCreateImportDatas}
+              addDatas={props.addImportDatas}
+              setAddDatas={props.setAddImportDatas}
+            />
+            <DataBox
+              style={{ height: "calc(33.333% - 17.333px)" }}
+              className="flex-1"
+              text={"Using Data"}
+              isEditing={props.isEditingIndivisual}
+              options={dataOptions}
+              datas={props.indivisual?.usingDatas || []}
+              createDatas={props.createUsingDatas}
+              setCreateDatas={props.setCreateUsingDatas}
+              addDatas={props.addUsingDatas}
+              setAddDatas={props.setAddUsingDatas}
+            />
+            <DataBox
+              style={{ height: "calc(33.333% - 17.333px)" }}
+              className="flex-1"
+              text={"Delete Data"}
+              isEditing={props.isEditingIndivisual}
+              options={dataOptions}
+              datas={props.indivisual?.deleteDatas || []}
+              createDatas={props.createDeleteDatas}
+              setCreateDatas={props.setCreateDeleteDatas}
+              addDatas={props.addDeleteDatas}
+              setAddDatas={props.setAddDeleteDatas}
+            />
           </div>
-          <DataBox
-            style={{ height: "calc(33.333% - 17.333px)" }}
-            className="flex-1"
-            text={"Import Data"}
-            isEditing={props.isEditingIndivisual}
-            options={dataOptions}
-            datas={props.indivisual?.importDatas || []}
-            createDatas={props.createImportDatas}
-            setCreateDatas={props.setCreateImportDatas}
-            addDatas={props.addImportDatas}
-            setAddDatas={props.setAddImportDatas}
+        </div>
+        <div className="absolute top-0 -left-48 w-[132px] flex justify-between">
+          <SimpleButton
+            role="signIn_button"
+            text={"Sign In"}
+            size={ButtonTypes.Size.sm}
+            onClick={onClickCancelButton}
           />
-          <DataBox
-            style={{ height: "calc(33.333% - 17.333px)" }}
-            className="flex-1"
-            text={"Using Data"}
-            isEditing={props.isEditingIndivisual}
-            options={dataOptions}
-            datas={props.indivisual?.usingDatas || []}
-            createDatas={props.createUsingDatas}
-            setCreateDatas={props.setCreateUsingDatas}
-            addDatas={props.addUsingDatas}
-            setAddDatas={props.setAddUsingDatas}
+          <SquareButton
+            role="upload_file"
+            size={32}
+            shadow
+            content={
+              <Icon
+                type={IconTypes.Type.upload}
+                w={16}
+                h={16}
+                fill={tailwindColors.grey["1"]}
+              />
+            }
+            onClick={onClickUploadButton}
           />
-          <DataBox
-            style={{ height: "calc(33.333% - 17.333px)" }}
-            className="flex-1"
-            text={"Delete Data"}
-            isEditing={props.isEditingIndivisual}
-            options={dataOptions}
-            datas={props.indivisual?.deleteDatas || []}
-            createDatas={props.createDeleteDatas}
-            setCreateDatas={props.setCreateDeleteDatas}
-            addDatas={props.addDeleteDatas}
-            setAddDatas={props.setAddDeleteDatas}
+          <SquareButton
+            role="download_file"
+            size={32}
+            shadow
+            content={
+              <Icon
+                type={IconTypes.Type.download}
+                w={16}
+                h={16}
+                fill={tailwindColors.grey["1"]}
+              />
+            }
+            onClick={onClickDownloadButton}
           />
         </div>
-        <SquareButton
-          role="upload_file"
-          size={32}
-          shadow
-          className="absolute top-0 -left-32 -translate-x-full flex justify-self-end self-center text-base"
-          content={
-            <Icon
-              type={IconTypes.Type.upload}
-              w={16}
-              h={16}
-              fill={tailwindColors.grey["1"]}
-            />
-          }
-          onClick={onClickUploadButton}
-        />
-        <SquareButton
-          role="download_file"
-          size={32}
-          shadow
-          className="absolute top-0 -left-20 -translate-x-full flex justify-self-end self-center text-base"
-          content={
-            <Icon
-              type={IconTypes.Type.download}
-              w={16}
-              h={16}
-              fill={tailwindColors.grey["1"]}
-            />
-          }
-          onClick={onClickDownloadButton}
-        />
-      </div>
-    </SidePanel>
+        <SignIn />
+      </SidePanel>
+    </>
   );
 }

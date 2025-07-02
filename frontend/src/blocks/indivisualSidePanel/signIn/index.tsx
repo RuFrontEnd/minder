@@ -41,7 +41,7 @@ const init = {
   },
 };
 
-export default function HomePage() {
+export default function SignIn() {
   const qas = isBrowser && window.location.href.includes("qas");
   const router = useRouter();
 
@@ -339,13 +339,14 @@ export default function HomePage() {
   };
 
   useEffect(() => {
-    verifyToken();
+    // verifyToken();
   }, []);
 
   return (
     <>
       <Modal
         isOpen={
+          // true
           isAccountModalOpen && !isProjectsModalOpen && !isProjectsModalOpen
         }
         width="400px"

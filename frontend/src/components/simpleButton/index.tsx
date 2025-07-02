@@ -32,6 +32,7 @@ const SimpleButton = (props: SimpleButtonTypes.Props) => {
 
   return (
     <button
+      tabIndex={-1}
       role={props.role}
       className={`flex items-center ${sizeStyle} ${statusStyle} ${props.className}`}
       onClick={props.disabled ? undefined : props.onClick}
