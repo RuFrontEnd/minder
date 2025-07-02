@@ -57,3 +57,6 @@ BK
 - node.js 20.11.0
 - express 4.18.3
 - mysql 8.3.0
+
+## migration command
+npx sequelize-cli db:migrate
