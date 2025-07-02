@@ -36,6 +36,7 @@ const SimpleButton = (props: SimpleButtonTypes.Props) => {
       role={props.role}
       className={`flex items-center ${sizeStyle} ${statusStyle} ${props.className}`}
       onClick={props.disabled ? undefined : props.onClick}
+      onMouseDown={(e) => e.preventDefault()}
     >
       {props.loading && (
         <ReactLoading
