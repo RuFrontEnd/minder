@@ -14,6 +14,7 @@ import Button from "@/components/button";
 import OverallSidePanel from "@/sections/overallSidePanel";
 import IndivisaulSidePanel from "@/sections/indivisualSidePanel";
 import Console from "@/sections/console";
+import SignIn from "@/sections/signIn";
 import { cloneDeep } from "lodash";
 import { v4 as uuidv4 } from "uuid";
 import { tailwindColors } from "@/variables/colors";
@@ -2560,6 +2561,8 @@ export default function IdPage() {
     };
   };
 
+  const onClickSignInSimpleButton = () => {};
+
   useEffect(() => {
     if (!isBrowser) return;
 
@@ -2664,6 +2667,7 @@ export default function IdPage() {
         setConsoles={setConsoles}
         terminateDataChecking={terminateDataChecking}
         deSelect={deSelect}
+        onClickSignInSimpleButton={onClickSignInSimpleButton}
       />
 
       <Console
@@ -2690,6 +2694,8 @@ export default function IdPage() {
         setIndivisual={setIndivisual}
         initShapeSize={init.shape.size}
       />
+
+      <SignIn />
 
       <img id="screenshotImg" alt="Screenshot" style={{ display: "none" }} />
       <div className={"flex"}>

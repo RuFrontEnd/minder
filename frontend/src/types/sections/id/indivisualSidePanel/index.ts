@@ -4,7 +4,8 @@ import Process from "@/shapes/process";
 import Data from "@/shapes/data";
 import Desicion from "@/shapes/decision";
 import * as InputTypes from "@/types/components/input";
-import * as SelectTypes from "@/types/components/input";
+import * as SelectTypes from "@/types/components/select";
+import * as SimpleButtonTypes from "@/types/components/simpleButton";
 import * as CommonTypes from "@/types/common";
 import * as PageIdTypes from "@/types/app/pageId";
 
@@ -22,7 +23,7 @@ type AddDatas = {
 
 type Props = {
   projectName: string;
-  setProjectName: Dispatch<SetStateAction<CommonTypes.ProjectName>>
+  setProjectName: Dispatch<SetStateAction<CommonTypes.ProjectName>>;
   shapes: (Terminal | Process | Data | Desicion)[];
   curves: CommonTypes.ConnectionCurves;
   datas: CommonTypes.OverallDatas;
@@ -56,6 +57,7 @@ type Props = {
   setConsoles: any;
   terminateDataChecking: () => void;
   deSelect: () => void;
+  onClickSignInSimpleButton: SimpleButtonTypes.Props["onClick"];
 };
 
 export type { Props, CreateDatas, AddDatas };

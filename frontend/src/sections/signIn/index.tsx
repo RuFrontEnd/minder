@@ -345,6 +345,7 @@ export default function SignIn() {
   return (
     <>
       <Modal
+        open={true}
         isOpen={
           // true
           isAccountModalOpen && !isProjectsModalOpen && !isProjectsModalOpen

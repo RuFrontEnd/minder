@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, ChangeEventHandler } from "react";
-import SignIn from "@/blocks/indivisualSidePanel/signIn";
 import DataBox from "@/blocks/indivisualSidePanel/dataBox";
 import SidePanel from "@/components/sidePanel";
 import Button from "@/components/button";
@@ -669,7 +668,7 @@ export default function IndivisualSidePanel(
             role="signIn_button"
             text={"Sign In"}
             size={ButtonTypes.Size.sm}
-            onClick={onClickCancelButton}
+            onClick={props.onClickSignInSimpleButton}
           />
           <SquareButton
             role="upload_file"
@@ -700,7 +699,6 @@ export default function IndivisualSidePanel(
             onClick={onClickDownloadButton}
           />
         </div>
-        <SignIn />
       </SidePanel>
     </>
   );
