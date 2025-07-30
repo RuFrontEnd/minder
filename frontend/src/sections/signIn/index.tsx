@@ -2,7 +2,7 @@
 import axios, { AxiosResponse } from "axios";
 import { useRouter } from "next/navigation";
 import Button from "@/components/button";
-import Modal from "@/components/modal";
+import Dialog from "@/components/dialog";
 import Input from "@/components/input";
 import Alert from "@/components/alert";
 import Card from "@/components/card";
@@ -344,17 +344,16 @@ export default function SignIn() {
 
   return (
     <>
-      <Modal
+      <Dialog
         open={true}
         isOpen={
           // true
           isAccountModalOpen && !isProjectsModalOpen && !isProjectsModalOpen
         }
-        width="400px"
         mask={false}
       >
-        <div className="bg-white-500 rounded-lg p-8 flex flex-col w-full shadow-lg">
-          <a className="flex title-font font-medium justify-center items-center text-gray-900 mb-4">
+        <div className="bg-white-500 rounded-lg flex flex-col w-full">
+          <a className="flex title-font font-medium justify-center items-center text-gray-900 my-4">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
@@ -379,7 +378,7 @@ export default function SignIn() {
             name="account"
             value={authInfo.account.value}
             status={authInfo.account.status}
-            comment={authInfo.account.comment}
+            errorText={authInfo.account.comment}
             onChange={onChangeAccount}
           />
           <Input
@@ -389,7 +388,7 @@ export default function SignIn() {
             name="password"
             value={authInfo.password.value}
             status={authInfo.password.status}
-            comment={authInfo.password.comment}
+            errorText={authInfo.password.comment}
             onChange={onChangePassword}
           />
           {!isLogIn && (
@@ -400,7 +399,7 @@ export default function SignIn() {
               name="email"
               value={authInfo.email.value}
               status={authInfo.email.status}
-              comment={authInfo.email.comment}
+              errorText={authInfo.email.comment}
               onChange={onChangeEmail}
             />
           )}
@@ -429,8 +428,8 @@ export default function SignIn() {
             </a>
           </p>
         </div>
-      </Modal>
-      <Modal isOpen={isProjectsModalOpen} width="1120px" mask={false}>
+      </Dialog>
+      <Dialog isOpen={isProjectsModalOpen} width="1120px" mask={false}>
         <div className="shadow-lg">
           <section className="rounded-lg text-gray-600 bg-white-500 p-8 body-font">
             <div className="mb-6 pb-3 ps-4 border-b border-grey-5 flex justify-between items-end">
@@ -489,7 +488,7 @@ export default function SignIn() {
             </div>
           </section>
         </div>
-      </Modal>
+      </Dialog>
     </>
   );
 }
