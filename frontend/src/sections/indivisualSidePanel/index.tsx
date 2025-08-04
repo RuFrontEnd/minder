@@ -457,6 +457,7 @@ export default function IndivisualSidePanel(
           cp1: curve.shape.cp1,
           cp2: curve.shape.cp2,
           p2: curve.shape.p2,
+          text: curve.shape.text,
         },
         to: { d: curve.to.d, shapeId: curve.to.shape.id },
       })),
@@ -533,7 +534,8 @@ export default function IndivisualSidePanel(
                 curve.shape.p1,
                 curve.shape.cp1,
                 curve.shape.cp2,
-                curve.shape.p2
+                curve.shape.p2,
+                curve.shape.text
               ),
               from: {
                 shape: newShape.from,

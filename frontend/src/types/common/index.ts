@@ -112,6 +112,7 @@ type UploadJSON = {
       cp1: Vec;
       cp2: Vec;
       p2: Vec;
+      text: string;
     };
     to: {
       d: Direction;
