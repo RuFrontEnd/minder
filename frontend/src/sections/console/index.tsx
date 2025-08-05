@@ -83,34 +83,46 @@ export default function Console(props: ConsoleTypes.Props) {
           })}
         </ul>
       </div>
-      <div className="absolute -top-4 -translate-y-full left-1/2 -translate-x-1/2">
-        <CreateShapeButtons
-          isOverAllSidePanelOpen={props.isOverAllSidePanelOpen}
-          actionRecords={props.actionRecords}
-          shapes={props.shapes}
-          offset={props.offset}
-          scale={props.scale}
-          reload={props.reload}
-          initShapeSize={props.initShapeSize}
-        />
-      </div>
-      <div className="absolute -top-4 -translate-y-full right-0 flex">
-        <SquareButton
-          className="mr-4"
-          size={32}
-          shadow
-          content={
-            <Icon
-              type={IconTypes.Type.rotateCcw}
-              w={14}
-              h={14}
-              fill={tailwindColors.grey["1"]}
-            />
-          }
-          onClick={onClickUndoButton}
-        />
-        <Zoom zoom={props.zoom} scale={props.scale} />
-      </div>
+      <CreateShapeButtons
+        isOverAllSidePanelOpen={props.isOverAllSidePanelOpen}
+        actionRecords={props.actionRecords}
+        shapes={props.shapes}
+        offset={props.offset}
+        scale={props.scale}
+        reload={props.reload}
+        initShapeSize={props.initShapeSize}
+      />
+      <SquareButton
+        className="absolute -top-4 -translate-y-full right-[176px] flex"
+        role="proceduralize"
+        size={32}
+        shadow
+        // content={
+        //   <Icon
+        //     type={IconTypes.Type.upload}
+        //     w={16}
+        //     h={16}
+        //     fill={tailwindColors.grey["1"]}
+        //   />
+        // }
+        // onClick={onClickUploadButton}
+      />
+      <SquareButton
+        role="undo"
+        className="absolute -top-4 -translate-y-full right-[128px] flex"
+        size={32}
+        shadow
+        content={
+          <Icon
+            type={IconTypes.Type.rotateCcw}
+            w={14}
+            h={14}
+            fill={tailwindColors.grey["1"]}
+          />
+        }
+        onClick={onClickUndoButton}
+      />
+      <Zoom zoom={props.zoom} scale={props.scale} />
     </SidePanel>
   );
 }

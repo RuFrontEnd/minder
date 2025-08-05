@@ -113,7 +113,7 @@ export default function CreateShapeButtons(
   };
 
   return (
-    <section role="create_shapes">
+    <section role="create_shapes" className="absolute -top-4 -translate-y-full left-1/2 -translate-x-1/2">
       <div className="flex bg-white-500 p-1 shadow-md rounded-md">
         {createShapeButtons.map((createShapeButton) => (
           <SquareButton
