@@ -9,6 +9,7 @@ import Accordion from "@/components/accordion";
 import SimpleButton from "@/components/simpleButton";
 import Input from "@/components/input";
 import Frame from "@/components/frame";
+import Breadcrumb from "@/components/breadcrumb";
 import PencilSquareIcon from "@/assets/svg/pencil-square.svg";
 import Icon from "@/components/icon";
 import { motion } from "framer-motion";
@@ -321,6 +322,8 @@ export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
           </motion.div>
         </div>
       </div>
+
+      <Breadcrumb className="absolute top-8 -right-20 translate-x-full text-base" />
     </SidePanel>
   );
 }
