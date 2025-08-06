@@ -1,5 +1,3 @@
-import { MouseEventHandler, ReactNode } from "react";
-
 enum Type {
   succeess = "succeess",
   warning = "warning",

@@ -1,4 +1,3 @@
-import { MouseEventHandler, ReactNode } from "react";
 import * as RoundButtonTypes from "@/types/components/roundButton";
 
 type Props = {
@@ -6,7 +5,7 @@ type Props = {
   className?: string;
   style?: Object;
   isOpen: boolean;
-  children?: ReactNode;
+  children?: React.ReactNode;
   width?: string;
   zIndex?: string;
   mask?: boolean;

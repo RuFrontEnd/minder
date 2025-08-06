@@ -1,5 +1,3 @@
-import { KeyboardEventHandler, MouseEventHandler, ReactNode } from "react";
-
 enum Part {
   independent = "independent",
   left = "left",
@@ -13,14 +11,14 @@ type Props = {
   style?: Object;
   role?: string;
   tabIndex?: number;
-  content?: ReactNode;
+  content?: React.ReactNode;
   size?: number;
   w?: number;
   h?: number;
   shadow?: boolean;
   part?: Part;
-  onClick?: MouseEventHandler<HTMLButtonElement>;
-  onKeyDown?: KeyboardEventHandler<HTMLButtonElement>;
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
+  onKeyDown?: React.KeyboardEventHandler<HTMLButtonElement>;
 };
 
 export type { Props };

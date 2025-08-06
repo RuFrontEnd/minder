@@ -1,5 +1,3 @@
-import { MouseEventHandler, ReactNode } from "react";
-
 enum Size {
   md = "md",
   sm = "sm",
@@ -9,14 +7,14 @@ type Props = {
   id?: string;
   className?: string;
   role?: string;
-  text: ReactNode;
+  text: React.ReactNode;
   loading?: boolean;
   vice?: boolean;
   info?: boolean;
   disabled?: boolean;
   danger?: boolean;
   size?: Size;
-  onClick: MouseEventHandler<HTMLButtonElement>;
+  onClick: React.MouseEventHandler<HTMLButtonElement>;
 };
 
 export type { Props };

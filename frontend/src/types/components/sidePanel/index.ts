@@ -1,5 +1,3 @@
-import { MouseEventHandler, ReactNode } from "react";
-
 enum Flow {
   row = "row",
   column = "column",
@@ -34,8 +32,8 @@ type Props = {
   switchButtonD?: SwitchButtonD;
   horizentalD?: HorizentalD;
   verticalD?: VerticalD;
-  children?: ReactNode;
-  onClickSwitch?: MouseEventHandler<HTMLDivElement>;
+  children?: React.ReactNode;
+  onClickSwitch?: React.MouseEventHandler<HTMLDivElement>;
 };
 
 export type { Props };

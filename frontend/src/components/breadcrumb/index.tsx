@@ -1,68 +1,79 @@
-import ReactLoading from "react-loading";
-import { tailwindColors } from "@/variables/colors";
-import Icon from "@/components/icon";
-import * as StatusTextTypes from "@/types/components/statusText";
-import * as CommonTypes from "@/types/common";
-import * as IconTypes from "@/types/components/icon";
+import * as BreadcrumbTypes from "@/types/components/breadcrumb";
 
-const Breadcrumb = (
-  props: any
-  // StatusTextTypes.Props
-) => {
-  const textStatusStyle = (() => {
-    const defaultStyle = "text-black-2";
-
-    if (props.status === CommonTypes.DataStatus.default) {
-      return defaultStyle;
-    }
-
-    if (props.status === CommonTypes.DataStatus.pass) {
-      return "text-success-500";
-    }
-
-    if (props.status === CommonTypes.DataStatus.warning) {
-      return "text-warning-500";
-    }
-
-    if (props.status === CommonTypes.DataStatus.error) {
-      return "text-error-500";
-    }
-
-    return defaultStyle;
-  })();
-
+const Breadcrumb = (props: BreadcrumbTypes.Props) => {
   return (
     <div
+      id={props.id}
       className={`flex items-center py-4 overflow-x-auto whitespace-nowrap ${props.className}`}
     >
-      <a href="#" className="text-gray-600 dark:text-gray-200">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="w-5 h-5"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-        >
-          <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
-        </svg>
-      </a>
+      {props.ellipsis?.enabled &&
+      props.paths.length > 3 &&
+      props.paths.length > props.ellipsis?.maxLength ? (
+        <>
+          <p
+            className={`text-gray-600 dark:text-gray-200 ${
+              !!props.paths[0].onClick && "hover:underline cursor-pointer"
+            }`}
+            onClick={props.paths[0].onClick}
+          >
+            {props.paths[0].content}
+          </p>
 
-      <span className="mx-3 text-gray-500 dark:text-gray-300">/</span>
+          <div className="mx-3 text-gray-500 dark:text-gray-300">/</div>
 
-      <a href="#" className="text-gray-600 dark:text-gray-200 hover:underline">
-        Account
-      </a>
+          <p
+            className={`text-gray-600 dark:text-gray-200 ${
+              !!props.ellipsis.onClick && "hover:underline cursor-pointer"
+            }`}
+            onClick={props.ellipsis.onClick}
+          >
+            ...
+          </p>
 
-      <span className="mx-3 text-gray-500 dark:text-gray-300">/</span>
+          <div className="mx-3 text-gray-500 dark:text-gray-300">/</div>
 
-      <a href="#" className="text-gray-600 dark:text-gray-200 hover:underline">
-        Profile
-      </a>
+          <p
+            className={`text-gray-600 dark:text-gray-200 ${
+              !!props.paths[props.paths.length - 2].onClick &&
+              "hover:underline cursor-pointer"
+            }`}
+            onClick={props.paths[props.paths.length - 2].onClick}
+          >
+            {props.paths[props.paths.length - 2].content}
+          </p>
 
-      <span className="mx-3 text-gray-500 dark:text-gray-300">/</span>
+          <div className="mx-3 text-gray-500 dark:text-gray-300">/</div>
 
-      <a href="#" className="text-blue-600 dark:text-blue-400 hover:underline">
-        Settings
-      </a>
+          <p
+            className={`text-gray-600 dark:text-gray-200 ${
+              !!props.paths[props.paths.length - 1].onClick &&
+              "hover:underline cursor-pointer"
+            }`}
+            onClick={props.paths[props.paths.length - 1].onClick}
+          >
+            {props.paths[props.paths.length - 1].content}
+          </p>
+        </>
+      ) : (
+        <>
+          {props.paths.map((path, i) => (
+            <>
+              <p
+                className={`text-gray-600 dark:text-gray-200 ${
+                  !!path.onClick && "hover:underline cursor-pointer"
+                }`}
+                onClick={path.onClick}
+              >
+                {path.content}
+              </p>
+
+              {i !== props.paths.length - 1 && (
+                <div className="mx-3 text-gray-500 dark:text-gray-300">/</div>
+              )}
+            </>
+          ))}
+        </>
+      )}
     </div>
   );
 };

@@ -1,16 +1,14 @@
-import { KeyboardEventHandler, MouseEventHandler, ReactNode } from "react";
-
 type Props = {
   id?: string;
   className?: string;
   style?: Object;
   tabIndex?: number;
-  content?: ReactNode;
+  content?: React.ReactNode;
   size?: number;
   outerRing?: boolean;
   differece?: number;
-  onClick?: MouseEventHandler<HTMLButtonElement>;
-  onKeyDown?: KeyboardEventHandler<HTMLButtonElement>;
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
+  onKeyDown?: React.KeyboardEventHandler<HTMLButtonElement>;
 };
 
 export type { Props };

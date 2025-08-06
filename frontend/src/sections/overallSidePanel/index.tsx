@@ -323,7 +323,17 @@ export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
         </div>
       </div>
 
-      <Breadcrumb className="absolute top-8 -right-20 translate-x-full text-base" />
+      <Breadcrumb
+        className="absolute top-8 -right-20 translate-x-full text-base"
+        paths={[{ content: "All" }, { content: "path1" }, { content: "path2" }, { content: "path3" }]}
+        ellipsis={{
+          enabled: true,
+          maxLength: 3,
+          onClick: () => {
+            console.log("Ellipsis clicked");
+          },
+        }}
+      />
     </SidePanel>
   );
 }
