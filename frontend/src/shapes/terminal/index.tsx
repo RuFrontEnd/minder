@@ -1,3 +1,4 @@
+// TODO: need static getPath method
 "use client";
 import { tailwindColors } from "@/variables/colors";
 import Core from "@/shapes/core";

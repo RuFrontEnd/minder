@@ -1,3 +1,4 @@
+// TODO: need static getPath method
 "use client";
 import Core from "@/shapes/core";
 import Curve from "@/shapes/curve";

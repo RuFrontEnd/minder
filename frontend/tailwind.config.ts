@@ -68,6 +68,7 @@ const config: Config = {
           process: "#AB44F4",
           data: "#1BC861",
           decision: "#5468E9",
+          procedure: "#000000",
         },
         selectionFrame: {
           fill: "#2436b155",

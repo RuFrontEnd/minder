@@ -56,6 +56,7 @@ enum ShapeType {
   process = "process",
   data = "data",
   decision = "decision",
+  procedure = "procedure",
 }
 
 enum Action {
@@ -137,7 +138,6 @@ export type {
   H,
   C,
   Vec,
-  Shapes,
   Title,
   Data,
   Datas,
@@ -146,6 +146,7 @@ export type {
   ConnectionCurves,
   UploadJSON,
   Shape,
+  Shapes,
   Steps,
   ProjectName,
 };

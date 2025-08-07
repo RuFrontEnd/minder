@@ -6,6 +6,7 @@ import Terminal from "@/shapes/terminal";
 import Process from "@/shapes/process";
 import Data from "@/shapes/data";
 import Desicion from "@/shapes/decision";
+import Procedure from "@/shapes/procedure";
 import Curve from "@/shapes/curve";
 import SelectionFrame from "@/shapes/selectionFrame";
 import Selection from "@/shapes/selection";
@@ -2567,6 +2568,15 @@ export default function IdPage() {
       drawCanvas(offset, scale);
       drawScreenshot(offset, scale);
     })();
+
+    if (!ctx) return;
+
+    new Procedure("procedure", 100, 100, { x: 500, y: 500 }, "test").draw(
+      ctx,
+      offset,
+      scale,
+      Process.getPath
+    );
 
     const resizeViewport = () => {
       const $canvas = document.querySelector("canvas");
