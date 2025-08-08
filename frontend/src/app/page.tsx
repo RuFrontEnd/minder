@@ -2575,7 +2575,7 @@ export default function IdPage() {
       ctx,
       offset,
       scale,
-      Process.getPath
+      Data.getPath
     );
 
     const resizeViewport = () => {

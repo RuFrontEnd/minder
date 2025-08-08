@@ -1,10 +1,10 @@
-// TODO: need static getPath method
+
 "use client";
 import Core from "@/shapes/core";
-import Curve from "@/shapes/curve";
 import { tailwindColors } from "@/variables/colors";
-import { Direction } from "@/types/common";
 import * as CommonTypes from "@/types/common";
+
+const initThersholdRatio = 1 / 10;
 
 export default class Data extends Core {
   isFrameOpen: boolean;
@@ -20,29 +20,37 @@ export default class Data extends Core {
   ) {
     super(id, w, h, p, tailwindColors.shape.data, title);
     this.isFrameOpen = false;
-    this.thersholdRatio = 1 / 10;
+    this.thersholdRatio = initThersholdRatio;
+  }
+
+  static getCenterToCornerDistance(
+    w: number,
+    h: number,
+    thersholdRatio: number
+  ) {
+    const frameThreshold = w * thersholdRatio;
+    return {
+      tl: {
+        x: -w / 2 + frameThreshold,
+        y: -h / 2,
+      },
+      tr: {
+        x: w / 2,
+        y: -h / 2,
+      },
+      br: {
+        x: w / 2 - frameThreshold,
+        y: h / 2,
+      },
+      bl: {
+        x: -w / 2,
+        y: h / 2,
+      },
+    };
   }
 
   getCenterToCornerDistance() {
-    const frameThreshold = this.w * this.thersholdRatio;
-    return {
-      tl: {
-        x: -this.w / 2 + frameThreshold,
-        y: -this.h / 2,
-      },
-      tr: {
-        x: this.w / 2,
-        y: -this.h / 2,
-      },
-      br: {
-        x: this.w / 2 - frameThreshold,
-        y: this.h / 2,
-      },
-      bl: {
-        x: -this.w / 2,
-        y: this.h / 2,
-      },
-    };
+    return Data.getCenterToCornerDistance(this.w, this.h, this.thersholdRatio);
   }
 
   checkReceivingPointsBoundry(p: CommonTypes.Vec) {
@@ -95,40 +103,64 @@ export default class Data extends Core {
     return null;
   }
 
+  static getPath(
+    ctx: CanvasRenderingContext2D,
+    p: CommonTypes.Vec,
+    w: number,
+    h: number,
+    offset: CommonTypes.Vec = { x: 0, y: 0 },
+    scale: number = 1,
+    thresholdRatio: number = initThersholdRatio
+  ) {
+    const screenP = {
+      x: (p.x + offset.x) * scale,
+      y: (p.y + offset.y) * scale,
+    };
+    const centerToCornersDistance = Data.getCenterToCornerDistance(
+      w,
+      h,
+      thresholdRatio
+    );
+
+    ctx.save();
+    ctx.translate(screenP.x, screenP.y);
+    ctx.beginPath();
+    ctx.moveTo(
+      centerToCornersDistance.tl.x * scale,
+      centerToCornersDistance.tl.y * scale
+    );
+    ctx.lineTo(
+      centerToCornersDistance.tr.x * scale,
+      centerToCornersDistance.tr.y * scale
+    );
+    ctx.lineTo(
+      centerToCornersDistance.br.x * scale,
+      centerToCornersDistance.br.y * scale
+    );
+    ctx.lineTo(
+      centerToCornersDistance.bl.x * scale,
+      centerToCornersDistance.bl.y * scale
+    );
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
   draw(
     ctx: CanvasRenderingContext2D,
     offest: CommonTypes.Vec = { x: 0, y: 0 },
     scale: number = 1
   ) {
     super.draw(ctx, offest, scale, () => {
-      const screenP = {
-        x: (this.p.x + offest.x) * scale,
-        y: (this.p.y + offest.y) * scale,
-      };
-      const centerToCornersDistance = this.getCenterToCornerDistance();
-
-      ctx.save();
-      ctx.translate(screenP.x, screenP.y);
-      ctx.beginPath();
-      ctx.moveTo(
-        centerToCornersDistance.tl.x * scale,
-        centerToCornersDistance.tl.y * scale
+      Data.getPath(
+        ctx,
+        this.p,
+        this.w,
+        this.h,
+        offest,
+        scale,
+        this.thersholdRatio
       );
-      ctx.lineTo(
-        centerToCornersDistance.tr.x * scale,
-        centerToCornersDistance.tr.y * scale
-      );
-      ctx.lineTo(
-        centerToCornersDistance.br.x * scale,
-        centerToCornersDistance.br.y * scale
-      );
-      ctx.lineTo(
-        centerToCornersDistance.bl.x * scale,
-        centerToCornersDistance.bl.y * scale
-      );
-      ctx.closePath();
-      ctx.fill();
-      ctx.restore();
     });
   }
 

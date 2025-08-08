@@ -31,39 +31,50 @@ export default class Desicion extends Core {
     };
   }
 
+  static getPath(
+    ctx: CanvasRenderingContext2D,
+    p: CommonTypes.Vec,
+    w: number,
+    h: number,
+    offset: CommonTypes.Vec = { x: 0, y: 0 },
+    scale: number = 1
+  ) {
+    const screenP = {
+      x: (p.x + offset.x) * scale,
+      y: (p.y + offset.y) * scale,
+    };
+    const scaleSize = {
+      w: w * scale,
+      h: h * scale,
+    };
+    const x1 = -scaleSize.w / 2,
+      y1 = 0;
+    const x2 = 0,
+      y2 = scaleSize.h / 2;
+    const x3 = scaleSize.w / 2,
+      y3 = 0;
+    const x4 = 0,
+      y4 = -scaleSize.h / 2;
+
+    ctx.save();
+    ctx.translate(screenP.x, screenP.y);
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.lineTo(x3, y3);
+    ctx.lineTo(x4, y4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
   draw(
     ctx: CanvasRenderingContext2D,
     offest: CommonTypes.Vec = { x: 0, y: 0 },
     scale: number = 1
   ) {
     super.draw(ctx, offest, scale, () => {
-      const screenP = {
-        x: (this.p.x + offest.x) * scale,
-        y: (this.p.y + offest.y) * scale,
-      };
-      const scaleSize = {
-        w: this.w * scale,
-        h: this.h * scale,
-      };
-      const x1 = -scaleSize.w / 2,
-        y1 = 0;
-      const x2 = 0,
-        y2 = scaleSize.h / 2;
-      const x3 = scaleSize.w / 2,
-        y3 = 0;
-      const x4 = 0,
-        y4 = -scaleSize.h / 2;
-
-      ctx.save();
-      ctx.translate(screenP.x, screenP.y);
-      ctx.beginPath();
-      ctx.moveTo(x1, y1);
-      ctx.lineTo(x2, y2);
-      ctx.lineTo(x3, y3);
-      ctx.lineTo(x4, y4);
-      ctx.closePath();
-      ctx.fill();
-      ctx.restore();
+      Desicion.getPath(ctx, this.p, this.w, this.h, offest, scale);
     });
   }
 }

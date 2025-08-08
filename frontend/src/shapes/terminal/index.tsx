@@ -1,4 +1,3 @@
-// TODO: need static getPath method
 "use client";
 import { tailwindColors } from "@/variables/colors";
 import Core from "@/shapes/core";
@@ -22,51 +21,52 @@ export default class Terminal extends Core {
     this.title = title;
   };
 
+  static getPath(
+    ctx: CanvasRenderingContext2D,
+    p: CommonTypes.Vec,
+    w: number,
+    h: number,
+    offset: CommonTypes.Vec = { x: 0, y: 0 },
+    scale: number = 1
+  ) {
+    const screenP = {
+      x: (p.x + offset.x) * scale,
+      y: (p.y + offset.y) * scale,
+    };
+    const scaleSize = {
+      w: w * scale,
+      h: h * scale,
+    };
+
+    ctx.save();
+    ctx.translate(screenP.x, screenP.y);
+    if (scaleSize.w >= scaleSize.h) {
+      let r = scaleSize.h / 2;
+      ctx.beginPath();
+      ctx.arc(-scaleSize.w / 2 + r, 0, r, 0, 2 * Math.PI);
+      ctx.arc(scaleSize.w / 2 - r, 0, r, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.fillRect(-scaleSize.w / 2 + r, -r, scaleSize.w - 2 * r, scaleSize.h);
+      ctx.closePath();
+    } else {
+      let r = scaleSize.w / 2;
+      ctx.beginPath();
+      ctx.arc(0, -scaleSize.h / 2 + r, r, 0, 2 * Math.PI);
+      ctx.arc(0, scaleSize.h / 2 - r, r, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.fillRect(-r, -scaleSize.h / 2 + r, scaleSize.w, scaleSize.h - 2 * r);
+      ctx.closePath();
+    }
+    ctx.restore();
+  }
+
   draw(
     ctx: CanvasRenderingContext2D,
     offest: CommonTypes.Vec = { x: 0, y: 0 },
     scale: number = 1
   ) {
     super.draw(ctx, offest, scale, () => {
-      const screenP = {
-        x: (this.p.x + offest.x) * scale,
-        y: (this.p.y + offest.y) * scale,
-      };
-      const scaleSize = {
-        w: this.w * scale,
-        h: this.h * scale,
-      };
-
-      ctx.save();
-      ctx.translate(screenP.x, screenP.y);
-      if (scaleSize.w >= scaleSize.h) {
-        let r = scaleSize.h / 2;
-        ctx.beginPath();
-        ctx.arc(-scaleSize.w / 2 + r, 0, r, 0, 2 * Math.PI);
-        ctx.arc(scaleSize.w / 2 - r, 0, r, 0, 2 * Math.PI);
-        ctx.fill();
-        ctx.fillRect(
-          -scaleSize.w / 2 + r,
-          -r,
-          scaleSize.w - 2 * r,
-          scaleSize.h
-        );
-        ctx.closePath();
-      } else {
-        let r = scaleSize.w / 2;
-        ctx.beginPath();
-        ctx.arc(0, -scaleSize.h / 2 + r, r, 0, 2 * Math.PI);
-        ctx.arc(0, scaleSize.h / 2 - r, r, 0, 2 * Math.PI);
-        ctx.fill();
-        ctx.fillRect(
-          -r,
-          -scaleSize.h / 2 + r,
-          scaleSize.w,
-          scaleSize.h - 2 * r
-        );
-        ctx.closePath();
-      }
-      ctx.restore();
+      Terminal.getPath(ctx, this.p, this.w, this.h, offest, scale);
     });
   }
 }
