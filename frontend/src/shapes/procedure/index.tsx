@@ -5,6 +5,8 @@ import * as CommonTypes from "@/types/common";
 
 export default class Procedure extends Core {
   type: CommonTypes.ShapeType.procedure = CommonTypes.ShapeType.procedure;
+  shapes: CommonTypes.Shapes[];
+  connectionCurves: CommonTypes.ConnectionCurves;
 
   constructor(
     id: CommonTypes.Id,
@@ -14,6 +16,8 @@ export default class Procedure extends Core {
     title: CommonTypes.Title
   ) {
     super(id, w, h, p, tailwindColors.shape.procedure, title);
+    this.shapes = [];
+    this.connectionCurves = [];
   }
 
   draw(

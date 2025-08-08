@@ -2,6 +2,7 @@ import Terminal from "@/shapes/terminal";
 import Process from "@/shapes/process";
 import DataShape from "@/shapes/data";
 import Decision from "@/shapes/decision";
+// import Procedure from "@/shapes/procedure"; // TODO: for shape types
 import Curve from "@/shapes/curve";
 import * as CommonTypes from "@/types/common";
 
@@ -86,7 +87,7 @@ type UploadJSON = {
   project: string;
   shapes: {
     id: string;
-    type: ShapeType;
+    type: Exclude<ShapeType, ShapeType.procedure>;
     title: string;
     p: {
       x: number;
@@ -126,7 +127,7 @@ type UploadJSON = {
 
 type Shape = Terminal | Process | DataShape | Decision;
 
-type Shapes = (Terminal | Process | DataShape | Decision)[];
+type Shapes = Shape[];
 
 type Steps = CommonTypes.Shapes;
 

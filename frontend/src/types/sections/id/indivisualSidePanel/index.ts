@@ -24,7 +24,7 @@ type Props = {
   projectName: string;
   setProjectName: Dispatch<SetStateAction<CommonTypes.ProjectName>>
   shapes: (Terminal | Process | Data | Desicion)[];
-  curves: CommonTypes.ConnectionCurves;
+  connectionCurves: CommonTypes.ConnectionCurves;
   datas: CommonTypes.OverallDatas;
   setDatas: Dispatch<SetStateAction<Props["datas"]>>;
   isIndivisualSidePanelOpen: boolean;

@@ -105,7 +105,7 @@ export default function Console(props: ConsoleTypes.Props) {
         //     fill={tailwindColors.grey["1"]}
         //   />
         // }
-        // onClick={onClickUploadButton}
+        onClick={() => {}}
       />
       <SquareButton
         role="undo"

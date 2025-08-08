@@ -64,7 +64,7 @@ let ctx: CanvasRenderingContext2D | null | undefined = null,
   ctx_screenshot: CanvasRenderingContext2D | null | undefined = null,
   shapes: (Terminal | Process | Data | Desicion)[] = [],
   candidates: null | (Terminal | Process | Data | Desicion)[] = null,
-  curves: CommonTypes.ConnectionCurves = [],
+  conectionCurves: CommonTypes.ConnectionCurves = [],
   pressingSelection: null | PageIdTypes.PressingSelection = null,
   pressingCurve: null | PageIdTypes.PressingCurve = null,
   offset: CommonTypes.Vec = cloneDeep(init.offset),
@@ -116,7 +116,7 @@ const getActionRecords = () => {
       if (records.get(type)) return;
       records.set(type, {
         shapes: cloneDeep(shapes),
-        curves: cloneDeep(curves),
+        curves: cloneDeep(conectionCurves),
       });
     },
     interrupt: (type: CommonTypes.Action) => {
@@ -1371,24 +1371,24 @@ const getShapeIdMap = (shapes: CommonTypes.Shapes) => {
 const syncCurvePosition = (shapes: CommonTypes.Shapes) => {
   const shapeIdMap = getShapeIdMap(shapes);
 
-  curves.forEach((curve) => {
-    const isSender = shapeIdMap[curve.from.shape.id];
-    const isReciever = shapeIdMap[curve.to.shape.id];
+  conectionCurves.forEach((conectionCurve) => {
+    const isSender = shapeIdMap[conectionCurve.from.shape.id];
+    const isReciever = shapeIdMap[conectionCurve.to.shape.id];
 
     if (isSender) {
       moveSenderCurve(
-        curve.from.d,
-        curve.to.d,
-        curve.shape,
-        curve.from.shape.id
+        conectionCurve.from.d,
+        conectionCurve.to.d,
+        conectionCurve.shape,
+        conectionCurve.from.shape.id
       );
     }
     if (isReciever) {
       moveRecieverCurve(
-        curve.from.d,
-        curve.to.d,
-        curve.shape,
-        curve.to.shape.id
+        conectionCurve.from.d,
+        conectionCurve.to.d,
+        conectionCurve.shape,
+        conectionCurve.to.shape.id
       );
     }
   });
@@ -1502,7 +1502,9 @@ const triggerCurve = (
   };
   const triggerD = triggerDStrategy[triggerPoint];
 
-  curves.find((curve) => curve.from.shape.id === targetShape.id)?.shape.text;
+  conectionCurves.find(
+    (conectionCurve) => conectionCurve.from.shape.id === targetShape.id
+  )?.shape.text;
 
   pressingCurve = {
     from: {
@@ -1519,8 +1521,9 @@ const triggerCurve = (
       targetShape.p,
       curveThresholdStrategy[targetShape.type],
       targetShape instanceof Desicion
-        ? curves.find((curve) => curve.from.shape.id === targetShape.id)?.shape
-            ?.text === "Y"
+        ? conectionCurves.find(
+            (conectionCurve) => conectionCurve.from.shape.id === targetShape.id
+          )?.shape?.text === "Y"
           ? "N"
           : "Y"
         : ""
@@ -1591,31 +1594,32 @@ const startFrameSelecting = (p: CommonTypes.Vec) => {
 };
 
 const selectCurve = (p: CommonTypes.Vec) => {
-  for (let i = curves.length - 1; i > -1; i--) {
-    const curve = curves[i];
-
-    if (curve.shape.selecting && curve.shape.checkControlPointsBoundry(p)) {
+  for (const conectionCurve of conectionCurves) {
+    if (
+      conectionCurve.shape.selecting &&
+      conectionCurve.shape.checkControlPointsBoundry(p)
+    ) {
       deSelectShape();
       pressingCurve = {
         from: {
-          shape: curve.from.shape,
-          origin: cloneDeep(curve.from.shape),
-          d: curve.from.d,
+          shape: conectionCurve.from.shape,
+          origin: cloneDeep(conectionCurve.from.shape),
+          d: conectionCurve.from.d,
         },
         to: {
-          shape: curve.to.shape,
-          origin: cloneDeep(curve.to.shape),
-          d: curve.to.d,
+          shape: conectionCurve.to.shape,
+          origin: cloneDeep(conectionCurve.to.shape),
+          d: conectionCurve.to.d,
         },
-        shape: curve.shape,
+        shape: conectionCurve.shape,
       };
 
       return false;
     }
 
-    if (curve.shape.checkBoundry(p)) {
+    if (conectionCurve.shape.checkBoundry(p)) {
       deSelectShape();
-      curve.shape.selecting = true;
+      conectionCurve.shape.selecting = true;
       return false;
     }
   }
@@ -1628,7 +1632,7 @@ const deSelectShape = () => {
 };
 
 const deSelectCurve = () => {
-  curves.forEach((curve) => {
+  conectionCurves.forEach((curve) => {
     curve.shape.selecting = false;
   });
 };
@@ -1693,12 +1697,12 @@ const connect = (
     d: CommonTypes.Direction;
   }
 ) => {
-  const curveI = curves.findIndex(
+  const conectionCurveI = conectionCurves.findIndex(
     (currentCurve) => currentCurve.shape.id === curve.id
   );
 
-  if (curveI > -1) {
-    curves[curveI] = {
+  if (conectionCurveI > -1) {
+    conectionCurves[conectionCurveI] = {
       shape: curve,
       from: {
         shape: from.shape,
@@ -1710,7 +1714,7 @@ const connect = (
       },
     };
   } else {
-    curves.push({
+    conectionCurves.push({
       shape: curve,
       from: {
         shape: from.shape,
@@ -1745,7 +1749,9 @@ const checkConnect = (p: CommonTypes.Vec) => {
 
   if (!to.d && !to.shape) {
     disconnect(
-      curves.findIndex((curve) => curve.shape.id === pressingCurve?.shape.id)
+      conectionCurves.findIndex(
+        (conectionCurve) => conectionCurve.shape.id === pressingCurve?.shape.id
+      )
     );
     actionRecords.finish(CommonTypes.Action.disconnect);
     return;
@@ -1777,9 +1783,9 @@ const checkConnect = (p: CommonTypes.Vec) => {
   actionRecords.interrupt(CommonTypes.Action.disconnect);
 };
 
-const disconnect = (curveI: number) => {
-  if (curveI < 0) return;
-  curves.splice(curveI, 1);
+const disconnect = (conectionCurveI: number) => {
+  if (conectionCurveI < 0) return;
+  conectionCurves.splice(conectionCurveI, 1);
 };
 
 const getIsSelectionDisableSendingPoint = (
@@ -1789,7 +1795,9 @@ const getIsSelectionDisableSendingPoint = (
 
   if (shape instanceof Desicion) {
     return (
-      curves.filter((curve) => curve.from.shape.id === shape.id).length === 2
+      conectionCurves.filter(
+        (conectionCurve) => conectionCurve.from.shape.id === shape.id
+      ).length === 2
     );
   }
 
@@ -1872,7 +1880,7 @@ const draw = (
   drawShapes(ctx, shapes, offset, scale);
   drawCurves(
     ctx,
-    curves.map((curve) => curve.shape),
+    conectionCurves.map((conectionCurve) => conectionCurve.shape),
     offset,
     scale
   );
@@ -1943,7 +1951,7 @@ const undo = (
   const action = actions.peek();
   if (!action) return;
   shapes = action?.shapes;
-  curves = action?.curves;
+  conectionCurves = action?.curves;
   if (selection) {
     const selectingMap = selection.getSelectingMap();
     selection = new Selection(
@@ -2024,8 +2032,8 @@ export default function IdPage() {
     drawScreenshot(offset, scale);
   };
 
-  const updateCurves = (newCurves: CommonTypes.ConnectionCurves) => {
-    curves = newCurves;
+  const updateCurves = (newConectionCurves: CommonTypes.ConnectionCurves) => {
+    conectionCurves = newConectionCurves;
   };
 
   const zoom: PageIdTypes.Zoom = (delta, client) => {
@@ -2446,9 +2454,10 @@ export default function IdPage() {
 
     const selectingMap = selection.getSelectingMap();
 
-    curves = curves.filter(
-      (curve) =>
-        !selectingMap[curve.from.shape.id] && !selectingMap[curve.to.shape.id]
+    conectionCurves = conectionCurves.filter(
+      (conectionCurve) =>
+        !selectingMap[conectionCurve.from.shape.id] &&
+        !selectingMap[conectionCurve.to.shape.id]
     );
 
     if (!!indivisual && selectingMap[indivisual?.id]) {
@@ -2498,7 +2507,7 @@ export default function IdPage() {
       sendNextChunk();
     };
 
-    sendChuncks(shapes, curves, worker);
+    sendChuncks(shapes, conectionCurves, worker);
 
     const newConsoles: ConsoleTypes.Consoles = [];
     let index = 0;
@@ -2644,7 +2653,7 @@ export default function IdPage() {
         projectName={projectName.val}
         setProjectName={setProjectName}
         shapes={shapes}
-        curves={curves}
+        connectionCurves={conectionCurves}
         datas={datas}
         setDatas={setDatas}
         isIndivisualSidePanelOpen={isIndivisualSidePanelOpen}

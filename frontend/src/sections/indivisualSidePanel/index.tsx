@@ -446,20 +446,20 @@ export default function IndivisualSidePanel(
           delete: shape.deleteDatas,
         },
       })),
-      curves: props.curves.map((curve) => ({
+      curves: props.connectionCurves.map((connectionCurve) => ({
         from: {
-          d: curve.from.d,
-          shapeId: curve.from.shape.id,
+          d: connectionCurve.from.d,
+          shapeId: connectionCurve.from.shape.id,
         },
         shape: {
-          id: curve.shape.id,
-          p1: curve.shape.p1,
-          cp1: curve.shape.cp1,
-          cp2: curve.shape.cp2,
-          p2: curve.shape.p2,
-          text: curve.shape.text,
+          id: connectionCurve.shape.id,
+          p1: connectionCurve.shape.p1,
+          cp1: connectionCurve.shape.cp1,
+          cp2: connectionCurve.shape.cp2,
+          p2: connectionCurve.shape.p2,
+          text: connectionCurve.shape.text,
         },
-        to: { d: curve.to.d, shapeId: curve.to.shape.id },
+        to: { d: connectionCurve.to.d, shapeId: connectionCurve.to.shape.id },
       })),
       datas: props.datas,
       consoles: props.consoles,
@@ -488,7 +488,7 @@ export default function IndivisualSidePanel(
 
         props.deSelect();
 
-        const shapeType = {
+        const shapeMap = {
           [CommonTypes.ShapeType.terminator]: Terminal,
           [CommonTypes.ShapeType.process]: Process,
           [CommonTypes.ShapeType.decision]: Decision,
@@ -497,7 +497,7 @@ export default function IndivisualSidePanel(
 
         const newShapes = json.shapes.map(
           (shape: CommonTypes.UploadJSON["shapes"][number]) => {
-            const newShape = new shapeType[shape.type](
+            const newShape: CommonTypes.Shape = new shapeMap[shape.type](
               shape.id,
               shape.size.w,
               shape.size.h,
