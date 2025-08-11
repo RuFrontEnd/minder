@@ -15,7 +15,7 @@ import Icon from "@/components/icon";
 import { motion } from "framer-motion";
 import { cloneDeep } from "lodash";
 import { ChangeEventHandler, MouseEventHandler } from "react";
-import { tailwindColors } from "@/variables/colors";
+import { tailwindColors } from "@/configs/colors";
 import { v4 as uuidv4 } from "uuid";
 import * as CommonTypes from "@/types/common";
 import * as OverallSidePanelTypes from "@/types/sections/id/overallSidePanel";

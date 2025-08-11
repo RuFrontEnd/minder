@@ -75,14 +75,6 @@ type ActionRecords = {
 };
 
 type Init = {
-  shape: {
-    size: {
-      t: { w: number; h: number };
-      p: { w: number; h: number };
-      d: { w: number; h: number };
-      dec: { w: number; h: number };
-    };
-  };
   authInfo: {
     account: {
       value: undefined | string;

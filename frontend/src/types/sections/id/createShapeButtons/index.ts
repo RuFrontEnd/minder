@@ -11,25 +11,16 @@ type Props = {
   shapes: (Terminal | Process | Data | Desicion)[];
   offset: CommonTypes.Vec;
   scale: number;
-  initShapeSize: {
-    t: {
-      w: number;
-      h: number;
-    };
-    p: {
-      w: number;
-      h: number;
-    };
-    d: {
-      w: number;
-      h: number;
-    };
-    dec: {
-      w: number;
-      h: number;
-    };
-  };
   reload: () => void;
 };
 
+enum CreateShapeType {
+  terminator = CommonTypes.ShapeType.terminator,
+  process = CommonTypes.ShapeType.process,
+  data = CommonTypes.ShapeType.data,
+  decision = CommonTypes.ShapeType.decision,
+}
+
 export type { Props };
+
+export { CreateShapeType };

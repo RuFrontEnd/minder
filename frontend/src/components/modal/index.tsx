@@ -2,7 +2,7 @@ import ReactModal from "react-modal";
 import RoundButton from "@/components/roundButton";
 import Icon from "@/components/icon";
 import * as ModalTypes from "@/types/components/modal";
-import { tailwindColors } from "@/variables/colors";
+import { tailwindColors } from "@/configs/colors";
 
 ReactModal.setAppElement("body");
 

@@ -5,12 +5,17 @@ import SidePanel from "@/components/sidePanel";
 import CreateShapeButtons from "@/sections/createShapeButtons";
 import Icon from "@/components/icon";
 import SquareButton from "@/components/squareButton";
-import { tailwindColors } from "@/variables/colors";
+import Divider from "@/components/divider";
+import Procedure from "@/shapes/procedure";
+import Process from "@/shapes/process";
+import { cloneDeep } from "lodash";
+import { tailwindColors } from "@/configs/colors";
+import { v4 as uuidv4 } from "uuid";
+import * as shapeConfigs from "@/configs/shape";
 import * as IconTypes from "@/types/components/icon";
 import * as SidePanelTypes from "@/types/components/sidePanel";
 import * as ConsoleTypes from "@/types/sections/id/console";
 import * as CommonTypes from "@/types/common";
-import Divider from "@/components/divider";
 
 export default function Console(props: ConsoleTypes.Props) {
   const onClickUndoButton = () => {
@@ -23,6 +28,51 @@ export default function Console(props: ConsoleTypes.Props) {
     props.positioning(targetShape.p);
     props.setIndivisual(targetShape);
     props.setIsIndivisualSidePanelOpen(true);
+  };
+
+  const onClickProceduralizeSquareButton = () => {
+    if (!props.selection) return;
+    const selectedShapeMap: { [shapeId: string]: boolean } = {};
+
+    props.selection.shapes.forEach((selectedShape) => {
+      selectedShapeMap[selectedShape.id] = true;
+    });
+
+    cloneDeep(props.connectionCurves).filter(
+      (connectionCurve) =>
+        !selectedShapeMap[connectionCurve.from.shape.id] &&
+        !selectedShapeMap[connectionCurve.to.shape.id]
+    );
+
+    const initPosition = {
+      x:
+        props.selection.shapes.reduce((prev, next) => prev + next.p.x, 0) /
+        props.selection.shapes.length,
+      y:
+        props.selection.shapes.reduce((prev, next) => prev + next.p.y, 0) /
+        props.selection.shapes.length,
+    };
+
+    const newShapes = cloneDeep(props.shapes).filter(
+      (shape) => !selectedShapeMap[shape.id]
+    );
+
+    newShapes.push(
+      new Procedure(
+        `procedure_${uuidv4()}`,
+        shapeConfigs.initSize.prcd.w,
+        shapeConfigs.initSize.prcd.h,
+        { x: initPosition.x, y: initPosition.y },
+        "procedure",
+        props.selection.shapes,
+        [],
+        Process.getPath
+      ) as any
+    );
+
+    props.updateShapes(newShapes);
+
+    console.log("props.selection", props.selection);
   };
 
   return (
@@ -90,7 +140,6 @@ export default function Console(props: ConsoleTypes.Props) {
         offset={props.offset}
         scale={props.scale}
         reload={props.reload}
-        initShapeSize={props.initShapeSize}
       />
       <SquareButton
         className="absolute -top-4 -translate-y-full right-[176px] flex"
@@ -105,7 +154,7 @@ export default function Console(props: ConsoleTypes.Props) {
         //     fill={tailwindColors.grey["1"]}
         //   />
         // }
-        onClick={() => {}}
+        onClick={onClickProceduralizeSquareButton}
       />
       <SquareButton
         role="undo"

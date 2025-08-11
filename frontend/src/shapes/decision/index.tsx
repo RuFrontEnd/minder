@@ -1,7 +1,7 @@
 // TODO: need static getPath method
 "use client";
 import Core from "@/shapes/core";
-import { tailwindColors } from "@/variables/colors";
+import { tailwindColors } from "@/configs/colors";
 import * as CommonTypes from "@/types/common";
 import * as DecisionTypes from "@/types/shapes/decision";
 

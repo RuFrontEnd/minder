@@ -1,5 +1,5 @@
 import ReactLoading from "react-loading";
-import { tailwindColors } from "@/variables/colors";
+import { tailwindColors } from "@/configs/colors";
 import * as SimpleButtonTypes from "@/types/components/simpleButton";
 
 const SimpleButton = (props: SimpleButtonTypes.Props) => {

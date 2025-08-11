@@ -1,7 +1,7 @@
 "use client";
 import SquareButton from "@/components/squareButton";
 import Icon from "@/components/icon";
-import { tailwindColors } from "@/variables/colors";
+import { tailwindColors } from "@/configs/colors";
 import * as IconTypes from "@/types/components/icon";
 import * as SquareButtonTypes from "@/types/components/squareButton";
 import * as ZoomTypes from "@/types/sections/id/zoom";

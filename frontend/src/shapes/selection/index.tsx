@@ -1,5 +1,5 @@
 "use client";
-import { tailwindColors } from "@/variables/colors";
+import { tailwindColors } from "@/configs/colors";
 import * as CommonTypes from "@/types/common";
 import * as SelectionTypes from "@/types/shapes/selection";
 

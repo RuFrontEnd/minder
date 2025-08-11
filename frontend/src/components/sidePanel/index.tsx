@@ -1,7 +1,7 @@
 import RoundButton from "@/components/roundButton";
 import Icon from "@/components/icon";
 import { motion } from "framer-motion";
-import { tailwindColors } from "@/variables/colors";
+import { tailwindColors } from "@/configs/colors";
 import * as IconTypes from "@/types/components/icon";
 import * as SidePanelTypes from "@/types/components/sidePanel";
 

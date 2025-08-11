@@ -14,7 +14,7 @@ import Data from "@/shapes/data";
 import Decision from "@/shapes/decision";
 import Curve from "@/shapes/curve";
 import { cloneDeep } from "lodash";
-import { tailwindColors } from "@/variables/colors";
+import { tailwindColors } from "@/configs/colors";
 import * as handleUtils from "@/utils/handle";
 import * as fileUtils from "@/utils/file";
 import * as InputTypes from "@/types/components/input";
@@ -551,7 +551,7 @@ export default function IndivisualSidePanel(
 
         props.setProjectName({ val: json.project, inputVal: json.project });
         props.updateShapes(newShapes);
-        props.updateCurves(newCurves);
+        props.updateConnectionCurves(newCurves);
         props.setConsoles(json.consoles);
         props.setDatas(json.datas);
       })

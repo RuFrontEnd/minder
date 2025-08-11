@@ -1,6 +1,6 @@
 "use client";
 import * as IconTypes from "@/types/components/icon";
-import { tailwindColors } from "@/variables/colors";
+import { tailwindColors } from "@/configs/colors";
 
 export default function Icon(props: IconTypes.Props) {
   const defaultVal = {

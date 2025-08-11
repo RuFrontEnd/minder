@@ -7,7 +7,7 @@ import Icon from "@/components/icon";
 import StatusText from "@/components/statusText";
 import Divider from "@/components/divider";
 import { cloneDeep } from "lodash";
-import { tailwindColors } from "@/variables/colors";
+import { tailwindColors } from "@/configs/colors";
 import * as IconTypes from "@/types/components/icon";
 import * as SimpleButtonTypes from "@/types/components/simpleButton";
 import * as DataBoxTypes from "@/types/blocks/indivisualSidePanel/dataBox";

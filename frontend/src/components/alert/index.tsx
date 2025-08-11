@@ -1,5 +1,5 @@
 import * as AlertTypes from "@/types/components/alert";
-import { tailwindColors } from "@/variables/colors";
+import { tailwindColors } from "@/configs/colors";
 
 const Alert = (props: AlertTypes.Props) => {
   const textColor = (() => {

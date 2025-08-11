@@ -1,5 +1,3 @@
-import ReactLoading from "react-loading";
-import { tailwindColors } from "@/variables/colors";
 import * as CardTypes from "@/types/components/card";
 
 const Card = (props: CardTypes.Props) => {

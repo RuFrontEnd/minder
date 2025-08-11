@@ -1,6 +1,6 @@
 "use client";
 import { Vec } from "@/types/common";
-import { tailwindColors } from "@/variables/colors";
+import { tailwindColors } from "@/configs/colors";
 import * as ArrowTypes from "@/types/shapes/arrow";
 export default class Arrow {
   private __id__: string;

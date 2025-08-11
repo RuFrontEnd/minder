@@ -6,7 +6,6 @@ import Terminal from "@/shapes/terminal";
 import Process from "@/shapes/process";
 import Data from "@/shapes/data";
 import Desicion from "@/shapes/decision";
-import Procedure from "@/shapes/procedure";
 import Curve from "@/shapes/curve";
 import SelectionFrame from "@/shapes/selectionFrame";
 import Selection from "@/shapes/selection";
@@ -17,7 +16,7 @@ import IndivisaulSidePanel from "@/sections/indivisualSidePanel";
 import Console from "@/sections/console";
 import { cloneDeep } from "lodash";
 import { v4 as uuidv4 } from "uuid";
-import { tailwindColors } from "@/variables/colors";
+import { tailwindColors } from "@/configs/colors";
 import * as handleUtils from "@/utils/handle";
 import * as CurveTypes from "@/types/shapes/curve";
 import * as CommonTypes from "@/types/common";
@@ -32,14 +31,6 @@ axios.defaults.baseURL = process.env.BASE_URL || "http://localhost:5000/api";
 const isBrowser = typeof window !== "undefined";
 
 const init: PageIdTypes.Init = {
-  shape: {
-    size: {
-      t: { w: 144, h: 72 },
-      p: { w: 144, h: 72 },
-      d: { w: 144, h: 72 },
-      dec: { w: 144, h: 72 },
-    },
-  },
   authInfo: {
     account: {
       value: undefined,
@@ -64,7 +55,7 @@ let ctx: CanvasRenderingContext2D | null | undefined = null,
   ctx_screenshot: CanvasRenderingContext2D | null | undefined = null,
   shapes: (Terminal | Process | Data | Desicion)[] = [],
   candidates: null | (Terminal | Process | Data | Desicion)[] = null,
-  conectionCurves: CommonTypes.ConnectionCurves = [],
+  connectionCurves: CommonTypes.ConnectionCurves = [],
   pressingSelection: null | PageIdTypes.PressingSelection = null,
   pressingCurve: null | PageIdTypes.PressingCurve = null,
   offset: CommonTypes.Vec = cloneDeep(init.offset),
@@ -116,7 +107,7 @@ const getActionRecords = () => {
       if (records.get(type)) return;
       records.set(type, {
         shapes: cloneDeep(shapes),
-        curves: cloneDeep(conectionCurves),
+        curves: cloneDeep(connectionCurves),
       });
     },
     interrupt: (type: CommonTypes.Action) => {
@@ -1371,7 +1362,7 @@ const getShapeIdMap = (shapes: CommonTypes.Shapes) => {
 const syncCurvePosition = (shapes: CommonTypes.Shapes) => {
   const shapeIdMap = getShapeIdMap(shapes);
 
-  conectionCurves.forEach((conectionCurve) => {
+  connectionCurves.forEach((conectionCurve) => {
     const isSender = shapeIdMap[conectionCurve.from.shape.id];
     const isReciever = shapeIdMap[conectionCurve.to.shape.id];
 
@@ -1502,7 +1493,7 @@ const triggerCurve = (
   };
   const triggerD = triggerDStrategy[triggerPoint];
 
-  conectionCurves.find(
+  connectionCurves.find(
     (conectionCurve) => conectionCurve.from.shape.id === targetShape.id
   )?.shape.text;
 
@@ -1521,7 +1512,7 @@ const triggerCurve = (
       targetShape.p,
       curveThresholdStrategy[targetShape.type],
       targetShape instanceof Desicion
-        ? conectionCurves.find(
+        ? connectionCurves.find(
             (conectionCurve) => conectionCurve.from.shape.id === targetShape.id
           )?.shape?.text === "Y"
           ? "N"
@@ -1594,7 +1585,7 @@ const startFrameSelecting = (p: CommonTypes.Vec) => {
 };
 
 const selectCurve = (p: CommonTypes.Vec) => {
-  for (const conectionCurve of conectionCurves) {
+  for (const conectionCurve of connectionCurves) {
     if (
       conectionCurve.shape.selecting &&
       conectionCurve.shape.checkControlPointsBoundry(p)
@@ -1632,7 +1623,7 @@ const deSelectShape = () => {
 };
 
 const deSelectCurve = () => {
-  conectionCurves.forEach((curve) => {
+  connectionCurves.forEach((curve) => {
     curve.shape.selecting = false;
   });
 };
@@ -1697,12 +1688,12 @@ const connect = (
     d: CommonTypes.Direction;
   }
 ) => {
-  const conectionCurveI = conectionCurves.findIndex(
+  const conectionCurveI = connectionCurves.findIndex(
     (currentCurve) => currentCurve.shape.id === curve.id
   );
 
   if (conectionCurveI > -1) {
-    conectionCurves[conectionCurveI] = {
+    connectionCurves[conectionCurveI] = {
       shape: curve,
       from: {
         shape: from.shape,
@@ -1714,7 +1705,7 @@ const connect = (
       },
     };
   } else {
-    conectionCurves.push({
+    connectionCurves.push({
       shape: curve,
       from: {
         shape: from.shape,
@@ -1749,7 +1740,7 @@ const checkConnect = (p: CommonTypes.Vec) => {
 
   if (!to.d && !to.shape) {
     disconnect(
-      conectionCurves.findIndex(
+      connectionCurves.findIndex(
         (conectionCurve) => conectionCurve.shape.id === pressingCurve?.shape.id
       )
     );
@@ -1785,7 +1776,7 @@ const checkConnect = (p: CommonTypes.Vec) => {
 
 const disconnect = (conectionCurveI: number) => {
   if (conectionCurveI < 0) return;
-  conectionCurves.splice(conectionCurveI, 1);
+  connectionCurves.splice(conectionCurveI, 1);
 };
 
 const getIsSelectionDisableSendingPoint = (
@@ -1795,7 +1786,7 @@ const getIsSelectionDisableSendingPoint = (
 
   if (shape instanceof Desicion) {
     return (
-      conectionCurves.filter(
+      connectionCurves.filter(
         (conectionCurve) => conectionCurve.from.shape.id === shape.id
       ).length === 2
     );
@@ -1880,7 +1871,7 @@ const draw = (
   drawShapes(ctx, shapes, offset, scale);
   drawCurves(
     ctx,
-    conectionCurves.map((conectionCurve) => conectionCurve.shape),
+    connectionCurves.map((conectionCurve) => conectionCurve.shape),
     offset,
     scale
   );
@@ -1951,7 +1942,7 @@ const undo = (
   const action = actions.peek();
   if (!action) return;
   shapes = action?.shapes;
-  conectionCurves = action?.curves;
+  connectionCurves = action?.curves;
   if (selection) {
     const selectingMap = selection.getSelectingMap();
     selection = new Selection(
@@ -2020,20 +2011,22 @@ export default function IdPage() {
     [space, leftMouseBtn]
   );
 
-  const checkSteps = () => {
+  const updateSteps = () => {
     setSteps(cloneDeep(shapes));
   };
 
   const updateShapes = (newShapes: CommonTypes.Shapes) => {
     shapes = newShapes;
-    checkSteps();
+    updateSteps();
     setIndivisual(shapes.find((shape) => indivisual?.id === shape.id) || null);
     drawCanvas(offset, scale);
     drawScreenshot(offset, scale);
   };
 
-  const updateCurves = (newConectionCurves: CommonTypes.ConnectionCurves) => {
-    conectionCurves = newConectionCurves;
+  const updateConnectionCurves = (
+    newConectionCurves: CommonTypes.ConnectionCurves
+  ) => {
+    connectionCurves = newConectionCurves;
   };
 
   const zoom: PageIdTypes.Zoom = (delta, client) => {
@@ -2363,7 +2356,7 @@ export default function IdPage() {
     setLeftMouseBtn(false);
     frameSelect(selectionFrame, offset, scale);
     checkConnect(getNormalP(p, offset, scale));
-    checkSteps();
+    updateSteps();
     syncCandidates(shapes);
 
     if (!!selection) {
@@ -2436,7 +2429,7 @@ export default function IdPage() {
       deleteSelectingShapes();
       drawCanvas(offset, scale);
       drawScreenshot(offset, scale);
-      checkSteps();
+      updateSteps();
     }
   }
 
@@ -2454,7 +2447,7 @@ export default function IdPage() {
 
     const selectingMap = selection.getSelectingMap();
 
-    conectionCurves = conectionCurves.filter(
+    connectionCurves = connectionCurves.filter(
       (conectionCurve) =>
         !selectingMap[conectionCurve.from.shape.id] &&
         !selectingMap[conectionCurve.to.shape.id]
@@ -2507,7 +2500,7 @@ export default function IdPage() {
       sendNextChunk();
     };
 
-    sendChuncks(shapes, conectionCurves, worker);
+    sendChuncks(shapes, connectionCurves, worker);
 
     const newConsoles: ConsoleTypes.Consoles = [];
     let index = 0;
@@ -2580,13 +2573,6 @@ export default function IdPage() {
 
     if (!ctx) return;
 
-    new Procedure("procedure", 100, 100, { x: 500, y: 500 }, "test").draw(
-      ctx,
-      offset,
-      scale,
-      Data.getPath
-    );
-
     const resizeViewport = () => {
       const $canvas = document.querySelector("canvas");
       const $screenshot: HTMLCanvasElement | null = document.querySelector(
@@ -2653,7 +2639,7 @@ export default function IdPage() {
         projectName={projectName.val}
         setProjectName={setProjectName}
         shapes={shapes}
-        connectionCurves={conectionCurves}
+        connectionCurves={connectionCurves}
         datas={datas}
         setDatas={setDatas}
         isIndivisualSidePanelOpen={isIndivisualSidePanelOpen}
@@ -2678,7 +2664,7 @@ export default function IdPage() {
           drawCanvas(offset, scale);
         }}
         updateShapes={updateShapes}
-        updateCurves={updateCurves}
+        updateConnectionCurves={updateConnectionCurves}
         consoles={consoles}
         setConsoles={setConsoles}
         terminateDataChecking={terminateDataChecking}
@@ -2687,6 +2673,10 @@ export default function IdPage() {
 
       <Console
         shapes={shapes}
+        updateShapes={updateShapes}
+        connectionCurves={connectionCurves}
+        updateConnectionCurves={updateConnectionCurves}
+        selection={selection}
         offset={offset}
         scale={scale}
         zoom={zoom}
@@ -2700,14 +2690,13 @@ export default function IdPage() {
         setIsConsoleOpen={setIsConsoleOpen}
         actionRecords={actionRecords}
         reload={() => {
-          checkSteps();
+          updateSteps();
           drawCanvas(offset, scale);
           drawScreenshot(offset, scale);
         }}
         consoles={consoles}
         positioning={positioning}
         setIndivisual={setIndivisual}
-        initShapeSize={init.shape.size}
       />
 
       <img id="screenshotImg" alt="Screenshot" style={{ display: "none" }} />

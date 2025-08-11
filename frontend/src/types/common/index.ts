@@ -60,6 +60,13 @@ enum ShapeType {
   procedure = "procedure",
 }
 
+enum CreateShapeType {
+  terminator = ShapeType.terminator,
+  process = ShapeType.process,
+  data = ShapeType.data,
+  decision = ShapeType.decision,
+}
+
 enum Action {
   add = "add",
   delete = "delete",
@@ -151,4 +158,4 @@ export type {
   Steps,
   ProjectName,
 };
-export { Direction, Corner, ShapeType, Action, DataStatus, ConsoleStatus };
+export { Direction, Corner, ShapeType, Action, DataStatus, ConsoleStatus, CreateShapeType };

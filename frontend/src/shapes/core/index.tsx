@@ -1,5 +1,4 @@
 "use client";
-import { tailwindColors } from "@/variables/colors";
 import { Inter } from "next/font/google";
 import * as CoreTypes from "@/types/shapes/core";
 import * as CommonTypes from "@/types/common";

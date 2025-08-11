@@ -1,5 +1,5 @@
 "use client";
-import { tailwindColors } from "@/variables/colors";
+import { tailwindColors } from "@/configs/colors";
 import Core from "@/shapes/core";
 import * as TerminatorTypes from "@/types/shapes/terminator";
 import * as CommonTypes from "@/types/common";

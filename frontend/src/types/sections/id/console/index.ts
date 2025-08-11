@@ -1,3 +1,4 @@
+import Selection from "@/shapes/selection";
 import { Dispatch, SetStateAction } from "react";
 import * as CommonTypes from "@/types/common";
 import * as PageIdTypes from "@/types/app/pageId";
@@ -25,8 +26,12 @@ type Console = {
 type Consoles = Console[];
 
 type Props = {
-  undo: () => void;
   shapes: CommonTypes.Shapes;
+  updateShapes: (newShapes: CommonTypes.Shape[]) => void;
+  connectionCurves: CommonTypes.ConnectionCurves;
+  updateConnectionCurves: (newCurves: CommonTypes.ConnectionCurves) => void;
+  selection: null | Selection;
+  undo: () => void;
   positioning: PageIdTypes.Positioning;
   setIndivisual: Dispatch<SetStateAction<PageIdTypes.Indivisual>>;
   setIsIndivisualSidePanelOpen: Dispatch<SetStateAction<boolean>>;
@@ -38,7 +43,6 @@ type Props = {
   offset: CommonTypes.Vec;
   scale: number;
   reload: () => void;
-  initShapeSize: PageIdTypes.Init["shape"]["size"];
   zoom: PageIdTypes.Zoom;
   consoles: Consoles;
 };

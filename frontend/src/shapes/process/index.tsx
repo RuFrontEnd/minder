@@ -1,6 +1,6 @@
 "use client";
 import Core from "@/shapes/core";
-import { tailwindColors } from "@/variables/colors";
+import { tailwindColors } from "@/configs/colors";
 import * as CommonTypes from "@/types/common";
 
 export default class Process extends Core {

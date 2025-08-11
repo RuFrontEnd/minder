@@ -6,8 +6,9 @@ import Desicion from "@/shapes/decision";
 import SquareButton from "@/components/squareButton";
 import Icon from "@/components/icon";
 import { MouseEvent } from "react";
-import { tailwindColors } from "@/variables/colors";
+import { tailwindColors } from "@/configs/colors";
 import { v4 as uuidv4 } from "uuid";
+import * as shapeConfigs from "@/configs/shape";
 import * as IconTypes from "@/types/components/icon";
 import * as CommonTypes from "@/types/common";
 import * as CreateShapeButtonsTypes from "@/types/sections/id/createShapeButtons";
@@ -17,27 +18,30 @@ const isBrowser = typeof window !== "undefined";
 export default function CreateShapeButtons(
   props: CreateShapeButtonsTypes.Props
 ) {
-  const createShapeButtons = [
+  const createShapeButtons: {
+    type: CreateShapeButtonsTypes.CreateShapeType;
+    icon: JSX.Element;
+  }[] = [
     {
-      shape: CommonTypes.ShapeType["terminator"],
+      shape: CreateShapeButtonsTypes.CreateShapeType["terminator"],
       icon: IconTypes.Type.ellipse,
       size: 24,
       color: tailwindColors.shape.terminal,
     },
     {
-      shape: CommonTypes.ShapeType["process"],
+      shape: CreateShapeButtonsTypes.CreateShapeType["process"],
       icon: IconTypes.Type.square,
       size: 24,
       color: tailwindColors.shape.process,
     },
     {
-      shape: CommonTypes.ShapeType["data"],
+      shape: CreateShapeButtonsTypes.CreateShapeType["data"],
       icon: IconTypes.Type.parallelogram,
       size: 24,
       color: tailwindColors.shape.data,
     },
     {
-      shape: CommonTypes.ShapeType["decision"],
+      shape: CreateShapeButtonsTypes.CreateShapeType["decision"],
       icon: IconTypes.Type.dimond,
       size: 24,
       color: tailwindColors.shape.decision,
@@ -50,7 +54,7 @@ export default function CreateShapeButtons(
   }));
 
   const getInitializedShape = (
-    type: CommonTypes.ShapeType,
+    type: CreateShapeButtonsTypes.CreateShapeType,
     offset: CommonTypes.Vec,
     scale: number = 1
   ) => {
@@ -59,37 +63,37 @@ export default function CreateShapeButtons(
       y: -offset.y + window.innerHeight / 2 / scale,
     };
     switch (type) {
-      case CommonTypes.ShapeType["terminator"]:
+      case CreateShapeButtonsTypes.CreateShapeType["terminator"]:
         return new Terminal(
           `${type}_${uuidv4()}`,
-          props.initShapeSize.t.w,
-          props.initShapeSize.t.h,
+          shapeConfigs.initSize.t.w,
+          shapeConfigs.initSize.t.h,
           initPosition,
           type
         );
-      case CommonTypes.ShapeType["process"]:
+      case CreateShapeButtonsTypes.CreateShapeType["process"]:
         return new Process(
           `${type}_${uuidv4()}`,
-          props.initShapeSize.p.w,
-          props.initShapeSize.p.h,
+          shapeConfigs.initSize.p.w,
+          shapeConfigs.initSize.p.h,
           initPosition,
           type
         );
 
-      case CommonTypes.ShapeType["data"]:
+      case CreateShapeButtonsTypes.CreateShapeType["data"]:
         return new Data(
           `${type}_${uuidv4()}`,
-          props.initShapeSize.d.w,
-          props.initShapeSize.d.h,
+          shapeConfigs.initSize.d.w,
+          shapeConfigs.initSize.d.h,
           initPosition,
           type
         );
 
-      case CommonTypes.ShapeType["decision"]:
+      case CreateShapeButtonsTypes.CreateShapeType["decision"]:
         return new Desicion(
           `${type}_${uuidv4()}`,
-          props.initShapeSize.dec.w,
-          props.initShapeSize.dec.h,
+          shapeConfigs.initSize.dec.w,
+          shapeConfigs.initSize.dec.h,
           initPosition,
           type
         );
@@ -98,7 +102,7 @@ export default function CreateShapeButtons(
 
   const onClickCreateShapeButton = (
     e: MouseEvent<HTMLButtonElement>,
-    type: CommonTypes.ShapeType
+    type: CreateShapeButtonsTypes.CreateShapeType
   ) => {
     e.stopPropagation();
     e.preventDefault();
@@ -113,7 +117,10 @@ export default function CreateShapeButtons(
   };
 
   return (
-    <section role="create_shapes" className="absolute -top-4 -translate-y-full left-1/2 -translate-x-1/2">
+    <section
+      role="create_shapes"
+      className="absolute -top-4 -translate-y-full left-1/2 -translate-x-1/2"
+    >
       <div className="flex bg-white-500 p-1 shadow-md rounded-md">
         {createShapeButtons.map((createShapeButton) => (
           <SquareButton

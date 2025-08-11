@@ -50,8 +50,8 @@ type Props = {
   addDeleteDatas: AddDatas;
   setAddDeleteDatas: Dispatch<SetStateAction<AddDatas>>;
   draw: () => void;
-  updateShapes: (newShapes: (Terminal | Process | Data | Desicion)[]) => void;
-  updateCurves: (newCurves: CommonTypes.ConnectionCurves) => void;
+  updateShapes: (newShapes: CommonTypes.Shape[]) => void;
+  updateConnectionCurves: (newCurves: CommonTypes.ConnectionCurves) => void;
   consoles: any;
   setConsoles: any;
   terminateDataChecking: () => void;

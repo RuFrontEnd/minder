@@ -1,5 +1,4 @@
-import ReactLoading from "react-loading";
-import { tailwindColors } from "@/variables/colors";
+import { tailwindColors } from "@/configs/colors";
 import Icon from '@/components/icon'
 import * as StatusTextTypes from "@/types/components/statusText";
 import * as CommonTypes from "@/types/common";
