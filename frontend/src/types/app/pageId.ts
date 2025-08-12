@@ -19,13 +19,13 @@ type PressingSelection = {
 
 type PressingCurve = {
   from: {
-    shape: Terminal | Process | Data | Desicion;
-    origin: Terminal | Process | Data | Desicion;
+    shape: CommonTypes.Shape;
+    origin: CommonTypes.Shape;
     d: CommonTypes.Direction;
   };
   to: null | {
-    shape: Terminal | Process | Data | Desicion;
-    origin: Terminal | Process | Data | Desicion;
+    shape: CommonTypes.Shape;
+    origin: CommonTypes.Shape;
     d: CommonTypes.Direction;
   };
   shape: Curve;
@@ -47,7 +47,7 @@ type MultiSelectShapeIds = string[];
 
 type Actions = Stack<{
   type: CommonTypes.Action;
-  shapes: (Terminal | Process | Data | Desicion)[];
+  shapes: CommonTypes.Shape[];
   curves: CommonTypes.ConnectionCurves;
 }>;
 

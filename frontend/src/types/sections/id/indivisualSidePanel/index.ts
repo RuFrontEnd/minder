@@ -1,8 +1,4 @@
 import { Dispatch, SetStateAction } from "react";
-import Terminal from "@/shapes/terminal";
-import Process from "@/shapes/process";
-import Data from "@/shapes/data";
-import Desicion from "@/shapes/decision";
 import * as InputTypes from "@/types/components/input";
 import * as SelectTypes from "@/types/components/input";
 import * as CommonTypes from "@/types/common";
@@ -22,8 +18,8 @@ type AddDatas = {
 
 type Props = {
   projectName: string;
-  setProjectName: Dispatch<SetStateAction<CommonTypes.ProjectName>>
-  shapes: (Terminal | Process | Data | Desicion)[];
+  setProjectName: Dispatch<SetStateAction<CommonTypes.ProjectName>>;
+  shapes: CommonTypes.Shape[];
   connectionCurves: CommonTypes.ConnectionCurves;
   datas: CommonTypes.OverallDatas;
   setDatas: Dispatch<SetStateAction<Props["datas"]>>;

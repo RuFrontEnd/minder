@@ -53,8 +53,8 @@ const init: PageIdTypes.Init = {
 
 let ctx: CanvasRenderingContext2D | null | undefined = null,
   ctx_screenshot: CanvasRenderingContext2D | null | undefined = null,
-  shapes: (Terminal | Process | Data | Desicion)[] = [],
-  candidates: null | (Terminal | Process | Data | Desicion)[] = null,
+  shapes: CommonTypes.Shape[] = [],
+  candidates: null | CommonTypes.Shape[] = null,
   connectionCurves: CommonTypes.ConnectionCurves = [],
   pressingSelection: null | PageIdTypes.PressingSelection = null,
   pressingCurve: null | PageIdTypes.PressingCurve = null,
@@ -91,13 +91,19 @@ const curveThresholdStrategy = {
     r: 0,
     b: 0,
   },
+  [CommonTypes.ShapeType.procedure]: {
+    l: 0,
+    t: 0,
+    r: 0,
+    b: 0,
+  },
 };
 
 const getActionRecords = () => {
   const records: Map<
     string,
     {
-      shapes: (Terminal | Process | Data | Desicion)[] | null;
+      shapes: CommonTypes.Shape[] | null;
       curves: CommonTypes.ConnectionCurves | null;
     }
   > = new Map();
@@ -158,11 +164,9 @@ const getScreenP = (
   };
 };
 
-const getScreenshotShapes = (
-  shapes: (Terminal | Process | Data | Desicion)[]
-) => {
+const getScreenshotShapes = (shapes: CommonTypes.Shape[]) => {
   const suffix = "screenshot";
-  const screenshotShapes: (Terminal | Process | Data | Desicion)[] = [];
+  const screenshotShapes: CommonTypes.Shape[] = [];
 
   shapes.forEach((shape) => {
     let screenshotShape;
@@ -1680,11 +1684,11 @@ const resizeShapes = (
 const connect = (
   curve: Curve,
   from: {
-    shape: Terminal | Process | Data | Desicion;
+    shape: CommonTypes.Shape;
     d: CommonTypes.Direction;
   },
   to: {
-    shape: Terminal | Process | Data | Desicion;
+    shape: CommonTypes.Shape;
     d: CommonTypes.Direction;
   }
 ) => {
@@ -1723,7 +1727,7 @@ const checkConnect = (p: CommonTypes.Vec) => {
   if (!pressingCurve) return;
   let to: {
     d: null | CommonTypes.Direction;
-    shape: null | Terminal | Process | Data | Desicion;
+    shape: null | CommonTypes.Shape;
   } = {
     d: null,
     shape: null,
@@ -1797,7 +1801,7 @@ const getIsSelectionDisableSendingPoint = (
 
 const drawShapes = (
   ctx: null | CanvasRenderingContext2D,
-  shapes: (Terminal | Process | Data | Desicion | Curve)[],
+  shapes: CommonTypes.Shape[],
   offset?: CommonTypes.Vec,
   scale?: number
 ) => {
@@ -1852,7 +1856,7 @@ const drawAlignLines = (
 const draw = (
   $canvas: HTMLCanvasElement,
   ctx: CanvasRenderingContext2D,
-  shapes: (Terminal | Process | Data | Desicion)[],
+  shapes: CommonTypes.Shape[],
   offset?: CommonTypes.Vec,
   scale?: number,
   isScreenshot?: boolean
@@ -2027,6 +2031,8 @@ export default function IdPage() {
     newConectionCurves: CommonTypes.ConnectionCurves
   ) => {
     connectionCurves = newConectionCurves;
+    drawCanvas(offset, scale);
+    drawScreenshot(offset, scale);
   };
 
   const zoom: PageIdTypes.Zoom = (delta, client) => {
@@ -2473,7 +2479,7 @@ export default function IdPage() {
     );
 
     const sendChuncks = (
-      shapes: (Terminal | Process | Data | Desicion)[],
+      shapes: CommonTypes.Shape[],
       curves: CommonTypes.ConnectionCurves,
       worker: any
     ) => {

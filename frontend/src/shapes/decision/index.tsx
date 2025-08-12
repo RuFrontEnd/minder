@@ -7,7 +7,6 @@ import * as DecisionTypes from "@/types/shapes/decision";
 
 export default class Desicion extends Core {
   type: CommonTypes.ShapeType.decision = CommonTypes.ShapeType.decision;
-
   text: {
     l: DecisionTypes.Text;
     t: DecisionTypes.Text;

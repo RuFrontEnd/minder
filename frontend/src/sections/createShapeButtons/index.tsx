@@ -8,6 +8,7 @@ import Icon from "@/components/icon";
 import { MouseEvent } from "react";
 import { tailwindColors } from "@/configs/colors";
 import { v4 as uuidv4 } from "uuid";
+import { cloneDeep } from "lodash";
 import * as shapeConfigs from "@/configs/shape";
 import * as IconTypes from "@/types/components/icon";
 import * as CommonTypes from "@/types/common";
@@ -53,7 +54,7 @@ export default function CreateShapeButtons(
     ),
   }));
 
-  const getInitializedShape = (
+  const getNewShape = (
     type: CreateShapeButtonsTypes.CreateShapeType,
     offset: CommonTypes.Vec,
     scale: number = 1
@@ -109,7 +110,9 @@ export default function CreateShapeButtons(
     if (!isBrowser) return;
     props.actionRecords.register(CommonTypes.Action.add);
 
-    props.shapes.push(getInitializedShape(type, props.offset, props.scale));
+    const newShapes = cloneDeep(props.shapes);
+    newShapes.push(getNewShape(type, props.offset, props.scale));
+    props.updateShapes(newShapes);
 
     props.actionRecords.finish(CommonTypes.Action.add);
 

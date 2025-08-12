@@ -32,17 +32,28 @@ export default function Console(props: ConsoleTypes.Props) {
 
   const onClickProceduralizeSquareButton = () => {
     if (!props.selection) return;
-    const selectedShapeMap: { [shapeId: string]: boolean } = {};
+    const selectedShapeIds: { [shapeId: string]: boolean } = {};
 
     props.selection.shapes.forEach((selectedShape) => {
-      selectedShapeMap[selectedShape.id] = true;
+      selectedShapeIds[selectedShape.id] = true;
     });
 
-    cloneDeep(props.connectionCurves).filter(
-      (connectionCurve) =>
-        !selectedShapeMap[connectionCurve.from.shape.id] &&
-        !selectedShapeMap[connectionCurve.to.shape.id]
-    );
+    const procedureConnectionCurves: CommonTypes.ConnectionCurves = [];
+    const newConnectionCurves: CommonTypes.ConnectionCurves = [];
+
+    cloneDeep(props.connectionCurves).forEach((connectionCurve) => {
+      if (
+        connectionCurve.from.shape.id in selectedShapeIds &&
+        connectionCurve.to.shape.id in selectedShapeIds
+      ) {
+        procedureConnectionCurves.push(connectionCurve);
+      } else if (
+        !(connectionCurve.from.shape.id in selectedShapeIds) &&
+        !(connectionCurve.to.shape.id in selectedShapeIds)
+      ) {
+        newConnectionCurves.push(connectionCurve);
+      }
+    });
 
     const initPosition = {
       x:
@@ -54,7 +65,7 @@ export default function Console(props: ConsoleTypes.Props) {
     };
 
     const newShapes = cloneDeep(props.shapes).filter(
-      (shape) => !selectedShapeMap[shape.id]
+      (shape) => !(shape.id in selectedShapeIds)
     );
 
     newShapes.push(
@@ -62,17 +73,16 @@ export default function Console(props: ConsoleTypes.Props) {
         `procedure_${uuidv4()}`,
         shapeConfigs.initSize.prcd.w,
         shapeConfigs.initSize.prcd.h,
-        { x: initPosition.x, y: initPosition.y },
-        "procedure",
+        initPosition,
+        "Procedure",
         props.selection.shapes,
-        [],
+        procedureConnectionCurves,
         Process.getPath
-      ) as any
+      )
     );
 
     props.updateShapes(newShapes);
-
-    console.log("props.selection", props.selection);
+    props.updateConnectionCurves(newConnectionCurves);
   };
 
   return (
@@ -137,6 +147,7 @@ export default function Console(props: ConsoleTypes.Props) {
         isOverAllSidePanelOpen={props.isOverAllSidePanelOpen}
         actionRecords={props.actionRecords}
         shapes={props.shapes}
+        updateShapes={props.updateShapes}
         offset={props.offset}
         scale={props.scale}
         reload={props.reload}

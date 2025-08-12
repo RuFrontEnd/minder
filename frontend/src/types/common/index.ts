@@ -2,7 +2,7 @@ import Terminal from "@/shapes/terminal";
 import Process from "@/shapes/process";
 import DataShape from "@/shapes/data";
 import Decision from "@/shapes/decision";
-// import Procedure from "@/shapes/procedure"; // TODO: for shape types
+import Procedure from "@/shapes/procedure"; // TODO: for shape types
 import Curve from "@/shapes/curve";
 import * as CommonTypes from "@/types/common";
 
@@ -81,11 +81,11 @@ enum Action {
 type ConnectionCurves = {
   shape: Curve;
   from: {
-    shape: Terminal | Process | DataShape | Decision;
+    shape: CommonTypes.Shape;
     d: Direction;
   };
   to: {
-    shape: Terminal | Process | DataShape | Decision;
+    shape: CommonTypes.Shape;
     d: Direction;
   };
 }[];
@@ -132,7 +132,7 @@ type UploadJSON = {
   consoles: any;
 };
 
-type Shape = Terminal | Process | DataShape | Decision;
+type Shape = Terminal | Process | DataShape | Decision | Procedure;
 
 type Shapes = Shape[];
 
@@ -158,4 +158,12 @@ export type {
   Steps,
   ProjectName,
 };
-export { Direction, Corner, ShapeType, Action, DataStatus, ConsoleStatus, CreateShapeType };
+export {
+  Direction,
+  Corner,
+  ShapeType,
+  Action,
+  DataStatus,
+  ConsoleStatus,
+  CreateShapeType,
+};
