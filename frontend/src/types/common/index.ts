@@ -3,6 +3,7 @@ import Process from "@/shapes/process";
 import DataShape from "@/shapes/data";
 import Decision from "@/shapes/decision";
 import Procedure from "@/shapes/procedure"; // TODO: for shape types
+import SelectionFrame from "@/shapes/selectionFrame";
 import Curve from "@/shapes/curve";
 import * as CommonTypes from "@/types/common";
 
@@ -127,25 +128,21 @@ type UploadJSON = {
 
 type Subscriber<T> = (value: T) => void;
 
-type CreateObservable = <T>(defaultValue: T) => {
-  getValue: () => T;
-  setValue: (newValue: T | ((currentValue: T) => T)) => void;
-  subscribe: (callback: Subscriber<T>) => void;
-};
-
 type Shape = Terminal | Process | DataShape | Decision | Procedure;
-
 type Shapes = Shape[];
-
-type ShapesObservable = {
-  getValue: () => Shape[];
-  setValue: (newValue: Shape[] | ((currentValue: Shape[]) => Shape[])) => void;
-  subscribe: (callback: Subscriber<Shape[]>) => void;
-};
 
 type Steps = CommonTypes.Shapes;
 
 type ProjectName = { val: string; inputVal: string };
+
+type CreateObservableReturn<T> = {
+  getValue: () => T;
+  setValue: (newValue: T | ((currentValue: T) => T)) => void;
+  subscribe: (callback: Subscriber<T>) => void;
+};
+type CreateObservable = <T>(defaultValue: T) => CreateObservableReturn<T>;
+type ShapesObservable = CreateObservableReturn<Shape[]>;
+type SelectionFrameObservable = CreateObservableReturn<null | SelectionFrame>;
 
 export type {
   Id,
@@ -167,5 +164,6 @@ export type {
   ShapesObservable,
   Steps,
   ProjectName,
+  SelectionFrameObservable,
 };
 export { Direction, Corner, ShapeType, Action, DataStatus, ConsoleStatus };

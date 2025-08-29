@@ -10,7 +10,7 @@ import React, {
 import axios from "axios";
 import Terminal from "@/shapes/terminal";
 import Process from "@/shapes/process";
-import Data from "@/shapes/data";;
+import Data from "@/shapes/data";
 import Desicion from "@/shapes/decision";
 import Curve from "@/shapes/curve";
 import SelectionFrame from "@/shapes/selectionFrame";
@@ -59,14 +59,12 @@ const init: PageIdTypes.Init = {
 
 let ctx: CanvasRenderingContext2D | null | undefined = null,
   ctx_screenshot: CanvasRenderingContext2D | null | undefined = null,
-  // shapes: CommonTypes.Shape[] = [],
   candidates: null | CommonTypes.Shape[] = null,
   connectionCurves: CommonTypes.ConnectionCurves = [],
   pressingSelection: null | PageIdTypes.PressingSelection = null,
   pressingCurve: null | PageIdTypes.PressingCurve = null,
   offset: CommonTypes.Vec = cloneDeep(init.offset),
   lastP: CommonTypes.Vec = { x: 0, y: 0 },
-  selectionFrame: null | SelectionFrame = null,
   selection: null | Selection = null,
   alginLines: { from: CommonTypes.Vec; to: CommonTypes.Vec }[] = [],
   actions: PageIdTypes.Actions = new Stack(40),
@@ -121,6 +119,9 @@ const shapesObservable: CommonTypes.ShapesObservable = createObservable<
 shapesObservable.subscribe((newShapes: CommonTypes.Shape[]) => {
   console.log("Shapes updated:", newShapes);
 });
+
+const selectionFrameObservable: CommonTypes.SelectionFrameObservable =
+  createObservable<null | SelectionFrame>(null);
 
 const curveThresholdStrategy = {
   [CommonTypes.ShapeType.terminator]: {
@@ -1404,7 +1405,8 @@ const movePressingCurve = (
 
 const defineSelectionFrameRange = (
   p: CommonTypes.Vec,
-  isMovingViewport: boolean = false
+  isMovingViewport: boolean = false,
+  selectionFrame: null | SelectionFrame
 ) => {
   if (isMovingViewport || !selectionFrame) return true;
   selectionFrame?.drag(p);
@@ -1641,11 +1643,14 @@ const selectShape = (shapes: CommonTypes.Shape[], p: CommonTypes.Vec) => {
 };
 
 const startFrameSelecting = (p: CommonTypes.Vec) => {
+  if (!selectionFrameObservable) return true;
   deSelect();
-  selectionFrame = new SelectionFrame(`selectionFrame_${uuidv4()}`, {
-    start: p,
-    end: p,
-  });
+  selectionFrameObservable.setValue(
+    new SelectionFrame(`selectionFrame_${uuidv4()}`, {
+      start: p,
+      end: p,
+    })
+  );
 
   return false;
 };
@@ -1969,6 +1974,7 @@ const draw = (
 
   if (!isScreenshot) {
     // draw selectArea
+    const selectionFrame = selectionFrameObservable.getValue();
     if (!!selectionFrame) {
       selectionFrame.draw(ctx);
     }
@@ -2204,7 +2210,7 @@ export default function IdPage() {
           normalOffsetP,
           pressingSelection
         ),
-      () => defineSelectionFrameRange(p),
+      () => defineSelectionFrameRange(p, false, selectionFrameObservable.getValue()),
       () =>
         movePressingCurve(shapesObservable.getValue(), normalP, pressingCurve),
     ]);
@@ -2443,7 +2449,12 @@ export default function IdPage() {
     };
 
     setLeftMouseBtn(false);
-    frameSelect(shapesObservable.getValue(), selectionFrame, offset, scale);
+    frameSelect(
+      shapesObservable.getValue(),
+      selectionFrameObservable.getValue(),
+      offset,
+      scale
+    );
     checkConnect(shapesObservable.getValue(), getNormalP(p, offset, scale));
     updateSteps(shapesObservable.getValue());
     syncCandidates(shapesObservable.getValue());
@@ -2462,7 +2473,7 @@ export default function IdPage() {
       actionRecords.finish(CommonTypes.Action.resize);
     }
 
-    selectionFrame = null;
+    selectionFrameObservable.setValue(null)
     pressingSelection = null;
     pressingCurve = null;
     alginLines = [];
