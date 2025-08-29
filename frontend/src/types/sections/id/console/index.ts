@@ -26,10 +26,9 @@ type Console = {
 type Consoles = Console[];
 
 type Props = {
-  shapes: CommonTypes.Shapes;
-  updateShapes: (newShapes: CommonTypes.Shape[]) => void;
+  shapesObservable: CommonTypes.ShapesObservable;
   connectionCurves: CommonTypes.ConnectionCurves;
-  updateConnectionCurves: (newCurves: CommonTypes.ConnectionCurves) => void;
+  updateConnectionCurves: PageIdTypes.UpdateConnectionCurves;
   selection: null | Selection;
   undo: () => void;
   positioning: PageIdTypes.Positioning;

@@ -22,10 +22,10 @@ export default function Console(props: ConsoleTypes.Props) {
     props.undo();
   };
 
-  const onClickMessage = (shapeId: string) => {
-    const targetShape = props.shapes.find((shape: any) => shape.id === shapeId);
+  const onClickMessage = (shapes: CommonTypes.Shape[], shapeId: string) => {
+    const targetShape = shapes.find((shape: any) => shape.id === shapeId);
     if (!targetShape) return;
-    props.positioning(targetShape.p);
+    props.positioning(shapes, targetShape.p);
     props.setIndivisual(targetShape);
     props.setIsIndivisualSidePanelOpen(true);
   };
@@ -64,7 +64,7 @@ export default function Console(props: ConsoleTypes.Props) {
         props.selection.shapes.length,
     };
 
-    const newShapes = cloneDeep(props.shapes).filter(
+    const newShapes = cloneDeep(props.shapesObservable.getValue()).filter(
       (shape) => !(shape.id in selectedShapeIds)
     );
 
@@ -81,8 +81,11 @@ export default function Console(props: ConsoleTypes.Props) {
       )
     );
 
-    props.updateShapes(newShapes);
-    props.updateConnectionCurves(newConnectionCurves);
+    props.shapesObservable.setValue(newShapes);
+    props.updateConnectionCurves(
+      props.shapesObservable.getValue(),
+      newConnectionCurves
+    );
   };
 
   return (
@@ -134,7 +137,10 @@ export default function Console(props: ConsoleTypes.Props) {
                   status || ""
                 } cursor-pointer underline-offset-2 hover:underline`}
                 onClick={() => {
-                  onClickMessage(consoleItem.shape.id);
+                  onClickMessage(
+                    props.shapesObservable.getValue(),
+                    consoleItem.shape.id
+                  );
                 }}
               >
                 {consoleItem.message}
@@ -144,10 +150,9 @@ export default function Console(props: ConsoleTypes.Props) {
         </ul>
       </div>
       <CreateShapeButtons
+        shapesObservable={props.shapesObservable}
         isOverAllSidePanelOpen={props.isOverAllSidePanelOpen}
         actionRecords={props.actionRecords}
-        shapes={props.shapes}
-        updateShapes={props.updateShapes}
         offset={props.offset}
         scale={props.scale}
         reload={props.reload}
@@ -182,7 +187,11 @@ export default function Console(props: ConsoleTypes.Props) {
         }
         onClick={onClickUndoButton}
       />
-      <Zoom zoom={props.zoom} scale={props.scale} />
+      <Zoom
+        shapesObservable={props.shapesObservable}
+        zoom={props.zoom}
+        scale={props.scale}
+      />
     </SidePanel>
   );
 }

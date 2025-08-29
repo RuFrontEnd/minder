@@ -63,7 +63,7 @@ type Datas = {
 
 type UpdateShapes = (shapes: CommonTypes.Shapes) => void;
 
-type Positioning = (p: CommonTypes.Vec) => void;
+type Positioning = (shapes: CommonTypes.Shape[], p: CommonTypes.Vec) => void;
 
 type Indivisual = null | CommonTypes.Shape;
 
@@ -96,11 +96,17 @@ type Init = {
 };
 
 type Zoom = (
+  shape: CommonTypes.Shape[],
   delta: number,
   client: {
     x: number;
     y: number;
   }
+) => void;
+
+type UpdateConnectionCurves = (
+  shapes: CommonTypes.Shape[],
+  newConectionCurves: CommonTypes.ConnectionCurves
 ) => void;
 
 export type {
@@ -116,6 +122,7 @@ export type {
   ActionRecords,
   Init,
   Zoom,
+  UpdateConnectionCurves
 };
 
 export { OverallType };

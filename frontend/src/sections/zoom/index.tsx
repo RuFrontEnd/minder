@@ -10,7 +10,7 @@ export default function Zoom(props: ZoomTypes.Props) {
   const onClickScalePlusIcon = () => {
     const $canvas = document.querySelector("canvas");
     if (!$canvas) return;
-    props.zoom(-100, {
+    props.zoom(props.shapesObservable.getValue(), -100, {
       x: $canvas?.width / 2,
       y: $canvas?.height / 2,
     });
@@ -19,7 +19,7 @@ export default function Zoom(props: ZoomTypes.Props) {
   const onClickScaleMinusIcon = () => {
     const $canvas = document.querySelector("canvas");
     if (!$canvas) return;
-    props.zoom(100, {
+    props.zoom(props.shapesObservable.getValue(), 100, {
       x: $canvas?.width / 2,
       y: $canvas?.height / 2,
     });
@@ -29,10 +29,14 @@ export default function Zoom(props: ZoomTypes.Props) {
     const $canvas = document.querySelector("canvas");
     if (!$canvas) return;
 
-    props.zoom(-((1 / props.scale - 1) * 500), {
-      x: $canvas?.width / 2,
-      y: $canvas?.height / 2,
-    });
+    props.zoom(
+      props.shapesObservable.getValue(),
+      -((1 / props.scale - 1) * 500),
+      {
+        x: $canvas?.width / 2,
+        y: $canvas?.height / 2,
+      }
+    );
   };
 
   return (

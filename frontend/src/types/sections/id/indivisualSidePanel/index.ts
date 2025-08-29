@@ -17,9 +17,9 @@ type AddDatas = {
 }[];
 
 type Props = {
+  shapesObservable: CommonTypes.ShapesObservable;
   projectName: string;
   setProjectName: Dispatch<SetStateAction<CommonTypes.ProjectName>>;
-  shapes: CommonTypes.Shape[];
   connectionCurves: CommonTypes.ConnectionCurves;
   datas: CommonTypes.OverallDatas;
   setDatas: Dispatch<SetStateAction<Props["datas"]>>;
@@ -46,8 +46,7 @@ type Props = {
   addDeleteDatas: AddDatas;
   setAddDeleteDatas: Dispatch<SetStateAction<AddDatas>>;
   draw: () => void;
-  updateShapes: (newShapes: CommonTypes.Shape[]) => void;
-  updateConnectionCurves: (newCurves: CommonTypes.ConnectionCurves) => void;
+  updateConnectionCurves: PageIdTypes.UpdateConnectionCurves;
   consoles: any;
   setConsoles: any;
   terminateDataChecking: () => void;

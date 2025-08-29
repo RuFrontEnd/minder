@@ -60,13 +60,6 @@ enum ShapeType {
   procedure = "procedure",
 }
 
-enum CreateShapeType {
-  terminator = ShapeType.terminator,
-  process = ShapeType.process,
-  data = ShapeType.data,
-  decision = ShapeType.decision,
-}
-
 enum Action {
   add = "add",
   delete = "delete",
@@ -132,9 +125,23 @@ type UploadJSON = {
   consoles: any;
 };
 
+type Subscriber<T> = (value: T) => void;
+
+type CreateObservable = <T>(defaultValue: T) => {
+  getValue: () => T;
+  setValue: (newValue: T | ((currentValue: T) => T)) => void;
+  subscribe: (callback: Subscriber<T>) => void;
+};
+
 type Shape = Terminal | Process | DataShape | Decision | Procedure;
 
 type Shapes = Shape[];
+
+type ShapesObservable = {
+  getValue: () => Shape[];
+  setValue: (newValue: Shape[] | ((currentValue: Shape[]) => Shape[])) => void;
+  subscribe: (callback: Subscriber<Shape[]>) => void;
+};
 
 type Steps = CommonTypes.Shapes;
 
@@ -153,17 +160,12 @@ export type {
   OverallDatas,
   ConnectionCurves,
   UploadJSON,
+  Subscriber,
+  CreateObservable,
   Shape,
   Shapes,
+  ShapesObservable,
   Steps,
   ProjectName,
 };
-export {
-  Direction,
-  Corner,
-  ShapeType,
-  Action,
-  DataStatus,
-  ConsoleStatus,
-  CreateShapeType,
-};
+export { Direction, Corner, ShapeType, Action, DataStatus, ConsoleStatus };

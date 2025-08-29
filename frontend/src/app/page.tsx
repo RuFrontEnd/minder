@@ -1,10 +1,16 @@
 // indivsual data hover color / change shape type when editing shape / edit data name in overall datas / edit data name in indivisual / copy data / downloaded data with project name / icon component default should be empty
 "use client";
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useMemo,
+  useCallback,
+} from "react";
 import axios from "axios";
 import Terminal from "@/shapes/terminal";
 import Process from "@/shapes/process";
-import Data from "@/shapes/data";
+import Data from "@/shapes/data";;
 import Desicion from "@/shapes/decision";
 import Curve from "@/shapes/curve";
 import SelectionFrame from "@/shapes/selectionFrame";
@@ -66,15 +72,9 @@ let ctx: CanvasRenderingContext2D | null | undefined = null,
   actions: PageIdTypes.Actions = new Stack(40),
   worker: null | Worker = null;
 
-type Subscriber<T> = (value: T) => void;
-
-const createObservable: <T>(defaultValue: T) => {
-  getValue: () => T;
-  setValue: (newValue: T | ((currentValue: T) => T)) => void;
-  subscribe: (callback: Subscriber<T>) => void;
-} = (defaultValue) => {
+const createObservable: CommonTypes.CreateObservable = (defaultValue) => {
   let value = defaultValue;
-  const subscribers: Subscriber<typeof defaultValue>[] = [];
+  const subscribers: CommonTypes.Subscriber<typeof defaultValue>[] = [];
 
   const getValue = () => value;
 
@@ -93,9 +93,9 @@ const createObservable: <T>(defaultValue: T) => {
     subscribers.forEach((callback) => callback(value));
   };
 
-  const subscribe: (callback: Subscriber<typeof defaultValue>) => void = (
-    callback
-  ) => {
+  const subscribe: (
+    callback: CommonTypes.Subscriber<typeof defaultValue>
+  ) => void = (callback) => {
     subscribers.push(callback);
 
     // 提供取消訂閱的功能
@@ -114,85 +114,13 @@ const createObservable: <T>(defaultValue: T) => {
   };
 };
 
-const shapesObservable = createObservable<CommonTypes.Shape[]>([]);
+const shapesObservable: CommonTypes.ShapesObservable = createObservable<
+  CommonTypes.Shape[]
+>([]);
 
-// 訂閱變化
-shapesObservable.subscribe((newShapes: any) => {
+shapesObservable.subscribe((newShapes: CommonTypes.Shape[]) => {
   console.log("Shapes updated:", newShapes);
 });
-
-shapesObservable.setValue(["circle" as any]);
-shapesObservable.setValue((currentShapes) => [
-  ...currentShapes,
-  "square" as any,
-]);
-
-console.log("Current shapes:", shapesObservable.getValue());
-
-// const getValue: <T>(
-//   defaultValue: T
-// ) => () => [
-//   T,
-//   (param: T | ((value: T) => T)) => void,
-//   (...callbacks: (() => void)[]) => void,
-//   (...callbacks: (() => void)[]) => void
-// ] = (defaultValue) => {
-//   let value = defaultValue;
-
-//   const subscribers: Function[] = [];
-
-//   return () => {
-//     const update = (
-//       param:
-//         | typeof defaultValue
-//         | ((value: typeof defaultValue) => typeof defaultValue)
-//     ) => {
-//       const isFunction = (
-//         value: unknown
-//       ): value is (value: typeof defaultValue) => typeof defaultValue =>
-//         typeof value === "function";
-
-//       let newValue = value;
-
-//       if (isFunction(param)) {
-//         newValue = param(value);
-//       } else {
-//         newValue = param;
-//       }
-
-//       console.log("newValue", newValue);
-
-//       subscribers.forEach((callback) => callback(newValue));
-//     };
-
-//     const subscribe = (...callbacks: (() => void)[]) => {
-//       console.log("callbacks", callbacks);
-//       callbacks.forEach((callback) => {
-//         subscribers.push(callback);
-//       });
-//     };
-
-//     const unsubscribe = (...callbacks: (() => void)[]) => {
-//       callbacks.forEach((callback) => {
-//         const index = subscribers.indexOf(callback);
-//         if (index > -1) {
-//           subscribers.splice(index, 1);
-//         }
-//       });
-//     };
-
-//     return [value, update, subscribe, unsubscribe];
-//   };
-// };
-
-// const [shapes, shapesObservable.setValue, subscribeShapes, unsubscribeShapes] = getValue<
-//   CommonTypes.Shape[]
-// >([])();
-
-// shapesObservable.setValue([]);
-// shapesObservable.setValue(["test" as any]);
-// shapesObservable.setValue(["test2" as any]);
-// console.log("shapes", shapes);
 
 const curveThresholdStrategy = {
   [CommonTypes.ShapeType.terminator]: {
@@ -227,7 +155,7 @@ const curveThresholdStrategy = {
   },
 };
 
-const getActionRecords = () => {
+const getActionRecords = (shapes: CommonTypes.Shape[]) => {
   const records: Map<
     string,
     {
@@ -266,7 +194,7 @@ const getActionRecords = () => {
   };
 };
 
-const actionRecords = getActionRecords();
+const actionRecords = getActionRecords(shapesObservable.getValue());
 
 const getNormalP = (
   p: CommonTypes.Vec,
@@ -1012,6 +940,7 @@ const getScreenshotShapes = (shapes: CommonTypes.Shape[]) => {
 // };
 
 const frameSelect = (
+  shapes: CommonTypes.Shape[],
   selectionFrame: null | undefined | SelectionFrame,
   offset: CommonTypes.Vec = { x: 0, y: 0 },
   scale: number = 1
@@ -1378,6 +1307,7 @@ const getCurveStickingCp1Cp2 = (
 };
 
 const movePressingCurve = (
+  shapes: CommonTypes.Shape[],
   p: CommonTypes.Vec,
   pressingCurve: null | undefined | PageIdTypes.PressingCurve
 ) => {
@@ -1491,7 +1421,7 @@ const getShapeIdMap = (shapes: CommonTypes.Shapes) => {
   return map;
 };
 
-const syncCurvePosition = (shapes: CommonTypes.Shapes) => {
+const syncCurvePosition = (shapes: CommonTypes.Shape[]) => {
   const shapeIdMap = getShapeIdMap(shapes);
 
   connectionCurves.forEach((conectionCurve) => {
@@ -1500,6 +1430,7 @@ const syncCurvePosition = (shapes: CommonTypes.Shapes) => {
 
     if (isSender) {
       moveSenderCurve(
+        shapes,
         conectionCurve.from.d,
         conectionCurve.to.d,
         conectionCurve.shape,
@@ -1508,6 +1439,7 @@ const syncCurvePosition = (shapes: CommonTypes.Shapes) => {
     }
     if (isReciever) {
       moveRecieverCurve(
+        shapes,
         conectionCurve.from.d,
         conectionCurve.to.d,
         conectionCurve.shape,
@@ -1522,6 +1454,7 @@ const recordLastP = (p: CommonTypes.Vec) => {
 };
 
 const moveSenderCurve = (
+  shapes: CommonTypes.Shape[],
   fromD: CommonTypes.Direction,
   toD: CommonTypes.Direction,
   curve: null | undefined | Curve,
@@ -1558,6 +1491,7 @@ const moveSenderCurve = (
 };
 
 const moveRecieverCurve = (
+  shapes: CommonTypes.Shape[],
   fromD: CommonTypes.Direction,
   toD: CommonTypes.Direction,
   curve: null | undefined | Curve,
@@ -1685,7 +1619,7 @@ const pressSelection = (
   return false;
 };
 
-const selectShape = (p: CommonTypes.Vec) => {
+const selectShape = (shapes: CommonTypes.Shape[], p: CommonTypes.Vec) => {
   const shape = shapes.findLast((shape) => shape.checkBoundry(p));
   if (!shape) return true;
 
@@ -1772,6 +1706,7 @@ const moveViewport = (p: CommonTypes.Vec, isPressingSpace: boolean) => {
 };
 
 const moveShapes = (
+  shapes: CommonTypes.Shape[],
   offsetP: CommonTypes.Vec,
   pressingSelection: null | undefined | PageIdTypes.PressingSelection
 ) => {
@@ -1789,6 +1724,7 @@ const moveShapes = (
 };
 
 const resizeShapes = (
+  shapes: CommonTypes.Shape[],
   offsetP: CommonTypes.Vec,
   pressingSelection: null | undefined | PageIdTypes.PressingSelection
 ) => {
@@ -1851,7 +1787,7 @@ const connect = (
   }
 };
 
-const checkConnect = (p: CommonTypes.Vec) => {
+const checkConnect = (shapes: CommonTypes.Shape[], p: CommonTypes.Vec) => {
   if (!pressingCurve) return;
   let to: {
     d: null | CommonTypes.Direction;
@@ -2053,7 +1989,11 @@ const drawCanvas = (
   draw($canvas, ctx, shapes, offset, scale, false);
 };
 
-const drawScreenshot = (offset?: CommonTypes.Vec, scale?: number) => {
+const drawScreenshot = (
+  shapes: CommonTypes.Shape[],
+  offset?: CommonTypes.Vec,
+  scale?: number
+) => {
   const $screenshot: HTMLCanvasElement | null = document.querySelector(
     "canvas[role='screenshot']"
   );
@@ -2069,6 +2009,7 @@ const drawScreenshot = (offset?: CommonTypes.Vec, scale?: number) => {
 };
 
 const undo = (
+  shapes: CommonTypes.Shape[],
   ctx: undefined | null | CanvasRenderingContext2D,
   offset?: CommonTypes.Vec,
   scale?: number
@@ -2093,7 +2034,7 @@ const undo = (
   actions.pop();
 
   drawCanvas(shapes, offset, scale);
-  drawScreenshot(offset, scale);
+  drawScreenshot(shapes, offset, scale);
 };
 
 const syncCandidates = (shapes: CommonTypes.Shapes) => {
@@ -2150,35 +2091,23 @@ export default function IdPage() {
     [space, leftMouseBtn]
   );
 
-  const shapes = shapesObservable.getValue();
-  console.log('shapes', shapes)
+  const updateSteps = useCallback(
+    (shapes: CommonTypes.Shape[]) => {
+      setSteps(cloneDeep(shapes));
+    },
+    [setSteps]
+  );
 
-  const updateSteps = () => {
-    console.log("shapes", shapes);
-    setSteps(cloneDeep(shapes));
-  };
-
-  useEffect(() => {
-    console.log("steps", steps);
-  }, [steps]);
-
-  // const shapesObservable.setValue = (newShapes: CommonTypes.Shapes) => {
-  //   shapes = newShapes;
-  //   updateSteps();
-  //   setIndivisual(shapes.find((shape) => indivisual?.id === shape.id) || null);
-  //   drawCanvas(shapes, offset, scale);
-  //   drawScreenshot(offset, scale);
-  // };
-
-  const updateConnectionCurves = (
-    newConectionCurves: CommonTypes.ConnectionCurves
+  const updateConnectionCurves: PageIdTypes.UpdateConnectionCurves = (
+    shapes,
+    newConectionCurves
   ) => {
     connectionCurves = newConectionCurves;
     drawCanvas(shapes, offset, scale);
-    drawScreenshot(offset, scale);
+    drawScreenshot(shapes, offset, scale);
   };
 
-  const zoom: PageIdTypes.Zoom = (delta, client) => {
+  const zoom: PageIdTypes.Zoom = (shapes, delta, client) => {
     const $canvas = document.querySelector("canvas");
     if (!$canvas) return;
     const scaleAmount = -delta / 500;
@@ -2202,7 +2131,7 @@ export default function IdPage() {
     drawCanvas(shapes, offset, _scale);
   };
 
-  const positioning: PageIdTypes.Positioning = (shapeP) => {
+  const positioning: PageIdTypes.Positioning = (shapes, shapeP) => {
     if (!isBrowser) return;
 
     offset = {
@@ -2234,12 +2163,12 @@ export default function IdPage() {
       () => pressSelection(normalP, selection, scale),
       () => triggerCurve(normalP, selection, scale),
       () => selectCurve(normalP),
-      () => selectShape(normalP),
+      () => selectShape(shapesObservable.getValue(), normalP),
       () => startFrameSelecting(p),
     ]);
 
-    syncCandidates(shapes);
-    drawCanvas(shapes, offset, scale);
+    syncCandidates(shapesObservable.getValue());
+    drawCanvas(shapesObservable.getValue(), offset, scale);
   };
 
   const onMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -2263,10 +2192,21 @@ export default function IdPage() {
 
     handleUtils.handle([
       () => moveViewport(p, space),
-      () => moveShapes(normalOffsetP, pressingSelection),
-      () => resizeShapes(normalOffsetP, pressingSelection),
+      () =>
+        moveShapes(
+          shapesObservable.getValue(),
+          normalOffsetP,
+          pressingSelection
+        ),
+      () =>
+        resizeShapes(
+          shapesObservable.getValue(),
+          normalOffsetP,
+          pressingSelection
+        ),
       () => defineSelectionFrameRange(p),
-      () => movePressingCurve(normalP, pressingCurve),
+      () =>
+        movePressingCurve(shapesObservable.getValue(), normalP, pressingCurve),
     ]);
 
     recordLastP(p);
@@ -2489,9 +2429,9 @@ export default function IdPage() {
     //   }
     // }
 
-    syncCandidates(shapes);
-    drawCanvas(shapes, offset, scale);
-    drawScreenshot(offset, scale);
+    syncCandidates(shapesObservable.getValue());
+    drawCanvas(shapesObservable.getValue(), offset, scale);
+    drawScreenshot(shapesObservable.getValue(), offset, scale);
   };
 
   const onMouseUp = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -2503,10 +2443,10 @@ export default function IdPage() {
     };
 
     setLeftMouseBtn(false);
-    frameSelect(selectionFrame, offset, scale);
-    checkConnect(getNormalP(p, offset, scale));
-    updateSteps();
-    syncCandidates(shapes);
+    frameSelect(shapesObservable.getValue(), selectionFrame, offset, scale);
+    checkConnect(shapesObservable.getValue(), getNormalP(p, offset, scale));
+    updateSteps(shapesObservable.getValue());
+    syncCandidates(shapesObservable.getValue());
 
     if (!!selection) {
       selection.isSendingPointDisabled = getIsSelectionDisableSendingPoint(
@@ -2527,11 +2467,11 @@ export default function IdPage() {
     pressingCurve = null;
     alginLines = [];
 
-    drawCanvas(shapes, offset, scale);
+    drawCanvas(shapesObservable.getValue(), offset, scale);
   };
 
   const onMouseWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
-    zoom(e.deltaY, { x: e.clientX, y: e.clientY });
+    zoom(shapesObservable.getValue(), e.deltaY, { x: e.clientX, y: e.clientY });
   };
 
   const onDoubleClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -2542,7 +2482,7 @@ export default function IdPage() {
       y: e.nativeEvent.y,
     };
 
-    shapes.forEach((shape) => {
+    shapesObservable.getValue().forEach((shape) => {
       if (!shape.checkBoundry(getNormalP(p, offset, scale))) return;
       setIsIndivisualSidePanelOpen(true);
       setIndivisual(shape);
@@ -2566,7 +2506,7 @@ export default function IdPage() {
       setControl(true);
     }
     if (e.key === "z" && control) {
-      undo(ctx, offset, scale);
+      undo(shapesObservable.getValue(), ctx, offset, scale);
     }
     if (e.key === " " && !space) {
       setSpace(true);
@@ -2576,9 +2516,9 @@ export default function IdPage() {
       if (!$canvas || !ctx) return;
 
       deleteSelectingShapes();
-      drawCanvas(shapes, offset, scale);
-      drawScreenshot(offset, scale);
-      updateSteps();
+      drawCanvas(shapesObservable.getValue(), offset, scale);
+      drawScreenshot(shapesObservable.getValue(), offset, scale);
+      updateSteps(shapesObservable.getValue());
     }
   }
 
@@ -2652,7 +2592,7 @@ export default function IdPage() {
       sendNextChunk();
     };
 
-    sendChuncks(shapes, connectionCurves, worker);
+    sendChuncks(shapesObservable.getValue(), connectionCurves, worker);
 
     const newConsoles: ConsoleTypes.Consoles = [];
     let index = 0;
@@ -2673,7 +2613,7 @@ export default function IdPage() {
       if (!event.data.messageShapes) return;
 
       if (!candidates) {
-        candidates = cloneDeep(shapes);
+        candidates = cloneDeep(shapesObservable.getValue());
       }
 
       event.data.messageShapes.forEach((messageShape, messageShapeI) => {
@@ -2715,12 +2655,34 @@ export default function IdPage() {
     };
   };
 
+  useMemo(() => {
+    shapesObservable.subscribe(() => {
+      updateSteps(shapesObservable.getValue());
+      setIndivisual(
+        (indivisual) =>
+          shapesObservable
+            .getValue()
+            .find((shape) => indivisual?.id === shape.id) || null
+      );
+      drawCanvas(shapesObservable.getValue(), offset, scale);
+      drawScreenshot(shapesObservable.getValue(), offset, scale);
+    });
+  }, [
+    updateSteps,
+    setIndivisual,
+    drawCanvas,
+    drawScreenshot,
+    offset,
+    scale,
+    shapesObservable,
+  ]);
+
   useEffect(() => {
     if (!isBrowser) return;
 
     (async () => {
-      drawCanvas(shapes, offset, scale);
-      drawScreenshot(offset, scale);
+      drawCanvas(shapesObservable.getValue(), offset, scale);
+      drawScreenshot(shapesObservable.getValue(), offset, scale);
     })();
 
     if (!ctx) return;
@@ -2735,8 +2697,8 @@ export default function IdPage() {
       $canvas.height = window.innerHeight;
       $screenshot.width = window.innerWidth;
       $screenshot.height = window.innerHeight;
-      drawCanvas(shapes, offset, scale);
-      drawScreenshot(offset, scale);
+      drawCanvas(shapesObservable.getValue(), offset, scale);
+      drawScreenshot(shapesObservable.getValue(), offset, scale);
     };
 
     window.addEventListener("resize", resizeViewport);
@@ -2745,8 +2707,6 @@ export default function IdPage() {
       e.returnValue = "";
       return "";
     });
-
-    shapesObservable.subscribe(updateSteps);
 
     return () => {
       if (!isBrowser) return;
@@ -2777,22 +2737,21 @@ export default function IdPage() {
       />
 
       <OverallSidePanel
+        shapesObservable={shapesObservable}
         steps={steps}
         positioning={positioning}
         datas={datas}
         setDatas={setDatas}
         projectName={projectName}
         setProjectName={setProjectName}
-        updateShapes={shapesObservable.setValue}
-        shapes={shapes}
         isOverAllSidePanelOpen={isOverAllSidePanelOpen}
         setIsOverAllSidePanelOpen={setIsOverAllSidePanelOpen}
       />
 
       <IndivisaulSidePanel
+        shapesObservable={shapesObservable}
         projectName={projectName.val}
         setProjectName={setProjectName}
-        shapes={shapes}
         connectionCurves={connectionCurves}
         datas={datas}
         setDatas={setDatas}
@@ -2815,9 +2774,8 @@ export default function IdPage() {
         addDeleteDatas={addDeleteDatas}
         setAddDeleteDatas={setAddDeleteDatas}
         draw={() => {
-          drawCanvas(shapes, offset, scale);
+          drawCanvas(shapesObservable.getValue(), offset, scale);
         }}
-        updateShapes={shapesObservable.setValue}
         updateConnectionCurves={updateConnectionCurves}
         consoles={consoles}
         setConsoles={setConsoles}
@@ -2826,8 +2784,7 @@ export default function IdPage() {
       />
 
       <Console
-        shapes={shapes}
-        updateShapes={shapesObservable.setValue}
+        shapesObservable={shapesObservable}
         connectionCurves={connectionCurves}
         updateConnectionCurves={updateConnectionCurves}
         selection={selection}
@@ -2835,7 +2792,7 @@ export default function IdPage() {
         scale={scale}
         zoom={zoom}
         undo={() => {
-          undo(ctx, offset, scale);
+          undo(shapesObservable.getValue(), ctx, offset, scale);
         }}
         isOverAllSidePanelOpen={isOverAllSidePanelOpen}
         isIndivisualSidePanelOpen={isIndivisualSidePanelOpen}
@@ -2844,9 +2801,9 @@ export default function IdPage() {
         setIsConsoleOpen={setIsConsoleOpen}
         actionRecords={actionRecords}
         reload={() => {
-          updateSteps();
-          drawCanvas(shapes, offset, scale);
-          drawScreenshot(offset, scale);
+          updateSteps(shapesObservable.getValue());
+          drawCanvas(shapesObservable.getValue(), offset, scale);
+          drawScreenshot(shapesObservable.getValue(), offset, scale);
         }}
         consoles={consoles}
         positioning={positioning}

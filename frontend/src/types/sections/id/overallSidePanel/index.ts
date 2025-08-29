@@ -17,14 +17,13 @@ type AddDatas = {
 }[];
 
 type Props = {
+  shapesObservable: CommonTypes.ShapesObservable;
   positioning: PageIdTypes.Positioning;
   steps: CommonTypes.Steps;
   datas: CommonTypes.OverallDatas;
   setDatas: Dispatch<SetStateAction<Props["datas"]>>;
   projectName: CommonTypes.ProjectName;
   setProjectName: Dispatch<SetStateAction<Props["projectName"]>>;
-  updateShapes: PageIdTypes.UpdateShapes;
-  shapes: CommonTypes.Shapes;
   isOverAllSidePanelOpen: boolean;
   setIsOverAllSidePanelOpen: Dispatch<
     SetStateAction<Props["isOverAllSidePanelOpen"]>

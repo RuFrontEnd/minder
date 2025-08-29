@@ -431,7 +431,7 @@ export default function IndivisualSidePanel(
   const onClickDownloadButton = () => {
     const data = {
       project: props.projectName,
-      shapes: props.shapes.map((shape) => ({
+      shapes: props.shapesObservable.getValue().map((shape) => ({
         id: shape.id,
         type: shape.type,
         title: shape.title,
@@ -550,8 +550,11 @@ export default function IndivisualSidePanel(
         );
 
         props.setProjectName({ val: json.project, inputVal: json.project });
-        props.updateShapes(newShapes);
-        props.updateConnectionCurves(newCurves);
+        props.shapesObservable.setValue(newShapes);
+        props.updateConnectionCurves(
+          props.shapesObservable.getValue(),
+          newCurves
+        );
         props.setConsoles(json.consoles);
         props.setDatas(json.datas);
       })

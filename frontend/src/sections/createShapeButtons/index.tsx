@@ -102,6 +102,7 @@ export default function CreateShapeButtons(
   };
 
   const onClickCreateShapeButton = (
+    shapes: CommonTypes.Shape[],
     e: MouseEvent<HTMLButtonElement>,
     type: CreateShapeButtonsTypes.CreateShapeType
   ) => {
@@ -110,9 +111,9 @@ export default function CreateShapeButtons(
     if (!isBrowser) return;
     props.actionRecords.register(CommonTypes.Action.add);
 
-    const newShapes = cloneDeep(props.shapes);
+    const newShapes = cloneDeep(shapes);
     newShapes.push(getNewShape(type, props.offset, props.scale));
-    props.updateShapes(newShapes);
+    props.shapesObservable.setValue(newShapes);
 
     props.actionRecords.finish(CommonTypes.Action.add);
 
@@ -130,7 +131,11 @@ export default function CreateShapeButtons(
             size={40}
             content={createShapeButton.icon}
             onClick={(e) => {
-              onClickCreateShapeButton(e, createShapeButton.type);
+              onClickCreateShapeButton(
+                props.shapesObservable.getValue(),
+                e,
+                createShapeButton.type
+              );
             }}
             onKeyDown={(e) => {
               e.preventDefault();

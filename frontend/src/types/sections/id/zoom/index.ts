@@ -1,11 +1,9 @@
+import * as CommonTypes from "@/types/common";
+import * as PageIdTypes from "@/types/app/pageId";
+
 type Props = {
-  zoom: (
-    delta: number,
-    client: {
-      x: number;
-      y: number;
-    }
-  ) => void;
+  shapesObservable: CommonTypes.ShapesObservable;
+  zoom: PageIdTypes.Zoom;
   scale: number;
 };
 

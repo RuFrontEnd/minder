@@ -34,8 +34,11 @@ export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
     props.setIsOverAllSidePanelOpen((open) => !open);
   };
 
-  const onClickPositioningButton = (shapeP: CommonTypes.Vec) => {
-    props.positioning(shapeP);
+  const onClickPositioningButton = (
+    shapes: CommonTypes.Shape[],
+    shapeP: CommonTypes.Vec
+  ) => {
+    props.positioning(shapes, shapeP);
   };
 
   const onClickProjectName = () => {
@@ -94,7 +97,10 @@ export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
     setCreateDataValue(null);
   };
 
-  const onDeleteDataButton = (dataName: string) => {
+  const onDeleteDataButton = (
+    shapes: CommonTypes.Shape[],
+    dataName: string
+  ) => {
     const newDatas = cloneDeep(props.datas).filter(
       (data) => data.name !== dataName
     );
@@ -105,13 +111,14 @@ export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
     newDatas.forEach((newData) => {
       map[newData.name] = true;
     });
-    const newShapes = cloneDeep(props.shapes);
+    const newShapes = cloneDeep(shapes);
     newShapes.forEach((shape) => {
       shape.usingDatas = shape.usingDatas.filter((data) => map[data.text]);
       shape.importDatas = shape.importDatas.filter((data) => map[data.text]);
       shape.deleteDatas = shape.deleteDatas.filter((data) => map[data.text]);
     });
-    props.updateShapes(newShapes);
+    
+    props.shapesObservable.setValue(newShapes);
   };
 
   return (
@@ -213,7 +220,10 @@ export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
                         h={18}
                         stroke={tailwindColors.error["500"]}
                         onClick={() => {
-                          onClickPositioningButton(step.p);
+                          onClickPositioningButton(
+                            props.shapesObservable.getValue(),
+                            step.p
+                          );
                         }}
                       />
                     }
@@ -255,7 +265,10 @@ export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
                       h={24}
                       stroke={tailwindColors.error["500"]}
                       onClick={() => {
-                        onDeleteDataButton(data.name);
+                        onDeleteDataButton(
+                          props.shapesObservable.getValue(),
+                          data.name
+                        );
                       }}
                     />
                   }
@@ -325,7 +338,12 @@ export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
 
       <Breadcrumb
         className="absolute top-8 -right-20 translate-x-full text-base"
-        paths={[{ content: "All" }, { content: "path1" }, { content: "path2" }, { content: "path3" }]}
+        paths={[
+          { content: "All" },
+          { content: "path1" },
+          { content: "path2" },
+          { content: "path3" },
+        ]}
         ellipsis={{
           enabled: true,
           maxLength: 3,
