@@ -454,14 +454,7 @@ export default class Core {
     }
   }
 
-  resize(offset: CommonTypes.Vec, vertex: CoreTypes.PressingTarget) {
-    if (
-      vertex !== CoreTypes.PressingTarget.lt &&
-      vertex !== CoreTypes.PressingTarget.rt &&
-      vertex !== CoreTypes.PressingTarget.rb &&
-      vertex !== CoreTypes.PressingTarget.lb
-    )
-      return;
+  resize(offset: CommonTypes.Vec, vertex: "lt" | "rt" | "rb" | "lb") {
     // sender curves follows
     let _w = this.w,
       _h = this.h;

@@ -949,7 +949,7 @@ const frameSelect = (
   if (!selectionFrame) return [];
   // define which shape in select area
   const shapesInSelectingArea = (() => {
-    const shapesInArea: CommonTypes.Shapes = [];
+    const shapeInAreaIds: CommonTypes.Shape["id"][] = [];
 
     const normalSelectAreaP = {
       start: getNormalP(selectionFrame.p.start, offset, scale),
@@ -983,11 +983,11 @@ const frameSelect = (
         y2 = Math.min(theEdge.b, b);
 
       if (x2 > x1 && y2 > y1) {
-        shapesInArea.push(shape);
+        shapeInAreaIds.push(shape.id);
       }
     });
 
-    return shapesInArea;
+    return shapeInAreaIds;
   })();
 
   selectionObservable.setValue(
@@ -1541,10 +1541,11 @@ const startMovingViewport = (isPressingSpace: boolean, p: CommonTypes.Vec) => {
 const triggerCurve = (
   p: CommonTypes.Vec,
   selection: null | undefined | Selection,
-  scale: number
+  scale: number,
+  shapes: CommonTypes.Shape[]
 ) => {
   if (!selection) return true;
-  const triggerPoint = selection.checkBoundry(p, 0, scale);
+  const triggerPoint = selection.checkBoundry(p, 0, scale, shapes);
 
   if (
     triggerPoint !== SelectionTypes.PressingTarget.sl &&
@@ -1554,7 +1555,7 @@ const triggerCurve = (
   )
     return true;
 
-  const targetShape = selection.shapes[0];
+  const targetShapeId = selection.shapeIds[0];
   const triggerDStrategy = {
     [SelectionTypes.PressingTarget.sl]: CommonTypes.Direction.l,
     [SelectionTypes.PressingTarget.st]: CommonTypes.Direction.t,
@@ -1564,8 +1565,12 @@ const triggerCurve = (
   const triggerD = triggerDStrategy[triggerPoint];
 
   connectionCurves.find(
-    (conectionCurve) => conectionCurve.from.shape.id === targetShape.id
+    (conectionCurve) => conectionCurve.from.shape.id === targetShapeId
   )?.shape.text;
+
+  const targetShape = shapes.find((shape) => shape.id === targetShapeId);
+
+  if (!targetShape) return true;
 
   pressingCurve = {
     from: {
@@ -1599,11 +1604,12 @@ const triggerCurve = (
 const pressSelection = (
   p: CommonTypes.Vec,
   selection: null | undefined | Selection,
-  scale: number
+  scale: number,
+  shapes: CommonTypes.Shape[]
 ) => {
   if (!selection) return true;
 
-  const _target = selection.checkBoundry(p, 0, scale);
+  const _target = selection.checkBoundry(p, 0, scale, shapes);
 
   if (
     _target !== SelectionTypes.PressingTarget.lt &&
@@ -1632,7 +1638,7 @@ const selectShape = (shapes: CommonTypes.Shape[], p: CommonTypes.Vec) => {
   selectionObservable.setValue(
     new Selection(
       `selectionArea_${uuidv4()}`,
-      [shape],
+      [shape.id],
       getIsSelectionDisableSendingPoint(shape)
     )
   );
@@ -1730,7 +1736,7 @@ const moveShapes = (
     return true;
   actionRecords.register(CommonTypes.Action.move);
 
-  pressingSelection.selection.move(offsetP);
+  pressingSelection.selection.move(offsetP, shapes);
   syncCurvePosition(shapes);
 
   return false;
@@ -1752,7 +1758,7 @@ const resizeShapes = (
 
   actionRecords.register(CommonTypes.Action.resize);
 
-  pressingSelection.selection.resize(pressingSelection.target, offsetP);
+  pressingSelection.selection.resize(pressingSelection.target, offsetP, shapes);
   syncCurvePosition(shapes);
 
   return false;
@@ -1986,7 +1992,7 @@ const draw = (
     }
     const selection = selectionObservable.getValue();
     if (!!selection) {
-      selection.draw(ctx, offset, scale);
+      selection.draw(ctx, offset, scale, shapesObservable.getValue());
       // pressingSelection?.ghost?.draw(ctx, offset, scale);
     }
   }
@@ -2043,7 +2049,9 @@ const undo = (
     selectionObservable.setValue(
       new Selection(
         selection.id,
-        shapes.filter((shape) => selectingMap[shape.id])
+        shapes
+          .filter((shape) => selectingMap[shape.id])
+          .map((shape) => shape.id)
       )
     );
   }
@@ -2177,8 +2185,20 @@ export default function IdPage() {
 
     handleUtils.handle([
       () => startMovingViewport(space, p),
-      () => pressSelection(normalP, selectionObservable.getValue(), scale),
-      () => triggerCurve(normalP, selectionObservable.getValue(), scale),
+      () =>
+        pressSelection(
+          normalP,
+          selectionObservable.getValue(),
+          scale,
+          shapesObservable.getValue()
+        ),
+      () =>
+        triggerCurve(
+          normalP,
+          selectionObservable.getValue(),
+          scale,
+          shapesObservable.getValue()
+        ),
       () => selectCurve(normalP),
       () => selectShape(shapesObservable.getValue(), normalP),
       () => startFrameSelecting(p),
@@ -2478,7 +2498,9 @@ export default function IdPage() {
     const selection = selectionObservable.getValue();
     if (!!selection) {
       selection.isSendingPointDisabled = getIsSelectionDisableSendingPoint(
-        selection.shapes[0]
+        shapesObservable
+          .getValue()
+          .find((shape) => shape.id === selection.shapeIds[0])
       );
     }
 

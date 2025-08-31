@@ -32,10 +32,13 @@ export default function Console(props: ConsoleTypes.Props) {
 
   const onClickProceduralizeSquareButton = () => {
     const selection = props.selectionObservable.getValue();
+    const selectionShapes = props.shapesObservable
+      .getValue()
+      .filter((shape) => selection?.shapeIds.includes(shape.id));
     if (!selection) return;
     const selectedShapeIds: { [shapeId: string]: boolean } = {};
 
-    selection.shapes.forEach((selectedShape) => {
+    selectionShapes.forEach((selectedShape) => {
       selectedShapeIds[selectedShape.id] = true;
     });
 
@@ -58,11 +61,11 @@ export default function Console(props: ConsoleTypes.Props) {
 
     const initPosition = {
       x:
-        selection.shapes.reduce((prev, next) => prev + next.p.x, 0) /
-        selection.shapes.length,
+        selectionShapes.reduce((prev, next) => prev + next.p.x, 0) /
+        selectionShapes.length,
       y:
-        selection.shapes.reduce((prev, next) => prev + next.p.y, 0) /
-        selection.shapes.length,
+        selectionShapes.reduce((prev, next) => prev + next.p.y, 0) /
+        selectionShapes.length,
     };
 
     const newShapes = cloneDeep(props.shapesObservable.getValue()).filter(
@@ -76,7 +79,7 @@ export default function Console(props: ConsoleTypes.Props) {
         shapeConfigs.initSize.prcd.h,
         initPosition,
         "Procedure",
-        selection.shapes,
+        selectionShapes,
         procedureConnectionCurves,
         Process.getPath
       )

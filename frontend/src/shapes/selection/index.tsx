@@ -20,7 +20,7 @@ export default class Selection {
     stroke: tailwindColors.info["500"],
   };
   private m: CommonTypes.Vec = { x: 0, y: 0 };
-  private __shapes__: CommonTypes.Shapes = [];
+  private __shapeIds__: CommonTypes.Shape["id"][] = [];
   static __sendingPoint__: {
     distance: number;
     size: {
@@ -45,11 +45,11 @@ export default class Selection {
 
   constructor(
     id: string,
-    shapes: CommonTypes.Shapes,
+    shapeIds: CommonTypes.Shape["id"][],
     isSendingPointDisabled: boolean = false
   ) {
     this.__id__ = id;
-    this.__shapes__ = shapes;
+    this.__shapeIds__ = shapeIds;
     this.__isDisabledSendingPoint__ = isSendingPointDisabled;
   }
 
@@ -57,12 +57,12 @@ export default class Selection {
     return this.__id__;
   }
 
-  set shapes(_shapes: CommonTypes.Shapes) {
-    this.shapes = _shapes;
+  set shapeIds(_shapeIds: CommonTypes.Shape["id"][]) {
+    this.shapeIds = _shapeIds;
   }
 
-  get shapes() {
-    return this.__shapes__;
+  get shapeIds() {
+    return this.__shapeIds__;
   }
 
   set isSendingPointDisabled(isDisabled: boolean) {
@@ -72,19 +72,19 @@ export default class Selection {
   getSelectingMap() {
     const map: { [id: string]: true } = {};
 
-    this.__shapes__.forEach((shape) => {
-      map[shape.id] = true;
+    this.__shapeIds__.forEach((shapeId) => {
+      map[shapeId] = true;
     });
 
     return map;
   }
 
-  getP() {
+  getP(shapes: CommonTypes.Shape[]) {
     const startP = { x: -1, y: -1 };
     const endP = { x: -1, y: -1 };
     const selectingMap = this.getSelectingMap();
 
-    this.__shapes__.forEach((shape) => {
+    shapes.forEach((shape) => {
       if (!selectingMap[shape.id]) return;
       const shapeEdge = shape.getEdge();
 
@@ -105,8 +105,8 @@ export default class Selection {
     return [startP, endP];
   }
 
-  getM() {
-    const [startP, endP] = this.getP();
+  getM(shapes: CommonTypes.Shape[]) {
+    const [startP, endP] = this.getP(shapes);
 
     return {
       x: (startP.x + endP.x) / 2,
@@ -114,8 +114,8 @@ export default class Selection {
     };
   }
 
-  getSize() {
-    const [startP, endP] = this.getP();
+  getSize(shapes: CommonTypes.Shape[]) {
+    const [startP, endP] = this.getP(shapes);
 
     return {
       w: Math.abs(endP.x - startP.x),
@@ -123,12 +123,15 @@ export default class Selection {
     };
   }
 
-  push(shape: CommonTypes.Shape) {
-    this.__shapes__.push(shape);
+  push(shapeId: CommonTypes.Shape["id"]) {
+    this.__shapeIds__.push(shapeId);
   }
 
-  move(offsetP: CommonTypes.Vec) {
-    this.__shapes__.forEach((shape) => {
+  move(offsetP: CommonTypes.Vec, shapes: CommonTypes.Shape[]) {
+    const selectingMap = this.getSelectingMap();
+
+    shapes.forEach((shape) => {
+      if (!selectingMap[shape.id]) return;
       shape.move(offsetP);
     });
   }
@@ -141,9 +144,10 @@ export default class Selection {
       | SelectionTypes.PressingTarget.rt
       | SelectionTypes.PressingTarget.rb
       | SelectionTypes.PressingTarget.lb,
-    offsetP: CommonTypes.Vec
+    offsetP: CommonTypes.Vec,
+    shapes: CommonTypes.Shape[]
   ) => {
-    const [startP, endP] = this.getP();
+    const [startP, endP] = this.getP(shapes);
     const range = {
       w: Math.abs(endP.x - startP.x),
       h: Math.abs(endP.y - startP.y),
@@ -158,7 +162,7 @@ export default class Selection {
             y: range.h - offsetP.y > 0 || offsetP.y < 0,
           };
 
-          this.__shapes__.forEach((shape) => {
+          shapes.forEach((shape) => {
             if (!selectingMap[shape.id]) return;
 
             const ratioW = shape.w / range.w,
@@ -205,7 +209,7 @@ export default class Selection {
 
           const selectingMap = this.getSelectingMap();
 
-          this.__shapes__.forEach((shape) => {
+          shapes.forEach((shape) => {
             if (!selectingMap[shape.id]) return;
             const ratioW = shape.w / range.w,
               unitW = offsetP.x * ratioW;
@@ -249,7 +253,7 @@ export default class Selection {
             y: range.h + offsetP.y > 0 || offsetP.y > 0,
           };
 
-          this.__shapes__.forEach((shape) => {
+          shapes.forEach((shape) => {
             if (!selectingMap[shape.id]) return;
             const ratioW = shape.w / range.w,
               unitW = offsetP.x * ratioW;
@@ -293,7 +297,7 @@ export default class Selection {
             y: range.h + offsetP.y > 0 || offsetP.y > 0,
           };
 
-          this.__shapes__.forEach((shape) => {
+          shapes.forEach((shape) => {
             if (!selectingMap[shape.id]) return;
             const ratioW = shape.w / range.w,
               unitW = offsetP.x * ratioW;
@@ -333,7 +337,10 @@ export default class Selection {
     }
   };
 
-  locate(p: { x: null | number; y: null | number }) {
+  locate(
+    p: { x: null | number; y: null | number },
+    shapes: CommonTypes.Shape[]
+  ) {
     if (!p.x && !p.y) return;
     const offsetP = { x: 0, y: 0 };
 
@@ -344,14 +351,16 @@ export default class Selection {
     if (!!p.y) {
       offsetP.y = p.y - this.m.y;
     }
+    const selectingMap = this.getSelectingMap();
 
-    this.__shapes__.forEach((shape) => {
+    shapes.forEach((shape) => {
+      if (!selectingMap[shape.id]) return;
       shape.move(offsetP);
     });
   }
 
-  getEdge() {
-    const [startP, endP] = this.getP();
+  getEdge(shapes: CommonTypes.Shape[]) {
+    const [startP, endP] = this.getP(shapes);
 
     return {
       l: startP.x,
@@ -361,10 +370,10 @@ export default class Selection {
     };
   }
 
-  getCenter(): SelectionTypes.GetCenterReturn {
-    const edge = this.getEdge();
-    const _m = this.getM();
-    const size = this.getSize();
+  getCenter(shapes: CommonTypes.Shape[]): SelectionTypes.GetCenterReturn {
+    const edge = this.getEdge(shapes);
+    const _m = this.getM(shapes);
+    const size = this.getSize(shapes);
 
     return {
       m: _m,
@@ -423,8 +432,13 @@ export default class Selection {
     };
   }
 
-  checkBoundry(p: CommonTypes.Vec, threshold: number = 0, scale: number) {
-    const [startP, endP] = this.getP();
+  checkBoundry(
+    p: CommonTypes.Vec,
+    threshold: number = 0,
+    scale: number,
+    shapes: CommonTypes.Shape[]
+  ) {
+    const [startP, endP] = this.getP(shapes);
 
     let dx, dy;
 
@@ -470,9 +484,9 @@ export default class Selection {
     }
 
     // if click sending points
-    if (this.shapes.length === 1) {
-      const edge = this.getEdge();
-      const m = this.getM();
+    if (this.shapeIds.length === 1) {
+      const edge = this.getEdge(shapes);
+      const m = this.getM(shapes);
 
       const sendingPointP = {
         l: {
@@ -517,11 +531,12 @@ export default class Selection {
   drawSendingPoint(
     ctx: CanvasRenderingContext2D,
     offest: CommonTypes.Vec = { x: 0, y: 0 },
-    scale: number = 1
+    scale: number = 1,
+    shapes: CommonTypes.Shape[]
   ) {
     if (!ctx) return;
-    const m = this.getM();
-    const size = this.getSize();
+    const m = this.getM(shapes);
+    const size = this.getSize(shapes);
     const screenM = {
       x: (m.x + offest.x) * scale,
       y: (m.y + offest.y) * scale,
@@ -599,11 +614,12 @@ export default class Selection {
   draw(
     ctx: undefined | null | CanvasRenderingContext2D,
     offset: CommonTypes.Vec = { x: 0, y: 0 },
-    scale: number = 1
+    scale: number = 1,
+    shapes: CommonTypes.Shape[]
   ) {
     if (!ctx) return;
 
-    const [startP, endP] = this.getP();
+    const [startP, endP] = this.getP(shapes);
 
     if (startP.x === -1 || startP.y === -1 || endP.x === -1 || endP.y === -1)
       return;
@@ -688,8 +704,8 @@ export default class Selection {
     ctx.fill();
     ctx?.closePath();
 
-    if (this.__shapes__.length === 1 && !this.__isDisabledSendingPoint__) {
-      this.drawSendingPoint(ctx, offset, scale);
+    if (this.__shapeIds__.length === 1 && !this.__isDisabledSendingPoint__) {
+      this.drawSendingPoint(ctx, offset, scale, shapes);
     }
   }
 }
