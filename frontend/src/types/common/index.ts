@@ -4,6 +4,7 @@ import DataShape from "@/shapes/data";
 import Decision from "@/shapes/decision";
 import Procedure from "@/shapes/procedure"; // TODO: for shape types
 import SelectionFrame from "@/shapes/selectionFrame";
+import Selection from "@/shapes/selection";
 import Curve from "@/shapes/curve";
 import * as CommonTypes from "@/types/common";
 
@@ -143,6 +144,7 @@ type CreateObservableReturn<T> = {
 type CreateObservable = <T>(defaultValue: T) => CreateObservableReturn<T>;
 type ShapesObservable = CreateObservableReturn<Shape[]>;
 type SelectionFrameObservable = CreateObservableReturn<null | SelectionFrame>;
+type SelectionObservable = CreateObservableReturn<null | Selection>;
 
 export type {
   Id,
@@ -165,5 +167,6 @@ export type {
   Steps,
   ProjectName,
   SelectionFrameObservable,
+  SelectionObservable
 };
 export { Direction, Corner, ShapeType, Action, DataStatus, ConsoleStatus };

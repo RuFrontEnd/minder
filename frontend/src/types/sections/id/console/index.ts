@@ -27,9 +27,9 @@ type Consoles = Console[];
 
 type Props = {
   shapesObservable: CommonTypes.ShapesObservable;
+  selectionObservable: CommonTypes.SelectionObservable;
   connectionCurves: CommonTypes.ConnectionCurves;
   updateConnectionCurves: PageIdTypes.UpdateConnectionCurves;
-  selection: null | Selection;
   undo: () => void;
   positioning: PageIdTypes.Positioning;
   setIndivisual: Dispatch<SetStateAction<PageIdTypes.Indivisual>>;

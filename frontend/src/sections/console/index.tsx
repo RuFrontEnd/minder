@@ -31,10 +31,11 @@ export default function Console(props: ConsoleTypes.Props) {
   };
 
   const onClickProceduralizeSquareButton = () => {
-    if (!props.selection) return;
+    const selection = props.selectionObservable.getValue();
+    if (!selection) return;
     const selectedShapeIds: { [shapeId: string]: boolean } = {};
 
-    props.selection.shapes.forEach((selectedShape) => {
+    selection.shapes.forEach((selectedShape) => {
       selectedShapeIds[selectedShape.id] = true;
     });
 
@@ -57,11 +58,11 @@ export default function Console(props: ConsoleTypes.Props) {
 
     const initPosition = {
       x:
-        props.selection.shapes.reduce((prev, next) => prev + next.p.x, 0) /
-        props.selection.shapes.length,
+        selection.shapes.reduce((prev, next) => prev + next.p.x, 0) /
+        selection.shapes.length,
       y:
-        props.selection.shapes.reduce((prev, next) => prev + next.p.y, 0) /
-        props.selection.shapes.length,
+        selection.shapes.reduce((prev, next) => prev + next.p.y, 0) /
+        selection.shapes.length,
     };
 
     const newShapes = cloneDeep(props.shapesObservable.getValue()).filter(
@@ -75,13 +76,14 @@ export default function Console(props: ConsoleTypes.Props) {
         shapeConfigs.initSize.prcd.h,
         initPosition,
         "Procedure",
-        props.selection.shapes,
+        selection.shapes,
         procedureConnectionCurves,
         Process.getPath
       )
     );
 
     props.shapesObservable.setValue(newShapes);
+    props.selectionObservable.setValue(null);
     props.updateConnectionCurves(
       props.shapesObservable.getValue(),
       newConnectionCurves

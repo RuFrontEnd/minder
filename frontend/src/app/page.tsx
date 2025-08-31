@@ -65,7 +65,6 @@ let ctx: CanvasRenderingContext2D | null | undefined = null,
   pressingCurve: null | PageIdTypes.PressingCurve = null,
   offset: CommonTypes.Vec = cloneDeep(init.offset),
   lastP: CommonTypes.Vec = { x: 0, y: 0 },
-  selection: null | Selection = null,
   alginLines: { from: CommonTypes.Vec; to: CommonTypes.Vec }[] = [],
   actions: PageIdTypes.Actions = new Stack(40),
   worker: null | Worker = null;
@@ -115,13 +114,14 @@ const createObservable: CommonTypes.CreateObservable = (defaultValue) => {
 const shapesObservable: CommonTypes.ShapesObservable = createObservable<
   CommonTypes.Shape[]
 >([]);
+const selectionFrameObservable: CommonTypes.SelectionFrameObservable =
+  createObservable<null | SelectionFrame>(null);
+const selectionObservable: CommonTypes.SelectionObservable =
+  createObservable<null | Selection>(null);
 
 shapesObservable.subscribe((newShapes: CommonTypes.Shape[]) => {
   console.log("Shapes updated:", newShapes);
 });
-
-const selectionFrameObservable: CommonTypes.SelectionFrameObservable =
-  createObservable<null | SelectionFrame>(null);
 
 const curveThresholdStrategy = {
   [CommonTypes.ShapeType.terminator]: {
@@ -990,7 +990,9 @@ const frameSelect = (
     return shapesInArea;
   })();
 
-  selection = new Selection(`selectionArea_${uuidv4()}`, shapesInSelectingArea);
+  selectionObservable.setValue(
+    new Selection(`selectionArea_${uuidv4()}`, shapesInSelectingArea)
+  );
 };
 
 const getCurve = (
@@ -1627,15 +1629,21 @@ const selectShape = (shapes: CommonTypes.Shape[], p: CommonTypes.Vec) => {
 
   deSelectCurve();
 
-  selection = new Selection(
-    `selectionArea_${uuidv4()}`,
-    [shape],
-    getIsSelectionDisableSendingPoint(shape)
+  selectionObservable.setValue(
+    new Selection(
+      `selectionArea_${uuidv4()}`,
+      [shape],
+      getIsSelectionDisableSendingPoint(shape)
+    )
   );
 
+  const newSelection = selectionObservable.getValue();
+
+  if (!newSelection) return true;
+
   pressingSelection = {
-    selection: selection,
-    ghost: cloneDeep(selection),
+    selection: newSelection,
+    ghost: cloneDeep(newSelection),
     target: SelectionTypes.PressingTarget.m,
   };
 
@@ -1690,7 +1698,7 @@ const selectCurve = (p: CommonTypes.Vec) => {
 };
 
 const deSelectShape = () => {
-  selection = null;
+  selectionObservable.setValue(null);
 };
 
 const deSelectCurve = () => {
@@ -1970,14 +1978,13 @@ const draw = (
     pressingCurve?.shape.draw(ctx, offset, scale);
   }
 
-  // console.log("selection", selection);
-
   if (!isScreenshot) {
     // draw selectArea
     const selectionFrame = selectionFrameObservable.getValue();
     if (!!selectionFrame) {
       selectionFrame.draw(ctx);
     }
+    const selection = selectionObservable.getValue();
     if (!!selection) {
       selection.draw(ctx, offset, scale);
       // pressingSelection?.ghost?.draw(ctx, offset, scale);
@@ -2029,11 +2036,15 @@ const undo = (
   shapesObservable.setValue(action.shapes);
 
   connectionCurves = action?.curves;
+  const selection = selectionObservable.getValue();
+
   if (selection) {
     const selectingMap = selection.getSelectingMap();
-    selection = new Selection(
-      selection.id,
-      shapes.filter((shape) => selectingMap[shape.id])
+    selectionObservable.setValue(
+      new Selection(
+        selection.id,
+        shapes.filter((shape) => selectingMap[shape.id])
+      )
     );
   }
 
@@ -2166,8 +2177,8 @@ export default function IdPage() {
 
     handleUtils.handle([
       () => startMovingViewport(space, p),
-      () => pressSelection(normalP, selection, scale),
-      () => triggerCurve(normalP, selection, scale),
+      () => pressSelection(normalP, selectionObservable.getValue(), scale),
+      () => triggerCurve(normalP, selectionObservable.getValue(), scale),
       () => selectCurve(normalP),
       () => selectShape(shapesObservable.getValue(), normalP),
       () => startFrameSelecting(p),
@@ -2210,7 +2221,12 @@ export default function IdPage() {
           normalOffsetP,
           pressingSelection
         ),
-      () => defineSelectionFrameRange(p, false, selectionFrameObservable.getValue()),
+      () =>
+        defineSelectionFrameRange(
+          p,
+          false,
+          selectionFrameObservable.getValue()
+        ),
       () =>
         movePressingCurve(shapesObservable.getValue(), normalP, pressingCurve),
     ]);
@@ -2459,6 +2475,7 @@ export default function IdPage() {
     updateSteps(shapesObservable.getValue());
     syncCandidates(shapesObservable.getValue());
 
+    const selection = selectionObservable.getValue();
     if (!!selection) {
       selection.isSendingPointDisabled = getIsSelectionDisableSendingPoint(
         selection.shapes[0]
@@ -2473,7 +2490,7 @@ export default function IdPage() {
       actionRecords.finish(CommonTypes.Action.resize);
     }
 
-    selectionFrameObservable.setValue(null)
+    selectionFrameObservable.setValue(null);
     pressingSelection = null;
     pressingCurve = null;
     alginLines = [];
@@ -2526,7 +2543,7 @@ export default function IdPage() {
       const $canvas = document.querySelector("canvas");
       if (!$canvas || !ctx) return;
 
-      deleteSelectingShapes();
+      deleteSelectingShapes(selectionObservable.getValue());
       drawCanvas(shapesObservable.getValue(), offset, scale);
       drawScreenshot(shapesObservable.getValue(), offset, scale);
       updateSteps(shapesObservable.getValue());
@@ -2542,7 +2559,7 @@ export default function IdPage() {
     }
   }
 
-  const deleteSelectingShapes = () => {
+  const deleteSelectingShapes = (selection: null | Selection) => {
     if (!selection) return true;
 
     const selectingMap = selection.getSelectingMap();
@@ -2796,9 +2813,9 @@ export default function IdPage() {
 
       <Console
         shapesObservable={shapesObservable}
+        selectionObservable={selectionObservable}
         connectionCurves={connectionCurves}
         updateConnectionCurves={updateConnectionCurves}
-        selection={selection}
         offset={offset}
         scale={scale}
         zoom={zoom}
