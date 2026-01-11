@@ -1,2 +1,6 @@
 /node_modules
 .env
+.vs
+
+/backendCSharp/**/[Bb]in/
+/backendCSharp/**/[Oo]bj/
