@@ -56,7 +56,21 @@ BK
 - typescript 5.2.2
 - node.js 20.11.0
 - express 4.18.3
-- mysql 8.3.0
+- .net core 8
+- postgresql 17.4.0
 
-## migration command
+## migration command node
 npx sequelize-cli db:migrate
+
+## prerequisite C#
+- (in .sln folder) dotnet tool install dotnet-ef --version 8.0.11
+
+## migration command C#
+- add
+dotnet ef migrations add AddUserTable --project Infrastructure --startup-project WebAPI
+- update
+dotnet ef database update --project Infrastructure --startup-project WebAPI
+- update / downgrade
+dotnet ef database update [target migration file name] --project Infrastructure --startup-project WebAPI
+- remove
+dotnet ef migrations remove --project Infrastructure --startup-project WebAPI
