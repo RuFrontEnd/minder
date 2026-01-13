@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Application.Services;
+using Application.DTOs;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -8,11 +10,21 @@ namespace WebAPi.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
+        // 1. 定義一個私有欄位
+        private readonly UserService _userService;
+
+        // 2. 在建構函式中賦值
+        public UserController(UserService userService)
+        {
+            _userService = userService;
+        }
+
         // GET: api/<ValuesController>
         [HttpGet]
-        public IEnumerable<string> Get()
+        public async Task<ActionResult<IEnumerable<UserDto>>> Get()
         {
-            return new string[] { "value1", "value2" };
+            var result = await _userService.GetAllUsersAsync();
+            return Ok(result);
         }
 
         // GET api/<ValuesController>/5

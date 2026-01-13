@@ -1,5 +1,8 @@
-using Microsoft.EntityFrameworkCore;
 using Infrastructure.Persistence; 
+using Microsoft.EntityFrameworkCore;
+using Domain.Repositories;
+using Application.Services;
+using Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +12,12 @@ builder.Services.AddControllers();
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
+
+// 註冊 Repository (介面與實作的對應)
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+
+// 註冊 Service
+builder.Services.AddScoped<UserService>();
 
 var app = builder.Build();
 

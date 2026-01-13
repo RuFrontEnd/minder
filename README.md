@@ -67,10 +67,10 @@ npx sequelize-cli db:migrate
 
 ## migration command C#
 - add
-dotnet ef migrations add [migartion file name] --project [project name] --startup-project [startup project name]
+dotnet ef migrations add [migartion file name] --project Infrastructure --startup-project WebAPi
 - update
-dotnet ef database update --project [project name] --startup-project [startup project name]
+dotnet ef database update --project Infrastructure --startup-project WebAPi
 - update / downgrade
-dotnet ef database update [target migration file name] --project [project name] --startup-project [startup project name]
+dotnet ef database update [target migration file name] --project Infrastructure --startup-project WebAPi
 - remove
-dotnet ef migrations remove --project [project name] --startup-project [startup project name]
+dotnet ef migrations remove --project Infrastructure --startup-project WebAPi
