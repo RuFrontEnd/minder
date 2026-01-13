@@ -3,6 +3,8 @@ using Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddControllers();
+
 // 1. 取得連線字串並註冊 DbContext
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -26,5 +28,7 @@ app.MapGet("/test-db", async (ApplicationDbContext db) =>
         return Results.Problem($"連線失敗: {ex.Message}");
     }
 });
+
+app.MapControllers();
 
 app.Run();
