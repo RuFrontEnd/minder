@@ -2,23 +2,15 @@
 using Domain.Entities;
 using Domain.Repositories;
 using Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services;
 
-public class AuthService
+public class AuthService(ApplicationDbContext dbContext, IAuthRepository authRepository)
 {
-    private readonly ApplicationDbContext _context;
-
-    public AuthService(ApplicationDbContext context)
-    {
-        _context = context;
-    }
-
     public async Task<UserDto> RegisterUserAsync(string email, string password)
     {
         // 1. 檢查 Email 是否已被註冊 (Business Rule)
-        var exists = await _context.User.AnyAsync(u => u.Email == email);
+        var exists = await authRepository.ExsistAsync(email);
         if (exists)
         {
             throw new Exception("Email has been registered.");
@@ -33,8 +25,8 @@ public class AuthService
         var user = new User(email, hashedPassword);
 
         // 4. 存入資料庫
-        _context.User.Add(user);
-        await _context.SaveChangesAsync();
+        authRepository.Add(user);
+        await authRepository.SaveChangesAsync();
 
         // 5. 將 Entity 轉回 DTO 回傳給 Controller
         return new UserDto
