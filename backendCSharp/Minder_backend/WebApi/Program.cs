@@ -15,9 +15,11 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 // 註冊 Repository (介面與實作的對應)
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 
 // 註冊 Service
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<AuthService>();
 
 var app = builder.Build();
 

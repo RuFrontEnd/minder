@@ -6,27 +6,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services;
 
-public class UserService
+public class AuthService
 {
     private readonly ApplicationDbContext _context;
-    private readonly IUserRepository _userRepository;
 
-    public UserService(ApplicationDbContext context, IUserRepository userRepository)
+    public AuthService(ApplicationDbContext context)
     {
         _context = context;
-        _userRepository = userRepository;
-    }
-    public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
-    {
-        var users = await _userRepository.GetAllAsync();
-
-        // 將 Domain Entity 轉換為 DTO
-        return users.Select(user => new UserDto
-        {
-            Id = user.Id,
-            Email = user.Email,
-            Password = user.Password
-        });
     }
 
     public async Task<UserDto> RegisterUserAsync(string email, string password)
