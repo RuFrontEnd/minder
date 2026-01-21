@@ -43,7 +43,7 @@ public class AuthService(ApplicationDbContext dbContext, IAuthRepository authRep
         // 1. check if user exsists
         var user = await authRepository.GetUserAsync(email, password);
 
-        if (user == null) 
+        if (user == null)
         {
             return null;
         }
@@ -57,10 +57,15 @@ public class AuthService(ApplicationDbContext dbContext, IAuthRepository authRep
         // 3. generate 
         var (token, expiration) = jwtProvider.GetJwtToken(user);
 
-        Console.WriteLine(token);
-        Console.WriteLine(expiration);
-
-
-        return new LoginResponse();
+        return new LoginResponse
+        {
+            Token = token,
+            Expiration = expiration,
+            User = new LoginResponse.UserInfo
+            {
+                Id = user.Id,
+                Email = user.Email,
+            },
+        };
     }
 }
