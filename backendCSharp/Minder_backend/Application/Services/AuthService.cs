@@ -1,11 +1,13 @@
 ﻿using Application.DTOs;
 using Domain.Entities;
 using Domain.Repositories;
+using Domain.Provider;
 using Infrastructure.Persistence;
+using Infrastructure.Provider;
 
 namespace Application.Services;
 
-public class AuthService(ApplicationDbContext dbContext, IAuthRepository authRepository)
+public class AuthService(ApplicationDbContext dbContext, IAuthRepository authRepository, IJwtProvider jwtProvider)
 {
     public async Task<UserDto> RegisterUserAsync(string email, string password)
     {
@@ -34,5 +36,31 @@ public class AuthService(ApplicationDbContext dbContext, IAuthRepository authRep
             Id = user.Id,
             Email = user.Email
         };
+    }
+
+    public async Task<LoginResponse?> LoginAsync(string email, string password)
+    {
+        // 1. check if user exsists
+        var user = await authRepository.GetUserAsync(email, password);
+
+        if (user == null) 
+        {
+            return null;
+        }
+
+        // 2. verify input password with db password
+        if (!BCrypt.Net.BCrypt.Verify(password, user.Password))
+        {
+            return null;
+        }
+
+        // 3. generate 
+        var (token, expiration) = jwtProvider.GetJwtToken(user);
+
+        Console.WriteLine(token);
+        Console.WriteLine(expiration);
+
+
+        return new LoginResponse();
     }
 }

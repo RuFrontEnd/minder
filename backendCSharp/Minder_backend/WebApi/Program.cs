@@ -1,25 +1,50 @@
-using Infrastructure.Persistence; 
-using Microsoft.EntityFrameworkCore;
-using Domain.Repositories;
-using Application.Services;
+using Infrastructure.Persistence;
 using Infrastructure.Repositories;
+using Infrastructure.Provider;
+using Domain.Repositories;
+using Domain.Provider;
+using Application.Services;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
-// 1. 取得連線字串並註冊 DbContext
+// 1. get connection string & register DbContext
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
 
-// 註冊 Repository (介面與實作的對應)
+// register Repository (interface to instance)
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 
-// 註冊 Service
+// register Provider
+builder.Services.AddScoped<IJwtProvider, JwtProvider>();
+
+// register Service
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<AuthService>();
+
+// add authentication middleware
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options => {
+        // 這裡設定如何驗證前端傳回來的 Token
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:SecretKey"]!))
+        };
+    });
 
 var app = builder.Build();
 

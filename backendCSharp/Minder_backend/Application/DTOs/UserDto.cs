@@ -9,10 +9,4 @@ namespace Application.DTOs
 
         public string Password { get; set; } = string.Empty;
     }
-
-    public class CreateUserRequest
-    {
-        public string Email { get; set; } = null!;
-        public string Password { get; set; } = null!;
-    }
 }

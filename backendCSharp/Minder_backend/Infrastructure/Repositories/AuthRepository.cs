@@ -28,6 +28,12 @@ namespace Infrastructure.Repositories
         {
             await dbContext.SaveChangesAsync();
         }
+
+        public async Task<User> GetUserAsync(string mail, string password)
+        {
+            var user = await dbContext.User.SingleOrDefaultAsync(u => u.Email == mail);
+            return user;
+        }
     }
 
 }

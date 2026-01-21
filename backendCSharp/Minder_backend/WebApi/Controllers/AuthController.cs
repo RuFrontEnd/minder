@@ -14,4 +14,10 @@ public class AuthController(AuthService authService) : ControllerBase
         await authService.RegisterUserAsync(request.Email, request.Password);
         return Ok(new { message = "register successfully!" });
     }
+
+    [HttpPost("login")]
+    public async Task<IActionResult> Login([FromBody] LoginRequest request) {
+        await authService.LoginAsync(request.Email, request.Password);
+        return Ok(new { message = "login successfully!" });
+    }
 }
