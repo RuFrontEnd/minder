@@ -4,11 +4,11 @@ namespace Domain.Repositories
 {
     public interface IAuthRepository
     {
-        Task<User> AddUserAsync(User user);
+        Task<UserEntity> AddUserAsync(UserEntity user);
         Task<bool> ExsistAsync(string email);
-        void Add(User user);
+        void Add(UserEntity user);
         Task SaveChangesAsync();
-        Task<User> GetUserAsync(string mail, string password);
+        Task<UserEntity> GetUserAsync(string mail, string password);
     }
 
 }

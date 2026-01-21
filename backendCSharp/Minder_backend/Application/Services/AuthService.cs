@@ -24,7 +24,7 @@ public class AuthService(ApplicationDbContext dbContext, IAuthRepository authRep
 
         // 3. 建立 Domain Entity
         // 這裡會呼叫你之前寫的那個有 Guid.NewGuid() 的建構函式
-        var user = new User(email, hashedPassword);
+        var user = new UserEntity(email, hashedPassword);
 
         // 4. 存入資料庫
         authRepository.Add(user);

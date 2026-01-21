@@ -4,7 +4,7 @@ namespace Domain.Repositories
 {
     public interface IUserRepository
     {
-        Task<IEnumerable<User>> GetAllAsync();
+        Task<IEnumerable<UserEntity>> GetAllAsync();
     }
 
 }

@@ -1,14 +1,14 @@
 ﻿namespace Domain.Entities
 {
-    public class User
+    public class UserEntity
     {
         public Guid Id { get; private set; }
         public string Email { get; private set; } = null!;
         public string Password { get; private set; } = null!;
 
-        private User() { }
+        private UserEntity() { }
 
-        public User(string email, string password)
+        public UserEntity(string email, string password)
         {
             Id = Guid.NewGuid();
             Email = email;

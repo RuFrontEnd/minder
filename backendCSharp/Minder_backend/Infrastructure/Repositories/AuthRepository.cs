@@ -7,7 +7,7 @@ namespace Infrastructure.Repositories
 {
     public class AuthRepository(ApplicationDbContext dbContext) : IAuthRepository
     {
-        public async Task<User> AddUserAsync(User user)
+        public async Task<UserEntity> AddUserAsync(UserEntity user)
         {
             await dbContext.User.AddAsync(user);
             await dbContext.SaveChangesAsync();
@@ -20,7 +20,7 @@ namespace Infrastructure.Repositories
             return isExist;
         }
 
-        public void Add(User user)
+        public void Add(UserEntity user)
         {
             dbContext.User.Add(user);
         }
@@ -29,7 +29,7 @@ namespace Infrastructure.Repositories
             await dbContext.SaveChangesAsync();
         }
 
-        public async Task<User> GetUserAsync(string mail, string password)
+        public async Task<UserEntity> GetUserAsync(string mail, string password)
         {
             var user = await dbContext.User.SingleOrDefaultAsync(u => u.Email == mail);
             return user;

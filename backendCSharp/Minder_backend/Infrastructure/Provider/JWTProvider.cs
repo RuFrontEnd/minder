@@ -10,7 +10,7 @@ namespace Infrastructure.Provider;
 
 public class JwtProvider(IConfiguration configuration) : IJwtProvider
 {
-    public (string Token, DateTime Expiration) GetJwtToken(User user)
+    public (string Token, DateTime Expiration) GetJwtToken(UserEntity user)
     {
         // 1. define Secret Key
         var secretKey = configuration["Jwt:SecretKey"]!;

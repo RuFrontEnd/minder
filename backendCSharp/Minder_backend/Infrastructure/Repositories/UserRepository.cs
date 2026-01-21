@@ -7,7 +7,7 @@ namespace Infrastructure.Repositories
 {
     public class UserRepository(ApplicationDbContext context) : IUserRepository
     {
-        public async Task<IEnumerable<User>> GetAllAsync()
+        public async Task<IEnumerable<UserEntity>> GetAllAsync()
         {
             return await context.User.ToListAsync();
         }
