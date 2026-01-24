@@ -2006,6 +2006,8 @@ export default function IdPage() {
   const [consoles, setConsoles] = useState<ConsoleTypes.Consoles>([]);
   const [isCheckingData, setIsCheckingData] = useState(false);
 
+  console.log('steps', steps)
+
   const movingViewport = useMemo(
     () => space && leftMouseBtn,
     [space, leftMouseBtn]
