@@ -1,12 +1,13 @@
-using Infrastructure.Persistence;
-using Infrastructure.Repositories;
-using Infrastructure.Provider;
-using Domain.Repositories;
-using Domain.Provider;
 using Application.Services;
-using Microsoft.EntityFrameworkCore;
+using Domain.Provider;
+using Domain.Repositories;
+using Infrastructure.Persistence;
+using Infrastructure.Provider;
+using Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Npgsql;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,12 +16,17 @@ builder.Services.AddControllers();
 
 // 1. get connection string & register DbContext
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
+dataSourceBuilder.EnableDynamicJson(); // 解決那個長長的 InvalidCastException 錯誤
+var dataSource = dataSourceBuilder.Build();
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(connectionString));
+    options.UseNpgsql(dataSource));
 
 // register Repository (interface to instance)
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
+builder.Services.AddScoped<IShapeRepository, ShapeRepository>();
 
 // register Provider
 builder.Services.AddScoped<IJwtProvider, JwtProvider>();
@@ -28,6 +34,7 @@ builder.Services.AddScoped<IJwtProvider, JwtProvider>();
 // register Service
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<ShapeService>();
 
 // add authentication middleware
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

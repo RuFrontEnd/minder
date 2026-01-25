@@ -4,6 +4,12 @@ namespace Domain.Entities
 {
     public class ShapeEntity
     {
+        public ShapeEntity(Guid userId, List<Info> infos)
+        {
+            Id = Guid.NewGuid();
+            UserId = userId;
+            Infos = infos;
+        }
         public Guid Id { get; private set; }
 
         // FK
