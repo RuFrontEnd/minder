@@ -7,10 +7,16 @@ namespace Infrastructure.Repositories
 {
     public class ShapeRepository(ApplicationDbContext dbContext) : IShapeRepository
     {
-        public async Task<bool> ExsistAsync(Guid userId)
+        public async Task<Guid?> ExsistAsync(Guid userId)
         {
-            var isExist = await dbContext.Shape.AnyAsync(shape => shape.UserId == userId);
-            return isExist;
+            var id = await dbContext.Shape
+                    .Where(shape => shape.UserId == userId)
+                    .Select(shape => shape.Id)
+                    .FirstOrDefaultAsync();
+
+            Console.WriteLine("id", id);
+
+            return id == Guid.Empty ? null : id;
         }
         //public async Task GetShapeAsync(Guid userId)
         //{

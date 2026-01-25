@@ -1,9 +1,10 @@
 ﻿using Application.DTOs;
 using Domain.Entities;
-using Domain.Repositories;
 using Domain.Provider;
+using Domain.Repositories;
 using Infrastructure.Persistence;
 using Infrastructure.Provider;
+using System.Text.Json;
 
 namespace Application.Services;
 
@@ -12,32 +13,32 @@ public class ShapeService(ApplicationDbContext dbContext, IShapeRepository shape
     public async Task<bool> UpdateShapeAsync(UpdateShapeRequest updateShapeRequest)
     {
         // 1. 檢查 Email 是否已被註冊 (Business Rule)
-        var exists = await shapeRepository.ExsistAsync(updateShapeRequest.userId);
+        var exsistId = await shapeRepository.ExsistAsync(updateShapeRequest.userId);
 
-        var entityInfos = updateShapeRequest.Infos.Select(dto => new ShapeEntity.Info
+        var entityInfos = updateShapeRequest.Infos.Select(info => new ShapeEntity.Info
         {
-            id = dto.id,
-            title = dto.title,
-            w = dto.w,
-            h = dto.h,
-            c = dto.c,
-            status = dto.status,
-            type = dto.type,
-            p = new ShapeEntity.P { x = dto.p.x, y = dto.p.y },
-            importDatas = dto.importDatas.Select(d => new ShapeEntity.Data { Id = d.Id, Text = d.Text, Status = d.Status }).ToList(),
-            usingDatas = dto.usingDatas.Select(d => new ShapeEntity.Data { Id = d.Id, Text = d.Text, Status = d.Status }).ToList(),
-            deleteDatas = dto.deleteDatas.Select(d => new ShapeEntity.Data { Id = d.Id, Text = d.Text, Status = d.Status }).ToList()
+            id = info.id,
+            title = info.title,
+            w = info.w,
+            h = info.h,
+            c = info.c,
+            status = info.status,
+            type = info.type,
+            p = new ShapeEntity.P { x = info.p.x, y = info.p.y },
+            importDatas = info.importDatas.Select(d => new ShapeEntity.Data { Id = d.Id, Text = d.Text, Status = d.Status }).ToList(),
+            usingDatas = info.usingDatas.Select(d => new ShapeEntity.Data { Id = d.Id, Text = d.Text, Status = d.Status }).ToList(),
+            deleteDatas = info.deleteDatas.Select(d => new ShapeEntity.Data { Id = d.Id, Text = d.Text, Status = d.Status }).ToList()
         }).ToList();
 
-        var ShapeEntity = new ShapeEntity(updateShapeRequest.userId, entityInfos);
+        var ShapeEntity = new ShapeEntity(exsistId ?? Guid.NewGuid(), updateShapeRequest.userId, entityInfos);
 
-        if (exists)
+        if (exsistId == null)
         {
-            await shapeRepository.UpdateShapeAsync(ShapeEntity);
+            await shapeRepository.AddShapeAsync(ShapeEntity);
         }
         else
         {
-            await shapeRepository.AddShapeAsync(ShapeEntity);
+            await shapeRepository.UpdateShapeAsync(ShapeEntity);
         }
 
         return true;

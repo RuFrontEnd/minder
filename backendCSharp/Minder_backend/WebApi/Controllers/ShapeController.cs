@@ -12,8 +12,6 @@ public class ShapeController(ShapeService shapeService) : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Update([FromBody] UpdateShapeRequest request)
     {
-        var json = JsonSerializer.Serialize(request, new JsonSerializerOptions { WriteIndented = true });
-        Console.WriteLine(json);
         await shapeService.UpdateShapeAsync(request);
 
 

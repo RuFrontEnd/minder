@@ -1,12 +1,14 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domain.Entities
 {
     public class ShapeEntity
     {
-        public ShapeEntity(Guid userId, List<Info> infos)
+        public ShapeEntity(Guid id, Guid userId, List<Info> infos)
         {
-            Id = Guid.NewGuid();
+            // 注意：這裡使用小寫 id 作為參數名，避免跟屬性 Id 混淆
+            Id = id;
             UserId = userId;
             Infos = infos;
         }
