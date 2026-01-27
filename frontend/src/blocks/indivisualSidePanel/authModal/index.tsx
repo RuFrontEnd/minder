@@ -16,6 +16,7 @@ import * as AlertTypes from "@/types/components/alert";
 import * as AuthTypes from "@/types/apis/auth";
 import * as ProjectAPITypes from "@/types/apis/project";
 import * as ProjectTypes from "@/types/project";
+import * as AuthModalTypes from "@/types/blocks/indivisualSidePanel/authModal";
 
 axios.defaults.baseURL = process.env.BASE_URL || "http://localhost:5000/api";
 
@@ -41,11 +42,10 @@ const init = {
   },
 };
 
-export default function SignIn() {
+export default function AuthModal(props: AuthModalTypes.Props) {
   const qas = isBrowser && window.location.href.includes("qas");
   const router = useRouter();
 
-  const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
   const [isLogIn, setIsLogin] = useState(true);
   const [isProjectsModalOpen, setIsProjectsModalOpen] = useState(false);
   const [authInfo, setAuthInfo] = useState<{
@@ -84,11 +84,6 @@ export default function SignIn() {
   };
 
   const verifyToken = async () => {
-    if (qas) {
-      setIsAccountModalOpen(true);
-      return;
-    }
-
     const token = localStorage.getItem("Authorization");
 
     if (token) {
@@ -101,11 +96,7 @@ export default function SignIn() {
         setIsLogin(false);
         fetchProjects();
         setIsProjectsModalOpen(true);
-      } else {
-        setIsAccountModalOpen(true);
       }
-    } else {
-      setIsAccountModalOpen(true);
     }
   };
 
@@ -115,13 +106,6 @@ export default function SignIn() {
   };
 
   const onClickLoginButton = async () => {
-    if (qas) {
-      setIsAccountModalOpen(false);
-      setAuthInfo(init.authInfo);
-      setIsProjectsModalOpen(true);
-      return;
-    }
-
     const _authInfo = cloneDeep(authInfo);
     if (!authInfo.account.value) {
       _authInfo.account.status = InputTypes.Status.error;
@@ -143,11 +127,7 @@ export default function SignIn() {
     const res: AxiosResponse<AuthTypes.Login["resData"], any> =
       await authAPIs.login(authInfo.account.value, authInfo.password.value);
 
-    if (res.status === 201) {
-      axios.defaults.headers.common[
-        "Authorization"
-      ] = `Bearer ${res.data.token}`;
-      localStorage.setItem("Authorization", res.data.token);
+    if (res.status === 200) {
       setTimeout(() => {
         setAuthMessage({
           status: AlertTypes.Type.succeess,
@@ -160,14 +140,15 @@ export default function SignIn() {
             ...authMessage,
             text: "",
           }));
-          setIsAccountModalOpen(false);
           setAuthInfo(init.authInfo);
-          const res: AxiosResponse<
-            ProjectAPITypes.GetProjects["resData"],
-            any
-          > = await projectAPIs.getProjecs();
-          setProjects(res.data);
-          setIsProjectsModalOpen(true);
+          !!props.afterLogin && props.afterLogin();
+          // TODO: fetch projects
+          // const res: AxiosResponse<
+          //   ProjectAPITypes.GetProjects["resData"],
+          //   any
+          // > = await projectAPIs.getProjecs();
+          // setProjects(res.data);
+          // setIsProjectsModalOpen(true);
         }, 1000);
       }, 500);
     } else {
@@ -238,11 +219,7 @@ export default function SignIn() {
     setIsAuthorizing(true);
 
     const res: AxiosResponse<AuthTypes.Register["resData"], any> =
-      await authAPIs.register(
-        authInfo.account.value,
-        authInfo.password.value,
-        authInfo.email.value
-      );
+      await authAPIs.register(authInfo.email.value, authInfo.password.value);
 
     if (res.status === 201) {
       setTimeout(() => {
@@ -335,7 +312,17 @@ export default function SignIn() {
     setSelectedProjectId(null);
     setAuthInfo(init.authInfo);
     setIsProjectsModalOpen(false);
-    setIsAccountModalOpen(true);
+  };
+
+  const onClickX: AuthModalTypes.Props["onClickX"] = (e) => {
+    const _authInfo = cloneDeep(authInfo);
+    _authInfo.account.status = InputTypes.Status.normal;
+    _authInfo.account.comment = undefined;
+    _authInfo.password.status = InputTypes.Status.normal;
+    _authInfo.password.comment = undefined;
+    setAuthInfo(_authInfo);
+
+    props.onClickX && props.onClickX(e);
   };
 
   useEffect(() => {
@@ -345,12 +332,15 @@ export default function SignIn() {
   return (
     <>
       <Modal
+        style={props.style}
+        className={`${props.className && props.className}`}
         isOpen={
-          // true
-          isAccountModalOpen && !isProjectsModalOpen && !isProjectsModalOpen
+          props.isOpen
+          // && !isProjectsModalOpen && !isProjectsModalOpen
         }
         width="400px"
         mask={false}
+        onClickX={onClickX}
       >
         <div className="bg-white-500 rounded-lg p-8 flex flex-col w-full shadow-lg">
           <a className="flex title-font font-medium justify-center items-center text-gray-900 mb-4">
@@ -416,7 +406,8 @@ export default function SignIn() {
               text={authMessage.text}
             />
           )}
-          <p className="text-xs text-gray-500 mt-3">
+          {/* register switcher */}
+          {/* <p className="text-xs text-gray-500 mt-3">
             {isLogIn ? "No account yet? " : "Already have an account? "}
             <a
               className="text-info-500 cursor-pointer"
@@ -426,7 +417,7 @@ export default function SignIn() {
             >
               {isLogIn ? "Sign up" : "Login"}
             </a>
-          </p>
+          </p> */}
         </div>
       </Modal>
       <Modal isOpen={isProjectsModalOpen} width="1120px" mask={false}>

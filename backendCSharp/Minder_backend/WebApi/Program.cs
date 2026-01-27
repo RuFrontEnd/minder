@@ -53,6 +53,19 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+// CORS Policy
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowLocalhost3000",
+        policy =>
+        {
+            policy.WithOrigins("http://localhost:3000") // 允許的來源
+                  .AllowAnyHeader()                   // 允許任何 Header
+                  .AllowAnyMethod()                   // 允許任何方法 (GET, POST, PUT, DELETE)
+                  .AllowCredentials();                // 如果你有用 Cookie 或 JWT，這行很重要
+        });
+});
+
 var app = builder.Build();
 
 // 2. 測試資料庫連線的端點
@@ -72,6 +85,6 @@ app.MapGet("/test-db", async (ApplicationDbContext db) =>
     }
 });
 
+app.UseCors("AllowLocalhost3000"); // CORS
 app.MapControllers();
-
 app.Run();

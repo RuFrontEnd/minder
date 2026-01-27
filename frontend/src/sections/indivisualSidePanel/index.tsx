@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, ChangeEventHandler } from "react";
-import SignIn from "@/blocks/indivisualSidePanel/signIn";
+import AuthModal from "@/blocks/indivisualSidePanel/authModal";
 import DataBox from "@/blocks/indivisualSidePanel/dataBox";
 import SidePanel from "@/components/sidePanel";
 import Button from "@/components/button";
@@ -30,6 +30,7 @@ export default function IndivisualSidePanel(
 ) {
   const dataOptions = props.datas.map((data) => data.name);
   const [editingTitle, setEditingTitle] = useState<null | string>(null);
+  const [isAuthModalOpen, setIsAccountModalOpen] = useState(false);
 
   const closeEditing = () => {
     props.setCreateImportDatas([]);
@@ -563,6 +564,18 @@ export default function IndivisualSidePanel(
       });
   };
 
+  const onClickSignInButton = () => {
+    setIsAccountModalOpen(true);
+  };
+
+  const onClickAuthModalX = () => {
+    setIsAccountModalOpen(false);
+  };
+
+  const afterLogin = () => {
+    setIsAccountModalOpen(false);
+  };
+
   return (
     <>
       <SidePanel
@@ -671,7 +684,7 @@ export default function IndivisualSidePanel(
             role="signIn_button"
             text={"Sign In"}
             size={ButtonTypes.Size.sm}
-            onClick={onClickCancelButton}
+            onClick={onClickSignInButton}
           />
           <SquareButton
             role="upload_file"
@@ -702,7 +715,11 @@ export default function IndivisualSidePanel(
             onClick={onClickDownloadButton}
           />
         </div>
-        <SignIn />
+        <AuthModal
+          isOpen={isAuthModalOpen}
+          onClickX={onClickAuthModalX}
+          afterLogin={afterLogin}
+        />
       </SidePanel>
     </>
   );

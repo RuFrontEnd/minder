@@ -27,6 +27,7 @@ import * as PageIdTypes from "@/types/app/pageId";
 import * as ConsoleTypes from "@/types/sections/id/console";
 
 axios.defaults.baseURL = process.env.BASE_URL || "http://localhost:5000/api";
+axios.defaults.withCredentials = true;
 
 const isBrowser = typeof window !== "undefined";
 
