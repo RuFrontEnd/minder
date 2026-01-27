@@ -37,7 +37,9 @@ namespace Infrastructure.Persistence
                       .OnDelete(DeleteBehavior.Cascade); // 如果 User 被刪除，Shapes 也一起刪除
 
                 entity.Property(e => e.Infos)
-                      .HasColumnType("jsonb");
+                      .HasColumnType("jsonb")
+                      .IsRequired()
+                      .HasDefaultValueSql("'[]'::jsonb");
             });
         }
     }

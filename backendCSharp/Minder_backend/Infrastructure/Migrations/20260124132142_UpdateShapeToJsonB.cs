@@ -28,7 +28,9 @@ namespace Infrastructure.Migrations
                 name: "Infos",
                 table: "Shape",
                 type: "jsonb",
-                nullable: false);
+                nullable: false,
+                defaultValueSql: "'[]'::jsonb"
+                );
         }
 
         /// <inheritdoc />
