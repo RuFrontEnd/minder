@@ -14,16 +14,16 @@ const login = async (_email: string, _password: string) => {
   });
 };
 
-const jwtLogin = async (token: string) => {
-  return axios.post("/auth/jwt-login", undefined, {
-    headers: {
-      Authorization: `${token}`,
-    },
-  });
+const logout = async () => {
+  return axios.post("/auth/logout");
+};
+
+const validateToken = async () => {
+  return axios.post("/auth/validateToken");
 };
 
 const refresh = async () => {
   return axios.post("/auth/refresh");
 };
 
-export { register, login, jwtLogin, refresh };
+export { register, login, logout, validateToken, refresh };

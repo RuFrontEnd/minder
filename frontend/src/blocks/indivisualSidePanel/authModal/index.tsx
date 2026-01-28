@@ -83,23 +83,6 @@ export default function AuthModal(props: AuthModalTypes.Props) {
     setProjects(res.data);
   };
 
-  const verifyToken = async () => {
-    const token = localStorage.getItem("Authorization");
-
-    if (token) {
-      const res: AxiosResponse<AuthTypes.JWTLogin["resData"]> =
-        await authAPIs.jwtLogin(token);
-
-      if (res.data.isPass) {
-        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-
-        setIsLogin(false);
-        fetchProjects();
-        setIsProjectsModalOpen(true);
-      }
-    }
-  };
-
   const onClickChangeAuthButton = (_isLogining: boolean) => {
     setIsLogin(_isLogining);
     setAuthInfo(init.authInfo);

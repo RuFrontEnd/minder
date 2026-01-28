@@ -1,7 +1,7 @@
 // indivsual data hover color / change shape type when editing shape / edit data name in overall datas / edit data name in indivisual / copy data / downloaded data with project name / icon component default should be empty
 "use client";
 import React, { useState, useRef, useEffect, useMemo } from "react";
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 import Terminal from "@/shapes/terminal";
 import Process from "@/shapes/process";
 import Data from "@/shapes/data";
@@ -21,6 +21,7 @@ import * as authAPIs from "@/apis/auth";
 import * as handleUtils from "@/utils/handle";
 import * as CurveTypes from "@/types/shapes/curve";
 import * as CommonTypes from "@/types/common";
+import * as AuthTypes from "@/types/apis/auth";
 import * as SelectionTypes from "@/types/shapes/selection";
 import * as IndivisaulSidePanelTypes from "@/types/sections/id/indivisualSidePanel";
 import * as InputTypes from "@/types/components/input";
@@ -39,6 +40,8 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+
+    console.log('error', error);
 
     if (error.response.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
@@ -261,6 +264,20 @@ const getScreenshotShapes = (
   // });
 
   return screenshotShapes;
+};
+
+
+const verifyToken = async () => {
+  const res: AxiosResponse<AuthTypes.JWTLogin["resData"]> =
+    await authAPIs.validateToken();
+
+    console.log('res', res);
+
+  // if (res.data.isPass) {
+  //   setIsLogin(false);
+  //   fetchProjects();
+  //   setIsProjectsModalOpen(true);
+  // }
 };
 
 // TODO: wait for align feature
@@ -2591,6 +2608,7 @@ export default function IdPage() {
 
   useEffect(() => {
     if (!isBrowser) return;
+    verifyToken();
 
     (async () => {
       drawCanvas(offset, scale);

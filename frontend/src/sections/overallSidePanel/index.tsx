@@ -265,7 +265,8 @@ export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
         )}
       </ul>
 
-      <div
+      {/* TODO: project name */}
+      {/* <div
         className="absolute top-0 -right-20 translate-x-full text-base"
         role="project_name"
       >
@@ -320,7 +321,7 @@ export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
             </Frame>
           </motion.div>
         </div>
-      </div>
+      </div> */}
     </SidePanel>
   );
 }
