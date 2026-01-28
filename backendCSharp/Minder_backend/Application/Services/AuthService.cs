@@ -1,9 +1,10 @@
 ﻿using Application.DTOs;
 using Domain.Entities;
-using Domain.Repositories;
 using Domain.Provider;
+using Domain.Repositories;
 using Infrastructure.Persistence;
 using Infrastructure.Provider;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services;
 
@@ -38,6 +39,12 @@ public class AuthService(ApplicationDbContext dbContext, IAuthRepository authRep
         };
     }
 
+    public (string Token, DateTime Expiration) GenerateAccessToken(Guid userId, string email)
+    {
+        var token = jwtProvider.GetJwtToken(userId, email);
+        return token;
+    }
+
     public async Task<LoginResponse?> LoginAsync(string email, string password)
     {
         // 1. check if user exsists
@@ -54,8 +61,8 @@ public class AuthService(ApplicationDbContext dbContext, IAuthRepository authRep
             return null;
         }
 
-        // 3. generate 
-        var (token, expiration) = jwtProvider.GetJwtToken(user);
+        // 3. generate jwt token
+        var (token, expiration) = jwtProvider.GetJwtToken(user.Id, user.Email);
 
         return new LoginResponse
         {
@@ -67,5 +74,35 @@ public class AuthService(ApplicationDbContext dbContext, IAuthRepository authRep
                 Email = user.Email,
             },
         };
+    }
+
+    public async Task<string?> UpdateUserRefreshTokenAsync(Guid userId, DateTime expiry)
+    {
+        try
+        {
+            var refreshToken = Guid.NewGuid().ToString();
+
+            await authRepository.UpdateUserRefreshTokenAsync(userId, refreshToken, expiry);
+
+            return refreshToken;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    public async Task<(string, DateTime)?> GetUserRefreshTokenAsync(Guid userId)
+    {
+        try
+        {
+            var refreshToken = await authRepository.GetUserRefreshTokenAsync(userId);
+
+            return refreshToken;
+        }
+        catch
+        {
+            return null;
+        }
     }
 }

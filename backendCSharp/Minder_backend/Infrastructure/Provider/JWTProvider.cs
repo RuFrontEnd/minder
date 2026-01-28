@@ -10,7 +10,7 @@ namespace Infrastructure.Provider;
 
 public class JwtProvider(IConfiguration configuration) : IJwtProvider
 {
-    public (string Token, DateTime Expiration) GetJwtToken(UserEntity user)
+    public (string Token, DateTime Expiration) GetJwtToken(Guid userId, string email)
     {
         // 1. define Secret Key
         var secretKey = configuration["Jwt:SecretKey"]!;
@@ -25,8 +25,8 @@ public class JwtProvider(IConfiguration configuration) : IJwtProvider
         {
             Subject = new ClaimsIdentity(
             [
-                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-                new Claim(JwtRegisteredClaimNames.Email, user.Email),
+                new Claim(JwtRegisteredClaimNames.Sub ,userId.ToString()),
+                new Claim(JwtRegisteredClaimNames.Email, email),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             ]),
             Expires = expiration,

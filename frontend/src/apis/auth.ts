@@ -1,9 +1,6 @@
 import axios from "axios";
 
-const register = async (
-  _password: string,
-  _email: string
-) => {
+const register = async (_password: string, _email: string) => {
   return axios.post("/auth/register", {
     password: _password,
     email: _email,
@@ -25,4 +22,8 @@ const jwtLogin = async (token: string) => {
   });
 };
 
-export { register, login, jwtLogin };
+const refresh = async () => {
+  return axios.post("/auth/refresh");
+};
+
+export { register, login, jwtLogin, refresh };

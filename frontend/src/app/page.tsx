@@ -17,6 +17,7 @@ import Console from "@/sections/console";
 import { cloneDeep } from "lodash";
 import { v4 as uuidv4 } from "uuid";
 import { tailwindColors } from "@/variables/colors";
+import * as authAPIs from "@/apis/auth";
 import * as handleUtils from "@/utils/handle";
 import * as CurveTypes from "@/types/shapes/curve";
 import * as CommonTypes from "@/types/common";
@@ -28,6 +29,31 @@ import * as ConsoleTypes from "@/types/sections/id/console";
 
 axios.defaults.baseURL = process.env.BASE_URL || "http://localhost:5000/api";
 axios.defaults.withCredentials = true;
+const api = axios.create({
+  baseURL: "http://localhost:5000/api",
+  withCredentials: true,
+});
+
+// 回應攔截器
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    if (error.response.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      try {
+        await authAPIs.refresh()
+
+        return api(originalRequest);
+      } catch (refreshError) {
+        // TODO: call logout
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 const isBrowser = typeof window !== "undefined";
 

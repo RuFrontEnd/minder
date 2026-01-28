@@ -11,7 +11,8 @@
         public Guid Id { get; private set; }
         public string Email { get; private set; } = null!;
         public string Password { get; private set; } = null!;
-
+        public string? RefreshToken { get; set; }
+        public DateTime? RefreshTokenExpiryTime { get; set; }
         private UserEntity() { }
     }
 

@@ -34,6 +34,27 @@ namespace Infrastructure.Repositories
             var user = await dbContext.User.SingleOrDefaultAsync(u => u.Email == mail);
             return user;
         }
-    }
 
+        public async Task UpdateUserRefreshTokenAsync(Guid userId, string token, DateTime expiry)
+        {
+            var user = await dbContext.User.FindAsync(userId);
+            if (user != null)
+            {
+                user.RefreshToken = token;
+                user.RefreshTokenExpiryTime = expiry;
+                await dbContext.SaveChangesAsync();
+            }
+        }
+        public async Task<(string, DateTime)?> GetUserRefreshTokenAsync(Guid userId)
+        {
+            var user = await dbContext.User.FindAsync(userId);
+
+            if (user != null && user.RefreshToken != null && user.RefreshTokenExpiryTime != null)
+            {
+                return (user.RefreshToken, user.RefreshTokenExpiryTime.Value);
+            }
+
+            return null;
+        }
+    }
 }
