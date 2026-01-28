@@ -14,8 +14,6 @@ namespace Infrastructure.Repositories
                     .Select(shape => shape.Id)
                     .FirstOrDefaultAsync();
 
-            Console.WriteLine("id", id);
-
             return id == Guid.Empty ? null : id;
         }
         //public async Task GetShapeAsync(Guid userId)

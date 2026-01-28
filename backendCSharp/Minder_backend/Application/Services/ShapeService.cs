@@ -10,12 +10,12 @@ namespace Application.Services;
 
 public class ShapeService(ApplicationDbContext dbContext, IShapeRepository shapeRepository)
 {
-    public async Task<bool> UpdateShapeAsync(UpdateShapeRequest updateShapeRequest)
+    public async Task<bool> UpdateShapeAsync(Guid userId, List<UpdateShapeRequest.Info> infos)
     {
         // 1. 檢查 Email 是否已被註冊 (Business Rule)
-        var exsistId = await shapeRepository.ExsistAsync(updateShapeRequest.userId);
+        var exsistId = await shapeRepository.ExsistAsync(userId);
 
-        var entityInfos = updateShapeRequest.Infos.Select(info => new ShapeEntity.Info
+        var entityInfos = infos.Select(info => new ShapeEntity.Info
         {
             id = info.id,
             title = info.title,
@@ -30,7 +30,7 @@ public class ShapeService(ApplicationDbContext dbContext, IShapeRepository shape
             deleteDatas = info.deleteDatas.Select(d => new ShapeEntity.Data { Id = d.Id, Text = d.Text, Status = d.Status }).ToList()
         }).ToList();
 
-        var ShapeEntity = new ShapeEntity(exsistId ?? Guid.NewGuid(), updateShapeRequest.userId, entityInfos);
+        var ShapeEntity = new ShapeEntity(exsistId ?? Guid.NewGuid(), userId, entityInfos);
 
         if (exsistId == null)
         {
