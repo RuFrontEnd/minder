@@ -46,7 +46,6 @@ export default function AuthModal(props: AuthModalTypes.Props) {
   const qas = isBrowser && window.location.href.includes("qas");
   const router = useRouter();
 
-  const [isLogIn, setIsLogin] = useState(true);
   const [isProjectsModalOpen, setIsProjectsModalOpen] = useState(false);
   const [authInfo, setAuthInfo] = useState<{
     account: {
@@ -83,10 +82,10 @@ export default function AuthModal(props: AuthModalTypes.Props) {
     setProjects(res.data);
   };
 
-  const onClickChangeAuthButton = (_isLogining: boolean) => {
-    setIsLogin(_isLogining);
-    setAuthInfo(init.authInfo);
-  };
+  // const onClickChangeAuthButton = (_isLogining: boolean) => {
+  //   setIsLogin(_isLogining);
+  //   setAuthInfo(init.authInfo);
+  // };
 
   const onClickLoginButton = async () => {
     const _authInfo = cloneDeep(authInfo);
@@ -118,7 +117,6 @@ export default function AuthModal(props: AuthModalTypes.Props) {
         });
         setIsAuthorizing(false);
         setTimeout(async () => {
-          setIsLogin(true);
           setAuthMessage((authMessage) => ({
             ...authMessage,
             text: "",
@@ -146,89 +144,79 @@ export default function AuthModal(props: AuthModalTypes.Props) {
   };
 
   const onClickSignUpButton = async () => {
-    if (qas) return;
-    const _authInfo = cloneDeep(authInfo);
-
-    const isPasswordLengthGreaterThanSix =
-        authInfo.password.value && authInfo.password.value?.length >= 6,
-      isEmailFormatValid =
-        authInfo.email.value &&
-        new RegExp(/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/).test(
-          authInfo.email.value
-        );
-
-    if (!authInfo.account.value) {
-      _authInfo.account.status = InputTypes.Status.error;
-      _authInfo.account.comment = "required field.";
-    } else {
-      _authInfo.account.status = InputTypes.Status.normal;
-      _authInfo.account.comment = "";
-    }
-
-    if (!authInfo.password.value) {
-      _authInfo.password.status = InputTypes.Status.error;
-      _authInfo.password.comment = "required field.";
-    } else if (!isPasswordLengthGreaterThanSix) {
-      _authInfo.password.status = InputTypes.Status.error;
-      _authInfo.password.comment =
-        "length should be greater than 6 characters.";
-    } else {
-      _authInfo.password.status = InputTypes.Status.normal;
-      _authInfo.password.comment = "";
-    }
-
-    if (!authInfo.email.value) {
-      _authInfo.email.status = InputTypes.Status.error;
-      _authInfo.email.comment = "requied field.";
-    } else if (!isEmailFormatValid) {
-      _authInfo.email.status = InputTypes.Status.error;
-      _authInfo.email.comment = "invalid email format.";
-    } else {
-      _authInfo.email.status = InputTypes.Status.normal;
-      _authInfo.email.comment = "";
-    }
-
-    setAuthInfo(_authInfo);
-
-    if (
-      !isPasswordLengthGreaterThanSix ||
-      !isEmailFormatValid ||
-      !authInfo.account.value ||
-      !authInfo.password.value ||
-      !authInfo.email.value
-    )
-      return;
-
-    setIsAuthorizing(true);
-
-    const res: AxiosResponse<AuthTypes.Register["resData"], any> =
-      await authAPIs.register(authInfo.email.value, authInfo.password.value);
-
-    if (res.status === 201) {
-      setTimeout(() => {
-        setAuthMessage({
-          status: AlertTypes.Type.succeess,
-          text: res.data.message,
-        });
-        setIsAuthorizing(false);
-        setAuthInfo(init.authInfo);
-        setTimeout(() => {
-          setIsLogin(true);
-          setAuthMessage((authMessage) => ({
-            ...authMessage,
-            text: "",
-          }));
-        }, 1500);
-      }, 1000);
-    } else {
-      setTimeout(() => {
-        setIsAuthorizing(false);
-        setAuthMessage({
-          status: AlertTypes.Type.error,
-          text: res.data.message,
-        });
-      }, 1000);
-    }
+    // if (qas) return;
+    // const _authInfo = cloneDeep(authInfo);
+    // const isPasswordLengthGreaterThanSix =
+    //     authInfo.password.value && authInfo.password.value?.length >= 6,
+    //   isEmailFormatValid =
+    //     authInfo.email.value &&
+    //     new RegExp(/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/).test(
+    //       authInfo.email.value
+    //     );
+    // if (!authInfo.account.value) {
+    //   _authInfo.account.status = InputTypes.Status.error;
+    //   _authInfo.account.comment = "required field.";
+    // } else {
+    //   _authInfo.account.status = InputTypes.Status.normal;
+    //   _authInfo.account.comment = "";
+    // }
+    // if (!authInfo.password.value) {
+    //   _authInfo.password.status = InputTypes.Status.error;
+    //   _authInfo.password.comment = "required field.";
+    // } else if (!isPasswordLengthGreaterThanSix) {
+    //   _authInfo.password.status = InputTypes.Status.error;
+    //   _authInfo.password.comment =
+    //     "length should be greater than 6 characters.";
+    // } else {
+    //   _authInfo.password.status = InputTypes.Status.normal;
+    //   _authInfo.password.comment = "";
+    // }
+    // if (!authInfo.email.value) {
+    //   _authInfo.email.status = InputTypes.Status.error;
+    //   _authInfo.email.comment = "requied field.";
+    // } else if (!isEmailFormatValid) {
+    //   _authInfo.email.status = InputTypes.Status.error;
+    //   _authInfo.email.comment = "invalid email format.";
+    // } else {
+    //   _authInfo.email.status = InputTypes.Status.normal;
+    //   _authInfo.email.comment = "";
+    // }
+    // setAuthInfo(_authInfo);
+    // if (
+    //   !isPasswordLengthGreaterThanSix ||
+    //   !isEmailFormatValid ||
+    //   !authInfo.account.value ||
+    //   !authInfo.password.value ||
+    //   !authInfo.email.value
+    // )
+    //   return;
+    // setIsAuthorizing(true);
+    // const res: AxiosResponse<AuthTypes.Register["resData"], any> =
+    //   await authAPIs.register(authInfo.email.value, authInfo.password.value);
+    // if (res.status === 201) {
+    //   setTimeout(() => {
+    //     setAuthMessage({
+    //       status: AlertTypes.Type.succeess,
+    //       text: res.data.message,
+    //     });
+    //     setIsAuthorizing(false);
+    //     setAuthInfo(init.authInfo);
+    //     setTimeout(() => {
+    //       setAuthMessage((authMessage) => ({
+    //         ...authMessage,
+    //         text: "",
+    //       }));
+    //     }, 1500);
+    //   }, 1000);
+    // } else {
+    //   setTimeout(() => {
+    //     setIsAuthorizing(false);
+    //     setAuthMessage({
+    //       status: AlertTypes.Type.error,
+    //       text: res.data.message,
+    //     });
+    //   }, 1000);
+    // }
   };
 
   const onChangeAccount: ChangeEventHandler<HTMLInputElement> = (e) => {
@@ -290,11 +278,11 @@ export default function AuthModal(props: AuthModalTypes.Props) {
 
   const onClickLogOutButton = () => {
     localStorage.removeItem("Authorization");
-    setIsLogin(true);
     setProjects([]);
     setSelectedProjectId(null);
     setAuthInfo(init.authInfo);
     setIsProjectsModalOpen(false);
+    !!props.afterLogout && props.afterLogout();
   };
 
   const onClickX: AuthModalTypes.Props["onClickX"] = (e) => {
@@ -364,7 +352,7 @@ export default function AuthModal(props: AuthModalTypes.Props) {
             comment={authInfo.password.comment}
             onChange={onChangePassword}
           />
-          {!isLogIn && (
+          {/* {!props.isLogIn && (
             <Input
               className="mb-4"
               label={"Email"}
@@ -375,11 +363,17 @@ export default function AuthModal(props: AuthModalTypes.Props) {
               comment={authInfo.email.comment}
               onChange={onChangeEmail}
             />
-          )}
+          )} */}
           <Button
             className="text-lg"
-            text={isLogIn ? "Login" : "Sign Up"}
-            onClick={isLogIn ? onClickLoginButton : onClickSignUpButton}
+            text={
+              "Login"
+              // props.isLogIn ? "Login" : "Sign Up"
+            }
+            onClick={
+              onClickLoginButton
+              // props.isLogIn ? onClickLoginButton : onClickSignUpButton
+            }
             loading={isAuthorizing}
           />
           {authMessage.text && (
@@ -391,14 +385,14 @@ export default function AuthModal(props: AuthModalTypes.Props) {
           )}
           {/* register switcher */}
           {/* <p className="text-xs text-gray-500 mt-3">
-            {isLogIn ? "No account yet? " : "Already have an account? "}
+            {props.isLogIn ? "No account yet? " : "Already have an account? "}
             <a
               className="text-info-500 cursor-pointer"
               onClick={() => {
-                onClickChangeAuthButton(!isLogIn);
+                onClickChangeAuthButton(!props.isLogIn);
               }}
             >
-              {isLogIn ? "Sign up" : "Login"}
+              {props.isLogIn ? "Sign up" : "Login"}
             </a>
           </p> */}
         </div>
@@ -436,7 +430,7 @@ export default function AuthModal(props: AuthModalTypes.Props) {
               <Button
                 className="me-3"
                 onClick={onClickLogOutButton}
-                text={"Log Out"}
+                text={"LogOut"}
                 danger
               />
               <div className="flex">

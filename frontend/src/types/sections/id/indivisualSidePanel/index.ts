@@ -21,8 +21,10 @@ type AddDatas = {
 }[];
 
 type Props = {
+  isLogIn: boolean;
+  setIsLogin: Dispatch<SetStateAction<Props["isLogIn"]>>;
   projectName: string;
-  setProjectName: Dispatch<SetStateAction<CommonTypes.ProjectName>>
+  setProjectName: Dispatch<SetStateAction<CommonTypes.ProjectName>>;
   shapes: (Terminal | Process | Data | Desicion)[];
   curves: CommonTypes.ConnectionCurves;
   datas: CommonTypes.OverallDatas;

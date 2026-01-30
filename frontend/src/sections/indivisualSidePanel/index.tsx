@@ -15,6 +15,7 @@ import Decision from "@/shapes/decision";
 import Curve from "@/shapes/curve";
 import { cloneDeep } from "lodash";
 import { tailwindColors } from "@/variables/colors";
+import * as authAPIs from "@/apis/auth";
 import * as handleUtils from "@/utils/handle";
 import * as fileUtils from "@/utils/file";
 import * as InputTypes from "@/types/components/input";
@@ -564,7 +565,7 @@ export default function IndivisualSidePanel(
       });
   };
 
-  const onClickSignInButton = () => {
+  const onClickLogInButton = () => {
     setIsAccountModalOpen(true);
   };
 
@@ -574,6 +575,16 @@ export default function IndivisualSidePanel(
 
   const afterLogin = () => {
     setIsAccountModalOpen(false);
+    props.setIsLogin(true);
+  };
+
+  const afterLogout = () => {
+    props.setIsLogin(false);
+  };
+
+  const onClickLogoutButton = async () => {
+    await authAPIs.logout();
+    props.setIsLogin(false);
   };
 
   return (
@@ -680,12 +691,22 @@ export default function IndivisualSidePanel(
           </div>
         </div>
         <div className="absolute top-0 -left-48 w-[132px] flex justify-between">
-          <SimpleButton
-            role="signIn_button"
-            text={"Sign In"}
-            size={ButtonTypes.Size.sm}
-            onClick={onClickSignInButton}
-          />
+          {props.isLogIn ? (
+            <SimpleButton
+              role="signIn_button"
+              text={"Log Out"}
+              size={ButtonTypes.Size.sm}
+              onClick={onClickLogoutButton}
+            />
+          ) : (
+            <SimpleButton
+              role="signIn_button"
+              text={"Log In"}
+              size={ButtonTypes.Size.sm}
+              onClick={onClickLogInButton}
+            />
+          )}
+
           <SquareButton
             role="upload_file"
             size={32}
@@ -716,9 +737,11 @@ export default function IndivisualSidePanel(
           />
         </div>
         <AuthModal
+          isLogIn={props.isLogIn}
           isOpen={isAuthModalOpen}
           onClickX={onClickAuthModalX}
           afterLogin={afterLogin}
+          afterLogout={afterLogout}
         />
       </SidePanel>
     </>

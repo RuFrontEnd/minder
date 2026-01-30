@@ -41,13 +41,13 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    console.log('error', error);
+    console.log("error", error);
 
     if (error.response.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
       try {
-        await authAPIs.refresh()
+        await authAPIs.refresh();
 
         return api(originalRequest);
       } catch (refreshError) {
@@ -264,20 +264,6 @@ const getScreenshotShapes = (
   // });
 
   return screenshotShapes;
-};
-
-
-const verifyToken = async () => {
-  const res: AxiosResponse<AuthTypes.JWTLogin["resData"]> =
-    await authAPIs.validateToken();
-
-    console.log('res', res);
-
-  // if (res.data.isPass) {
-  //   setIsLogin(false);
-  //   fetchProjects();
-  //   setIsProjectsModalOpen(true);
-  // }
 };
 
 // TODO: wait for align feature
@@ -2049,13 +2035,20 @@ export default function IdPage() {
     useState<IndivisaulSidePanelTypes.AddDatas>([]);
   const [consoles, setConsoles] = useState<ConsoleTypes.Consoles>([]);
   const [isCheckingData, setIsCheckingData] = useState(false);
+  const [isLogIn, setIsLogin] = useState(false);
 
-  console.log('steps', steps)
+  console.log("steps", steps);
 
   const movingViewport = useMemo(
     () => space && leftMouseBtn,
     [space, leftMouseBtn]
   );
+
+  const validateToken = async () => {
+    const res: AxiosResponse<AuthTypes.JWTLogin["resData"]> =
+      await authAPIs.validateToken();
+    setIsLogin(res.status === 200);
+  };
 
   const checkSteps = () => {
     setSteps(cloneDeep(shapes));
@@ -2608,7 +2601,7 @@ export default function IdPage() {
 
   useEffect(() => {
     if (!isBrowser) return;
-    verifyToken();
+    validateToken();
 
     (async () => {
       drawCanvas(offset, scale);
@@ -2679,6 +2672,8 @@ export default function IdPage() {
 
       <IndivisaulSidePanel
         projectName={projectName.val}
+        isLogIn={isLogIn}
+        setIsLogin={setIsLogin}
         setProjectName={setProjectName}
         shapes={shapes}
         curves={curves}
