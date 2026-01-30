@@ -20,8 +20,8 @@ namespace Domain.Entities
         public UserEntity User { get; set; } = null!;
         public class P
         {
-            public int x { get; set; }
-            public int y { get; set; }
+            public decimal x { get; set; }
+            public decimal y { get; set; }
         }
         public class Data
         {
@@ -33,10 +33,9 @@ namespace Domain.Entities
         {
             public string id { get; set; } = string.Empty;
             public string title { get; set; } = string.Empty;
-            public int w { get; set; }
-            public int h { get; set; }
+            public decimal w { get; set; }
+            public decimal h { get; set; }
             public P p { get; set; } = new();
-            public string c { get; set; } = null!;
             public List<Data> importDatas { get; set; } = new();
             public List<Data> usingDatas { get; set; } = new();
             public List<Data> deleteDatas { get; set; } = new();

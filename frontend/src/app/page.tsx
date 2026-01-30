@@ -18,6 +18,7 @@ import { cloneDeep } from "lodash";
 import { v4 as uuidv4 } from "uuid";
 import { tailwindColors } from "@/variables/colors";
 import * as authAPIs from "@/apis/auth";
+import * as shapeAPIs from "@/apis/shape";
 import * as handleUtils from "@/utils/handle";
 import * as CurveTypes from "@/types/shapes/curve";
 import * as CommonTypes from "@/types/common";
@@ -2035,9 +2036,8 @@ export default function IdPage() {
     useState<IndivisaulSidePanelTypes.AddDatas>([]);
   const [consoles, setConsoles] = useState<ConsoleTypes.Consoles>([]);
   const [isCheckingData, setIsCheckingData] = useState(false);
+  const [isUpsertingShape, setIsUpsertingShape] = useState(false);
   const [isLogIn, setIsLogin] = useState(false);
-
-  console.log("steps", steps);
 
   const movingViewport = useMemo(
     () => space && leftMouseBtn,
@@ -2599,6 +2599,29 @@ export default function IdPage() {
     };
   };
 
+  const onClickSaveButton = async () => {
+    setIsUpsertingShape(true);
+    
+    const payload = steps.map((step) => ({
+      id: step.id,
+      title: step.title,
+      w: step.w,
+      h: step.h,
+      p: {
+        x: step.p.x,
+        y: step.p.y,
+      },
+      importDatas: step.importDatas,
+      usingDatas: step.usingDatas,
+      deleteDatas: step.deleteDatas,
+      type: step.type,
+    }));
+
+    await shapeAPIs.upsert(payload);
+
+    setIsUpsertingShape(false);
+  };
+
   useEffect(() => {
     if (!isBrowser) return;
     validateToken();
@@ -2649,13 +2672,23 @@ export default function IdPage() {
 
   return (
     <>
-      <Button
-        className="fixed top-4 left-1/2 -translate-x-1/2 flex justify-self-end self-center text-base"
-        info
-        onClick={onClickCheckButton}
-        text={`Check${isCheckingData ? "ing" : ""}`}
-        loading={isCheckingData}
-      />
+      <div className="fixed top-4 left-1/2 -translate-x-1/2 flex justify-self-end self-center text-base">
+        <Button
+          info
+          onClick={onClickCheckButton}
+          text={`Check${isCheckingData ? "ing" : ""}`}
+          loading={isCheckingData}
+        />
+        {isLogIn && (
+          <Button
+            className="ms-2"
+            role="upsert_shape_button"
+            text="Save"
+            onClick={onClickSaveButton}
+            loading={isUpsertingShape}
+          />
+        )}
+      </div>
 
       <OverallSidePanel
         steps={steps}

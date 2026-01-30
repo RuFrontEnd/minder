@@ -12,7 +12,7 @@ public class ShapeController(ShapeService shapeService) : ControllerBase
 {
     [Authorize]
     [HttpPost]
-    public async Task<IActionResult> Update([FromBody] UpdateShapeRequest request)
+    public async Task<IActionResult> Upsert([FromBody] List<ShapeInfoDTO> request)
     {
         var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
@@ -21,7 +21,7 @@ public class ShapeController(ShapeService shapeService) : ControllerBase
             return Unauthorized(new { message = "invalid auth token." });
         }
 
-        await shapeService.UpdateShapeAsync(userId, request.Infos);
+        await shapeService.UpsertAsync(userId, request);
 
         return Ok(new { message = "update shapes successfully!" });
     }
