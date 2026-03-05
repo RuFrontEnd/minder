@@ -11,6 +11,22 @@ namespace WebAPi.Controllers;
 public class ShapeController(ShapeService shapeService) : ControllerBase
 {
     [Authorize]
+    [HttpGet]
+    public async Task<IActionResult> Get()
+    {
+        var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+        if (!Guid.TryParse(userIdStr, out Guid userId))
+        {
+            return Unauthorized(new { message = "invalid auth token." });
+        }
+
+        var infos = await shapeService.GetAsync(userId);
+
+        return Ok(new { data = infos });
+    }
+
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Upsert([FromBody] List<ShapeInfoDTO> request)
     {

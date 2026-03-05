@@ -10,6 +10,11 @@ namespace Application.Services;
 
 public class ShapeService(ApplicationDbContext dbContext, IShapeRepository shapeRepository)
 {
+    public async Task<List<ShapeEntity.Info>?> GetAsync(Guid userId)
+    {
+        return await shapeRepository.GetShapeAsync(userId);
+    }
+
     public async Task<bool> UpsertAsync(Guid userId, List<ShapeInfoDTO> infos)
     {
         // 1. 檢查 Email 是否已被註冊 (Business Rule)

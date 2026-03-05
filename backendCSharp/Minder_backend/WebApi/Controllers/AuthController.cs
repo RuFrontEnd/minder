@@ -39,7 +39,7 @@ public class AuthController(AuthService authService) : ControllerBase
             HttpOnly = true,
             Secure = true,
             SameSite = SameSiteMode.Strict,
-            Expires = DateTime.UtcNow.AddSeconds(10)
+            Expires = DateTime.UtcNow.AddMinutes(10)
         });
 
         Response.Cookies.Append("X-Refresh-Token", userData.Token, new CookieOptions

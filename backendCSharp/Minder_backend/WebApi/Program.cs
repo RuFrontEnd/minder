@@ -69,6 +69,7 @@ builder.Services.AddCors(options =>
         policy =>
         {
             policy.WithOrigins("http://localhost:3000") // 允許的來源
+                  .WithOrigins("http://localhost:4000") // 允許的來源
                   .AllowAnyHeader()                   // 允許任何 Header
                   .AllowAnyMethod()                   // 允許任何方法 (GET, POST, PUT, DELETE)
                   .AllowCredentials();                // 如果你有用 Cookie 或 JWT，這行很重要

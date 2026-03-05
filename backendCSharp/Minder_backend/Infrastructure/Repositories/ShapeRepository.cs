@@ -16,10 +16,16 @@ namespace Infrastructure.Repositories
 
             return id == Guid.Empty ? null : id;
         }
-        //public async Task GetShapeAsync(Guid userId)
-        //{
 
-        //}
+        public async Task<List<ShapeEntity.Info>?> GetShapeAsync(Guid userId)
+        {
+            var infos = await dbContext.Shape
+                .Where(shape => shape.UserId == userId)
+                .Select(shape => shape.Infos)
+                .FirstOrDefaultAsync();
+
+            return infos;
+        }
         public async Task<ShapeEntity> AddShapeAsync(ShapeEntity shape)
         {
             await dbContext.Shape.AddAsync(shape);
