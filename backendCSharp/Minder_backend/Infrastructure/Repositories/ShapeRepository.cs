@@ -26,6 +26,15 @@ namespace Infrastructure.Repositories
 
             return infos;
         }
+
+        public async Task<ShapeEntity?> GetShapeWithCurvesAsync(Guid userId)
+        {
+            var shape = await dbContext.Shape
+                .Where(shape => shape.UserId == userId)
+                .FirstOrDefaultAsync();
+
+            return shape;
+        }
         public async Task<ShapeEntity> AddShapeAsync(ShapeEntity shape)
         {
             await dbContext.Shape.AddAsync(shape);

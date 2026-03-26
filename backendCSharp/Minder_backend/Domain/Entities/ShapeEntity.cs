@@ -18,17 +18,20 @@ namespace Domain.Entities
         public Guid UserId { get; set; }
         [ForeignKey("UserId")]
         public UserEntity User { get; set; } = null!;
+        
         public class P
         {
             public decimal x { get; set; }
             public decimal y { get; set; }
         }
+        
         public class Data
         {
             public string Id { get; set; } = string.Empty;
             public string Text { get; set; } = string.Empty;
             public string Status { get; set; } = string.Empty;
         }
+        
         public class Info
         {
             public string id { get; set; } = string.Empty;
@@ -42,7 +45,38 @@ namespace Domain.Entities
             public string status { get; set; } = string.Empty;
             public string type { get; set; } = string.Empty;
         }
+        
+        public class CurvePoint
+        {
+            public decimal x { get; set; }
+            public decimal y { get; set; }
+        }
+        
+        public class CurveShape
+        {
+            public string id { get; set; } = string.Empty;
+            public CurvePoint p1 { get; set; } = new();
+            public CurvePoint cp1 { get; set; } = new();
+            public CurvePoint cp2 { get; set; } = new();
+            public CurvePoint p2 { get; set; } = new();
+            public string text { get; set; } = string.Empty;
+        }
+        
+        public class CurveEnd
+        {
+            public string d { get; set; } = string.Empty;
+            public string shapeId { get; set; } = string.Empty;
+        }
+        
+        public class Curve
+        {
+            public CurveEnd from { get; set; } = new();
+            public CurveShape shape { get; set; } = new();
+            public CurveEnd to { get; set; } = new();
+        }
+        
         public List<Info> Infos { get; set; } = new();
+        public List<Curve> Curves { get; set; } = new();
     }
 
 }

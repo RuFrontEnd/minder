@@ -40,6 +40,11 @@ namespace Infrastructure.Persistence
                       .HasColumnType("jsonb")
                       .IsRequired()
                       .HasDefaultValueSql("'[]'::jsonb");
+
+                entity.Property(e => e.Curves)
+                      .HasColumnType("jsonb")
+                      .IsRequired()
+                      .HasDefaultValueSql("'[]'::jsonb");
             });
         }
     }

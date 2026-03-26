@@ -19,4 +19,34 @@ type UpsertData = {
   type: string;
 };
 
-export type { Data, UpsertData };
+type Point = {
+  x: number;
+  y: number;
+};
+
+type CurveEnd = {
+  d: string;
+  shapeId: string;
+};
+
+type CurveShape = {
+  id: string;
+  p1: Point;
+  cp1: Point;
+  cp2: Point;
+  p2: Point;
+  text: string;
+};
+
+type CurveData = {
+  from: CurveEnd;
+  shape: CurveShape;
+  to: CurveEnd;
+};
+
+type UpsertRequest = {
+  shapes: UpsertData[];
+  curves: CurveData[];
+};
+
+export type { Data, UpsertData, CurveData, Point, CurveEnd, CurveShape, UpsertRequest };

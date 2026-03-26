@@ -44,7 +44,7 @@ api.interceptors.response.use(
 
     console.log("error", error);
 
-    if (error.response.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
       try {
@@ -52,7 +52,8 @@ api.interceptors.response.use(
 
         return api(originalRequest);
       } catch (refreshError) {
-        // TODO: call logout
+        console.error("Token refresh failed:", refreshError);
+        // Token refresh failed - user should login again
       }
     }
     return Promise.reject(error);
@@ -2045,9 +2046,120 @@ export default function IdPage() {
   );
 
   const validateToken = async () => {
-    const res: AxiosResponse<AuthTypes.JWTLogin["resData"]> =
-      await authAPIs.validateToken();
-    setIsLogin(res.status === 200);
+    try {
+      const res: AxiosResponse<any> = await authAPIs.validateToken();
+      // If response status is 200 and has id, then user is authenticated
+      setIsLogin(res.status === 200 && !!res.data?.id);
+    } catch (error) {
+      // If error (401 Unauthorized), user is not authenticated
+      setIsLogin(false);
+    }
+  };
+
+  const loadShapes = async () => {
+    try {
+      const res: AxiosResponse<any> = await shapeAPIs.getShapes();
+      const responseData = res.data?.data;
+      
+      // Handle both old and new format
+      const shapesData = responseData?.shapes || responseData || [];
+      const curvesData = responseData?.curves || [];
+
+      console.log('curvesData', curvesData);
+
+      // Convert backend shapes to frontend Shape objects
+      const loadedShapes: (Terminal | Process | Data | Desicion)[] = [];
+
+      shapesData.forEach((shapeData: any) => {
+        const { id, title, w, h, p, type, importDatas, usingDatas, deleteDatas } = shapeData;
+        const position = typeof p === "string" ? JSON.parse(p) : p;
+
+        let shapeObj: Terminal | Process | Data | Desicion | null = null;
+
+        if (type === CommonTypes.ShapeType.terminator) {
+          shapeObj = new Terminal(id, w, h, position, title);
+        } else if (type === CommonTypes.ShapeType.process) {
+          shapeObj = new Process(id, w, h, position, title);
+        } else if (type === CommonTypes.ShapeType.data) {
+          shapeObj = new Data(id, w, h, position, title);
+        } else if (type === CommonTypes.ShapeType.decision) {
+          shapeObj = new Desicion(id, w, h, position, title);
+        }
+
+        if (shapeObj) {
+          // Set data arrays
+          if (importDatas && Array.isArray(importDatas)) {
+            shapeObj.importDatas = importDatas;
+          }
+          if (usingDatas && Array.isArray(usingDatas)) {
+            shapeObj.usingDatas = usingDatas;
+          }
+          if (deleteDatas && Array.isArray(deleteDatas)) {
+            shapeObj.deleteDatas = deleteDatas;
+          }
+          loadedShapes.push(shapeObj);
+        }
+      });
+
+      // Convert backend curves to frontend Curve objects
+      const loadedCurves: CommonTypes.ConnectionCurves = [];
+      
+      // Create a map for quick shape lookup by id
+      const shapeMap = new Map<string, Terminal | Process | Data | Desicion>();
+      loadedShapes.forEach((shape) => {
+        shapeMap.set(shape.id, shape);
+      });
+
+      if (curvesData && Array.isArray(curvesData)) {
+        curvesData.forEach((curveData: any) => {
+          try {
+            const { from, shape: shapeData, to } = curveData;
+            
+            // Find the actual shape objects by id
+            const fromShape = shapeMap.get(from?.shapeId);
+            const toShape = shapeMap.get(to?.shapeId);
+            
+            if (from && shapeData && to && fromShape && toShape) {
+              // Create Curve instance
+              const curveInstance = new Curve(
+                shapeData.id,
+                shapeData.p1,
+                shapeData.cp1,
+                shapeData.cp2,
+                shapeData.p2,
+                shapeData.text || ""
+              );
+              
+              // Create connection curve object
+              const connectionCurve = {
+                shape: curveInstance,
+                from: {
+                  shape: fromShape,
+                  d: from.d
+                },
+                to: {
+                  shape: toShape,
+                  d: to.d
+                }
+              };
+              
+              loadedCurves.push(connectionCurve);
+            }
+          } catch (e) {
+            console.warn("Failed to reconstruct curve:", curveData, e);
+          }
+        });
+      }
+
+      // Update shapes and curves
+      shapes = loadedShapes;
+      curves = loadedCurves;
+      checkSteps();
+      drawCanvas(offset, scale);
+      drawScreenshot(offset, scale);
+    } catch (error) {
+      console.error("Failed to load shapes:", error);
+    }
   };
 
   const checkSteps = () => {
@@ -2602,7 +2714,7 @@ export default function IdPage() {
   const onClickSaveButton = async () => {
     setIsUpsertingShape(true);
     
-    const payload = steps.map((step) => ({
+    const shapesPayload = steps.map((step) => ({
       id: step.id,
       title: step.title,
       w: step.w,
@@ -2616,6 +2728,31 @@ export default function IdPage() {
       deleteDatas: step.deleteDatas,
       type: step.type,
     }));
+
+    // Prepare curves payload
+    const curvesPayload = curves.map((curve) => ({
+      from: {
+        d: curve.from.d,
+        shapeId: curve.from.shape.id,
+      },
+      shape: {
+        id: curve.shape.id,
+        p1: curve.shape.p1,
+        cp1: curve.shape.cp1,
+        cp2: curve.shape.cp2,
+        p2: curve.shape.p2,
+        text: curve.shape.text || "",
+      },
+      to: {
+        d: curve.to.d,
+        shapeId: curve.to.shape.id,
+      },
+    }));
+
+    const payload = {
+      shapes: shapesPayload,
+      curves: curvesPayload,
+    };
 
     await shapeAPIs.upsert(payload);
 
@@ -2657,6 +2794,12 @@ export default function IdPage() {
       window.removeEventListener("resize", resizeViewport);
     };
   }, []);
+
+  // Load shapes when user logs in
+  useEffect(() => {
+    if (!isLogIn) return;
+    loadShapes();
+  }, [isLogIn]);
 
   useEffect(() => {
     if (!isBrowser) return;
