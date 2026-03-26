@@ -2065,8 +2065,6 @@ export default function IdPage() {
       const shapesData = responseData?.shapes || responseData || [];
       const curvesData = responseData?.curves || [];
 
-      console.log('curvesData', curvesData);
-
       // Convert backend shapes to frontend Shape objects
       const loadedShapes: (Terminal | Process | Data | Desicion)[] = [];
 
