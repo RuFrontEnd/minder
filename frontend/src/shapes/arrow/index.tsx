@@ -18,6 +18,7 @@ export default class Arrow {
   protected __offset__: Vec;
   protected __scale__: number;
   protected __selecting__: boolean; // TODO: not be used yet
+  protected __dragging__: boolean;
 
   constructor(
     id: string,
@@ -57,6 +58,7 @@ export default class Arrow {
     };
     this.__scale__ = 1;
     this.__selecting__ = false;
+    this.__dragging__ = false;
   }
 
   set p(val: Vec) {
@@ -123,6 +125,13 @@ export default class Arrow {
 
   set selecting(value: boolean) {
     this.__selecting__ = value;
+    if (!value) {
+      this.__dragging__ = false;
+    }
+  }
+
+  set dragging(value: boolean) {
+    this.__dragging__ = value;
   }
 
   get vertex() {
@@ -230,7 +239,9 @@ export default class Arrow {
     if (this.__selecting__) {
       ctx.lineWidth = this.__lineWidth__;
       ctx.strokeStyle = tailwindColors?.info["500"];
-      ctx.fillStyle = tailwindColors?.white["500"];
+      ctx.fillStyle = this.__dragging__
+        ? tailwindColors?.info["500"]
+        : tailwindColors?.white["500"];
 
       ctx.beginPath();
       ctx.arc(0, -scaleSize.h, 5, 0, 2 * Math.PI, true); // cp1 control point

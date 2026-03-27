@@ -1559,6 +1559,7 @@ const triggerCurve = (
   };
 
   pressingCurve.shape.selecting = true;
+  pressingCurve.shape.draggingVertex = true;
 
   return false;
 };
@@ -2518,6 +2519,9 @@ export default function IdPage() {
     };
 
     setLeftMouseBtn(false);
+    if (pressingCurve?.shape) {
+      pressingCurve.shape.draggingVertex = false;
+    }
     frameSelect(selectionFrame, offset, scale);
     checkConnect(getNormalP(p, offset, scale));
     checkSteps();

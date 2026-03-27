@@ -538,8 +538,10 @@ export default class Selection {
     };
     const scaleSize = { w: size.w * scale, h: size.h * scale };
     const sendingPointDistance = Selection.__sendingPoint__.distance * scale;
+    const hoveredColor = tailwindColors.info["500"];
+    const defaultColor = tailwindColors.white["500"];
+    const renderTarget = this.__activeTarget__ || this.__hoverTarget__;
 
-    ctx.fillStyle = this.__c__.fill;
     ctx.strokeStyle = this.__c__.stroke;
     ctx.lineWidth = this.strokeSize;
 
@@ -557,6 +559,10 @@ export default class Selection {
       2 * Math.PI,
       false
     );
+    ctx.fillStyle =
+      renderTarget === SelectionTypes.PressingTarget.sl
+        ? hoveredColor
+        : defaultColor;
     ctx.stroke();
     ctx.fill();
     ctx.closePath();
@@ -571,6 +577,10 @@ export default class Selection {
       2 * Math.PI,
       false
     );
+    ctx.fillStyle =
+      renderTarget === SelectionTypes.PressingTarget.st
+        ? hoveredColor
+        : defaultColor;
     ctx.stroke();
     ctx.fill();
     ctx.closePath();
@@ -585,6 +595,10 @@ export default class Selection {
       2 * Math.PI,
       false
     );
+    ctx.fillStyle =
+      renderTarget === SelectionTypes.PressingTarget.sr
+        ? hoveredColor
+        : defaultColor;
     ctx.stroke();
     ctx.fill();
     ctx.closePath();
@@ -599,6 +613,10 @@ export default class Selection {
       2 * Math.PI,
       false
     );
+    ctx.fillStyle =
+      renderTarget === SelectionTypes.PressingTarget.sb
+        ? hoveredColor
+        : defaultColor;
     ctx.stroke();
     ctx.fill();
     ctx.closePath();

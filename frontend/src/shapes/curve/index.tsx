@@ -28,6 +28,7 @@ export default class Curve {
   };
   private arrow: null | Arrow;
   private __selecting__: boolean;
+  private __draggingVertex__: boolean;
 
   constructor(
     id: string,
@@ -71,6 +72,7 @@ export default class Curve {
         90 * (Math.PI / 180)
     );
     this.__selecting__ = false;
+    this.__draggingVertex__ = false;
     this.text = text;
   }
 
@@ -80,8 +82,19 @@ export default class Curve {
 
   set selecting(val) {
     this.__selecting__ = val;
+    if (!val) {
+      this.__draggingVertex__ = false;
+    }
     if (this.arrow) {
       this.arrow.selecting = val;
+      this.arrow.dragging = this.__draggingVertex__;
+    }
+  }
+
+  set draggingVertex(val: boolean) {
+    this.__draggingVertex__ = val;
+    if (this.arrow) {
+      this.arrow.dragging = val;
     }
   }
 
