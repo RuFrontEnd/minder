@@ -1642,6 +1642,8 @@ const selectCurve = (p: CommonTypes.Vec) => {
         shape: curve.shape,
       };
 
+      pressingCurve.shape.draggingVertex = true;
+
       return false;
     }
 
