@@ -2152,6 +2152,20 @@ export default function IdPage() {
         });
       }
 
+      // Collect all unique data names from shapes and populate overall datas
+      const dataNameSet = new Set<string>();
+      loadedShapes.forEach((shape) => {
+        [...shape.importDatas, ...shape.usingDatas, ...shape.deleteDatas].forEach(
+          (data) => {
+            if (data.text) dataNameSet.add(data.text);
+          }
+        );
+      });
+      const overallDatas: PageIdTypes.Datas = Array.from(dataNameSet).map(
+        (name) => ({ id: `overallData_${uuidv4()}`, name })
+      );
+      setDatas(overallDatas);
+
       // Update shapes and curves
       shapes = loadedShapes;
       curves = loadedCurves;
