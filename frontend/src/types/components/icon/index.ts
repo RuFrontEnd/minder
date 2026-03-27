@@ -20,6 +20,7 @@ enum Type {
   sight = "sight",
   download = "download",
   upload = "upload",
+  user = "user",
 }
 
 type Props = {

@@ -20,6 +20,8 @@ import { tailwindColors } from "@/variables/colors";
 import * as authAPIs from "@/apis/auth";
 import * as shapeAPIs from "@/apis/shape";
 import * as handleUtils from "@/utils/handle";
+import * as fileUtils from "@/utils/file";
+import Navbar from "@/sections/navbar";
 import * as CurveTypes from "@/types/shapes/curve";
 import * as CommonTypes from "@/types/common";
 import * as AuthTypes from "@/types/apis/auth";
@@ -2042,6 +2044,7 @@ export default function IdPage() {
   const [isCheckingData, setIsCheckingData] = useState(false);
   const [isUpsertingShape, setIsUpsertingShape] = useState(false);
   const [isLogIn, setIsLogin] = useState(false);
+  const [authModalOpenSignal, setAuthModalOpenSignal] = useState(0);
 
   const movingViewport = useMemo(
     () => space && leftMouseBtn,
@@ -2796,6 +2799,77 @@ export default function IdPage() {
     setIsUpsertingShape(false);
   };
 
+  const onClickUploadButton = async () => {
+    try {
+      await fileUtils.upload("application/json").then((result: any) => {
+        if (result && result.shapes && result.curves) {
+          // 解析上載的檔案並加載
+          const uploadedShapes = result.shapes;
+          const uploadedCurves = result.curves;
+          // TODO: 實現上載邏輯
+          console.log("Uploaded shapes and curves", uploadedShapes, uploadedCurves);
+        }
+      });
+    } catch (error) {
+      console.error("Upload failed:", error);
+    }
+  };
+
+  const onClickDownloadButton = () => {
+    const projectData = {
+      name: projectName.val,
+      shapes: steps.map((step) => ({
+        id: step.id,
+        title: step.title,
+        w: step.w,
+        h: step.h,
+        p: step.p,
+        type: step.type,
+        importDatas: step.importDatas,
+        usingDatas: step.usingDatas,
+        deleteDatas: step.deleteDatas,
+      })),
+      curves: curves.map((curve) => ({
+        from: {
+          d: curve.from.d,
+          shapeId: curve.from.shape.id,
+        },
+        shape: {
+          id: curve.shape.id,
+          p1: curve.shape.p1,
+          cp1: curve.shape.cp1,
+          cp2: curve.shape.cp2,
+          p2: curve.shape.p2,
+          text: curve.shape.text || "",
+        },
+        to: {
+          d: curve.to.d,
+          shapeId: curve.to.shape.id,
+        },
+      })),
+    };
+
+    fileUtils.download(
+      projectData,
+      "application/json",
+      `${projectName.val}.json`
+    );
+  };
+
+  const onClickLogInButton = async () => {
+    if (isLogIn) {
+      // Log out
+      try {
+        await authAPIs.logout();
+        setIsLogin(false);
+      } catch (error) {
+        console.error("Logout failed:", error);
+      }
+    } else {
+      setAuthModalOpenSignal((signal) => signal + 1);
+    }
+  };
+
   useEffect(() => {
     if (!isBrowser) return;
     validateToken();
@@ -2852,23 +2926,16 @@ export default function IdPage() {
 
   return (
     <>
-      <div className="fixed top-4 left-1/2 -translate-x-1/2 flex justify-self-end self-center text-base">
-        <Button
-          info
-          onClick={onClickCheckButton}
-          text={`Check${isCheckingData ? "ing" : ""}`}
-          loading={isCheckingData}
-        />
-        {isLogIn && (
-          <Button
-            className="ms-2"
-            role="upsert_shape_button"
-            text="Save"
-            onClick={onClickSaveButton}
-            loading={isUpsertingShape}
-          />
-        )}
-      </div>
+      <Navbar
+        isLogIn={isLogIn}
+        isCheckingData={isCheckingData}
+        isUpsertingShape={isUpsertingShape}
+        onClickCheck={onClickCheckButton}
+        onClickSave={onClickSaveButton}
+        onClickUpload={onClickUploadButton}
+        onClickDownload={onClickDownloadButton}
+        onClickLogIn={onClickLogInButton}
+      />
 
       <OverallSidePanel
         steps={steps}
@@ -2886,6 +2953,7 @@ export default function IdPage() {
       <IndivisaulSidePanel
         projectName={projectName.val}
         isLogIn={isLogIn}
+        authModalOpenSignal={authModalOpenSignal}
         setIsLogin={setIsLogin}
         setProjectName={setProjectName}
         shapes={shapes}

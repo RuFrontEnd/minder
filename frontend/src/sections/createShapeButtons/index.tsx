@@ -114,7 +114,7 @@ export default function CreateShapeButtons(
 
   return (
     <section role="create_shapes">
-      <div className="flex bg-white-500 p-1 shadow-md rounded-md">
+      <div className="flex bg-white-500 p-1 border border-grey-5 rounded-md">
         {createShapeButtons.map((createShapeButton) => (
           <SquareButton
             size={40}

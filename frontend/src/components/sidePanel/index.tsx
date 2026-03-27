@@ -72,7 +72,7 @@ const SidePanel = (props: SidePanelTypes.Props) => {
           transition={{ duration: 0 }}
         >
           <div className="p-4 h-full">
-            <div className="h-full relative text-grey-2 bg-white-500 shadow-md rounded-lg">
+            <div className="h-full relative text-grey-2 bg-white-500 border border-grey-4 rounded-lg">
               {props.children}
               {props.onClickSwitch && (
                 <div
@@ -166,7 +166,7 @@ const SidePanel = (props: SidePanelTypes.Props) => {
           transition={{ duration: 0 }}
         >
           <div className="p-4 h-full">
-            <div className="h-full relative text-grey-2 bg-white-500 shadow-md rounded-lg">
+            <div className="h-full relative text-grey-2 bg-white-500 border border-grey-4 rounded-lg">
               {props.children}
               {props.onClickSwitch && (
                 <div

@@ -115,9 +115,10 @@ export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
 
   return (
     <SidePanel
+      className="z-[60]"
       open={props.isOverAllSidePanelOpen}
       w={"360px"}
-      h={"calc(100vh)"}
+      h={"calc(-65px + 100vh)"}
       verticalD={SidePanelTypes.VerticalD.b}
       onClickSwitch={onClickOverallSidePanelSwitch}
     >

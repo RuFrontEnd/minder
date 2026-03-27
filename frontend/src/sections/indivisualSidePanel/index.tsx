@@ -1,13 +1,11 @@
 "use client";
-import React, { useState, ChangeEventHandler } from "react";
+import React, { useState, ChangeEventHandler, useEffect } from "react";
 import AuthModal from "@/blocks/indivisualSidePanel/authModal";
 import DataBox from "@/blocks/indivisualSidePanel/dataBox";
 import SidePanel from "@/components/sidePanel";
 import Button from "@/components/button";
-import SimpleButton from "@/components/simpleButton";
 import Input from "@/components/input";
 import Icon from "@/components/icon";
-import SquareButton from "@/components/squareButton";
 import Terminal from "@/shapes/terminal";
 import Process from "@/shapes/process";
 import Data from "@/shapes/data";
@@ -17,7 +15,7 @@ import { cloneDeep } from "lodash";
 import { tailwindColors } from "@/variables/colors";
 import * as authAPIs from "@/apis/auth";
 import * as handleUtils from "@/utils/handle";
-import * as fileUtils from "@/utils/file";
+
 import * as InputTypes from "@/types/components/input";
 import * as SelectTypes from "@/types/components/select";
 import * as IconTypes from "@/types/components/icon";
@@ -569,6 +567,11 @@ export default function IndivisualSidePanel(
     setIsAccountModalOpen(true);
   };
 
+  useEffect(() => {
+    if (props.authModalOpenSignal < 1) return;
+    setIsAccountModalOpen(true);
+  }, [props.authModalOpenSignal]);
+
   const onClickAuthModalX = () => {
     setIsAccountModalOpen(false);
   };
@@ -582,20 +585,18 @@ export default function IndivisualSidePanel(
     props.setIsLogin(false);
   };
 
-  const onClickLogoutButton = async () => {
-    await authAPIs.logout();
-    props.setIsLogin(false);
-  };
+
 
   return (
     <>
       <SidePanel
+        className="z-[60]"
         role={"indivisual"}
         open={props.isIndivisualSidePanelOpen}
         horizentalD={SidePanelTypes.HorizentalD.r}
         verticalD={SidePanelTypes.VerticalD.b}
         w={"360px"}
-        h={"calc(100vh)"}
+        h={"calc(-65px + 100vh)"}
         onClickSwitch={onClickSidePanelSwitch}
       >
         <div className={"p-4 h-full"}>
@@ -689,52 +690,6 @@ export default function IndivisualSidePanel(
               setAddDatas={props.setAddDeleteDatas}
             />
           </div>
-        </div>
-        <div className="absolute top-0 -left-48 w-[132px] flex justify-between">
-          {props.isLogIn ? (
-            <SimpleButton
-              role="signIn_button"
-              text={"Log Out"}
-              size={ButtonTypes.Size.sm}
-              onClick={onClickLogoutButton}
-            />
-          ) : (
-            <SimpleButton
-              role="signIn_button"
-              text={"Log In"}
-              size={ButtonTypes.Size.sm}
-              onClick={onClickLogInButton}
-            />
-          )}
-
-          <SquareButton
-            role="upload_file"
-            size={32}
-            shadow
-            content={
-              <Icon
-                type={IconTypes.Type.upload}
-                w={16}
-                h={16}
-                fill={tailwindColors.grey["1"]}
-              />
-            }
-            onClick={onClickUploadButton}
-          />
-          <SquareButton
-            role="download_file"
-            size={32}
-            shadow
-            content={
-              <Icon
-                type={IconTypes.Type.download}
-                w={16}
-                h={16}
-                fill={tailwindColors.grey["1"]}
-              />
-            }
-            onClick={onClickDownloadButton}
-          />
         </div>
         <AuthModal
           isLogIn={props.isLogIn}

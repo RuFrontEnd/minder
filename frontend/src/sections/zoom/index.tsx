@@ -37,7 +37,7 @@ export default function Zoom(props: ZoomTypes.Props) {
 
   return (
     <div role="zoom">
-      <div className="justify-self-end rounded-lg shadow-md bg-white-500">
+      <div className="justify-self-end rounded-lg border border-grey-5 bg-white-500">
         <div className="flex items-center">
           <SquareButton
             part={SquareButtonTypes.Part.left}

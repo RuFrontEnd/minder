@@ -96,9 +96,8 @@ export default function Console(props: ConsoleTypes.Props) {
       </div>
       <div className="absolute -top-4 -translate-y-full right-0 flex">
         <SquareButton
-          className="mr-4"
+          className="mr-4 border border-grey-5"
           size={32}
-          shadow
           content={
             <Icon
               type={IconTypes.Type.rotateCcw}
