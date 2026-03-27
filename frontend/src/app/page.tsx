@@ -2227,6 +2227,19 @@ export default function IdPage() {
     };
     const normalP = getNormalP(p, offset, scale);
 
+    if (!!selection) {
+      const target = selection.checkBoundry(normalP, 0, scale);
+      const anchorTargets = [
+        SelectionTypes.PressingTarget.lt,
+        SelectionTypes.PressingTarget.rt,
+        SelectionTypes.PressingTarget.rb,
+        SelectionTypes.PressingTarget.lb,
+      ];
+
+      selection.activeTarget =
+        target && anchorTargets.includes(target) ? target : null;
+    }
+
     handleUtils.handle([
       () => startMovingViewport(space, p),
       () => pressSelection(normalP, selection, scale),
@@ -2253,6 +2266,10 @@ export default function IdPage() {
       },
       normalP = getNormalP(p, offset, scale),
       normalOffsetP = getNormalP(offsetP, null, scale);
+
+    if (!!selection) {
+      selection.hoverTarget = selection.checkBoundry(normalP, 0, scale);
+    }
 
     if (movingViewport) {
       offset.x += normalOffsetP.x;
@@ -2507,6 +2524,8 @@ export default function IdPage() {
     syncCandidates(shapes);
 
     if (!!selection) {
+      selection.activeTarget = null;
+      selection.hoverTarget = null;
       selection.isSendingPointDisabled = getIsSelectionDisableSendingPoint(
         selection.shapes[0]
       );

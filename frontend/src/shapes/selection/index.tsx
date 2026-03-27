@@ -41,6 +41,8 @@ export default class Selection {
       stroke: 2,
     },
   };
+  private __hoverTarget__: null | SelectionTypes.PressingTarget = null;
+  private __activeTarget__: null | SelectionTypes.PressingTarget = null;
   private __isDisabledSendingPoint__ = false;
 
   constructor(
@@ -67,6 +69,14 @@ export default class Selection {
 
   set isSendingPointDisabled(isDisabled: boolean) {
     this.__isDisabledSendingPoint__ = isDisabled;
+  }
+
+  set hoverTarget(target: null | SelectionTypes.PressingTarget) {
+    this.__hoverTarget__ = target;
+  }
+
+  set activeTarget(target: null | SelectionTypes.PressingTarget) {
+    this.__activeTarget__ = target;
   }
 
   getSelectingMap() {
@@ -630,8 +640,11 @@ export default class Selection {
     ctx?.closePath();
 
     // draw anchors
-    ctx.fillStyle = "white";
     ctx.lineWidth = this.__anchor__.size.stroke;
+
+    const hoveredColor = tailwindColors.info["500"];
+    const defaultColor = tailwindColors.white["500"];
+    const renderTarget = this.__activeTarget__ || this.__hoverTarget__;
     // left, top
     ctx?.beginPath();
     ctx.arc(
@@ -642,6 +655,10 @@ export default class Selection {
       2 * Math.PI,
       false
     );
+    ctx.fillStyle =
+      renderTarget === SelectionTypes.PressingTarget.lt
+        ? hoveredColor
+        : defaultColor;
     ctx.stroke();
     ctx.fill();
     ctx?.closePath();
@@ -656,6 +673,10 @@ export default class Selection {
       2 * Math.PI,
       false
     );
+    ctx.fillStyle =
+      renderTarget === SelectionTypes.PressingTarget.rt
+        ? hoveredColor
+        : defaultColor;
     ctx.stroke();
     ctx.fill();
     ctx?.closePath();
@@ -670,6 +691,10 @@ export default class Selection {
       2 * Math.PI,
       false
     );
+    ctx.fillStyle =
+      renderTarget === SelectionTypes.PressingTarget.rb
+        ? hoveredColor
+        : defaultColor;
     ctx.stroke();
     ctx.fill();
     ctx?.closePath();
@@ -684,6 +709,10 @@ export default class Selection {
       2 * Math.PI,
       false
     );
+    ctx.fillStyle =
+      renderTarget === SelectionTypes.PressingTarget.lb
+        ? hoveredColor
+        : defaultColor;
     ctx.stroke();
     ctx.fill();
     ctx?.closePath();
