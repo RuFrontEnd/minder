@@ -14,11 +14,12 @@ namespace Domain.Entities
         }
         public Guid Id { get; private set; }
 
-        // FK
+        // FK(DEPRECATED)
         public Guid UserId { get; set; }
-        [ForeignKey("UserId")]
-        public UserEntity User { get; set; } = null!;
-        
+
+        // FK
+        public Guid ProjectId { get; set; }
+
         public class P
         {
             public decimal x { get; set; }
