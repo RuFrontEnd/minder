@@ -28,15 +28,6 @@ export default function Navbar(props: NavbarProps) {
           text={`Check${props.isCheckingData ? "ing" : ""}`}
           loading={props.isCheckingData}
         />
-
-        {props.isLogIn && (
-          <Button
-            role="upsert_shape_button"
-            text="Save"
-            onClick={props.onClickSave}
-            loading={props.isUpsertingShape}
-          />
-        )}
       </div>
 
       <div className="flex items-center justify-end gap-2">

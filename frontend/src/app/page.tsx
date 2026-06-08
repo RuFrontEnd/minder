@@ -2011,7 +2011,8 @@ const syncCandidates = (shapes: CommonTypes.Shapes) => {
 export default function IdPage() {
   let { current: $canvas } = useRef<HTMLCanvasElement | null>(null);
   let { current: $screenshot } = useRef<HTMLCanvasElement | null>(null);
-
+  
+  const saveTimeoutRef = useRef<number | null>(null);
   const [space, setSpace] = useState(false);
   const [control, setControl] = useState(false);
   const [scale, setScale] = useState(1);
@@ -2568,10 +2569,77 @@ export default function IdPage() {
     alginLines = [];
 
     drawCanvas(offset, scale);
+    drawScreenshot(offset, scale);
+
+    // schedule autosave after mouse interaction (move/resize/connect/etc.)
+    scheduleAutoSave();
   };
 
   const onMouseWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
     zoom(e.deltaY, { x: e.clientX, y: e.clientY });
+    // debounce save for zoom interactions
+    scheduleAutoSave(800);
+  };
+
+  // build payload for upsert (used by manual save and autosave)
+  const buildPayload = () => {
+    const shapesPayload = steps.map((step) => ({
+      id: step.id,
+      title: step.title,
+      w: step.w,
+      h: step.h,
+      p: {
+        x: step.p.x,
+        y: step.p.y,
+      },
+      importDatas: step.importDatas,
+      usingDatas: step.usingDatas,
+      deleteDatas: step.deleteDatas,
+      type: step.type,
+    }));
+
+    const curvesPayload = curves.map((curve) => ({
+      from: {
+        d: curve.from.d,
+        shapeId: curve.from.shape.id,
+      },
+      shape: {
+        id: curve.shape.id,
+        p1: curve.shape.p1,
+        cp1: curve.shape.cp1,
+        cp2: curve.shape.cp2,
+        p2: curve.shape.p2,
+        text: curve.shape.text || "",
+      },
+      to: {
+        d: curve.to.d,
+        shapeId: curve.to.shape.id,
+      },
+    }));
+
+    return {
+      shapes: shapesPayload,
+      curves: curvesPayload,
+    };
+  };
+
+  const scheduleAutoSave = (delay: number = 800) => {
+    if (!isBrowser || !isLogIn) return;
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+    saveTimeoutRef.current = window.setTimeout(async () => {
+      try {
+        setIsUpsertingShape(true);
+        const payload = buildPayload();
+        await shapeAPIs.upsert(payload);
+      } catch (err) {
+        console.error("Auto-save failed:", err);
+      } finally {
+        setIsUpsertingShape(false);
+        saveTimeoutRef.current = null;
+      }
+    }, delay);
   };
 
   const onDoubleClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -2647,6 +2715,8 @@ export default function IdPage() {
 
     shapes = shapes.filter((shape) => !selectingMap[shape.id]);
     deSelectShape();
+    // save after deletion
+    scheduleAutoSave(300);
   };
 
   const onClickCheckButton = () => {
@@ -2689,6 +2759,9 @@ export default function IdPage() {
     };
 
     sendChuncks(shapes, curves, worker);
+
+    console.log('shapes', shapes);
+    console.log('curves', curves);
 
     const newConsoles: ConsoleTypes.Consoles = [];
     let index = 0;
@@ -2752,51 +2825,20 @@ export default function IdPage() {
   };
 
   const onClickSaveButton = async () => {
+    if (!isLogIn) {
+      console.warn("Not logged in - skip saving shapes to backend.");
+      return;
+    }
+
     setIsUpsertingShape(true);
-    
-    const shapesPayload = steps.map((step) => ({
-      id: step.id,
-      title: step.title,
-      w: step.w,
-      h: step.h,
-      p: {
-        x: step.p.x,
-        y: step.p.y,
-      },
-      importDatas: step.importDatas,
-      usingDatas: step.usingDatas,
-      deleteDatas: step.deleteDatas,
-      type: step.type,
-    }));
-
-    // Prepare curves payload
-    const curvesPayload = curves.map((curve) => ({
-      from: {
-        d: curve.from.d,
-        shapeId: curve.from.shape.id,
-      },
-      shape: {
-        id: curve.shape.id,
-        p1: curve.shape.p1,
-        cp1: curve.shape.cp1,
-        cp2: curve.shape.cp2,
-        p2: curve.shape.p2,
-        text: curve.shape.text || "",
-      },
-      to: {
-        d: curve.to.d,
-        shapeId: curve.to.shape.id,
-      },
-    }));
-
-    const payload = {
-      shapes: shapesPayload,
-      curves: curvesPayload,
-    };
-
-    await shapeAPIs.upsert(payload);
-
-    setIsUpsertingShape(false);
+    try {
+      const payload = buildPayload();
+      await shapeAPIs.upsert(payload);
+    } catch (err) {
+      console.error("Save failed:", err);
+    } finally {
+      setIsUpsertingShape(false);
+    }
   };
 
   const onClickUploadButton = async () => {
@@ -2903,6 +2945,10 @@ export default function IdPage() {
     return () => {
       if (!isBrowser) return;
       window.removeEventListener("resize", resizeViewport);
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+        saveTimeoutRef.current = null;
+      }
     };
   }, []);
 
@@ -3007,6 +3053,7 @@ export default function IdPage() {
           checkSteps();
           drawCanvas(offset, scale);
           drawScreenshot(offset, scale);
+          scheduleAutoSave();
         }}
         consoles={consoles}
         positioning={positioning}
