@@ -6,28 +6,25 @@ import Data from "@/shapes/data";
 import Desicion from "@/shapes/decision";
 import SidePanel from "@/components/sidePanel";
 import Accordion from "@/components/accordion";
-import SimpleButton from "@/components/simpleButton";
 import Input from "@/components/input";
 import Frame from "@/components/frame";
 import PencilSquareIcon from "@/assets/svg/pencil-square.svg";
 import Icon from "@/components/icon";
 import { motion } from "framer-motion";
-import { cloneDeep } from "lodash";
+// lodash clone not required after removing data management
 import { ChangeEventHandler, MouseEventHandler } from "react";
 import { tailwindColors } from "@/variables/colors";
-import { v4 as uuidv4 } from "uuid";
 import * as CommonTypes from "@/types/common";
 import * as OverallSidePanelTypes from "@/types/sections/id/overallSidePanel";
-import * as InputTypes from "@/types/components/input";
+
 import * as IconTypes from "@/types/components/icon";
-import * as PageIdTypes from "@/types/app/pageId";
+// PageIdTypes no longer required (data tab removed)
 import * as SidePanelTypes from "@/types/components/sidePanel";
-import * as SimpleButtonTypes from "@/types/components/simpleButton";
+
 
 export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
   const [isRenameFrameOpen, setIsRenameFrameOpen] = useState(false);
-  const [type, setType] = useState(PageIdTypes.OverallType.step);
-  const [createDataValue, setCreateDataValue] = useState<null | string>(null);
+  // Overall side panel only shows Step tab (Data tab removed)
 
   const onClickOverallSidePanelSwitch = () => {
     props.setIsOverAllSidePanelOpen((open) => !open);
@@ -59,59 +56,7 @@ export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
     setIsRenameFrameOpen(false);
   };
 
-  const onClickOverallSidePanelTab = (e: React.MouseEvent<HTMLDivElement>) => {
-    const dataTab = (e.target as HTMLElement | null)
-      ?.closest("[data-tab]")
-      ?.getAttribute("data-tab");
-
-    const isOverallType = (value: any): value is PageIdTypes.OverallType =>
-      Object.values(PageIdTypes.OverallType).includes(value);
-
-    if (!dataTab || !isOverallType(dataTab)) return;
-
-    setType(dataTab);
-  };
-
-  const onChangeCreateDataInput: InputTypes.Props["onChange"] = (e) => {
-    setCreateDataValue(e.target.value);
-  };
-
-  const onClickCreateDataButton = () => {
-    if (!createDataValue) return;
-
-    if (props.datas.findIndex((data) => data.name === createDataValue) !== -1) {
-      setCreateDataValue(null);
-      return;
-    }
-
-    const _datas = cloneDeep(props.datas);
-
-    _datas.push({ id: `overallData_${uuidv4()}`, name: createDataValue }); // TODO: should be revised into post to backend
-
-    props.setDatas(_datas);
-
-    setCreateDataValue(null);
-  };
-
-  const onDeleteDataButton = (dataName: string) => {
-    const newDatas = cloneDeep(props.datas).filter(
-      (data) => data.name !== dataName
-    );
-    props.setDatas(newDatas);
-
-    // sync with shapes
-    const map: { [data: string]: boolean } = {};
-    newDatas.forEach((newData) => {
-      map[newData.name] = true;
-    });
-    const newShapes = cloneDeep(props.shapes);
-    newShapes.forEach((shape) => {
-      shape.usingDatas = shape.usingDatas.filter((data) => map[data.text]);
-      shape.importDatas = shape.importDatas.filter((data) => map[data.text]);
-      shape.deleteDatas = shape.deleteDatas.filter((data) => map[data.text]);
-    });
-    props.updateShapes(newShapes);
-  };
+  // tab switching removed — panel always shows Step list
 
   return (
     <SidePanel
@@ -123,32 +68,11 @@ export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
       onClickSwitch={onClickOverallSidePanelSwitch}
     >
       <div>
-        <div
-          className="flex border-b border-grey-5 cursor-pointer"
-          onClick={(e) => {
-            onClickOverallSidePanelTab(e);
-          }}
-        >
+        <div className="flex border-b border-grey-5">
           <h3
-            data-tab={PageIdTypes.OverallType.step}
-            className={`flex-1 flex justify-center text-lg font-semibold py-2 px-5 ${
-              type === PageIdTypes.OverallType.step
-                ? "border-b-2 border-secondary-500 text-black-2"
-                : "border-b-1 text-grey-4"
-            }`}
+            className={`flex-1 flex justify-center text-lg font-semibold py-2 px-5 border-b-2 border-secondary-500 text-black-2`}
           >
             <span>Step</span>
-          </h3>
-          <div className="border-r border-grey-5" />
-          <h3
-            data-tab={PageIdTypes.OverallType.data}
-            className={`flex-1 flex justify-center text-lg font-semibold py-2 px-5 ${
-              type === PageIdTypes.OverallType.data
-                ? "border-b-2 border-secondary-500 text-black-2"
-                : "border-b-1 text-grey-4"
-            }`}
-          >
-            <span>Data</span>
           </h3>
         </div>
       </div>
@@ -157,8 +81,6 @@ export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
         style={{ height: "calc(100% - 52px)" }}
         className="overflow-y-auto overflow-x-hidden p-2"
       >
-        {type === PageIdTypes.OverallType.step && (
-          <>
             {props.steps.map((step) => {
               const icon = (() => {
                 let _type = undefined;
@@ -221,49 +143,6 @@ export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
                 </li>
               );
             })}
-          </>
-        )}
-        {type === PageIdTypes.OverallType.data && (
-          <>
-            <div className="flex m-2">
-              <Input
-                className="flex-1"
-                value={createDataValue}
-                onChange={onChangeCreateDataInput}
-              />
-              <SimpleButton
-                text="Create"
-                className="ms-3 me-1"
-                size={SimpleButtonTypes.Size.md}
-                onClick={onClickCreateDataButton}
-              />
-            </div>
-            {props.datas.map((data) => (
-              <li key={data.id}>
-                <Accordion
-                  showArrow={false}
-                  title={
-                    <div className="flex items-center">
-                      <p className="ms-2">{data.name}</p>
-                    </div>
-                  }
-                  hoverRender={
-                    <Icon
-                      className="cursor-pointer"
-                      type={IconTypes.Type.x}
-                      w={16}
-                      h={24}
-                      stroke={tailwindColors.error["500"]}
-                      onClick={() => {
-                        onDeleteDataButton(data.name);
-                      }}
-                    />
-                  }
-                />
-              </li>
-            ))}
-          </>
-        )}
       </ul>
 
       {/* TODO: project name */}
