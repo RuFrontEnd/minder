@@ -2719,111 +2719,6 @@ export default function IdPage() {
     scheduleAutoSave(300);
   };
 
-  const onClickCheckButton = () => {
-    if (!!worker) {
-      worker.terminate();
-    }
-    setIsCheckingData(true);
-    // main.js
-    worker = new Worker(
-      new URL("@/workers/checkData/index.ts", import.meta.url),
-      { type: "module" }
-    );
-
-    const sendChuncks = (
-      shapes: (Terminal | Process | Data | Desicion)[],
-      curves: CommonTypes.ConnectionCurves,
-      worker: any
-    ) => {
-      const length = Math.max(shapes.length, curves.length);
-      let index = 0;
-      const chunkSize = 1;
-
-      const sendNextChunk = () => {
-        if (index < length) {
-          const _shapes = shapes.slice(index, index + chunkSize);
-          const _curves = curves.slice(index, index + chunkSize);
-          worker.postMessage(
-            JSON.stringify({ shapes: _shapes, curves: _curves, done: false })
-          );
-          index += chunkSize;
-          setTimeout(sendNextChunk, 0);
-        } else {
-          worker.postMessage(
-            JSON.stringify({ shapes: [], curves: [], done: true })
-          );
-        }
-      };
-
-      sendNextChunk();
-    };
-
-    sendChuncks(shapes, curves, worker);
-
-    console.log('shapes', shapes);
-    console.log('curves', curves);
-
-    const newConsoles: ConsoleTypes.Consoles = [];
-    let index = 0;
-    const chunkSize = 1;
-
-    worker.onmessage = (
-      event: MessageEvent<{
-        messageShapes: ConsoleTypes.Console["shape"][];
-        done: boolean;
-        ms: string;
-        log: string;
-      }>
-    ) => {
-      // for testing
-      // if (event.data.ms && event.data.log) {
-      //   console.log(`${event.data.ms}`, event.data.log);
-      // }
-      if (!event.data.messageShapes) return;
-
-      if (!candidates) {
-        candidates = cloneDeep(shapes);
-      }
-
-      event.data.messageShapes.forEach((messageShape, messageShapeI) => {
-        if (!candidates) return;
-        const chunckI = index + messageShapeI;
-        candidates[chunckI].status = messageShape.status;
-        messageShape.datas.forEach((data: any) => {
-          if (!candidates) return;
-
-          candidates[chunckI].usingDatas[data.i].status = data.status;
-
-          if (!data.console) return;
-
-          newConsoles.push({
-            shape: messageShape,
-            message: data.console.message,
-            status: data.console.status,
-          });
-        });
-      });
-
-      if (event.data.done) {
-        updateShapes(candidates);
-        setConsoles(newConsoles);
-        if (
-          newConsoles.findIndex(
-            (newConsole: any) => newConsole.status === "error"
-          ) > -1
-        ) {
-          setIsConsoleOpen(true);
-        }
-        terminateDataChecking();
-      }
-      index += chunkSize;
-    };
-
-    worker.onerror = function (error) {
-      console.error("Error in Worker:", error);
-    };
-  };
-
   const onClickSaveButton = async () => {
     if (!isLogIn) {
       console.warn("Not logged in - skip saving shapes to backend.");
@@ -2976,7 +2871,6 @@ export default function IdPage() {
         isLogIn={isLogIn}
         isCheckingData={isCheckingData}
         isUpsertingShape={isUpsertingShape}
-        onClickCheck={onClickCheckButton}
         onClickSave={onClickSaveButton}
         onClickUpload={onClickUploadButton}
         onClickDownload={onClickDownloadButton}

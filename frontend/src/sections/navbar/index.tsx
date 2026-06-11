@@ -9,7 +9,6 @@ interface NavbarProps {
   isLogIn: boolean;
   isCheckingData: boolean;
   isUpsertingShape: boolean;
-  onClickCheck: () => void;
   onClickSave: () => void;
   onClickUpload: () => void;
   onClickDownload: () => void;
@@ -18,17 +17,8 @@ interface NavbarProps {
 
 export default function Navbar(props: NavbarProps) {
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 w-full grid grid-cols-3 items-center px-4 py-3 border-b border-grey-5 bg-white-500">
+    <div className="fixed top-0 left-0 right-0 z-50 w-full grid grid-cols-2 items-center px-4 py-3 border-b border-grey-5 bg-white-500">
       <div />
-
-      <div className="flex items-center justify-center gap-2">
-        <Button
-          info
-          onClick={props.onClickCheck}
-          text={`Check${props.isCheckingData ? "ing" : ""}`}
-          loading={props.isCheckingData}
-        />
-      </div>
 
       <div className="flex items-center justify-end gap-2">
         <button
