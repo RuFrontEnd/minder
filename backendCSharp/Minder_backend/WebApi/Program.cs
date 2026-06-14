@@ -25,6 +25,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 // register Repository (interface to instance)
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IShapeRepository, ShapeRepository>();
 
@@ -33,6 +34,7 @@ builder.Services.AddScoped<IJwtProvider, JwtProvider>();
 
 // register Service
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<ProjectService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ShapeService>();
 

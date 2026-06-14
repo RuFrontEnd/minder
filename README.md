@@ -66,6 +66,7 @@ npx sequelize-cli db:migrate
 - (in .sln folder) dotnet tool install dotnet-ef --version 8.0.11
 
 ## migration command C#
+(under .sln folder)
 - add
 dotnet ef migrations add [migartion file name] --project Infrastructure --startup-project WebAPi
 - update
