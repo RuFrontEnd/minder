@@ -1,5 +1,6 @@
 "use client";
 import * as InputTypes from "@/types/components/input";
+import { tailwindColors } from "@/variables/colors";
 import styles from "./Input.module.css";
 
 const Input = (props: InputTypes.Props) => {

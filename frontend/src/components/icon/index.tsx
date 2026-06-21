@@ -209,8 +209,7 @@ export default function Icon(props: IconTypes.Props) {
             style={{
               fill: props.fill || defaultVal.fill,
             }}
-            className="st0"
-            d="M93.44,78.48H6.56V21.52h86.88V78.48z"
+            className={styles.root}d="M93.44,78.48H6.56V21.52h86.88V78.48z"
           />
         </svg>
       )}

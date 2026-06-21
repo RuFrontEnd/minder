@@ -2,6 +2,7 @@
 import SquareButton from "@/components/squareButton";
 import Icon from "@/components/icon";
 import { tailwindColors } from "@/variables/colors";
+import styles from "./Zoom.module.css";
 import * as IconTypes from "@/types/components/icon";
 import * as SquareButtonTypes from "@/types/components/squareButton";
 import * as ZoomTypes from "@/types/sections/id/zoom";
@@ -37,8 +38,8 @@ export default function Zoom(props: ZoomTypes.Props) {
 
   return (
     <div role="zoom">
-      <div className="justify-self-end rounded-lg border border-grey-5 bg-white-500">
-        <div className="flex items-center">
+      <div className={styles.box} style={{ ["--border-color" as any]: tailwindColors.grey["5"], ["--bg" as any]: tailwindColors.white["500"] } as React.CSSProperties}>
+        <div className={styles.row}>
           <SquareButton
             part={SquareButtonTypes.Part.left}
             size={32}

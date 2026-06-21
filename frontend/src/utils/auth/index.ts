@@ -6,12 +6,11 @@ const verifyToken = async (doWhenFail: () => void) => {
   const token = localStorage.getItem("Authorization");
 
   if (token) {
+    axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
     const res: AxiosResponse<AuthTypes.JWTLogin["resData"]> =
-      await authAPIs.jwtLogin(token);
+      await authAPIs.validateToken();
 
-    if (res.data.isPass) {
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-    } else {
+    if (!res.data.isPass) {
       doWhenFail();
     }
   } else {

@@ -17,6 +17,7 @@ import * as AuthTypes from "@/types/apis/auth";
 import * as ProjectAPITypes from "@/types/apis/project";
 import * as ProjectTypes from "@/types/project";
 import * as AuthModalTypes from "@/types/blocks/indivisualSidePanel/authModal";
+import styles from './index.module.css';
 
 axios.defaults.baseURL = process.env.BASE_URL || "http://localhost:5000/api";
 
@@ -78,7 +79,7 @@ export default function AuthModal(props: AuthModalTypes.Props) {
 
   const fetchProjects = async () => {
     const res: AxiosResponse<ProjectAPITypes.GetProjects["resData"], any> =
-      await projectAPIs.getProjecs();
+      await projectAPIs.getProjects();
     setProjects(res.data);
   };
 
@@ -127,7 +128,7 @@ export default function AuthModal(props: AuthModalTypes.Props) {
           // const res: AxiosResponse<
           //   ProjectAPITypes.GetProjects["resData"],
           //   any
-          // > = await projectAPIs.getProjecs();
+          // > = await projectAPIs.getProjects();
           // setProjects(res.data);
           // setIsProjectsModalOpen(true);
         }, 1000);
@@ -267,7 +268,7 @@ export default function AuthModal(props: AuthModalTypes.Props) {
       return;
     }
     const newProject: AxiosResponse<ProjectAPITypes.CreateProject["resData"]> =
-      await projectAPIs.createProject();
+      await projectAPIs.createProject("Untitled Project");
 
     router.push(`/${newProject.data.id}`);
   };
@@ -313,8 +314,8 @@ export default function AuthModal(props: AuthModalTypes.Props) {
         mask={false}
         onClickX={onClickX}
       >
-        <div className="bg-white-500 rounded-lg p-8 flex flex-col w-full shadow-lg">
-          <a className="flex title-font font-medium justify-center items-center text-gray-900 mb-4">
+        <div className={styles.root}>
+          <a className={styles.root}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
@@ -322,19 +323,17 @@ export default function AuthModal(props: AuthModalTypes.Props) {
               stroke-linecap="round"
               stroke-linejoin="round"
               stroke-width="2"
-              className="w-10 h-10 text-white p-2 bg-secondary-500 rounded-full"
-              viewBox="0 0 24 24"
+              className={styles.root}viewBox="0 0 24 24"
             >
               <path
                 stroke="#FFFFFF"
                 d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
               ></path>
             </svg>
-            <span className="ml-3 text-xl text-grey-1">Minder</span>
+            <span className={styles.root}>Minder</span>
           </a>
           <Input
-            className="mb-4"
-            label={"Account"}
+            className={styles.root}label={"Account"}
             type="text"
             name="account"
             value={authInfo.account.value}
@@ -343,8 +342,7 @@ export default function AuthModal(props: AuthModalTypes.Props) {
             onChange={onChangeAccount}
           />
           <Input
-            className="mb-4"
-            label={"Password"}
+            className={styles.root}label={"Password"}
             type="password"
             name="password"
             value={authInfo.password.value}
@@ -354,8 +352,7 @@ export default function AuthModal(props: AuthModalTypes.Props) {
           />
           {/* {!props.isLogIn && (
             <Input
-              className="mb-4"
-              label={"Email"}
+              className={styles.root}label={"Email"}
               type="email"
               name="email"
               value={authInfo.email.value}
@@ -365,8 +362,7 @@ export default function AuthModal(props: AuthModalTypes.Props) {
             />
           )} */}
           <Button
-            className="text-lg"
-            text={
+            className={styles.root}text={
               "Login"
               // props.isLogIn ? "Login" : "Sign Up"
             }
@@ -378,17 +374,15 @@ export default function AuthModal(props: AuthModalTypes.Props) {
           />
           {authMessage.text && (
             <Alert
-              className="mt-2"
-              type={authMessage.status}
+              className={styles.root}type={authMessage.status}
               text={authMessage.text}
             />
           )}
           {/* register switcher */}
-          {/* <p className="text-xs text-gray-500 mt-3">
+          {/* <p className={styles.root}>
             {props.isLogIn ? "No account yet? " : "Already have an account? "}
             <a
-              className="text-info-500 cursor-pointer"
-              onClick={() => {
+              className={styles.root}onClick={() => {
                 onClickChangeAuthButton(!props.isLogIn);
               }}
             >
@@ -398,22 +392,21 @@ export default function AuthModal(props: AuthModalTypes.Props) {
         </div>
       </Modal>
       <Modal isOpen={isProjectsModalOpen} width="1120px" mask={false}>
-        <div className="shadow-lg">
-          <section className="rounded-lg text-gray-600 bg-white-500 p-8 body-font">
-            <div className="mb-6 pb-3 ps-4 border-b border-grey-5 flex justify-between items-end">
-              <h2 className="text-gray-900 title-font text-lg font-semibold">
+        <div className={styles.root}>
+          <section className={styles.root}>
+            <div className={styles.root}>
+              <h2 className={styles.root}>
                 Projects
               </h2>
               <Button onClick={onClickNewProjectButton} text={"New Project"} />
             </div>
-            <div className="grid grid-cols-3 gap-4 h-[500px] overflow-auto">
+            <div className={styles.root}>
               {projects.map((project) => (
                 <div>
                   <Card
-                    className="cursor-pointer"
-                    key={project.id}
+                    className={styles.root}key={project.id}
                     text={
-                      <h2 className="title-font text-lg font-medium">
+                      <h2 className={styles.root}>
                         {project.name}
                       </h2>
                     }
@@ -426,17 +419,15 @@ export default function AuthModal(props: AuthModalTypes.Props) {
                 </div>
               ))}
             </div>
-            <div className="flex justify-between items-center mt-6 pt-3 border-t border-grey-5">
+            <div className={styles.root}>
               <Button
-                className="me-3"
-                onClick={onClickLogOutButton}
+                className={styles.root}onClick={onClickLogOutButton}
                 text={"LogOut"}
                 danger
               />
-              <div className="flex">
+              <div className={styles.root}>
                 <Button
-                  className="me-3"
-                  onClick={() => {
+                  className={styles.root}onClick={() => {
                     if (!selectedProjectId) return;
                     onClickDeleteProject(selectedProjectId);
                   }}

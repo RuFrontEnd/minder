@@ -16,6 +16,7 @@ type Props = {
   disabled?: boolean;
   danger?: boolean;
   size?: Size;
+  style?: React.CSSProperties;
   onClick: MouseEventHandler<HTMLButtonElement>;
 };
 

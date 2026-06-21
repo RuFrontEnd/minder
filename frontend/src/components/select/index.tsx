@@ -1,5 +1,6 @@
 "use client";
 import * as SelectTypes from "@/types/components/select";
+import { tailwindColors } from "@/variables/colors";
 import styles from "./Select.module.css";
 
 const Select = (props: SelectTypes.Props) => {

@@ -14,6 +14,7 @@ import { motion } from "framer-motion";
 // lodash clone not required after removing data management
 import { ChangeEventHandler, MouseEventHandler } from "react";
 import { tailwindColors } from "@/variables/colors";
+import styles from "./OverallSidePanel.module.css";
 import * as CommonTypes from "@/types/common";
 import * as OverallSidePanelTypes from "@/types/sections/id/overallSidePanel";
 
@@ -60,7 +61,7 @@ export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
 
   return (
     <SidePanel
-      className="z-[60]"
+      className={styles.root}
       open={props.isOverAllSidePanelOpen}
       w={"360px"}
       h={"calc(-65px + 100vh)"}
@@ -68,19 +69,12 @@ export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
       onClickSwitch={onClickOverallSidePanelSwitch}
     >
       <div>
-        <div className="flex border-b border-grey-5">
-          <h3
-            className={`flex-1 flex justify-center text-lg font-semibold py-2 px-5 border-b-2 border-secondary-500 text-black-2`}
-          >
-            <span>Step</span>
-          </h3>
+        <div className={styles.header}>
+          <h3 className={styles.title}><span>Step</span></h3>
         </div>
       </div>
 
-      <ul
-        style={{ height: "calc(100% - 52px)" }}
-        className="overflow-y-auto overflow-x-hidden p-2"
-      >
+      <ul style={{ height: "calc(100% - 52px)" }} className={styles.list}>
             {props.steps.map((step) => {
               const icon = (() => {
                 let _type = undefined;
@@ -113,8 +107,8 @@ export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
                   <Accordion
                     showArrow={false}
                     title={
-                      <div className="flex items-center">
-                        <div className="basis-[20px]">
+                      <div className={styles.stepRow}>
+                        <div className={styles.iconBox}>
                           <Icon
                             type={icon.type}
                             w={20}
@@ -122,14 +116,14 @@ export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
                             fill={icon.color}
                           />
                         </div>
-                        <div className="basis-full">
-                          <p className="ms-2">{step.title}</p>
+                        <div className={styles.titleText}>
+                          <p>{step.title}</p>
                         </div>
                       </div>
                     }
                     hoverRender={
                       <Icon
-                        className="cursor-pointer justify-end items-center"
+                        className={styles.hoverIcon}
                         type={IconTypes.Type.sight}
                         w={18}
                         h={18}
@@ -145,63 +139,7 @@ export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
             })}
       </ul>
 
-      {/* TODO: project name */}
-      {/* <div
-        className="absolute top-0 -right-20 translate-x-full text-base"
-        role="project_name"
-      >
-        <div className="relative bg-white-500 px-5 py-1 rounded-lg shadow-md">
-          <nav
-            className="cursor-pointer flex items-center relative [&:hover>div:nth-child(2)]:translate-x-full [&:hover>div:nth-child(2)]:opacity-100 transition ease-in-out duration-150"
-            onClick={onClickProjectName}
-          >
-            <a className="text-grey-1">{props.projectName.val}</a>
-            <div className="absolute right-0 translate-x-[0px] opacity-0 transition ease-in-out duration-150 ps-1">
-              <PencilSquareIcon
-                width={20}
-                height={20}
-                fill={tailwindColors.white["500"]}
-              />
-            </div>
-          </nav>
-          <motion.div
-            className={`${
-              isRenameFrameOpen ? "block" : "hidden"
-            } absolute top-9 left-0 -translate-x-1/2 translate-y-full`}
-            variants={{
-              open: {
-                display: "block",
-                opacity: 1,
-                y: "4px",
-              },
-              closed: {
-                transitionEnd: {
-                  display: "none",
-                },
-                opacity: 0,
-                y: "-2px",
-              },
-            }}
-            initial={isRenameFrameOpen ? "open" : "closed"}
-            animate={isRenameFrameOpen ? "open" : "closed"}
-            transition={{ type: "easeInOut", duration: 0.15 }}
-          >
-            <Frame className={"w-[240px] p-2"} role="frame">
-              <div className="flex">
-                <Input
-                  value={props.projectName.inputVal}
-                  onChange={onChangeProjectName}
-                />
-                <SimpleButton
-                  className="px-2"
-                  text="Save"
-                  onClick={onClickSaveProjectNameButton}
-                />
-              </div>
-            </Frame>
-          </motion.div>
-        </div>
-      </div> */}
+      {/* project name UI removed; implement when needed */}
     </SidePanel>
   );
 }

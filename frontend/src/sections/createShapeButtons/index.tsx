@@ -8,6 +8,7 @@ import Icon from "@/components/icon";
 import { MouseEvent } from "react";
 import { tailwindColors } from "@/variables/colors";
 import { v4 as uuidv4 } from "uuid";
+import styles from "./CreateShapeButtons.module.css";
 import * as IconTypes from "@/types/components/icon";
 import * as CommonTypes from "@/types/common";
 import * as CreateShapeButtonsTypes from "@/types/sections/id/createShapeButtons";
@@ -114,7 +115,7 @@ export default function CreateShapeButtons(
 
   return (
     <section role="create_shapes">
-      <div className="flex bg-white-500 p-1 border border-grey-5 rounded-md">
+      <div className={styles.container} style={{ ["--border-color" as any]: tailwindColors.grey["5"], ["--bg" as any]: tailwindColors.white["500"] } as React.CSSProperties}>
         {createShapeButtons.map((createShapeButton) => (
           <SquareButton
             size={40}

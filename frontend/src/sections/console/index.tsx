@@ -6,6 +6,7 @@ import CreateShapeButtons from "@/sections/createShapeButtons";
 import Icon from "@/components/icon";
 import SquareButton from "@/components/squareButton";
 import { tailwindColors } from "@/variables/colors";
+import styles from "./Console.module.css";
 import * as IconTypes from "@/types/components/icon";
 import * as SidePanelTypes from "@/types/components/sidePanel";
 import * as ConsoleTypes from "@/types/sections/id/console";
@@ -34,9 +35,9 @@ export default function Console(props: ConsoleTypes.Props) {
 
   return (
     <>
-      <div className="fixed bottom-4 inset-x-0 flex justify-center items-center">
-        <div className="relative inline-flex items-center">
-          <div className="absolute right-full mr-2 flex gap-2 items-center">
+      <div className={styles.root}>
+        <div className={styles.toolbar}>
+          <div className={styles.leftFloating}>
             <div></div>
             <div></div>
           </div>
@@ -52,11 +53,10 @@ export default function Console(props: ConsoleTypes.Props) {
               initShapeSize={props.initShapeSize}
             />
           </div>
-
-          <div className="absolute left-full ml-2 flex gap-2 items-center">
+          <div className={styles.rightFloating}>
             <SquareButton
-              className="border border-grey-5"
               size={32}
+              style={{ border: `1px solid ${tailwindColors.grey["5"]}` }}
               content={
                 <Icon
                   type={IconTypes.Type.rotateCcw}
@@ -69,8 +69,8 @@ export default function Console(props: ConsoleTypes.Props) {
             />
             <Zoom zoom={props.zoom} scale={props.scale} />
             <SquareButton
-              className="border border-grey-5"
               size={32}
+              style={{ border: `1px solid ${tailwindColors.grey["5"]}` }}
               content={<Icon w={14} h={14} fill={tailwindColors.grey["1"]} />}
               onClick={() => setIsProjectModalOpen(true)}
             />

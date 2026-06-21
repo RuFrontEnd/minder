@@ -9,6 +9,7 @@ type Props = {
   size?: number;
   outerRing?: boolean;
   differece?: number;
+  color?: string;
   onClick?: MouseEventHandler<HTMLButtonElement>;
   onKeyDown?: KeyboardEventHandler<HTMLButtonElement>;
 };

@@ -12,6 +12,7 @@ import Decision from "@/shapes/decision";
 import Curve from "@/shapes/curve";
 import { cloneDeep } from "lodash";
 import { tailwindColors } from "@/variables/colors";
+import styles from "./IndivisualSidePanel.module.css";
 import * as authAPIs from "@/apis/auth";
 import * as handleUtils from "@/utils/handle";
 
@@ -97,7 +98,7 @@ export default function IndivisualSidePanel(
   return (
     <>
       <SidePanel
-        className="z-[60]"
+        className={styles.root}
         role={"indivisual"}
         open={props.isIndivisualSidePanelOpen}
         horizentalD={SidePanelTypes.HorizentalD.r}
@@ -106,51 +107,46 @@ export default function IndivisualSidePanel(
         h={"calc(-65px + 100vh)"}
         onClickSwitch={onClickSidePanelSwitch}
       >
-        <div className={"p-4 h-full"}>
+        <div className={styles.container}>
           <div
-            className="flex flex-col"
+            className={styles.column}
             style={{
               height: `calc(100% - ${props.isEditingIndivisual ? 28 : 16}px)`,
             }}
           >
-            <div className="flex items-center">
+            <div className={styles.titleRow}>
               {props.isEditingIndivisual ? (
                 <>
                   <Input
                     role="edit_indivisual_title"
-                    className="flex-1"
+                    className={styles.inputFull}
                     value={editingTitle}
                     onChange={onChangeTitle}
                   />
-                  <div
-                    className="flex justify-end items-center"
-                    role="edit_indivisual"
-                  >
+                  <div className={styles.actions} role="edit_indivisual">
                     <Button
                       role="cancel_edit_indivisual"
                       vice
                       text="Cancel"
-                      className="ms-2"
                       size={ButtonTypes.Size.sm}
+                      style={{ marginLeft: 8 }}
                       onClick={onClickCancelButton}
                     />
                     <Button
                       role="save_edit_indivisual"
                       text="Save"
-                      className="ms-2"
                       size={ButtonTypes.Size.sm}
+                      style={{ marginLeft: 8 }}
                       onClick={onClickSaveEditingButton}
                     />
                   </div>
                 </>
               ) : (
                 <>
-                  <p className="flex-1 text-md font-semibold text-black-2 px-3 py-1 min-w-0 truncate">
-                    {props.indivisual?.title || "-"}
-                  </p>
+                  <p className={styles.titleText}>{props.indivisual?.title || "-"}</p>
                   <Icon
                     role="begin_edit_indivisual"
-                    className={"justify-self-end cursor-pointer"}
+                    className={styles.iconButton}
                     type={IconTypes.Type.pencilSquare}
                     w={16}
                     h={16}
@@ -160,17 +156,17 @@ export default function IndivisualSidePanel(
                 </>
               )}
             </div>
-            <div className="flex-1 flex flex-col">
-              <div className="mb-2 text-sm text-grey-2 ms-1">Description</div>
+            <div className={styles.column}>
+              <div className={styles.descLabel}>Description</div>
               {props.isEditingIndivisual ? (
                 <textarea
                   role="edit_indivisual_description"
                   value={editingDescription || ""}
                   onChange={(e) => setEditingDescription(e.target.value)}
-                  className="resize-none p-2 rounded border border-grey-4 h-full"
+                  className={styles.textarea}
                 />
               ) : (
-                <div className="p-2 text-sm text-grey-2 overflow-auto h-full">
+                <div className={styles.descBox}>
                   {(props.indivisual as any)?.description || "-"}
                 </div>
               )}

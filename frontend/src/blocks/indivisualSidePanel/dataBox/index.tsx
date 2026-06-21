@@ -11,11 +11,12 @@ import { tailwindColors } from "@/variables/colors";
 import * as IconTypes from "@/types/components/icon";
 import * as SimpleButtonTypes from "@/types/components/simpleButton";
 import * as DataBoxTypes from "@/types/blocks/indivisualSidePanel/dataBox";
+import styles from './index.module.css';
 
 const NoData = (
-  <div className="flex justify-center items-center h-full p-1">
-    <div className="flex-1 flex justify-center items-center h-full bg-grey-7 rounded-md">
-      <p className="text-black-2 text-grey-4">No Data</p>
+  <div className={styles.root}>
+    <div className={styles.root}>
+      <p className={styles.root}>No Data</p>
     </div>
   </div>
 );
@@ -82,14 +83,14 @@ export default function DataBox(props: DataBoxTypes.Props) {
     >
       <Divider text={props.text} />
       {props.isEditing && (
-        <div className="flex items-center justify-end px-1">
+        <div className={styles.root}>
           <SimpleButton
             role="create_data"
             onClick={onClickCreateDataButton}
             text="Create"
             size={SimpleButtonTypes.Size.sm}
           />
-          <div className="border mx-2 h-3" />
+          <div className={styles.root}/>
           <SimpleButton
             role="add_data"
             onClick={onClickAddDataButton}
@@ -100,8 +101,7 @@ export default function DataBox(props: DataBoxTypes.Props) {
         </div>
       )}
       <ul
-        className="flex-1 overflow-auto"
-        style={{ height: "calc(100% - 52px)" }}
+        className={styles.root}style={{ height: "calc(100% - 52px)" }}
       >
         {props.isEditing ? (
           <>
@@ -110,10 +110,9 @@ export default function DataBox(props: DataBoxTypes.Props) {
             ) : (
               <>
                 {props.createDatas.map((createData, createDataI) => (
-                  <li className="py-1 flex">
+                  <li className={styles.root}>
                     <Input
-                      className="flex-1"
-                      placeholder={"input data name"}
+                      className={styles.root}placeholder={"input data name"}
                       value={createData.val}
                       onChange={(e) => {
                         onChangeCreateDataButton(e, createDataI);
@@ -122,8 +121,7 @@ export default function DataBox(props: DataBoxTypes.Props) {
                       status={createData.status}
                     />
                     <Icon
-                      className="m-1 cursor-pointer"
-                      type={IconTypes.Type.x}
+                      className={styles.root}type={IconTypes.Type.x}
                       w={16}
                       h={24}
                       stroke={tailwindColors.error["500"]}
@@ -134,10 +132,9 @@ export default function DataBox(props: DataBoxTypes.Props) {
                   </li>
                 ))}
                 {props.addDatas.map((addData, addDataI) => (
-                  <li className="py-1 flex">
+                  <li className={styles.root}>
                     <Select
-                      className="flex-1"
-                      options={props.options}
+                      className={styles.root}options={props.options}
                       value={addData.val}
                       placeholder={"select data"}
                       onChange={(e) => {
@@ -147,8 +144,7 @@ export default function DataBox(props: DataBoxTypes.Props) {
                       status={addData.status}
                     />
                     <Icon
-                      className="m-1 cursor-pointer"
-                      type={IconTypes.Type.x}
+                      className={styles.root}type={IconTypes.Type.x}
                       w={16}
                       h={24}
                       stroke={tailwindColors.error["500"]}
@@ -168,7 +164,7 @@ export default function DataBox(props: DataBoxTypes.Props) {
             ) : (
               <>
                 {props.datas.map((data) => (
-                  <li className="px-3 py-1 hover:bg-grey-5">
+                  <li className={styles.root}>
                     <StatusText text={data.text} status={data.status} />
                   </li>
                 ))}

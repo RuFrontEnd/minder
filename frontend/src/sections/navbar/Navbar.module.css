@@ -1,0 +1,18 @@
+.root {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+  background: var(--bg, #ffffff);
+}
+.actions { display:flex; align-items:center; justify-content:flex-end; gap:0.5rem }
+.actionButton { display:flex; align-items:center; gap:0.25rem; padding:0.5rem 0.75rem; border-radius:6px; transition: background-color .15s; background:transparent; border:0 }
+.separator { width:1px; height:1.5rem; background:var(--border-color,#e5e7eb) }
+.label { font-size:0.875rem; font-weight:500 }

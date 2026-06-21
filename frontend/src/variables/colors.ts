@@ -1,5 +1,6 @@
 import tailwindConfig from './tailwind'
 
-const tailwindColors = tailwindConfig.theme?.colors as { [key: string]: any };
+const cfg: any = tailwindConfig;
+const tailwindColors = (cfg.theme?.colors || cfg.theme?.extend?.colors) as { [key: string]: any };
 
 export { tailwindColors }

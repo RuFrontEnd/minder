@@ -4,6 +4,7 @@ import Button from "@/components/button";
 import Icon from "@/components/icon";
 import * as IconTypes from "@/types/components/icon";
 import { tailwindColors } from "@/variables/colors";
+import styles from "./Navbar.module.css";
 
 interface NavbarProps {
   isLogIn: boolean;
@@ -17,13 +18,16 @@ interface NavbarProps {
 
 export default function Navbar(props: NavbarProps) {
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 w-full grid grid-cols-2 items-center px-4 py-3 border-b border-grey-5 bg-white-500">
+    <div className={styles.root} style={{
+      ["--border-color" as any]: tailwindColors.grey["5"],
+      ["--bg" as any]: tailwindColors.white["500"],
+    } as React.CSSProperties}>
       <div />
 
-      <div className="flex items-center justify-end gap-2">
+      <div className={styles.actions}>
         <button
           onClick={props.onClickUpload}
-          className="flex items-center gap-1 px-3 py-2 rounded text-grey-2 hover:bg-grey-6 transition-colors duration-150"
+          className={styles.actionButton}
           title="Upload project"
         >
           <Icon
@@ -32,12 +36,12 @@ export default function Navbar(props: NavbarProps) {
             h={16}
             stroke={tailwindColors.grey["2"]}
           />
-          <span className="text-sm font-medium">Upload</span>
+          <span className={styles.label}>Upload</span>
         </button>
 
         <button
           onClick={props.onClickDownload}
-          className="flex items-center gap-1 px-3 py-2 rounded text-grey-2 hover:bg-grey-6 transition-colors duration-150"
+          className={styles.actionButton}
           title="Download project"
         >
           <Icon
@@ -46,33 +50,24 @@ export default function Navbar(props: NavbarProps) {
             h={16}
             stroke={tailwindColors.grey["2"]}
           />
-          <span className="text-sm font-medium">Download</span>
+          <span className={styles.label}>Download</span>
         </button>
 
-        <div className="w-px h-6 bg-grey-5" />
+        <div className={styles.separator} />
 
         <button
           onClick={props.onClickLogIn}
-          className={`flex items-center gap-1 px-3 py-2 rounded transition-colors duration-150 ${
-            props.isLogIn
-              ? "text-grey-2 hover:bg-grey-6"
-              : "text-info-500 hover:bg-blue-100"
-          }`}
+          className={styles.actionButton}
           title={props.isLogIn ? "Log Out" : "Log In"}
+          style={{ color: props.isLogIn ? tailwindColors.grey["2"] : tailwindColors.info["500"] }}
         >
           <Icon
             type={IconTypes.Type.user}
             w={16}
             h={16}
-            stroke={
-              props.isLogIn
-                ? tailwindColors.grey["2"]
-                : tailwindColors.info["500"]
-            }
+            stroke={props.isLogIn ? tailwindColors.grey["2"] : tailwindColors.info["500"]}
           />
-          <span className="text-sm font-medium">
-            {props.isLogIn ? "Log Out" : "Log In"}
-          </span>
+          <span className={styles.label}>{props.isLogIn ? "Log Out" : "Log In"}</span>
         </button>
       </div>
     </div>

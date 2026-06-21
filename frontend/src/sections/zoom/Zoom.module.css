@@ -1,0 +1,2 @@
+.box { justify-self:end; border-radius:8px; border:1px solid var(--border-color,#e5e7eb); background:var(--bg,#ffffff) }
+.row { display:flex; align-items:center }

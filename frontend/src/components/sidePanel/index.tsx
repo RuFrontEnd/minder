@@ -37,12 +37,10 @@ const SidePanel = (props: SidePanelTypes.Props) => {
         <motion.div
           id={props.id}
           role={props.role}
+          className={`${props.className || ""} ${styles.root}`}
           style={{
             width: props.w,
             height: props.h,
-          }}
-          className={`${props.className || ""} ${styles.root}`}
-          style={{
             ...(props.horizentalD === SidePanelTypes.HorizentalD.r
               ? { right: 0 }
               : { left: 0 }),
@@ -126,12 +124,10 @@ const SidePanel = (props: SidePanelTypes.Props) => {
         <motion.div
           id={props.id}
           role={props.role}
+          className={`${props.className || ""} ${styles.root}`}
           style={{
             width: props.w,
             height: props.h,
-          }}
-          className={`${props.className || ""} ${styles.root}`}
-          style={{
             ...(props.horizentalD === SidePanelTypes.HorizentalD.m
               ? { left: "50%", transform: "translateX(-50%)" }
               : props.horizentalD === SidePanelTypes.HorizentalD.r
