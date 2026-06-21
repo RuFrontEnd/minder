@@ -1,0 +1,21 @@
+.root {
+  position: fixed;
+}
+
+.innerPadding {
+  padding: 1rem;
+  height: 100%;
+}
+
+.panelBox {
+  height: 100%;
+  position: relative;
+  border-radius: 8px;
+  border: 1px solid var(--border-color, #e0e0e0);
+  background: var(--bg-color, #ffffff);
+  color: var(--text-color, #333333);
+}
+
+.switchWrapper {
+  position: absolute;
+}

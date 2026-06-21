@@ -1,0 +1,10 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+}
+
+.sizeSm { font-size: 0.875rem; }
+.sizeMd { font-size: 1rem; }
+.sizeLg { font-size: 1.125rem; }
+
+.loadingMargin { margin-right: 0.25rem; }

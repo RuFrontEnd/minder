@@ -1,46 +1,39 @@
 import ReactLoading from "react-loading";
 import { tailwindColors } from "@/variables/colors";
 import * as SimpleButtonTypes from "@/types/components/simpleButton";
+import styles from "./SimpleButton.module.css";
 
 const SimpleButton = (props: SimpleButtonTypes.Props) => {
-  const statusStyle = (() => {
-    if (props.disabled) {
-      return "text-grey-5 cursor-default pointer-events-none";
-    }
-    if (props.danger) {
-      return "text-error-500";
-    }
+  const statusStyleObj: any = {};
+  if (props.disabled) {
+    statusStyleObj.color = (tailwindColors.grey as any)["5"];
+    statusStyleObj.cursor = "default";
+    statusStyleObj.pointerEvents = "none";
+  } else if (props.danger) {
+    statusStyleObj.color = (tailwindColors.error as any)["500"];
+  } else {
+    statusStyleObj.color = (tailwindColors.info as any)["500"];
+  }
 
-    return "text-info-500";
-  })();
-
-  const sizeStyle = (() => {
-    if (props.size === SimpleButtonTypes.Size.sm) {
-      return "text-sm";
-    }
-
-    if (props.size === SimpleButtonTypes.Size.md) {
-      return "text-md";
-    }
-
-    if (props.size === SimpleButtonTypes.Size.lg) {
-      return "text-lg";
-    }
-
-    return "text-md";
-  })();
+  const sizeClass =
+    props.size === SimpleButtonTypes.Size.sm
+      ? styles.sizeSm
+      : props.size === SimpleButtonTypes.Size.md
+      ? styles.sizeMd
+      : styles.sizeLg;
 
   return (
     <button
       tabIndex={-1}
       role={props.role}
-      className={`flex items-center ${sizeStyle} ${statusStyle} ${props.className}`}
+      className={`${styles.root} ${sizeClass} ${props.className ? props.className : ""}`}
+      style={statusStyleObj}
       onClick={props.disabled ? undefined : props.onClick}
       onMouseDown={(e) => e.preventDefault()}
     >
       {props.loading && (
         <ReactLoading
-          className={"mr-1"}
+          className={styles.loadingMargin}
           type={"spin"}
           color={tailwindColors.info["500"]}
           height={20}

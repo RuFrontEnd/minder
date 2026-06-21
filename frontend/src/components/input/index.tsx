@@ -1,5 +1,6 @@
 "use client";
 import * as InputTypes from "@/types/components/input";
+import styles from "./Input.module.css";
 
 const Input = (props: InputTypes.Props) => {
   const textColor = (() => {
@@ -24,10 +25,7 @@ const Input = (props: InputTypes.Props) => {
   return (
     <div className={props.className} id={props.id} role={props.role}>
       {props.label && (
-        <label
-          htmlFor={props.name}
-          className={`leading-7 text-md text-grey-2 ms-1 duration-200 ease-in-out`}
-        >
+        <label htmlFor={props.name} className={styles.label}>
           {props.label}
         </label>
       )}
@@ -35,16 +33,24 @@ const Input = (props: InputTypes.Props) => {
         style={{
           width: props.w ? props.w : "100%",
           height: props.h ? props.h : 32,
-        }}
+          ["--border-color" as any]:
+            props.status === InputTypes.Status.warning
+              ? (tailwindColors.warning as any)["500"]
+              : props.status === InputTypes.Status.error
+              ? (tailwindColors.error as any)["500"]
+              : (tailwindColors.grey as any)["4"],
+          ["--bg-color" as any]: (tailwindColors.white as any)["500"],
+          ["--text-color" as any]: (tailwindColors.grey as any)["2"],
+        } as React.CSSProperties}
         placeholder={props.placeholder}
         type={props.type}
         name={props.name}
-        className={`bg-white-500 rounded border ${borderColor} text-base outline-none text-grey-2 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out`}
+        className={styles.input}
         value={props.value || ""}
         onChange={props.onChange}
       />
       {props.comment && (
-        <p className={`${textColor} text-sm ms-1 mt-1`}>{props.comment}</p>
+        <p className={styles.comment}>{props.comment}</p>
       )}
     </div>
   );

@@ -1,5 +1,6 @@
 "use client";
 import * as SelectTypes from "@/types/components/select";
+import styles from "./Select.module.css";
 
 const Select = (props: SelectTypes.Props) => {
   const textColor = (() => {
@@ -24,10 +25,7 @@ const Select = (props: SelectTypes.Props) => {
   return (
     <div className={props.className} id={props.id}>
       {props.label && (
-        <label
-          htmlFor={props.name}
-          className={`leading-7 text-md text-grey-2 ms-1 duration-200 ease-in-out`}
-        >
+        <label htmlFor={props.name} className={styles.label}>
           {props.label}
         </label>
       )}
@@ -35,18 +33,24 @@ const Select = (props: SelectTypes.Props) => {
         style={{
           width: props.w ? props.w : "100%",
           height: props.h ? props.h : 32,
-        }}
+          ["--border-color" as any]:
+            props.status === SelectTypes.Status.warning
+              ? (tailwindColors.warning as any)["500"]
+              : props.status === SelectTypes.Status.error
+              ? (tailwindColors.error as any)["500"]
+              : (tailwindColors.grey as any)["4"],
+        } as React.CSSProperties}
         name={props.name}
-        className={`bg-white-500 rounded border ${borderColor} appearance-none text-base outline-none text-grey-2 py-1 px-3 transition-colors duration-200 ease-in-out`}
+        className={styles.select}
         value={props.value || ""}
         onChange={props.onChange}
         placeholder={props.placeholder}
       >
-        {props.options.map(option => <option key={option}>{option}</option>)}
+        {props.options.map((option) => (
+          <option key={option}>{option}</option>
+        ))}
       </select>
-      {props.comment && (
-        <p className={`${textColor} text-sm ms-1 mt-1`}>{props.comment}</p>
-      )}
+      {props.comment && <p className={styles.comment}>{props.comment}</p>}
     </div>
   );
 };

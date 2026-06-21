@@ -4,30 +4,31 @@ import { motion } from "framer-motion";
 import { tailwindColors } from "@/variables/colors";
 import * as IconTypes from "@/types/components/icon";
 import * as SidePanelTypes from "@/types/components/sidePanel";
+import styles from "./SidePanel.module.css";
 
 const SidePanel = (props: SidePanelTypes.Props) => {
   const switchButtonPositionStyle = {
     row: (() => {
       if (props.switchButtonD === SidePanelTypes.SwitchButtonD.start) {
-        return "top-4";
+        return { top: 16 };
       } else if (props.switchButtonD === SidePanelTypes.SwitchButtonD.m) {
-        return "top-1/2 -translate-y-1/2";
+        return { top: "50%", transform: "translateY(-50%)" } as any;
       } else if (props.switchButtonD === SidePanelTypes.SwitchButtonD.end) {
-        return "bottom-4";
+        return { bottom: 16 };
       }
 
-      return "top-4";
+      return { top: 16 };
     })(),
     column: (() => {
       if (props.switchButtonD === SidePanelTypes.SwitchButtonD.start) {
-        return "left-4";
+        return { left: 16 };
       } else if (props.switchButtonD === SidePanelTypes.SwitchButtonD.m) {
-        return "left-1/2 -translate-x-1/2";
+        return { left: "50%", transform: "translateX(-50%)" } as any;
       } else if (props.switchButtonD === SidePanelTypes.SwitchButtonD.end) {
-        return "right-4";
+        return { right: 16 };
       }
 
-      return "left-4";
+      return { left: 16 };
     })(),
   };
   return (
@@ -40,19 +41,17 @@ const SidePanel = (props: SidePanelTypes.Props) => {
             width: props.w,
             height: props.h,
           }}
-          className={`${props.className || ""} fixed 
-      ${
-        props.horizentalD === SidePanelTypes.HorizentalD.r
-          ? "right-0"
-          : "left-0"
-      } 
-      ${
-        props.verticalD === SidePanelTypes.VerticalD.m
-          ? "top-1/2"
-          : props.verticalD === SidePanelTypes.VerticalD.b
-          ? "bottom-0"
-          : "top-0"
-      }`}
+          className={`${props.className || ""} ${styles.root}`}
+          style={{
+            ...(props.horizentalD === SidePanelTypes.HorizentalD.r
+              ? { right: 0 }
+              : { left: 0 }),
+            ...(props.verticalD === SidePanelTypes.VerticalD.m
+              ? { top: "50%", transform: "translateY(-50%)" }
+              : props.verticalD === SidePanelTypes.VerticalD.b
+              ? { bottom: 0 }
+              : { top: 0 }),
+          }}
           variants={{
             open: {
               x: "0%",
@@ -71,18 +70,25 @@ const SidePanel = (props: SidePanelTypes.Props) => {
           animate={props.open ? "open" : `closed`}
           transition={{ duration: 0 }}
         >
-          <div className="p-4 h-full">
-            <div className="h-full relative text-grey-2 bg-white-500 border border-grey-5 rounded-lg">
+          <div className={styles.innerPadding}>
+            <div
+              className={styles.panelBox}
+              style={{
+                ["--border-color" as any]: tailwindColors.grey["5"],
+                ["--bg-color" as any]: tailwindColors.white["500"],
+                ["--text-color" as any]: tailwindColors.grey["2"],
+              } as React.CSSProperties}
+            >
               {props.children}
               {props.onClickSwitch && (
                 <div
-                  className={`absolute
-                    ${switchButtonPositionStyle.row}
-                    ${
-                      props.horizentalD === SidePanelTypes.HorizentalD.r
-                        ? "-left-4 -translate-x-full"
-                        : "-right-4 translate-x-full"
-                    } `}
+                  className={styles.switchWrapper}
+                  style={{
+                    ...(switchButtonPositionStyle.row as any),
+                    ...(props.horizentalD === SidePanelTypes.HorizentalD.r
+                      ? { right: "100%", marginRight: 16 }
+                      : { left: "100%", marginLeft: 16 }),
+                  } as React.CSSProperties}
                   onClick={props.onClickSwitch}
                 >
                   <RoundButton
@@ -126,21 +132,19 @@ const SidePanel = (props: SidePanelTypes.Props) => {
             width: props.w,
             height: props.h,
           }}
-          className={`${props.className || ""} fixed 
-      ${
-        props.horizentalD === SidePanelTypes.HorizentalD.m
-          ? "left-1/2"
-          : props.horizentalD === SidePanelTypes.HorizentalD.r
-          ? "right-0"
-          : "left-0"
-      } 
-      ${
-        props.verticalD === SidePanelTypes.VerticalD.m
-          ? "top-1/2"
-          : props.verticalD === SidePanelTypes.VerticalD.b
-          ? "bottom-0"
-          : "top-0"
-      }`}
+          className={`${props.className || ""} ${styles.root}`}
+          style={{
+            ...(props.horizentalD === SidePanelTypes.HorizentalD.m
+              ? { left: "50%", transform: "translateX(-50%)" }
+              : props.horizentalD === SidePanelTypes.HorizentalD.r
+              ? { right: 0 }
+              : { left: 0 }),
+            ...(props.verticalD === SidePanelTypes.VerticalD.m
+              ? { top: "50%", transform: "translateY(-50%)" }
+              : props.verticalD === SidePanelTypes.VerticalD.b
+              ? { bottom: 0 }
+              : { top: 0 }),
+          }}
           variants={{
             open: {
               x:
@@ -165,19 +169,25 @@ const SidePanel = (props: SidePanelTypes.Props) => {
           animate={props.open ? "open" : `closed`}
           transition={{ duration: 0 }}
         >
-          <div className="p-4 h-full">
-            <div className="h-full relative text-grey-2 bg-white-500 border border-grey-5 rounded-lg">
+          <div className={styles.innerPadding}>
+            <div
+              className={styles.panelBox}
+              style={{
+                ["--border-color" as any]: tailwindColors.grey["5"],
+                ["--bg-color" as any]: tailwindColors.white["500"],
+                ["--text-color" as any]: tailwindColors.grey["2"],
+              } as React.CSSProperties}
+            >
               {props.children}
               {props.onClickSwitch && (
                 <div
-                  className={`absolute 
-                    ${switchButtonPositionStyle.column}
-                    ${
-                      props.verticalD === SidePanelTypes.VerticalD.b
-                        ? "-top-4 -translate-y-full"
-                        : "-bottom-4 translate-y-full"
-                    }
-                    `}
+                  className={styles.switchWrapper}
+                  style={{
+                    ...(switchButtonPositionStyle.column as any),
+                    ...(props.verticalD === SidePanelTypes.VerticalD.b
+                      ? { bottom: "100%", marginBottom: 16 }
+                      : { top: "100%", marginTop: 16 }),
+                  } as React.CSSProperties}
                   onClick={props.onClickSwitch}
                 >
                   <RoundButton
