@@ -94,23 +94,21 @@ const SidePanel = (props: SidePanelTypes.Props) => {
                   <RoundButton
                     outerRing={false}
                     size={28}
-                    className="w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
+                    color={tailwindColors.primary["500"]}
                     content={
-                      <Icon
-                        className={`transform ${
-                          props.horizentalD === SidePanelTypes.HorizentalD.r
-                            ? props.open
-                              ? `rotate-180`
-                              : `rotate-0`
-                            : props.open
-                            ? `rotate-0`
-                            : `rotate-180`
-                        } `}
-                        type={IconTypes.Type.arrowSolid}
-                        w={12}
-                        h={12}
-                        fill={tailwindColors.white["500"]}
-                      />
+                      <div style={{ display: "inline-block", transform: (() => {
+                        if (props.horizentalD === SidePanelTypes.HorizentalD.r) {
+                          return props.open ? "rotate(180deg)" : "rotate(0deg)";
+                        }
+                        return props.open ? "rotate(0deg)" : "rotate(180deg)";
+                      })() }}>
+                        <Icon
+                          type={IconTypes.Type.arrowSolid}
+                          w={12}
+                          h={12}
+                          fill={tailwindColors.white["500"]}
+                        />
+                      </div>
                     }
                     differece={16}
                     onKeyDown={(e) => {
@@ -193,23 +191,21 @@ const SidePanel = (props: SidePanelTypes.Props) => {
                   <RoundButton
                     outerRing={false}
                     size={28}
-                    className="w-8 h-8 inline-flex items-center justify-center rounded-full bg-primary-500 text-white-500 flex-shrink-0 cursor-pointer"
+                    color={tailwindColors.primary["500"]}
                     content={
-                      <Icon
-                        className={`transform ${
-                          props.verticalD === SidePanelTypes.VerticalD.b
-                            ? props.open
-                              ? `rotate-90`
-                              : `-rotate-90`
-                            : props.open
-                            ? `-rotate-90`
-                            : `rotate-90`
-                        } `}
-                        type={IconTypes.Type.arrowSolid}
-                        w={12}
-                        h={12}
-                        fill={tailwindColors.white["500"]}
-                      />
+                      <div style={{ display: "inline-block", transform: (() => {
+                        if (props.verticalD === SidePanelTypes.VerticalD.b) {
+                          return props.open ? "rotate(90deg)" : "rotate(-90deg)";
+                        }
+                        return props.open ? "rotate(-90deg)" : "rotate(90deg)";
+                      })() }}>
+                        <Icon
+                          type={IconTypes.Type.arrowSolid}
+                          w={12}
+                          h={12}
+                          fill={tailwindColors.white["500"]}
+                        />
+                      </div>
                     }
                     differece={16}
                     onKeyDown={(e) => {

@@ -1,6 +1,7 @@
 import ReactLoading from "react-loading";
 import { tailwindColors } from "@/variables/colors";
 import * as CardTypes from "@/types/components/card";
+import styles from "./Card.module.css";
 
 const Card = (props: CardTypes.Props) => {
   return (
@@ -11,17 +12,14 @@ const Card = (props: CardTypes.Props) => {
         props.onClick && props.onClick(props.id);
       }}
     >
-      <a className="block relative h-48 rounded overflow-hidden">
+      <a className={styles.imageWrapper}>
         <img
           alt="project"
-          className={`object-cover object-center w-full h-full block ${
-            props.selected && "border-info-500 border-2"
-          }`}
+          className={`${styles.image} ${props.selected ? styles.selected : ""}`}
           src={props.src}
-          // "https://dummyimage.com/324x200" // TODO: should set default img
         />
       </a>
-      <div className="mt-1 ms-1">{props.text}</div>
+      <div className={styles.text}>{props.text}</div>
     </div>
   );
 };

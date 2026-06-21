@@ -1,4 +1,5 @@
 import * as DividerTypes from "@/types/components/divider";
+import styles from "./Divider.module.css";
 
 const Divider = (props: DividerTypes.Props) => {
   return (
@@ -9,10 +10,10 @@ const Divider = (props: DividerTypes.Props) => {
             props.margin?.x || 0
           }px`}`,
         }}
-        className={`border-b border-grey-5 relative`}
+        className={styles.bar}
       >
         {!!props.text && (
-          <p className="text-sm text-grey-4 absolute top-0 left-1/2 -translate-y-1/2 -translate-x-1/2 bg-white-500 px-4">
+          <p className={styles.text}>
             {props.text}
           </p>
         )}

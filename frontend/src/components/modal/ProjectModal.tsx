@@ -5,6 +5,7 @@ import * as ProjectTypes from "@/types/project";
 import SquareButton from "@/components/squareButton";
 import Icon from "@/components/icon";
 import { tailwindColors } from "@/variables/colors";
+import styles from "./ProjectModal.module.css";
 
 type Props = {
   isOpen: boolean;
@@ -59,39 +60,40 @@ const ProjectModal = ({ isOpen, onClose, onSelect }: Props) => {
 
   return (
     <Modal isOpen={isOpen} onClickX={onClose} width={"600px"}>
-      <div className="bg-white rounded shadow-md p-4 w-[600px]">
-        <h3 className="text-lg font-medium mb-3">Projects</h3>
+      <div className={styles.container} style={{
+        ["--border-color" as any]: tailwindColors.grey["5"],
+        ["--bg" as any]: tailwindColors.white["500"],
+      } as React.CSSProperties}>
+        <h3 className={styles.header}>Projects</h3>
 
-        <div className="mb-3">
-          <div className="flex gap-2">
-            <input
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              placeholder="New project name"
-              className="flex-1 border rounded px-2 py-1"
-            />
-            <SquareButton
-              size={36}
-              onClick={handleCreate}
-              content={<Icon w={16} h={16} fill={tailwindColors.grey["1"]} />}
-              className="border"
-            />
-          </div>
+        <div className={styles.inputGroup}>
+          <input
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            placeholder="New project name"
+            className={styles.input}
+          />
+          <SquareButton
+            size={36}
+            onClick={handleCreate}
+            content={<Icon w={16} h={16} fill={tailwindColors.grey["1"]} />}
+            style={{ border: `1px solid ${tailwindColors.grey["5"]}` }}
+          />
         </div>
 
-        <div className="max-h-64 overflow-auto">
+        <div className={styles.list}>
           {loading && <div>Loading...</div>}
           {!loading && projects.length === 0 && <div>No projects</div>}
           <ul>
             {projects.map((p) => (
-              <li key={p.id} className="flex items-center justify-between py-2 border-b">
-                <button className="text-left flex-1" onClick={() => handleSelect(p)}>
+              <li key={p.id} className={styles.listItem}>
+                <button className={styles.listButton} onClick={() => handleSelect(p)}>
                   {p.name}
                 </button>
-                <div className="flex items-center gap-2">
+                <div style={{ display: "flex", gap: 8 }}>
                   <SquareButton
                     size={32}
-                    className="border"
+                    style={{ border: `1px solid ${tailwindColors.grey["5"]}` }}
                     onClick={() => handleDelete(p.id)}
                     content={<Icon w={12} h={12} fill={tailwindColors.grey["1"]} />}
                   />
@@ -101,8 +103,8 @@ const ProjectModal = ({ isOpen, onClose, onSelect }: Props) => {
           </ul>
         </div>
 
-        <div className="mt-4 text-right">
-          <button onClick={onClose} className="px-3 py-1 rounded border">
+        <div className={styles.actions}>
+          <button onClick={onClose} className={styles.btn}>
             Close
           </button>
         </div>

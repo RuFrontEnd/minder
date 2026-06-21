@@ -1,0 +1,15 @@
+.container { }
+.bar {
+  border-bottom: 1px solid var(--border-color,#e0e0e0);
+  position: relative;
+}
+.text {
+  font-size: 0.875rem;
+  color: var(--text-muted,#828282);
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--bg,#ffffff);
+  padding: 0 1rem;
+}

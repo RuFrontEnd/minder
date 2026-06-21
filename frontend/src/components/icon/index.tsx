@@ -1,6 +1,7 @@
 "use client";
 import * as IconTypes from "@/types/components/icon";
 import { tailwindColors } from "@/variables/colors";
+import styles from "./Icon.module.css";
 
 export default function Icon(props: IconTypes.Props) {
   const defaultVal = {
@@ -20,7 +21,7 @@ export default function Icon(props: IconTypes.Props) {
             fill: props.fill || defaultVal.fill,
             stroke: props.stroke || defaultVal.stroke,
           }}
-          className={props.className}
+          className={`${styles.svg} ${props.className ? props.className : ""}`}
           aria-hidden="true"
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
@@ -51,7 +52,7 @@ export default function Icon(props: IconTypes.Props) {
               ? tailwindColors.disabled["500"]
               : props.stroke || defaultVal.stroke,
           }}
-          className={props.className}
+          className={`${styles.svg} ${props.className ? props.className : ""}`}
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -76,7 +77,7 @@ export default function Icon(props: IconTypes.Props) {
               ? tailwindColors.disabled["500"]
               : props.stroke || defaultVal.stroke,
           }}
-          className={props.className}
+          className={`${styles.svg} ${props.className ? props.className : ""}`}
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -101,7 +102,7 @@ export default function Icon(props: IconTypes.Props) {
               ? tailwindColors.disabled["500"]
               : props.stroke || defaultVal.stroke,
           }}
-          className={props.className}
+          className={`${styles.svg} ${props.className ? props.className : ""}`}
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -125,7 +126,7 @@ export default function Icon(props: IconTypes.Props) {
               : props.stroke || defaultVal.stroke,
             cursor: props.disabled ? "default" : "",
           }}
-          className={`${props.className}`}
+          className={`${styles.svg} ${props.className ? props.className : ""}`}
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -150,7 +151,7 @@ export default function Icon(props: IconTypes.Props) {
               : props.stroke || defaultVal.stroke,
             cursor: props.disabled ? "default" : "",
           }}
-          className={`${props.className}`}
+          className={`${styles.svg} ${props.className ? props.className : ""}`}
           onClick={props.disabled ? undefined : props.onClick}
           viewBox="0 0 24 24"
         >

@@ -14,6 +14,7 @@ const RoundButton = (props: RoundButtonTypes.Props) => {
     backgroundColor: props.outerRing
       ? undefined
       : (props.color as any) || undefined,
+    ...(props.style || {}),
   } as React.CSSProperties;
 
   const innerDivStyle = {

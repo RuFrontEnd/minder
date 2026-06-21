@@ -33,10 +33,10 @@ const SquareButton = (props: SquareButtonTypes.Props) => {
       style={{
         width: props.w ? props.w : props.size ? props.size : size.default,
         height: props.h ? props.h : props.size ? props.size : size.default,
+        ...(props.style || {}),
+        ...(props.shadow ? { boxShadow: "0 1px 3px rgba(0,0,0,0.08)" } : {}),
       }}
-      className={`${styles.root} ${borderRadiusClass} ${props.className ? props.className : ""} ${
-        props.shadow ? "shadow-md" : ""
-      }`}
+      className={`${styles.root} ${borderRadiusClass} ${props.className ? props.className : ""}`}
       tabIndex={props.tabIndex ? props.tabIndex : -1}
       onClick={props.onClick}
       onKeyDown={(e) => {

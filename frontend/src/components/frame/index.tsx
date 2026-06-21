@@ -1,5 +1,7 @@
 "use client";
 
+import styles from "./Frame.module.css";
+
 export default function Frame(props: any) {
   return (
     <div
@@ -7,7 +9,7 @@ export default function Frame(props: any) {
       key={props.key}
       id={props.id}
       style={props.style}
-      className={`rounded-lg flex flex-col bg-white-500 shadow-md ${props.className}`}
+      className={`${styles.root} ${props.className ? props.className : ""}`}
       onClick={props.onClick}
     >
       {props.children}

@@ -1,0 +1,5 @@
+.root { }
+.imageWrapper { display:block; position:relative; height:12rem; border-radius:6px; overflow:hidden }
+.image { width:100%; height:100%; object-fit:cover; object-position:center; display:block }
+.selected { border:2px solid var(--info-color,#00bfff) }
+.text { margin-top:0.25rem; margin-left:0.25rem }
