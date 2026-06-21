@@ -3,6 +3,7 @@ import RoundButton from "@/components/roundButton";
 import Icon from "@/components/icon";
 import * as ModalTypes from "@/types/components/modal";
 import { tailwindColors } from "@/variables/colors";
+import styles from "./Modal.module.css";
 
 ReactModal.setAppElement("body");
 
@@ -30,10 +31,10 @@ const Modal = (props: ModalTypes.Props) => {
       }}
       contentLabel="Example Modal"
     >
-      <div className="relative p-6">
+      <div className={styles.container}>
         {props.onClickX && (
           <RoundButton
-            className={"absolute top-[0px] right-[0px]"}
+            className={styles.closeAbsolute}
             onClick={props.onClickX}
             content={<Icon stroke={tailwindColors.white["500"]} />}
           />

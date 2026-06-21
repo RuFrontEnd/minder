@@ -1,5 +1,6 @@
 "use client";
 import * as RoundButtonTypes from "@/types/components/roundButton";
+import styles from "./RoundButton.module.css";
 
 const RoundButton = (props: RoundButtonTypes.Props) => {
   const size = {
@@ -7,12 +8,13 @@ const RoundButton = (props: RoundButtonTypes.Props) => {
     differece: props.differece || 6,
   };
 
-  const coreClassName = `inline-flex items-center justify-center flex-shrink-0 cursor-pointer rounded-full shadow-md`;
-
   const buttonStyle = {
     width: props.size ? props.size : size.default,
     height: props.size ? props.size : size.default,
-  };
+    backgroundColor: props.outerRing
+      ? undefined
+      : (props.color as any) || undefined,
+  } as React.CSSProperties;
 
   const innerDivStyle = {
     width: props.size
@@ -21,23 +23,19 @@ const RoundButton = (props: RoundButtonTypes.Props) => {
     height: props.size
       ? props.size - size.differece
       : size.default - size.differece,
-  };
+    backgroundColor: props.outerRing ? (props.color as any) : undefined,
+  } as React.CSSProperties;
 
   const renderButton = () => (
     <button
       style={buttonStyle}
-      className={`${coreClassName} ${
-        props.outerRing ? "bg-white-500" : "bg-primary-500"
-      } ${props.className}`}
+      className={`${styles.core} ${props.className ? props.className : ""}`}
       tabIndex={props.tabIndex ? props.tabIndex : -1}
       onClick={props.onClick}
       onKeyDown={props.onKeyDown}
     >
       {props.outerRing ? (
-        <div
-          style={innerDivStyle}
-          className={`${coreClassName} bg-primary-500`}
-        >
+        <div style={innerDivStyle} className={styles.inner}>
           {props.content}
         </div>
       ) : (

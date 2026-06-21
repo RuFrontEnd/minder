@@ -1,0 +1,10 @@
+.container {
+  position: relative;
+  padding: 1.5rem;
+}
+
+.closeAbsolute {
+  position: absolute;
+  top: 0;
+  right: 0;
+}

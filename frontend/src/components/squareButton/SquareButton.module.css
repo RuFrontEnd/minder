@@ -1,0 +1,12 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.roundedLg { border-radius: 8px; }
+.roundedLeft { border-top-left-radius: 8px; border-bottom-left-radius: 8px; }
+.roundedRight { border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
