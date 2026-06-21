@@ -45,15 +45,19 @@ namespace Infrastructure.Persistence
                       .HasForeignKey(p => p.ProjectId)
                       .OnDelete(DeleteBehavior.Cascade);
 
-                entity.Property(e => e.Infos)
-                      .HasColumnType("jsonb")
-                      .IsRequired()
-                      .HasDefaultValueSql("'[]'::jsonb");
+                entity.HasOne<UserEntity>()
+                      .WithMany()
+                      .HasForeignKey(p => p.Author)
+                      .OnDelete(DeleteBehavior.Cascade);
 
-                entity.Property(e => e.Curves)
-                      .HasColumnType("jsonb")
-                      .IsRequired()
-                      .HasDefaultValueSql("'[]'::jsonb");
+                entity.HasOne<UserEntity>()
+                      .WithMany()
+                      .HasForeignKey(p => p.Asignee)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                // Infos and Curves properties were removed from the entity. Keep
+                // the DB mapping out. Existing migrations still reference the
+                // nested types and the migration files should be left as-is.
             });
         }
     }

@@ -19,4 +19,16 @@ public class ProjectService(ApplicationDbContext context, IProjectRepository pro
             UserId = user.UserId,
         });
     }
+
+    public async Task<ProjectDTO> GetProjectAsync(Guid projectId)
+    {
+        var project = await projectRepository.GetProjectAsync(projectId);
+        if (project == null) return null;
+        // 將 Domain Entity 轉換為 DTO
+        return new ProjectDTO
+        {
+            Id = project.Id,
+            UserId = project.UserId,
+        };
+    }
 };

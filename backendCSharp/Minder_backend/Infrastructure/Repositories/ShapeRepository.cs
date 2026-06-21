@@ -7,30 +7,22 @@ namespace Infrastructure.Repositories
 {
     public class ShapeRepository(ApplicationDbContext dbContext) : IShapeRepository
     {
-        public async Task<Guid?> ExsistAsync(Guid userId)
+        public async Task<Guid?> ExsistAsync(Guid projectId)
         {
             var id = await dbContext.Shape
-                    .Where(shape => shape.UserId == userId)
+                    .Where(shape => shape.ProjectId == projectId)
                     .Select(shape => shape.Id)
                     .FirstOrDefaultAsync();
 
             return id == Guid.Empty ? null : id;
         }
 
-        public async Task<List<ShapeEntity.Info>?> GetShapeAsync(Guid userId)
+        public async Task<ShapeEntity?> GetShapeAsync(Guid projectId)
         {
-            var infos = await dbContext.Shape
-                .Where(shape => shape.UserId == userId)
-                .Select(shape => shape.Infos)
-                .FirstOrDefaultAsync();
-
-            return infos;
-        }
-
-        public async Task<ShapeEntity?> GetShapeWithCurvesAsync(Guid userId)
-        {
+            // Infos and Curves were removed from ShapeEntity.
+            // Return the whole entity for the given userId.
             var shape = await dbContext.Shape
-                .Where(shape => shape.UserId == userId)
+                .Where(s => s.ProjectId == projectId)
                 .FirstOrDefaultAsync();
 
             return shape;
