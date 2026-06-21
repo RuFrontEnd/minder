@@ -4,16 +4,21 @@ import * as ProjectAPITypes from "@/types/apis/project";
 
 const prefix = "/project";
 
-const getProjecs = async () => {
-  return axios.get(`${prefix}/projects`);
+// backend API (WebApi) endpoints under /api/Project
+const getProjects = async () => {
+  return axios.get(`/Project`);
+};
+
+const createProject = async (name: string) => {
+  return axios.post(`/Project`, { name });
+};
+
+const deleteProject = async (id: number) => {
+  return axios.delete(`/Project/${id}`);
 };
 
 const getProject = async (id: number) => {
   return axios.get(`${prefix}/projects/${id}`);
-};
-
-const createProject = async () => {
-  return axios.post(`${prefix}/project`);
 };
 
 const updateProject = async (
@@ -34,14 +39,8 @@ const updateProjectName = async (
   });
 };
 
-const deleteProject = async (projectId: ProjectTypes.Project["id"]) => {
-  return axios.delete(`${prefix}/project`, {
-    data: { id: projectId },
-  });
-};
-
 export {
-  getProjecs,
+  getProjects,
   getProject,
   createProject,
   updateProject,
