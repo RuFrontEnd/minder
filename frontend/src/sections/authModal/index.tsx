@@ -16,8 +16,8 @@ import * as AlertTypes from "@/types/components/alert";
 import * as AuthTypes from "@/types/apis/auth";
 import * as ProjectAPITypes from "@/types/apis/project";
 import * as ProjectTypes from "@/types/project";
-import * as AuthModalTypes from "@/types/blocks/indivisualSidePanel/authModal";
-import styles from './index.module.css';
+import * as AuthModalTypes from "@/types/sections/authModal";
+import styles from "./index.module.css";
 
 axios.defaults.baseURL = process.env.BASE_URL || "http://localhost:5000/api";
 
@@ -286,7 +286,7 @@ export default function AuthModal(props: AuthModalTypes.Props) {
     !!props.afterLogout && props.afterLogout();
   };
 
-  const onClickX: AuthModalTypes.Props["onClickX"] = (e) => {
+  const onClickX: AuthModalTypes.Props["onClickX"] = () => {
     const _authInfo = cloneDeep(authInfo);
     _authInfo.account.status = InputTypes.Status.normal;
     _authInfo.account.comment = undefined;
@@ -294,7 +294,7 @@ export default function AuthModal(props: AuthModalTypes.Props) {
     _authInfo.password.comment = undefined;
     setAuthInfo(_authInfo);
 
-    props.onClickX && props.onClickX(e);
+    props.onClickX && props.onClickX();
   };
 
   useEffect(() => {
@@ -310,30 +310,15 @@ export default function AuthModal(props: AuthModalTypes.Props) {
           props.isOpen
           // && !isProjectsModalOpen && !isProjectsModalOpen
         }
+        title={props.isLogIn ? "Login" : "Sign Up"}
         width="400px"
         mask={false}
         onClickX={onClickX}
       >
         <div className={styles.root}>
-          <a className={styles.root}>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              className={styles.root}viewBox="0 0 24 24"
-            >
-              <path
-                stroke="#FFFFFF"
-                d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
-              ></path>
-            </svg>
-            <span className={styles.root}>Minder</span>
-          </a>
           <Input
-            className={styles.root}label={"Account"}
+            className={styles.root}
+            label={"Account"}
             type="text"
             name="account"
             value={authInfo.account.value}
@@ -342,7 +327,8 @@ export default function AuthModal(props: AuthModalTypes.Props) {
             onChange={onChangeAccount}
           />
           <Input
-            className={styles.root}label={"Password"}
+            className={styles.root}
+            label={"Password"}
             type="password"
             name="password"
             value={authInfo.password.value}
@@ -362,7 +348,8 @@ export default function AuthModal(props: AuthModalTypes.Props) {
             />
           )} */}
           <Button
-            className={styles.root}text={
+            className={styles.root}
+            text={
               "Login"
               // props.isLogIn ? "Login" : "Sign Up"
             }
@@ -374,7 +361,8 @@ export default function AuthModal(props: AuthModalTypes.Props) {
           />
           {authMessage.text && (
             <Alert
-              className={styles.root}type={authMessage.status}
+              className={styles.root}
+              type={authMessage.status}
               text={authMessage.text}
             />
           )}
@@ -395,21 +383,16 @@ export default function AuthModal(props: AuthModalTypes.Props) {
         <div className={styles.root}>
           <section className={styles.root}>
             <div className={styles.root}>
-              <h2 className={styles.root}>
-                Projects
-              </h2>
+              <h2 className={styles.root}>Projects</h2>
               <Button onClick={onClickNewProjectButton} text={"New Project"} />
             </div>
             <div className={styles.root}>
               {projects.map((project) => (
                 <div>
                   <Card
-                    className={styles.root}key={project.id}
-                    text={
-                      <h2 className={styles.root}>
-                        {project.name}
-                      </h2>
-                    }
+                    className={styles.root}
+                    key={project.id}
+                    text={<h2 className={styles.root}>{project.name}</h2>}
                     selected={selectedProjectId === project.id}
                     src={project.img}
                     onClick={() => {
@@ -421,13 +404,15 @@ export default function AuthModal(props: AuthModalTypes.Props) {
             </div>
             <div className={styles.root}>
               <Button
-                className={styles.root}onClick={onClickLogOutButton}
+                className={styles.root}
+                onClick={onClickLogOutButton}
                 text={"LogOut"}
                 danger
               />
               <div className={styles.root}>
                 <Button
-                  className={styles.root}onClick={() => {
+                  className={styles.root}
+                  onClick={() => {
                     if (!selectedProjectId) return;
                     onClickDeleteProject(selectedProjectId);
                   }}

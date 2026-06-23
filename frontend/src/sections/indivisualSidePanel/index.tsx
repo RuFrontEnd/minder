@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, ChangeEventHandler, useEffect } from "react";
-import AuthModal from "@/blocks/indivisualSidePanel/authModal";
+import AuthModal from "@/sections/authModal";
 import SidePanel from "@/components/sidePanel";
 import Button from "@/components/button";
 import Input from "@/components/input";

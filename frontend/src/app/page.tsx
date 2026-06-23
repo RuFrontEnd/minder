@@ -22,6 +22,7 @@ import * as shapeAPIs from "@/apis/shape";
 import * as handleUtils from "@/utils/handle";
 import * as fileUtils from "@/utils/file";
 import Navbar from "@/sections/navbar";
+import AuthModal from "@/sections/authModal";
 import * as CurveTypes from "@/types/shapes/curve";
 import * as CommonTypes from "@/types/common";
 import * as AuthTypes from "@/types/apis/auth";
@@ -2011,7 +2012,7 @@ const syncCandidates = (shapes: CommonTypes.Shapes) => {
 export default function IdPage() {
   let { current: $canvas } = useRef<HTMLCanvasElement | null>(null);
   let { current: $screenshot } = useRef<HTMLCanvasElement | null>(null);
-  
+
   const saveTimeoutRef = useRef<number | null>(null);
   const [space, setSpace] = useState(false);
   const [control, setControl] = useState(false);
@@ -2067,7 +2068,7 @@ export default function IdPage() {
     try {
       const res: AxiosResponse<any> = await shapeAPIs.getShapes();
       const responseData = res.data?.data;
-      
+
       // Handle both old and new format
       const shapesData = responseData?.shapes || responseData || [];
       const curvesData = responseData?.curves || [];
@@ -2076,7 +2077,17 @@ export default function IdPage() {
       const loadedShapes: (Terminal | Process | Data | Desicion)[] = [];
 
       shapesData.forEach((shapeData: any) => {
-        const { id, title, w, h, p, type, importDatas, usingDatas, deleteDatas } = shapeData;
+        const {
+          id,
+          title,
+          w,
+          h,
+          p,
+          type,
+          importDatas,
+          usingDatas,
+          deleteDatas,
+        } = shapeData;
         const position = typeof p === "string" ? JSON.parse(p) : p;
 
         let shapeObj: Terminal | Process | Data | Desicion | null = null;
@@ -2108,7 +2119,7 @@ export default function IdPage() {
 
       // Convert backend curves to frontend Curve objects
       const loadedCurves: CommonTypes.ConnectionCurves = [];
-      
+
       // Create a map for quick shape lookup by id
       const shapeMap = new Map<string, Terminal | Process | Data | Desicion>();
       loadedShapes.forEach((shape) => {
@@ -2119,11 +2130,11 @@ export default function IdPage() {
         curvesData.forEach((curveData: any) => {
           try {
             const { from, shape: shapeData, to } = curveData;
-            
+
             // Find the actual shape objects by id
             const fromShape = shapeMap.get(from?.shapeId);
             const toShape = shapeMap.get(to?.shapeId);
-            
+
             if (from && shapeData && to && fromShape && toShape) {
               // Create Curve instance
               const curveInstance = new Curve(
@@ -2134,20 +2145,20 @@ export default function IdPage() {
                 shapeData.p2,
                 shapeData.text || ""
               );
-              
+
               // Create connection curve object
               const connectionCurve = {
                 shape: curveInstance,
                 from: {
                   shape: fromShape,
-                  d: from.d
+                  d: from.d,
                 },
                 to: {
                   shape: toShape,
-                  d: to.d
-                }
+                  d: to.d,
+                },
               };
-              
+
               loadedCurves.push(connectionCurve);
             }
           } catch (e) {
@@ -2159,11 +2170,13 @@ export default function IdPage() {
       // Collect all unique data names from shapes and populate overall datas
       const dataNameSet = new Set<string>();
       loadedShapes.forEach((shape) => {
-        [...shape.importDatas, ...shape.usingDatas, ...shape.deleteDatas].forEach(
-          (data) => {
-            if (data.text) dataNameSet.add(data.text);
-          }
-        );
+        [
+          ...shape.importDatas,
+          ...shape.usingDatas,
+          ...shape.deleteDatas,
+        ].forEach((data) => {
+          if (data.text) dataNameSet.add(data.text);
+        });
       });
       const overallDatas: PageIdTypes.Datas = Array.from(dataNameSet).map(
         (name) => ({ id: `overallData_${uuidv4()}`, name })
@@ -2744,7 +2757,11 @@ export default function IdPage() {
           const uploadedShapes = result.shapes;
           const uploadedCurves = result.curves;
           // TODO: 實現上載邏輯
-          console.log("Uploaded shapes and curves", uploadedShapes, uploadedCurves);
+          console.log(
+            "Uploaded shapes and curves",
+            uploadedShapes,
+            uploadedCurves
+          );
         }
       });
     } catch (error) {
@@ -2875,6 +2892,15 @@ export default function IdPage() {
         onClickUpload={onClickUploadButton}
         onClickDownload={onClickDownloadButton}
         onClickLogIn={onClickLogInButton}
+      />
+
+      <AuthModal
+        isOpen={true}
+        // isLogIn={props.isLogIn}
+        // isOpen={isAuthModalOpen}
+        // onClickX={onClickAuthModalX}
+        // afterLogin={afterLogin}
+        // afterLogout={afterLogout}
       />
 
       <OverallSidePanel

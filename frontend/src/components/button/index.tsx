@@ -1,4 +1,4 @@
-import ReactLoading from "react-loading";
+import { Button as ChakraButton } from "@chakra-ui/react";
 import { tailwindColors } from "@/variables/colors";
 import * as ButtonTypes from "@/types/components/button";
 import styles from "./Button.module.css";
@@ -26,7 +26,7 @@ const Button = (props: ButtonTypes.Props) => {
     props.size === ButtonTypes.Size["sm"] ? styles.sizeSm : styles.sizeMd;
 
   return (
-    <button
+    <ChakraButton
       tabIndex={-1}
       id={props.id}
       role={props.role}
@@ -36,18 +36,14 @@ const Button = (props: ButtonTypes.Props) => {
       onMouseDown={(e) => {
         e.preventDefault();
       }}
+      isLoading={!!props.loading}
+      loadingText={props.text}
+      isDisabled={props.disabled}
+      variant="solid"
+      size={props.size === ButtonTypes.Size["sm"] ? "sm" : "md"}
     >
-      {props.loading && (
-        <ReactLoading
-          className={styles.loadingMargin}
-          type={"spin"}
-          color={tailwindColors.white["500"]}
-          height={20}
-          width={20}
-        />
-      )}
       {props.text}
-    </button>
+    </ChakraButton>
   );
 };
 
