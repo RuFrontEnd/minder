@@ -19,11 +19,11 @@ const Modal = (props: ModalTypes.Props) => {
   // };
 
   return (
-    <Dialog.Root key={props.key} open={props.isOpen}>
+    <Dialog.Root key={props.key} open={props.isOpen} placement={props.placement || "center"}>
       <Dialog.Trigger asChild>
         <Button
           variant="outline"
-          // size={props.size}
+        // size={props.size}
         >
           Open
           {/* ({props.size}) */}
@@ -37,12 +37,16 @@ const Modal = (props: ModalTypes.Props) => {
               <Dialog.Title>{props.title}</Dialog.Title>
             </Dialog.Header>
             <Dialog.Body>{props.children}</Dialog.Body>
-            <Dialog.Footer>
-              <Dialog.ActionTrigger asChild>
-                <Button variant="outline">Cancel</Button>
-              </Dialog.ActionTrigger>
-              <Button>Save</Button>
-            </Dialog.Footer>
+            {props.footer && (
+              <Dialog.Footer>
+                {props.onCancel && (
+                  <Dialog.ActionTrigger asChild>
+                    <Button onClick={props.onCancel}>Cancel</Button>
+                  </Dialog.ActionTrigger>
+                )}
+                {props.onOk && <Button onClick={props.onOk}>Save</Button>}
+              </Dialog.Footer>
+            )}
             <Dialog.CloseTrigger asChild>
               <CloseButton size="sm" />
             </Dialog.CloseTrigger>
@@ -50,37 +54,14 @@ const Modal = (props: ModalTypes.Props) => {
         </Dialog.Positioner>
       </Portal>
     </Dialog.Root>
-    // <ChakraModal isOpen={!!props.isOpen} onClose={onClose} isCentered>
-    //   <ModalOverlay
-    //     bg={props.mask ? "rgba(0, 0, 0, 0.5)" : "transparent"}
-    //     zIndex={props.zIndex || 1000}
-    //   />
-
-    //   <ModalContent
-    //     width={props.width || "auto"}
-    //     bg="transparent"
-    //     boxShadow="none"
-    //     border="none"
-    //     p={0}
-    //   >
-    //     <div className={styles.container}>
-    //       {props.onClickX && (
-    //         <RoundButton
-    //           className={styles.closeAbsolute}
-    //           onClick={props.onClickX}
-    //           content={<Icon stroke={tailwindColors.white["500"]} />}
-    //         />
-    //       )}
-
-    //       {props.children}
-    //     </div>
-    //   </ModalContent>
-    // </ChakraModal>
   );
 };
 
 Modal.defaultProps = {
   mask: true,
+  footer: true,
+  placement: "center",
+  size: "md"
 };
 
 export default Modal;

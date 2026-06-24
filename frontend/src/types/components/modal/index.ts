@@ -7,12 +7,17 @@ type Props = {
   className?: string;
   style?: Object;
   isOpen: boolean;
-  children?: ReactNode;
-  width?: string;
+  title?: string;
+  placement: "top" | "center" | "bottom";
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'cover' | 'full';
   zIndex?: string;
   mask?: boolean;
-  title?: string;
-  onClickX?: RoundButtonTypes.Props["onClick"];
+  footer?: boolean;
+  children?: ReactNode;
+  okText?: string;
+  cancelText?: string;
+  onOk: MouseEventHandler<HTMLButtonElement>;
+  onCancel: MouseEventHandler<HTMLButtonElement>;
 };
 
 export type { Props };

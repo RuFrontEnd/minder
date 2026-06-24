@@ -286,7 +286,7 @@ export default function AuthModal(props: AuthModalTypes.Props) {
     !!props.afterLogout && props.afterLogout();
   };
 
-  const onClickX: AuthModalTypes.Props["onClickX"] = () => {
+  const onClickX: MouseEventHandler<HTMLButtonElement> = (e) => {
     const _authInfo = cloneDeep(authInfo);
     _authInfo.account.status = InputTypes.Status.normal;
     _authInfo.account.comment = undefined;
@@ -294,7 +294,7 @@ export default function AuthModal(props: AuthModalTypes.Props) {
     _authInfo.password.comment = undefined;
     setAuthInfo(_authInfo);
 
-    props.onClickX && props.onClickX();
+    // props.onClickX && props.onClickX(e);
   };
 
   useEffect(() => {
@@ -311,9 +311,9 @@ export default function AuthModal(props: AuthModalTypes.Props) {
           // && !isProjectsModalOpen && !isProjectsModalOpen
         }
         title={props.isLogIn ? "Login" : "Sign Up"}
-        width="400px"
         mask={false}
-        onClickX={onClickX}
+        onCancel={onClickX}
+        onOk={props.isLogIn ? onClickLoginButton : onClickSignUpButton}
       >
         <div className={styles.root}>
           <Input
@@ -347,18 +347,6 @@ export default function AuthModal(props: AuthModalTypes.Props) {
               onChange={onChangeEmail}
             />
           )} */}
-          <Button
-            className={styles.root}
-            text={
-              "Login"
-              // props.isLogIn ? "Login" : "Sign Up"
-            }
-            onClick={
-              onClickLoginButton
-              // props.isLogIn ? onClickLoginButton : onClickSignUpButton
-            }
-            loading={isAuthorizing}
-          />
           {authMessage.text && (
             <Alert
               className={styles.root}
@@ -379,7 +367,7 @@ export default function AuthModal(props: AuthModalTypes.Props) {
           </p> */}
         </div>
       </Modal>
-      <Modal isOpen={isProjectsModalOpen} width="1120px" mask={false}>
+      {/* <Modal isOpen={isProjectsModalOpen} mask={false}>
         <div className={styles.root}>
           <section className={styles.root}>
             <div className={styles.root}>
@@ -432,7 +420,7 @@ export default function AuthModal(props: AuthModalTypes.Props) {
             </div>
           </section>
         </div>
-      </Modal>
+      </Modal> */}
     </>
   );
 }
