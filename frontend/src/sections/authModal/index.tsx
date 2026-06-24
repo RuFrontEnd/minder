@@ -9,6 +9,7 @@ import Card from "@/components/card";
 import React, { useState, useEffect } from "react";
 import { cloneDeep } from "lodash";
 import { ChangeEventHandler, MouseEventHandler } from "react";
+import { Flex } from "@chakra-ui/react"
 import * as authAPIs from "@/apis/auth";
 import * as projectAPIs from "@/apis/project";
 import * as InputTypes from "@/types/components/input";
@@ -311,30 +312,44 @@ export default function AuthModal(props: AuthModalTypes.Props) {
           // && !isProjectsModalOpen && !isProjectsModalOpen
         }
         title={props.isLogIn ? "Login" : "Sign Up"}
-        mask={false}
+        okText={props.isLogIn ? "Login" : "Sign Up"}
         onCancel={onClickX}
         onOk={props.isLogIn ? onClickLoginButton : onClickSignUpButton}
       >
         <div className={styles.root}>
           <Input
-            className={styles.root}
-            label={"Account"}
+            className={styles["emailInput"]}
             type="text"
-            name="account"
-            value={authInfo.account.value}
-            status={authInfo.account.status}
-            comment={authInfo.account.comment}
-            onChange={onChangeAccount}
+            name="Email"
+            value={authInfo.email.value}
+            status={authInfo.email.status}
+            comment={authInfo.email.comment}
+            onChange={onChangeEmail}
           />
           <Input
-            className={styles.root}
-            label={"Password"}
+            className={styles["passwordInput"]}
             type="password"
-            name="password"
+            name="Password"
             value={authInfo.password.value}
             status={authInfo.password.status}
             comment={authInfo.password.comment}
             onChange={onChangePassword}
+          />
+          <Input
+            className={styles["firstNameInput"]}
+            name="First Name"
+          // value={authInfo.firstName.value}
+          // status={authInfo.firstName.status}
+          // comment={authInfo.firstName.comment}
+          // onChange={onChangeFirstName}
+          />
+          <Input
+            className={styles["lastNameInput"]}
+            name="Last Name"
+          // value={authInfo.lastName.value}
+          // status={authInfo.lastName.status}
+          // comment={authInfo.lastName.comment}
+          // onChange={onChangeLastName}
           />
           {/* {!props.isLogIn && (
             <Input
@@ -355,16 +370,19 @@ export default function AuthModal(props: AuthModalTypes.Props) {
             />
           )}
           {/* register switcher */}
-          {/* <p className={styles.root}>
-            {props.isLogIn ? "No account yet? " : "Already have an account? "}
-            <a
-              className={styles.root}onClick={() => {
-                onClickChangeAuthButton(!props.isLogIn);
+          <Flex justify="flex-end">
+            <p>
+              {props.isLogIn ? "No account yet? " : "Already have an account? "}
+            </p>
+            <p
+              className={styles.switch}
+              onClick={() => {
+                // onClickChangeAuthButton(!props.isLogIn);
               }}
             >
               {props.isLogIn ? "Sign up" : "Login"}
-            </a>
-          </p> */}
+            </p>
+          </Flex>
         </div>
       </Modal>
       {/* <Modal isOpen={isProjectsModalOpen} mask={false}>

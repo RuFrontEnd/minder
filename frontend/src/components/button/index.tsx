@@ -10,8 +10,8 @@ const Button = (props: ButtonTypes.Props) => {
       id={props.id}
       role={props.role}
       className={props.className}
-      size={props.size}
       variant={props.variant}
+      size={props.size}
       onClick={props.loading ? undefined : props.onClick}
       onMouseDown={(e) => {
         e.preventDefault();
@@ -27,8 +27,8 @@ const Button = (props: ButtonTypes.Props) => {
 };
 
 Button.defaultProps = {
+  variant: "solid",
   size: "md",
-  variant: "solid", 
 }
 
 export default Button;

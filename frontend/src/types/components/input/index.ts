@@ -14,8 +14,8 @@ type Props = {
   placeholder?: string;
   type?: HTMLInputTypeAttribute;
   name?: string;
-  w?: string | number;
-  h?: string | number;
+  helperText?: string;
+  errorText?: string;
   value?: undefined | null | string;
   status?: null | Status;
   comment?: null | string;

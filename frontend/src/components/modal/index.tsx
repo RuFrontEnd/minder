@@ -32,10 +32,10 @@ const Modal = (props: ModalTypes.Props) => {
               <Dialog.Footer>
                 {props.onCancel && (
                   <Dialog.ActionTrigger asChild>
-                    <Button text="Cancel" onClick={props.onCancel} variant="outline" />
+                    <Button text={props.cancelText || "Cancel"} onClick={props.onCancel} variant="outline" />
                   </Dialog.ActionTrigger>
                 )}
-                {props.onOk && <Button text="Save" onClick={props.onOk} />}
+                {props.onOk && <Button text={props.okText || "Save"} onClick={props.onOk} />}
               </Dialog.Footer>
             )}
             <Dialog.CloseTrigger asChild>

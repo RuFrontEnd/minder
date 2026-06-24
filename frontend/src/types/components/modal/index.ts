@@ -11,7 +11,6 @@ type Props = {
   placement: "top" | "center" | "bottom";
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'cover' | 'full';
   zIndex?: string;
-  mask?: boolean;
   footer?: boolean;
   children?: ReactNode;
   okText?: string;

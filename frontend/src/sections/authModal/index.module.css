@@ -1,1 +1,28 @@
 .root {}
+
+.emailInput {
+    margin-bottom: 16px;
+}
+
+.passwordInput {
+    margin-bottom: 16px;
+}
+
+.firstNameInput {
+    margin-bottom: 16px;
+}
+
+.lastNameInput {
+    margin-bottom: 16px;
+}
+
+.switch {
+    margin-left: 8px;
+    color: cornflowerblue;
+    cursor: pointer;
+    user-select: none;
+}
+
+.switch:hover {
+    text-decoration: underline;
+}
