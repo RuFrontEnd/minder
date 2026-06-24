@@ -1,4 +1,5 @@
-import { MouseEventHandler, ReactNode } from "react";
+import React, { MouseEventHandler, ReactNode } from "react";
+import type { InteractOutsideEvent } from "@zag-js/interact-outside";
 
 enum Flow {
   row = "row",
@@ -28,14 +29,16 @@ type Props = {
   className?: string;
   role?: string;
   open?: boolean;
-  w?: string;
-  h?: string;
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'full';
+  modal?: boolean;
+  title?: React.ReactNode | string;
+  placement?: 'start' | 'end' | 'top' | 'bottom';
   flow?: Flow;
   switchButtonD?: SwitchButtonD;
-  horizentalD?: HorizentalD;
-  verticalD?: VerticalD;
   children?: ReactNode;
   onClickSwitch?: MouseEventHandler<HTMLDivElement>;
+  onInteractOutside?: (event: InteractOutsideEvent) => void
+  onCancel?: MouseEventHandler<HTMLButtonElement>
 };
 
 export type { Props };

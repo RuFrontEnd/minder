@@ -12,7 +12,7 @@ import Decision from "@/shapes/decision";
 import Curve from "@/shapes/curve";
 import { cloneDeep } from "lodash";
 import { tailwindColors } from "@/variables/colors";
-import styles from "./IndivisualSidePanel.module.css";
+import styles from "./index.module.css";
 import * as authAPIs from "@/apis/auth";
 import * as handleUtils from "@/utils/handle";
 
@@ -79,11 +79,54 @@ export default function IndivisualSidePanel(
       <SidePanel
         className={styles.root}
         role={"indivisual"}
+        size="sm"
         open={props.isIndivisualSidePanelOpen}
-        horizentalD={SidePanelTypes.HorizentalD.r}
-        verticalD={SidePanelTypes.VerticalD.b}
-        w={"360px"}
-        h={"calc(-65px + 100vh)"}
+        onCancel={() => {
+          props.setIsIndivisualSidePanelOpen(false);
+        }}
+        title={
+          <div className={styles.titleRow}>
+            {props.isEditingIndivisual ? (
+              <>
+                <Input
+                  role="edit_indivisual_title"
+                  className={styles.inputFull}
+                  value={editingTitle}
+                  onChange={onChangeTitle}
+                />
+                <div className={styles.actions} role="edit_indivisual">
+                  <Button
+                    role="cancel_edit_indivisual"
+                    vice
+                    text="Cancel"
+                    size={ButtonTypes.Size.sm}
+                    style={{ marginLeft: 8 }}
+                    onClick={onClickCancelButton}
+                  />
+                  <Button
+                    role="save_edit_indivisual"
+                    text="Save"
+                    size={ButtonTypes.Size.sm}
+                    style={{ marginLeft: 8 }}
+                    onClick={onClickSaveEditingButton}
+                  />
+                </div>
+              </>
+            ) : (
+              <>
+                {props.indivisual?.title || "-"}
+                <Icon
+                  role="begin_edit_indivisual"
+                  className={styles.iconButton}
+                  type={IconTypes.Type.pencilSquare}
+                  w={16}
+                  h={16}
+                  disabled={!props.indivisual}
+                  onClick={onClickEditIcon}
+                />
+              </>
+            )}
+          </div>}
         onClickSwitch={onClickSidePanelSwitch}
       >
         <div className={styles.container}>
@@ -93,48 +136,6 @@ export default function IndivisualSidePanel(
               height: `calc(100% - ${props.isEditingIndivisual ? 28 : 16}px)`,
             }}
           >
-            <div className={styles.titleRow}>
-              {props.isEditingIndivisual ? (
-                <>
-                  <Input
-                    role="edit_indivisual_title"
-                    className={styles.inputFull}
-                    value={editingTitle}
-                    onChange={onChangeTitle}
-                  />
-                  <div className={styles.actions} role="edit_indivisual">
-                    <Button
-                      role="cancel_edit_indivisual"
-                      vice
-                      text="Cancel"
-                      size={ButtonTypes.Size.sm}
-                      style={{ marginLeft: 8 }}
-                      onClick={onClickCancelButton}
-                    />
-                    <Button
-                      role="save_edit_indivisual"
-                      text="Save"
-                      size={ButtonTypes.Size.sm}
-                      style={{ marginLeft: 8 }}
-                      onClick={onClickSaveEditingButton}
-                    />
-                  </div>
-                </>
-              ) : (
-                <>
-                  <p className={styles.titleText}>{props.indivisual?.title || "-"}</p>
-                  <Icon
-                    role="begin_edit_indivisual"
-                    className={styles.iconButton}
-                    type={IconTypes.Type.pencilSquare}
-                    w={16}
-                    h={16}
-                    disabled={!props.indivisual}
-                    onClick={onClickEditIcon}
-                  />
-                </>
-              )}
-            </div>
             <div className={styles.column}>
               <div className={styles.descLabel}>Description</div>
               {props.isEditingIndivisual ? (

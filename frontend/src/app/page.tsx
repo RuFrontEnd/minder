@@ -2021,7 +2021,7 @@ export default function IdPage() {
   const [leftMouseBtn, setLeftMouseBtn] = useState(false);
   const [isOverAllSidePanelOpen, setIsOverAllSidePanelOpen] = useState(false);
   const [isIndivisualSidePanelOpen, setIsIndivisualSidePanelOpen] =
-    useState(false);
+    useState(true);
   const [isConsoleOpen, setIsConsoleOpen] = useState(false);
   const [steps, setSteps] = useState<CommonTypes.Steps>([]);
   const [datas, setDatas] = useState<PageIdTypes.Datas>([]);

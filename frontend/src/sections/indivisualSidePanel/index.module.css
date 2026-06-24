@@ -1,0 +1,58 @@
+.container {
+    height: 100%
+}
+
+.column {
+    display: flex;
+    flex-direction: column;
+    height: 100%
+}
+
+.titleRow {
+    display: flex;
+    align-items: center
+}
+
+.titleText {
+    flex: 1;
+    font-size: 1rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis
+}
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center
+}
+
+.inputFull {
+    flex: 1
+}
+
+.textarea {
+    resize: none;
+    padding: 0.5rem;
+    border-radius: 6px;
+    border: 1px solid var(--border-color, #e5e7eb);
+    height: 100%
+}
+
+.descBox {
+    font-size: 0.875rem;
+    color: var(--muted, #6b7280);
+    overflow: auto;
+    height: 100%
+}
+
+.iconButton {
+    justify-self: end;
+    cursor: pointer
+}
+
+.descLabel {
+    margin-bottom: 0.5rem;
+    color: var(--muted, #6b7280);
+}
