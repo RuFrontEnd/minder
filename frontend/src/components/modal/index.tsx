@@ -1,6 +1,5 @@
 "use client";
 import {
-  Button,
   CloseButton,
   Dialog,
   For,
@@ -10,6 +9,7 @@ import {
 import RoundButton from "@/components/roundButton";
 import Icon from "@/components/icon";
 import * as ModalTypes from "@/types/components/modal";
+import Button from '@/components/button';
 import { tailwindColors } from "@/variables/colors";
 import styles from "./Modal.module.css";
 
@@ -20,15 +20,6 @@ const Modal = (props: ModalTypes.Props) => {
 
   return (
     <Dialog.Root key={props.key} open={props.isOpen} placement={props.placement || "center"}>
-      <Dialog.Trigger asChild>
-        <Button
-          variant="outline"
-        // size={props.size}
-        >
-          Open
-          {/* ({props.size}) */}
-        </Button>
-      </Dialog.Trigger>
       <Portal>
         <Dialog.Backdrop />
         <Dialog.Positioner>
@@ -41,10 +32,10 @@ const Modal = (props: ModalTypes.Props) => {
               <Dialog.Footer>
                 {props.onCancel && (
                   <Dialog.ActionTrigger asChild>
-                    <Button onClick={props.onCancel}>Cancel</Button>
+                    <Button text="Cancel" onClick={props.onCancel} variant="outline" />
                   </Dialog.ActionTrigger>
                 )}
-                {props.onOk && <Button onClick={props.onOk}>Save</Button>}
+                {props.onOk && <Button text="Save" onClick={props.onOk} />}
               </Dialog.Footer>
             )}
             <Dialog.CloseTrigger asChild>
