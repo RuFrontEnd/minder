@@ -942,9 +942,9 @@ const frameSelect = (
       const theEdge = shape.getEdge();
 
       const l =
-          normalSelectAreaP.start.x < normalSelectAreaP.end.x
-            ? normalSelectAreaP.start.x
-            : normalSelectAreaP.end.x,
+        normalSelectAreaP.start.x < normalSelectAreaP.end.x
+          ? normalSelectAreaP.start.x
+          : normalSelectAreaP.end.x,
         t =
           normalSelectAreaP.start.y < normalSelectAreaP.end.y
             ? normalSelectAreaP.start.y
@@ -986,11 +986,11 @@ const getCurve = (
     r: number;
     b: number;
   } = {
-    l: 0,
-    t: 0,
-    r: 0,
-    b: 0,
-  },
+      l: 0,
+      t: 0,
+      r: 0,
+      b: 0,
+    },
   text = ""
 ) => {
   let p1: CommonTypes.Vec = { x: 0, y: 0 };
@@ -1308,12 +1308,12 @@ const movePressingCurve = (
         const threshold = {
           x:
             quarterD === CommonTypes.Direction.l ||
-            quarterD === CommonTypes.Direction.r
+              quarterD === CommonTypes.Direction.r
               ? curveThreshold
               : 0,
           y:
             quarterD === CommonTypes.Direction.t ||
-            quarterD === CommonTypes.Direction.b
+              quarterD === CommonTypes.Direction.b
               ? curveThreshold
               : 0,
         };
@@ -1554,7 +1554,7 @@ const triggerCurve = (
       curveThresholdStrategy[targetShape.type],
       targetShape instanceof Desicion
         ? curves.find((curve) => curve.from.shape.id === targetShape.id)?.shape
-            ?.text === "Y"
+          ?.text === "Y"
           ? "N"
           : "Y"
         : ""
@@ -2014,6 +2014,7 @@ export default function IdPage() {
   let { current: $screenshot } = useRef<HTMLCanvasElement | null>(null);
 
   const saveTimeoutRef = useRef<number | null>(null);
+  const [isAuthModalOpen, setIsAccountModalOpen] = useState(false);
   const [space, setSpace] = useState(false);
   const [control, setControl] = useState(false);
   const [scale, setScale] = useState(1);
@@ -2045,6 +2046,7 @@ export default function IdPage() {
   const [consoles, setConsoles] = useState<ConsoleTypes.Consoles>([]);
   const [isCheckingData, setIsCheckingData] = useState(false);
   const [isUpsertingShape, setIsUpsertingShape] = useState(false);
+  const [isAuthorized, setIsAuthorized] = useState(false);
   const [isLogIn, setIsLogin] = useState(false);
   const [authModalOpenSignal, setAuthModalOpenSignal] = useState(0);
 
@@ -2057,10 +2059,10 @@ export default function IdPage() {
     try {
       const res: AxiosResponse<any> = await authAPIs.validateToken();
       // If response status is 200 and has id, then user is authenticated
-      setIsLogin(res.status === 200 && !!res.data?.id);
+      setIsAuthorized(res.status === 200 && !!res.data?.id);
     } catch (error) {
       // If error (401 Unauthorized), user is not authenticated
-      setIsLogin(false);
+      setIsAuthorized(false);
     }
   };
 
@@ -2291,9 +2293,9 @@ export default function IdPage() {
     e.preventDefault();
 
     const p = {
-        x: e.nativeEvent.offsetX,
-        y: e.nativeEvent.offsetY,
-      },
+      x: e.nativeEvent.offsetX,
+      y: e.nativeEvent.offsetY,
+    },
       offsetP = {
         x: p.x - lastP.x,
         y: p.y - lastP.y,
@@ -2811,11 +2813,11 @@ export default function IdPage() {
   };
 
   const onClickLogInButton = async () => {
-    if (isLogIn) {
+    if (isAuthorized) {
       // Log out
       try {
         await authAPIs.logout();
-        setIsLogin(false);
+        setIsAuthorized(false);
       } catch (error) {
         console.error("Logout failed:", error);
       }
@@ -2882,10 +2884,28 @@ export default function IdPage() {
     };
   }, [space, steps, control, indivisual]);
 
+  useEffect(() => {
+    if (authModalOpenSignal < 1) return;
+    setIsAccountModalOpen(true);
+  }, [authModalOpenSignal]);
+
+  const onClickAuthModalX = () => {
+    setIsAccountModalOpen(false);
+  };
+
+  const afterLogin = () => {
+    setIsAccountModalOpen(false);
+    setIsAuthorized(true);
+  };
+
+  const afterLogout = () => {
+    setIsAuthorized(false);
+  };
+
   return (
     <>
       <Navbar
-        isLogIn={isLogIn}
+        isAuthorized={isAuthorized}
         isCheckingData={isCheckingData}
         isUpsertingShape={isUpsertingShape}
         onClickSave={onClickSaveButton}
@@ -2895,12 +2915,12 @@ export default function IdPage() {
       />
 
       <AuthModal
-        isOpen={true}
-        // isLogIn={props.isLogIn}
-        // isOpen={isAuthModalOpen}
-        // onClickX={onClickAuthModalX}
-        // afterLogin={afterLogin}
-        // afterLogout={afterLogout}
+        isOpen={isAuthModalOpen}
+        isLogIn={isLogIn}
+        setIsLogin={setIsLogin}
+        onCancel={onClickAuthModalX}
+        afterLogin={afterLogin}
+        afterLogout={afterLogout}
       />
 
       <OverallSidePanel
@@ -2999,9 +3019,8 @@ export default function IdPage() {
         />
         <canvas
           role="screenshot"
-          className={`invisible ${
-            space ? "cursor-grab" : ""
-          } overflow-hidden absolute left-0 top-0 z-[-1]`}
+          className={`invisible ${space ? "cursor-grab" : ""
+            } overflow-hidden absolute left-0 top-0 z-[-1]`}
           tabIndex={1}
           ref={(el) => {
             $screenshot = el;

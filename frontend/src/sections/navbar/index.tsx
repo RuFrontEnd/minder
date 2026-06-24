@@ -7,7 +7,7 @@ import { tailwindColors } from "@/variables/colors";
 import styles from "./Navbar.module.css";
 
 interface NavbarProps {
-  isLogIn: boolean;
+  isAuthorized: boolean;
   isCheckingData: boolean;
   isUpsertingShape: boolean;
   onClickSave: () => void;
@@ -58,16 +58,16 @@ export default function Navbar(props: NavbarProps) {
         <button
           onClick={props.onClickLogIn}
           className={styles.actionButton}
-          title={props.isLogIn ? "Log Out" : "Log In"}
-          style={{ color: props.isLogIn ? tailwindColors.grey["2"] : tailwindColors.info["500"] }}
+          title={props.isAuthorized ? "Log Out" : "Log In"}
+          style={{ color: props.isAuthorized ? tailwindColors.grey["2"] : tailwindColors.info["500"] }}
         >
           <Icon
             type={IconTypes.Type.user}
             w={16}
             h={16}
-            stroke={props.isLogIn ? tailwindColors.grey["2"] : tailwindColors.info["500"]}
+            stroke={props.isAuthorized ? tailwindColors.grey["2"] : tailwindColors.info["500"]}
           />
-          <span className={styles.label}>{props.isLogIn ? "Log Out" : "Log In"}</span>
+          <span className={styles.label}>{props.isAuthorized ? "Log Out" : "Log In"}</span>
         </button>
       </div>
     </div>

@@ -84,10 +84,10 @@ export default function AuthModal(props: AuthModalTypes.Props) {
     setProjects(res.data);
   };
 
-  // const onClickChangeAuthButton = (_isLogining: boolean) => {
-  //   setIsLogin(_isLogining);
-  //   setAuthInfo(init.authInfo);
-  // };
+  const onClickChangeAuthButton = (_isLogining: boolean) => {
+    props.setIsLogin(_isLogining);
+    setAuthInfo(init.authInfo);
+  };
 
   const onClickLoginButton = async () => {
     const _authInfo = cloneDeep(authInfo);
@@ -295,7 +295,7 @@ export default function AuthModal(props: AuthModalTypes.Props) {
     _authInfo.password.comment = undefined;
     setAuthInfo(_authInfo);
 
-    // props.onClickX && props.onClickX(e);
+    props.onCancel && props.onCancel(e);
   };
 
   useEffect(() => {
@@ -335,22 +335,26 @@ export default function AuthModal(props: AuthModalTypes.Props) {
             comment={authInfo.password.comment}
             onChange={onChangePassword}
           />
-          <Input
-            className={styles["firstNameInput"]}
-            name="First Name"
-          // value={authInfo.firstName.value}
-          // status={authInfo.firstName.status}
-          // comment={authInfo.firstName.comment}
-          // onChange={onChangeFirstName}
-          />
-          <Input
-            className={styles["lastNameInput"]}
-            name="Last Name"
-          // value={authInfo.lastName.value}
-          // status={authInfo.lastName.status}
-          // comment={authInfo.lastName.comment}
-          // onChange={onChangeLastName}
-          />
+          {!props.isLogIn && (
+            <>
+              <Input
+                className={styles["firstNameInput"]}
+                name="First Name"
+              // value={authInfo.firstName.value}
+              // status={authInfo.firstName.status}
+              // comment={authInfo.firstName.comment}
+              // onChange={onChangeFirstName}
+              />
+              <Input
+                className={styles["lastNameInput"]}
+                name="Last Name"
+              // value={authInfo.lastName.value}
+              // status={authInfo.lastName.status}
+              // comment={authInfo.lastName.comment}
+              // onChange={onChangeLastName}
+              />
+            </>
+          )}
           {/* {!props.isLogIn && (
             <Input
               className={styles.root}label={"Email"}
@@ -377,7 +381,7 @@ export default function AuthModal(props: AuthModalTypes.Props) {
             <p
               className={styles.switch}
               onClick={() => {
-                // onClickChangeAuthButton(!props.isLogIn);
+                onClickChangeAuthButton(!props.isLogIn);
               }}
             >
               {props.isLogIn ? "Sign up" : "Login"}

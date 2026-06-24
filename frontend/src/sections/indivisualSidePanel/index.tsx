@@ -32,7 +32,6 @@ export default function IndivisualSidePanel(
   const [editingDescription, setEditingDescription] = useState<null | string>(
     null
   );
-  const [isAuthModalOpen, setIsAccountModalOpen] = useState(false);
 
   const closeEditing = () => {
     props.setIsEditingIndivisual(false);
@@ -74,26 +73,6 @@ export default function IndivisualSidePanel(
   const onChangeTitle: ChangeEventHandler<HTMLInputElement> = (e) => {
     setEditingTitle(e.target.value);
   };
-  
-  useEffect(() => {
-    if (props.authModalOpenSignal < 1) return;
-    setIsAccountModalOpen(true);
-  }, [props.authModalOpenSignal]);
-
-  const onClickAuthModalX = () => {
-    setIsAccountModalOpen(false);
-  };
-
-  const afterLogin = () => {
-    setIsAccountModalOpen(false);
-    props.setIsLogin(true);
-  };
-
-  const afterLogout = () => {
-    props.setIsLogin(false);
-  };
-
-
 
   return (
     <>
@@ -173,13 +152,6 @@ export default function IndivisualSidePanel(
             </div>
           </div>
         </div>
-        <AuthModal
-          isLogIn={props.isLogIn}
-          isOpen={isAuthModalOpen}
-          onClickX={onClickAuthModalX}
-          afterLogin={afterLogin}
-          afterLogout={afterLogout}
-        />
       </SidePanel>
     </>
   );

@@ -38,9 +38,11 @@ const Modal = (props: ModalTypes.Props) => {
                 {props.onOk && <Button text={props.okText || "Save"} onClick={props.onOk} />}
               </Dialog.Footer>
             )}
-            <Dialog.CloseTrigger asChild>
-              <CloseButton size="sm" />
-            </Dialog.CloseTrigger>
+            {props.onCancel &&
+              <Dialog.CloseTrigger asChild>
+                <CloseButton size="sm" onClick={props.onCancel} />
+              </Dialog.CloseTrigger>
+            }
           </Dialog.Content>
         </Dialog.Positioner>
       </Portal>
