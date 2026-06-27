@@ -6,12 +6,6 @@ enum Flow {
   column = "column",
 }
 
-enum SwitchButtonD {
-  start = "start",
-  m = "m",
-  end = "end",
-}
-
 enum HorizentalD {
   l = "l",
   r = "r",
@@ -34,7 +28,6 @@ type Props = {
   title?: React.ReactNode | string;
   placement?: "start" | "end" | "top" | "bottom";
   flow?: Flow;
-  switchButtonD?: SwitchButtonD;
   children?: ReactNode;
   onClickSwitch?: MouseEventHandler<HTMLButtonElement>;
   onInteractOutside?: (event: InteractOutsideEvent) => void;
@@ -43,4 +36,4 @@ type Props = {
 
 export type { Props };
 
-export { SwitchButtonD, HorizentalD, VerticalD, Flow };
+export { HorizentalD, VerticalD, Flow };

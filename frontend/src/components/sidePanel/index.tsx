@@ -4,14 +4,10 @@ import { Drawer as CharkaDrawer, CloseButton } from "@chakra-ui/react";
 import { tailwindColors } from "@/variables/colors";
 import * as IconTypes from "@/types/components/icon";
 import * as SidePanelTypes from "@/types/components/sidePanel";
-import styles from "./SidePanel.module.css";
+import styles from "./index.module.css";
 
 const SidePanel = (props: SidePanelTypes.Props) => {
   const navbarHeight = 64;
-
-  const isRightSwitchButton =
-    props.switchButtonD === SidePanelTypes.SwitchButtonD.end;
-  const isEndPlacement = props.placement === "end";
 
   const panelViewportStyle: React.CSSProperties = {
     top: `${navbarHeight}px`,
@@ -19,15 +15,7 @@ const SidePanel = (props: SidePanelTypes.Props) => {
   };
 
   const horizontalPositionStyle = (() => {
-    if (isRightSwitchButton) {
-      return { right: "12px" };
-    }
-
-    if (props.switchButtonD === SidePanelTypes.SwitchButtonD.m) {
-      return { left: "50%", transform: "translateX(-50%)" };
-    }
-
-    return { left: "12px" };
+    return props.placement === "end" ? { right: "12px" } : { left: "12px" };
   })();
 
   const switchButtonStyle: React.CSSProperties = {
@@ -55,8 +43,10 @@ const SidePanel = (props: SidePanelTypes.Props) => {
               w={10}
               h={10}
               fill={tailwindColors.white["500"]}
-              style={
-                isEndPlacement ? { transform: "rotate(180deg)" } : undefined
+              className={
+                props.placement === "end"
+                  ? styles["switchButtonIcon--right"]
+                  : styles["switchButtonIcon--left"]
               }
             />
           }
@@ -97,7 +87,6 @@ const SidePanel = (props: SidePanelTypes.Props) => {
 SidePanel.defaultProps = {
   modal: false,
   flow: SidePanelTypes.Flow.row,
-  switchButtonD: SidePanelTypes.SwitchButtonD.start,
 };
 
 export default SidePanel;

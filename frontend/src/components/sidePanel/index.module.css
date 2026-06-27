@@ -19,3 +19,11 @@
 .switchWrapper {
   position: absolute;
 }
+
+.switchButtonIcon--right {
+  transform: rotate(0deg);
+}
+
+.switchButtonIcon--left {
+  transform: rotate(-180deg);
+}

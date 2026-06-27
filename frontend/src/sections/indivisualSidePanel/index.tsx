@@ -128,7 +128,6 @@ export default function IndivisualSidePanel(
             )}
           </div>
         }
-        switchButtonD={SidePanelTypes.SwitchButtonD.end}
         onClickSwitch={onClickSidePanelSwitch}
       >
         <div className={styles.container}>
