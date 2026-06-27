@@ -7,8 +7,15 @@ import * as SidePanelTypes from "@/types/components/sidePanel";
 import styles from "./SidePanel.module.css";
 
 const SidePanel = (props: SidePanelTypes.Props) => {
+  const navbarHeight = 64;
+
   const isRightSwitchButton =
     props.switchButtonD === SidePanelTypes.SwitchButtonD.end;
+
+  const panelViewportStyle: React.CSSProperties = {
+    top: `${navbarHeight}px`,
+    height: `calc(100vh - ${navbarHeight}px)`,
+  };
 
   const horizontalPositionStyle = (() => {
     if (isRightSwitchButton) {
@@ -44,8 +51,8 @@ const SidePanel = (props: SidePanelTypes.Props) => {
           icon={
             <Icon
               type={IconTypes.Type.arrowSolid}
-              w={12}
-              h={12}
+              w={10}
+              h={10}
               fill={tailwindColors.white["500"]}
               style={
                 isRightSwitchButton
@@ -65,9 +72,10 @@ const SidePanel = (props: SidePanelTypes.Props) => {
         contained={false}
         onInteractOutside={props.onInteractOutside}
       >
-        {props.modal && <CharkaDrawer.Backdrop />}
+        {props.modal && <CharkaDrawer.Backdrop style={panelViewportStyle} />}
         <CharkaDrawer.Trigger />
         <CharkaDrawer.Positioner
+          style={panelViewportStyle}
           pointerEvents={props.modal ? undefined : "none"}
         >
           <CharkaDrawer.Content>
