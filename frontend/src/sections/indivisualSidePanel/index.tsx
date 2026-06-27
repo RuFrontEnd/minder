@@ -1,33 +1,21 @@
 "use client";
-import React, { useState, ChangeEventHandler, useEffect } from "react";
-import AuthModal from "@/sections/authModal";
+import React, { useState, ChangeEventHandler } from "react";
 import SidePanel from "@/components/sidePanel";
 import Button from "@/components/button";
 import Input from "@/components/input";
 import Icon from "@/components/icon";
-import Terminal from "@/shapes/terminal";
-import Process from "@/shapes/process";
-import Data from "@/shapes/data";
-import Decision from "@/shapes/decision";
-import Curve from "@/shapes/curve";
+import SquareButton from "@/components/squareButton";
 import { cloneDeep } from "lodash";
 import { tailwindColors } from "@/variables/colors";
 import styles from "./index.module.css";
-import * as authAPIs from "@/apis/auth";
-import * as handleUtils from "@/utils/handle";
 
-import * as InputTypes from "@/types/components/input";
-import * as SelectTypes from "@/types/components/select";
 import * as IconTypes from "@/types/components/icon";
 import * as SidePanelTypes from "@/types/components/sidePanel";
-import * as ButtonTypes from "@/types/components/button";
 import * as IndivisaulSidePanelTypes from "@/types/sections/id/indivisualSidePanel";
-import * as CommonTypes from "@/types/common";
 
 export default function IndivisualSidePanel(
   props: IndivisaulSidePanelTypes.Props
 ) {
-  const dataOptions = props.datas.map((data) => data.name);
   const [editingTitle, setEditingTitle] = useState<null | string>(null);
   const [editingDescription, setEditingDescription] = useState<null | string>(
     null
@@ -84,74 +72,99 @@ export default function IndivisualSidePanel(
         onCancel={() => {
           props.setIsIndivisualSidePanelOpen(false);
         }}
-        title={
-          <div className={styles.titleRow}>
-            {props.isEditingIndivisual ? (
-              <>
-                <Input
-                  role="edit_indivisual_title"
-                  className={styles.inputFull}
-                  value={editingTitle}
-                  onChange={onChangeTitle}
-                />
-                <div className={styles.actions} role="edit_indivisual">
-                  <Button
-                    role="cancel_edit_indivisual"
-                    vice
-                    text="Cancel"
-                    size={ButtonTypes.Size.sm}
-                    style={{ marginLeft: 8 }}
-                    onClick={onClickCancelButton}
-                  />
-                  <Button
-                    role="save_edit_indivisual"
-                    text="Save"
-                    size={ButtonTypes.Size.sm}
-                    style={{ marginLeft: 8 }}
-                    onClick={onClickSaveEditingButton}
-                  />
-                </div>
-              </>
-            ) : (
-              <>
-                {props.indivisual?.title || "-"}
-                <Icon
-                  role="begin_edit_indivisual"
-                  className={styles.iconButton}
-                  type={IconTypes.Type.pencilSquare}
-                  w={16}
-                  h={16}
-                  disabled={!props.indivisual}
-                  onClick={onClickEditIcon}
-                />
-              </>
-            )}
-          </div>
-        }
+        title="Step Info"
         onClickSwitch={onClickSidePanelSwitch}
       >
         <div className={styles.container}>
-          <div
-            className={styles.column}
-            style={{
-              height: `calc(100% - ${props.isEditingIndivisual ? 28 : 16}px)`,
-            }}
-          >
-            <div className={styles.column}>
-              <div className={styles.descLabel}>Description</div>
-              {props.isEditingIndivisual ? (
-                <textarea
-                  role="edit_indivisual_description"
-                  value={editingDescription || ""}
-                  onChange={(e) => setEditingDescription(e.target.value)}
-                  className={styles.textarea}
+          <div className={styles.nameSection}>
+            <div className={styles.nameRow}>
+              <span className={styles.nameLabel}>name</span>
+              {!props.isEditingIndivisual && (
+                <SquareButton
+                  role="begin_edit_indivisual"
+                  size={24}
+                  style={{ border: `1px solid ${tailwindColors.grey["5"]}` }}
+                  content={
+                    <Icon
+                      type={IconTypes.Type.pencilSquare}
+                      w={12}
+                      h={12}
+                      stroke={tailwindColors.grey["1"]}
+                      disabled={!props.indivisual}
+                      onClick={onClickEditIcon}
+                    />
+                  }
+                  onClick={onClickEditIcon}
                 />
-              ) : (
-                <div className={styles.descBox}>
-                  {(props.indivisual as any)?.description || "-"}
-                </div>
               )}
             </div>
+
+            {props.isEditingIndivisual ? (
+              <Input
+                role="edit_indivisual_title"
+                className={styles.nameInput}
+                value={editingTitle}
+                onChange={onChangeTitle}
+              />
+            ) : (
+              <div className={styles.nameValue}>
+                {props.indivisual?.title || "-"}
+              </div>
+            )}
+
+            {props.isEditingIndivisual && (
+              <div className={styles.actions} role="edit_indivisual">
+                <Button
+                  role="cancel_edit_indivisual"
+                  vice
+                  text="Cancel"
+                  size="sm"
+                  onClick={onClickCancelButton}
+                />
+                <Button
+                  role="save_edit_indivisual"
+                  text="Save"
+                  size="sm"
+                  onClick={onClickSaveEditingButton}
+                />
+              </div>
+            )}
+          </div>
+
+          <div className={styles.descriptionSection}>
+            <div className={styles.descriptionRow}>
+              <div className={styles.descLabel}>Description</div>
+              {!props.isEditingIndivisual && (
+                <SquareButton
+                  role="begin_edit_indivisual_description"
+                  size={24}
+                  style={{ border: `1px solid ${tailwindColors.grey["5"]}` }}
+                  content={
+                    <Icon
+                      type={IconTypes.Type.pencilSquare}
+                      w={12}
+                      h={12}
+                      stroke={tailwindColors.grey["1"]}
+                      disabled={!props.indivisual}
+                      onClick={onClickEditIcon}
+                    />
+                  }
+                  onClick={onClickEditIcon}
+                />
+              )}
+            </div>
+            {props.isEditingIndivisual ? (
+              <textarea
+                role="edit_indivisual_description"
+                value={editingDescription || ""}
+                onChange={(e) => setEditingDescription(e.target.value)}
+                className={styles.textarea}
+              />
+            ) : (
+              <div className={styles.descBox}>
+                {(props.indivisual as any)?.description || "-"}
+              </div>
+            )}
           </div>
         </div>
       </SidePanel>
