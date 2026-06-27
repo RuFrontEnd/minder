@@ -2912,6 +2912,7 @@ export default function IdPage() {
         onClickUpload={onClickUploadButton}
         onClickDownload={onClickDownloadButton}
         onClickLogIn={onClickLogInButton}
+        projectName={projectName.val}
       />
 
       <AuthModal

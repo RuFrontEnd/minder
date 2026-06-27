@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
-import Button from "@/components/button";
 import Icon from "@/components/icon";
+import Button from "@/components/button";
 import * as IconTypes from "@/types/components/icon";
 import { tailwindColors } from "@/variables/colors";
 import styles from "./Navbar.module.css";
@@ -14,15 +14,26 @@ interface NavbarProps {
   onClickUpload: () => void;
   onClickDownload: () => void;
   onClickLogIn: () => void;
+  projectName: string;
 }
 
 export default function Navbar(props: NavbarProps) {
+  const currentProjectName = props.projectName || "Untitled Project";
+
   return (
     <div className={styles.root} style={{
       ["--border-color" as any]: tailwindColors.grey["5"],
       ["--bg" as any]: tailwindColors.white["500"],
     } as React.CSSProperties}>
-      <div />
+      <div className={styles.leftSpacer} />
+
+      <div className={styles.centerProjectName}>
+        <Button
+          variant="ghost"
+          text={currentProjectName}
+          onClick={() => {}}
+        />
+      </div>
 
       <div className={styles.actions}>
         <button
