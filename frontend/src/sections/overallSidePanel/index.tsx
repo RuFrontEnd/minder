@@ -62,6 +62,7 @@ export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
     <SidePanel
       className={styles.root}
       open={props.isOverAllSidePanelOpen}
+      placement="start"
       switchButtonD={SidePanelTypes.SwitchButtonD.start}
       onClickSwitch={onClickOverallSidePanelSwitch}
     >

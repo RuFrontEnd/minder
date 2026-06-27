@@ -80,6 +80,7 @@ export default function IndivisualSidePanel(
         role={"indivisual"}
         size="sm"
         open={props.isIndivisualSidePanelOpen}
+        placement="end"
         onCancel={() => {
           props.setIsIndivisualSidePanelOpen(false);
         }}

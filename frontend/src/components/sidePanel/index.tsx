@@ -11,6 +11,7 @@ const SidePanel = (props: SidePanelTypes.Props) => {
 
   const isRightSwitchButton =
     props.switchButtonD === SidePanelTypes.SwitchButtonD.end;
+  const isEndPlacement = props.placement === "end";
 
   const panelViewportStyle: React.CSSProperties = {
     top: `${navbarHeight}px`,
@@ -55,9 +56,7 @@ const SidePanel = (props: SidePanelTypes.Props) => {
               h={10}
               fill={tailwindColors.white["500"]}
               style={
-                isRightSwitchButton
-                  ? { transform: "rotate(180deg)" }
-                  : undefined
+                isEndPlacement ? { transform: "rotate(180deg)" } : undefined
               }
             />
           }
