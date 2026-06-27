@@ -22,7 +22,6 @@ import * as IconTypes from "@/types/components/icon";
 // PageIdTypes no longer required (data tab removed)
 import * as SidePanelTypes from "@/types/components/sidePanel";
 
-
 export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
   const [isRenameFrameOpen, setIsRenameFrameOpen] = useState(false);
   // Overall side panel only shows Step tab (Data tab removed)
@@ -63,80 +62,75 @@ export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
     <SidePanel
       className={styles.root}
       open={props.isOverAllSidePanelOpen}
-      w={"360px"}
-      h={"calc(-65px + 100vh)"}
-      verticalD={SidePanelTypes.VerticalD.b}
+      switchButtonD={SidePanelTypes.SwitchButtonD.start}
       onClickSwitch={onClickOverallSidePanelSwitch}
     >
       <div>
         <div className={styles.header}>
-          <h3 className={styles.title}><span>Step</span></h3>
+          <h3 className={styles.title}>
+            <span>Step</span>
+          </h3>
         </div>
       </div>
 
       <ul style={{ height: "calc(100% - 52px)" }} className={styles.list}>
-            {props.steps.map((step) => {
-              const icon = (() => {
-                let _type = undefined;
-                let _color = undefined;
-                if (step instanceof Terminal) {
-                  _type = IconTypes.Type.ellipse;
-                  _color = tailwindColors.shape.terminal;
-                }
-                if (step instanceof Process) {
-                  _type = IconTypes.Type.square;
-                  _color = tailwindColors.shape.process;
-                }
-                if (step instanceof Data) {
-                  _type = IconTypes.Type.parallelogram;
-                  _color = tailwindColors.shape.data;
-                }
-                if (step instanceof Desicion) {
-                  _type = IconTypes.Type.dimond;
-                  _color = tailwindColors.shape.decision;
-                }
+        {props.steps.map((step) => {
+          const icon = (() => {
+            let _type = undefined;
+            let _color = undefined;
+            if (step instanceof Terminal) {
+              _type = IconTypes.Type.ellipse;
+              _color = tailwindColors.shape.terminal;
+            }
+            if (step instanceof Process) {
+              _type = IconTypes.Type.square;
+              _color = tailwindColors.shape.process;
+            }
+            if (step instanceof Data) {
+              _type = IconTypes.Type.parallelogram;
+              _color = tailwindColors.shape.data;
+            }
+            if (step instanceof Desicion) {
+              _type = IconTypes.Type.dimond;
+              _color = tailwindColors.shape.decision;
+            }
 
-                return {
-                  type: _type,
-                  color: _color,
-                };
-              })();
+            return {
+              type: _type,
+              color: _color,
+            };
+          })();
 
-              return (
-                <li key={step.id}>
-                  <Accordion
-                    showArrow={false}
-                    title={
-                      <div className={styles.stepRow}>
-                        <div className={styles.iconBox}>
-                          <Icon
-                            type={icon.type}
-                            w={20}
-                            h={20}
-                            fill={icon.color}
-                          />
-                        </div>
-                        <div className={styles.titleText}>
-                          <p>{step.title}</p>
-                        </div>
-                      </div>
-                    }
-                    hoverRender={
-                      <Icon
-                        className={styles.hoverIcon}
-                        type={IconTypes.Type.sight}
-                        w={18}
-                        h={18}
-                        stroke={tailwindColors.error["500"]}
-                        onClick={() => {
-                          onClickPositioningButton(step.p);
-                        }}
-                      />
-                    }
+          return (
+            <li key={step.id}>
+              <Accordion
+                showArrow={false}
+                title={
+                  <div className={styles.stepRow}>
+                    <div className={styles.iconBox}>
+                      <Icon type={icon.type} w={20} h={20} fill={icon.color} />
+                    </div>
+                    <div className={styles.titleText}>
+                      <p>{step.title}</p>
+                    </div>
+                  </div>
+                }
+                hoverRender={
+                  <Icon
+                    className={styles.hoverIcon}
+                    type={IconTypes.Type.sight}
+                    w={18}
+                    h={18}
+                    stroke={tailwindColors.error["500"]}
+                    onClick={() => {
+                      onClickPositioningButton(step.p);
+                    }}
                   />
-                </li>
-              );
-            })}
+                }
+              />
+            </li>
+          );
+        })}
       </ul>
 
       {/* project name UI removed; implement when needed */}

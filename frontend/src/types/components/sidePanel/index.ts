@@ -29,16 +29,16 @@ type Props = {
   className?: string;
   role?: string;
   open?: boolean;
-  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'full';
+  size?: "xs" | "sm" | "md" | "lg" | "xl" | "full";
   modal?: boolean;
   title?: React.ReactNode | string;
-  placement?: 'start' | 'end' | 'top' | 'bottom';
+  placement?: "start" | "end" | "top" | "bottom";
   flow?: Flow;
   switchButtonD?: SwitchButtonD;
   children?: ReactNode;
-  onClickSwitch?: MouseEventHandler<HTMLDivElement>;
-  onInteractOutside?: (event: InteractOutsideEvent) => void
-  onCancel?: MouseEventHandler<HTMLButtonElement>
+  onClickSwitch?: MouseEventHandler<HTMLButtonElement>;
+  onInteractOutside?: (event: InteractOutsideEvent) => void;
+  onCancel?: MouseEventHandler<HTMLButtonElement>;
 };
 
 export type { Props };

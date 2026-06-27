@@ -41,7 +41,6 @@ export default function IndivisualSidePanel(
   };
 
   const onClickSidePanelSwitch: SidePanelTypes.Props["onClickSwitch"] = (e) => {
-    e.preventDefault();
     props.setIsIndivisualSidePanelOpen((open) => !open);
   };
 
@@ -126,7 +125,9 @@ export default function IndivisualSidePanel(
                 />
               </>
             )}
-          </div>}
+          </div>
+        }
+        switchButtonD={SidePanelTypes.SwitchButtonD.end}
         onClickSwitch={onClickSidePanelSwitch}
       >
         <div className={styles.container}>
