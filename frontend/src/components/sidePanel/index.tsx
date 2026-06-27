@@ -25,6 +25,16 @@ const SidePanel = (props: SidePanelTypes.Props) => {
     ...horizontalPositionStyle,
   };
 
+  const onInteractOutside = (event: any) => {
+    const target = event?.target;
+
+    if (target instanceof Element && target.closest("[data-side-panel-root]")) {
+      return;
+    }
+
+    props.onInteractOutside?.(event);
+  };
+
   return (
     <>
       {!props.open && props.onClickSwitch && (
@@ -59,7 +69,7 @@ const SidePanel = (props: SidePanelTypes.Props) => {
         placement={props.placement}
         modal={props.modal}
         contained={false}
-        onInteractOutside={props.onInteractOutside}
+        onInteractOutside={onInteractOutside}
       >
         {props.modal && <CharkaDrawer.Backdrop style={panelViewportStyle} />}
         <CharkaDrawer.Trigger />
@@ -67,7 +77,7 @@ const SidePanel = (props: SidePanelTypes.Props) => {
           style={panelViewportStyle}
           pointerEvents={props.modal ? undefined : "none"}
         >
-          <CharkaDrawer.Content>
+          <CharkaDrawer.Content data-side-panel-root>
             <CharkaDrawer.CloseTrigger />
             <CharkaDrawer.Header top={`${64}px`} h={`calc(100vh - ${64}px)`}>
               <CharkaDrawer.Title>{props.title}</CharkaDrawer.Title>
