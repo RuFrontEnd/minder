@@ -14,7 +14,7 @@ import Button from "@/components/button";
 import OverallSidePanel from "@/sections/overallSidePanel";
 import IndivisaulSidePanel from "@/sections/indivisualSidePanel";
 import Console from "@/sections/console";
-import ProjectModal from "@/components/modal/ProjectModal";
+import ProjectModal from "@/sections/projectModal";
 import { cloneDeep } from "lodash";
 import { v4 as uuidv4 } from "uuid";
 import { tailwindColors } from "@/variables/colors";
@@ -943,9 +943,9 @@ const frameSelect = (
       const theEdge = shape.getEdge();
 
       const l =
-        normalSelectAreaP.start.x < normalSelectAreaP.end.x
-          ? normalSelectAreaP.start.x
-          : normalSelectAreaP.end.x,
+          normalSelectAreaP.start.x < normalSelectAreaP.end.x
+            ? normalSelectAreaP.start.x
+            : normalSelectAreaP.end.x,
         t =
           normalSelectAreaP.start.y < normalSelectAreaP.end.y
             ? normalSelectAreaP.start.y
@@ -987,11 +987,11 @@ const getCurve = (
     r: number;
     b: number;
   } = {
-      l: 0,
-      t: 0,
-      r: 0,
-      b: 0,
-    },
+    l: 0,
+    t: 0,
+    r: 0,
+    b: 0,
+  },
   text = ""
 ) => {
   let p1: CommonTypes.Vec = { x: 0, y: 0 };
@@ -1309,12 +1309,12 @@ const movePressingCurve = (
         const threshold = {
           x:
             quarterD === CommonTypes.Direction.l ||
-              quarterD === CommonTypes.Direction.r
+            quarterD === CommonTypes.Direction.r
               ? curveThreshold
               : 0,
           y:
             quarterD === CommonTypes.Direction.t ||
-              quarterD === CommonTypes.Direction.b
+            quarterD === CommonTypes.Direction.b
               ? curveThreshold
               : 0,
         };
@@ -1555,7 +1555,7 @@ const triggerCurve = (
       curveThresholdStrategy[targetShape.type],
       targetShape instanceof Desicion
         ? curves.find((curve) => curve.from.shape.id === targetShape.id)?.shape
-          ?.text === "Y"
+            ?.text === "Y"
           ? "N"
           : "Y"
         : ""
@@ -2295,9 +2295,9 @@ export default function IdPage() {
     e.preventDefault();
 
     const p = {
-      x: e.nativeEvent.offsetX,
-      y: e.nativeEvent.offsetY,
-    },
+        x: e.nativeEvent.offsetX,
+        y: e.nativeEvent.offsetY,
+      },
       offsetP = {
         x: p.x - lastP.x,
         y: p.y - lastP.y,
@@ -3032,8 +3032,9 @@ export default function IdPage() {
         />
         <canvas
           role="screenshot"
-          className={`invisible ${space ? "cursor-grab" : ""
-            } overflow-hidden absolute left-0 top-0 z-[-1]`}
+          className={`invisible ${
+            space ? "cursor-grab" : ""
+          } overflow-hidden absolute left-0 top-0 z-[-1]`}
           tabIndex={1}
           ref={(el) => {
             $screenshot = el;

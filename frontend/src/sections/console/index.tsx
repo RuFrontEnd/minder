@@ -12,7 +12,7 @@ import * as SidePanelTypes from "@/types/components/sidePanel";
 import * as ConsoleTypes from "@/types/sections/id/console";
 import * as CommonTypes from "@/types/common";
 import Divider from "@/components/divider";
-import ProjectModal from "@/components/modal/ProjectModal";
+import ProjectModal from "@/sections/projectModal";
 
 export default function Console(props: ConsoleTypes.Props) {
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
@@ -77,15 +77,31 @@ export default function Console(props: ConsoleTypes.Props) {
           </div>
         </div>
       </div>
-      <ProjectModal isOpen={isProjectModalOpen} onClose={() => setIsProjectModalOpen(false)} onSelect={handleSelectProject} />
+      <ProjectModal
+        isOpen={isProjectModalOpen}
+        onClose={() => setIsProjectModalOpen(false)}
+        onSelect={handleSelectProject}
+      />
     </>
   );
 }
 
 // Render ProjectModal at root of this module so it's available when opened
-function ProjectModalRenderer({ isOpen, setIsOpen, onSelect }: { isOpen: boolean; setIsOpen: (v: boolean) => void; onSelect?: (p: any) => void }) {
+function ProjectModalRenderer({
+  isOpen,
+  setIsOpen,
+  onSelect,
+}: {
+  isOpen: boolean;
+  setIsOpen: (v: boolean) => void;
+  onSelect?: (p: any) => void;
+}) {
   return (
-    <ProjectModal isOpen={isOpen} onClose={() => setIsOpen(false)} onSelect={onSelect} />
+    <ProjectModal
+      isOpen={isOpen}
+      onClose={() => setIsOpen(false)}
+      onSelect={onSelect}
+    />
   );
 }
 
