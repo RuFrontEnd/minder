@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React from "react";
 import Zoom from "@/sections/zoom";
 import SidePanel from "@/components/sidePanel";
 import CreateShapeButtons from "@/sections/createShapeButtons";
@@ -12,15 +12,8 @@ import * as SidePanelTypes from "@/types/components/sidePanel";
 import * as ConsoleTypes from "@/types/sections/id/console";
 import * as CommonTypes from "@/types/common";
 import Divider from "@/components/divider";
-import ProjectModal from "@/sections/projectModal";
 
 export default function Console(props: ConsoleTypes.Props) {
-  const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
-
-  const handleSelectProject = (project: any) => {
-    console.log("selected project", project);
-    // TODO: integrate selected project into app state
-  };
   const onClickUndoButton = () => {
     props.undo();
   };
@@ -68,40 +61,10 @@ export default function Console(props: ConsoleTypes.Props) {
               onClick={onClickUndoButton}
             />
             <Zoom zoom={props.zoom} scale={props.scale} />
-            <SquareButton
-              size={32}
-              style={{ border: `1px solid ${tailwindColors.grey["5"]}` }}
-              content={<Icon w={14} h={14} fill={tailwindColors.grey["1"]} />}
-              onClick={() => setIsProjectModalOpen(true)}
-            />
           </div>
         </div>
       </div>
-      <ProjectModal
-        isOpen={isProjectModalOpen}
-        onClose={() => setIsProjectModalOpen(false)}
-        onSelect={handleSelectProject}
-      />
     </>
-  );
-}
-
-// Render ProjectModal at root of this module so it's available when opened
-function ProjectModalRenderer({
-  isOpen,
-  setIsOpen,
-  onSelect,
-}: {
-  isOpen: boolean;
-  setIsOpen: (v: boolean) => void;
-  onSelect?: (p: any) => void;
-}) {
-  return (
-    <ProjectModal
-      isOpen={isOpen}
-      onClose={() => setIsOpen(false)}
-      onSelect={onSelect}
-    />
   );
 }
 
