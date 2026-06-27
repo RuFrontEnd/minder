@@ -14,6 +14,7 @@ interface NavbarProps {
   onClickUpload: () => void;
   onClickDownload: () => void;
   onClickLogIn: () => void;
+  onClickProjectName: () => void;
   projectName: string;
 }
 
@@ -31,7 +32,7 @@ export default function Navbar(props: NavbarProps) {
         <Button
           variant="ghost"
           text={currentProjectName}
-          onClick={() => {}}
+          onClick={props.onClickProjectName}
         />
       </div>
 

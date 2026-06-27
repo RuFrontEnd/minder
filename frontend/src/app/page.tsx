@@ -14,6 +14,7 @@ import Button from "@/components/button";
 import OverallSidePanel from "@/sections/overallSidePanel";
 import IndivisaulSidePanel from "@/sections/indivisualSidePanel";
 import Console from "@/sections/console";
+import ProjectModal from "@/components/modal/ProjectModal";
 import { cloneDeep } from "lodash";
 import { v4 as uuidv4 } from "uuid";
 import { tailwindColors } from "@/variables/colors";
@@ -2015,6 +2016,7 @@ export default function IdPage() {
 
   const saveTimeoutRef = useRef<number | null>(null);
   const [isAuthModalOpen, setIsAccountModalOpen] = useState(false);
+  const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
   const [space, setSpace] = useState(false);
   const [control, setControl] = useState(false);
   const [scale, setScale] = useState(1);
@@ -2902,6 +2904,10 @@ export default function IdPage() {
     setIsAuthorized(false);
   };
 
+  const onClickProjectName = () => {
+    setIsProjectModalOpen(true);
+  };
+
   return (
     <>
       <Navbar
@@ -2912,6 +2918,7 @@ export default function IdPage() {
         onClickUpload={onClickUploadButton}
         onClickDownload={onClickDownloadButton}
         onClickLogIn={onClickLogInButton}
+        onClickProjectName={onClickProjectName}
         projectName={projectName.val}
       />
 
@@ -2922,6 +2929,11 @@ export default function IdPage() {
         onCancel={onClickAuthModalX}
         afterLogin={afterLogin}
         afterLogout={afterLogout}
+      />
+
+      <ProjectModal
+        isOpen={isProjectModalOpen}
+        onClose={() => setIsProjectModalOpen(false)}
       />
 
       <OverallSidePanel
