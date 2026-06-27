@@ -14,7 +14,7 @@ import { motion } from "framer-motion";
 // lodash clone not required after removing data management
 import { ChangeEventHandler, MouseEventHandler } from "react";
 import { tailwindColors } from "@/variables/colors";
-import styles from "./OverallSidePanel.module.css";
+import styles from "./index.module.css";
 import * as CommonTypes from "@/types/common";
 import * as OverallSidePanelTypes from "@/types/sections/id/overallSidePanel";
 
@@ -61,6 +61,7 @@ export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
   return (
     <SidePanel
       className={styles.root}
+      title="Steps"
       open={props.isOverAllSidePanelOpen}
       placement="start"
       onClickSwitch={onClickOverallSidePanelSwitch}
@@ -71,14 +72,6 @@ export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
         props.setIsOverAllSidePanelOpen(false);
       }}
     >
-      <div>
-        <div className={styles.header}>
-          <h3 className={styles.title}>
-            <span>Step</span>
-          </h3>
-        </div>
-      </div>
-
       <ul style={{ height: "calc(100% - 52px)" }} className={styles.list}>
         {props.steps.map((step) => {
           const icon = (() => {

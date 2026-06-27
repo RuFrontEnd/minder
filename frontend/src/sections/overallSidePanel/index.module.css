@@ -1,0 +1,36 @@
+.root {
+  z-index: 60;
+}
+.header {
+  display: flex;
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+}
+.title {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.125rem;
+  font-weight: 600;
+  padding: 0.5rem 1.25rem;
+}
+.list {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.stepRow {
+  display: flex;
+  align-items: center;
+}
+.iconBox {
+  width: 20px;
+}
+.titleText {
+  margin-left: 0.5rem;
+}
+.hoverIcon {
+  cursor: pointer;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}

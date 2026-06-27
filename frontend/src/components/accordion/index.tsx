@@ -1,7 +1,7 @@
 import * as AccordionTypes from "@/types/components/accordion";
 import * as IconTypes from "@/types/components/icon";
 import Icon from "@/components/icon";
-import styles from "./Accordion.module.css";
+import styles from "./index.module.css";
 
 export default function Accordion(props: AccordionTypes.Props) {
   const {
@@ -28,9 +28,7 @@ export default function Accordion(props: AccordionTypes.Props) {
           )}
           <div className={`${styles.title}`}>{title}</div>
           <div className={styles.hoverArea}>
-            <div style={{ opacity: 0 }}>
-              {hoverRender}
-            </div>
+            <div style={{ opacity: 0 }}>{hoverRender}</div>
           </div>
         </div>
       </div>

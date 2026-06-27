@@ -1,7 +1,0 @@
-.header { padding: 0.25rem 0.5rem }
-.row { display:flex; align-items:center }
-.title { color: #111827; flex:1; word-break:break-word }
-.hoverArea { display:flex; align-items:center }
-.content { overflow:hidden; color:#6b7280 }
-.rotate { transition: transform .3s }
-.rotateCollapsed { transform: rotate(-90deg) }
