@@ -50,7 +50,6 @@
   font-weight: 500;
   color: #111827;
   overflow: auto;
-  max-height: 160px;
   white-space: pre-wrap;
 }
 
@@ -192,5 +191,32 @@
 
 .dateMetaValue {
   font-size: 0.875rem;
+  color: #111827;
+}
+
+.authorSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color, #e5e7eb);
+}
+
+.authorRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.authorLabel {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #9ca3af;
+}
+
+.authorEmpty {
+  font-size: 1rem;
+  font-weight: 500;
   color: #111827;
 }
