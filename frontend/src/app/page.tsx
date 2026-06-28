@@ -2018,7 +2018,6 @@ export default function IdPage() {
   const [isAuthModalOpen, setIsAccountModalOpen] = useState(false);
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
   const [space, setSpace] = useState(false);
-  const [control, setControl] = useState(false);
   const [scale, setScale] = useState(1);
   const [leftMouseBtn, setLeftMouseBtn] = useState(false);
   const [isOverAllSidePanelOpen, setIsOverAllSidePanelOpen] = useState(false);
@@ -2687,12 +2686,6 @@ export default function IdPage() {
   };
 
   function handleKeyDown(this: Window, e: KeyboardEvent) {
-    if (e.key === "Control") {
-      setControl(true);
-    }
-    if (e.key === "z" && control) {
-      undo(ctx, offset, scale);
-    }
     if (e.key === " " && !space) {
       setSpace(true);
     } else if (e.key === "Backspace") {
@@ -2708,9 +2701,6 @@ export default function IdPage() {
   }
 
   function handleKeyUp(this: Window, e: KeyboardEvent) {
-    if (e.key === "Control") {
-      setControl(false);
-    }
     if (e.key === " " && space) {
       setSpace(false);
     }
@@ -2884,7 +2874,7 @@ export default function IdPage() {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, [space, steps, control, indivisual]);
+  }, [space, steps, indivisual]);
 
   useEffect(() => {
     if (authModalOpenSignal < 1) return;
@@ -2993,9 +2983,6 @@ export default function IdPage() {
         offset={offset}
         scale={scale}
         zoom={zoom}
-        undo={() => {
-          undo(ctx, offset, scale);
-        }}
         isOverAllSidePanelOpen={isOverAllSidePanelOpen}
         isIndivisualSidePanelOpen={isIndivisualSidePanelOpen}
         setIsIndivisualSidePanelOpen={setIsIndivisualSidePanelOpen}

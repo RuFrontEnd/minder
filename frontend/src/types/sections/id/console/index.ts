@@ -25,7 +25,6 @@ type Console = {
 type Consoles = Console[];
 
 type Props = {
-  undo: () => void;
   shapes: CommonTypes.Shapes;
   positioning: PageIdTypes.Positioning;
   setIndivisual: Dispatch<SetStateAction<PageIdTypes.Indivisual>>;
