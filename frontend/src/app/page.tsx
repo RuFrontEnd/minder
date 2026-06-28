@@ -2658,19 +2658,34 @@ export default function IdPage() {
     }, delay);
   };
 
-  const onDoubleClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    e.preventDefault();
-
+  const getClickedShape = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const p = {
-      x: e.nativeEvent.x,
-      y: e.nativeEvent.y,
+      x: e.nativeEvent.offsetX,
+      y: e.nativeEvent.offsetY,
     };
 
-    shapes.forEach((shape) => {
-      if (!shape.checkBoundry(getNormalP(p, offset, scale))) return;
-      setIsIndivisualSidePanelOpen(true);
-      setIndivisual(shape);
-    });
+    return shapes.find((shape) =>
+      shape.checkBoundry(getNormalP(p, offset, scale))
+    );
+  };
+
+  const onClickShapeInfo = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+
+    const clickedShape = getClickedShape(e);
+    if (!clickedShape) return;
+
+    setIndivisual(clickedShape);
+  };
+
+  const onDoubleClickShapeInfo = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+
+    const clickedShape = getClickedShape(e);
+    if (!clickedShape) return;
+
+    setIndivisual(clickedShape);
+    setIsIndivisualSidePanelOpen(true);
 
     const resetIndivisualSidePanel = () => {
       setIsEditingIndivisual(false);
@@ -3015,7 +3030,8 @@ export default function IdPage() {
           onMouseMove={onMouseMove}
           onMouseUp={onMouseUp}
           onWheel={onMouseWheel}
-          onDoubleClick={onDoubleClick}
+          onClick={onClickShapeInfo}
+          onDoubleClick={onDoubleClickShapeInfo}
         />
         <canvas
           role="screenshot"
