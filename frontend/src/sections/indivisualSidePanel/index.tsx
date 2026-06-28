@@ -20,12 +20,16 @@ export default function IndivisualSidePanel(
   const [editingDescription, setEditingDescription] = useState<null | string>(
     null
   );
+  const [startDate, setStartDate] = useState<string>("");
+  const [dueDate, setDueDate] = useState<string>("");
 
   const closeEditing = () => {
     props.setIsEditingIndivisual(false);
     // keep external create/add lists untouched here (parent manages them)
     setEditingTitle(props.indivisual?.title || null);
     setEditingDescription((props.indivisual as any)?.description || null);
+    setStartDate((props.indivisual as any)?.startDate || "");
+    setDueDate((props.indivisual as any)?.dueDate || "");
   };
 
   const onClickSidePanelSwitch: SidePanelTypes.Props["onClickSwitch"] = (e) => {
@@ -36,6 +40,8 @@ export default function IndivisualSidePanel(
     if (!props.indivisual) return false;
     setEditingTitle(props.indivisual?.title);
     setEditingDescription((props.indivisual as any)?.description || null);
+    setStartDate((props.indivisual as any)?.startDate || "");
+    setDueDate((props.indivisual as any)?.dueDate || "");
     props.setIsEditingIndivisual(true);
   };
 
@@ -48,6 +54,8 @@ export default function IndivisualSidePanel(
 
     if (editingTitle) props.indivisual.title = editingTitle;
     (props.indivisual as any).description = editingDescription || "";
+    (props.indivisual as any).startDate = startDate || "";
+    (props.indivisual as any).dueDate = dueDate || "";
 
     const _indivisual = cloneDeep(props.indivisual);
     props.setIndivisual(_indivisual);
@@ -59,6 +67,14 @@ export default function IndivisualSidePanel(
 
   const onChangeTitle: ChangeEventHandler<HTMLInputElement> = (e) => {
     setEditingTitle(e.target.value);
+  };
+
+  const onChangeStartDate: ChangeEventHandler<HTMLInputElement> = (e) => {
+    setStartDate(e.target.value);
+  };
+
+  const onChangeDueDate: ChangeEventHandler<HTMLInputElement> = (e) => {
+    setDueDate(e.target.value);
   };
 
   return (
@@ -163,6 +179,63 @@ export default function IndivisualSidePanel(
             ) : (
               <div className={styles.descBox}>
                 {(props.indivisual as any)?.description || "-"}
+              </div>
+            )}
+          </div>
+
+          <div className={styles.dateSection}>
+            <div className={styles.dateRow}>
+              <div className={styles.dateLabel}>time line</div>
+              {!props.isEditingIndivisual && (
+                <IconButton
+                  role="begin_edit_indivisual_date"
+                  ariaLabel="Begin edit indivisual dates"
+                  size="2xs"
+                  variant="outline"
+                  style={{ border: `1px solid ${tailwindColors.grey["5"]}` }}
+                  icon={
+                    <Icon
+                      type={IconTypes.Type.pencilSquare}
+                      w={12}
+                      h={12}
+                      stroke={tailwindColors.grey["1"]}
+                    />
+                  }
+                  onClick={onClickEditIcon}
+                />
+              )}
+            </div>
+
+            {props.isEditingIndivisual ? (
+              <div className={styles.dateInputGroup}>
+                <input
+                  type="date"
+                  value={startDate || ""}
+                  onChange={onChangeStartDate}
+                  className={styles.dateInput}
+                />
+                <span className={styles.dateTo}>to</span>
+                <input
+                  type="date"
+                  value={dueDate || ""}
+                  onChange={onChangeDueDate}
+                  className={styles.dateInput}
+                />
+              </div>
+            ) : (
+              <div className={styles.dateSummary}>
+                <div className={styles.datePair}>
+                  <span className={styles.dateLabel}>start date:</span>
+                  <span className={styles.dateValueInline}>
+                    {(props.indivisual as any)?.startDate || "-"}
+                  </span>
+                </div>
+                <div className={styles.datePair}>
+                  <span className={styles.dateLabel}>due date:</span>
+                  <span className={styles.dateValueInline}>
+                    {(props.indivisual as any)?.dueDate || "-"}
+                  </span>
+                </div>
               </div>
             )}
           </div>
