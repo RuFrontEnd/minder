@@ -1,4 +1,36 @@
-.root { position:fixed; bottom:1rem; left:0; right:0; display:flex; justify-content:center; align-items:center }
-.toolbar { position:relative; display:inline-flex; align-items:center }
-.leftFloating { position:absolute; right:100%; margin-right:0.5rem; display:flex; gap:0.5rem; align-items:center }
-.rightFloating { position:absolute; left:100%; margin-left:0.5rem; display:flex; gap:0.5rem; align-items:center }
+.root {
+  position: fixed;
+  bottom: 1rem;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.toolbar {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.leftFloating {
+  position: absolute;
+  right: 100%;
+  margin-right: 0.5rem;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.rightFloating {
+  position: absolute;
+  left: 100%;
+  margin-left: 0.5rem;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.zoomDock {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 55;
+}
