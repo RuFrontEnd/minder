@@ -1,17 +1,13 @@
 "use client";
 import React from "react";
 import Zoom from "@/sections/zoom";
-import SidePanel from "@/components/sidePanel";
 import CreateShapeButtons from "@/sections/createShapeButtons";
 import Icon from "@/components/icon";
 import SquareButton from "@/components/squareButton";
 import { tailwindColors } from "@/variables/colors";
 import styles from "./Console.module.css";
 import * as IconTypes from "@/types/components/icon";
-import * as SidePanelTypes from "@/types/components/sidePanel";
 import * as ConsoleTypes from "@/types/sections/id/console";
-import * as CommonTypes from "@/types/common";
-import Divider from "@/components/divider";
 
 export default function Console(props: ConsoleTypes.Props) {
   const onClickUndoButton = () => {
@@ -60,9 +56,12 @@ export default function Console(props: ConsoleTypes.Props) {
               }
               onClick={onClickUndoButton}
             />
-            <Zoom zoom={props.zoom} scale={props.scale} />
           </div>
         </div>
+      </div>
+
+      <div className={styles.zoomDock}>
+        <Zoom zoom={props.zoom} scale={props.scale} />
       </div>
     </>
   );
