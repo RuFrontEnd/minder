@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from "react";
+import { ScrollArea } from "@chakra-ui/react";
 import Modal from "@/components/modal";
+import Combobox from "@/components/combobox";
+import Avatar from "@/components/avatar";
 import { getProjects } from "@/apis/project";
 import * as ProjectTypes from "@/types/project";
+import * as ComboboxTypes from "@/types/components/combobox";
 import * as IconTypes from "@/types/components/icon";
 import IconButton from "@/components/iconButton";
 import Icon from "@/components/icon";
@@ -14,8 +18,42 @@ type Props = {
   onSelect?: (project: ProjectTypes.Project) => void;
 };
 
+const memberOptions: ComboboxTypes.Item[] = [
+  {
+    label: "John Mason",
+    value: "john-mason",
+    logo: "https://i.pravatar.cc/300?u=iu",
+  },
+  {
+    label: "Melissa Jones",
+    value: "melissa-jones",
+    logo: "https://i.pravatar.cc/300?u=po",
+  },
+  {
+    label: "Alex Wang",
+    value: "alex-wang",
+    logo: "https://i.pravatar.cc/300?u=alex",
+  },
+  {
+    label: "Cindy Chen",
+    value: "cindy-chen",
+    logo: "https://i.pravatar.cc/300?u=cindy",
+  },
+];
+
 const ProjectModal = ({ isOpen, onClose, onSelect }: Props) => {
   const [projects, setProjects] = useState<ProjectTypes.Project[]>([]);
+  const [memberValues, setMemberValues] = useState<string[]>([]);
+
+  const joinedMembers = memberValues
+    .map((value) => memberOptions.find((member) => member.value === value))
+    .filter((member): member is ComboboxTypes.Item => !!member);
+
+  const onDeleteMember = (value: string) => {
+    setMemberValues((prev) =>
+      prev.filter((memberValue) => memberValue !== value)
+    );
+  };
 
   const load = async () => {
     try {
@@ -59,6 +97,59 @@ const ProjectModal = ({ isOpen, onClose, onSelect }: Props) => {
         <div className={styles.nameValue}>
           {projects[0]?.name ?? "test project"}
         </div>
+      </div>
+
+      <div className={styles.memberSection}>
+        <div className={styles.memberLabel}>member</div>
+        <Combobox
+          id="project-member-combobox"
+          width="100%"
+          label=""
+          placeholder="Search and add members"
+          items={memberOptions}
+          value={memberValues}
+          onValueChange={(value) => {
+            setMemberValues(value);
+          }}
+          multiple
+          closeOnSelect
+          showSelectedItems={false}
+          emptyText="No members found"
+        />
+
+        <ScrollArea.Root className={styles.memberScrollArea}>
+          <ScrollArea.Viewport>
+            <ScrollArea.Content>
+              <div className={styles.memberList}>
+                {joinedMembers.map((member) => (
+                  <div key={member.value} className={styles.memberListItem}>
+                    <Avatar src={member.logo} name={member.label} size="sm" />
+                    <IconButton
+                      ariaLabel={`Remove ${member.label}`}
+                      variant="outline"
+                      size="2xs"
+                      icon={
+                        <Icon
+                          type={IconTypes.Type.x}
+                          w={10}
+                          h={10}
+                          stroke={tailwindColors.grey["2"]}
+                        />
+                      }
+                      onClick={() => onDeleteMember(member.value)}
+                    />
+                  </div>
+                ))}
+                {!joinedMembers.length && (
+                  <div className={styles.memberEmptyText}>
+                    No members joined yet
+                  </div>
+                )}
+              </div>
+            </ScrollArea.Content>
+          </ScrollArea.Viewport>
+          <ScrollArea.Scrollbar bg="transparent" />
+        </ScrollArea.Root>
       </div>
     </Modal>
   );
