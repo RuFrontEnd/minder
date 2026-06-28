@@ -3,7 +3,7 @@ import Modal from "@/components/modal";
 import { getProjects } from "@/apis/project";
 import * as ProjectTypes from "@/types/project";
 import * as IconTypes from "@/types/components/icon";
-import SquareButton from "@/components/squareButton";
+import IconButton from "@/components/iconButton";
 import Icon from "@/components/icon";
 import { tailwindColors } from "@/variables/colors";
 import styles from "./index.module.css";
@@ -40,10 +40,12 @@ const ProjectModal = ({ isOpen, onClose, onSelect }: Props) => {
       <div className={styles.nameSection}>
         <div className={styles.nameRow}>
           <span className={styles.nameLabel}>name</span>
-          <SquareButton
-            size={24}
+          <IconButton
+            ariaLabel="Edit project name"
+            size="2xs"
+            variant="outline"
             style={{ border: `1px solid ${tailwindColors.grey["5"]}` }}
-            content={
+            icon={
               <Icon
                 type={IconTypes.Type.pencilSquare}
                 w={12}

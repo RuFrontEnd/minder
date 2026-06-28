@@ -4,7 +4,7 @@ import SidePanel from "@/components/sidePanel";
 import Button from "@/components/button";
 import Input from "@/components/input";
 import Icon from "@/components/icon";
-import SquareButton from "@/components/squareButton";
+import IconButton from "@/components/iconButton";
 import { cloneDeep } from "lodash";
 import { tailwindColors } from "@/variables/colors";
 import styles from "./index.module.css";
@@ -80,18 +80,18 @@ export default function IndivisualSidePanel(
             <div className={styles.nameRow}>
               <span className={styles.nameLabel}>name</span>
               {!props.isEditingIndivisual && (
-                <SquareButton
+                <IconButton
                   role="begin_edit_indivisual"
-                  size={24}
+                  ariaLabel="Begin edit indivisual name"
+                  size="2xs"
+                  variant="outline"
                   style={{ border: `1px solid ${tailwindColors.grey["5"]}` }}
-                  content={
+                  icon={
                     <Icon
                       type={IconTypes.Type.pencilSquare}
                       w={12}
                       h={12}
                       stroke={tailwindColors.grey["1"]}
-                      disabled={!props.indivisual}
-                      onClick={onClickEditIcon}
                     />
                   }
                   onClick={onClickEditIcon}
@@ -135,18 +135,18 @@ export default function IndivisualSidePanel(
             <div className={styles.descriptionRow}>
               <div className={styles.descLabel}>Description</div>
               {!props.isEditingIndivisual && (
-                <SquareButton
+                <IconButton
                   role="begin_edit_indivisual_description"
-                  size={24}
+                  ariaLabel="Begin edit indivisual description"
+                  size="2xs"
+                  variant="outline"
                   style={{ border: `1px solid ${tailwindColors.grey["5"]}` }}
-                  content={
+                  icon={
                     <Icon
                       type={IconTypes.Type.pencilSquare}
                       w={12}
                       h={12}
                       stroke={tailwindColors.grey["1"]}
-                      disabled={!props.indivisual}
-                      onClick={onClickEditIcon}
                     />
                   }
                   onClick={onClickEditIcon}
