@@ -26,11 +26,6 @@ const isBrowser = typeof window !== "undefined";
 
 const init = {
   authInfo: {
-    account: {
-      value: undefined,
-      status: InputTypes.Status.normal,
-      comment: undefined,
-    },
     password: {
       value: undefined,
       status: InputTypes.Status.normal,
@@ -50,11 +45,6 @@ export default function AuthModal(props: AuthModalTypes.Props) {
 
   const [isProjectsModalOpen, setIsProjectsModalOpen] = useState(false);
   const [authInfo, setAuthInfo] = useState<{
-    account: {
-      value: undefined | string;
-      status: InputTypes.Status;
-      comment: undefined | string;
-    };
     password: {
       value: undefined | string;
       status: InputTypes.Status;
@@ -91,15 +81,15 @@ export default function AuthModal(props: AuthModalTypes.Props) {
 
   const onClickLoginButton = async () => {
     const _authInfo = cloneDeep(authInfo);
-    if (!authInfo.account.value) {
-      _authInfo.account.status = InputTypes.Status.error;
-      _authInfo.account.comment = "required field.";
+    if (!authInfo.email.value) {
+      _authInfo.email.status = InputTypes.Status.error;
+      _authInfo.email.comment = "required field.";
     }
     if (!authInfo.password.value) {
       _authInfo.password.status = InputTypes.Status.error;
     }
 
-    if (!authInfo.account.value || !authInfo.password.value) {
+    if (!authInfo.email.value || !authInfo.password.value) {
       _authInfo.password.status = InputTypes.Status.error;
       _authInfo.password.comment = "required field.";
       setAuthInfo(_authInfo);
@@ -109,9 +99,9 @@ export default function AuthModal(props: AuthModalTypes.Props) {
     setIsAuthorizing(true);
 
     const res: AxiosResponse<AuthTypes.Login["resData"], any> =
-      await authAPIs.login(authInfo.account.value, authInfo.password.value);
+      await authAPIs.login(authInfo.email.value, authInfo.password.value);
 
-    if (res.status === 200) {
+    if (res.status >= 200 && res.status < 300) {
       setTimeout(() => {
         setAuthMessage({
           status: AlertTypes.Type.succeess,
@@ -156,14 +146,6 @@ export default function AuthModal(props: AuthModalTypes.Props) {
         authInfo.email.value
       );
 
-    if (!authInfo.account.value) {
-      _authInfo.account.status = InputTypes.Status.error;
-      _authInfo.account.comment = "required field.";
-    } else {
-      _authInfo.account.status = InputTypes.Status.normal;
-      _authInfo.account.comment = "";
-    }
-
     if (!authInfo.password.value) {
       _authInfo.password.status = InputTypes.Status.error;
       _authInfo.password.comment = "required field.";
@@ -191,7 +173,6 @@ export default function AuthModal(props: AuthModalTypes.Props) {
 
     console.log('isPasswordLengthGreaterThanSix', isPasswordLengthGreaterThanSix);
     console.log('isEmailFormatValid', isEmailFormatValid);
-    console.log('authInfo.account.value', authInfo.account.value);
     console.log('authInfo.password.value', authInfo.password.value);
     console.log('authInfo.email.value', authInfo.email.value);
 
@@ -208,12 +189,11 @@ export default function AuthModal(props: AuthModalTypes.Props) {
     try {
       const res: AxiosResponse<AuthTypes.Register["resData"], any> =
         await authAPIs.register(
-          authInfo.account.value as string,
           authInfo.email.value as string,
           authInfo.password.value as string
         );
 
-      if (res.status === 201) {
+      if (res.status >= 200 && res.status < 300) {
         setTimeout(() => {
           setAuthMessage({
             status: AlertTypes.Type.succeess,
@@ -246,11 +226,7 @@ export default function AuthModal(props: AuthModalTypes.Props) {
     }
   };
 
-  const onChangeAccount: ChangeEventHandler<HTMLInputElement> = (e) => {
-    const _authInfo = cloneDeep(authInfo);
-    _authInfo.account.value = e.target.value;
-    setAuthInfo(_authInfo);
-  };
+  // account removed: using email as identifier
 
   const onChangePassword: ChangeEventHandler<HTMLInputElement> = (e) => {
     const _authInfo = cloneDeep(authInfo);
@@ -314,8 +290,7 @@ export default function AuthModal(props: AuthModalTypes.Props) {
 
   const onClickX: MouseEventHandler<HTMLButtonElement> = (e) => {
     const _authInfo = cloneDeep(authInfo);
-    _authInfo.account.status = InputTypes.Status.normal;
-    _authInfo.account.comment = undefined;
+    // account removed: clear only password/email statuses
     _authInfo.password.status = InputTypes.Status.normal;
     _authInfo.password.comment = undefined;
     setAuthInfo(_authInfo);

@@ -11,13 +11,8 @@ if (typeof window !== "undefined") {
   initializeAxios();
 }
 
-const register = async (
-  _account: string,
-  _email: string,
-  _password: string
-) => {
+const register = async (_email: string, _password: string) => {
   return axios.post("/auth/register", {
-    account: _account,
     email: _email,
     password: _password,
   });
