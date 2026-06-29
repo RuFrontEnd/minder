@@ -8,7 +8,8 @@ namespace Domain.Repositories
         Task<bool> ExsistAsync(string email);
         void Add(UserEntity user);
         Task SaveChangesAsync();
-        Task<UserEntity> GetUserAsync(string mail, string password);
+        Task<UserEntity?> GetUserAsync(string mail);
+        Task<UserEntity?> GetUserByVerificationTokenAsync(string token);
         Task UpdateUserRefreshTokenAsync(Guid userId, string refreshToken, DateTime expiry);
         Task<(string, DateTime)?> GetUserRefreshTokenAsync(Guid userId);
     }

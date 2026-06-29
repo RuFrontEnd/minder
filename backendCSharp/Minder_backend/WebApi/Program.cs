@@ -31,6 +31,7 @@ builder.Services.AddScoped<IShapeRepository, ShapeRepository>();
 
 // register Provider
 builder.Services.AddScoped<IJwtProvider, JwtProvider>();
+builder.Services.AddScoped<IEmailProvider, EmailProvider>();
 
 // register Service
 builder.Services.AddScoped<UserService>();

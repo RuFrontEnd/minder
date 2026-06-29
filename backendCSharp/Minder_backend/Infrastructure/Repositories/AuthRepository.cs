@@ -24,15 +24,20 @@ namespace Infrastructure.Repositories
         {
             dbContext.User.Add(user);
         }
+
         public async Task SaveChangesAsync()
         {
             await dbContext.SaveChangesAsync();
         }
 
-        public async Task<UserEntity> GetUserAsync(string mail, string password)
+        public async Task<UserEntity?> GetUserAsync(string mail)
         {
-            var user = await dbContext.User.SingleOrDefaultAsync(u => u.Email == mail);
-            return user;
+            return await dbContext.User.SingleOrDefaultAsync(u => u.Email == mail);
+        }
+
+        public async Task<UserEntity?> GetUserByVerificationTokenAsync(string token)
+        {
+            return await dbContext.User.SingleOrDefaultAsync(u => u.EmailVerificationToken == token);
         }
 
         public async Task UpdateUserRefreshTokenAsync(Guid userId, string token, DateTime expiry)
@@ -45,6 +50,7 @@ namespace Infrastructure.Repositories
                 await dbContext.SaveChangesAsync();
             }
         }
+
         public async Task<(string, DateTime)?> GetUserRefreshTokenAsync(Guid userId)
         {
             var user = await dbContext.User.FindAsync(userId);

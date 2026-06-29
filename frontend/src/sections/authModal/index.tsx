@@ -146,79 +146,104 @@ export default function AuthModal(props: AuthModalTypes.Props) {
   };
 
   const onClickSignUpButton = async () => {
-    // if (qas) return;
-    // const _authInfo = cloneDeep(authInfo);
-    // const isPasswordLengthGreaterThanSix =
-    //     authInfo.password.value && authInfo.password.value?.length >= 6,
-    //   isEmailFormatValid =
-    //     authInfo.email.value &&
-    //     new RegExp(/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/).test(
-    //       authInfo.email.value
-    //     );
-    // if (!authInfo.account.value) {
-    //   _authInfo.account.status = InputTypes.Status.error;
-    //   _authInfo.account.comment = "required field.";
-    // } else {
-    //   _authInfo.account.status = InputTypes.Status.normal;
-    //   _authInfo.account.comment = "";
-    // }
-    // if (!authInfo.password.value) {
-    //   _authInfo.password.status = InputTypes.Status.error;
-    //   _authInfo.password.comment = "required field.";
-    // } else if (!isPasswordLengthGreaterThanSix) {
-    //   _authInfo.password.status = InputTypes.Status.error;
-    //   _authInfo.password.comment =
-    //     "length should be greater than 6 characters.";
-    // } else {
-    //   _authInfo.password.status = InputTypes.Status.normal;
-    //   _authInfo.password.comment = "";
-    // }
-    // if (!authInfo.email.value) {
-    //   _authInfo.email.status = InputTypes.Status.error;
-    //   _authInfo.email.comment = "requied field.";
-    // } else if (!isEmailFormatValid) {
-    //   _authInfo.email.status = InputTypes.Status.error;
-    //   _authInfo.email.comment = "invalid email format.";
-    // } else {
-    //   _authInfo.email.status = InputTypes.Status.normal;
-    //   _authInfo.email.comment = "";
-    // }
-    // setAuthInfo(_authInfo);
-    // if (
-    //   !isPasswordLengthGreaterThanSix ||
-    //   !isEmailFormatValid ||
-    //   !authInfo.account.value ||
-    //   !authInfo.password.value ||
-    //   !authInfo.email.value
-    // )
-    //   return;
-    // setIsAuthorizing(true);
-    // const res: AxiosResponse<AuthTypes.Register["resData"], any> =
-    //   await authAPIs.register(authInfo.email.value, authInfo.password.value);
-    // if (res.status === 201) {
-    //   setTimeout(() => {
-    //     setAuthMessage({
-    //       status: AlertTypes.Type.succeess,
-    //       text: res.data.message,
-    //     });
-    //     setIsAuthorizing(false);
-    //     setAuthInfo(init.authInfo);
-    //     setTimeout(() => {
-    //       setAuthMessage((authMessage) => ({
-    //         ...authMessage,
-    //         text: "",
-    //       }));
-    //     }, 1500);
-    //   }, 1000);
-    // } else {
-    //   setTimeout(() => {
-    //     setIsAuthorizing(false);
-    //     setAuthMessage({
-    //       status: AlertTypes.Type.error,
-    //       text: res.data.message,
-    //     });
-    //   }, 1000);
-    // }
+    console.log('A');
+    const _authInfo = cloneDeep(authInfo);
+    const isPasswordLengthGreaterThanSix =
+      authInfo.password.value && authInfo.password.value?.length >= 6;
+    const isEmailFormatValid =
+      authInfo.email.value &&
+      new RegExp(/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/).test(
+        authInfo.email.value
+      );
+
+    if (!authInfo.account.value) {
+      _authInfo.account.status = InputTypes.Status.error;
+      _authInfo.account.comment = "required field.";
+    } else {
+      _authInfo.account.status = InputTypes.Status.normal;
+      _authInfo.account.comment = "";
+    }
+
+    if (!authInfo.password.value) {
+      _authInfo.password.status = InputTypes.Status.error;
+      _authInfo.password.comment = "required field.";
+    } else if (!isPasswordLengthGreaterThanSix) {
+      _authInfo.password.status = InputTypes.Status.error;
+      _authInfo.password.comment =
+        "length should be greater than 6 characters.";
+    } else {
+      _authInfo.password.status = InputTypes.Status.normal;
+      _authInfo.password.comment = "";
+    }
+
+    if (!authInfo.email.value) {
+      _authInfo.email.status = InputTypes.Status.error;
+      _authInfo.email.comment = "required field.";
+    } else if (!isEmailFormatValid) {
+      _authInfo.email.status = InputTypes.Status.error;
+      _authInfo.email.comment = "invalid email format.";
+    } else {
+      _authInfo.email.status = InputTypes.Status.normal;
+      _authInfo.email.comment = "";
+    }
+
+    setAuthInfo(_authInfo);
+
+    console.log('isPasswordLengthGreaterThanSix', isPasswordLengthGreaterThanSix);
+    console.log('isEmailFormatValid', isEmailFormatValid);
+    console.log('authInfo.account.value', authInfo.account.value);
+    console.log('authInfo.password.value', authInfo.password.value);
+    console.log('authInfo.email.value', authInfo.email.value);
+
+    if (
+      !isPasswordLengthGreaterThanSix ||
+      !isEmailFormatValid ||
+      !authInfo.password.value ||
+      !authInfo.email.value
+    )
+      return;
+
+    setIsAuthorizing(true);
+
+    try {
+      const res: AxiosResponse<AuthTypes.Register["resData"], any> =
+        await authAPIs.register(
+          authInfo.account.value as string,
+          authInfo.email.value as string,
+          authInfo.password.value as string
+        );
+
+      if (res.status === 201) {
+        setTimeout(() => {
+          setAuthMessage({
+            status: AlertTypes.Type.succeess,
+            text: res.data.message,
+          });
+          setIsAuthorizing(false);
+          setAuthInfo(init.authInfo);
+          setTimeout(() => {
+            setAuthMessage((authMessage) => ({
+              ...authMessage,
+              text: "",
+            }));
+          }, 1500);
+        }, 1000);
+      } else {
+        setTimeout(() => {
+          setIsAuthorizing(false);
+          setAuthMessage({
+            status: AlertTypes.Type.error,
+            text: res.data.message,
+          });
+        }, 1000);
+      }
+    } catch (err: any) {
+      setIsAuthorizing(false);
+      setAuthMessage({
+        status: AlertTypes.Type.error,
+        text: err?.response?.data?.message || "Registration failed.",
+      });
+    }
   };
 
   const onChangeAccount: ChangeEventHandler<HTMLInputElement> = (e) => {

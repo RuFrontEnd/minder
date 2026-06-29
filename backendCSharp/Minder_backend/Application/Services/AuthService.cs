@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services;
 
-public class AuthService(ApplicationDbContext dbContext, IAuthRepository authRepository, IJwtProvider jwtProvider)
+public class AuthService(ApplicationDbContext dbContext, IAuthRepository authRepository, IJwtProvider jwtProvider, IEmailProvider emailProvider)
 {
     public async Task<UserDto> RegisterUserAsync(string email, string password)
     {
@@ -26,10 +26,17 @@ public class AuthService(ApplicationDbContext dbContext, IAuthRepository authRep
         // 3. 建立 Domain Entity
         // 這裡會呼叫你之前寫的那個有 Guid.NewGuid() 的建構函式
         var user = new UserEntity(email, hashedPassword);
+        var verificationToken = Guid.NewGuid().ToString("N");
+        var verificationExpiry = DateTime.UtcNow.AddHours(24);
+
+        user.SetEmailVerificationToken(verificationToken, verificationExpiry);
 
         // 4. 存入資料庫
         authRepository.Add(user);
         await authRepository.SaveChangesAsync();
+
+        var verificationLink = $"http://localhost:5000/api/auth/verify-email?token={verificationToken}";
+        await emailProvider.SendVerificationEmailAsync(email, verificationLink);
 
         // 5. 將 Entity 轉回 DTO 回傳給 Controller
         return new UserDto
@@ -48,20 +55,26 @@ public class AuthService(ApplicationDbContext dbContext, IAuthRepository authRep
     public async Task<LoginResponse?> LoginAsync(string email, string password)
     {
         // 1. check if user exsists
-        var user = await authRepository.GetUserAsync(email, password);
+        var user = await authRepository.GetUserAsync(email);
 
         if (user == null)
         {
             return null;
         }
 
-        // 2. verify input password with db password
+        // 2. check if email is verified
+        if (!user.IsEmailVerified)
+        {
+            throw new Exception("Email has not been verified.");
+        }
+
+        // 3. verify input password with db password
         if (!BCrypt.Net.BCrypt.Verify(password, user.Password))
         {
             return null;
         }
 
-        // 3. generate jwt token
+        // 4. generate jwt token
         var (token, expiration) = jwtProvider.GetJwtToken(user.Id, user.Email);
 
         return new LoginResponse
@@ -74,6 +87,26 @@ public class AuthService(ApplicationDbContext dbContext, IAuthRepository authRep
                 Email = user.Email,
             },
         };
+    }
+
+    public async Task<bool> VerifyEmailAsync(string token)
+    {
+        var user = await authRepository.GetUserByVerificationTokenAsync(token);
+
+        if (user == null)
+        {
+            return false;
+        }
+
+        if (user.EmailVerificationTokenExpiry == null || user.EmailVerificationTokenExpiry <= DateTime.UtcNow)
+        {
+            return false;
+        }
+
+        user.VerifyEmail();
+        await authRepository.SaveChangesAsync();
+
+        return true;
     }
 
     public async Task<string?> UpdateUserRefreshTokenAsync(Guid userId, DateTime expiry)

@@ -13,44 +13,67 @@ public class AuthController(AuthService authService) : ControllerBase
     public async Task<IActionResult> Register([FromBody] CreateUserRequest request)
     {
         await authService.RegisterUserAsync(request.Email, request.Password);
-        return Ok(new { message = "register successfully!" });
+        return Ok(new { message = "register successfully! Please check your email to verify your account." });
+    }
+
+    [HttpGet("verify-email")]
+    public async Task<IActionResult> VerifyEmail([FromQuery] string token)
+    {
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            return BadRequest(new { message = "invalid verification token." });
+        }
+
+        var isVerified = await authService.VerifyEmailAsync(token);
+        if (!isVerified)
+        {
+            return BadRequest(new { message = "verification link is invalid or expired." });
+        }
+
+        return Ok(new { message = "email verified successfully!" });
     }
 
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        LoginResponse? userData = await authService.LoginAsync(request.Email, request.Password);
-
-        if (userData == null)
+        try
         {
-            return BadRequest(new { message = "login fail.", data = (object?)null });
+            LoginResponse? userData = await authService.LoginAsync(request.Email, request.Password);
+
+            if (userData == null)
+            {
+                return BadRequest(new { message = "login fail.", data = (object?)null });
+            }
+
+            var refreshToken = await authService.UpdateUserRefreshTokenAsync(userData.User.Id, DateTime.UtcNow.AddDays(7));
+
+            if (refreshToken == null)
+            {
+                return BadRequest(new { message = "login fail.", data = (object?)null });
+            }
+
+            Response.Cookies.Append("X-Access-Token", userData.Token, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTime.UtcNow.AddMinutes(10)
+            });
+
+            Response.Cookies.Append("X-Refresh-Token", userData.Token, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTime.UtcNow.AddDays(7)
+            });
+
+            return Ok(new { message = "login successfully!", data = new { id = userData.User.Id, Email = userData.User.Email } });
         }
-
-        var refreshToken = await authService.UpdateUserRefreshTokenAsync(userData.User.Id, DateTime.UtcNow.AddDays(7));
-
-        if (refreshToken == null)
+        catch (Exception ex) when (ex.Message == "Email has not been verified.")
         {
-            return BadRequest(new { message = "login fail.", data = (object?)null });
+            return BadRequest(new { message = ex.Message, data = (object?)null });
         }
-
-
-        Response.Cookies.Append("X-Access-Token", userData.Token, new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.Strict,
-            Expires = DateTime.UtcNow.AddMinutes(10)
-        });
-
-        Response.Cookies.Append("X-Refresh-Token", userData.Token, new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.Strict,
-            Expires = DateTime.UtcNow.AddDays(7)
-        });
-
-        return Ok(new { message = "login successfully!", data = new { id = userData.User.Id, Email = userData.User.Email } });
     }
 
     [HttpPost("logout")]
