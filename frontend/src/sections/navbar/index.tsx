@@ -22,10 +22,15 @@ export default function Navbar(props: NavbarProps) {
   const currentProjectName = props.projectName || "Untitled Project";
 
   return (
-    <div className={styles.root} style={{
-      ["--border-color" as any]: tailwindColors.grey["5"],
-      ["--bg" as any]: tailwindColors.white["500"],
-    } as React.CSSProperties}>
+    <div
+      className={styles.root}
+      style={
+        {
+          ["--border-color" as any]: tailwindColors.grey["5"],
+          ["--bg" as any]: tailwindColors.white["500"],
+        } as React.CSSProperties
+      }
+    >
       <div className={styles.leftSpacer} />
 
       <div className={styles.centerProjectName}>
@@ -67,20 +72,30 @@ export default function Navbar(props: NavbarProps) {
 
         <div className={styles.separator} />
 
-        <button
+        <Button
+          variant="ghost"
+          color={
+            props.isAuthorized
+              ? tailwindColors.grey["2"]
+              : tailwindColors.info["500"]
+          }
+          text={
+            <>
+              <Icon
+                type={IconTypes.Type.user}
+                w={16}
+                h={16}
+                stroke={
+                  props.isAuthorized
+                    ? tailwindColors.grey["2"]
+                    : tailwindColors.info["500"]
+                }
+              />
+              {props.isAuthorized ? "Log Out" : <p>Log In</p>}
+            </>
+          }
           onClick={props.onClickLogIn}
-          className={styles.actionButton}
-          title={props.isAuthorized ? "Log Out" : "Log In"}
-          style={{ color: props.isAuthorized ? tailwindColors.grey["2"] : tailwindColors.info["500"] }}
-        >
-          <Icon
-            type={IconTypes.Type.user}
-            w={16}
-            h={16}
-            stroke={props.isAuthorized ? tailwindColors.grey["2"] : tailwindColors.info["500"]}
-          />
-          <span className={styles.label}>{props.isAuthorized ? "Log Out" : "Log In"}</span>
-        </button>
+        />
       </div>
     </div>
   );

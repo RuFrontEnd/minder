@@ -5,6 +5,7 @@ type Props = {
   id?: string;
   className?: string;
   role?: string;
+  color?: string;
   text: ReactNode;
   loading?: boolean;
   vice?: boolean;
