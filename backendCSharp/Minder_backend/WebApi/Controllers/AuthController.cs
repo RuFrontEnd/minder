@@ -12,7 +12,7 @@ public class AuthController(AuthService authService) : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] CreateUserRequest request)
     {
-        await authService.RegisterUserAsync(request.Email, request.Password);
+        await authService.RegisterUserAsync(request.Email, request.Password, request.FirstName, request.LastName);
         return Ok(new { message = "register successfully! Please check your email to verify your account." });
     }
 
@@ -133,7 +133,8 @@ public class AuthController(AuthService authService) : ControllerBase
             var postponedRefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
             var newRefreshToken = await authService.UpdateUserRefreshTokenAsync(userId, postponedRefreshTokenExpiryTime);
 
-            if (newRefreshToken != null) { 
+            if (newRefreshToken != null)
+            {
                 Response.Cookies.Append("X-Access-Token", newAccessToken.Token, new CookieOptions
                 {
                     HttpOnly = true,

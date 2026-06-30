@@ -10,7 +10,7 @@ namespace Application.Services;
 
 public class AuthService(ApplicationDbContext dbContext, IAuthRepository authRepository, IJwtProvider jwtProvider, IEmailProvider emailProvider)
 {
-    public async Task<UserDto> RegisterUserAsync(string email, string password)
+    public async Task<UserDto> RegisterUserAsync(string email, string password, string firstName, string lastName)
     {
         // 1. 檢查 Email 是否已被註冊 (Business Rule)
         var exists = await authRepository.ExsistAsync(email);
@@ -25,7 +25,7 @@ public class AuthService(ApplicationDbContext dbContext, IAuthRepository authRep
 
         // 3. 建立 Domain Entity
         // 這裡會呼叫你之前寫的那個有 Guid.NewGuid() 的建構函式
-        var user = new UserEntity(email, hashedPassword);
+        var user = new UserEntity(email, hashedPassword, firstName, lastName);
         var verificationToken = Guid.NewGuid().ToString("N");
         var verificationExpiry = DateTime.UtcNow.AddHours(24);
 

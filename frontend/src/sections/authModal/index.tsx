@@ -36,6 +36,21 @@ const init = {
       status: InputTypes.Status.normal,
       comment: undefined,
     },
+    confirmPassword: {
+      value: undefined,
+      status: InputTypes.Status.normal,
+      comment: undefined,
+    },
+    firstName: {
+      value: undefined,
+      status: InputTypes.Status.normal,
+      comment: undefined,
+    },
+    lastName: {
+      value: undefined,
+      status: InputTypes.Status.normal,
+      comment: undefined,
+    },
   },
 };
 
@@ -51,6 +66,21 @@ export default function AuthModal(props: AuthModalTypes.Props) {
       comment: undefined | string;
     };
     email: {
+      value: undefined | string;
+      status: InputTypes.Status;
+      comment: undefined | string;
+    };
+    confirmPassword: {
+      value: undefined | string;
+      status: InputTypes.Status;
+      comment: undefined | string;
+    };
+    firstName: {
+      value: undefined | string;
+      status: InputTypes.Status;
+      comment: undefined | string;
+    };
+    lastName: {
       value: undefined | string;
       status: InputTypes.Status;
       comment: undefined | string;
@@ -145,6 +175,9 @@ export default function AuthModal(props: AuthModalTypes.Props) {
       new RegExp(/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/).test(
         authInfo.email.value
       );
+    const isConfirmMatch =
+      authInfo.confirmPassword.value &&
+      authInfo.password.value === authInfo.confirmPassword.value;
 
     if (!authInfo.password.value) {
       _authInfo.password.status = InputTypes.Status.error;
@@ -158,6 +191,17 @@ export default function AuthModal(props: AuthModalTypes.Props) {
       _authInfo.password.comment = "";
     }
 
+    if (!authInfo.confirmPassword.value) {
+      _authInfo.confirmPassword.status = InputTypes.Status.error;
+      _authInfo.confirmPassword.comment = "required field.";
+    } else if (!isConfirmMatch) {
+      _authInfo.confirmPassword.status = InputTypes.Status.error;
+      _authInfo.confirmPassword.comment = "passwords do not match.";
+    } else {
+      _authInfo.confirmPassword.status = InputTypes.Status.normal;
+      _authInfo.confirmPassword.comment = "";
+    }
+
     if (!authInfo.email.value) {
       _authInfo.email.status = InputTypes.Status.error;
       _authInfo.email.comment = "required field.";
@@ -167,6 +211,23 @@ export default function AuthModal(props: AuthModalTypes.Props) {
     } else {
       _authInfo.email.status = InputTypes.Status.normal;
       _authInfo.email.comment = "";
+    }
+
+    // first/last name validation
+    if (!authInfo.firstName?.value) {
+      _authInfo.firstName.status = InputTypes.Status.error;
+      _authInfo.firstName.comment = "required field.";
+    } else {
+      _authInfo.firstName.status = InputTypes.Status.normal;
+      _authInfo.firstName.comment = "";
+    }
+
+    if (!authInfo.lastName?.value) {
+      _authInfo.lastName.status = InputTypes.Status.error;
+      _authInfo.lastName.comment = "required field.";
+    } else {
+      _authInfo.lastName.status = InputTypes.Status.normal;
+      _authInfo.lastName.comment = "";
     }
 
     setAuthInfo(_authInfo);
@@ -190,7 +251,9 @@ export default function AuthModal(props: AuthModalTypes.Props) {
       const res: AxiosResponse<AuthTypes.Register["resData"], any> =
         await authAPIs.register(
           authInfo.email.value as string,
-          authInfo.password.value as string
+          authInfo.password.value as string,
+          authInfo.firstName.value as string,
+          authInfo.lastName.value as string
         );
 
       if (res.status >= 200 && res.status < 300) {
@@ -231,6 +294,24 @@ export default function AuthModal(props: AuthModalTypes.Props) {
   const onChangePassword: ChangeEventHandler<HTMLInputElement> = (e) => {
     const _authInfo = cloneDeep(authInfo);
     _authInfo.password.value = e.target.value;
+    setAuthInfo(_authInfo);
+  };
+
+  const onChangeConfirmPassword: ChangeEventHandler<HTMLInputElement> = (e) => {
+    const _authInfo = cloneDeep(authInfo);
+    _authInfo.confirmPassword.value = e.target.value;
+    setAuthInfo(_authInfo);
+  };
+
+  const onChangeFirstName: ChangeEventHandler<HTMLInputElement> = (e) => {
+    const _authInfo = cloneDeep(authInfo);
+    _authInfo.firstName.value = e.target.value;
+    setAuthInfo(_authInfo);
+  };
+
+  const onChangeLastName: ChangeEventHandler<HTMLInputElement> = (e) => {
+    const _authInfo = cloneDeep(authInfo);
+    _authInfo.lastName.value = e.target.value;
     setAuthInfo(_authInfo);
   };
 
@@ -336,22 +417,33 @@ export default function AuthModal(props: AuthModalTypes.Props) {
             onChange={onChangePassword}
           />
           {!props.isLogIn && (
+            <Input
+              className={styles["confirmPasswordInput"]}
+              type="password"
+              name="Confirm Password"
+              value={authInfo.confirmPassword.value}
+              status={authInfo.confirmPassword.status}
+              comment={authInfo.confirmPassword.comment}
+              onChange={onChangeConfirmPassword}
+            />
+          )}
+          {!props.isLogIn && (
             <>
               <Input
                 className={styles["firstNameInput"]}
                 name="First Name"
-              // value={authInfo.firstName.value}
-              // status={authInfo.firstName.status}
-              // comment={authInfo.firstName.comment}
-              // onChange={onChangeFirstName}
+                value={authInfo.firstName.value}
+                status={authInfo.firstName.status}
+                comment={authInfo.firstName.comment}
+                onChange={onChangeFirstName}
               />
               <Input
                 className={styles["lastNameInput"]}
                 name="Last Name"
-              // value={authInfo.lastName.value}
-              // status={authInfo.lastName.status}
-              // comment={authInfo.lastName.comment}
-              // onChange={onChangeLastName}
+                value={authInfo.lastName.value}
+                status={authInfo.lastName.status}
+                comment={authInfo.lastName.comment}
+                onChange={onChangeLastName}
               />
             </>
           )}

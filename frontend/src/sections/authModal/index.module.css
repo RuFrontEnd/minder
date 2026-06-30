@@ -1,19 +1,12 @@
 .root {}
 
-.emailInput {
-    margin-bottom: 16px;
-}
-
-.passwordInput {
-    margin-bottom: 16px;
-}
-
-.firstNameInput {
-    margin-bottom: 16px;
-}
-
+/* Unified spacing for auth modal inputs */
+.emailInput,
+.passwordInput,
+.confirmPasswordInput,
+.firstNameInput,
 .lastNameInput {
-    margin-bottom: 16px;
+    margin-bottom: 12px;
 }
 
 .switch {
