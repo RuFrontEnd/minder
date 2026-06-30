@@ -113,7 +113,7 @@ export default function AuthModal(props: AuthModalTypes.Props) {
     const _authInfo = cloneDeep(authInfo);
     if (!authInfo.email.value) {
       _authInfo.email.status = InputTypes.Status.error;
-      _authInfo.email.comment = "required field.";
+      _authInfo.email.comment = "Email is required.";
     }
     if (!authInfo.password.value) {
       _authInfo.password.status = InputTypes.Status.error;
@@ -121,7 +121,7 @@ export default function AuthModal(props: AuthModalTypes.Props) {
 
     if (!authInfo.email.value || !authInfo.password.value) {
       _authInfo.password.status = InputTypes.Status.error;
-      _authInfo.password.comment = "required field.";
+      _authInfo.password.comment = "Password is required.";
       setAuthInfo(_authInfo);
       return;
     }
@@ -181,7 +181,7 @@ export default function AuthModal(props: AuthModalTypes.Props) {
 
     if (!authInfo.password.value) {
       _authInfo.password.status = InputTypes.Status.error;
-      _authInfo.password.comment = "required field.";
+      _authInfo.password.comment = "Password is required.";
     } else if (!isPasswordLengthGreaterThanSix) {
       _authInfo.password.status = InputTypes.Status.error;
       _authInfo.password.comment =
@@ -193,7 +193,7 @@ export default function AuthModal(props: AuthModalTypes.Props) {
 
     if (!authInfo.confirmPassword.value) {
       _authInfo.confirmPassword.status = InputTypes.Status.error;
-      _authInfo.confirmPassword.comment = "required field.";
+      _authInfo.confirmPassword.comment = "Please confirm your password.";
     } else if (!isConfirmMatch) {
       _authInfo.confirmPassword.status = InputTypes.Status.error;
       _authInfo.confirmPassword.comment = "passwords do not match.";
@@ -204,7 +204,7 @@ export default function AuthModal(props: AuthModalTypes.Props) {
 
     if (!authInfo.email.value) {
       _authInfo.email.status = InputTypes.Status.error;
-      _authInfo.email.comment = "required field.";
+      _authInfo.email.comment = "Email is required.";
     } else if (!isEmailFormatValid) {
       _authInfo.email.status = InputTypes.Status.error;
       _authInfo.email.comment = "invalid email format.";
@@ -216,7 +216,7 @@ export default function AuthModal(props: AuthModalTypes.Props) {
     // first/last name validation
     if (!authInfo.firstName?.value) {
       _authInfo.firstName.status = InputTypes.Status.error;
-      _authInfo.firstName.comment = "required field.";
+      _authInfo.firstName.comment = "First name is required.";
     } else {
       _authInfo.firstName.status = InputTypes.Status.normal;
       _authInfo.firstName.comment = "";
@@ -224,7 +224,7 @@ export default function AuthModal(props: AuthModalTypes.Props) {
 
     if (!authInfo.lastName?.value) {
       _authInfo.lastName.status = InputTypes.Status.error;
-      _authInfo.lastName.comment = "required field.";
+      _authInfo.lastName.comment = "Last name is required.";
     } else {
       _authInfo.lastName.status = InputTypes.Status.normal;
       _authInfo.lastName.comment = "";
@@ -240,8 +240,12 @@ export default function AuthModal(props: AuthModalTypes.Props) {
     if (
       !isPasswordLengthGreaterThanSix ||
       !isEmailFormatValid ||
+      !isConfirmMatch ||
       !authInfo.password.value ||
-      !authInfo.email.value
+      !authInfo.email.value ||
+      !authInfo.firstName?.value ||
+      !authInfo.lastName?.value ||
+      !authInfo.confirmPassword?.value
     )
       return;
 
@@ -404,7 +408,7 @@ export default function AuthModal(props: AuthModalTypes.Props) {
             name="Email"
             value={authInfo.email.value}
             status={authInfo.email.status}
-            comment={authInfo.email.comment}
+            errorText={authInfo.email.comment}
             onChange={onChangeEmail}
           />
           <Input
@@ -413,7 +417,7 @@ export default function AuthModal(props: AuthModalTypes.Props) {
             name="Password"
             value={authInfo.password.value}
             status={authInfo.password.status}
-            comment={authInfo.password.comment}
+            errorText={authInfo.password.comment}
             onChange={onChangePassword}
           />
           {!props.isLogIn && (
@@ -423,7 +427,7 @@ export default function AuthModal(props: AuthModalTypes.Props) {
               name="Confirm Password"
               value={authInfo.confirmPassword.value}
               status={authInfo.confirmPassword.status}
-              comment={authInfo.confirmPassword.comment}
+              errorText={authInfo.confirmPassword.comment}
               onChange={onChangeConfirmPassword}
             />
           )}
@@ -434,7 +438,7 @@ export default function AuthModal(props: AuthModalTypes.Props) {
                 name="First Name"
                 value={authInfo.firstName.value}
                 status={authInfo.firstName.status}
-                comment={authInfo.firstName.comment}
+                errorText={authInfo.firstName.comment}
                 onChange={onChangeFirstName}
               />
               <Input
@@ -442,7 +446,7 @@ export default function AuthModal(props: AuthModalTypes.Props) {
                 name="Last Name"
                 value={authInfo.lastName.value}
                 status={authInfo.lastName.status}
-                comment={authInfo.lastName.comment}
+                errorText={authInfo.lastName.comment}
                 onChange={onChangeLastName}
               />
             </>
@@ -454,7 +458,7 @@ export default function AuthModal(props: AuthModalTypes.Props) {
               name="email"
               value={authInfo.email.value}
               status={authInfo.email.status}
-              comment={authInfo.email.comment}
+              errorText={authInfo.email.comment}
               onChange={onChangeEmail}
             />
           )} */}
