@@ -14,6 +14,7 @@ interface NavbarProps {
   onClickUpload: () => void;
   onClickDownload: () => void;
   onClickLogIn: () => void;
+  onClickUser?: () => void;
   onClickProjectName: () => void;
   projectName: string;
 }
@@ -72,30 +73,41 @@ export default function Navbar(props: NavbarProps) {
 
         <div className={styles.separator} />
 
-        <Button
-          variant="ghost"
-          color={
-            props.isAuthorized
-              ? tailwindColors.grey["2"]
-              : tailwindColors.info["500"]
-          }
-          text={
-            <>
-              <Icon
-                type={IconTypes.Type.user}
-                w={16}
-                h={16}
-                stroke={
-                  props.isAuthorized
-                    ? tailwindColors.grey["2"]
-                    : tailwindColors.info["500"]
-                }
-              />
-              {props.isAuthorized ? "Log Out" : <p>Log In</p>}
-            </>
-          }
-          onClick={props.onClickLogIn}
-        />
+        {props.isAuthorized ? (
+          <Button
+            variant="ghost"
+            color={tailwindColors.info["500"]}
+            text={
+              <>
+                <Icon
+                  type={IconTypes.Type.user}
+                  w={16}
+                  h={16}
+                  stroke={tailwindColors.info["500"]}
+                />
+                User
+              </>
+            }
+            onClick={props.onClickUser || props.onClickLogIn}
+          />
+        ) : (
+          <Button
+            variant="ghost"
+            color={tailwindColors.info["500"]}
+            text={
+              <>
+                <Icon
+                  type={IconTypes.Type.user}
+                  w={16}
+                  h={16}
+                  stroke={tailwindColors.info["500"]}
+                />
+                Log In
+              </>
+            }
+            onClick={props.onClickLogIn}
+          />
+        )}
       </div>
     </div>
   );

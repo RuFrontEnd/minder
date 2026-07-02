@@ -1,15 +1,9 @@
 "use client";
-import {
-  CloseButton,
-  Dialog,
-  For,
-  HStack,
-  Portal,
-} from "@chakra-ui/react";
+import { CloseButton, Dialog, For, HStack, Portal } from "@chakra-ui/react";
 import RoundButton from "@/components/roundButton";
 import Icon from "@/components/icon";
 import * as ModalTypes from "@/types/components/modal";
-import Button from '@/components/button';
+import Button from "@/components/button";
 import { tailwindColors } from "@/variables/colors";
 import styles from "./Modal.module.css";
 
@@ -19,7 +13,11 @@ const Modal = (props: ModalTypes.Props) => {
   // };
 
   return (
-    <Dialog.Root key={props.key} open={props.isOpen} placement={props.placement || "center"}>
+    <Dialog.Root
+      key={props.key}
+      open={props.isOpen}
+      placement={props.placement || "center"}
+    >
       <Portal>
         <Dialog.Backdrop />
         <Dialog.Positioner>
@@ -30,19 +28,25 @@ const Modal = (props: ModalTypes.Props) => {
             <Dialog.Body>{props.children}</Dialog.Body>
             {props.footer && (
               <Dialog.Footer>
-                {props.onCancel && (
+                {props.showCancelButton && (
                   <Dialog.ActionTrigger asChild>
-                    <Button text={props.cancelText || "Cancel"} onClick={props.onCancel} variant="outline" />
+                    <Button
+                      text={props.cancelText}
+                      onClick={props.onCancel}
+                      variant="outline"
+                    />
                   </Dialog.ActionTrigger>
                 )}
-                {props.onOk && <Button text={props.okText || "Save"} onClick={props.onOk} />}
+                {props.onOk && (
+                  <Button text={props.okText || "Save"} onClick={props.onOk} />
+                )}
               </Dialog.Footer>
             )}
-            {props.onCancel &&
+            {props.onCancel && (
               <Dialog.CloseTrigger asChild>
                 <CloseButton size="sm" onClick={props.onCancel} />
               </Dialog.CloseTrigger>
-            }
+            )}
           </Dialog.Content>
         </Dialog.Positioner>
       </Portal>
@@ -54,7 +58,10 @@ Modal.defaultProps = {
   mask: true,
   footer: true,
   placement: "center",
-  size: "md"
+  size: "md",
+  cancelText: "Cancel",
+  showCancelButton: false,
+  showFooter: true,
 };
 
 export default Modal;

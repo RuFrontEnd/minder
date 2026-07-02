@@ -24,6 +24,7 @@ import * as handleUtils from "@/utils/handle";
 import * as fileUtils from "@/utils/file";
 import Navbar from "@/sections/navbar";
 import AuthModal from "@/sections/authModal";
+import UserInfoModal from "@/sections/userInfoModal";
 import * as CurveTypes from "@/types/shapes/curve";
 import * as CommonTypes from "@/types/common";
 import * as AuthTypes from "@/types/apis/auth";
@@ -2821,16 +2822,16 @@ export default function IdPage() {
 
   const onClickLogInButton = async () => {
     if (isAuthorized) {
-      // Log out
-      try {
-        await authAPIs.logout();
-        setIsAuthorized(false);
-      } catch (error) {
-        console.error("Logout failed:", error);
-      }
+      // when authorized, clicking opens user info modal (handled via Navbar onClickUser)
     } else {
       setAuthModalOpenSignal((signal) => signal + 1);
     }
+  };
+
+  const [isUserInfoOpen, setIsUserInfoOpen] = useState(false);
+
+  const onClickUser = () => {
+    setIsUserInfoOpen(true);
   };
 
   useEffect(() => {
@@ -2923,6 +2924,7 @@ export default function IdPage() {
         onClickUpload={onClickUploadButton}
         onClickDownload={onClickDownloadButton}
         onClickLogIn={onClickLogInButton}
+        onClickUser={onClickUser}
         onClickProjectName={onClickProjectName}
         projectName={projectName.val}
       />
@@ -2934,6 +2936,15 @@ export default function IdPage() {
         onCancel={onClickAuthModalX}
         afterLogin={afterLogin}
         afterLogout={afterLogout}
+      />
+
+      <UserInfoModal
+        isOpen={isUserInfoOpen}
+        onClose={() => setIsUserInfoOpen(false)}
+        afterLogout={() => {
+          afterLogout();
+          setIsUserInfoOpen(false);
+        }}
       />
 
       <ProjectModal

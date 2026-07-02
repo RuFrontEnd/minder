@@ -5,24 +5,24 @@ import { Field, Input as CharkaInput } from "@chakra-ui/react";
 
 const Input = (props: InputTypes.Props) => {
   return (
-    <div className={props.className}>
-      <Field.Root required invalid={props.errorText ? true : false}>
-        <Field.Label>
-          {props.name} <Field.RequiredIndicator />
-        </Field.Label>
-        <CharkaInput
-          type={props.type}
-          placeholder={props.placeholder}
-          onChange={props.onChange}
-        />
-        {props.helperText && (
-          <Field.HelperText>{props.helperText}</Field.HelperText>
-        )}
-        {props.errorText && (
-          <Field.ErrorText>{props.errorText}</Field.ErrorText>
-        )}
-      </Field.Root>
-    </div>
+    <Field.Root
+      required
+      invalid={props.errorText ? true : false}
+      className={props.className}
+    >
+      <Field.Label>
+        {props.name} <Field.RequiredIndicator />
+      </Field.Label>
+      <CharkaInput
+        type={props.type}
+        placeholder={props.placeholder}
+        onChange={props.onChange}
+      />
+      {props.helperText && (
+        <Field.HelperText>{props.helperText}</Field.HelperText>
+      )}
+      {props.errorText && <Field.ErrorText>{props.errorText}</Field.ErrorText>}
+    </Field.Root>
   );
 };
 

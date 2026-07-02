@@ -14,6 +14,7 @@ type Props = {
   children?: ReactNode;
   okText?: string;
   cancelText?: string;
+  showCancelButton?: boolean;
   onOk?: MouseEventHandler<HTMLButtonElement>;
   onCancel?: MouseEventHandler<HTMLButtonElement>;
 };
