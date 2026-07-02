@@ -374,11 +374,15 @@ export default function AuthModal(props: AuthModalTypes.Props) {
   };
 
   const onClickX: MouseEventHandler<HTMLButtonElement> = (e) => {
-    const _authInfo = cloneDeep(authInfo);
-    // account removed: clear only password/email statuses
-    _authInfo.password.status = InputTypes.Status.normal;
-    _authInfo.password.comment = undefined;
-    setAuthInfo(_authInfo);
+    // reset auth form and messages when closing the modal
+    setAuthInfo(init.authInfo);
+    setAuthMessage({
+      status: AlertTypes.Type.succeess,
+      text: "",
+    });
+    setIsAuthorizing(false);
+    // ensure modal defaults to Login view when closed
+    props.setIsLogin && props.setIsLogin(true);
 
     props.onCancel && props.onCancel(e);
   };
