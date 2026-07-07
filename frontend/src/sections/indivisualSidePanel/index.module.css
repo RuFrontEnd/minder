@@ -4,6 +4,29 @@
   flex-direction: column;
 }
 
+.emptyState {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 0.5rem;
+  color: #6b7280;
+  padding: 1.5rem;
+}
+
+.emptyStateTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.emptyStateDescription {
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
 .column {
   display: flex;
   flex-direction: column;

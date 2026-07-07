@@ -199,6 +199,14 @@ export default function IndivisualSidePanel(
         title="Step Info"
         onClickSwitch={onClickSidePanelSwitch}
       >
+        {!props.indivisual ? (
+          <div className={styles.emptyState}>
+            <div className={styles.emptyStateTitle}>No step selected</div>
+            <div className={styles.emptyStateDescription}>
+              Select a shape on the canvas to view its details.
+            </div>
+          </div>
+        ) : (
         <div className={styles.container}>
           <div className={styles.nameSection}>
             <div className={styles.nameRow}>
@@ -289,9 +297,6 @@ export default function IndivisualSidePanel(
                 {(props.indivisual as any)?.description || "-"}
               </div>
             )}
-            <div className={styles.descBox}>
-              {(props.indivisual as any)?.description || "-"}
-            </div>
           </div>
 
           <div className={styles.dateSection}>
@@ -507,6 +512,7 @@ export default function IndivisualSidePanel(
             </div>
           </div>
         </div>
+        )}
       </SidePanel>
     </>
   );
