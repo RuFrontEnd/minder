@@ -2,11 +2,12 @@
 import React, { useEffect, useState } from "react";
 import Modal from "@/components/modal";
 import Button from "@/components/button";
+import Select from "@/components/select";
 import Input from "@/components/input";
 import Icon from "@/components/icon";
 import * as IconTypes from "@/types/components/icon";
 import * as authAPIs from "@/apis/auth";
-import { getProjects } from "@/apis/project";
+import { createProject, getProjects } from "@/apis/project";
 import * as ProjectTypes from "@/types/project";
 import { tailwindColors } from "@/variables/colors";
 import styles from "./index.module.css";
@@ -20,6 +21,7 @@ type Props = {
 export default function UserInfoModal(props: Props) {
   const [isLoading, setIsLoading] = useState(false);
   const [projects, setProjects] = useState<ProjectTypes.Project[]>([]);
+  const [selectedProject, setSelectedProject] = useState("");
   // const [cardNumber, setCardNumber] = useState("");
   // const [cardHolder, setCardHolder] = useState("");
   // const [expiry, setExpiry] = useState("");
@@ -28,7 +30,12 @@ export default function UserInfoModal(props: Props) {
   const loadProjects = async () => {
     try {
       const res = await getProjects();
-      if (res && res.data) setProjects(res.data);
+      if (res && res.data) {
+        setProjects(res.data);
+        if (!selectedProject && res.data.length > 0) {
+          setSelectedProject(res.data[0].name);
+        }
+      }
     } catch (err) {
       console.error("Failed to load projects", err);
     }
@@ -45,6 +52,17 @@ export default function UserInfoModal(props: Props) {
     setIsLoading(false);
     props.afterLogout && props.afterLogout();
     props.onClose();
+  };
+
+  const onClickAddProject = async () => {
+    const projectName = "Untitled Project";
+    try {
+      await createProject(projectName);
+      await loadProjects();
+      setSelectedProject(projectName);
+    } catch (err) {
+      console.error("Failed to create project", err);
+    }
   };
 
   const userEmail =
@@ -88,16 +106,29 @@ export default function UserInfoModal(props: Props) {
 
       <div className={styles.section}>
         <div className={styles.sectionLabel}>projects</div>
+        <Select
+          name="projects"
+          placeholder="select project"
+          options={projects.map((project) => project.name)}
+          value={selectedProject}
+          onChange={(e) => setSelectedProject(e.target.value)}
+        />
+        <div className={styles.nameRow}>
+          <div />
+          <Button
+            variant="ghost"
+            size="sm"
+            text={"+ New Project"}
+            onClick={onClickAddProject}
+          />
+        </div>
         <div className={styles.list}>
-          {projects.length > 0 ? (
+          {projects.length > 0 &&
             projects.map((project) => (
               <div key={project.id} className={styles.nameValue}>
                 {project.name}
               </div>
-            ))
-          ) : (
-            <div className={styles.memberEmptyText}>No projects</div>
-          )}
+            ))}
         </div>
       </div>
 

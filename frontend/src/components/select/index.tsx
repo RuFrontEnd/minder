@@ -1,57 +1,64 @@
 "use client";
+import type { ChangeEvent } from "react";
+import { Portal, Select as ChakraSelect, createListCollection } from "@chakra-ui/react";
 import * as SelectTypes from "@/types/components/select";
-import { tailwindColors } from "@/variables/colors";
 import styles from "./Select.module.css";
 
 const Select = (props: SelectTypes.Props) => {
-  const textColor = (() => {
-    if (props.status === SelectTypes.Status.warning) {
-      return "text-warning-500";
-    } else if (props.status === SelectTypes.Status.error) {
-      return "text-error-500";
-    } else {
-      return "text-grey-2";
-    }
-  })(),
-    borderColor = (() => {
-      if (props.status === SelectTypes.Status.warning) {
-        return "border-warning-500 focus:border-warning-500";
-      } else if (props.status === SelectTypes.Status.error) {
-        return "border-error-500 focus:border-error-500";
-      } else {
-        return "border-grey-4 focus:border-primary-500";
-      }
-    })();
+  const collection = createListCollection({
+    items: props.options.map((option) => ({ label: option, value: option })),
+  });
+
+  const value = props.value ?? "";
+
+  const onValueChange = (details: { value: string[] }) => {
+    const nextValue = details.value?.[0] ?? "";
+    props.onChange?.(
+      {
+        target: { value: nextValue },
+      } as ChangeEvent<HTMLSelectElement>
+    );
+  };
 
   return (
     <div className={props.className} id={props.id}>
-      {props.label && (
-        <label htmlFor={props.name} className={styles.label}>
-          {props.label}
-        </label>
-      )}
-      <select
-        style={{
-          width: props.w ? props.w : "100%",
-          height: props.h ? props.h : 32,
-          ["--border-color" as any]:
-            props.status === SelectTypes.Status.warning
-              ? (tailwindColors.warning as any)["500"]
-              : props.status === SelectTypes.Status.error
-              ? (tailwindColors.error as any)["500"]
-              : (tailwindColors.grey as any)["4"],
-        } as React.CSSProperties}
-        name={props.name}
-        className={styles.select}
-        value={props.value || ""}
-        onChange={props.onChange}
-        placeholder={props.placeholder}
+      <ChakraSelect.Root
+        collection={collection}
+        size="sm"
+        width={props.w ? props.w : "100%"}
+        value={value ? [value] : []}
+        onValueChange={onValueChange}
       >
-        {props.options.map((option) => (
-          <option key={option}>{option}</option>
-        ))}
-      </select>
-      {props.comment && <p className={styles.comment}>{props.comment}</p>}
+        <ChakraSelect.HiddenSelect name={props.name} />
+        {props.label && (
+          <ChakraSelect.Label className={styles.label}>
+            {props.label}
+          </ChakraSelect.Label>
+        )}
+        <ChakraSelect.Control>
+          <ChakraSelect.Trigger
+            className={styles.select}
+          >
+            <ChakraSelect.ValueText placeholder={props.placeholder} />
+          </ChakraSelect.Trigger>
+          <ChakraSelect.IndicatorGroup>
+            <ChakraSelect.Indicator />
+          </ChakraSelect.IndicatorGroup>
+        </ChakraSelect.Control>
+
+        <Portal>
+          <ChakraSelect.Positioner>
+            <ChakraSelect.Content>
+              {collection.items.map((option) => (
+                <ChakraSelect.Item item={option} key={option.value}>
+                  {option.label}
+                  <ChakraSelect.ItemIndicator />
+                </ChakraSelect.Item>
+              ))}
+            </ChakraSelect.Content>
+          </ChakraSelect.Positioner>
+        </Portal>
+      </ChakraSelect.Root>
     </div>
   );
 };

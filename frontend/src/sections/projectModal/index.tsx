@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { ScrollArea } from "@chakra-ui/react";
 import Modal from "@/components/modal";
+import Button from "@/components/button";
 import Combobox from "@/components/combobox";
 import Avatar from "@/components/avatar";
-import { getProjects } from "@/apis/project";
+import { deleteProject, getProjects } from "@/apis/project";
 import * as ProjectTypes from "@/types/project";
 import * as ComboboxTypes from "@/types/components/combobox";
 import * as IconTypes from "@/types/components/icon";
@@ -68,12 +69,25 @@ const ProjectModal = ({ isOpen, onClose, onSelect }: Props) => {
     if (isOpen) load();
   }, [isOpen]);
 
+  const onClickDeleteProject = async () => {
+    const targetProject = projects[0];
+    if (!targetProject) return;
+
+    try {
+      await deleteProject(targetProject.id);
+      await load();
+    } catch (e) {
+      console.error("Failed to delete project", e);
+    }
+  };
+
   return (
     <Modal
       isOpen={isOpen}
       onCancel={onClose}
       placement="center"
       title="Project Info"
+      footer={false}
     >
       <div className={styles.nameSection}>
         <div className={styles.nameRow}>
@@ -150,6 +164,15 @@ const ProjectModal = ({ isOpen, onClose, onSelect }: Props) => {
           </ScrollArea.Viewport>
           <ScrollArea.Scrollbar bg="transparent" />
         </ScrollArea.Root>
+      </div>
+
+      <div className={styles.actions}>
+        <Button
+          variant="outline"
+          color={tailwindColors.error["500"]}
+          text={"Delete Project"}
+          onClick={onClickDeleteProject}
+        />
       </div>
     </Modal>
   );
