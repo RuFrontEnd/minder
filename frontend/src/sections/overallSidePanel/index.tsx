@@ -34,6 +34,11 @@ export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
     props.positioning(shapeP);
   };
 
+  const onClickStepRow = (shapeId: string, shapeP: CommonTypes.Vec) => {
+    onClickPositioningButton(shapeP);
+    props.onSelectStep?.(shapeId);
+  };
+
   const onClickProjectName = () => {
     setIsRenameFrameOpen((isRenameFrameOpen) => !isRenameFrameOpen);
   };
@@ -101,38 +106,28 @@ export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
           })();
 
           return (
-            <li key={step.id}>
-              <Accordion
-                showArrow={false}
-                title={
-                  <div className={styles.stepRow}>
-                    <div className={styles.iconBox}>
-                      <Icon type={icon.type} w={20} h={20} fill={icon.color} />
-                    </div>
-                    <div className={styles.titleText}>
-                      <p>{step.title}</p>
-                    </div>
-                  </div>
-                }
-                hoverRender={
-                  <Icon
-                    className={styles.hoverIcon}
-                    type={IconTypes.Type.sight}
-                    w={18}
-                    h={18}
-                    stroke={tailwindColors.error["500"]}
-                    onClick={() => {
-                      onClickPositioningButton(step.p);
-                    }}
-                  />
-                }
-              />
+            <li
+              key={step.id}
+              onClick={() => {
+                onClickStepRow(step.id, step.p);
+              }}
+            >
+              <div
+                className={`${styles.stepRow} ${
+                  props.selectedShapeId === step.id ? styles.dimmedRow : ""
+                }`}
+              >
+                <div className={styles.iconBox}>
+                  <Icon type={icon.type} w={20} h={20} fill={icon.color} />
+                </div>
+                <div className={styles.titleText}>
+                  <p>{step.title}</p>
+                </div>
+              </div>
             </li>
           );
         })}
       </ul>
-
-      {/* project name UI removed; implement when needed */}
     </SidePanel>
   );
 }

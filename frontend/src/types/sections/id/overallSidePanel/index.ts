@@ -18,6 +18,8 @@ type AddDatas = {
 
 type Props = {
   positioning: PageIdTypes.Positioning;
+  selectedShapeId: null | string;
+  onSelectStep?: (shapeId: string) => void;
   steps: CommonTypes.Steps;
   datas: CommonTypes.OverallDatas;
   setDatas: Dispatch<SetStateAction<Props["datas"]>>;

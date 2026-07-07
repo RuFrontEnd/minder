@@ -2249,10 +2249,35 @@ export default function IdPage() {
     drawCanvas(offset, scale);
   };
 
+  const onSelectStepFromOverallPanel = (shapeId: string) => {
+    const targetShape = shapes.find((shape) => shape.id === shapeId);
+    if (!targetShape) return;
+
+    deSelectCurve();
+    selection = new Selection(
+      `selectionArea_${uuidv4()}`,
+      [targetShape],
+      getIsSelectionDisableSendingPoint(targetShape)
+    );
+
+    setIndivisual(targetShape);
+    drawCanvas(offset, scale);
+    drawScreenshot(offset, scale);
+  };
+
   const terminateDataChecking = () => {
     worker?.terminate();
     candidates = null;
     setIsCheckingData(false);
+  };
+
+  const syncIndivisualWithSelection = () => {
+    if (selection?.shapes?.length === 1) {
+      setIndivisual(selection.shapes[0]);
+      return;
+    }
+
+    setIndivisual(null);
   };
 
   const onMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -2286,6 +2311,8 @@ export default function IdPage() {
       () => selectShape(normalP),
       () => startFrameSelecting(p),
     ]);
+
+    syncIndivisualWithSelection();
 
     syncCandidates(shapes);
     drawCanvas(offset, scale);
@@ -2560,6 +2587,7 @@ export default function IdPage() {
       pressingCurve.shape.draggingVertex = false;
     }
     frameSelect(selectionFrame, offset, scale);
+    syncIndivisualWithSelection();
     checkConnect(getNormalP(p, offset, scale));
     checkSteps();
     syncCandidates(shapes);
@@ -2955,6 +2983,8 @@ export default function IdPage() {
       <OverallSidePanel
         steps={steps}
         positioning={positioning}
+        selectedShapeId={indivisual?.id || null}
+        onSelectStep={onSelectStepFromOverallPanel}
         datas={datas}
         setDatas={setDatas}
         projectName={projectName}

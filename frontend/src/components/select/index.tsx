@@ -2,7 +2,7 @@
 import type { ChangeEvent } from "react";
 import { Portal, Select as ChakraSelect, createListCollection } from "@chakra-ui/react";
 import * as SelectTypes from "@/types/components/select";
-import styles from "./Select.module.css";
+import styles from "./index.module.css";
 
 const Select = (props: SelectTypes.Props) => {
   const collection = createListCollection({

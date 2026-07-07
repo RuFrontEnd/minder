@@ -21,6 +21,15 @@
 .stepRow {
   display: flex;
   align-items: center;
+  border: 0;
+  background: transparent;
+  padding: 0.25rem 0;
+  text-align: left;
+  cursor: pointer;
+}
+.dimmedRow {
+  background: #F5F5F5;
+  border-radius: 6px;
 }
 .iconBox {
   width: 20px;
