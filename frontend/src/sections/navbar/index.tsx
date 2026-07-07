@@ -43,7 +43,7 @@ export default function Navbar(props: NavbarProps) {
       </div>
 
       <div className={styles.actions}>
-        <button
+        {/* <button
           onClick={props.onClickUpload}
           className={styles.actionButton}
           title="Upload project"
@@ -69,9 +69,9 @@ export default function Navbar(props: NavbarProps) {
             stroke={tailwindColors.grey["2"]}
           />
           <span className={styles.label}>Download</span>
-        </button>
+        </button> */}
 
-        <div className={styles.separator} />
+        {/* <div className={styles.separator} /> */}
 
         {props.isAuthorized ? (
           <Button
