@@ -290,7 +290,7 @@ export default function IndivisualSidePanel(
               </div>
             )}
             <div className={styles.descBox}>
-              testtesttesttesttesttesttesttesttesttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttest
+              {(props.indivisual as any)?.description || "-"}
             </div>
           </div>
 
