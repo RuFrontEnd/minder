@@ -83,7 +83,7 @@ const SidePanel = (props: SidePanelTypes.Props) => {
               <CharkaDrawer.Title>{props.title}</CharkaDrawer.Title>
             </CharkaDrawer.Header>
             <CharkaDrawer.Body>{props.children}</CharkaDrawer.Body>
-            <CharkaDrawer.Footer />
+            {props.footer !== false && <CharkaDrawer.Footer />}
             <CharkaDrawer.CloseTrigger asChild onClick={props.onCancel}>
               <CloseButton size="sm" />
             </CharkaDrawer.CloseTrigger>
@@ -97,6 +97,7 @@ const SidePanel = (props: SidePanelTypes.Props) => {
 SidePanel.defaultProps = {
   modal: false,
   flow: SidePanelTypes.Flow.row,
+  footer: true,
 };
 
 export default SidePanel;

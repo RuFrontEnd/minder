@@ -28,6 +28,7 @@ type Props = {
   title?: React.ReactNode | string;
   placement?: "start" | "end" | "top" | "bottom";
   flow?: Flow;
+  footer?: boolean;
   children?: ReactNode;
   onClickSwitch?: MouseEventHandler<HTMLButtonElement>;
   onInteractOutside?: (event: InteractOutsideEvent) => void;

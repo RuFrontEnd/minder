@@ -238,6 +238,9 @@ export default function IndivisualSidePanel(
                 {(props.indivisual as any)?.description || "-"}
               </div>
             )}
+            <div className={styles.descBox}>
+              testtesttesttesttesttesttesttesttesttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttestttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttest
+            </div>
           </div>
 
           <div className={styles.dateSection}>
