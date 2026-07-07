@@ -10,8 +10,23 @@ const Input = (props: InputTypes.Props) => {
       invalid={props.errorText ? true : false}
       className={props.className}
     >
-      <Field.Label>
-        {props.name} <Field.RequiredIndicator />
+      <Field.Label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <span>
+          {props.name} <Field.RequiredIndicator />
+        </span>
+        {props.labelExtra && (
+          <span
+            onMouseDown={(e) => {
+              e.preventDefault();
+            }}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+          >
+            {props.labelExtra}
+          </span>
+        )}
       </Field.Label>
       <CharkaInput
         type={props.type}

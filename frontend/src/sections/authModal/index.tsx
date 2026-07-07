@@ -6,10 +6,10 @@ import Modal from "@/components/modal";
 import Input from "@/components/input";
 import Alert from "@/components/alert";
 import Card from "@/components/card";
+import LineButton from "@/components/lineButton";
 import React, { useState, useEffect } from "react";
 import { cloneDeep } from "lodash";
 import { ChangeEventHandler, MouseEventHandler } from "react";
-import { Flex } from "@chakra-ui/react"
 import * as authAPIs from "@/apis/auth";
 import * as projectAPIs from "@/apis/project";
 import * as InputTypes from "@/types/components/input";
@@ -325,6 +325,10 @@ export default function AuthModal(props: AuthModalTypes.Props) {
     setAuthInfo(_authInfo);
   };
 
+  const onClickForgetPasswordButton = () => {
+    return;
+  };
+
   const onClickProjectCard = (id: ProjectTypes.Project["id"]) => {
     setSelectedProjectId(id);
   };
@@ -419,6 +423,16 @@ export default function AuthModal(props: AuthModalTypes.Props) {
             className={styles["passwordInput"]}
             type="password"
             name="Password"
+            labelExtra={
+              props.isLogIn ? (
+                <LineButton
+                  text=""
+                  buttonText="Forget password?"
+                  buttonClassName={styles.forgetPasswordSwitch}
+                  onClick={onClickForgetPasswordButton}
+                />
+              ) : undefined
+            }
             value={authInfo.password.value}
             status={authInfo.password.status}
             errorText={authInfo.password.comment}
@@ -474,19 +488,14 @@ export default function AuthModal(props: AuthModalTypes.Props) {
             />
           )}
           {/* register switcher */}
-          <Flex justify="flex-end">
-            <p>
-              {props.isLogIn ? "No account yet? " : "Already have an account? "}
-            </p>
-            <p
-              className={styles.switch}
-              onClick={() => {
-                onClickChangeAuthButton(!props.isLogIn);
-              }}
-            >
-              {props.isLogIn ? "Sign up" : "Login"}
-            </p>
-          </Flex>
+          <LineButton
+            text={props.isLogIn ? "No account yet? " : "Already have an account? "}
+            buttonText={props.isLogIn ? "Sign up" : "Login"}
+            buttonClassName={styles.switch}
+            onClick={() => {
+              onClickChangeAuthButton(!props.isLogIn);
+            }}
+          />
         </div>
       </Modal>
       {/* <Modal isOpen={isProjectsModalOpen} mask={false}>

@@ -19,3 +19,14 @@
 .switch:hover {
     text-decoration: underline;
 }
+
+.forgetPasswordSwitch {
+    margin-left: 0;
+    color: cornflowerblue;
+    cursor: pointer;
+    user-select: none;
+}
+
+.forgetPasswordSwitch:hover {
+    text-decoration: underline;
+}
