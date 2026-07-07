@@ -3,7 +3,7 @@ import Terminal from "@/shapes/terminal";
 import Process from "@/shapes/process";
 import Data from "@/shapes/data";
 import Desicion from "@/shapes/decision";
-import SquareButton from "@/components/squareButton";
+import IconButton from "@/components/iconButton";
 import Icon from "@/components/icon";
 import { MouseEvent } from "react";
 import { tailwindColors } from "@/variables/colors";
@@ -117,15 +117,15 @@ export default function CreateShapeButtons(
     <section role="create_shapes">
       <div className={styles.container} style={{ ["--border-color" as any]: tailwindColors.grey["5"], ["--bg" as any]: tailwindColors.white["500"] } as React.CSSProperties}>
         {createShapeButtons.map((createShapeButton) => (
-          <SquareButton
-            size={40}
-            content={createShapeButton.icon}
+          <IconButton
+            key={createShapeButton.type}
+            ariaLabel={`Create ${createShapeButton.type} shape`}
+            icon={createShapeButton.icon}
+            variant="ghost"
+            size="sm"
+            style={{ width: 40, height: 40 }}
             onClick={(e) => {
               onClickCreateShapeButton(e, createShapeButton.type);
-            }}
-            onKeyDown={(e) => {
-              e.preventDefault();
-              return false;
             }}
           />
         ))}
