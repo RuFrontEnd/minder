@@ -2057,6 +2057,11 @@ export default function IdPage() {
     [space, leftMouseBtn]
   );
 
+  const canvasCursor = useMemo(() => {
+    if (!space) return "default";
+    return leftMouseBtn ? "grabbing" : "grab";
+  }, [space, leftMouseBtn]);
+
   const validateToken = async () => {
     try {
       const res: AxiosResponse<any> = await authAPIs.validateToken();
@@ -2744,6 +2749,7 @@ export default function IdPage() {
 
   function handleKeyDown(this: Window, e: KeyboardEvent) {
     if (e.key === " " && !space) {
+      e.preventDefault();
       setSpace(true);
     } else if (e.key === "Backspace") {
       if (document.activeElement?.tagName === "INPUT") return;
@@ -2759,6 +2765,7 @@ export default function IdPage() {
 
   function handleKeyUp(this: Window, e: KeyboardEvent) {
     if (e.key === " " && space) {
+      e.preventDefault();
       setSpace(false);
     }
   }
@@ -3074,7 +3081,8 @@ export default function IdPage() {
       <div className={"flex"}>
         <canvas
           role="canvas"
-          className={`${space ? "cursor-grab" : ""} overflow-hidden`}
+          className={"overflow-hidden"}
+          style={{ cursor: canvasCursor }}
           tabIndex={1}
           ref={(el) => {
             $canvas = el;
@@ -3089,9 +3097,8 @@ export default function IdPage() {
         />
         <canvas
           role="screenshot"
-          className={`invisible ${
-            space ? "cursor-grab" : ""
-          } overflow-hidden absolute left-0 top-0 z-[-1]`}
+          className={"invisible overflow-hidden absolute left-0 top-0 z-[-1]"}
+          style={{ cursor: canvasCursor }}
           tabIndex={1}
           ref={(el) => {
             $screenshot = el;
