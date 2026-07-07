@@ -2204,6 +2204,17 @@ export default function IdPage() {
 
   const updateShapes = (newShapes: CommonTypes.Shapes) => {
     shapes = newShapes;
+    syncCurvePosition(shapes);
+
+    if (selection) {
+      const selectingMap = selection.getSelectingMap();
+      selection = new Selection(
+        selection.id,
+        shapes.filter((shape) => selectingMap[shape.id]),
+        selection.isSendingPointDisabled
+      );
+    }
+
     checkSteps();
     setIndivisual(shapes.find((shape) => indivisual?.id === shape.id) || null);
     drawCanvas(offset, scale);
@@ -2273,7 +2284,7 @@ export default function IdPage() {
 
   const syncIndivisualWithSelection = () => {
     if (selection?.shapes?.length === 1) {
-      setIndivisual(selection.shapes[0]);
+      setIndivisual(cloneDeep(selection.shapes[0]));
       return;
     }
 
@@ -2348,6 +2359,8 @@ export default function IdPage() {
       () => defineSelectionFrameRange(p),
       () => movePressingCurve(normalP, pressingCurve),
     ]);
+
+    syncIndivisualWithSelection();
 
     recordLastP(p);
 

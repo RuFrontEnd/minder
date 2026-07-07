@@ -1,8 +1,9 @@
 "use client";
-import React, { useState, ChangeEventHandler } from "react";
+import React, { useEffect, useState, ChangeEventHandler } from "react";
 import SidePanel from "@/components/sidePanel";
 import Button from "@/components/button";
 import Input from "@/components/input";
+import NumberInput from "@/components/numberInput";
 import Combobox from "@/components/combobox";
 import Avatar from "@/components/avatar";
 import Icon from "@/components/icon";
@@ -48,6 +49,10 @@ export default function IndivisualSidePanel(
   );
   const [startDate, setStartDate] = useState<string>("");
   const [dueDate, setDueDate] = useState<string>("");
+  const [xValue, setXValue] = useState<string>("0");
+  const [yValue, setYValue] = useState<string>("0");
+  const [wValue, setWValue] = useState<string>("0");
+  const [hValue, setHValue] = useState<string>("0");
   const [authorValues, setAuthorValues] = useState<string[]>([]);
   const [asigneeValues, setAsigneeValues] = useState<string[]>([]);
 
@@ -132,6 +137,52 @@ export default function IndivisualSidePanel(
 
   const onChangeDueDate: ChangeEventHandler<HTMLInputElement> = (e) => {
     setDueDate(e.target.value);
+  };
+
+  const toOneDecimalString = (raw: string | number) => {
+    if (raw === "") return "";
+    const value = typeof raw === "number" ? raw : Number(raw);
+    if (Number.isNaN(value)) return "";
+    return value.toFixed(1);
+  };
+
+  useEffect(() => {
+    if (!props.indivisual) return;
+
+    setXValue(toOneDecimalString(props.indivisual.p.x));
+    setYValue(toOneDecimalString(props.indivisual.p.y));
+    setWValue(toOneDecimalString(props.indivisual.w));
+    setHValue(toOneDecimalString(props.indivisual.h));
+  }, [props.indivisual]);
+
+  const applyGeometryChange = (field: "x" | "y" | "w" | "h", raw: string) => {
+    if (!props.indivisual) return;
+
+    const value = Math.round(Number(raw) * 10) / 10;
+    if (Number.isNaN(value)) return;
+
+    const updatedShapes = cloneDeep(props.shapes);
+    const targetShape = updatedShapes.find(
+      (shape) => shape.id === props.indivisual?.id
+    );
+    if (!targetShape) return;
+
+    if (field === "x") {
+      targetShape.p = { ...targetShape.p, x: value };
+    }
+    if (field === "y") {
+      targetShape.p = { ...targetShape.p, y: value };
+    }
+    if (field === "w") {
+      targetShape.w = Math.max(1, value);
+    }
+    if (field === "h") {
+      targetShape.h = Math.max(1, value);
+    }
+
+    props.updateShapes(updatedShapes);
+    props.setIndivisual(cloneDeep(targetShape));
+    props.terminateDataChecking();
   };
 
   return (
@@ -398,6 +449,62 @@ export default function IndivisualSidePanel(
             ) : (
               <div className={styles.authorEmpty}>-</div>
             )}
+          </div>
+
+          <div className={styles.propertiesSection}>
+            <div className={styles.dateLabel}>properties</div>
+            <div className={styles.propertiesGrid}>
+              <div className={styles.propertyItem}>
+                <div className={styles.propertyLabel}>x</div>
+                <NumberInput
+                  width="100%"
+                  step={0.1}
+                  value={xValue}
+                  onValueChange={(value) => {
+                    setXValue(toOneDecimalString(value));
+                    applyGeometryChange("x", value);
+                  }}
+                />
+              </div>
+              <div className={styles.propertyItem}>
+                <div className={styles.propertyLabel}>y</div>
+                <NumberInput
+                  width="100%"
+                  step={0.1}
+                  value={yValue}
+                  onValueChange={(value) => {
+                    setYValue(toOneDecimalString(value));
+                    applyGeometryChange("y", value);
+                  }}
+                />
+              </div>
+              <div className={styles.propertyItem}>
+                <div className={styles.propertyLabel}>w</div>
+                <NumberInput
+                  width="100%"
+                  min={1}
+                  step={0.1}
+                  value={wValue}
+                  onValueChange={(value) => {
+                    setWValue(toOneDecimalString(value));
+                    applyGeometryChange("w", value);
+                  }}
+                />
+              </div>
+              <div className={styles.propertyItem}>
+                <div className={styles.propertyLabel}>h</div>
+                <NumberInput
+                  width="100%"
+                  min={1}
+                  step={0.1}
+                  value={hValue}
+                  onValueChange={(value) => {
+                    setHValue(toOneDecimalString(value));
+                    applyGeometryChange("h", value);
+                  }}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </SidePanel>
