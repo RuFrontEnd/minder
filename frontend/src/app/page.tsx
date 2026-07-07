@@ -70,10 +70,10 @@ const isBrowser = typeof window !== "undefined";
 const init: PageIdTypes.Init = {
   shape: {
     size: {
-      t: { w: 144, h: 72 },
-      p: { w: 144, h: 72 },
-      d: { w: 144, h: 72 },
-      dec: { w: 144, h: 72 },
+      t: { w: 120, h: 60 },
+      p: { w: 120, h: 60 },
+      d: { w: 120, h: 60 },
+      dec: { w: 120, h: 60 },
     },
   },
   authInfo: {
