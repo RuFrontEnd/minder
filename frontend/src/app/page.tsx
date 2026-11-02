@@ -3240,7 +3240,13 @@ export default function IdPage() {
         setIndivisual={setIndivisual}
         initShapeSize={init.shape.size}
         isConnectMode={isConnectMode}
-        onChangeConnectMode={setIsConnectMode}
+        onChangeConnectMode={(isEnabled) => {
+          setIsConnectMode(isEnabled);
+          if (isEnabled) {
+            setIsOverAllSidePanelOpen(false);
+            setIsIndivisualSidePanelOpen(false);
+          }
+        }}
         onFitView={() =>
           flowInstanceRef.current?.fitView({ padding: 0.3, duration: 300 })
         }

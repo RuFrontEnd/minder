@@ -4,10 +4,13 @@ import React, { useCallback, useEffect, useMemo } from "react";
 import {
   Background,
   BackgroundVariant,
+  ConnectionMode,
+  ConnectionLineType,
   Handle,
   MiniMap,
   Position,
   ReactFlow,
+  useEdgesState,
   useNodesState,
   type Connection,
   type Edge,
@@ -52,27 +55,24 @@ const cardHeight = 96;
 
 function FlowCard({ data, selected }: NodeProps<FlowNode>) {
   const { shape, stepNumber } = data;
+  const handles = [
+    { position: Position.Top, direction: "t" },
+    { position: Position.Right, direction: "r" },
+    { position: Position.Bottom, direction: "b" },
+    { position: Position.Left, direction: "l" },
+  ];
 
   return (
     <div className={`${styles.card} ${selected ? styles.selected : ""}`}>
-      {[Position.Top, Position.Right, Position.Bottom, Position.Left].map(
-        (position) => (
-          <React.Fragment key={position}>
-            <Handle
-              type="target"
-              position={position}
-              id={position === Position.Top ? "t" : position === Position.Right ? "r" : position === Position.Bottom ? "b" : "l"}
-              className={styles.handle}
-            />
-            <Handle
-              type="source"
-              position={position}
-              id={position === Position.Top ? "t" : position === Position.Right ? "r" : position === Position.Bottom ? "b" : "l"}
-              className={styles.handle}
-            />
-          </React.Fragment>
-        )
-      )}
+      {handles.map(({ position, direction }) => (
+        <Handle
+          key={position}
+          type="source"
+          position={position}
+          id={direction}
+          className={styles.handle}
+        />
+      ))}
       <div className={styles.cardHeader}>
         <span className={styles.shapeIcon}>
           <Square size={14} />
@@ -134,7 +134,7 @@ export default function FlowCanvas({
     );
   }, [shapes, selectedShapeId, setNodes]);
 
-  const edges = useMemo<Edge[]>(
+  const flowEdges = useMemo<Edge[]>(
     () =>
       curves.flatMap((curve) => {
         const source = shapes.find((shape) => shape.id === curve.from.shape.id);
@@ -156,6 +156,11 @@ export default function FlowCanvas({
       }),
     [curves, shapes]
   );
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(flowEdges);
+
+  useEffect(() => {
+    setEdges(flowEdges);
+  }, [flowEdges, setEdges]);
 
   const handleNodeClick = useCallback(
     (_event: React.MouseEvent, node: FlowNode) => onSelectShape(node.id),
@@ -198,8 +203,12 @@ export default function FlowCanvas({
       <ReactFlow
         nodes={nodes}
         edges={edges}
+        connectionMode={ConnectionMode.Loose}
+        connectionLineType={ConnectionLineType.SmoothStep}
+        connectionLineStyle={{ stroke: "#7b9ac4", strokeWidth: 3 }}
         nodeTypes={nodeTypes}
         onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
         nodesDraggable={!isConnectMode}
         nodesConnectable={isConnectMode}
         elementsSelectable={!isConnectMode}
@@ -209,6 +218,7 @@ export default function FlowCanvas({
         onNodeDragStop={handleNodeDragStop}
         onConnect={handleConnect}
         onDelete={handleDelete}
+        deleteKeyCode={["Backspace", "Delete"]}
         onInit={onInit}
         fitView
         fitViewOptions={{ padding: 0.3 }}

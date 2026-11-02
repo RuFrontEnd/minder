@@ -15,20 +15,71 @@ import * as CommonTypes from "@/types/common";
 import * as CreateShapeButtonsTypes from "@/types/sections/id/createShapeButtons";
 
 const isBrowser = typeof window !== "undefined";
+const stepCardWidth = 200;
+const stepCardHeight = 96;
+const stepGap = 24;
 
 export default function CreateShapeButtons(
   props: CreateShapeButtonsTypes.Props
 ) {
   const getInitializedStep = (offset: CommonTypes.Vec, scale: number = 1) => {
-    const initPosition = {
+    const centerPosition = {
       x: -offset.x + window.innerWidth / 2 / scale,
       y: -offset.y + window.innerHeight / 2 / scale,
     };
+    const spacingX = stepCardWidth + stepGap;
+    const spacingY = stepCardHeight + stepGap;
+    let position = centerPosition;
+    let ring = 0;
+
+    while (
+      props.shapes.some(
+        (shape) =>
+          Math.abs(shape.p.x - position.x) < spacingX &&
+          Math.abs(shape.p.y - position.y) < spacingY
+      )
+    ) {
+      ring += 1;
+      const candidates: CommonTypes.Vec[] = [];
+
+      for (let y = -ring; y <= ring; y += 1) {
+        candidates.push({ x: ring, y });
+      }
+      for (let x = ring - 1; x >= -ring; x -= 1) {
+        candidates.push({ x, y: ring });
+      }
+      for (let y = ring - 1; y >= -ring; y -= 1) {
+        candidates.push({ x: -ring, y });
+      }
+      for (let x = -ring + 1; x < ring; x += 1) {
+        candidates.push({ x, y: -ring });
+      }
+
+      const availableCandidate = candidates.find(({ x, y }) => {
+        const candidatePosition = {
+          x: centerPosition.x + x * spacingX,
+          y: centerPosition.y + y * spacingY,
+        };
+        return !props.shapes.some(
+          (shape) =>
+            Math.abs(shape.p.x - candidatePosition.x) < spacingX &&
+            Math.abs(shape.p.y - candidatePosition.y) < spacingY
+        );
+      });
+
+      if (availableCandidate) {
+        position = {
+          x: centerPosition.x + availableCandidate.x * spacingX,
+          y: centerPosition.y + availableCandidate.y * spacingY,
+        };
+      }
+    }
+
     return new Process(
       `step_${uuidv4()}`,
       props.initShapeSize.p.w,
       props.initShapeSize.p.h,
-      initPosition,
+      position,
       "Untitled step"
     );
   };
