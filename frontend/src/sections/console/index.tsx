@@ -1,6 +1,5 @@
 "use client";
 import React from "react";
-import Zoom from "@/sections/zoom";
 import CreateShapeButtons from "@/sections/createShapeButtons";
 import styles from "./Console.module.css";
 import * as ConsoleTypes from "@/types/sections/id/console";
@@ -37,9 +36,6 @@ export default function Console(props: ConsoleTypes.Props) {
         </div>
       </div>
 
-      <div className={styles.zoomDock}>
-        <Zoom zoom={props.zoom} scale={props.scale} />
-      </div>
     </>
   );
 }

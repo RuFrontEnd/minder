@@ -33,6 +33,10 @@ import * as IndivisaulSidePanelTypes from "@/types/sections/id/indivisualSidePan
 import * as InputTypes from "@/types/components/input";
 import * as PageIdTypes from "@/types/app/pageId";
 import * as ConsoleTypes from "@/types/sections/id/console";
+import FlowCanvas, {
+  type FlowCanvasInstance,
+} from "@/components/flowCanvas";
+import type { Connection } from "@xyflow/react";
 
 axios.defaults.baseURL = process.env.BASE_URL || "http://localhost:5000/api";
 axios.defaults.withCredentials = true;
@@ -2016,6 +2020,7 @@ export default function IdPage() {
   let { current: $screenshot } = useRef<HTMLCanvasElement | null>(null);
 
   const saveTimeoutRef = useRef<number | null>(null);
+  const flowInstanceRef = useRef<FlowCanvasInstance | null>(null);
   const [isAuthModalOpen, setIsAccountModalOpen] = useState(false);
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
   const [space, setSpace] = useState(false);
@@ -2230,6 +2235,109 @@ export default function IdPage() {
     curves = newCurves;
   };
 
+  const onFlowMoveStart = () => {
+    actionRecords.register(CommonTypes.Action.move);
+  };
+
+  const onFlowMoveShape = (shapeId: string, position: CommonTypes.Vec) => {
+    const updatedShapes = shapes.map((shape) => {
+      if (shape.id === shapeId) {
+        shape.p = position;
+      }
+      return shape;
+    });
+    updateShapes(updatedShapes);
+  };
+
+  const onFlowMoveEnd = () => {
+    actionRecords.finish(CommonTypes.Action.move);
+    scheduleAutoSave();
+  };
+
+  const onFlowConnect = (connection: Connection) => {
+    if (!connection.source || !connection.target) return;
+    const source = shapes.find((shape) => shape.id === connection.source);
+    const target = shapes.find((shape) => shape.id === connection.target);
+    const directions = [
+      CommonTypes.Direction.l,
+      CommonTypes.Direction.t,
+      CommonTypes.Direction.r,
+      CommonTypes.Direction.b,
+    ];
+    const sourceDirection = directions.find(
+      (direction) => direction === connection.sourceHandle
+    );
+    const targetDirection = directions.find(
+      (direction) => direction === connection.targetHandle
+    );
+    if (!source || !target || !sourceDirection || !targetDirection) return;
+
+    const sourcePoint = source.getCenter().receivingPoints[sourceDirection];
+    const targetPoint = target.getCenter().receivingPoints[targetDirection];
+    const getDirectionVector = (direction: CommonTypes.Direction) => {
+      switch (direction) {
+        case CommonTypes.Direction.l:
+          return { x: -1, y: 0 };
+        case CommonTypes.Direction.t:
+          return { x: 0, y: -1 };
+        case CommonTypes.Direction.r:
+          return { x: 1, y: 0 };
+        case CommonTypes.Direction.b:
+          return { x: 0, y: 1 };
+      }
+    };
+    const distance = Math.max(
+      40,
+      Math.min(120, Math.hypot(targetPoint.x - sourcePoint.x, targetPoint.y - sourcePoint.y) / 2)
+    );
+    const sourceVector = getDirectionVector(sourceDirection);
+    const targetVector = getDirectionVector(targetDirection);
+    const curve = new Curve(
+      `curve_${uuidv4()}`,
+      sourcePoint,
+      {
+        x: sourcePoint.x + sourceVector.x * distance,
+        y: sourcePoint.y + sourceVector.y * distance,
+      },
+      {
+        x: targetPoint.x + targetVector.x * distance,
+        y: targetPoint.y + targetVector.y * distance,
+      },
+      targetPoint
+    );
+
+    updateCurves([
+      ...curves,
+      {
+        shape: curve,
+        from: { shape: source, d: sourceDirection },
+        to: { shape: target, d: targetDirection },
+      },
+    ]);
+    checkSteps();
+    scheduleAutoSave();
+  };
+
+  const onFlowDelete = (nodeIds: string[], edgeIds: string[]) => {
+    if (nodeIds.length === 0 && edgeIds.length === 0) return;
+    actionRecords.register(CommonTypes.Action.delete);
+    const deletedNodeIds = new Set(nodeIds);
+    const deletedEdgeIds = new Set(edgeIds);
+    updateCurves(
+      curves.filter(
+        (curve) =>
+          !deletedEdgeIds.has(curve.shape.id) &&
+          !deletedNodeIds.has(curve.from.shape.id) &&
+          !deletedNodeIds.has(curve.to.shape.id)
+      )
+    );
+    selection = null;
+    setIndivisual(null);
+    updateShapes(shapes.filter((shape) => !deletedNodeIds.has(shape.id)));
+    actionRecords.finish(CommonTypes.Action.delete);
+    scheduleAutoSave();
+  };
+
   const zoom: PageIdTypes.Zoom = (delta, client) => {
     const $canvas = document.querySelector("canvas");
     if (!$canvas) return;
@@ -2257,6 +2365,10 @@ export default function IdPage() {
   const positioning: PageIdTypes.Positioning = (shapeP) => {
     if (!isBrowser) return;
 
+    flowInstanceRef.current?.setCenter(shapeP.x, shapeP.y, {
+      zoom: 1,
+      duration: 300,
+    });
     offset = {
       x: window.innerWidth / 2 / scale - shapeP.x,
       y: window.innerHeight / 2 / scale - shapeP.y,
@@ -3077,35 +3189,21 @@ export default function IdPage() {
         initShapeSize={init.shape.size}
       />
 
-      <img id="screenshotImg" alt="Screenshot" style={{ display: "none" }} />
-      <div className={"flex"}>
-        <canvas
-          role="canvas"
-          className={"overflow-hidden"}
-          style={{ cursor: canvasCursor }}
-          tabIndex={1}
-          ref={(el) => {
-            $canvas = el;
-            ctx = $canvas?.getContext("2d");
-          }}
-          onMouseDown={onMouseDown}
-          onMouseMove={onMouseMove}
-          onMouseUp={onMouseUp}
-          onWheel={onMouseWheel}
-          onClick={onClickShapeInfo}
-          onDoubleClick={onDoubleClickShapeInfo}
-        />
-        <canvas
-          role="screenshot"
-          className={"invisible overflow-hidden absolute left-0 top-0 z-[-1]"}
-          style={{ cursor: canvasCursor }}
-          tabIndex={1}
-          ref={(el) => {
-            $screenshot = el;
-            ctx_screenshot = $screenshot?.getContext("2d");
-          }}
-        />
-      </div>
+      <FlowCanvas
+        shapes={steps}
+        curves={curves}
+        selectedShapeId={indivisual?.id || null}
+        onSelectShape={onSelectStepFromOverallPanel}
+        onOpenShape={() => setIsIndivisualSidePanelOpen(true)}
+        onMoveShape={onFlowMoveShape}
+        onMoveStart={onFlowMoveStart}
+        onMoveEnd={onFlowMoveEnd}
+        onConnect={onFlowConnect}
+        onDelete={onFlowDelete}
+        onInit={(instance) => {
+          flowInstanceRef.current = instance;
+        }}
+      />
     </>
   );
 }
