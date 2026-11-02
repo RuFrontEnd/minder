@@ -15,24 +15,27 @@ export default function Console(props: ConsoleTypes.Props) {
 
   return (
     <>
-      <div className={styles.root}>
+      <div
+        className={styles.root}
+        style={{
+          left: props.isOverAllSidePanelOpen ? "calc(16px + 218px)" : "64px",
+        }}
+      >
         <div className={styles.toolbar}>
-          <div className={styles.leftFloating}>
-            <div></div>
-            <div></div>
-          </div>
-
-          <div>
-            <CreateShapeButtons
-              isOverAllSidePanelOpen={props.isOverAllSidePanelOpen}
-              actionRecords={props.actionRecords}
-              shapes={props.shapes}
-              offset={props.offset}
-              scale={props.scale}
-              reload={props.reload}
-              initShapeSize={props.initShapeSize}
-            />
-          </div>
+          <CreateShapeButtons
+            isOverAllSidePanelOpen={props.isOverAllSidePanelOpen}
+            actionRecords={props.actionRecords}
+            shapes={props.shapes}
+            offset={props.offset}
+            scale={props.scale}
+            reload={props.reload}
+            initShapeSize={props.initShapeSize}
+            isConnectMode={props.isConnectMode}
+            onChangeConnectMode={props.onChangeConnectMode}
+            onFitView={props.onFitView}
+            onZoomIn={props.onZoomIn}
+            onZoomOut={props.onZoomOut}
+          />
         </div>
       </div>
 

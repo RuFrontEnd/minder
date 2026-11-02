@@ -131,6 +131,8 @@ type Steps = CommonTypes.Shapes;
 
 type ProjectName = { val: string; inputVal: string };
 
+type StepStatus = "Done" | "In Progress" | "Todo";
+
 export type {
   Id,
   W,
@@ -148,5 +150,6 @@ export type {
   Shape,
   Steps,
   ProjectName,
+  StepStatus,
 };
 export { Direction, Corner, ShapeType, Action, DataStatus, ConsoleStatus };

@@ -29,6 +29,7 @@ type Props = {
   placement?: "start" | "end" | "top" | "bottom";
   flow?: Flow;
   footer?: boolean;
+  hideHeader?: boolean;
   children?: ReactNode;
   onClickSwitch?: MouseEventHandler<HTMLButtonElement>;
   onInteractOutside?: (event: InteractOutsideEvent) => void;

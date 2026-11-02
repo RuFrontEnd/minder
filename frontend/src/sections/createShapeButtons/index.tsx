@@ -1,15 +1,16 @@
 "use client";
-import Terminal from "@/shapes/terminal";
+import React from "react";
 import Process from "@/shapes/process";
-import Data from "@/shapes/data";
-import Desicion from "@/shapes/decision";
-import IconButton from "@/components/iconButton";
-import Icon from "@/components/icon";
-import { MouseEvent } from "react";
-import { tailwindColors } from "@/variables/colors";
+import {
+  MousePointer2,
+  Search,
+  Square,
+  Waypoints,
+  ZoomIn,
+  ZoomOut,
+} from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 import styles from "./CreateShapeButtons.module.css";
-import * as IconTypes from "@/types/components/icon";
 import * as CommonTypes from "@/types/common";
 import * as CreateShapeButtonsTypes from "@/types/sections/id/createShapeButtons";
 
@@ -18,117 +19,100 @@ const isBrowser = typeof window !== "undefined";
 export default function CreateShapeButtons(
   props: CreateShapeButtonsTypes.Props
 ) {
-  const createShapeButtons = [
-    {
-      shape: CommonTypes.ShapeType["terminator"],
-      icon: IconTypes.Type.ellipse,
-      size: 24,
-      color: tailwindColors.shape.terminal,
-    },
-    {
-      shape: CommonTypes.ShapeType["process"],
-      icon: IconTypes.Type.square,
-      size: 24,
-      color: tailwindColors.shape.process,
-    },
-    {
-      shape: CommonTypes.ShapeType["data"],
-      icon: IconTypes.Type.parallelogram,
-      size: 24,
-      color: tailwindColors.shape.data,
-    },
-    {
-      shape: CommonTypes.ShapeType["decision"],
-      icon: IconTypes.Type.dimond,
-      size: 24,
-      color: tailwindColors.shape.decision,
-    },
-  ].map((type) => ({
-    type: type.shape,
-    icon: (
-      <Icon type={type.icon} w={type.size} h={type.size} fill={type.color} />
-    ),
-  }));
-
-  const getInitializedShape = (
-    type: CommonTypes.ShapeType,
-    offset: CommonTypes.Vec,
-    scale: number = 1
-  ) => {
+  const getInitializedStep = (offset: CommonTypes.Vec, scale: number = 1) => {
     const initPosition = {
       x: -offset.x + window.innerWidth / 2 / scale,
       y: -offset.y + window.innerHeight / 2 / scale,
     };
-    switch (type) {
-      case CommonTypes.ShapeType["terminator"]:
-        return new Terminal(
-          `${type}_${uuidv4()}`,
-          props.initShapeSize.t.w,
-          props.initShapeSize.t.h,
-          initPosition,
-          type
-        );
-      case CommonTypes.ShapeType["process"]:
-        return new Process(
-          `${type}_${uuidv4()}`,
-          props.initShapeSize.p.w,
-          props.initShapeSize.p.h,
-          initPosition,
-          type
-        );
-
-      case CommonTypes.ShapeType["data"]:
-        return new Data(
-          `${type}_${uuidv4()}`,
-          props.initShapeSize.d.w,
-          props.initShapeSize.d.h,
-          initPosition,
-          type
-        );
-
-      case CommonTypes.ShapeType["decision"]:
-        return new Desicion(
-          `${type}_${uuidv4()}`,
-          props.initShapeSize.dec.w,
-          props.initShapeSize.dec.h,
-          initPosition,
-          type
-        );
-    }
+    return new Process(
+      `step_${uuidv4()}`,
+      props.initShapeSize.p.w,
+      props.initShapeSize.p.h,
+      initPosition,
+      "Untitled step"
+    );
   };
 
-  const onClickCreateShapeButton = (
-    e: MouseEvent<HTMLButtonElement>,
-    type: CommonTypes.ShapeType
-  ) => {
-    e.stopPropagation();
-    e.preventDefault();
+  const onClickCreateStep = () => {
     if (!isBrowser) return;
     props.actionRecords.register(CommonTypes.Action.add);
-
-    props.shapes.push(getInitializedShape(type, props.offset, props.scale));
-
+    props.shapes.push(getInitializedStep(props.offset, props.scale));
     props.actionRecords.finish(CommonTypes.Action.add);
-
     props.reload();
   };
 
+  const onClickTool = (e: React.MouseEvent, callback: () => void) => {
+    e.stopPropagation();
+    e.preventDefault();
+    callback();
+  };
+
   return (
-    <section role="create_shapes">
-      <div className={styles.container} style={{ ["--border-color" as any]: tailwindColors.grey["5"], ["--bg" as any]: tailwindColors.white["500"] } as React.CSSProperties}>
-        {createShapeButtons.map((createShapeButton) => (
-          <IconButton
-            key={createShapeButton.type}
-            ariaLabel={`Create ${createShapeButton.type} shape`}
-            icon={createShapeButton.icon}
-            variant="ghost"
-            size="sm"
-            style={{ width: 40, height: 40 }}
-            onClick={(e) => {
-              onClickCreateShapeButton(e, createShapeButton.type);
-            }}
-          />
-        ))}
+    <section className={styles.toolbar} aria-label="Canvas tools">
+      <div className={styles.container}>
+        <button
+          type="button"
+          className={`${styles.toolButton} ${
+            !props.isConnectMode ? styles.toolButtonActive : ""
+          }`}
+          aria-label="Select tool"
+          aria-pressed={!props.isConnectMode}
+          onClick={(event) =>
+            onClickTool(event, () => props.onChangeConnectMode(false))
+          }
+        >
+          <MousePointer2 size={17} />
+        </button>
+        <button
+          type="button"
+          className={styles.toolButton}
+          aria-label="Create step"
+          title="Create step"
+          onClick={(event) =>
+            onClickTool(event, onClickCreateStep)
+          }
+        >
+          <Square size={17} />
+        </button>
+        <button
+          type="button"
+          className={`${styles.toolButton} ${
+            props.isConnectMode ? styles.toolButtonActive : ""
+          }`}
+          aria-label="Connect tool"
+          aria-pressed={props.isConnectMode}
+          onClick={(event) =>
+            onClickTool(event, () =>
+              props.onChangeConnectMode(!props.isConnectMode)
+            )
+          }
+        >
+          <Waypoints size={17} />
+        </button>
+        <button
+          type="button"
+          className={styles.toolButton}
+          aria-label="Zoom in"
+          onClick={(event) => onClickTool(event, props.onZoomIn)}
+        >
+          <ZoomIn size={17} />
+        </button>
+        <button
+          type="button"
+          className={styles.toolButton}
+          aria-label="Zoom out"
+          onClick={(event) => onClickTool(event, props.onZoomOut)}
+        >
+          <ZoomOut size={17} />
+        </button>
+        <button
+          type="button"
+          className={styles.toolButton}
+          aria-label="Fit canvas to view"
+          onClick={(event) => onClickTool(event, props.onFitView)}
+        >
+          <Search size={17} />
+        </button>
       </div>
     </section>
   );

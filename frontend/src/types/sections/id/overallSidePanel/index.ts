@@ -21,6 +21,8 @@ type Props = {
   selectedShapeId: null | string;
   onSelectStep?: (shapeId: string) => void;
   steps: CommonTypes.Steps;
+  stepStatuses: Record<string, CommonTypes.StepStatus>;
+  onChangeStepStatus: (shapeId: string, status: CommonTypes.StepStatus) => void;
   datas: CommonTypes.OverallDatas;
   setDatas: Dispatch<SetStateAction<Props["datas"]>>;
   projectName: CommonTypes.ProjectName;

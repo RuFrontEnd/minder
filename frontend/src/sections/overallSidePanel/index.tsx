@@ -1,30 +1,16 @@
 "use client";
-import React, { useState } from "react";
-import Terminal from "@/shapes/terminal";
-import Process from "@/shapes/process";
-import Data from "@/shapes/data";
-import Desicion from "@/shapes/decision";
+import React, { useMemo, useState } from "react";
 import SidePanel from "@/components/sidePanel";
-import Accordion from "@/components/accordion";
-import Input from "@/components/input";
-import Frame from "@/components/frame";
-import PencilSquareIcon from "@/assets/svg/pencil-square.svg";
-import Icon from "@/components/icon";
-import { motion } from "framer-motion";
-// lodash clone not required after removing data management
-import { ChangeEventHandler, MouseEventHandler } from "react";
-import { tailwindColors } from "@/variables/colors";
+import { ChevronDown, Circle, Search, UserRound } from "lucide-react";
 import styles from "./index.module.css";
 import * as CommonTypes from "@/types/common";
 import * as OverallSidePanelTypes from "@/types/sections/id/overallSidePanel";
 
-import * as IconTypes from "@/types/components/icon";
-// PageIdTypes no longer required (data tab removed)
-import * as SidePanelTypes from "@/types/components/sidePanel";
+type StatusFilter = "All Statuses" | CommonTypes.StepStatus;
 
 export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
-  const [isRenameFrameOpen, setIsRenameFrameOpen] = useState(false);
-  // Overall side panel only shows Step tab (Data tab removed)
+  const [searchText, setSearchText] = useState("");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("All Statuses");
 
   const onClickOverallSidePanelSwitch = () => {
     props.setIsOverAllSidePanelOpen((open) => !open);
@@ -39,36 +25,31 @@ export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
     props.onSelectStep?.(shapeId);
   };
 
-  const onClickProjectName = () => {
-    setIsRenameFrameOpen((isRenameFrameOpen) => !isRenameFrameOpen);
-  };
+  const visibleSteps = useMemo(
+    () =>
+      props.steps.filter((step) => {
+        const matchesSearch = step.title
+          .toLowerCase()
+          .includes(searchText.trim().toLowerCase());
+        const matchesStatus =
+          statusFilter === "All Statuses" ||
+          (props.stepStatuses[step.id] || "Todo") === statusFilter;
+        return matchesSearch && matchesStatus;
+      }),
+    [props.steps, props.stepStatuses, searchText, statusFilter]
+  );
 
-  const onChangeProjectName: ChangeEventHandler<HTMLInputElement> = (e) => {
-    props.setProjectName((projectName) => ({
-      ...projectName,
-      inputVal: e.target.value,
-    }));
-  };
-
-  const onClickSaveProjectNameButton: MouseEventHandler<
-    HTMLButtonElement
-  > = async () => {
-    props.setProjectName({
-      val: props.projectName.inputVal,
-      inputVal: props.projectName.inputVal,
-    });
-
-    setIsRenameFrameOpen(false);
-  };
-
-  // tab switching removed — panel always shows Step list
+  const completedCount = props.steps.filter(
+    (step) => (props.stepStatuses[step.id] || "Todo") === "Done"
+  ).length;
 
   return (
     <SidePanel
       className={styles.root}
-      title="Steps"
+      title="Stories"
       open={props.isOverAllSidePanelOpen}
       placement="start"
+      size="xs"
       onClickSwitch={onClickOverallSidePanelSwitch}
       onCancel={() => {
         props.setIsOverAllSidePanelOpen(false);
@@ -77,57 +58,122 @@ export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
         props.setIsOverAllSidePanelOpen(false);
       }}
     >
-      <ul style={{ height: "calc(100% - 52px)" }} className={styles.list}>
-        {props.steps.map((step) => {
-          const icon = (() => {
-            let _type = undefined;
-            let _color = undefined;
-            if (step instanceof Terminal) {
-              _type = IconTypes.Type.ellipse;
-              _color = tailwindColors.shape.terminal;
-            }
-            if (step instanceof Process) {
-              _type = IconTypes.Type.square;
-              _color = tailwindColors.shape.process;
-            }
-            if (step instanceof Data) {
-              _type = IconTypes.Type.parallelogram;
-              _color = tailwindColors.shape.data;
-            }
-            if (step instanceof Desicion) {
-              _type = IconTypes.Type.dimond;
-              _color = tailwindColors.shape.decision;
-            }
+      <div className={styles.storiesPanel}>
+        <label className={styles.searchBox}>
+          <Search size={14} />
+          <input
+            value={searchText}
+            onChange={(event) => setSearchText(event.target.value)}
+            placeholder="Search stories..."
+            aria-label="Search stories"
+          />
+        </label>
 
-            return {
-              type: _type,
-              color: _color,
-            };
-          })();
-
-          return (
-            <li
-              key={step.id}
-              onClick={() => {
-                onClickStepRow(step.id, step.p);
-              }}
+        <div className={styles.filters}>
+          <label className={styles.filterSelect}>
+            <select
+              value={statusFilter}
+              onChange={(event) =>
+                setStatusFilter(event.target.value as StatusFilter)
+              }
+              aria-label="Filter by status"
             >
-              <div
-                className={`${styles.stepRow} ${
-                  props.selectedShapeId === step.id ? styles.dimmedRow : ""
-                }`}
-              >
-                <div className={styles.iconBox}>
-                  <Icon type={icon.type} w={20} h={20} fill={icon.color} />
+              <option>All Statuses</option>
+              <option>Done</option>
+              <option>In Progress</option>
+              <option>Todo</option>
+            </select>
+            <ChevronDown size={12} />
+          </label>
+          <span className={`${styles.filterSelect} ${styles.memberFilter}`}>
+            <UserRound size={12} />
+            <span>All Members</span>
+            <ChevronDown size={12} />
+          </span>
+        </div>
+
+        <section className={styles.projectSummary}>
+          <h2>{props.projectName.val || "Untitled Project"}</h2>
+          <div className={styles.progressLabel}>
+            <span>
+              {completedCount} / {props.steps.length} completed
+            </span>
+          </div>
+          <div
+            className={styles.progressTrack}
+            role="progressbar"
+            aria-valuenow={completedCount}
+            aria-valuemin={0}
+            aria-valuemax={props.steps.length}
+          >
+            <span
+              style={{
+                width: props.steps.length
+                  ? `${(completedCount / props.steps.length) * 100}%`
+                  : "0%",
+              }}
+            />
+          </div>
+        </section>
+
+        <ul className={styles.list}>
+          {visibleSteps.map((step) => {
+            const stepNumber =
+              props.steps.findIndex((item) => item.id === step.id) + 1;
+            const stepStatus = props.stepStatuses[step.id] || "Todo";
+            return (
+              <li key={step.id}>
+                <button
+                  type="button"
+                  className={`${styles.stepRow} ${
+                    props.selectedShapeId === step.id ? styles.selectedRow : ""
+                  }`}
+                  onClick={() => onClickStepRow(step.id, step.p)}
+                >
+                  <Circle
+                    size={8}
+                    className={`${styles.statusDot} ${
+                      styles[`status${stepStatus.replace(" ", "")}`]
+                    }`}
+                    fill="currentColor"
+                  />
+                  <span className={styles.stepId}>
+                    EP-{String(stepNumber).padStart(3, "0")}
+                  </span>
+                  <span className={styles.stepTitle}>{step.title}</span>
+                </button>
+                <div className={styles.stepMeta}>
+                  <span className={styles.assignee}>
+                    <UserRound size={13} />
+                    Unassigned
+                  </span>
+                  <select
+                    className={`${styles.statusSelect} ${
+                      styles[`statusBadge${stepStatus.replace(" ", "")}`]
+                    }`}
+                    value={stepStatus}
+                    aria-label={`Status for ${step.title}`}
+                    onClick={(event) => event.stopPropagation()}
+                    onChange={(event) =>
+                      props.onChangeStepStatus(
+                        step.id,
+                        event.target.value as CommonTypes.StepStatus
+                      )
+                    }
+                  >
+                    <option>Todo</option>
+                    <option>In Progress</option>
+                    <option>Done</option>
+                  </select>
                 </div>
-                <div className={styles.titleText}>
-                  <p>{step.title}</p>
-                </div>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
+              </li>
+            );
+          })}
+          {visibleSteps.length === 0 && (
+            <li className={styles.emptyState}>No stories match your filters.</li>
+          )}
+        </ul>
+      </div>
     </SidePanel>
   );
 }

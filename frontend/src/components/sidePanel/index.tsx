@@ -9,14 +9,17 @@ import styles from "./index.module.css";
 const SidePanel = (props: SidePanelTypes.Props) => {
   const navbarHeight = 64;
 
+  const horizontalPositionStyle = (() => {
+    return props.placement === "end"
+      ? { right: "12px" }
+      : { left: "12px" };
+  })();
+
   const panelViewportStyle: React.CSSProperties = {
     top: `${navbarHeight}px`,
     height: `calc(100vh - ${navbarHeight}px)`,
+    ...horizontalPositionStyle,
   };
-
-  const horizontalPositionStyle = (() => {
-    return props.placement === "end" ? { right: "12px" } : { left: "12px" };
-  })();
 
   const switchButtonStyle: React.CSSProperties = {
     position: "fixed",
@@ -77,16 +80,22 @@ const SidePanel = (props: SidePanelTypes.Props) => {
           style={panelViewportStyle}
           pointerEvents={props.modal ? undefined : "none"}
         >
-          <CharkaDrawer.Content data-side-panel-root>
-            <CharkaDrawer.CloseTrigger />
-            <CharkaDrawer.Header top={`${64}px`} h={`calc(100vh - ${64}px)`}>
-              <CharkaDrawer.Title>{props.title}</CharkaDrawer.Title>
-            </CharkaDrawer.Header>
+          <CharkaDrawer.Content
+            className={props.className}
+            data-side-panel-root
+          >
+            {!props.hideHeader && (
+              <CharkaDrawer.Header top={`${64}px`} h={`calc(100vh - ${64}px)`}>
+                <CharkaDrawer.Title>{props.title}</CharkaDrawer.Title>
+              </CharkaDrawer.Header>
+            )}
             <CharkaDrawer.Body>{props.children}</CharkaDrawer.Body>
             {props.footer !== false && <CharkaDrawer.Footer />}
-            <CharkaDrawer.CloseTrigger asChild onClick={props.onCancel}>
-              <CloseButton size="sm" />
-            </CharkaDrawer.CloseTrigger>
+            {!props.hideHeader && (
+              <CharkaDrawer.CloseTrigger asChild onClick={props.onCancel}>
+                <CloseButton size="sm" />
+              </CharkaDrawer.CloseTrigger>
+            )}
           </CharkaDrawer.Content>
         </CharkaDrawer.Positioner>
       </CharkaDrawer.Root>

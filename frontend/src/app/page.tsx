@@ -2030,7 +2030,11 @@ export default function IdPage() {
   const [isIndivisualSidePanelOpen, setIsIndivisualSidePanelOpen] =
     useState(true);
   const [isConsoleOpen, setIsConsoleOpen] = useState(false);
+  const [isConnectMode, setIsConnectMode] = useState(false);
   const [steps, setSteps] = useState<CommonTypes.Steps>([]);
+  const [stepStatuses, setStepStatuses] = useState<
+    Record<string, CommonTypes.StepStatus>
+  >({});
   const [datas, setDatas] = useState<PageIdTypes.Datas>([]);
   const [projectName, setProjectName] = useState({
     inputVal: "Untitled",
@@ -2056,6 +2060,24 @@ export default function IdPage() {
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isLogIn, setIsLogin] = useState(false);
   const [authModalOpenSignal, setAuthModalOpenSignal] = useState(0);
+
+  const onChangeStepStatus = (
+    shapeId: string,
+    status: CommonTypes.StepStatus
+  ) => {
+    setStepStatuses((currentStatuses) => {
+      const nextStatuses = { ...currentStatuses, [shapeId]: status };
+      try {
+        window.localStorage.setItem(
+          "minder-step-statuses",
+          JSON.stringify(nextStatuses)
+        );
+      } catch (error) {
+        console.error("Failed to save step statuses:", error);
+      }
+      return nextStatuses;
+    });
+  };
 
   const movingViewport = useMemo(
     () => space && leftMouseBtn,
@@ -2997,6 +3019,16 @@ export default function IdPage() {
   useEffect(() => {
     if (!isBrowser) return;
     validateToken();
+    try {
+      const savedStatuses = window.localStorage.getItem("minder-step-statuses");
+      if (savedStatuses) {
+        setStepStatuses(
+          JSON.parse(savedStatuses) as Record<string, CommonTypes.StepStatus>
+        );
+      }
+    } catch (error) {
+      console.error("Failed to load step statuses:", error);
+    }
 
     (async () => {
       drawCanvas(offset, scale);
@@ -3114,6 +3146,8 @@ export default function IdPage() {
 
       <OverallSidePanel
         steps={steps}
+        stepStatuses={stepStatuses}
+        onChangeStepStatus={onChangeStepStatus}
         positioning={positioning}
         selectedShapeId={indivisual?.id || null}
         onSelectStep={onSelectStepFromOverallPanel}
@@ -3135,6 +3169,8 @@ export default function IdPage() {
         setProjectName={setProjectName}
         shapes={shapes}
         curves={curves}
+        stepStatuses={stepStatuses}
+        onChangeStepStatus={onChangeStepStatus}
         datas={datas}
         setDatas={setDatas}
         isIndivisualSidePanelOpen={isIndivisualSidePanelOpen}
@@ -3187,6 +3223,13 @@ export default function IdPage() {
         positioning={positioning}
         setIndivisual={setIndivisual}
         initShapeSize={init.shape.size}
+        isConnectMode={isConnectMode}
+        onChangeConnectMode={setIsConnectMode}
+        onFitView={() =>
+          flowInstanceRef.current?.fitView({ padding: 0.3, duration: 300 })
+        }
+        onZoomIn={() => flowInstanceRef.current?.zoomIn({ duration: 200 })}
+        onZoomOut={() => flowInstanceRef.current?.zoomOut({ duration: 200 })}
       />
 
       <FlowCanvas
@@ -3200,6 +3243,7 @@ export default function IdPage() {
         onMoveEnd={onFlowMoveEnd}
         onConnect={onFlowConnect}
         onDelete={onFlowDelete}
+        isConnectMode={isConnectMode}
         onInit={(instance) => {
           flowInstanceRef.current = instance;
         }}

@@ -32,7 +32,22 @@ export default function Navbar(props: NavbarProps) {
         } as React.CSSProperties
       }
     >
-      <div className={styles.leftSpacer} />
+      <button
+        className={styles.brand}
+        type="button"
+        aria-label="Minder home"
+      >
+        <svg
+          className={styles.brandMark}
+          viewBox="0 0 32 32"
+          aria-hidden="true"
+        >
+          <path d="M16 3 30 27H2L16 3Z" fill="#2878f0" />
+          <path d="m16 13 8 14H8l8-14Z" fill="#fff" />
+          <path d="m16 13 8 14h-8V13Z" fill="#7fb5ff" />
+        </svg>
+        <span>Minder</span>
+      </button>
 
       <div className={styles.centerProjectName}>
         <Button

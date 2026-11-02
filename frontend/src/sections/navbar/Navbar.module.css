@@ -12,7 +12,21 @@
   border-bottom: 1px solid var(--border-color, #e5e7eb);
   background: var(--bg, #ffffff);
 }
-.leftSpacer { min-width: 1px; }
+.brand {
+  display: flex;
+  align-items: center;
+  justify-self: start;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #172b4d;
+  font: inherit;
+  font-size: 19px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.brandMark { width: 25px; height: 25px; }
 .centerProjectName { justify-self: center; max-width: min(40vw, 320px); }
 .actions { display:flex; align-items:center; justify-content:flex-end; justify-self:end; gap:0.5rem }
 .actionButton { display:flex; align-items:center; gap:0.25rem; padding:0.5rem 0.75rem; border-radius:6px; transition: background-color .15s; background:transparent; border:0 }

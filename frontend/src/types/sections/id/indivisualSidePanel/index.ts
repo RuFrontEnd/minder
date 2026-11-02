@@ -28,6 +28,8 @@ type Props = {
   setProjectName: Dispatch<SetStateAction<CommonTypes.ProjectName>>;
   shapes: (Terminal | Process | Data | Desicion)[];
   curves: CommonTypes.ConnectionCurves;
+  stepStatuses: Record<string, CommonTypes.StepStatus>;
+  onChangeStepStatus: (shapeId: string, status: CommonTypes.StepStatus) => void;
   datas: CommonTypes.OverallDatas;
   setDatas: Dispatch<SetStateAction<Props["datas"]>>;
   isIndivisualSidePanelOpen: boolean;

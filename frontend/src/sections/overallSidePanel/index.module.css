@@ -1,5 +1,132 @@
 .root {
   z-index: 60;
+  width: 218px;
+  max-width: calc(100vw - 24px);
+  border-right: 1px solid #e8edf3;
+  background: #fff;
+}
+
+.root :global([data-scope="drawer"][data-part="header"]) {
+  min-height: 48px;
+  padding: 12px 14px 8px;
+  border-bottom: 0;
+}
+
+.root :global([data-scope="drawer"][data-part="title"]) {
+  color: #26364f;
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.root :global([data-scope="drawer"][data-part="body"]) {
+  padding: 0 12px 12px;
+  overflow: hidden;
+}
+
+.storiesPanel {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  flex-direction: column;
+}
+
+.searchBox {
+  display: flex;
+  height: 30px;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 7px;
+  padding: 0 8px;
+  border: 1px solid #e4e9f0;
+  border-radius: 6px;
+  color: #94a3b8;
+}
+
+.searchBox input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #34445b;
+  font-size: 10px;
+}
+
+.searchBox input::placeholder {
+  color: #9aa7b8;
+}
+
+.filters {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.filterSelect {
+  display: flex;
+  height: 25px;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 0 6px;
+  border: 1px solid #e4e9f0;
+  border-radius: 5px;
+  color: #3d4d63;
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.filterSelect select {
+  width: 100%;
+  min-width: 0;
+  appearance: none;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+
+.memberFilter {
+  color: #8a98ab;
+}
+
+.projectSummary {
+  margin-top: 18px;
+  padding-bottom: 12px;
+}
+
+.projectSummary h2 {
+  overflow: hidden;
+  color: #293951;
+  font-size: 11px;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.progressLabel {
+  margin-top: 5px;
+  color: #668098;
+  font-size: 9px;
+}
+
+.progressTrack {
+  height: 5px;
+  margin-top: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e8edf3;
+}
+
+.progressTrack span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #25c893;
+  transition: width 150ms ease;
 }
 .header {
   display: flex;
@@ -15,28 +142,122 @@
   padding: 0.5rem 1.25rem;
 }
 .list {
+  flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
+
+.list li {
+  margin-bottom: 7px;
+}
+
 .stepRow {
   display: flex;
+  width: 100%;
+  min-width: 0;
   align-items: center;
+  gap: 7px;
   border: 0;
   background: transparent;
-  padding: 0.25rem 0;
+  padding: 4px 2px;
   text-align: left;
   cursor: pointer;
 }
-.dimmedRow {
-  background: #F5F5F5;
-  border-radius: 6px;
+
+.selectedRow {
+  border-radius: 5px;
+  background: #f2f6fb;
 }
-.iconBox {
-  width: 20px;
+
+.statusDot {
+  flex: 0 0 auto;
 }
-.titleText {
-  margin-left: 0.5rem;
+
+.statusDone {
+  color: #20c792;
 }
+
+.statusInProgress {
+  color: #3784fb;
+}
+
+.statusTodo {
+  color: #b6c1cf;
+}
+
+.stepId {
+  flex: 0 0 auto;
+  color: #8190a5;
+  font-size: 9px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.stepTitle {
+  min-width: 0;
+  overflow: hidden;
+  color: #3d4d63;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stepMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 0 1px 0 15px;
+}
+
+.assignee {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 4px;
+  overflow: hidden;
+  color: #8997aa;
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.statusSelect {
+  max-width: 78px;
+  appearance: none;
+  border: 0;
+  border-radius: 5px;
+  padding: 3px 6px;
+  outline: 0;
+  font-size: 9px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.statusBadgeDone {
+  background: #d7f6eb;
+  color: #148c68;
+}
+
+.statusBadgeInProgress {
+  background: #e1edff;
+  color: #2770e6;
+}
+
+.statusBadgeTodo {
+  background: #edf1f5;
+  color: #69798e;
+}
+
+.emptyState {
+  padding: 14px 4px;
+  color: #8997aa;
+  font-size: 10px;
+}
+
 .hoverIcon {
   cursor: pointer;
   display: flex;

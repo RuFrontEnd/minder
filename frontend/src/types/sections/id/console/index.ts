@@ -40,6 +40,11 @@ type Props = {
   initShapeSize: PageIdTypes.Init["shape"]["size"];
   zoom: PageIdTypes.Zoom;
   consoles: Consoles;
+  isConnectMode: boolean;
+  onChangeConnectMode: (isEnabled: boolean) => void;
+  onFitView: () => void;
+  onZoomIn: () => void;
+  onZoomOut: () => void;
 };
 
 export type { Props, Console, Consoles };

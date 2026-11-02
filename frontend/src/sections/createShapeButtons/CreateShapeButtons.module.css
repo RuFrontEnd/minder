@@ -1,1 +1,33 @@
-.container { display:flex; background:var(--bg,#ffffff); padding:0.25rem; border:1px solid var(--border-color,#e5e7eb); border-radius:6px }
+.container {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 8px;
+  background: var(--bg, #fff);
+  box-shadow: 0 2px 8px rgba(27, 45, 70, 0.08);
+}
+
+.toolButton {
+  display: inline-flex;
+  width: 36px;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+}
+
+.toolButton:hover,
+.toolButtonActive {
+  background: #edf4ff;
+  color: #2878f0;
+}
+
+.toolbar {
+  position: relative;
+}

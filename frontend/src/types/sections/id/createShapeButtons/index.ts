@@ -30,6 +30,11 @@ type Props = {
     };
   };
   reload: () => void;
+  isConnectMode: boolean;
+  onChangeConnectMode: (isEnabled: boolean) => void;
+  onFitView: () => void;
+  onZoomIn: () => void;
+  onZoomOut: () => void;
 };
 
 export type { Props };

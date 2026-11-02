@@ -1,12 +1,20 @@
 .canvas {
   position: fixed;
-  inset: 0;
+  inset: 64px 0 0;
   z-index: 0;
   background: #f8fafc;
 }
 
 .flow {
   background: transparent;
+}
+
+.connectMode {
+  cursor: crosshair;
+}
+
+.connectMode .handle {
+  opacity: 1;
 }
 
 .card {
@@ -24,18 +32,6 @@
   color: #26364f;
   box-shadow: 0 2px 8px rgba(37, 58, 84, 0.06);
   transition: border-color 120ms ease, box-shadow 120ms ease;
-}
-
-.card[data-shape-type="terminator"] {
-  border-color: #47d5a5;
-}
-
-.card[data-shape-type="decision"] {
-  border-color: #f4bc52;
-}
-
-.card[data-shape-type="data"] {
-  border-color: #91aee2;
 }
 
 .selected {
@@ -58,27 +54,7 @@
   color: #4e8df8;
 }
 
-.card[data-shape-type="terminator"] .shapeIcon {
-  color: #22bf8a;
-}
-
-.card[data-shape-type="decision"] .shapeIcon {
-  color: #e4a126;
-}
-
-.card[data-shape-type="data"] .shapeIcon {
-  color: #7795ce;
-}
-
-.dataIcon {
-  width: 12px;
-  height: 12px;
-  transform: skew(-20deg);
-  border: 1.5px solid currentColor;
-}
-
-.stepId,
-.shapeType {
+.stepId {
   font-size: 9px;
   font-weight: 650;
   letter-spacing: 0.035em;
@@ -86,11 +62,6 @@
 
 .stepId {
   color: #6a7b92;
-}
-
-.shapeType {
-  margin-left: auto;
-  color: #9aa7b8;
 }
 
 .title {
@@ -115,10 +86,6 @@
   background: #9aaabd;
 }
 
-.card[data-shape-type="terminator"] .statusDot {
-  background: #22bf8a;
-}
-
 .handle {
   width: 8px;
   height: 8px;
@@ -132,7 +99,6 @@
   opacity: 1;
 }
 
-.controls,
 .minimap {
   overflow: hidden;
   border: 1px solid #e3eaf2;
@@ -143,8 +109,4 @@
 
 .minimap {
   margin: 0 0 72px 12px;
-}
-
-.controls button {
-  border-bottom: 1px solid #edf1f5;
 }
