@@ -1,9 +1,11 @@
 .root {
   position: fixed;
-  top: 80px;
-  left: 16px;
+  right: 0;
+  bottom: 16px;
+  left: 0;
   z-index: 20;
   display: flex;
+  justify-content: center;
 }
 .toolbar {
   position: relative;

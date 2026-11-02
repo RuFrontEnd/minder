@@ -2058,6 +2058,7 @@ export default function IdPage() {
   const [isCheckingData, setIsCheckingData] = useState(false);
   const [isUpsertingShape, setIsUpsertingShape] = useState(false);
   const [isAuthorized, setIsAuthorized] = useState(false);
+  const [userAvatarUrl, setUserAvatarUrl] = useState("");
   const [isLogIn, setIsLogin] = useState(false);
   const [authModalOpenSignal, setAuthModalOpenSignal] = useState(0);
 
@@ -2093,10 +2094,23 @@ export default function IdPage() {
     try {
       const res: AxiosResponse<any> = await authAPIs.validateToken();
       // If response status is 200 and has id, then user is authenticated
-      setIsAuthorized(res.status === 200 && !!res.data?.id);
+      const isUserAuthorized = res.status === 200 && !!res.data?.id;
+      setIsAuthorized(isUserAuthorized);
+      if (isUserAuthorized) {
+        const avatarUrl =
+          res.data?.avatarUrl ||
+          res.data?.profileImageUrl ||
+          res.data?.picture ||
+          window.localStorage.getItem("userAvatarUrl") ||
+          "";
+        setUserAvatarUrl(avatarUrl);
+      } else {
+        setUserAvatarUrl("");
+      }
     } catch (error) {
       // If error (401 Unauthorized), user is not authenticated
       setIsAuthorized(false);
+      setUserAvatarUrl("");
     }
   };
 
@@ -3095,11 +3109,12 @@ export default function IdPage() {
 
   const afterLogin = () => {
     setIsAccountModalOpen(false);
-    setIsAuthorized(true);
+    void validateToken();
   };
 
   const afterLogout = () => {
     setIsAuthorized(false);
+    setUserAvatarUrl("");
   };
 
   const onClickProjectName = () => {
@@ -3119,6 +3134,7 @@ export default function IdPage() {
         onClickUser={onClickUser}
         onClickProjectName={onClickProjectName}
         projectName={projectName.val}
+        userAvatarUrl={userAvatarUrl}
       />
 
       <AuthModal

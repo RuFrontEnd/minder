@@ -9,23 +9,23 @@ import styles from "./index.module.css";
 const SidePanel = (props: SidePanelTypes.Props) => {
   const navbarHeight = 64;
 
-  const horizontalPositionStyle = (() => {
+  const panelPositionStyle = (() => {
     return props.placement === "end"
       ? { right: "12px" }
-      : { left: "12px" };
+      : { left: "0" };
   })();
 
   const panelViewportStyle: React.CSSProperties = {
     top: `${navbarHeight}px`,
     height: `calc(100vh - ${navbarHeight}px)`,
-    ...horizontalPositionStyle,
+    ...panelPositionStyle,
   };
 
   const switchButtonStyle: React.CSSProperties = {
     position: "fixed",
     top: "76px",
     zIndex: 60,
-    ...horizontalPositionStyle,
+    ...(props.placement === "end" ? { right: "12px" } : { left: "12px" }),
   };
 
   const onInteractOutside = (event: any) => {

@@ -2,6 +2,7 @@
 import React from "react";
 import Icon from "@/components/icon";
 import Button from "@/components/button";
+import { UserRound } from "lucide-react";
 import * as IconTypes from "@/types/components/icon";
 import { tailwindColors } from "@/variables/colors";
 import styles from "./Navbar.module.css";
@@ -17,6 +18,7 @@ interface NavbarProps {
   onClickUser?: () => void;
   onClickProjectName: () => void;
   projectName: string;
+  userAvatarUrl?: string;
 }
 
 export default function Navbar(props: NavbarProps) {
@@ -88,41 +90,48 @@ export default function Navbar(props: NavbarProps) {
 
         {/* <div className={styles.separator} /> */}
 
-        {props.isAuthorized ? (
-          <Button
-            variant="ghost"
-            color={tailwindColors.info["500"]}
-            text={
-              <>
-                <Icon
-                  type={IconTypes.Type.user}
-                  w={16}
-                  h={16}
-                  stroke={tailwindColors.info["500"]}
-                />
-                User
-              </>
-            }
-            onClick={props.onClickUser || props.onClickLogIn}
-          />
-        ) : (
-          <Button
-            variant="ghost"
-            color={tailwindColors.info["500"]}
-            text={
-              <>
-                <Icon
-                  type={IconTypes.Type.user}
-                  w={16}
-                  h={16}
-                  stroke={tailwindColors.info["500"]}
-                />
-                Log In
-              </>
-            }
-            onClick={props.onClickLogIn}
-          />
-        )}
+        <div className={styles.collaborators} aria-label="Project members">
+          {[
+            { name: "John Mason", image: "https://i.pravatar.cc/80?u=iu" },
+            { name: "Melissa Jones", image: "https://i.pravatar.cc/80?u=po" },
+            { name: "Alex Wang", image: "https://i.pravatar.cc/80?u=alex" },
+          ].map((member) => (
+            <img
+              key={member.name}
+              className={styles.collaboratorAvatar}
+              src={member.image}
+              alt={member.name}
+              title={member.name}
+            />
+          ))}
+          <span className={styles.moreMembers} aria-label="2 more members">
+            +2
+          </span>
+        </div>
+
+        <button
+          type="button"
+          className={styles.accountButton}
+          aria-label={props.isAuthorized ? "Open user profile" : "Log in"}
+          title={props.isAuthorized ? "User profile" : "Log in"}
+          onClick={
+            props.isAuthorized
+              ? props.onClickUser || props.onClickLogIn
+              : props.onClickLogIn
+          }
+        >
+          {props.isAuthorized && props.userAvatarUrl ? (
+            <img
+              className={styles.accountAvatar}
+              src={props.userAvatarUrl}
+              alt="Your profile"
+            />
+          ) : (
+            <span className={styles.accountAvatarFallback}>
+              <UserRound size={17} strokeWidth={2} />
+            </span>
+          )}
+        </button>
       </div>
     </div>
   );

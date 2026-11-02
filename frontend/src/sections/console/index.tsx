@@ -15,12 +15,7 @@ export default function Console(props: ConsoleTypes.Props) {
 
   return (
     <>
-      <div
-        className={styles.root}
-        style={{
-          left: props.isOverAllSidePanelOpen ? "calc(16px + 218px)" : "64px",
-        }}
-      >
+      <div className={styles.root}>
         <div className={styles.toolbar}>
           <CreateShapeButtons
             isOverAllSidePanelOpen={props.isOverAllSidePanelOpen}
