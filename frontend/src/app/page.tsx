@@ -26,6 +26,7 @@ import { ensureStepIdentifiers } from "@/utils/stepIdentifier";
 import Navbar from "@/sections/navbar";
 import AuthModal from "@/sections/authModal";
 import UserInfoModal from "@/sections/userInfoModal";
+import { getProject } from "@/apis/project";
 import * as CurveTypes from "@/types/shapes/curve";
 import * as CommonTypes from "@/types/common";
 import * as AuthTypes from "@/types/apis/auth";
@@ -3191,6 +3192,15 @@ export default function IdPage() {
       <UserInfoModal
         isOpen={isUserInfoOpen}
         onClose={() => setIsUserInfoOpen(false)}
+        afterCreateProject={async (project) => {
+          try {
+            const res = await getProject(project.id);
+            const name = res.data?.name || "Untitled Project";
+            setProjectName({ inputVal: name, val: name });
+          } catch (err) {
+            console.error("Failed to load project", err);
+          }
+        }}
         afterLogout={(message) => {
           afterLogout(message);
           setIsUserInfoOpen(false);

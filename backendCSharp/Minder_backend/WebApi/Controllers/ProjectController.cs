@@ -22,19 +22,52 @@ public class ProjectController : ControllerBase
 
     [Authorize]
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ProjectDTO>>> Get()
+    public async Task<ActionResult<IEnumerable<ProjectDTO>>> Get(CancellationToken cancellationToken)
     {
         var userIdValue = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         if (!Guid.TryParse(userIdValue, out var userId)) return Unauthorized();
 
-        var result = await _projectService.GetAllProjectsAsync(userId);
+        var result = await _projectService.GetAllProjectsAsync(userId, cancellationToken);
         return Ok(result);
     }
 
-    // GET api/<ValuesController>/5
-    [HttpGet("{id}")]
-    public string Get(int id)
+    [Authorize]
+    [HttpGet("{id:guid}", Name = nameof(GetById))]
+    public async Task<ActionResult<ProjectDTO>> GetById(
+        Guid id,
+        CancellationToken cancellationToken)
     {
-        return "value";
+        var userIdValue = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!Guid.TryParse(userIdValue, out var userId)) return Unauthorized();
+
+        var project = await _projectService.GetProjectAsync(id, userId, cancellationToken);
+        return project is null ? NotFound() : Ok(project);
+    }
+
+    [Authorize]
+    [HttpPost]
+    public async Task<ActionResult<ProjectDTO>> Create(
+        [FromBody] CreateProjectRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(request.Name))
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Invalid project name.",
+                Detail = "Project name must not be empty.",
+                Status = StatusCodes.Status400BadRequest
+            });
+        }
+
+        var userIdValue = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!Guid.TryParse(userIdValue, out var userId)) return Unauthorized();
+
+        var project = await _projectService.CreateProjectAsync(
+            userId,
+            request.Name,
+            cancellationToken);
+
+        return CreatedAtAction(nameof(GetById), new { id = project.Id }, project);
     }
 }

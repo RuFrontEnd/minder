@@ -1,8 +1,14 @@
 ﻿namespace Application.DTOs
 {
-    public class ProjectDTO
+    /// <summary>Project details returned by the API.</summary>
+    public sealed record ProjectDTO(Guid Id, Guid UserId, string Name);
+
+    /// <summary>Request payload for creating a project.</summary>
+    public sealed record CreateProjectRequest
     {
-        public Guid Id { get; set; }
-        public Guid UserId { get; set; }
+        /// <summary>The display name of the project.</summary>
+        [System.ComponentModel.DataAnnotations.Required]
+        [System.ComponentModel.DataAnnotations.StringLength(100, MinimumLength = 1)]
+        public required string Name { get; init; }
     }
 }

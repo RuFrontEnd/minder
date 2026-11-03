@@ -17,8 +17,8 @@ const deleteProject = async (id: number) => {
   return axios.delete(`/Project/${id}`);
 };
 
-const getProject = async (id: number) => {
-  return axios.get(`${prefix}/projects/${id}`);
+const getProject = async (id: number | string) => {
+  return axios.get(`/Project/${id}`);
 };
 
 const updateProject = async (

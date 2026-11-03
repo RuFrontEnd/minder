@@ -1,9 +1,8 @@
-"use client";
+﻿"use client";
 import React, { useEffect, useState } from "react";
 import { Skeleton } from "@chakra-ui/react";
 import Modal from "@/components/modal";
 import Button from "@/components/button";
-import Select from "@/components/select";
 import * as authAPIs from "@/apis/auth";
 import { createProject, getProjects } from "@/apis/project";
 import * as ProjectTypes from "@/types/project";
@@ -14,6 +13,7 @@ type Props = {
   isOpen: boolean;
   onClose: () => void;
   afterLogout?: (message: string) => void;
+  afterCreateProject?: (project: ProjectTypes.Project) => void;
 };
 
 export default function UserInfoModal(props: Props) {
@@ -26,11 +26,6 @@ export default function UserInfoModal(props: Props) {
     lastName: string;
   } | null>(null);
   const [projects, setProjects] = useState<ProjectTypes.Project[]>([]);
-  const [selectedProject, setSelectedProject] = useState("");
-  // const [cardNumber, setCardNumber] = useState("");
-  // const [cardHolder, setCardHolder] = useState("");
-  // const [expiry, setExpiry] = useState("");
-  // const [cvc, setCvc] = useState("");
 
   const loadProjects = async () => {
     const res = await getProjects();
@@ -52,12 +47,10 @@ export default function UserInfoModal(props: Props) {
   };
 
   const onClickAddProject = async () => {
-    const projectName = "Untitled Project";
     try {
-      await createProject(projectName);
-      const updatedProjects = await loadProjects();
-      setProjects(updatedProjects);
-      setSelectedProject(projectName);
+      const res = await createProject("Untitled Project");
+      props.onClose();
+      props.afterCreateProject?.(res.data as ProjectTypes.Project);
     } catch (err) {
       console.error("Failed to create project", err);
     }
@@ -68,8 +61,6 @@ export default function UserInfoModal(props: Props) {
   const lastName = userProfile?.lastName;
   const getProjectLabel = (project: ProjectTypes.Project) =>
     project.name || String(project.id);
-  // const storedCardLast4 =
-  //   typeof window !== "undefined" ? localStorage.getItem("cardLast4") : null;
 
   useEffect(() => {
     if (!props.isOpen) return;
@@ -78,7 +69,6 @@ export default function UserInfoModal(props: Props) {
     setLoadError("");
     setUserProfile(null);
     setProjects([]);
-    setSelectedProject("");
 
     const loadModalData = async () => {
       const [userResult, projectsResult] = await Promise.allSettled([
@@ -97,9 +87,6 @@ export default function UserInfoModal(props: Props) {
 
       if (projectsResult.status === "fulfilled") {
         setProjects(projectsResult.value);
-        if (projectsResult.value.length > 0) {
-          setSelectedProject(getProjectLabel(projectsResult.value[0]));
-        }
       } else {
         errors.push(projectsResult.reason);
       }
@@ -121,73 +108,41 @@ export default function UserInfoModal(props: Props) {
     };
   }, [props.isOpen]);
 
+  const fullName = `${firstName || ""} ${lastName || ""}`.trim();
+
   return (
     <Modal
+      className={styles.userInfoModal}
+      bodyClassName={styles.userInfoModalBody}
       isOpen={props.isOpen}
-      title={"User Info"}
       onCancel={props.onClose}
+      placement="center"
+      title="Account settings"
       footer={false}
     >
+      <p className={styles.subtitle}>Manage your account and projects.</p>
+
       <div className={styles.nameSection}>
+        <h3 className={styles.sectionTitle}>General</h3>
         <div className={styles.nameRow}>
-          <span className={styles.nameLabel}>name</span>
+          <span className={styles.nameLabel}>Name</span>
         </div>
         <div className={styles.nameValue}>
           {isLoadingData ? (
             <Skeleton height="20px" width="160px" />
           ) : (
-            `${firstName || ""} ${lastName || ""}`.trim() || "Unknown"
+            <span>{fullName || "Unknown"}</span>
           )}
         </div>
-      </div>
-
-      <div className={styles.section}>
-        <div className={styles.sectionLabel}>email</div>
+        <div className={styles.nameRow}>
+          <span className={styles.nameLabel}>Email</span>
+        </div>
         <div className={styles.nameValue}>
           {isLoadingData ? (
             <Skeleton height="20px" width="200px" />
           ) : (
-            userEmail || "-"
+            <span>{userEmail || "-"}</span>
           )}
-        </div>
-      </div>
-
-      <div className={styles.divider} />
-
-      <div className={styles.section}>
-        <div className={styles.sectionLabel}>projects</div>
-        {isLoadingData ? (
-          <Skeleton height="40px" width="100%" borderRadius="6px" />
-        ) : (
-          <Select
-            name="projects"
-            placeholder="select project"
-            options={projects.map(getProjectLabel)}
-            value={selectedProject}
-            onChange={(e) => setSelectedProject(e.target.value)}
-          />
-        )}
-        <div className={styles.nameRow}>
-          <div />
-          <Button
-            variant="ghost"
-            size="sm"
-            text={"+ New Project"}
-            onClick={onClickAddProject}
-          />
-        </div>
-        <div className={styles.list}>
-          {isLoadingData ? (
-            <div className={styles.projectSkeletons}>
-              <Skeleton height="18px" width="70%" />
-              <Skeleton height="18px" width="55%" />
-            </div>
-          ) : projects.length > 0 &&
-            projects.map((project) => (
-              <div key={project.id} className={styles.nameValue}>
-                {getProjectLabel(project)}
-              </div>
-            ))}
         </div>
         {loadError && (
           <p className={styles.loadError} role="alert">
@@ -196,50 +151,62 @@ export default function UserInfoModal(props: Props) {
         )}
       </div>
 
-      {/* <div className={styles.section}>
-        <div className={styles.sectionLabel}>credit card</div>
-        <Input
-          type="text"
-          name="Card number"
-          placeholder={
-            storedCardLast4
-              ? `**** **** **** ${storedCardLast4}`
-              : "Card number"
-          }
-          value={cardNumber}
-          onChange={(e) => setCardNumber(e.target.value)}
-        />
-        <div className={styles.inputGroup}>
-          <Input
-            name="Card holder"
-            placeholder="Card holder"
-            value={cardHolder}
-            onChange={(e) => setCardHolder(e.target.value)}
-          />
-          <Input
-            name="MM/YY"
-            placeholder="MM/YY"
-            value={expiry}
-            onChange={(e) => setExpiry(e.target.value)}
+      <div className={styles.projectSection}>
+        <div className={styles.projectHeader}>
+          <h3 className={styles.sectionTitle}>Projects</h3>
+          <span className={styles.projectCount}>
+            {projects.length} {projects.length === 1 ? "project" : "projects"}
+          </span>
+        </div>
+
+        <div className={styles.projectList}>
+          {isLoadingData ? (
+            <div className={styles.projectSkeletons}>
+              <Skeleton height="24px" width="70%" />
+              <Skeleton height="24px" width="55%" />
+            </div>
+          ) : projects.length > 0 ? (
+            projects.map((project) => (
+              <div key={project.id} className={styles.projectListItem}>
+                <span className={styles.projectName}>
+                  {getProjectLabel(project)}
+                </span>
+                <span className={styles.projectRole}>Owner</span>
+              </div>
+            ))
+          ) : (
+            <div className={styles.projectEmptyText}>
+              You don&apos;t have any projects yet.
+            </div>
+          )}
+        </div>
+
+        <div className={styles.projectActions}>
+          <Button
+            variant="outline"
+            text="+ New Project"
+            onClick={onClickAddProject}
           />
         </div>
-        <Input
-          name="CVC"
-          placeholder="CVC"
-          value={cvc}
-          onChange={(e) => setCvc(e.target.value)}
-        />
-      </div> */}
+      </div>
 
-      <div className={styles.actions}>
-        <Button
-          variant="outline"
-          color={tailwindColors.error["500"]}
-          text={"Log Out"}
-          loading={isLoggingOut}
-          onClick={onLogout}
-        />
+      <div className={styles.dangerZone}>
+        <h3 className={styles.sectionTitle}>Sign out</h3>
+        <p className={styles.dangerDescription}>
+          You will need to log in again to access your projects.
+        </p>
+        <div className={styles.actions}>
+          <span className={styles.actionLabel}>Sign out of your account</span>
+          <Button
+            variant="outline"
+            color={tailwindColors.error["500"]}
+            text="Log Out"
+            loading={isLoggingOut}
+            onClick={onLogout}
+          />
+        </div>
       </div>
     </Modal>
   );
 }
+
