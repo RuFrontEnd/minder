@@ -1,7 +1,7 @@
 ﻿namespace Application.DTOs
 {
     /// <summary>Project details returned by the API.</summary>
-    public sealed record ProjectDTO(Guid Id, Guid UserId, string Name);
+    public sealed record ProjectDTO(Guid Id, Guid UserId, string Name, string Role);
 
     /// <summary>Request payload for creating a project.</summary>
     public sealed record CreateProjectRequest

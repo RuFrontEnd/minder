@@ -1,7 +1,8 @@
 type Project = {
-  id: number;
+  id: number | string;
   name: string;
-  img: string;
+  img?: string;
+  role?: string;
 };
 
 export type { Project };

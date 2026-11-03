@@ -188,7 +188,9 @@ export default function UserInfoModal(props: Props) {
                     {String(project.id)}
                   </span>
                 </span>
-                <span className={styles.projectRole}>Owner</span>
+                <span className={styles.projectRole}>
+                  {project.role || "Unknown"}
+                </span>
               </button>
             ))
           ) : (

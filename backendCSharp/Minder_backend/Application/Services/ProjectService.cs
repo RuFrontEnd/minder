@@ -12,8 +12,12 @@ public class ProjectService(IProjectRepository projectRepository)
     {
         var projects = await projectRepository.GetProjectsAsync(userId, cancellationToken);
 
-        return projects.Select(project =>
-            new ProjectDTO(project.Id, project.UserId, project.Name));
+        return projects.Select(membership =>
+            new ProjectDTO(
+                membership.Project.Id,
+                membership.Project.UserId,
+                membership.Project.Name,
+                membership.Role));
     }
 
     public async Task<ProjectDTO?> GetProjectAsync(
@@ -24,7 +28,11 @@ public class ProjectService(IProjectRepository projectRepository)
         var project = await projectRepository.GetProjectAsync(projectId, userId, cancellationToken);
         return project is null
             ? null
-            : new ProjectDTO(project.Id, project.UserId, project.Name);
+            : new ProjectDTO(
+                project.Project.Id,
+                project.Project.UserId,
+                project.Project.Name,
+                project.Role);
     }
 
     public async Task<ProjectDTO> CreateProjectAsync(
@@ -34,7 +42,11 @@ public class ProjectService(IProjectRepository projectRepository)
     {
         var project = new ProjectEntity(Guid.NewGuid(), userId, name.Trim());
         var createdProject = await projectRepository.AddProjectAsync(project, cancellationToken);
-        return new ProjectDTO(createdProject.Id, createdProject.UserId, createdProject.Name);
+        return new ProjectDTO(
+            createdProject.Id,
+            createdProject.UserId,
+            createdProject.Name,
+            "owner");
     }
 
     public async Task<ProjectDTO?> UpdateProjectNameAsync(
@@ -47,6 +59,10 @@ public class ProjectService(IProjectRepository projectRepository)
             projectId, userId, name.Trim(), cancellationToken);
         return project is null
             ? null
-            : new ProjectDTO(project.Id, project.UserId, project.Name);
+            : new ProjectDTO(
+                project.Project.Id,
+                project.Project.UserId,
+                project.Project.Name,
+                project.Role);
     }
 };

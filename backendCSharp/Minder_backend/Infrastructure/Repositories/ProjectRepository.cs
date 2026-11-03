@@ -7,23 +7,32 @@ namespace Infrastructure.Repositories
 {
     public class ProjectRepository(ApplicationDbContext context) : IProjectRepository
     {
-        public async Task<List<ProjectEntity>> GetProjectsAsync(
+        public async Task<List<ProjectMembership>> GetProjectsAsync(
             Guid userId,
             CancellationToken cancellationToken)
         {
-            return await context.Projects
-                .Where(project => project.UserId == userId)
+            return await (
+                from member in context.Members
+                join project in context.Projects on member.ProjectId equals project.Id
+                join role in context.Roles on member.RoleId equals role.Id
+                where member.UserId == userId
+                select new ProjectMembership(project, role.Name)
+            )
                 .ToListAsync(cancellationToken);
         }
 
-        public async Task<ProjectEntity?> GetProjectAsync(
+        public async Task<ProjectMembership?> GetProjectAsync(
             Guid projectId,
             Guid userId,
             CancellationToken cancellationToken)
         {
-            return await context.Projects.FirstOrDefaultAsync(
-                project => project.Id == projectId && project.UserId == userId,
-                cancellationToken);
+            return await (
+                from member in context.Members
+                join project in context.Projects on member.ProjectId equals project.Id
+                join role in context.Roles on member.RoleId equals role.Id
+                where member.UserId == userId && project.Id == projectId
+                select new ProjectMembership(project, role.Name)
+            ).FirstOrDefaultAsync(cancellationToken);
         }
 
         public async Task<ProjectEntity> AddProjectAsync(
@@ -31,22 +40,25 @@ namespace Infrastructure.Repositories
             CancellationToken cancellationToken)
         {
             await context.Projects.AddAsync(project, cancellationToken);
+            await context.Members.AddAsync(
+                new MemberEntity(project.UserId, project.Id, RoleEntity.OwnerId),
+                cancellationToken);
             await context.SaveChangesAsync(cancellationToken);
             return project;
         }
 
-        public async Task<ProjectEntity?> UpdateProjectNameAsync(
+        public async Task<ProjectMembership?> UpdateProjectNameAsync(
             Guid projectId,
             Guid userId,
             string name,
             CancellationToken cancellationToken)
         {
-            var project = await GetProjectAsync(projectId, userId, cancellationToken);
-            if (project is null) return null;
+            var membership = await GetProjectAsync(projectId, userId, cancellationToken);
+            if (membership is null) return null;
 
-            project.Rename(name);
+            membership.Project.Rename(name);
             await context.SaveChangesAsync(cancellationToken);
-            return project;
+            return membership;
         }
     }
 
