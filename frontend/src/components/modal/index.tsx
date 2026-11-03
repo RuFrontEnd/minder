@@ -1,5 +1,6 @@
 "use client";
-import { CloseButton, Dialog, For, HStack, Portal } from "@chakra-ui/react";
+import { Dialog, For, HStack, Portal } from "@chakra-ui/react";
+import CloseButton from "@/components/closeButton";
 import RoundButton from "@/components/roundButton";
 import Icon from "@/components/icon";
 import * as ModalTypes from "@/types/components/modal";
@@ -44,7 +45,11 @@ const Modal = (props: ModalTypes.Props) => {
             )}
             {props.onCancel && (
               <Dialog.CloseTrigger asChild>
-                <CloseButton size="sm" onClick={props.onCancel} />
+                <CloseButton
+                  ariaLabel="Close dialog"
+                  size="sm"
+                  onClick={props.onCancel}
+                />
               </Dialog.CloseTrigger>
             )}
           </Dialog.Content>

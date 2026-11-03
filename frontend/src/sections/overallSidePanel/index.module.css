@@ -23,17 +23,8 @@
 }
 
 .closePanelButton {
-  display: inline-flex;
-  width: 22px;
-  height: 24px;
-  align-items: center;
-  justify-content: center;
-  border: 0;
-  background: transparent;
-  color: #728198;
-  font-size: 21px;
-  line-height: 1;
-  cursor: pointer;
+  flex: 0 0 auto;
+  color: #64748b;
 }
 
 .root :global([data-scope="drawer"][data-part="body"]) {

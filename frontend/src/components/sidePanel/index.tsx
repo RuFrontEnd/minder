@@ -1,6 +1,7 @@
 import IconButton from "@/components/iconButton";
 import Icon from "@/components/icon";
-import { Drawer as CharkaDrawer, CloseButton } from "@chakra-ui/react";
+import { Drawer as CharkaDrawer } from "@chakra-ui/react";
+import CloseButton from "@/components/closeButton";
 import { tailwindColors } from "@/variables/colors";
 import * as IconTypes from "@/types/components/icon";
 import * as SidePanelTypes from "@/types/components/sidePanel";
@@ -98,7 +99,10 @@ const SidePanel = (props: SidePanelTypes.Props) => {
             {props.footer !== false && <CharkaDrawer.Footer />}
             {!props.hideHeader && (
               <CharkaDrawer.CloseTrigger asChild onClick={props.onCancel}>
-                <CloseButton size="sm" />
+                <CloseButton
+                  ariaLabel="Close side panel"
+                  size="sm"
+                />
               </CharkaDrawer.CloseTrigger>
             )}
           </CharkaDrawer.Content>

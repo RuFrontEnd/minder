@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useMemo, useState, ChangeEventHandler } from "react";
 import SidePanel from "@/components/sidePanel";
+import CloseButton from "@/components/closeButton";
 import Button from "@/components/button";
 import Input from "@/components/input";
 import Avatar from "@/components/avatar";
@@ -282,14 +283,12 @@ export default function IndivisualSidePanel(
       >
         {!props.indivisual ? (
           <div className={styles.emptyState}>
-            <button
-              type="button"
+            <CloseButton
               className={styles.closePanelButton}
-              aria-label="Close step details"
+              ariaLabel="Close step details"
+              size="sm"
               onClick={() => props.setIsIndivisualSidePanelOpen(false)}
-            >
-              ×
-            </button>
+            />
             <div className={styles.emptyStateTitle}>No step selected</div>
             <div className={styles.emptyStateDescription}>
               Select a step on the canvas to view its details.
@@ -317,14 +316,12 @@ export default function IndivisualSidePanel(
                 <option>In Progress</option>
                 <option>Done</option>
               </select>
-              <button
-                type="button"
+              <CloseButton
                 className={styles.closePanelButton}
-                aria-label="Close step details"
+                ariaLabel="Close step details"
+                size="sm"
                 onClick={() => props.setIsIndivisualSidePanelOpen(false)}
-              >
-                ×
-              </button>
+              />
             </div>
             <div className={styles.descriptionRow}>
               <div className={styles.descLabel}>Title</div>

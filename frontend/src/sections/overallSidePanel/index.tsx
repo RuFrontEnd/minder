@@ -1,6 +1,7 @@
 "use client";
 import React, { useMemo, useState } from "react";
 import SidePanel from "@/components/sidePanel";
+import CloseButton from "@/components/closeButton";
 import { ChevronDown, Circle, Search, UserRound } from "lucide-react";
 import styles from "./index.module.css";
 import * as CommonTypes from "@/types/common";
@@ -62,14 +63,12 @@ export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
 
       <div className={styles.panelHeader}>
         <h2 className={styles.panelTitle}>Steps</h2>
-        <button
-          type="button"
+        <CloseButton
           className={styles.closePanelButton}
-          aria-label="Close steps panel"
+          ariaLabel="Close steps panel"
+          size="sm"
           onClick={() => props.setIsOverAllSidePanelOpen(false)}
-        >
-          ×
-        </button>
+        />
       </div>
       <div className={styles.storiesPanel}>
         <label className={styles.searchBox}>

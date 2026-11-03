@@ -7,12 +7,12 @@ import { cloneDeep } from "lodash";
 import { ChangeEventHandler, MouseEventHandler } from "react";
 import {
   Button as ChakraButton,
-  CloseButton,
   Dialog,
   Field,
   Input as ChakraInput,
   Portal,
 } from "@chakra-ui/react";
+import CloseButton from "@/components/closeButton";
 import { AtSign, LockKeyhole, UserRound } from "lucide-react";
 import * as authAPIs from "@/apis/auth";
 import * as projectAPIs from "@/apis/project";
@@ -412,7 +412,7 @@ export default function AuthModal(props: AuthModalTypes.Props) {
               <Dialog.CloseTrigger asChild>
                 <CloseButton
                   className={styles.closeButton}
-                  aria-label="Close sign in dialog"
+                  ariaLabel="Close sign in dialog"
                   size="sm"
                   onClick={onClickX}
                 />
