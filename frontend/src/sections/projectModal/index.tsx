@@ -23,6 +23,7 @@ type Props = {
   isOpen: boolean;
   onClose: () => void;
   isAuthorized: boolean;
+  isOwner: boolean;
   projectId: string | null;
   onDeleted?: () => void;
   onSelect?: (project: ProjectTypes.Project) => void;
@@ -34,6 +35,7 @@ const ProjectModal = ({
   isOpen,
   onClose,
   isAuthorized,
+  isOwner,
   projectId,
   onDeleted,
   projectName,
@@ -308,9 +310,7 @@ const ProjectModal = ({
       </div>
 
       <div
-        className={`${styles.memberSection} ${
-          !isAuthorized ? styles.disabledSection : ""
-        }`}
+        className={styles.memberSection}
         aria-disabled={!isAuthorized}
       >
         <div className={styles.memberHeader}>
@@ -375,7 +375,7 @@ const ProjectModal = ({
               <span className={styles.memberRole}>
                 {memberUsers[member.id]?.role || "Member"}
               </span>
-              {memberUsers[member.id]?.role !== "owner" && (
+              {isOwner && memberUsers[member.id]?.role !== "owner" && (
                 <IconButton
                   ariaLabel={`Remove ${member.firstName} ${member.lastName}`}
                   variant="outline"
@@ -401,12 +401,7 @@ const ProjectModal = ({
         </div>
       </div>
 
-      <div
-        className={`${styles.dangerZone} ${
-          !isAuthorized ? styles.disabledSection : ""
-        }`}
-        aria-disabled={!isAuthorized}
-      >
+      {isOwner && <div className={styles.dangerZone}>
         <h3 className={styles.sectionTitle}>Danger zone</h3>
         <p className={styles.dangerDescription}>
           Deleting this project will permanently remove its stories,
@@ -421,7 +416,7 @@ const ProjectModal = ({
             onClick={onClickDeleteProject}
           />
         </div>
-      </div>
+      </div>}
 
       <Modal
         isOpen={isDeleteConfirmOpen}

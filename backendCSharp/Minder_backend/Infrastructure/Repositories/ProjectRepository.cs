@@ -89,16 +89,12 @@ namespace Infrastructure.Repositories
             Guid targetUserId,
             CancellationToken cancellationToken)
         {
-            var isOwner = await (
-                from member in context.Members
-                join role in context.Roles on member.RoleId equals role.Id
-                where member.ProjectId == projectId
-                    && member.UserId == requesterId
-                    && role.Name == "owner"
-                select member.Id
-            ).AnyAsync(cancellationToken);
+            var isMember = await context.Members.AnyAsync(
+                member => member.ProjectId == projectId
+                    && member.UserId == requesterId,
+                cancellationToken);
 
-            if (!isOwner) return AddProjectMemberResult.ProjectNotFoundOrNotOwner;
+            if (!isMember) return AddProjectMemberResult.ProjectNotFoundOrNotOwner;
 
             var userExists = await context.Users
                 .AnyAsync(user => user.Id == targetUserId, cancellationToken);

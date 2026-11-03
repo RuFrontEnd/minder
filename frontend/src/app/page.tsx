@@ -2047,6 +2047,9 @@ export default function IdPage() {
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(
     null
   );
+  const [currentProjectRole, setCurrentProjectRole] = useState<string | null>(
+    null
+  );
   const [projectName, setProjectName] = useState({
     inputVal: "Untitled",
     val: "Untitled",
@@ -3206,6 +3209,7 @@ export default function IdPage() {
       const project = projectResponse.data as ProjectTypes.Project;
 
       setCurrentProjectId(String(project.id));
+      setCurrentProjectRole("owner");
       setProjectName({
         inputVal: project.name || projectName.val || "Untitled Project",
         val: project.name || projectName.val || "Untitled Project",
@@ -3240,6 +3244,7 @@ export default function IdPage() {
     setConsoles([]);
     setIndivisual(null);
     setCurrentProjectId(null);
+    setCurrentProjectRole(null);
     setProjectName({ inputVal: "Untitled", val: "Untitled" });
     setScale(1);
     setSpace(false);
@@ -3279,6 +3284,7 @@ export default function IdPage() {
       const res = await getProject(project.id);
       const name = res.data?.name || "Untitled Project";
       setCurrentProjectId(String(res.data?.id ?? project.id));
+      setCurrentProjectRole(res.data?.role || project.role || null);
       setProjectName({ inputVal: name, val: name });
       return true;
     } catch (err) {
@@ -3384,6 +3390,7 @@ export default function IdPage() {
         isOpen={isProjectModalOpen}
         onClose={() => setIsProjectModalOpen(false)}
         isAuthorized={isAuthorized}
+        isOwner={currentProjectRole === "owner"}
         projectId={currentProjectId}
         onDeleted={onProjectDeleted}
         projectName={projectName.val}
