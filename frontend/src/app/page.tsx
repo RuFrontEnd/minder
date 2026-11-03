@@ -26,7 +26,7 @@ import { ensureStepIdentifiers } from "@/utils/stepIdentifier";
 import Navbar from "@/sections/navbar";
 import AuthModal from "@/sections/authModal";
 import UserInfoModal from "@/sections/userInfoModal";
-import { getProject, updateProjectName } from "@/apis/project";
+import { createProject, getProject, updateProjectName } from "@/apis/project";
 import * as ProjectTypes from "@/types/project";
 import * as CurveTypes from "@/types/shapes/curve";
 import * as CommonTypes from "@/types/common";
@@ -40,6 +40,7 @@ import FlowCanvas, {
   type FlowCanvasInstance,
 } from "@/components/flowCanvas";
 import Alert from "@/components/alert";
+import Modal from "@/components/modal";
 import * as AlertTypes from "@/types/components/alert";
 import type { Connection } from "@xyflow/react";
 import styles from "./page.module.css";
@@ -2073,6 +2074,11 @@ export default function IdPage() {
   const [loginSuccessMessage, setLoginSuccessMessage] = useState("");
   const [isLoginSuccessExiting, setIsLoginSuccessExiting] = useState(false);
   const loginSuccessTimeoutRef = useRef<number | null>(null);
+  const [isSaveProjectPromptOpen, setIsSaveProjectPromptOpen] = useState(false);
+  const [isSavingProject, setIsSavingProject] = useState(false);
+  const [saveProjectError, setSaveProjectError] = useState("");
+  const [isProjectSelectionRequired, setIsProjectSelectionRequired] =
+    useState(false);
 
   const onChangeStepStatus = (
     shapeId: string,
@@ -3100,11 +3106,11 @@ export default function IdPage() {
     };
   }, []);
 
-  // Load shapes when user logs in
+  // Load saved shapes only when there is no local project to preserve.
   useEffect(() => {
-    if (!isLogIn) return;
+    if (!isAuthorized || steps.length > 0) return;
     loadShapes();
-  }, [isLogIn]);
+  }, [isAuthorized]);
 
   useEffect(() => {
     if (!isBrowser) return;
@@ -3156,6 +3162,63 @@ export default function IdPage() {
     showSuccessMessage(message);
     setIsAccountModalOpen(false);
     void validateToken();
+    if (steps.length > 0) {
+      setSaveProjectError("");
+      setIsSaveProjectPromptOpen(true);
+    }
+  };
+
+  const onClickSaveCurrentProject = async () => {
+    if (isSavingProject) return;
+
+    setIsSavingProject(true);
+    setSaveProjectError("");
+    try {
+      const projectResponse = await createProject(projectName.val || "Untitled Project");
+      const project = projectResponse.data as ProjectTypes.Project;
+
+      setCurrentProjectId(String(project.id));
+      setProjectName({
+        inputVal: project.name || projectName.val || "Untitled Project",
+        val: project.name || projectName.val || "Untitled Project",
+      });
+      await shapeAPIs.upsert(buildPayload());
+      setIsSaveProjectPromptOpen(false);
+      showSuccessMessage("Current project saved successfully.");
+    } catch (error) {
+      console.error("Failed to save current project:", error);
+      setSaveProjectError(
+        "Unable to save the current project. Please try again."
+      );
+    } finally {
+      setIsSavingProject(false);
+    }
+  };
+
+  const onClickDoNotSaveProject = () => {
+    shapes = [];
+    curves = [];
+    selection = null;
+    selectionFrame = null;
+    pressingSelection = null;
+    pressingCurve = null;
+    setSteps([]);
+    setStepStatuses({});
+    setDatas([]);
+    setConsoles([]);
+    setIndivisual(null);
+    setCurrentProjectId(null);
+    setProjectName({ inputVal: "Untitled", val: "Untitled" });
+    try {
+      window.localStorage.removeItem("minder-step-statuses");
+    } catch (error) {
+      console.error("Failed to clear step statuses:", error);
+    }
+    setIsSaveProjectPromptOpen(false);
+    setIsProjectSelectionRequired(true);
+    setIsUserInfoOpen(true);
+    drawCanvas(offset, scale);
+    drawScreenshot(offset, scale);
   };
 
   const afterLogout = (message?: string) => {
@@ -3170,9 +3233,23 @@ export default function IdPage() {
       const name = res.data?.name || "Untitled Project";
       setCurrentProjectId(String(res.data?.id ?? project.id));
       setProjectName({ inputVal: name, val: name });
+      return true;
     } catch (err) {
       console.error("Failed to load project", err);
+      return false;
     }
+  };
+
+  const onSelectProject = async (project: ProjectTypes.Project) => {
+    if (!(await openProject(project))) return;
+    setIsProjectSelectionRequired(false);
+    setIsUserInfoOpen(false);
+  };
+
+  const onCreateProject = async (project: ProjectTypes.Project) => {
+    if (!(await openProject(project))) return;
+    setIsProjectSelectionRequired(false);
+    setIsUserInfoOpen(false);
   };
 
   const onClickProjectName = () => {
@@ -3204,11 +3281,35 @@ export default function IdPage() {
         afterLogout={afterLogout}
       />
 
+      <Modal
+        isOpen={isSaveProjectPromptOpen}
+        onClose={onClickDoNotSaveProject}
+        placement="center"
+        title="Save current project?"
+        okText={isSavingProject ? "Saving..." : "Save Project"}
+        cancelText="No, Thanks"
+        showCancelButton
+        footer
+        onCancel={onClickDoNotSaveProject}
+        onOk={() => {
+          void onClickSaveCurrentProject();
+        }}
+      >
+        <p>
+          You have steps on the canvas from before signing in. Would you like
+          to save this project to your account?
+        </p>
+        {saveProjectError && (
+          <Alert type={AlertTypes.Type.error} text={saveProjectError} />
+        )}
+      </Modal>
+
       <UserInfoModal
         isOpen={isUserInfoOpen}
         onClose={() => setIsUserInfoOpen(false)}
-        afterCreateProject={openProject}
-        onSelectProject={openProject}
+        isCloseDisabled={isProjectSelectionRequired}
+        afterCreateProject={onCreateProject}
+        onSelectProject={onSelectProject}
         afterLogout={(message) => {
           afterLogout(message);
           setIsUserInfoOpen(false);

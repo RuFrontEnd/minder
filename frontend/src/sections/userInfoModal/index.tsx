@@ -12,6 +12,7 @@ import styles from "./index.module.css";
 type Props = {
   isOpen: boolean;
   onClose: () => void;
+  isCloseDisabled?: boolean;
   afterLogout?: (message: string) => void;
   afterCreateProject?: (project: ProjectTypes.Project) => void;
   onSelectProject?: (project: ProjectTypes.Project) => void;
@@ -48,15 +49,15 @@ export default function UserInfoModal(props: Props) {
   };
 
   const onClickProject = (project: ProjectTypes.Project) => {
-    props.onClose();
     props.onSelectProject?.(project);
+    if (!props.isCloseDisabled) props.onClose();
   };
 
   const onClickAddProject = async () => {
     try {
       const res = await createProject("Untitled Project");
-      props.onClose();
       props.afterCreateProject?.(res.data as ProjectTypes.Project);
+      if (!props.isCloseDisabled) props.onClose();
     } catch (err) {
       console.error("Failed to create project", err);
     }
@@ -121,7 +122,7 @@ export default function UserInfoModal(props: Props) {
       className={styles.userInfoModal}
       bodyClassName={styles.userInfoModalBody}
       isOpen={props.isOpen}
-      onCancel={props.onClose}
+      onCancel={props.isCloseDisabled ? undefined : props.onClose}
       placement="center"
       title="Account settings"
       footer={false}
@@ -220,4 +221,3 @@ export default function UserInfoModal(props: Props) {
     </Modal>
   );
 }
-
