@@ -8,7 +8,7 @@ type Props = {
   isLogIn: boolean;
   setIsLogin: React.Dispatch<React.SetStateAction<boolean>>;
   onCancel: MouseEventHandler<HTMLButtonElement>
-  afterLogin: () => void;
+  afterLogin: (message: string) => void;
   afterLogout: () => void;
 };
 

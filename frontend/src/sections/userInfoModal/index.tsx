@@ -15,7 +15,7 @@ import styles from "./index.module.css";
 type Props = {
   isOpen: boolean;
   onClose: () => void;
-  afterLogout?: () => void;
+  afterLogout?: (message: string) => void;
 };
 
 export default function UserInfoModal(props: Props) {
@@ -44,14 +44,15 @@ export default function UserInfoModal(props: Props) {
   const onLogout = async () => {
     setIsLoading(true);
     try {
-      await authAPIs.logout();
-    } catch (err) {
-      // ignore
+      const res = await authAPIs.logout();
+      localStorage.removeItem("Authorization");
+      props.afterLogout?.(res.data.message);
+      props.onClose();
+    } catch (error) {
+      console.error("Failed to log out:", error);
+    } finally {
+      setIsLoading(false);
     }
-    localStorage.removeItem("Authorization");
-    setIsLoading(false);
-    props.afterLogout && props.afterLogout();
-    props.onClose();
   };
 
   const onClickAddProject = async () => {

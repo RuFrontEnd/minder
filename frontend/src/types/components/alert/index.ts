@@ -11,6 +11,7 @@ type Props = {
   className?: string;
   text: string;
   type: Type;
+  variant?: "outline" | "solid" | "subtle" | "surface";
 };
 
 export { Type };

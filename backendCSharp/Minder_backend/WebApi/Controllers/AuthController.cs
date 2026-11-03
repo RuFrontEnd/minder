@@ -42,14 +42,14 @@ public class AuthController(AuthService authService) : ControllerBase
 
             if (userData == null)
             {
-                return BadRequest(new { message = "login fail.", data = (object?)null });
+                return Unauthorized(new { message = "Please check the account and password you entered.", data = (object?)null });
             }
 
             var refreshToken = await authService.UpdateUserRefreshTokenAsync(userData.User.Id, DateTime.UtcNow.AddDays(7));
 
             if (refreshToken == null)
             {
-                return BadRequest(new { message = "login fail.", data = (object?)null });
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "login failed due to a server error.", data = (object?)null });
             }
 
             Response.Cookies.Append("X-Access-Token", userData.Token, new CookieOptions
@@ -72,7 +72,7 @@ public class AuthController(AuthService authService) : ControllerBase
         }
         catch (Exception ex) when (ex.Message == "Email has not been verified.")
         {
-            return BadRequest(new { message = ex.Message, data = (object?)null });
+            return Unauthorized(new { message = ex.Message, data = (object?)null });
         }
     }
 

@@ -1,0 +1,39 @@
+.loginSuccessAlert {
+  position: fixed;
+  top: 72px;
+  left: 50%;
+  z-index: 1000;
+  box-sizing: border-box;
+  width: min(520px, calc(100vw - 32px));
+  min-height: 48px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  transform: translateX(-50%);
+  animation: loginSuccessAlertEnter 180ms ease-out both;
+}
+
+.loginSuccessAlertExiting {
+  animation: loginSuccessAlertExit 180ms ease-in both;
+}
+
+@keyframes loginSuccessAlertEnter {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -8px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+@keyframes loginSuccessAlertExit {
+  from {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -8px);
+  }
+}

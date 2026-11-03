@@ -37,7 +37,10 @@ import * as ConsoleTypes from "@/types/sections/id/console";
 import FlowCanvas, {
   type FlowCanvasInstance,
 } from "@/components/flowCanvas";
+import Alert from "@/components/alert";
+import * as AlertTypes from "@/types/components/alert";
 import type { Connection } from "@xyflow/react";
+import styles from "./page.module.css";
 
 axios.defaults.baseURL = process.env.BASE_URL || "http://localhost:5000/api";
 axios.defaults.withCredentials = true;
@@ -2062,6 +2065,9 @@ export default function IdPage() {
   const [userAvatarUrl, setUserAvatarUrl] = useState("");
   const [isLogIn, setIsLogin] = useState(false);
   const [authModalOpenSignal, setAuthModalOpenSignal] = useState(0);
+  const [loginSuccessMessage, setLoginSuccessMessage] = useState("");
+  const [isLoginSuccessExiting, setIsLoginSuccessExiting] = useState(false);
+  const loginSuccessTimeoutRef = useRef<number | null>(null);
 
   const onChangeStepStatus = (
     shapeId: string,
@@ -3028,6 +3034,7 @@ export default function IdPage() {
     if (isAuthorized) {
       // when authorized, clicking opens user info modal (handled via Navbar onClickUser)
     } else {
+      setIsLogin(true);
       setAuthModalOpenSignal((signal) => signal + 1);
     }
   };
@@ -3115,14 +3122,41 @@ export default function IdPage() {
     setIsAccountModalOpen(false);
   };
 
-  const afterLogin = () => {
+  useEffect(
+    () => () => {
+      if (loginSuccessTimeoutRef.current !== null) {
+        window.clearTimeout(loginSuccessTimeoutRef.current);
+      }
+    },
+    []
+  );
+
+  const showSuccessMessage = (message: string) => {
+    if (loginSuccessTimeoutRef.current !== null) {
+      window.clearTimeout(loginSuccessTimeoutRef.current);
+    }
+    setLoginSuccessMessage(message);
+    setIsLoginSuccessExiting(false);
+    loginSuccessTimeoutRef.current = window.setTimeout(() => {
+      setIsLoginSuccessExiting(true);
+      loginSuccessTimeoutRef.current = window.setTimeout(() => {
+        setLoginSuccessMessage("");
+        setIsLoginSuccessExiting(false);
+        loginSuccessTimeoutRef.current = null;
+      }, 180);
+    }, 3000);
+  };
+
+  const afterLogin = (message: string) => {
+    showSuccessMessage(message);
     setIsAccountModalOpen(false);
     void validateToken();
   };
 
-  const afterLogout = () => {
+  const afterLogout = (message?: string) => {
     setIsAuthorized(false);
     setUserAvatarUrl("");
+    if (message) showSuccessMessage(message);
   };
 
   const onClickProjectName = () => {
@@ -3157,8 +3191,8 @@ export default function IdPage() {
       <UserInfoModal
         isOpen={isUserInfoOpen}
         onClose={() => setIsUserInfoOpen(false)}
-        afterLogout={() => {
-          afterLogout();
+        afterLogout={(message) => {
+          afterLogout(message);
           setIsUserInfoOpen(false);
         }}
       />
@@ -3275,6 +3309,17 @@ export default function IdPage() {
           flowInstanceRef.current = instance;
         }}
       />
+
+      {loginSuccessMessage && (
+        <Alert
+          className={`${styles.loginSuccessAlert} ${
+            isLoginSuccessExiting ? styles.loginSuccessAlertExiting : ""
+          }`}
+          type={AlertTypes.Type.succeess}
+          variant="solid"
+          text={loginSuccessMessage}
+        />
+      )}
     </>
   );
 }

@@ -132,21 +132,22 @@ export default function AuthModal(props: AuthModalTypes.Props) {
 
     setIsAuthorizing(true);
 
-    const res: AxiosResponse<AuthTypes.Login["resData"], any> =
-      await authAPIs.login(authInfo.email.value, authInfo.password.value);
-
-    if (res.status >= 200 && res.status < 300) {
+    setAuthMessage((current) => ({ ...current, text: "" }));
+    try {
+      const res: AxiosResponse<AuthTypes.Login["resData"], any> =
+        await authAPIs.login(authInfo.email.value, authInfo.password.value);
       setIsAuthorizing(false);
       setAuthInfo(init.authInfo);
-      props.afterLogin?.();
-    } else {
-      setTimeout(() => {
-        setIsAuthorizing(false);
-        setAuthMessage({
-          status: AlertTypes.Type.error,
-          text: res.data.message,
-        });
-      }, 1000);
+      props.afterLogin(res.data.message);
+    } catch (error: unknown) {
+      setIsAuthorizing(false);
+      const message = axios.isAxiosError<{ message?: string }>(error)
+        ? error.response?.data?.message ?? "Unable to log in. Please try again."
+        : "Unable to log in. Please try again.";
+      setAuthMessage({
+        status: AlertTypes.Type.error,
+        text: message,
+      });
     }
   };
 
