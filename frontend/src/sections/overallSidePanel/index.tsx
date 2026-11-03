@@ -170,14 +170,14 @@ export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
                     fill="currentColor"
                   />
                   <span className={styles.stepId}>
-                    EP-{String(step.epNumber).padStart(3, "0")}
+                    ID-{String(step.epNumber).padStart(3, "0")}
                   </span>
                   <span className={styles.stepTitle}>{step.title}</span>
                 </button>
                 <div className={styles.stepMeta}>
                   <span className={styles.assignee}>
                     <UserRound size={13} />
-                    Unassigned
+                    <span>Unassigned</span>
                   </span>
                   <Menu.Root positioning={{ placement: "bottom-end" }}>
                     <Menu.Trigger asChild>
@@ -189,7 +189,9 @@ export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
                         aria-label={`Status for ${step.title}`}
                         onClick={(event) => event.stopPropagation()}
                       >
-                        {stepStatus}
+                        <span className={styles.statusSelectLabel}>
+                          {stepStatus}
+                        </span>
                         <ChevronDown size={11} />
                       </button>
                     </Menu.Trigger>

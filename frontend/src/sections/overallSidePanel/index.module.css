@@ -1,6 +1,6 @@
 .root {
   z-index: 60;
-  width: 218px;
+  width: 240px;
   max-width: calc(100vw - 24px);
   border-right: 1px solid #e8edf3;
   background: #fff;
@@ -262,6 +262,7 @@
 
 .assignee {
   display: flex;
+  flex: 1 1 0;
   min-width: 0;
   align-items: center;
   gap: 4px;
@@ -272,12 +273,25 @@
   white-space: nowrap;
 }
 
+.assignee svg {
+  flex: 0 0 auto;
+}
+
+.assignee span {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .statusSelect {
   display: inline-flex;
   max-width: 88px;
-  flex: 0 0 auto;
+  min-width: 0;
+  flex: 0 1 auto;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: 4px;
   border: 0;
   border-radius: 5px;
@@ -285,7 +299,19 @@
   font-family: inherit;
   font-size: 10px;
   font-weight: 600;
+  line-height: 1.2;
+  white-space: normal;
   cursor: pointer;
+}
+
+.statusSelectLabel {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+
+.statusSelect > svg {
+  flex: 0 0 auto;
 }
 
 .statusBadgeDone {

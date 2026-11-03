@@ -91,7 +91,7 @@ function FlowCard({ data, selected }: NodeProps<FlowNode>) {
             <span className={styles.statusIndicatorDot} />
           </span>
           <span className={styles.stepId}>
-            EP-{String(shape.epNumber).padStart(3, "0")}
+            ID-{String(shape.epNumber).padStart(3, "0")}
           </span>
         </div>
       </div>

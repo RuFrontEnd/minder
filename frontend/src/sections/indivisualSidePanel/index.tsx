@@ -210,7 +210,14 @@ export default function IndivisualSidePanel(
       const savedMessages = window.localStorage.getItem(
         `minder-step-activity:${props.indivisual.id}`
       );
-      setMessages(savedMessages ? JSON.parse(savedMessages) : []);
+      const loadedMessages: MessageItem[] = savedMessages
+        ? JSON.parse(savedMessages)
+        : [];
+      setMessages(
+        loadedMessages.filter(
+          (message) => typeof message.comment === "string" && message.comment.trim()
+        )
+      );
       const savedTasks = window.localStorage.getItem(
         `minder-step-tasks:${props.indivisual.id}`
       );
@@ -349,7 +356,6 @@ export default function IndivisualSidePanel(
     const previousStatus = props.stepStatuses[props.indivisual.id] || "Todo";
     if (previousStatus === status) return;
     props.onChangeStepStatus(props.indivisual.id, status);
-    addMessage(`Status changed to ${status}`);
   };
 
   const onSubmitMessage = (event: React.FormEvent<HTMLFormElement>) => {
@@ -395,7 +401,7 @@ export default function IndivisualSidePanel(
             <div className={styles.detailHeaderRow}>
               <span className={styles.detailId}>
                 <Circle size={8} fill="currentColor" />
-                EP-{String(props.indivisual.epNumber).padStart(3, "0")}
+                ID-{String(props.indivisual.epNumber).padStart(3, "0")}
               </span>
               <Menu.Root positioning={{ placement: "bottom-end" }}>
                 <Menu.Trigger asChild>
@@ -633,7 +639,7 @@ export default function IndivisualSidePanel(
                           className={styles[`status${dependencyStatus.replace(" ", "")}`]}
                         />
                         <span className={styles.dependencyId}>
-                          EP-{String(dependency.epNumber).padStart(3, "0")}
+                          ID-{String(dependency.epNumber).padStart(3, "0")}
                         </span>
                         <span className={styles.dependencyTitle}>
                           {dependency.title}
