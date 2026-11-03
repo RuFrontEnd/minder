@@ -17,6 +17,7 @@ type Props = {
   isOpen: boolean;
   onClose: () => void;
   isAuthorized: boolean;
+  projectId: string | null;
   onSelect?: (project: ProjectTypes.Project) => void;
   projectName: string;
   onChangeProjectName: (name: string) => void | Promise<void>;
@@ -49,6 +50,7 @@ const ProjectModal = ({
   isOpen,
   onClose,
   isAuthorized,
+  projectId,
   projectName,
   onChangeProjectName,
 }: Props) => {
@@ -177,6 +179,10 @@ const ProjectModal = ({
             <span>{projectName || "Untitled Project"}</span>
           </div>
         )}
+        <div className={styles.projectIdValue}>
+          <span className={styles.projectIdLabel}>Project ID</span>
+          <code>{projectId || "Not saved"}</code>
+        </div>
       </div>
 
       <div

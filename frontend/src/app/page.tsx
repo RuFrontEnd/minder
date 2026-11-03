@@ -3346,6 +3346,7 @@ export default function IdPage() {
         isOpen={isProjectModalOpen}
         onClose={() => setIsProjectModalOpen(false)}
         isAuthorized={isAuthorized}
+        projectId={currentProjectId}
         projectName={projectName.val}
         onChangeProjectName={async (name) => {
           if (isAuthorized && currentProjectId) {

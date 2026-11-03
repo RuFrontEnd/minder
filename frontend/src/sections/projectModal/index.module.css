@@ -111,6 +111,30 @@
   margin-top: 8px;
 }
 
+.projectIdValue {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 12px;
+  color: #6b7280;
+  font-size: 0.8125rem;
+}
+
+.projectIdLabel {
+  color: #374151;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.projectIdValue code {
+  overflow: hidden;
+  color: #6b7280;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .memberSection {
   display: flex;
   flex-direction: column;
