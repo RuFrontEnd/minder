@@ -1,7 +1,14 @@
 "use client";
-import React, { useEffect, useMemo, useState, ChangeEventHandler } from "react";
+import React, {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  ChangeEventHandler,
+} from "react";
 import SidePanel from "@/components/sidePanel";
 import CloseButton from "@/components/closeButton";
+import { Dialog, Portal } from "@chakra-ui/react";
 import Button from "@/components/button";
 import Input from "@/components/input";
 import Avatar from "@/components/avatar";
@@ -10,8 +17,11 @@ import IconButton from "@/components/iconButton";
 import {
   Check,
   Circle,
+  FileText,
+  Paperclip,
   Plus,
   Send,
+  Trash2,
   UserRound,
 } from "lucide-react";
 import { cloneDeep } from "lodash";
@@ -61,6 +71,18 @@ type TaskItem = {
   owner?: string;
 };
 
+type AttachmentItem = {
+  id: string;
+  file: File;
+  previewUrl?: string;
+};
+
+const formatFileSize = (size: number) => {
+  if (size < 1024) return `${size} B`;
+  if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
+  return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+};
+
 const getMessageTimeLabel = (createdAt?: number) => {
   if (!createdAt) return "Just now";
   const minutes = Math.max(0, Math.floor((Date.now() - createdAt) / 60000));
@@ -80,6 +102,23 @@ export default function IndivisualSidePanel(
   const [messages, setMessages] = useState<MessageItem[]>([]);
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [taskText, setTaskText] = useState("");
+  const [attachmentsByStep, setAttachmentsByStep] = useState<
+    Record<string, AttachmentItem[]>
+  >({});
+  const [previewedAttachment, setPreviewedAttachment] =
+    useState<AttachmentItem | null>(null);
+  const attachmentInputRef = useRef<HTMLInputElement>(null);
+  const attachmentPreviewUrlsRef = useRef(new Set<string>());
+
+  useEffect(
+    () => () => {
+      attachmentPreviewUrlsRef.current.forEach((url) =>
+        URL.revokeObjectURL(url)
+      );
+      attachmentPreviewUrlsRef.current.clear();
+    },
+    []
+  );
 
   const dependencies = useMemo(
     () =>
@@ -94,6 +133,9 @@ export default function IndivisualSidePanel(
   const selectedAsignee = authorOptions.find(
     (option) => option.value === (asigneeValues[0] || "")
   );
+  const attachments = props.indivisual
+    ? attachmentsByStep[props.indivisual.id] || []
+    : [];
 
   const closeEditing = () => {
     props.setIsEditingIndivisual(false);
@@ -222,6 +264,56 @@ export default function IndivisualSidePanel(
         task.id === taskId ? { ...task, owner: owner || undefined } : task
       )
     );
+  };
+
+  const onChangeAttachments: ChangeEventHandler<HTMLInputElement> = (event) => {
+    const stepId = props.indivisual?.id;
+    const files = Array.from(event.currentTarget.files || []);
+    if (!stepId || files.length === 0) return;
+
+    const newAttachments = files.map((file): AttachmentItem => {
+      if (!file.type.startsWith("image/")) {
+        return { id: `${Date.now()}-${Math.random()}`, file };
+      }
+
+      const previewUrl = URL.createObjectURL(file);
+      attachmentPreviewUrlsRef.current.add(previewUrl);
+      return {
+        id: `${Date.now()}-${Math.random()}`,
+        file,
+        previewUrl,
+      };
+    });
+
+    setAttachmentsByStep((current) => ({
+      ...current,
+      [stepId]: [...(current[stepId] || []), ...newAttachments],
+    }));
+    event.currentTarget.value = "";
+  };
+
+  const onRemoveAttachment = (attachmentId: string) => {
+    const stepId = props.indivisual?.id;
+    if (!stepId) return;
+
+    if (previewedAttachment?.id === attachmentId) {
+      setPreviewedAttachment(null);
+    }
+
+    const removedAttachment = (attachmentsByStep[stepId] || []).find(
+      (attachment) => attachment.id === attachmentId
+    );
+    if (removedAttachment?.previewUrl) {
+      URL.revokeObjectURL(removedAttachment.previewUrl);
+      attachmentPreviewUrlsRef.current.delete(removedAttachment.previewUrl);
+    }
+
+    setAttachmentsByStep((current) => ({
+      ...current,
+      [stepId]: (current[stepId] || []).filter(
+        (attachment) => attachment.id !== attachmentId
+      ),
+    }));
   };
 
   const saveMessages = (nextMessages: MessageItem[]) => {
@@ -629,6 +721,77 @@ export default function IndivisualSidePanel(
             </form>
           </section>
 
+          <section className={styles.detailSection}>
+            <div className={styles.sectionHeading}>
+              <h3>Attachments</h3>
+              <span className={styles.countBadge}>{attachments.length}</span>
+              <input
+                ref={attachmentInputRef}
+                className={styles.attachmentInput}
+                type="file"
+                multiple
+                aria-label="Select attachments"
+                onChange={onChangeAttachments}
+              />
+              <button
+                type="button"
+                className={styles.attachmentAction}
+                aria-label="Add attachments"
+                title="Add attachments"
+                onClick={() => attachmentInputRef.current?.click()}
+              >
+                <Paperclip size={14} />
+              </button>
+            </div>
+            {attachments.length ? (
+              <ul className={styles.attachmentList}>
+                {attachments.map(({ id, file, previewUrl }) => (
+                  <li className={styles.attachmentItem} key={id}>
+                    {previewUrl ? (
+                      <button
+                        type="button"
+                        className={styles.attachmentPreviewButton}
+                        aria-label={`Preview ${file.name}`}
+                        onClick={() =>
+                          setPreviewedAttachment({ id, file, previewUrl })
+                        }
+                      >
+                        <img
+                          className={styles.attachmentPreview}
+                          src={previewUrl}
+                          alt=""
+                        />
+                      </button>
+                    ) : (
+                      <FileText
+                        size={14}
+                        className={styles.attachmentIcon}
+                      />
+                    )}
+                    <span className={styles.attachmentInfo}>
+                      <span className={styles.attachmentName} title={file.name}>
+                        {file.name}
+                      </span>
+                      <span className={styles.attachmentSize}>
+                        {formatFileSize(file.size)}
+                      </span>
+                    </span>
+                    <button
+                      type="button"
+                      className={styles.removeAttachment}
+                      aria-label={`Remove ${file.name}`}
+                      onClick={() => onRemoveAttachment(id)}
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className={styles.sectionEmpty}>No attachments yet.</p>
+            )}
+          </section>
+
           <section className={`${styles.detailSection} ${styles.messagesSection}`}>
             <div className={styles.sectionHeading}>
               <h3>Messages</h3>
@@ -676,6 +839,39 @@ export default function IndivisualSidePanel(
         </div>
         )}
       </SidePanel>
+      <Dialog.Root
+        open={Boolean(previewedAttachment)}
+        onOpenChange={({ open }) => {
+          if (!open) setPreviewedAttachment(null);
+        }}
+        size="cover"
+        placement="center"
+      >
+        <Portal>
+          <Dialog.Backdrop className={styles.imagePreviewBackdrop} />
+          <Dialog.Positioner className={styles.imagePreviewPositioner}>
+            <Dialog.Content className={styles.imagePreviewDialog}>
+              <Dialog.CloseTrigger asChild>
+                <CloseButton
+                  className={styles.imagePreviewClose}
+                  ariaLabel="Close image preview"
+                  size="sm"
+                  onClick={() => setPreviewedAttachment(null)}
+                />
+              </Dialog.CloseTrigger>
+              <Dialog.Body className={styles.imagePreviewBody}>
+                {previewedAttachment?.previewUrl && (
+                  <img
+                    className={styles.imagePreviewImage}
+                    src={previewedAttachment.previewUrl}
+                    alt={previewedAttachment.file.name}
+                  />
+                )}
+              </Dialog.Body>
+            </Dialog.Content>
+          </Dialog.Positioner>
+        </Portal>
+      </Dialog.Root>
     </>
   );
 }

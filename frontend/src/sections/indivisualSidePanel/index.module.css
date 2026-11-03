@@ -365,6 +365,157 @@
   cursor: pointer;
 }
 
+.attachmentInput {
+  display: none;
+}
+
+.attachmentAction {
+  display: inline-flex;
+  width: 22px;
+  height: 22px;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #73839a;
+  cursor: pointer;
+}
+
+.attachmentAction:hover {
+  background: #f2f6fb;
+  color: #2877ed;
+}
+
+.attachmentList {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 7px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.attachmentItem {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 6px;
+  border: 1px solid #edf1f5;
+  border-radius: 5px;
+}
+
+.attachmentIcon {
+  flex: 0 0 auto;
+  color: #8190a3;
+}
+
+.attachmentPreview {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
+  border: 1px solid #edf1f5;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.attachmentPreviewButton {
+  display: inline-flex;
+  flex: 0 0 auto;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  cursor: zoom-in;
+}
+
+.attachmentPreviewButton:focus-visible {
+  outline: 2px solid #2877ed;
+  outline-offset: 2px;
+}
+
+.imagePreviewBackdrop {
+  background: rgba(15, 23, 42, 0.78);
+}
+
+.imagePreviewPositioner {
+  padding: 24px;
+}
+
+.imagePreviewDialog {
+  position: relative;
+  width: auto;
+  max-width: calc(100vw - 48px);
+  max-height: calc(100vh - 48px);
+  overflow: hidden;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.imagePreviewBody {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+}
+
+.imagePreviewImage {
+  display: block;
+  max-width: calc(100vw - 72px);
+  max-height: calc(100vh - 72px);
+  object-fit: contain;
+}
+
+.imagePreviewClose {
+  position: absolute;
+  z-index: 1;
+  top: 8px;
+  right: 8px;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.attachmentInfo {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.attachmentName {
+  overflow: hidden;
+  color: #43546b;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attachmentSize {
+  color: #98a4b3;
+  font-size: 9px;
+}
+
+.removeAttachment {
+  display: inline-flex;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #98a4b3;
+  cursor: pointer;
+}
+
+.removeAttachment:hover {
+  background: #fff1f0;
+  color: #d14343;
+}
+
 .dependencyList,
 .messageList {
   margin: 5px 0 0;
