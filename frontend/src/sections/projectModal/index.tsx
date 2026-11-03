@@ -16,6 +16,7 @@ import styles from "./index.module.css";
 type Props = {
   isOpen: boolean;
   onClose: () => void;
+  isAuthorized: boolean;
   onSelect?: (project: ProjectTypes.Project) => void;
   projectName: string;
   onChangeProjectName: (name: string) => void | Promise<void>;
@@ -47,6 +48,7 @@ const memberOptions: ComboboxTypes.Item[] = [
 const ProjectModal = ({
   isOpen,
   onClose,
+  isAuthorized,
   projectName,
   onChangeProjectName,
 }: Props) => {
@@ -177,7 +179,12 @@ const ProjectModal = ({
         )}
       </div>
 
-      <div className={styles.memberSection}>
+      <div
+        className={`${styles.memberSection} ${
+          !isAuthorized ? styles.disabledSection : ""
+        }`}
+        aria-disabled={!isAuthorized}
+      >
         <div className={styles.memberHeader}>
           <h3 className={styles.sectionTitle}>Members</h3>
           <span className={styles.memberCount}>
@@ -229,7 +236,12 @@ const ProjectModal = ({
         </div>
       </div>
 
-      <div className={styles.dangerZone}>
+      <div
+        className={`${styles.dangerZone} ${
+          !isAuthorized ? styles.disabledSection : ""
+        }`}
+        aria-disabled={!isAuthorized}
+      >
         <h3 className={styles.sectionTitle}>Danger zone</h3>
         <p className={styles.dangerDescription}>
           Deleting this project will permanently remove its stories,

@@ -3206,13 +3206,15 @@ export default function IdPage() {
     }
   };
 
-  const onClickDoNotSaveProject = () => {
+  const resetCanvasToDefault = () => {
     shapes = [];
     curves = [];
     selection = null;
     selectionFrame = null;
     pressingSelection = null;
     pressingCurve = null;
+    offset = cloneDeep(init.offset);
+    actions.clear();
     setSteps([]);
     setStepStatuses({});
     setDatas([]);
@@ -3220,22 +3222,34 @@ export default function IdPage() {
     setIndivisual(null);
     setCurrentProjectId(null);
     setProjectName({ inputVal: "Untitled", val: "Untitled" });
+    setScale(1);
+    setSpace(false);
+    setLeftMouseBtn(false);
+    setIsConnectMode(false);
+    setIsConsoleOpen(false);
+    setIsOverAllSidePanelOpen(false);
+    setIsIndivisualSidePanelOpen(true);
     try {
       window.localStorage.removeItem("minder-step-statuses");
     } catch (error) {
       console.error("Failed to clear step statuses:", error);
     }
+    drawCanvas(offset, 1);
+    drawScreenshot(offset, 1);
+  };
+
+  const onClickDoNotSaveProject = () => {
+    resetCanvasToDefault();
     setIsSaveProjectPromptOpen(false);
     setIsProjectSelectionRequired(true);
     setIsUserInfoOpen(true);
-    drawCanvas(offset, scale);
-    drawScreenshot(offset, scale);
   };
 
   const afterLogout = (message?: string) => {
     setIsAuthorized(false);
     setUserAvatarUrl("");
-    setCurrentProjectId(null);
+    resetCanvasToDefault();
+    setIsProjectSelectionRequired(false);
     if (message) showSuccessMessage(message);
   };
 
@@ -3331,6 +3345,7 @@ export default function IdPage() {
       <ProjectModal
         isOpen={isProjectModalOpen}
         onClose={() => setIsProjectModalOpen(false)}
+        isAuthorized={isAuthorized}
         projectName={projectName.val}
         onChangeProjectName={async (name) => {
           if (isAuthorized && currentProjectId) {
