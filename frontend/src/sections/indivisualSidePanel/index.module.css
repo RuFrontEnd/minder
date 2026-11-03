@@ -476,6 +476,40 @@
   background: #3478f6;
 }
 
+.taskOwnerAvatar {
+  flex: 0 0 auto;
+}
+
+.taskOwnerPicker {
+  position: relative;
+  display: inline-flex;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.taskOwnerPicker:hover {
+  box-shadow: 0 0 0 2px #e4eaf2;
+}
+
+.taskOwnerUnassignedAvatar {
+  width: 18px;
+  height: 18px;
+}
+
+.taskOwnerSelect {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
 .taskTitle {
   overflow: hidden;
   color: #43546b;

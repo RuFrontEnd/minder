@@ -57,6 +57,7 @@ type TaskItem = {
   id: string;
   title: string;
   completed: boolean;
+  owner?: string;
 };
 
 const getActivityTimeLabel = (createdAt?: number) => {
@@ -196,7 +197,12 @@ export default function IndivisualSidePanel(
     if (!title || !props.indivisual) return;
     saveTasks([
       ...tasks,
-      { id: `${Date.now()}-${Math.random()}`, title, completed: false },
+      {
+        id: `${Date.now()}-${Math.random()}`,
+        title,
+        completed: false,
+        owner: selectedAsignee?.value,
+      },
     ]);
     setTaskText("");
   };
@@ -205,6 +211,14 @@ export default function IndivisualSidePanel(
     saveTasks(
       tasks.map((task) =>
         task.id === taskId ? { ...task, completed: !task.completed } : task
+      )
+    );
+  };
+
+  const onChangeTaskOwner = (taskId: string, owner?: string) => {
+    saveTasks(
+      tasks.map((task) =>
+        task.id === taskId ? { ...task, owner: owner || undefined } : task
       )
     );
   };
@@ -531,32 +545,69 @@ export default function IndivisualSidePanel(
             </div>
             {tasks.length ? (
               <ul className={styles.taskList}>
-                {tasks.map((task) => (
-                  <li className={styles.taskItem} key={task.id}>
-                    <button
-                      type="button"
-                      className={`${styles.taskCheckbox} ${
-                        task.completed ? styles.taskCompleted : ""
-                      }`}
-                      aria-label={
-                        task.completed
-                          ? `Mark ${task.title} as incomplete`
-                          : `Mark ${task.title} as complete`
-                      }
-                      aria-pressed={task.completed}
-                      onClick={() => onToggleTask(task.id)}
-                    >
-                      {task.completed && <Check size={11} />}
-                    </button>
-                    <span
-                      className={`${styles.taskTitle} ${
-                        task.completed ? styles.taskTitleCompleted : ""
-                      }`}
-                    >
-                      {task.title}
-                    </span>
-                  </li>
-                ))}
+                {tasks.map((task) => {
+                  const owner = authorOptions.find((option) => option.value === task.owner);
+
+                  return (
+                    <li className={styles.taskItem} key={task.id}>
+                      <button
+                        type="button"
+                        className={`${styles.taskCheckbox} ${
+                          task.completed ? styles.taskCompleted : ""
+                        }`}
+                        aria-label={
+                          task.completed
+                            ? `Mark ${task.title} as incomplete`
+                            : `Mark ${task.title} as complete`
+                        }
+                        aria-pressed={task.completed}
+                        onClick={() => onToggleTask(task.id)}
+                      >
+                        {task.completed && <Check size={11} />}
+                      </button>
+                      <label className={styles.taskOwnerPicker}>
+                        {owner ? (
+                          <Avatar
+                            src={owner.logo}
+                            name={owner.label}
+                            size="2xs"
+                            className={styles.taskOwnerAvatar}
+                          />
+                        ) : (
+                          <span
+                            className={`${styles.unassignedAvatar} ${styles.taskOwnerUnassignedAvatar}`}
+                            aria-hidden="true"
+                          >
+                            <UserRound size={12} />
+                          </span>
+                        )}
+                        <select
+                          className={styles.taskOwnerSelect}
+                          aria-label={`Assign ${task.title} to a member`}
+                          title={owner ? `Owner: ${owner.label}` : "Assign to a member"}
+                          value={task.owner || ""}
+                          onChange={(event) =>
+                            onChangeTaskOwner(task.id, event.target.value)
+                          }
+                        >
+                          <option value="">Unassigned</option>
+                          {authorOptions.map((member) => (
+                            <option key={member.value} value={member.value}>
+                              {member.label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <span
+                        className={`${styles.taskTitle} ${
+                          task.completed ? styles.taskTitleCompleted : ""
+                        }`}
+                      >
+                        {task.title}
+                      </span>
+                    </li>
+                  );
+                })}
               </ul>
             ) : (
               <p className={styles.sectionEmpty}>No tasks yet.</p>
