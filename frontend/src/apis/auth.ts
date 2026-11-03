@@ -44,8 +44,20 @@ const getCurrentUser = async () => {
   return axios.get("/auth/me");
 };
 
+const updateAvatar = async (avatarUrl: string | null) => {
+  return axios.put("/auth/me/avatar", { avatarUrl });
+};
+
 const refresh = async () => {
   return axios.post("/auth/refresh");
 };
 
-export { register, login, logout, validateToken, getCurrentUser, refresh };
+export {
+  register,
+  login,
+  logout,
+  validateToken,
+  getCurrentUser,
+  updateAvatar,
+  refresh,
+};

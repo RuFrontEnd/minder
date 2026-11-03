@@ -85,17 +85,20 @@ public class AuthController(AuthService authService) : ControllerBase
 
     [Authorize]
     [HttpPost("validateToken")]
-    public IActionResult ValidateToken()
+    public async Task<IActionResult> ValidateToken()
     {
         var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
 
         if (userId == null) return Unauthorized();
+        if (!Guid.TryParse(userId, out var parsedUserId)) return Unauthorized();
+        var user = await authService.GetUserByIdAsync(parsedUserId);
 
         return Ok(new
         {
             id = userId,
             email = email,
+            avatarUrl = user?.AvatarUrl,
             message = "authenticated!"
         });
     }
@@ -111,6 +114,25 @@ public class AuthController(AuthService authService) : ControllerBase
         if (user == null) return NotFound(new { message = "User not found." });
 
         return Ok(user);
+    }
+
+    [Authorize]
+    [HttpPut("me/avatar")]
+    public async Task<IActionResult> UpdateAvatar(
+        [FromBody] UpdateAvatarRequest request)
+    {
+        if (request.AvatarUrl is not null &&
+            (!request.AvatarUrl.StartsWith("data:image/", StringComparison.OrdinalIgnoreCase) ||
+             request.AvatarUrl.Length > 4_000_000))
+        {
+            return BadRequest(new { message = "Avatar image is invalid or too large." });
+        }
+
+        var userIdValue = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!Guid.TryParse(userIdValue, out var userId)) return Unauthorized();
+
+        var user = await authService.UpdateAvatarAsync(userId, request.AvatarUrl);
+        return user is null ? NotFound(new { message = "User not found." }) : Ok(user);
     }
 
     [HttpPost("refresh")]

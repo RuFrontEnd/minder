@@ -1,5 +1,5 @@
 ﻿"use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Skeleton } from "@chakra-ui/react";
 import Modal from "@/components/modal";
 import Button from "@/components/button";
@@ -13,21 +13,62 @@ type Props = {
   isOpen: boolean;
   onClose: () => void;
   isCloseDisabled?: boolean;
+  afterAvatarChange?: (avatarUrl: string) => void;
   afterLogout?: (message: string) => void;
   afterCreateProject?: (project: ProjectTypes.Project) => void;
   onSelectProject?: (project: ProjectTypes.Project) => void;
 };
 
+const onChangeAvatar = async (
+  event: React.ChangeEvent<HTMLInputElement>
+) => {
+  const file = event.target.files?.[0];
+  event.target.value = "";
+  if (!file) return;
+  if (!file.type.startsWith("image/") || file.size > 3_000_000) {
+    setLoadError("Please choose an image smaller than 3 MB.");
+    return;
+  }
+
+  setIsUploadingAvatar(true);
+  setLoadError("");
+  try {
+    const avatarUrl = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === "string") resolve(reader.result);
+        else reject(new Error("Unable to read avatar image."));
+      };
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(file);
+    });
+    const response = await authAPIs.updateAvatar(avatarUrl);
+    const savedAvatarUrl = response.data?.avatarUrl || avatarUrl;
+    setUserProfile((current) =>
+      current ? { ...current, avatarUrl: savedAvatarUrl } : current
+    );
+    props.afterAvatarChange?.(savedAvatarUrl);
+  } catch (error) {
+    console.error("Failed to upload avatar:", error);
+    setLoadError("Unable to upload avatar. Please try again.");
+  } finally {
+    setIsUploadingAvatar(false);
+  }
+};
+
 export default function UserInfoModal(props: Props) {
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [loadError, setLoadError] = useState("");
   const [userProfile, setUserProfile] = useState<{
     email: string;
     firstName: string;
     lastName: string;
+    avatarUrl?: string;
   } | null>(null);
   const [projects, setProjects] = useState<ProjectTypes.Project[]>([]);
+  const avatarInputRef = useRef<HTMLInputElement | null>(null);
 
   const loadProjects = async () => {
     const res = await getProjects();
@@ -116,6 +157,7 @@ export default function UserInfoModal(props: Props) {
   }, [props.isOpen]);
 
   const fullName = `${firstName || ""} ${lastName || ""}`.trim();
+  const initials = `${firstName?.[0] || ""}${lastName?.[0] || ""}`.toUpperCase() || "U";
 
   return (
     <Modal
@@ -127,7 +169,28 @@ export default function UserInfoModal(props: Props) {
       title="Account settings"
       footer={false}
     >
-      <p className={styles.subtitle}>Manage your account and projects.</p>
+      <div className={styles.avatarSection}>
+        <button
+          type="button"
+          className={styles.avatarButton}
+          aria-label="Upload profile picture"
+          onClick={() => avatarInputRef.current?.click()}
+          disabled={isUploadingAvatar}
+        >
+          {userProfile?.avatarUrl ? (
+            <img src={userProfile.avatarUrl} alt="Profile" />
+          ) : (
+            <span>{initials}</span>
+          )}
+        </button>
+        <input
+          ref={avatarInputRef}
+          className={styles.avatarInput}
+          type="file"
+          accept="image/*"
+          onChange={onChangeAvatar}
+        />
+      </div>
 
       <div className={styles.nameSection}>
         <h3 className={styles.sectionTitle}>General</h3>

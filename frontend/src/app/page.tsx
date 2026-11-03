@@ -3341,6 +3341,7 @@ export default function IdPage() {
         isOpen={isUserInfoOpen}
         onClose={() => setIsUserInfoOpen(false)}
         isCloseDisabled={isProjectSelectionRequired}
+        afterAvatarChange={setUserAvatarUrl}
         afterCreateProject={onCreateProject}
         onSelectProject={onSelectProject}
         afterLogout={(message) => {

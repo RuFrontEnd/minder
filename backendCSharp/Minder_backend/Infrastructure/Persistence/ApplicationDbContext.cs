@@ -32,6 +32,7 @@ namespace Infrastructure.Persistence
                 entity.Property(e => e.Password).HasColumnName("password");
                 entity.Property(e => e.FirstName).HasColumnName("first_name");
                 entity.Property(e => e.LastName).HasColumnName("last_name");
+                entity.Property(e => e.AvatarUrl).HasColumnName("avatar_url");
                 entity.Property(e => e.IsEmailVerified).HasColumnName("is_email_verified");
                 entity.Property(e => e.EmailVerificationToken).HasColumnName("email_verification_token");
                 entity.Property(e => e.EmailVerificationTokenExpiry).HasColumnName("email_verification_token_expiry");

@@ -100,6 +100,27 @@ public class AuthService(ApplicationDbContext dbContext, IAuthRepository authRep
             Email = user.Email,
             FirstName = user.FirstName,
             LastName = user.LastName,
+            AvatarUrl = user.AvatarUrl,
+        };
+    }
+
+    public async Task<UserProfileDto?> UpdateAvatarAsync(
+        Guid userId,
+        string? avatarUrl)
+    {
+        var user = await authRepository.GetUserByIdAsync(userId);
+        if (user == null) return null;
+
+        user.SetAvatarUrl(avatarUrl);
+        await authRepository.SaveChangesAsync();
+
+        return new UserProfileDto
+        {
+            Id = user.Id,
+            Email = user.Email,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            AvatarUrl = user.AvatarUrl,
         };
     }
 

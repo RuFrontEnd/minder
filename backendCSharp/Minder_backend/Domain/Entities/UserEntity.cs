@@ -17,6 +17,7 @@
         public string Password { get; private set; } = null!;
         public string FirstName { get; private set; } = null!;
         public string LastName { get; private set; } = null!;
+        public string? AvatarUrl { get; private set; }
         public bool IsEmailVerified { get; private set; }
         public string? EmailVerificationToken { get; private set; }
         public DateTime? EmailVerificationTokenExpiry { get; private set; }
@@ -35,6 +36,11 @@
             IsEmailVerified = true;
             EmailVerificationToken = null;
             EmailVerificationTokenExpiry = null;
+        }
+
+        public void SetAvatarUrl(string? avatarUrl)
+        {
+            AvatarUrl = avatarUrl;
         }
 
         private UserEntity() { }
