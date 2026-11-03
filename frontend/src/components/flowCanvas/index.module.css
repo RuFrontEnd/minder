@@ -50,8 +50,8 @@
 }
 
 .selected {
-  border-color: #3b82f6 !important;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.16), 0 4px 12px rgba(37, 58, 84, 0.12);
+  border-color: #eab308 !important;
+  box-shadow: 0 0 0 2px rgba(234, 179, 8, 0.22), 0 4px 12px rgba(37, 58, 84, 0.12);
 }
 
 .cardHeader,
