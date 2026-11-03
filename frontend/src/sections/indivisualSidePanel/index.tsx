@@ -7,7 +7,6 @@ import Avatar from "@/components/avatar";
 import Icon from "@/components/icon";
 import IconButton from "@/components/iconButton";
 import {
-  Activity as ActivityIcon,
   Check,
   Circle,
   Plus,
@@ -16,6 +15,7 @@ import {
 } from "lucide-react";
 import { cloneDeep } from "lodash";
 import { tailwindColors } from "@/variables/colors";
+import { getStepCreator, type StepCreator } from "@/utils/stepCreator";
 import styles from "./index.module.css";
 
 import * as IconTypes from "@/types/components/icon";
@@ -67,7 +67,7 @@ export default function IndivisualSidePanel(
     null
   );
   const [asigneeValues, setAsigneeValues] = useState<string[]>([]);
-  const [priority, setPriority] = useState("Medium");
+  const [creator, setCreator] = useState<StepCreator | null>(null);
   const [commentText, setCommentText] = useState("");
   const [activityItems, setActivityItems] = useState<ActivityItem[]>([]);
 
@@ -155,15 +155,11 @@ export default function IndivisualSidePanel(
         `minder-step-activity:${props.indivisual.id}`
       );
       setActivityItems(savedActivity ? JSON.parse(savedActivity) : []);
-      const savedPriorities = window.localStorage.getItem(
-        "minder-step-priorities"
-      );
-      const priorityMap = savedPriorities ? JSON.parse(savedPriorities) : {};
-      setPriority(priorityMap[props.indivisual.id] || "Medium");
+      setCreator(getStepCreator(props.indivisual.id));
     } catch (error) {
       console.error("Failed to load step activity:", error);
       setActivityItems([]);
-      setPriority("Medium");
+      setCreator(null);
     }
   }, [props.indivisual?.id]);
 
@@ -198,21 +194,6 @@ export default function IndivisualSidePanel(
     if (previousStatus === status) return;
     props.onChangeStepStatus(props.indivisual.id, status);
     addActivity(`Status changed to ${status}`);
-  };
-
-  const onChangePriority = (value: string) => {
-    if (!props.indivisual) return;
-    setPriority(value);
-    try {
-      const stored = window.localStorage.getItem("minder-step-priorities");
-      const priorities = stored ? JSON.parse(stored) : {};
-      window.localStorage.setItem(
-        "minder-step-priorities",
-        JSON.stringify({ ...priorities, [props.indivisual.id]: value })
-      );
-    } catch (error) {
-      console.error("Failed to save step priority:", error);
-    }
   };
 
   const onSubmitComment = (event: React.FormEvent<HTMLFormElement>) => {
@@ -373,8 +354,8 @@ export default function IndivisualSidePanel(
             )}
           </div>
 
-          <div className={styles.ownerPriorityGrid}>
-            <div className={styles.ownerPriorityItem}>
+          <div className={styles.ownerCreatorGrid}>
+            <div className={styles.ownerCreatorItem}>
               <div className={styles.fieldLabel}>
                 <UserRound size={13} />
                 Owner
@@ -397,22 +378,26 @@ export default function IndivisualSidePanel(
                 </div>
               )}
             </div>
-            <label className={styles.ownerPriorityItem}>
+            <div className={styles.ownerCreatorItem}>
               <span className={styles.fieldLabel}>
-                <ActivityIcon size={13} />
-                Priority
+                <UserRound size={13} />
+                Creator
               </span>
-              <select
-                className={`${styles.priorityBadge} ${styles[`priority${priority}`]}`}
-                value={priority}
-                onChange={(event) => onChangePriority(event.target.value)}
-                aria-label="Priority"
-              >
-                <option>Low</option>
-                <option>Medium</option>
-                <option>High</option>
-              </select>
-            </label>
+              <div className={styles.ownerValue}>
+                {creator?.avatarUrl ? (
+                  <Avatar
+                    src={creator.avatarUrl}
+                    name={creator.name}
+                    size="xs"
+                  />
+                ) : (
+                  <span className={styles.unassignedAvatar}>
+                    <UserRound size={12} />
+                  </span>
+                )}
+                <span>{creator?.name || "Unknown"}</span>
+              </div>
+            </div>
           </div>
 
           <div className={styles.statusSection}>

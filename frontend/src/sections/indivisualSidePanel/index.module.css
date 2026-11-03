@@ -250,7 +250,7 @@
   line-height: 1.5;
 }
 
-.ownerPriorityGrid {
+.ownerCreatorGrid {
   display: grid;
   flex: 0 0 auto;
   grid-template-columns: 1fr 1fr;
@@ -258,7 +258,7 @@
   border-bottom: 1px solid #edf1f5;
 }
 
-.ownerPriorityItem {
+.ownerCreatorItem {
   display: flex;
   min-height: 58px;
   flex-direction: column;
@@ -266,7 +266,7 @@
   padding: 2px 8px 10px 0;
 }
 
-.ownerPriorityItem + .ownerPriorityItem {
+.ownerCreatorItem + .ownerCreatorItem {
   padding-left: 10px;
   border-left: 1px solid #edf1f5;
 }
@@ -298,32 +298,6 @@
   border-radius: 50%;
   background: #edf1f5;
   color: #93a0b0;
-}
-
-.priorityBadge {
-  width: max-content;
-  appearance: none;
-  border: 0;
-  border-radius: 5px;
-  padding: 4px 7px;
-  font-size: 10px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.priorityLow {
-  background: #e8f5ed;
-  color: #368353;
-}
-
-.priorityMedium {
-  background: #fff2d6;
-  color: #b77713;
-}
-
-.priorityHigh {
-  background: #ffe4e4;
-  color: #c14949;
 }
 
 .statusSection {
