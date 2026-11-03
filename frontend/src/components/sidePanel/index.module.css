@@ -27,3 +27,31 @@
 .switchButtonIcon--left {
   transform: rotate(-180deg);
 }
+
+/* Chrome, Edge, Safari */
+.body::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.body::-webkit-scrollbar-thumb {
+  background: #c5c9d3;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background-clip: padding-box;
+}
+
+.body::-webkit-scrollbar-thumb:hover {
+  background: #9299a8;
+  background-clip: padding-box;
+}
+
+/* Firefox */
+/* * {
+  scrollbar-width: thin;
+  scrollbar-color: #c5c9d3 transparent;
+} */

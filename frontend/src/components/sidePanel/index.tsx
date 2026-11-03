@@ -92,7 +92,9 @@ const SidePanel = (props: SidePanelTypes.Props) => {
                 <CharkaDrawer.Title>{props.title}</CharkaDrawer.Title>
               </CharkaDrawer.Header>
             )}
-            <CharkaDrawer.Body>{props.children}</CharkaDrawer.Body>
+            <CharkaDrawer.Body className={styles.body}>
+              {props.children}
+            </CharkaDrawer.Body>
             {props.footer !== false && <CharkaDrawer.Footer />}
             {!props.hideHeader && (
               <CharkaDrawer.CloseTrigger asChild onClick={props.onCancel}>
