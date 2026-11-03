@@ -36,4 +36,17 @@ public class ProjectService(IProjectRepository projectRepository)
         var createdProject = await projectRepository.AddProjectAsync(project, cancellationToken);
         return new ProjectDTO(createdProject.Id, createdProject.UserId, createdProject.Name);
     }
+
+    public async Task<ProjectDTO?> UpdateProjectNameAsync(
+        Guid projectId,
+        Guid userId,
+        string name,
+        CancellationToken cancellationToken)
+    {
+        var project = await projectRepository.UpdateProjectNameAsync(
+            projectId, userId, name.Trim(), cancellationToken);
+        return project is null
+            ? null
+            : new ProjectDTO(project.Id, project.UserId, project.Name);
+    }
 };

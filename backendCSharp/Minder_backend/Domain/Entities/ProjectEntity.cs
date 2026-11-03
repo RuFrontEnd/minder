@@ -15,5 +15,10 @@ namespace Domain.Entities
         // FK
         public Guid UserId { get; set; }
         public string Name { get; private set; }
+
+        public void Rename(string name)
+        {
+            Name = name;
+        }
     }
 }

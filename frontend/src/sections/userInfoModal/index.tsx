@@ -14,6 +14,7 @@ type Props = {
   onClose: () => void;
   afterLogout?: (message: string) => void;
   afterCreateProject?: (project: ProjectTypes.Project) => void;
+  onSelectProject?: (project: ProjectTypes.Project) => void;
 };
 
 export default function UserInfoModal(props: Props) {
@@ -44,6 +45,11 @@ export default function UserInfoModal(props: Props) {
     } finally {
       setIsLoggingOut(false);
     }
+  };
+
+  const onClickProject = (project: ProjectTypes.Project) => {
+    props.onClose();
+    props.onSelectProject?.(project);
   };
 
   const onClickAddProject = async () => {
@@ -167,12 +173,17 @@ export default function UserInfoModal(props: Props) {
             </div>
           ) : projects.length > 0 ? (
             projects.map((project) => (
-              <div key={project.id} className={styles.projectListItem}>
+              <button
+                type="button"
+                key={project.id}
+                className={styles.projectListItem}
+                onClick={() => onClickProject(project)}
+              >
                 <span className={styles.projectName}>
                   {getProjectLabel(project)}
                 </span>
                 <span className={styles.projectRole}>Owner</span>
-              </div>
+              </button>
             ))
           ) : (
             <div className={styles.projectEmptyText}>

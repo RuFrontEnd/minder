@@ -18,7 +18,7 @@ type Props = {
   onClose: () => void;
   onSelect?: (project: ProjectTypes.Project) => void;
   projectName: string;
-  onChangeProjectName: (name: string) => void;
+  onChangeProjectName: (name: string) => void | Promise<void>;
 };
 
 const memberOptions: ComboboxTypes.Item[] = [
@@ -82,12 +82,16 @@ const ProjectModal = ({
     }
   }, [isOpen, projectName]);
 
-  const onClickSaveProjectName = () => {
+  const onClickSaveProjectName = async () => {
     const name = nameDraft.trim();
     if (!name) return;
-    onChangeProjectName(name);
-    setNameDraft(name);
-    setIsEditingName(false);
+    try {
+      await onChangeProjectName(name);
+      setNameDraft(name);
+      setIsEditingName(false);
+    } catch (e) {
+      console.error("Failed to update project name", e);
+    }
   };
 
   const onClickDeleteProject = async () => {

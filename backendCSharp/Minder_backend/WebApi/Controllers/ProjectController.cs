@@ -70,4 +70,33 @@ public class ProjectController : ControllerBase
 
         return CreatedAtAction(nameof(GetById), new { id = project.Id }, project);
     }
+
+    [Authorize]
+    [HttpPut("{id:guid}")]
+    public async Task<ActionResult<ProjectDTO>> Update(
+        Guid id,
+        [FromBody] UpdateProjectRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(request.Name))
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Invalid project name.",
+                Detail = "Project name must not be empty.",
+                Status = StatusCodes.Status400BadRequest
+            });
+        }
+
+        var userIdValue = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!Guid.TryParse(userIdValue, out var userId)) return Unauthorized();
+
+        var project = await _projectService.UpdateProjectNameAsync(
+            id,
+            userId,
+            request.Name,
+            cancellationToken);
+
+        return project is null ? NotFound() : Ok(project);
+    }
 }

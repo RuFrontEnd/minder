@@ -7,5 +7,6 @@ namespace Domain.Repositories
         Task<List<ProjectEntity>> GetProjectsAsync(Guid userId, CancellationToken cancellationToken);
         Task<ProjectEntity?> GetProjectAsync(Guid projectId, Guid userId, CancellationToken cancellationToken);
         Task<ProjectEntity> AddProjectAsync(ProjectEntity project, CancellationToken cancellationToken);
+        Task<ProjectEntity?> UpdateProjectNameAsync(Guid projectId, Guid userId, string name, CancellationToken cancellationToken);
     }
 }

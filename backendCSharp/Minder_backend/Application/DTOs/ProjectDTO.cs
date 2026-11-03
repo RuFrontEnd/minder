@@ -11,4 +11,13 @@
         [System.ComponentModel.DataAnnotations.StringLength(100, MinimumLength = 1)]
         public required string Name { get; init; }
     }
+
+    /// <summary>Request payload for updating a project.</summary>
+    public sealed record UpdateProjectRequest
+    {
+        /// <summary>The new display name of the project.</summary>
+        [System.ComponentModel.DataAnnotations.Required]
+        [System.ComponentModel.DataAnnotations.StringLength(100, MinimumLength = 1)]
+        public required string Name { get; init; }
+    }
 }

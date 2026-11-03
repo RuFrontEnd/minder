@@ -34,6 +34,20 @@ namespace Infrastructure.Repositories
             await context.SaveChangesAsync(cancellationToken);
             return project;
         }
+
+        public async Task<ProjectEntity?> UpdateProjectNameAsync(
+            Guid projectId,
+            Guid userId,
+            string name,
+            CancellationToken cancellationToken)
+        {
+            var project = await GetProjectAsync(projectId, userId, cancellationToken);
+            if (project is null) return null;
+
+            project.Rename(name);
+            await context.SaveChangesAsync(cancellationToken);
+            return project;
+        }
     }
 
 }

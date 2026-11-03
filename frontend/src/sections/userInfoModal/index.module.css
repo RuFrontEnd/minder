@@ -133,11 +133,20 @@
 
 .projectListItem {
   display: flex;
+  width: 100%;
   min-height: 64px;
   align-items: center;
   gap: 12px;
   padding: 8px;
+  border: 0;
   border-bottom: 1px solid #eef0f3;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.projectListItem:hover {
+  background: #f9fafb;
 }
 
 .projectName {

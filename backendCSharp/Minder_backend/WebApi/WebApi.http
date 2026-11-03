@@ -18,4 +18,12 @@ Content-Type: application/json
   "name": "Untitled Project"
 }
 
+### Update a project name
+PUT {{Minder_backend_HostAddress}}/api/Project/00000000-0000-0000-0000-000000000000
+Content-Type: application/json
+
+{
+  "name": "Renamed Project"
+}
+
 ###

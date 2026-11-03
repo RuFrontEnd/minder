@@ -26,7 +26,8 @@ import { ensureStepIdentifiers } from "@/utils/stepIdentifier";
 import Navbar from "@/sections/navbar";
 import AuthModal from "@/sections/authModal";
 import UserInfoModal from "@/sections/userInfoModal";
-import { getProject } from "@/apis/project";
+import { getProject, updateProjectName } from "@/apis/project";
+import * as ProjectTypes from "@/types/project";
 import * as CurveTypes from "@/types/shapes/curve";
 import * as CommonTypes from "@/types/common";
 import * as AuthTypes from "@/types/apis/auth";
@@ -2041,6 +2042,9 @@ export default function IdPage() {
     Record<string, CommonTypes.StepStatus>
   >({});
   const [datas, setDatas] = useState<PageIdTypes.Datas>([]);
+  const [currentProjectId, setCurrentProjectId] = useState<string | null>(
+    null
+  );
   const [projectName, setProjectName] = useState({
     inputVal: "Untitled",
     val: "Untitled",
@@ -3160,6 +3164,17 @@ export default function IdPage() {
     if (message) showSuccessMessage(message);
   };
 
+  const openProject = async (project: ProjectTypes.Project) => {
+    try {
+      const res = await getProject(project.id);
+      const name = res.data?.name || "Untitled Project";
+      setCurrentProjectId(String(res.data?.id ?? project.id));
+      setProjectName({ inputVal: name, val: name });
+    } catch (err) {
+      console.error("Failed to load project", err);
+    }
+  };
+
   const onClickProjectName = () => {
     setIsProjectModalOpen(true);
   };
@@ -3192,15 +3207,8 @@ export default function IdPage() {
       <UserInfoModal
         isOpen={isUserInfoOpen}
         onClose={() => setIsUserInfoOpen(false)}
-        afterCreateProject={async (project) => {
-          try {
-            const res = await getProject(project.id);
-            const name = res.data?.name || "Untitled Project";
-            setProjectName({ inputVal: name, val: name });
-          } catch (err) {
-            console.error("Failed to load project", err);
-          }
-        }}
+        afterCreateProject={openProject}
+        onSelectProject={openProject}
         afterLogout={(message) => {
           afterLogout(message);
           setIsUserInfoOpen(false);
@@ -3211,9 +3219,12 @@ export default function IdPage() {
         isOpen={isProjectModalOpen}
         onClose={() => setIsProjectModalOpen(false)}
         projectName={projectName.val}
-        onChangeProjectName={(name) =>
-          setProjectName({ inputVal: name, val: name })
-        }
+        onChangeProjectName={async (name) => {
+          if (currentProjectId) {
+            await updateProjectName(currentProjectId, name);
+          }
+          setProjectName({ inputVal: name, val: name });
+        }}
       />
 
       <OverallSidePanel

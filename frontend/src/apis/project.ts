@@ -30,13 +30,8 @@ const updateProject = async (
   });
 };
 
-const updateProjectName = async (
-  id: number,
-  _data: ProjectAPITypes.UpdateProjectName["data"]
-) => {
-  return axios.put(`${prefix}/projects/${id}/name`, {
-    data: _data,
-  });
+const updateProjectName = async (id: number | string, name: string) => {
+  return axios.put(`/Project/${id}`, { name });
 };
 
 export {
