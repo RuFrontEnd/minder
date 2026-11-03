@@ -40,8 +40,12 @@ const validateToken = async () => {
   return axios.post("/auth/validateToken");
 };
 
+const getCurrentUser = async () => {
+  return axios.get("/auth/me");
+};
+
 const refresh = async () => {
   return axios.post("/auth/refresh");
 };
 
-export { register, login, logout, validateToken, refresh };
+export { register, login, logout, validateToken, getCurrentUser, refresh };

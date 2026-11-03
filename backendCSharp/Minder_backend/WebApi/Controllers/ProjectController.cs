@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Application.Services;
 using Application.DTOs;
+using Microsoft.AspNetCore.Authorization;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -19,10 +20,13 @@ public class ProjectController : ControllerBase
         _projectService = projectServer;
     }
 
-    // GET: api/<ValuesController>
+    [Authorize]
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<UserDto>>> Get(Guid userId)
+    public async Task<ActionResult<IEnumerable<ProjectDTO>>> Get()
     {
+        var userIdValue = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!Guid.TryParse(userIdValue, out var userId)) return Unauthorized();
+
         var result = await _projectService.GetAllProjectsAsync(userId);
         return Ok(result);
     }
@@ -34,4 +38,3 @@ public class ProjectController : ControllerBase
         return "value";
     }
 }
-

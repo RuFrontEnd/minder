@@ -35,6 +35,11 @@ namespace Infrastructure.Repositories
             return await dbContext.User.SingleOrDefaultAsync(u => u.Email == mail);
         }
 
+        public async Task<UserEntity?> GetUserByIdAsync(Guid userId)
+        {
+            return await dbContext.User.SingleOrDefaultAsync(u => u.Id == userId);
+        }
+
         public async Task<UserEntity?> GetUserByVerificationTokenAsync(string token)
         {
             return await dbContext.User.SingleOrDefaultAsync(u => u.EmailVerificationToken == token);

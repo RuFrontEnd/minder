@@ -1,11 +1,9 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import { Skeleton } from "@chakra-ui/react";
 import Modal from "@/components/modal";
 import Button from "@/components/button";
 import Select from "@/components/select";
-import Input from "@/components/input";
-import Icon from "@/components/icon";
-import * as IconTypes from "@/types/components/icon";
 import * as authAPIs from "@/apis/auth";
 import { createProject, getProjects } from "@/apis/project";
 import * as ProjectTypes from "@/types/project";
@@ -19,7 +17,14 @@ type Props = {
 };
 
 export default function UserInfoModal(props: Props) {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [loadError, setLoadError] = useState("");
+  const [userProfile, setUserProfile] = useState<{
+    email: string;
+    firstName: string;
+    lastName: string;
+  } | null>(null);
   const [projects, setProjects] = useState<ProjectTypes.Project[]>([]);
   const [selectedProject, setSelectedProject] = useState("");
   // const [cardNumber, setCardNumber] = useState("");
@@ -28,21 +33,12 @@ export default function UserInfoModal(props: Props) {
   // const [cvc, setCvc] = useState("");
 
   const loadProjects = async () => {
-    try {
-      const res = await getProjects();
-      if (res && res.data) {
-        setProjects(res.data);
-        if (!selectedProject && res.data.length > 0) {
-          setSelectedProject(res.data[0].name);
-        }
-      }
-    } catch (err) {
-      console.error("Failed to load projects", err);
-    }
+    const res = await getProjects();
+    return res.data as ProjectTypes.Project[];
   };
 
   const onLogout = async () => {
-    setIsLoading(true);
+    setIsLoggingOut(true);
     try {
       const res = await authAPIs.logout();
       localStorage.removeItem("Authorization");
@@ -51,7 +47,7 @@ export default function UserInfoModal(props: Props) {
     } catch (error) {
       console.error("Failed to log out:", error);
     } finally {
-      setIsLoading(false);
+      setIsLoggingOut(false);
     }
   };
 
@@ -59,27 +55,70 @@ export default function UserInfoModal(props: Props) {
     const projectName = "Untitled Project";
     try {
       await createProject(projectName);
-      await loadProjects();
+      const updatedProjects = await loadProjects();
+      setProjects(updatedProjects);
       setSelectedProject(projectName);
     } catch (err) {
       console.error("Failed to create project", err);
     }
   };
 
-  const userEmail =
-    typeof window !== "undefined" ? localStorage.getItem("userEmail") : null;
-  const firstName =
-    typeof window !== "undefined"
-      ? localStorage.getItem("userFirstName")
-      : null;
-  const lastName =
-    typeof window !== "undefined" ? localStorage.getItem("userLastName") : null;
+  const userEmail = userProfile?.email;
+  const firstName = userProfile?.firstName;
+  const lastName = userProfile?.lastName;
+  const getProjectLabel = (project: ProjectTypes.Project) =>
+    project.name || String(project.id);
   // const storedCardLast4 =
   //   typeof window !== "undefined" ? localStorage.getItem("cardLast4") : null;
 
   useEffect(() => {
     if (!props.isOpen) return;
-    loadProjects();
+    let isActive = true;
+    setIsLoadingData(true);
+    setLoadError("");
+    setUserProfile(null);
+    setProjects([]);
+    setSelectedProject("");
+
+    const loadModalData = async () => {
+      const [userResult, projectsResult] = await Promise.allSettled([
+        authAPIs.getCurrentUser(),
+        loadProjects(),
+      ]);
+
+      if (!isActive) return;
+
+      const errors: unknown[] = [];
+      if (userResult.status === "fulfilled") {
+        setUserProfile(userResult.value.data);
+      } else {
+        errors.push(userResult.reason);
+      }
+
+      if (projectsResult.status === "fulfilled") {
+        setProjects(projectsResult.value);
+        if (projectsResult.value.length > 0) {
+          setSelectedProject(getProjectLabel(projectsResult.value[0]));
+        }
+      } else {
+        errors.push(projectsResult.reason);
+      }
+
+      if (errors.length) {
+        errors.forEach((error) =>
+          console.error("Failed to load user info modal data:", error)
+        );
+        setLoadError("Unable to load some account details. Please try again.");
+      }
+
+      setIsLoadingData(false);
+    };
+
+    void loadModalData();
+
+    return () => {
+      isActive = false;
+    };
   }, [props.isOpen]);
 
   return (
@@ -94,26 +133,40 @@ export default function UserInfoModal(props: Props) {
           <span className={styles.nameLabel}>name</span>
         </div>
         <div className={styles.nameValue}>
-          {`${firstName || ""} ${lastName || ""}`.trim() || "Unknown"}
+          {isLoadingData ? (
+            <Skeleton height="20px" width="160px" />
+          ) : (
+            `${firstName || ""} ${lastName || ""}`.trim() || "Unknown"
+          )}
         </div>
       </div>
 
       <div className={styles.section}>
         <div className={styles.sectionLabel}>email</div>
-        <div className={styles.nameValue}>{userEmail || "-"}</div>
+        <div className={styles.nameValue}>
+          {isLoadingData ? (
+            <Skeleton height="20px" width="200px" />
+          ) : (
+            userEmail || "-"
+          )}
+        </div>
       </div>
 
       <div className={styles.divider} />
 
       <div className={styles.section}>
         <div className={styles.sectionLabel}>projects</div>
-        <Select
-          name="projects"
-          placeholder="select project"
-          options={projects.map((project) => project.name)}
-          value={selectedProject}
-          onChange={(e) => setSelectedProject(e.target.value)}
-        />
+        {isLoadingData ? (
+          <Skeleton height="40px" width="100%" borderRadius="6px" />
+        ) : (
+          <Select
+            name="projects"
+            placeholder="select project"
+            options={projects.map(getProjectLabel)}
+            value={selectedProject}
+            onChange={(e) => setSelectedProject(e.target.value)}
+          />
+        )}
         <div className={styles.nameRow}>
           <div />
           <Button
@@ -124,13 +177,23 @@ export default function UserInfoModal(props: Props) {
           />
         </div>
         <div className={styles.list}>
-          {projects.length > 0 &&
+          {isLoadingData ? (
+            <div className={styles.projectSkeletons}>
+              <Skeleton height="18px" width="70%" />
+              <Skeleton height="18px" width="55%" />
+            </div>
+          ) : projects.length > 0 &&
             projects.map((project) => (
               <div key={project.id} className={styles.nameValue}>
-                {project.name}
+                {getProjectLabel(project)}
               </div>
             ))}
         </div>
+        {loadError && (
+          <p className={styles.loadError} role="alert">
+            {loadError}
+          </p>
+        )}
       </div>
 
       {/* <div className={styles.section}>
@@ -173,6 +236,7 @@ export default function UserInfoModal(props: Props) {
           variant="outline"
           color={tailwindColors.error["500"]}
           text={"Log Out"}
+          loading={isLoggingOut}
           onClick={onLogout}
         />
       </div>

@@ -128,3 +128,16 @@
   background: var(--border-color, #e5e7eb);
   margin: 0.5rem 0 1rem 0;
 }
+
+.projectSkeletons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+}
+
+.loadError {
+  margin: 0;
+  color: #b42318;
+  font-size: 0.8125rem;
+}

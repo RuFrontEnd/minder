@@ -100,6 +100,19 @@ public class AuthController(AuthService authService) : ControllerBase
         });
     }
 
+    [Authorize]
+    [HttpGet("me")]
+    public async Task<IActionResult> GetCurrentUser()
+    {
+        var userIdValue = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!Guid.TryParse(userIdValue, out var userId)) return Unauthorized();
+
+        var user = await authService.GetUserByIdAsync(userId);
+        if (user == null) return NotFound(new { message = "User not found." });
+
+        return Ok(user);
+    }
+
     [HttpPost("refresh")]
     public async Task<IActionResult> Refresh()
     {

@@ -89,6 +89,20 @@ public class AuthService(ApplicationDbContext dbContext, IAuthRepository authRep
         };
     }
 
+    public async Task<UserProfileDto?> GetUserByIdAsync(Guid userId)
+    {
+        var user = await authRepository.GetUserByIdAsync(userId);
+        if (user == null) return null;
+
+        return new UserProfileDto
+        {
+            Id = user.Id,
+            Email = user.Email,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+        };
+    }
+
     public async Task<bool> VerifyEmailAsync(string token)
     {
         var user = await authRepository.GetUserByVerificationTokenAsync(token);
