@@ -4,7 +4,10 @@ type Props = {
   key?: string;
   id?: string;
   className?: string;
-  style?: Object;
+  bodyClassName?: string;
+  backdropClassName?: string;
+  positionerClassName?: string;
+  style?: React.CSSProperties;
   isOpen: boolean;
   title?: string;
   placement: "top" | "center" | "bottom";
@@ -17,6 +20,7 @@ type Props = {
   showCancelButton?: boolean;
   onOk?: MouseEventHandler<HTMLButtonElement>;
   onCancel?: MouseEventHandler<HTMLButtonElement>;
+  onClose?: () => void;
 };
 
 export type { Props };

@@ -10,9 +10,9 @@ import {
   Dialog,
   Field,
   Input as ChakraInput,
-  Portal,
 } from "@chakra-ui/react";
 import CloseButton from "@/components/closeButton";
+import Portal from "@/components/portal";
 import { AtSign, LockKeyhole, UserRound } from "lucide-react";
 import * as authAPIs from "@/apis/auth";
 import * as projectAPIs from "@/apis/project";

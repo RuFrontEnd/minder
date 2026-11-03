@@ -2,6 +2,8 @@
 import React, { useMemo, useState } from "react";
 import SidePanel from "@/components/sidePanel";
 import CloseButton from "@/components/closeButton";
+import { Menu } from "@/components/menu";
+import Portal from "@/components/portal";
 import { ChevronDown, Circle, Search, UserRound } from "lucide-react";
 import styles from "./index.module.css";
 import * as CommonTypes from "@/types/common";
@@ -82,21 +84,41 @@ export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
         </label>
 
         <div className={styles.filters}>
-          <label className={styles.filterSelect}>
-            <select
-              value={statusFilter}
-              onChange={(event) =>
-                setStatusFilter(event.target.value as StatusFilter)
-              }
-              aria-label="Filter by status"
-            >
-              <option>All Statuses</option>
-              <option>Done</option>
-              <option>In Progress</option>
-              <option>Todo</option>
-            </select>
-            <ChevronDown size={12} />
-          </label>
+          <Menu.Root positioning={{ placement: "bottom-start" }}>
+            <Menu.Trigger asChild>
+              <button
+                type="button"
+                className={`${styles.filterSelect} ${styles.statusFilterTrigger}`}
+                aria-label="Filter by status"
+              >
+                <span>{statusFilter}</span>
+                <ChevronDown size={12} />
+              </button>
+            </Menu.Trigger>
+            <Portal>
+              <Menu.Positioner>
+                <Menu.Content className={styles.statusMenuContent}>
+                  {(
+                    [
+                      "All Statuses",
+                      "Done",
+                      "In Progress",
+                      "Todo",
+                    ] as StatusFilter[]
+                  ).map((status) => (
+                    <Menu.Item
+                      key={status}
+                      value={status}
+                      className={styles.statusMenuItem}
+                      onClick={() => setStatusFilter(status)}
+                    >
+                      {status}
+                    </Menu.Item>
+                  ))}
+                </Menu.Content>
+              </Menu.Positioner>
+            </Portal>
+          </Menu.Root>
           <span className={`${styles.filterSelect} ${styles.memberFilter}`}>
             <UserRound size={12} />
             <span>All Members</span>
@@ -157,24 +179,45 @@ export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
                     <UserRound size={13} />
                     Unassigned
                   </span>
-                  <select
-                    className={`${styles.statusSelect} ${
-                      styles[`statusBadge${stepStatus.replace(" ", "")}`]
-                    }`}
-                    value={stepStatus}
-                    aria-label={`Status for ${step.title}`}
-                    onClick={(event) => event.stopPropagation()}
-                    onChange={(event) =>
-                      props.onChangeStepStatus(
-                        step.id,
-                        event.target.value as CommonTypes.StepStatus
-                      )
-                    }
-                  >
-                    <option>Todo</option>
-                    <option>In Progress</option>
-                    <option>Done</option>
-                  </select>
+                  <Menu.Root positioning={{ placement: "bottom-end" }}>
+                    <Menu.Trigger asChild>
+                      <button
+                        type="button"
+                        className={`${styles.statusSelect} ${
+                          styles[`statusBadge${stepStatus.replace(" ", "")}`]
+                        }`}
+                        aria-label={`Status for ${step.title}`}
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        {stepStatus}
+                        <ChevronDown size={11} />
+                      </button>
+                    </Menu.Trigger>
+                    <Portal>
+                      <Menu.Positioner>
+                        <Menu.Content className={styles.statusMenuContent}>
+                          {(
+                            [
+                              "Todo",
+                              "In Progress",
+                              "Done",
+                            ] as CommonTypes.StepStatus[]
+                          ).map((status) => (
+                            <Menu.Item
+                              key={status}
+                              value={status}
+                              className={styles.statusMenuItem}
+                              onClick={() =>
+                                props.onChangeStepStatus(step.id, status)
+                              }
+                            >
+                              {status}
+                            </Menu.Item>
+                          ))}
+                        </Menu.Content>
+                      </Menu.Positioner>
+                    </Portal>
+                  </Menu.Root>
                 </div>
               </li>
             );

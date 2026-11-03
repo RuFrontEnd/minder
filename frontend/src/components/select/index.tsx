@@ -1,6 +1,7 @@
 "use client";
 import type { ChangeEvent } from "react";
-import { Portal, Select as ChakraSelect, createListCollection } from "@chakra-ui/react";
+import { Select as ChakraSelect, createListCollection } from "@chakra-ui/react";
+import Portal from "@/components/portal";
 import * as SelectTypes from "@/types/components/select";
 import styles from "./index.module.css";
 

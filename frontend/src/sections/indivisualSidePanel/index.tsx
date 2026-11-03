@@ -8,7 +8,9 @@ import React, {
 } from "react";
 import SidePanel from "@/components/sidePanel";
 import CloseButton from "@/components/closeButton";
-import { Dialog, Portal } from "@chakra-ui/react";
+import Modal from "@/components/modal";
+import { Menu } from "@/components/menu";
+import Portal from "@/components/portal";
 import Button from "@/components/button";
 import Input from "@/components/input";
 import Avatar from "@/components/avatar";
@@ -16,6 +18,7 @@ import Icon from "@/components/icon";
 import IconButton from "@/components/iconButton";
 import {
   Check,
+  ChevronDown,
   Circle,
   FileText,
   Paperclip,
@@ -394,20 +397,42 @@ export default function IndivisualSidePanel(
                 <Circle size={8} fill="currentColor" />
                 EP-{String(props.indivisual.epNumber).padStart(3, "0")}
               </span>
-              <select
-                className={`${styles.statusBadge} ${
-                  styles[`status${(props.stepStatuses[props.indivisual.id] || "Todo").replace(" ", "")}`]
-                }`}
-                aria-label="Step status"
-                value={props.stepStatuses[props.indivisual.id] || "Todo"}
-                onChange={(event) =>
-                  onChangeStatus(event.target.value as CommonTypes.StepStatus)
-                }
-              >
-                <option>Todo</option>
-                <option>In Progress</option>
-                <option>Done</option>
-              </select>
+              <Menu.Root positioning={{ placement: "bottom-end" }}>
+                <Menu.Trigger asChild>
+                  <button
+                    type="button"
+                    className={`${styles.statusBadge} ${
+                      styles[
+                        `status${(
+                          props.stepStatuses[props.indivisual.id] || "Todo"
+                        ).replace(" ", "")}`
+                      ]
+                    }`}
+                    aria-label="Step status"
+                  >
+                    {props.stepStatuses[props.indivisual.id] || "Todo"}
+                    <ChevronDown size={12} />
+                  </button>
+                </Menu.Trigger>
+                <Portal>
+                  <Menu.Positioner>
+                    <Menu.Content className={styles.statusMenuContent}>
+                      {(["Todo", "In Progress", "Done"] as CommonTypes.StepStatus[]).map(
+                        (status) => (
+                          <Menu.Item
+                            key={status}
+                            value={status}
+                            className={styles.statusMenuItem}
+                            onClick={() => onChangeStatus(status)}
+                          >
+                            {status}
+                          </Menu.Item>
+                        )
+                      )}
+                    </Menu.Content>
+                  </Menu.Positioner>
+                </Portal>
+              </Menu.Root>
               <CloseButton
                 className={styles.closePanelButton}
                 ariaLabel="Close step details"
@@ -839,39 +864,35 @@ export default function IndivisualSidePanel(
         </div>
         )}
       </SidePanel>
-      <Dialog.Root
-        open={Boolean(previewedAttachment)}
-        onOpenChange={({ open }) => {
-          if (!open) setPreviewedAttachment(null);
-        }}
-        size="cover"
+      <Modal
+        isOpen={Boolean(previewedAttachment)}
         placement="center"
+        size="cover"
+        title=""
+        footer={false}
+        className={styles.imagePreviewDialog}
+        bodyClassName={styles.imagePreviewBody}
+        backdropClassName={styles.imagePreviewBackdrop}
+        positionerClassName={styles.imagePreviewPositioner}
+        style={{
+          width: "auto",
+          maxWidth: "calc(100vw - 48px)",
+          maxHeight: "calc(100vh - 48px)",
+          overflow: "hidden",
+          borderRadius: 8,
+          background: "#fff",
+        }}
+        onCancel={() => setPreviewedAttachment(null)}
+        onClose={() => setPreviewedAttachment(null)}
       >
-        <Portal>
-          <Dialog.Backdrop className={styles.imagePreviewBackdrop} />
-          <Dialog.Positioner className={styles.imagePreviewPositioner}>
-            <Dialog.Content className={styles.imagePreviewDialog}>
-              <Dialog.CloseTrigger asChild>
-                <CloseButton
-                  className={styles.imagePreviewClose}
-                  ariaLabel="Close image preview"
-                  size="sm"
-                  onClick={() => setPreviewedAttachment(null)}
-                />
-              </Dialog.CloseTrigger>
-              <Dialog.Body className={styles.imagePreviewBody}>
-                {previewedAttachment?.previewUrl && (
-                  <img
-                    className={styles.imagePreviewImage}
-                    src={previewedAttachment.previewUrl}
-                    alt={previewedAttachment.file.name}
-                  />
-                )}
-              </Dialog.Body>
-            </Dialog.Content>
-          </Dialog.Positioner>
-        </Portal>
-      </Dialog.Root>
+        {previewedAttachment?.previewUrl && (
+          <img
+            className={styles.imagePreviewImage}
+            src={previewedAttachment.previewUrl}
+            alt={previewedAttachment.file.name}
+          />
+        )}
+      </Modal>
     </>
   );
 }

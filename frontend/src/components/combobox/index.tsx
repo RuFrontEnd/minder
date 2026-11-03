@@ -4,7 +4,6 @@ import {
   Combobox,
   HStack,
   Image,
-  Portal,
   Span,
   Stack,
   Text,
@@ -12,6 +11,7 @@ import {
   useFilter,
   useListCollection,
 } from "@chakra-ui/react";
+import Portal from "@/components/portal";
 import * as ComboboxTypes from "@/types/components/combobox";
 
 function ComboboxValue() {

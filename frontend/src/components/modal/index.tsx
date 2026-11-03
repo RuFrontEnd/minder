@@ -1,5 +1,6 @@
 "use client";
-import { Dialog, For, HStack, Portal } from "@chakra-ui/react";
+import { Dialog, For, HStack } from "@chakra-ui/react";
+import Portal from "@/components/portal";
 import CloseButton from "@/components/closeButton";
 import RoundButton from "@/components/roundButton";
 import Icon from "@/components/icon";
@@ -18,15 +19,26 @@ const Modal = (props: ModalTypes.Props) => {
       key={props.key}
       open={props.isOpen}
       placement={props.placement || "center"}
+      onOpenChange={({ open }) => {
+        if (!open) props.onClose?.();
+      }}
     >
       <Portal>
-        <Dialog.Backdrop />
-        <Dialog.Positioner>
-          <Dialog.Content>
-            <Dialog.Header>
-              <Dialog.Title>{props.title}</Dialog.Title>
-            </Dialog.Header>
-            <Dialog.Body>{props.children}</Dialog.Body>
+        <Dialog.Backdrop className={props.backdropClassName} />
+        <Dialog.Positioner className={props.positionerClassName}>
+          <Dialog.Content
+            id={props.id}
+            className={props.className}
+            style={props.style}
+          >
+            {props.title && (
+              <Dialog.Header>
+                <Dialog.Title>{props.title}</Dialog.Title>
+              </Dialog.Header>
+            )}
+            <Dialog.Body className={props.bodyClassName}>
+              {props.children}
+            </Dialog.Body>
             {props.footer && (
               <Dialog.Footer>
                 {props.showCancelButton && (
