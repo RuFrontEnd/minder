@@ -16,6 +16,7 @@ namespace Infrastructure.Persistence
         public DbSet<MemberEntity> Member => Set<MemberEntity>();
         public DbSet<ShapeEntity> Step => Set<ShapeEntity>();
         public DbSet<TaskEntity> Tasks => Set<TaskEntity>();
+        public DbSet<MessageEntity> Messages => Set<MessageEntity>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -108,6 +109,44 @@ namespace Infrastructure.Persistence
                 entity.HasOne<UserEntity>()
                     .WithMany()
                     .HasForeignKey(e => e.Owner)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<MessageEntity>(entity =>
+            {
+                entity.ToTable("Message");
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .HasDefaultValueSql("gen_random_uuid()");
+
+                entity.Property(e => e.StepId)
+                    .HasColumnName("step_id");
+
+                entity.Property(e => e.MemberId)
+                    .HasColumnName("member_id");
+
+                entity.Property(e => e.Content)
+                    .HasColumnName("content");
+
+                entity.Property(e => e.CreatedAt)
+                    .HasColumnName("create_at")
+                    .HasColumnType("timestamp with time zone")
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                entity.Property(e => e.UpdatedAt)
+                    .HasColumnName("update_at")
+                    .HasColumnType("timestamp with time zone")
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                entity.HasOne<ShapeEntity>()
+                    .WithMany()
+                    .HasForeignKey(e => e.StepId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne<MemberEntity>()
+                    .WithMany()
+                    .HasForeignKey(e => e.MemberId)
                     .OnDelete(DeleteBehavior.Cascade);
             });
         }
