@@ -11,6 +11,7 @@ import {
   useFilter,
   useListCollection,
 } from "@chakra-ui/react";
+import { useEffect } from "react";
 import Portal from "@/components/portal";
 import * as ComboboxTypes from "@/types/components/combobox";
 
@@ -42,17 +43,24 @@ function ComboboxValue() {
 const ChakraCombobox = (props: ComboboxTypes.Props) => {
   const { contains } = useFilter({ sensitivity: "base" });
 
-  const { collection, filter } = useListCollection({
+  const { collection, filter, set } = useListCollection({
     initialItems: props.items,
     filter: contains,
   });
+
+  useEffect(() => {
+    set(props.items);
+  }, [props.items, set]);
 
   return (
     <Combobox.Root
       id={props.id}
       className={props.className}
       collection={collection}
-      onInputValueChange={(e) => filter(e.inputValue)}
+      onInputValueChange={(e) => {
+        filter(e.inputValue);
+        props.onInputValueChange?.(e.inputValue);
+      }}
       onValueChange={(e) => props.onValueChange?.(e.value as string[])}
       value={props.value}
       width={props.width}

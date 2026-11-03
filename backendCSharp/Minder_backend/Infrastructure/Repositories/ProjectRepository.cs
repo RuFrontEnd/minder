@@ -82,6 +82,70 @@ namespace Infrastructure.Repositories
             await context.SaveChangesAsync(cancellationToken);
             return true;
         }
+
+        public async Task<AddProjectMemberResult> AddMemberAsync(
+            Guid projectId,
+            Guid requesterId,
+            Guid targetUserId,
+            CancellationToken cancellationToken)
+        {
+            var isOwner = await (
+                from member in context.Members
+                join role in context.Roles on member.RoleId equals role.Id
+                where member.ProjectId == projectId
+                    && member.UserId == requesterId
+                    && role.Name == "owner"
+                select member.Id
+            ).AnyAsync(cancellationToken);
+
+            if (!isOwner) return AddProjectMemberResult.ProjectNotFoundOrNotOwner;
+
+            var userExists = await context.Users
+                .AnyAsync(user => user.Id == targetUserId, cancellationToken);
+            if (!userExists) return AddProjectMemberResult.UserNotFound;
+
+            var alreadyMember = await context.Members
+                .AnyAsync(
+                    member => member.ProjectId == projectId
+                        && member.UserId == targetUserId,
+                    cancellationToken);
+            if (alreadyMember) return AddProjectMemberResult.AlreadyMember;
+
+            await context.Members.AddAsync(
+                new MemberEntity(targetUserId, projectId, RoleEntity.MemberId),
+                cancellationToken);
+            await context.SaveChangesAsync(cancellationToken);
+            return AddProjectMemberResult.Added;
+        }
+
+        public async Task<List<ProjectMember>?> GetMembersAsync(
+            Guid projectId,
+            Guid requesterId,
+            CancellationToken cancellationToken)
+        {
+            var isMember = await context.Members.AnyAsync(
+                member => member.ProjectId == projectId
+                    && member.UserId == requesterId,
+                cancellationToken);
+            if (!isMember) return null;
+
+            return await (
+                from member in context.Members
+                join user in context.Users on member.UserId equals user.Id
+                join role in context.Roles on member.RoleId equals role.Id
+                where member.ProjectId == projectId
+                orderby role.Name, user.Email
+                select new ProjectMember(
+                    user.Id,
+                    user.Email,
+                    user.FirstName,
+                    user.LastName,
+                    user.AvatarUrl,
+                    user.AvatarColor == null ? null : user.AvatarColor.Color,
+                    user.AvatarColor == null ? null : user.AvatarColor.BackgroundColor,
+                    role.Name)
+            ).ToListAsync(cancellationToken);
+        }
     }
 
 }

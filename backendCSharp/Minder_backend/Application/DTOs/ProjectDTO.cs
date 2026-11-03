@@ -20,4 +20,16 @@
         [System.ComponentModel.DataAnnotations.StringLength(100, MinimumLength = 1)]
         public required string Name { get; init; }
     }
+
+    public sealed record AddProjectMemberRequest(Guid UserId);
+
+    public sealed record ProjectMemberDTO(
+        Guid UserId,
+        string Email,
+        string FirstName,
+        string LastName,
+        string? AvatarUrl,
+        string? AvatarColor,
+        string? AvatarBackgroundColor,
+        string Role);
 }

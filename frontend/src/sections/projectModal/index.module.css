@@ -167,6 +167,18 @@
   flex-direction: column;
 }
 
+.memberSkeletonList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.memberError {
+  margin: 8px 0 0;
+  color: #b42318;
+  font-size: 0.8125rem;
+}
+
 .memberListItem {
   display: flex;
   min-height: 64px;

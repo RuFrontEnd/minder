@@ -1,10 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { Input as ChakraInput } from "@chakra-ui/react";
+import { Input as ChakraInput, Skeleton } from "@chakra-ui/react";
 import Modal from "@/components/modal";
 import Button from "@/components/button";
 import Combobox from "@/components/combobox";
 import Avatar from "@/components/avatar";
-import { deleteProject } from "@/apis/project";
+import {
+  addProjectMember,
+  deleteProject,
+  getProjectMembers,
+} from "@/apis/project";
+import { searchUsers, UserSearchResult } from "@/apis/user";
 import * as ProjectTypes from "@/types/project";
 import * as ComboboxTypes from "@/types/components/combobox";
 import * as IconTypes from "@/types/components/icon";
@@ -24,29 +29,6 @@ type Props = {
   onChangeProjectName: (name: string) => void | Promise<void>;
 };
 
-const memberOptions: ComboboxTypes.Item[] = [
-  {
-    label: "John Mason",
-    value: "john-mason",
-    logo: "https://i.pravatar.cc/300?u=iu",
-  },
-  {
-    label: "Melissa Jones",
-    value: "melissa-jones",
-    logo: "https://i.pravatar.cc/300?u=po",
-  },
-  {
-    label: "Alex Wang",
-    value: "alex-wang",
-    logo: "https://i.pravatar.cc/300?u=alex",
-  },
-  {
-    label: "Cindy Chen",
-    value: "cindy-chen",
-    logo: "https://i.pravatar.cc/300?u=cindy",
-  },
-];
-
 const ProjectModal = ({
   isOpen,
   onClose,
@@ -63,23 +45,126 @@ const ProjectModal = ({
   const [deleteName, setDeleteName] = useState("");
   const [deleteError, setDeleteError] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
+  const [memberOptions, setMemberOptions] = useState<ComboboxTypes.Item[]>(
+    []
+  );
+  const [memberUsers, setMemberUsers] = useState<
+    Record<string, UserSearchResult>
+  >({});
+  const [memberError, setMemberError] = useState("");
+  const [isLoadingMembers, setIsLoadingMembers] = useState(false);
 
   const joinedMembers = memberValues
-    .map((value) => memberOptions.find((member) => member.value === value))
-    .filter((member): member is ComboboxTypes.Item => !!member);
+  .map((value) => memberUsers[value])
+  .filter((member): member is UserSearchResult => !!member);
 
-  const onDeleteMember = (value: string) => {
-    setMemberValues((prev) =>
-      prev.filter((memberValue) => memberValue !== value)
-    );
+  const onSearchMembers = async (query: string) => {
+    if (!isAuthorized || query.trim().length === 0) {
+      setMemberOptions([]);
+      return;
+    }
+
+    try {
+      const response = await searchUsers(query.trim());
+      const users = response.data.filter(
+        (user) => !memberValues.includes(user.id)
+      );
+      setMemberUsers((current) => ({
+        ...current,
+        ...Object.fromEntries(users.map((user) => [user.id, user])),
+      }));
+      setMemberOptions(
+        users.map((user) => ({
+          label: `${user.firstName} ${user.lastName} (${user.email})`,
+          value: user.id,
+          logo: user.avatarUrl || undefined,
+        }))
+      );
+    } catch (error) {
+      console.error("Failed to search users", error);
+      setMemberError("Unable to search users.");
+    }
+  };
+
+  const onChangeMemberValues = async (values: string[]) => {
+    const addedUserId = values.find((value) => !memberValues.includes(value));
+    if (!addedUserId || !projectId) return;
+
+    setMemberError("");
+    try {
+      await addProjectMember(projectId, addedUserId);
+      setMemberValues((current) => [...current, addedUserId]);
+    } catch (error) {
+      console.error("Failed to add project member", error);
+      setMemberError("Unable to add this user to the project.");
+    }
   };
 
   useEffect(() => {
     if (isOpen) {
       setNameDraft(projectName);
       setIsEditingName(false);
+      setMemberError("");
+      setMemberOptions([]);
+      setMemberValues([]);
+      setMemberUsers({});
+
+      if (isAuthorized && projectId) {
+        let isActive = true;
+        setIsLoadingMembers(true);
+        void getProjectMembers(projectId)
+          .then((response) => {
+            if (!isActive) return;
+            const members = response.data as Array<{
+              userId: string;
+              email: string;
+              firstName: string;
+              lastName: string;
+              avatarUrl?: string | null;
+              avatarColor?: string | null;
+              avatarBackgroundColor?: string | null;
+              role: string;
+            }>;
+            const users = Object.fromEntries(
+              members.map((member) => [
+                member.userId,
+                {
+                  id: member.userId,
+                  email: member.email,
+                  firstName: member.firstName,
+                  lastName: member.lastName,
+                  avatarUrl: member.avatarUrl,
+                  avatarColor: member.avatarColor
+                    ? {
+                        name: member.role,
+                        color: member.avatarColor,
+                        backgroundColor:
+                          member.avatarBackgroundColor || "#e5e7eb",
+                      }
+                    : null,
+                  role: member.role,
+                },
+              ])
+            );
+            setMemberUsers(users);
+            setMemberValues(members.map((member) => member.userId));
+          })
+          .catch((error) => {
+            if (!isActive) return;
+            console.error("Failed to load project members", error);
+            setMemberError("Unable to load project members.");
+          })
+          .finally(() => {
+            if (isActive) setIsLoadingMembers(false);
+          });
+
+        return () => {
+          isActive = false;
+        };
+      }
+      setIsLoadingMembers(false);
     }
-  }, [isOpen, projectName]);
+  }, [isOpen, projectName, isAuthorized, projectId]);
 
   const onClickSaveProjectName = async () => {
     const name = nameDraft.trim();
@@ -204,7 +289,9 @@ const ProjectModal = ({
         <div className={styles.memberHeader}>
           <h3 className={styles.sectionTitle}>Members</h3>
           <span className={styles.memberCount}>
-            {joinedMembers.length} {joinedMembers.length === 1 ? "member" : "members"}
+            {isLoadingMembers ? "Loading..." : `${joinedMembers.length} ${
+              joinedMembers.length === 1 ? "member" : "members"
+            }`}
           </span>
         </div>
         <Combobox
@@ -214,37 +301,36 @@ const ProjectModal = ({
           placeholder="Search and add members"
           items={memberOptions}
           value={memberValues}
-          onValueChange={(value) => {
-            setMemberValues(value);
-          }}
+          onInputValueChange={onSearchMembers}
+          onValueChange={onChangeMemberValues}
           multiple
           closeOnSelect
           showSelectedItems={false}
           emptyText="No members found"
         />
+        {memberError && <p className={styles.memberError}>{memberError}</p>}
 
         <div className={styles.memberList}>
-          {joinedMembers.map((member) => (
-            <div key={member.value} className={styles.memberListItem}>
-              <Avatar src={member.logo} name={member.label} size="sm" />
-              <span className={styles.memberRole}>Member</span>
-              <IconButton
-                ariaLabel={`Remove ${member.label}`}
-                variant="outline"
-                size="2xs"
-                icon={
-                  <Icon
-                    type={IconTypes.Type.x}
-                    w={10}
-                    h={10}
-                    stroke={tailwindColors.grey["2"]}
-                  />
-                }
-                onClick={() => onDeleteMember(member.value)}
-              />
+          {isLoadingMembers ? (
+            <div className={styles.memberSkeletonList}>
+              <Skeleton height="48px" />
+              <Skeleton height="48px" />
             </div>
-          ))}
-          {!joinedMembers.length && (
+          ) : joinedMembers.length ? joinedMembers.map((member) => (
+            <div key={member.id} className={styles.memberListItem}>
+              <Avatar
+                src={member.avatarUrl || undefined}
+                name={`${member.firstName} ${member.lastName}`}
+                size="sm"
+              />
+              <span>
+                {member.firstName} {member.lastName}
+              </span>
+              <span className={styles.memberRole}>
+                {memberUsers[member.id]?.role || "Member"}
+              </span>
+            </div>
+          )) : (
             <div className={styles.memberEmptyText}>
               No members have joined this project yet.
             </div>

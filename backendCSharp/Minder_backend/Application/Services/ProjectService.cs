@@ -76,4 +76,37 @@ public class ProjectService(IProjectRepository projectRepository)
             userId,
             cancellationToken);
     }
+
+    public Task<AddProjectMemberResult> AddMemberAsync(
+        Guid projectId,
+        Guid requesterId,
+        Guid targetUserId,
+        CancellationToken cancellationToken)
+    {
+        return projectRepository.AddMemberAsync(
+            projectId,
+            requesterId,
+            targetUserId,
+            cancellationToken);
+    }
+
+    public async Task<IEnumerable<ProjectMemberDTO>?> GetMembersAsync(
+        Guid projectId,
+        Guid requesterId,
+        CancellationToken cancellationToken)
+    {
+        var members = await projectRepository.GetMembersAsync(
+            projectId,
+            requesterId,
+            cancellationToken);
+        return members?.Select(member => new ProjectMemberDTO(
+            member.UserId,
+            member.Email,
+            member.FirstName,
+            member.LastName,
+            member.AvatarUrl,
+            member.AvatarColor,
+            member.AvatarBackgroundColor,
+            member.Role));
+    }
 };

@@ -18,3 +18,11 @@ public class AvatarColorDto
     public string Color { get; set; } = string.Empty;
     public string BackgroundColor { get; set; } = string.Empty;
 }
+
+public sealed record UserSearchDto(
+    Guid Id,
+    string Email,
+    string FirstName,
+    string LastName,
+    string? AvatarUrl,
+    AvatarColorDto? AvatarColor);

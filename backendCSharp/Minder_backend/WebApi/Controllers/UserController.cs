@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Application.Services;
 using Application.DTOs;
+using Microsoft.AspNetCore.Authorization;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -27,6 +28,26 @@ public class UserController : ControllerBase
         return Ok(result);
     }
 
+    [Authorize]
+    [HttpGet("search")]
+    public async Task<ActionResult<IEnumerable<UserSearchDto>>> Search(
+        [FromQuery] string q,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(q))
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Invalid search query.",
+                Detail = "Search query must not be empty.",
+                Status = StatusCodes.Status400BadRequest
+            });
+        }
+
+        var result = await _userService.SearchUsersAsync(q, cancellationToken);
+        return Ok(result);
+    }
+
     // GET api/<ValuesController>/5
     [HttpGet("{id}")]
     public string Get(int id)
@@ -46,4 +67,3 @@ public class UserController : ControllerBase
     {
     }
 }
-

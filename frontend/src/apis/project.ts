@@ -17,6 +17,17 @@ const deleteProject = async (id: number | string) => {
   return axios.delete(`/Project/${id}`);
 };
 
+const addProjectMember = async (
+  projectId: number | string,
+  userId: string
+) => {
+  return axios.post(`/Project/${projectId}/members`, { userId });
+};
+
+const getProjectMembers = async (projectId: number | string) => {
+  return axios.get(`/Project/${projectId}/members`);
+};
+
 const getProject = async (id: number | string) => {
   return axios.get(`/Project/${id}`);
 };
@@ -41,4 +52,6 @@ export {
   updateProject,
   updateProjectName,
   deleteProject,
+  addProjectMember,
+  getProjectMembers,
 };

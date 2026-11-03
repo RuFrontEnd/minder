@@ -17,6 +17,7 @@ type Props = {
   emptyText?: string;
   items: Item[];
   onValueChange?: (value: string[]) => void;
+  onInputValueChange?: (value: string) => void;
 };
 
 export type { Item, Props };

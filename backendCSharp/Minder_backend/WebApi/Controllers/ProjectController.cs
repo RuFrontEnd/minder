@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Application.Services;
 using Application.DTOs;
+using Domain.Repositories;
 using Microsoft.AspNetCore.Authorization;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -115,5 +116,63 @@ public class ProjectController : ControllerBase
             cancellationToken);
 
         return deleted ? NoContent() : NotFound();
+    }
+
+    [Authorize]
+    [HttpPost("{id:guid}/members")]
+    public async Task<IActionResult> AddMember(
+        Guid id,
+        [FromBody] AddProjectMemberRequest request,
+        CancellationToken cancellationToken)
+    {
+        var requesterIdValue = User.FindFirst(
+            System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!Guid.TryParse(requesterIdValue, out var requesterId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await _projectService.AddMemberAsync(
+            id,
+            requesterId,
+            request.UserId,
+            cancellationToken);
+
+        return result switch
+        {
+            AddProjectMemberResult.Added => NoContent(),
+            AddProjectMemberResult.AlreadyMember => Conflict(new
+            {
+                message = "User is already a member of this project."
+            }),
+            AddProjectMemberResult.UserNotFound => NotFound(new
+            {
+                message = "User not found."
+            }),
+            _ => NotFound(new
+            {
+                message = "Project not found or current user is not the owner."
+            })
+        };
+    }
+
+    [Authorize]
+    [HttpGet("{id:guid}/members")]
+    public async Task<ActionResult<IEnumerable<ProjectMemberDTO>>> GetMembers(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        var requesterIdValue = User.FindFirst(
+            System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!Guid.TryParse(requesterIdValue, out var requesterId))
+        {
+            return Unauthorized();
+        }
+
+        var members = await _projectService.GetMembersAsync(
+            id,
+            requesterId,
+            cancellationToken);
+        return members is null ? NotFound() : Ok(members);
     }
 }
