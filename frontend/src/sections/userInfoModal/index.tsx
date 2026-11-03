@@ -180,8 +180,13 @@ export default function UserInfoModal(props: Props) {
                 className={styles.projectListItem}
                 onClick={() => onClickProject(project)}
               >
-                <span className={styles.projectName}>
-                  {getProjectLabel(project)}
+                <span className={styles.projectDetails}>
+                  <span className={styles.projectName}>
+                    {getProjectLabel(project)}
+                  </span>
+                  <span className={styles.projectId}>
+                    {String(project.id)}
+                  </span>
                 </span>
                 <span className={styles.projectRole}>Owner</span>
               </button>

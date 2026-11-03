@@ -77,6 +77,7 @@ api.interceptors.response.use(
 );
 
 const isBrowser = typeof window !== "undefined";
+const isShapeApiEnabled = false;
 
 const init: PageIdTypes.Init = {
   shape: {
@@ -2133,6 +2134,8 @@ export default function IdPage() {
   };
 
   const loadShapes = async () => {
+    if (!isShapeApiEnabled) return;
+
     try {
       const res: AxiosResponse<any> = await shapeAPIs.getShapes();
       const responseData = res.data?.data;
@@ -2859,7 +2862,7 @@ export default function IdPage() {
   };
 
   const scheduleAutoSave = (delay: number = 800) => {
-    if (!isBrowser || !isLogIn) return;
+    if (!isShapeApiEnabled || !isBrowser || !isLogIn) return;
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current);
     }
@@ -2963,6 +2966,8 @@ export default function IdPage() {
   };
 
   const onClickSaveButton = async () => {
+    if (!isShapeApiEnabled) return;
+
     if (!isLogIn) {
       console.warn("Not logged in - skip saving shapes to backend.");
       return;
@@ -3108,9 +3113,9 @@ export default function IdPage() {
 
   // Load saved shapes only when there is no local project to preserve.
   useEffect(() => {
-    if (!isAuthorized || steps.length > 0) return;
+    if (!isAuthorized || isProjectSelectionRequired || steps.length > 0) return;
     loadShapes();
-  }, [isAuthorized]);
+  }, [isAuthorized, isProjectSelectionRequired]);
 
   useEffect(() => {
     if (!isBrowser) return;
@@ -3165,7 +3170,11 @@ export default function IdPage() {
     if (steps.length > 0) {
       setSaveProjectError("");
       setIsSaveProjectPromptOpen(true);
+      return;
     }
+
+    setIsProjectSelectionRequired(true);
+    setIsUserInfoOpen(true);
   };
 
   const onClickSaveCurrentProject = async () => {
@@ -3182,7 +3191,9 @@ export default function IdPage() {
         inputVal: project.name || projectName.val || "Untitled Project",
         val: project.name || projectName.val || "Untitled Project",
       });
-      await shapeAPIs.upsert(buildPayload());
+      if (isShapeApiEnabled) {
+        await shapeAPIs.upsert(buildPayload());
+      }
       setIsSaveProjectPromptOpen(false);
       showSuccessMessage("Current project saved successfully.");
     } catch (error) {
@@ -3224,6 +3235,7 @@ export default function IdPage() {
   const afterLogout = (message?: string) => {
     setIsAuthorized(false);
     setUserAvatarUrl("");
+    setCurrentProjectId(null);
     if (message) showSuccessMessage(message);
   };
 
@@ -3321,7 +3333,7 @@ export default function IdPage() {
         onClose={() => setIsProjectModalOpen(false)}
         projectName={projectName.val}
         onChangeProjectName={async (name) => {
-          if (currentProjectId) {
+          if (isAuthorized && currentProjectId) {
             await updateProjectName(currentProjectId, name);
           }
           setProjectName({ inputVal: name, val: name });

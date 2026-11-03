@@ -150,12 +150,28 @@
 }
 
 .projectName {
-  flex: 1;
   min-width: 0;
   overflow: hidden;
   color: #1f2937;
   font-size: 0.9375rem;
   font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.projectDetails {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.projectId {
+  overflow: hidden;
+  color: #9ca3af;
+  font-size: 0.75rem;
+  font-weight: 400;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
