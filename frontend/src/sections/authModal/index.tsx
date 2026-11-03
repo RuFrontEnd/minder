@@ -136,28 +136,9 @@ export default function AuthModal(props: AuthModalTypes.Props) {
       await authAPIs.login(authInfo.email.value, authInfo.password.value);
 
     if (res.status >= 200 && res.status < 300) {
-      setTimeout(() => {
-        setAuthMessage({
-          status: AlertTypes.Type.succeess,
-          text: res.data.message,
-        });
-        setIsAuthorizing(false);
-        setTimeout(async () => {
-          setAuthMessage((authMessage) => ({
-            ...authMessage,
-            text: "",
-          }));
-          setAuthInfo(init.authInfo);
-          !!props.afterLogin && props.afterLogin();
-          // TODO: fetch projects
-          // const res: AxiosResponse<
-          //   ProjectAPITypes.GetProjects["resData"],
-          //   any
-          // > = await projectAPIs.getProjects();
-          // setProjects(res.data);
-          // setIsProjectsModalOpen(true);
-        }, 1000);
-      }, 500);
+      setIsAuthorizing(false);
+      setAuthInfo(init.authInfo);
+      props.afterLogin?.();
     } else {
       setTimeout(() => {
         setIsAuthorizing(false);
