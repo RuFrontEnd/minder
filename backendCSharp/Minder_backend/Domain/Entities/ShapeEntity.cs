@@ -16,9 +16,9 @@ namespace Domain.Entities
         // FK
         public Guid ProjectId { get; set; }
         // FK
-        public Guid Author { get; set; }
+        public Guid Creator { get; set; }
         // FK
-        public Guid Asignee { get; set; }
+        public Guid Owner { get; set; }
 
         public double W { get; set; }
         public double H { get; set; }
@@ -27,6 +27,7 @@ namespace Domain.Entities
         public double Y { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
+        public string Status { get; set; } = "todo";
 
         // Legacy -> for some reason, they can not be removed.
         [Obsolete("Legacy type for migrations only. Do not use in new code.")]

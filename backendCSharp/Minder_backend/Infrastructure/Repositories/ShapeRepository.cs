@@ -9,7 +9,7 @@ namespace Infrastructure.Repositories
     {
         public async Task<Guid?> ExsistAsync(Guid projectId)
         {
-            var id = await dbContext.Shape
+            var id = await dbContext.Step
                     .Where(shape => shape.ProjectId == projectId)
                     .Select(shape => shape.Id)
                     .FirstOrDefaultAsync();
@@ -19,9 +19,7 @@ namespace Infrastructure.Repositories
 
         public async Task<ShapeEntity?> GetShapeAsync(Guid projectId)
         {
-            // Infos and Curves were removed from ShapeEntity.
-            // Return the whole entity for the given userId.
-            var shape = await dbContext.Shape
+            var shape = await dbContext.Step
                 .Where(s => s.ProjectId == projectId)
                 .FirstOrDefaultAsync();
 
@@ -29,13 +27,13 @@ namespace Infrastructure.Repositories
         }
         public async Task<ShapeEntity> AddShapeAsync(ShapeEntity shape)
         {
-            await dbContext.Shape.AddAsync(shape);
+            await dbContext.Step.AddAsync(shape);
             await dbContext.SaveChangesAsync();
             return shape;
         }
         public async Task<ShapeEntity> UpdateShapeAsync(ShapeEntity shape)
         {
-            dbContext.Shape.Update(shape);
+            dbContext.Step.Update(shape);
             await dbContext.SaveChangesAsync();
             return shape;
         }

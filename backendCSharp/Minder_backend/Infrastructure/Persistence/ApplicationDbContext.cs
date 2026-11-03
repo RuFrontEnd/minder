@@ -14,7 +14,7 @@ namespace Infrastructure.Persistence
         public DbSet<UserEntity> User => Set<UserEntity>();
         public DbSet<ProjectEntity> Project => Set<ProjectEntity>();
         public DbSet<MemberEntity> Member => Set<MemberEntity>();
-        public DbSet<ShapeEntity> Shape => Set<ShapeEntity>();
+        public DbSet<ShapeEntity> Step => Set<ShapeEntity>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -57,6 +57,14 @@ namespace Infrastructure.Persistence
 
             modelBuilder.Entity<ShapeEntity>(entity =>
             {
+                entity.ToTable("Step", table =>
+                    table.HasCheckConstraint(
+                        "CK_Step_Status",
+                        "\"Status\" IN ('todo', 'inProgress', 'done')"));
+
+                entity.Property(e => e.Status)
+                    .HasDefaultValue("todo");
+
                 entity.Property(e => e.Id)
                     .HasDefaultValueSql("gen_random_uuid()");
 
@@ -67,17 +75,13 @@ namespace Infrastructure.Persistence
 
                 entity.HasOne<UserEntity>()
                       .WithMany()
-                      .HasForeignKey(p => p.Author)
+                      .HasForeignKey(p => p.Creator)
                       .OnDelete(DeleteBehavior.Cascade);
 
                 entity.HasOne<UserEntity>()
                       .WithMany()
-                      .HasForeignKey(p => p.Asignee)
+                      .HasForeignKey(p => p.Owner)
                       .OnDelete(DeleteBehavior.Cascade);
-
-                // Infos and Curves properties were removed from the entity. Keep
-                // the DB mapping out. Existing migrations still reference the
-                // nested types and the migration files should be left as-is.
             });
         }
     }

@@ -68,10 +68,10 @@ namespace Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasDefaultValueSql("gen_random_uuid()");
 
-                    b.Property<Guid>("Asignee")
+                    b.Property<Guid>("Creator")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("Author")
+                    b.Property<Guid>("Owner")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Description")
@@ -83,6 +83,11 @@ namespace Infrastructure.Migrations
 
                     b.Property<Guid>("ProjectId")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasDefaultValue("todo");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -99,13 +104,13 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Asignee");
+                    b.HasIndex("Creator");
 
-                    b.HasIndex("Author");
+                    b.HasIndex("Owner");
 
                     b.HasIndex("ProjectId");
 
-                    b.ToTable("Shape");
+                    b.ToTable("Step", t => t.HasCheckConstraint("CK_Step_Status", "\"Status\" IN ('todo', 'inProgress', 'done')"));
                 });
 
             modelBuilder.Entity("Domain.Entities.UserEntity", b =>
@@ -179,13 +184,13 @@ namespace Infrastructure.Migrations
                 {
                     b.HasOne("Domain.Entities.UserEntity", null)
                         .WithMany()
-                        .HasForeignKey("Asignee")
+                        .HasForeignKey("Owner")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Domain.Entities.UserEntity", null)
                         .WithMany()
-                        .HasForeignKey("Author")
+                        .HasForeignKey("Creator")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
