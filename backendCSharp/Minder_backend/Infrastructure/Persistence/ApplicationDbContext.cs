@@ -14,6 +14,7 @@ namespace Infrastructure.Persistence
         public DbSet<UserEntity> User => Set<UserEntity>();
         public DbSet<ProjectEntity> Project => Set<ProjectEntity>();
         public DbSet<MemberEntity> Member => Set<MemberEntity>();
+        public DbSet<RoleEntity> Role => Set<RoleEntity>();
         public DbSet<ShapeEntity> Step => Set<ShapeEntity>();
         public DbSet<TaskEntity> Tasks => Set<TaskEntity>();
         public DbSet<MessageEntity> Messages => Set<MessageEntity>();
@@ -51,8 +52,44 @@ namespace Infrastructure.Persistence
                     .HasForeignKey(e => e.ProjectId)
                     .OnDelete(DeleteBehavior.Cascade);
 
+                entity.HasOne<RoleEntity>()
+                    .WithMany()
+                    .HasForeignKey(e => e.RoleId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.Property(e => e.RoleId)
+                    .HasDefaultValue(RoleEntity.OwnerId);
+
                 entity.HasIndex(e => new { e.UserId, e.ProjectId })
                     .IsUnique();
+            });
+
+            modelBuilder.Entity<RoleEntity>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.Name)
+                    .IsRequired();
+
+                entity.HasIndex(e => e.Name)
+                    .IsUnique();
+
+                entity.HasData(
+                    new
+                    {
+                        Id = RoleEntity.OwnerId,
+                        Name = "owner"
+                    },
+                    new
+                    {
+                        Id = RoleEntity.MemberId,
+                        Name = "member"
+                    },
+                    new
+                    {
+                        Id = RoleEntity.GuestId,
+                        Name = "guest"
+                    });
             });
 
             modelBuilder.Entity<ShapeEntity>(entity =>

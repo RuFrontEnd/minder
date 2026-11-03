@@ -32,12 +32,19 @@ namespace Infrastructure.Migrations
                     b.Property<Guid>("ProjectId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid>("RoleId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValue(new Guid("0672531e-3f25-48fe-829a-e6b9293af804"));
+
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ProjectId");
+
+                    b.HasIndex("RoleId");
 
                     b.HasIndex("UserId", "ProjectId")
                         .IsUnique();
@@ -105,6 +112,41 @@ namespace Infrastructure.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Project");
+                });
+
+            modelBuilder.Entity("Domain.Entities.RoleEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Role");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("0672531e-3f25-48fe-829a-e6b9293af804"),
+                            Name = "owner"
+                        },
+                        new
+                        {
+                            Id = new Guid("68529180-f79c-485f-88c2-a2f06c6ec7b3"),
+                            Name = "member"
+                        },
+                        new
+                        {
+                            Id = new Guid("360374d3-ede2-478d-af10-f8894e0137f7"),
+                            Name = "guest"
+                        });
                 });
 
             modelBuilder.Entity("Domain.Entities.ShapeEntity", b =>
@@ -242,6 +284,12 @@ namespace Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("ProjectId")
                         .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.RoleEntity", null)
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Domain.Entities.UserEntity", null)
