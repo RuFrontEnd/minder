@@ -3200,6 +3200,10 @@ export default function IdPage() {
       <ProjectModal
         isOpen={isProjectModalOpen}
         onClose={() => setIsProjectModalOpen(false)}
+        projectName={projectName.val}
+        onChangeProjectName={(name) =>
+          setProjectName({ inputVal: name, val: name })
+        }
       />
 
       <OverallSidePanel
