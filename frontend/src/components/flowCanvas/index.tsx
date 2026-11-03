@@ -20,12 +20,12 @@ import {
   type OnDelete,
   type ReactFlowInstance,
 } from "@xyflow/react";
-import { Square } from "lucide-react";
 import * as CommonTypes from "@/types/common";
 import styles from "./index.module.css";
 
 type FlowNodeData = {
   shape: CommonTypes.Shape;
+  stepStatuses: Record<string, CommonTypes.StepStatus>;
 };
 
 type FlowNode = Node<FlowNodeData>;
@@ -37,6 +37,7 @@ export type FlowCanvasInstance = Pick<
 type Props = {
   shapes: CommonTypes.Shapes;
   curves: CommonTypes.ConnectionCurves;
+  stepStatuses: Record<string, CommonTypes.StepStatus>;
   selectedShapeId: string | null;
   onSelectShape: (shapeId: string) => void;
   onOpenShape: () => void;
@@ -53,7 +54,7 @@ const cardWidth = 200;
 const cardHeight = 96;
 
 function FlowCard({ data, selected }: NodeProps<FlowNode>) {
-  const { shape } = data;
+  const { shape, stepStatuses } = data;
   const handles = [
     { position: Position.Top, direction: "t" },
     { position: Position.Right, direction: "r" },
@@ -61,8 +62,20 @@ function FlowCard({ data, selected }: NodeProps<FlowNode>) {
     { position: Position.Left, direction: "l" },
   ];
 
+  const status = stepStatuses[shape.id] || "Todo";
+  const tone =
+    status === "Done"
+      ? "done"
+      : status === "In Progress"
+        ? "inProgress"
+        : "todo";
+
+  const assignee = shape.epNumber === 3 ? "Charlie" : "Alice";
+
   return (
-    <div className={`${styles.card} ${selected ? styles.selected : ""}`}>
+    <div
+      className={`${styles.card} ${styles[tone]} ${selected ? styles.selected : ""}`}
+    >
       {handles.map(({ position, direction }) => (
         <Handle
           key={position}
@@ -73,17 +86,28 @@ function FlowCard({ data, selected }: NodeProps<FlowNode>) {
         />
       ))}
       <div className={styles.cardHeader}>
-        <span className={styles.shapeIcon}>
-          <Square size={14} />
-        </span>
-        <span className={styles.stepId}>
-          EP-{String(shape.epNumber).padStart(3, "0")}
-        </span>
+        <div className={styles.headerTitle}>
+          <span className={`${styles.statusIndicator} ${styles[tone]}`} aria-hidden="true">
+            <span className={styles.statusIndicatorDot} />
+          </span>
+          <span className={styles.stepId}>
+            EP-{String(shape.epNumber).padStart(3, "0")}
+          </span>
+        </div>
       </div>
-      <div className={styles.title}>{shape.title || "Untitled step"}</div>
+
+      <div className={styles.titleRow}>
+        <span className={styles.title}>{shape.title || "Untitled message"}</span>
+      </div>
+
       <div className={styles.cardFooter}>
-        <span className={styles.statusDot} />
-        <span>Step</span>
+        <div className={styles.assigneeBadge}>
+          <span className={styles.avatar}>{assignee.charAt(0)}</span>
+          <span className={styles.assigneeName}>{assignee}</span>
+        </div>
+        <span className={`${styles.statusPill} ${styles[`${tone}Pill`]}`}>
+          {status}
+        </span>
       </div>
     </div>
   );
@@ -93,7 +117,8 @@ const nodeTypes = { flowCard: FlowCard };
 
 const toFlowNode = (
   shape: CommonTypes.Shape,
-  selectedShapeId: string | null
+  selectedShapeId: string | null,
+  stepStatuses: Record<string, CommonTypes.StepStatus>
 ): FlowNode => ({
   id: shape.id,
   type: "flowCard",
@@ -101,7 +126,7 @@ const toFlowNode = (
     x: shape.p.x - cardWidth / 2,
     y: shape.p.y - cardHeight / 2,
   },
-  data: { shape },
+  data: { shape, stepStatuses },
   selected: shape.id === selectedShapeId,
   style: { width: cardWidth, height: cardHeight },
 });
@@ -119,18 +144,19 @@ export default function FlowCanvas({
   onDelete,
   onInit,
   isConnectMode,
-}: Props) {
+  stepStatuses,
+}: Props & { stepStatuses?: Record<string, CommonTypes.StepStatus> }) {
   const initialNodes = useMemo(
-    () => shapes.map((shape) => toFlowNode(shape, selectedShapeId)),
-    []
+    () => shapes.map((shape) => toFlowNode(shape, selectedShapeId, stepStatuses || {})),
+    [shapes, selectedShapeId, stepStatuses]
   );
   const [nodes, setNodes, onNodesChange] = useNodesState<FlowNode>(initialNodes);
 
   useEffect(() => {
     setNodes(
-      shapes.map((shape) => toFlowNode(shape, selectedShapeId))
+      shapes.map((shape) => toFlowNode(shape, selectedShapeId, stepStatuses || {}))
     );
-  }, [shapes, selectedShapeId, setNodes]);
+  }, [shapes, selectedShapeId, stepStatuses, setNodes]);
 
   const flowEdges = useMemo<Edge[]>(
     () =>

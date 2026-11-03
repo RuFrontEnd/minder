@@ -3265,6 +3265,7 @@ export default function IdPage() {
       <FlowCanvas
         shapes={steps}
         curves={curves}
+        stepStatuses={stepStatuses}
         selectedShapeId={indivisual?.id || null}
         onSelectShape={onSelectStepFromOverallPanel}
         onOpenShape={() => setIsIndivisualSidePanelOpen(true)}
