@@ -46,7 +46,7 @@ export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
   return (
     <SidePanel
       className={styles.root}
-      title="Steps"
+      hideHeader
       open={props.isOverAllSidePanelOpen}
       placement="start"
       size="xs"
@@ -58,6 +58,18 @@ export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
         props.setIsOverAllSidePanelOpen(false);
       }}
     >
+
+      <div className={styles.panelHeader}>
+        <h2 className={styles.panelTitle}>Steps</h2>
+        <button
+          type="button"
+          className={styles.closePanelButton}
+          aria-label="Close steps panel"
+          onClick={() => props.setIsOverAllSidePanelOpen(false)}
+        >
+          ×
+        </button>
+      </div>
       <div className={styles.storiesPanel}>
         <label className={styles.searchBox}>
           <Search size={14} />
@@ -168,7 +180,7 @@ export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
             );
           })}
           {visibleSteps.length === 0 && (
-            <li className={styles.emptyState}>No stories match your filters.</li>
+            <li className={styles.emptyState}>No steps match your filters.</li>
           )}
         </ul>
       </div>

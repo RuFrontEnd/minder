@@ -46,7 +46,7 @@ const authorOptions = [
   },
 ];
 
-type ActivityItem = {
+type MessageItem = {
   id: string;
   text: string;
   createdAt: number;
@@ -60,7 +60,7 @@ type TaskItem = {
   owner?: string;
 };
 
-const getActivityTimeLabel = (createdAt?: number) => {
+const getMessageTimeLabel = (createdAt?: number) => {
   if (!createdAt) return "Just now";
   const minutes = Math.max(0, Math.floor((Date.now() - createdAt) / 60000));
   return minutes === 0 ? "Just now" : `${minutes} minutes ago`;
@@ -75,8 +75,8 @@ export default function IndivisualSidePanel(
   );
   const [asigneeValues, setAsigneeValues] = useState<string[]>([]);
   const [creator, setCreator] = useState<StepCreator | null>(null);
-  const [commentText, setCommentText] = useState("");
-  const [activityItems, setActivityItems] = useState<ActivityItem[]>([]);
+  const [messageText, setMessageText] = useState("");
+  const [messages, setMessages] = useState<MessageItem[]>([]);
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [taskText, setTaskText] = useState("");
 
@@ -155,24 +155,24 @@ export default function IndivisualSidePanel(
 
   useEffect(() => {
     if (!props.indivisual) {
-      setActivityItems([]);
+      setMessages([]);
       setTasks([]);
       return;
     }
 
     try {
-      const savedActivity = window.localStorage.getItem(
+      const savedMessages = window.localStorage.getItem(
         `minder-step-activity:${props.indivisual.id}`
       );
-      setActivityItems(savedActivity ? JSON.parse(savedActivity) : []);
+      setMessages(savedMessages ? JSON.parse(savedMessages) : []);
       const savedTasks = window.localStorage.getItem(
         `minder-step-tasks:${props.indivisual.id}`
       );
       setTasks(savedTasks ? JSON.parse(savedTasks) : []);
       setCreator(getStepCreator(props.indivisual.id));
     } catch (error) {
-      console.error("Failed to load step activity or tasks:", error);
-      setActivityItems([]);
+      console.error("Failed to load step messages or tasks:", error);
+      setMessages([]);
       setTasks([]);
       setCreator(null);
     }
@@ -223,28 +223,28 @@ export default function IndivisualSidePanel(
     );
   };
 
-  const saveActivity = (nextActivity: ActivityItem[]) => {
+  const saveMessages = (nextMessages: MessageItem[]) => {
     if (!props.indivisual) return;
-    setActivityItems(nextActivity);
+    setMessages(nextMessages);
     try {
       window.localStorage.setItem(
         `minder-step-activity:${props.indivisual.id}`,
-        JSON.stringify(nextActivity)
+        JSON.stringify(nextMessages)
       );
     } catch (error) {
-      console.error("Failed to save step activity:", error);
+      console.error("Failed to save step messages:", error);
     }
   };
 
-  const addActivity = (text: string, comment?: string) => {
-    saveActivity([
+  const addMessage = (text: string, comment?: string) => {
+    saveMessages([
       {
         id: `${Date.now()}-${Math.random()}`,
         text,
         createdAt: Date.now(),
         comment,
       },
-      ...activityItems,
+      ...messages,
     ]);
   };
 
@@ -253,15 +253,15 @@ export default function IndivisualSidePanel(
     const previousStatus = props.stepStatuses[props.indivisual.id] || "Todo";
     if (previousStatus === status) return;
     props.onChangeStepStatus(props.indivisual.id, status);
-    addActivity(`Status changed to ${status}`);
+    addMessage(`Status changed to ${status}`);
   };
 
-  const onSubmitComment = (event: React.FormEvent<HTMLFormElement>) => {
+  const onSubmitMessage = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const comment = commentText.trim();
-    if (!comment) return;
-    addActivity("You added a comment", comment);
-    setCommentText("");
+    const message = messageText.trim();
+    if (!message) return;
+    addMessage("You added a message", message);
+    setMessageText("");
   };
 
   return (
@@ -292,7 +292,7 @@ export default function IndivisualSidePanel(
             </button>
             <div className={styles.emptyStateTitle}>No step selected</div>
             <div className={styles.emptyStateDescription}>
-              Select a shape on the canvas to view its details.
+              Select a step on the canvas to view its details.
             </div>
           </div>
         ) : (
@@ -326,19 +326,8 @@ export default function IndivisualSidePanel(
                 ×
               </button>
             </div>
-            <div className={styles.detailTitleRow}>
-              {props.isEditingIndivisual ? (
-                <Input
-                  role="edit_indivisual_title"
-                  className={styles.nameInput}
-                  value={editingTitle}
-                  onChange={onChangeTitle}
-                />
-              ) : (
-                <h2 className={styles.nameValue}>
-                  {props.indivisual?.title || "-"}
-                </h2>
-              )}
+            <div className={styles.descriptionRow}>
+              <div className={styles.descLabel}>Title</div>
               {!props.isEditingIndivisual && (
                 <IconButton
                   role="begin_edit_indivisual"
@@ -356,6 +345,20 @@ export default function IndivisualSidePanel(
                   }
                   onClick={onClickEditIcon}
                 />
+              )}
+            </div>
+            <div className={styles.detailTitleRow}>
+              {props.isEditingIndivisual ? (
+                <Input
+                  role="edit_indivisual_title"
+                  className={styles.nameInput}
+                  value={editingTitle}
+                  onChange={onChangeTitle}
+                />
+              ) : (
+                <h2 className={styles.nameValue}>
+                  {props.indivisual?.title || "-"}
+                </h2>
               )}
             </div>
 
@@ -629,44 +632,44 @@ export default function IndivisualSidePanel(
             </form>
           </section>
 
-          <section className={`${styles.detailSection} ${styles.activitySection}`}>
+          <section className={`${styles.detailSection} ${styles.messagesSection}`}>
             <div className={styles.sectionHeading}>
-              <h3>Activity</h3>
+              <h3>Messages</h3>
               <button type="button" className={styles.viewAllButton}>
                 View all
               </button>
             </div>
-            {activityItems.length ? (
-              <ul className={styles.activityList}>
-                {activityItems.map((item) => (
-                  <li className={styles.activityItem} key={item.id}>
-                    <span className={styles.activityAvatar}>Y</span>
-                    <div className={styles.activityContent}>
+            {messages.length ? (
+              <ul className={styles.messageList}>
+                {messages.map((item) => (
+                  <li className={styles.messageItem} key={item.id}>
+                    <span className={styles.messageAvatar}>Y</span>
+                    <div className={styles.messageContent}>
                       <span>{item.text}</span>
                       {item.comment && (
-                        <span className={styles.activityComment}>
+                        <span className={styles.messageBody}>
                           {item.comment}
                         </span>
                       )}
-                      <time>{getActivityTimeLabel(item.createdAt)}</time>
+                      <time>{getMessageTimeLabel(item.createdAt)}</time>
                     </div>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className={styles.sectionEmpty}>No activity yet.</p>
+              <p className={styles.sectionEmpty}>No messages yet.</p>
             )}
-            <form className={styles.commentForm} onSubmit={onSubmitComment}>
+            <form className={styles.messageForm} onSubmit={onSubmitMessage}>
               <input
-                value={commentText}
-                onChange={(event) => setCommentText(event.target.value)}
-                placeholder="Add a comment..."
-                aria-label="Add a comment"
+                value={messageText}
+                onChange={(event) => setMessageText(event.target.value)}
+                placeholder="Write a message..."
+                aria-label="Write a message"
               />
               <button
                 type="submit"
-                aria-label="Send comment"
-                disabled={!commentText.trim()}
+                aria-label="Send message"
+                disabled={!messageText.trim()}
               >
                 <Send size={15} />
               </button>

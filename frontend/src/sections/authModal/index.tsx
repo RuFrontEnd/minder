@@ -1,15 +1,19 @@
 "use client";
 import axios, { AxiosResponse } from "axios";
 import { useRouter } from "next/navigation";
-import Button from "@/components/button";
-import Modal from "@/components/modal";
-import Input from "@/components/input";
 import Alert from "@/components/alert";
-import Card from "@/components/card";
-import LineButton from "@/components/lineButton";
 import React, { useState, useEffect } from "react";
 import { cloneDeep } from "lodash";
 import { ChangeEventHandler, MouseEventHandler } from "react";
+import {
+  Button as ChakraButton,
+  CloseButton,
+  Dialog,
+  Field,
+  Input as ChakraInput,
+  Portal,
+} from "@chakra-ui/react";
+import { AtSign, LockKeyhole, UserRound } from "lucide-react";
 import * as authAPIs from "@/apis/auth";
 import * as projectAPIs from "@/apis/project";
 import * as InputTypes from "@/types/components/input";
@@ -397,107 +401,213 @@ export default function AuthModal(props: AuthModalTypes.Props) {
 
   return (
     <>
-      <Modal
-        style={props.style}
-        className={`${props.className && props.className}`}
-        isOpen={
-          props.isOpen
-          // && !isProjectsModalOpen && !isProjectsModalOpen
-        }
-        title={props.isLogIn ? "Login" : "Sign Up"}
-        okText={props.isLogIn ? "Login" : "Sign Up"}
-        onCancel={onClickX}
-        onOk={props.isLogIn ? onClickLoginButton : onClickSignUpButton}
-      >
-        <div className={styles.root}>
-          <Input
-            className={styles["emailInput"]}
-            type="text"
-            name="Email"
-            value={authInfo.email.value}
-            status={authInfo.email.status}
-            errorText={authInfo.email.comment}
-            onChange={onChangeEmail}
-          />
-          <Input
-            className={styles["passwordInput"]}
-            type="password"
-            name="Password"
-            labelExtra={
-              props.isLogIn ? (
-                <LineButton
-                  text=""
-                  buttonText="Forget password?"
-                  buttonClassName={styles.forgetPasswordSwitch}
-                  onClick={onClickForgetPasswordButton}
+      <Dialog.Root open={props.isOpen} placement="center">
+        <Portal>
+          <Dialog.Backdrop />
+          <Dialog.Positioner>
+            <Dialog.Content
+              className={`${styles.dialogContent} ${props.className || ""}`}
+              style={props.style}
+            >
+              <Dialog.CloseTrigger asChild>
+                <CloseButton
+                  className={styles.closeButton}
+                  aria-label="Close sign in dialog"
+                  size="sm"
+                  onClick={onClickX}
                 />
-              ) : undefined
-            }
-            value={authInfo.password.value}
-            status={authInfo.password.status}
-            errorText={authInfo.password.comment}
-            onChange={onChangePassword}
-          />
-          {!props.isLogIn && (
-            <Input
-              className={styles["confirmPasswordInput"]}
-              type="password"
-              name="Confirm Password"
-              value={authInfo.confirmPassword.value}
-              status={authInfo.confirmPassword.status}
-              errorText={authInfo.confirmPassword.comment}
-              onChange={onChangeConfirmPassword}
-            />
-          )}
-          {!props.isLogIn && (
-            <>
-              <Input
-                className={styles["firstNameInput"]}
-                name="First Name"
-                value={authInfo.firstName.value}
-                status={authInfo.firstName.status}
-                errorText={authInfo.firstName.comment}
-                onChange={onChangeFirstName}
-              />
-              <Input
-                className={styles["lastNameInput"]}
-                name="Last Name"
-                value={authInfo.lastName.value}
-                status={authInfo.lastName.status}
-                errorText={authInfo.lastName.comment}
-                onChange={onChangeLastName}
-              />
-            </>
-          )}
-          {/* {!props.isLogIn && (
-            <Input
-              className={styles.root}label={"Email"}
-              type="email"
-              name="email"
-              value={authInfo.email.value}
-              status={authInfo.email.status}
-              errorText={authInfo.email.comment}
-              onChange={onChangeEmail}
-            />
-          )} */}
-          {authMessage.text && (
-            <Alert
-              className={styles.root}
-              type={authMessage.status}
-              text={authMessage.text}
-            />
-          )}
-          {/* register switcher */}
-          <LineButton
-            text={props.isLogIn ? "No account yet? " : "Already have an account? "}
-            buttonText={props.isLogIn ? "Sign up" : "Login"}
-            buttonClassName={styles.switch}
-            onClick={() => {
-              onClickChangeAuthButton(!props.isLogIn);
-            }}
-          />
-        </div>
-      </Modal>
+              </Dialog.CloseTrigger>
+              <Dialog.Header className={styles.dialogHeader}>
+                <div className={styles.brand} aria-label="Minder">
+                  <svg
+                    className={styles.brandMark}
+                    viewBox="0 0 32 32"
+                    aria-hidden="true"
+                  >
+                    <path d="M16 3 30 27H2L16 3Z" fill="#2878f0" />
+                    <path d="m16 13 8 14H8l8-14Z" fill="#fff" />
+                    <path d="m16 13 8 14h-8V13Z" fill="#7fb5ff" />
+                  </svg>
+                  <span>Minder</span>
+                </div>
+                <Dialog.Title className={styles.dialogTitle}>
+                  {props.isLogIn ? "Sign In" : "Sign Up"}
+                </Dialog.Title>
+              </Dialog.Header>
+              <Dialog.Body className={styles.dialogBody}>
+                <form
+                  className={styles.form}
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    if (props.isLogIn) {
+                      void onClickLoginButton();
+                    } else {
+                      void onClickSignUpButton();
+                    }
+                  }}
+                >
+                  <Field.Root
+                    invalid={Boolean(authInfo.email.comment)}
+                    className={styles.field}
+                  >
+                    <div className={styles.inputRow}>
+                      <AtSign size={16} aria-hidden="true" />
+                      <ChakraInput
+                        className={styles.authInput}
+                        type="email"
+                        autoComplete="email"
+                        placeholder="Email"
+                        aria-label="Email"
+                        value={authInfo.email.value || ""}
+                        onChange={onChangeEmail}
+                      />
+                    </div>
+                    {authInfo.email.comment && (
+                      <Field.ErrorText>{authInfo.email.comment}</Field.ErrorText>
+                    )}
+                  </Field.Root>
+
+                  <Field.Root
+                    invalid={Boolean(authInfo.password.comment)}
+                    className={styles.field}
+                  >
+                    <div className={styles.inputRow}>
+                      <LockKeyhole size={16} aria-hidden="true" />
+                      <ChakraInput
+                        className={styles.authInput}
+                        type="password"
+                        autoComplete={
+                          props.isLogIn ? "current-password" : "new-password"
+                        }
+                        placeholder="Password"
+                        aria-label="Password"
+                        value={authInfo.password.value || ""}
+                        onChange={onChangePassword}
+                      />
+                    </div>
+                    {authInfo.password.comment && (
+                      <Field.ErrorText>
+                        {authInfo.password.comment}
+                      </Field.ErrorText>
+                    )}
+                  </Field.Root>
+
+                  {!props.isLogIn && (
+                    <>
+                      <Field.Root
+                        invalid={Boolean(authInfo.confirmPassword.comment)}
+                        className={styles.field}
+                      >
+                        <div className={styles.inputRow}>
+                          <LockKeyhole size={16} aria-hidden="true" />
+                          <ChakraInput
+                            className={styles.authInput}
+                            type="password"
+                            autoComplete="new-password"
+                            placeholder="Confirm Password"
+                            aria-label="Confirm Password"
+                            value={authInfo.confirmPassword.value || ""}
+                            onChange={onChangeConfirmPassword}
+                          />
+                        </div>
+                        {authInfo.confirmPassword.comment && (
+                          <Field.ErrorText>
+                            {authInfo.confirmPassword.comment}
+                          </Field.ErrorText>
+                        )}
+                      </Field.Root>
+                      <Field.Root
+                        invalid={Boolean(authInfo.firstName.comment)}
+                        className={styles.field}
+                      >
+                        <div className={styles.inputRow}>
+                          <UserRound size={16} aria-hidden="true" />
+                          <ChakraInput
+                            className={styles.authInput}
+                            autoComplete="given-name"
+                            placeholder="First Name"
+                            aria-label="First Name"
+                            value={authInfo.firstName.value || ""}
+                            onChange={onChangeFirstName}
+                          />
+                        </div>
+                        {authInfo.firstName.comment && (
+                          <Field.ErrorText>
+                            {authInfo.firstName.comment}
+                          </Field.ErrorText>
+                        )}
+                      </Field.Root>
+                      <Field.Root
+                        invalid={Boolean(authInfo.lastName.comment)}
+                        className={styles.field}
+                      >
+                        <div className={styles.inputRow}>
+                          <UserRound size={16} aria-hidden="true" />
+                          <ChakraInput
+                            className={styles.authInput}
+                            autoComplete="family-name"
+                            placeholder="Last Name"
+                            aria-label="Last Name"
+                            value={authInfo.lastName.value || ""}
+                            onChange={onChangeLastName}
+                          />
+                        </div>
+                        {authInfo.lastName.comment && (
+                          <Field.ErrorText>
+                            {authInfo.lastName.comment}
+                          </Field.ErrorText>
+                        )}
+                      </Field.Root>
+                    </>
+                  )}
+
+                  {authMessage.text && (
+                    <Alert
+                      className={styles.alert}
+                      type={authMessage.status}
+                      text={authMessage.text}
+                    />
+                  )}
+
+                  <ChakraButton
+                    type="submit"
+                    className={styles.submitButton}
+                    disabled={isAuthorizing}
+                    loading={isAuthorizing}
+                  >
+                    {props.isLogIn ? "Sign In" : "Sign Up"}
+                  </ChakraButton>
+
+                  {props.isLogIn && (
+                    <button
+                      type="button"
+                      className={styles.forgotPassword}
+                      onClick={onClickForgetPasswordButton}
+                    >
+                      Forgot Password?
+                    </button>
+                  )}
+                </form>
+
+                <div className={styles.switchRow}>
+                  <span>
+                    {props.isLogIn
+                      ? "Don't have an account?"
+                      : "Already have an account?"}
+                  </span>
+                  <button
+                    type="button"
+                    className={styles.switch}
+                    onClick={() => onClickChangeAuthButton(!props.isLogIn)}
+                  >
+                    {props.isLogIn ? "Create one" : "Sign in"}
+                  </button>
+                </div>
+              </Dialog.Body>
+            </Dialog.Content>
+          </Dialog.Positioner>
+        </Portal>
+      </Dialog.Root>
       {/* <Modal isOpen={isProjectsModalOpen} mask={false}>
         <div className={styles.root}>
           <section className={styles.root}>

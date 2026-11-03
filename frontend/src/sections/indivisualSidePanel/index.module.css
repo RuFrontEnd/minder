@@ -35,10 +35,11 @@
 
 .detailHeaderRow {
   display: flex;
-  min-height: 32px;
+  min-height: 34px;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
   border-bottom: 1px solid #edf1f5;
+  padding-bottom: 2px;
 }
 
 .detailId {
@@ -93,15 +94,18 @@
 
 .detailTitleRow {
   display: flex;
-  min-height: 36px;
+  min-height: 24px;
   align-items: center;
-  gap: 8px;
 }
 
 .detailTitleRow .nameValue {
   flex: 1;
   overflow: hidden;
-  font-size: 16px;
+  margin: 0;
+  color: #293951;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -168,64 +172,29 @@
   flex: 1;
 }
 
-.textarea {
-  resize: none;
-  padding: 0.5rem;
-  border-radius: 6px;
-  border: 1px solid var(--border-color, #e5e7eb);
-  height: 100%;
-  min-height: 120px;
-}
-
-.descBox {
-  font-size: 1rem;
-  font-weight: 500;
-  color: #111827;
-  white-space: pre-wrap;
-}
-
 .iconButton {
   justify-self: end;
   cursor: pointer;
-}
-
-.descLabel {
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: #9ca3af;
 }
 
 .descriptionRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 0.5rem;
+  margin-bottom: 6px;
 }
 
 .nameSection {
   flex: 0 0 auto;
-  padding: 0 0 12px;
+  padding: 0 0 10px;
   border-bottom: 1px solid #edf1f5;
-  margin-bottom: 10px;
-}
-
-.nameRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.25rem;
-}
-
-.nameLabel {
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: #9ca3af;
 }
 
 .nameValue {
-  font-size: 1rem;
-  font-weight: 500;
-  color: #111827;
+  margin: 0;
+  color: #293951;
+  font-size: 16px;
+  font-weight: 700;
 }
 
 .nameInput {
@@ -236,16 +205,32 @@
   display: flex;
   flex: 0 0 auto;
   flex-direction: column;
-  padding-bottom: 12px;
+  padding: 10px 0;
   border-bottom: 1px solid #edf1f5;
 }
 
-.descriptionRow {
-  margin-bottom: 5px;
+.descLabel {
+  color: #8290a3;
+  font-size: 10px;
+  font-weight: 500;
 }
 
 .descBox {
   color: #52647a;
+  font-size: 11px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.textarea {
+  width: 100%;
+  resize: none;
+  min-height: 80px;
+  border: 1px solid #e4e9f0;
+  border-radius: 6px;
+  padding: 8px;
+  color: #394b63;
+  font: inherit;
   font-size: 11px;
   line-height: 1.5;
 }
@@ -389,7 +374,7 @@
 }
 
 .dependencyList,
-.activityList {
+.messageList {
   margin: 5px 0 0;
   padding: 0;
   list-style: none;
@@ -610,7 +595,7 @@
   cursor: pointer;
 }
 
-.activitySection {
+.messagesSection {
   flex: 1 0 auto;
   min-height: 125px;
   padding-bottom: 8px;
@@ -626,19 +611,19 @@
   cursor: pointer;
 }
 
-.activityList {
+.messageList {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.activityItem {
+.messageItem {
   display: flex;
   align-items: flex-start;
   gap: 8px;
 }
 
-.activityAvatar {
+.messageAvatar {
   display: inline-flex;
   width: 22px;
   height: 22px;
@@ -652,7 +637,7 @@
   font-weight: 700;
 }
 
-.activityContent {
+.messageContent {
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -660,17 +645,17 @@
   font-size: 10px;
 }
 
-.activityComment {
+.messageBody {
   color: #66778d;
   line-height: 1.4;
 }
 
-.activityContent time {
+.messageContent time {
   color: #99a5b4;
   font-size: 9px;
 }
 
-.commentForm {
+.messageForm {
   display: flex;
   min-height: 32px;
   align-items: center;
@@ -679,7 +664,7 @@
   border-radius: 6px;
 }
 
-.commentForm input {
+.messageForm input {
   width: 100%;
   min-width: 0;
   border: 0;
@@ -689,11 +674,11 @@
   font-size: 10px;
 }
 
-.commentForm input::placeholder {
+.messageForm input::placeholder {
   color: #9aa7b8;
 }
 
-.commentForm button {
+.messageForm button {
   display: inline-flex;
   width: 32px;
   height: 30px;
@@ -706,7 +691,7 @@
   cursor: pointer;
 }
 
-.commentForm button:disabled {
+.messageForm button:disabled {
   color: #c6ced8;
   cursor: default;
 }

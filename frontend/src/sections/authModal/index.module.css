@@ -1,32 +1,174 @@
-.root {}
+.dialogContent {
+  position: relative;
+  width: min(360px, calc(100vw - 32px));
+  max-width: min(360px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  border: 1px solid #e6e9ef;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 14px 40px rgba(30, 41, 59, 0.18);
+}
 
-/* Unified spacing for auth modal inputs */
-.emailInput,
-.passwordInput,
-.confirmPasswordInput,
-.firstNameInput,
-.lastNameInput {
-    margin-bottom: 12px;
+.closeButton {
+  position: absolute;
+  z-index: 1;
+  top: 10px;
+  right: 10px;
+  color: #64748b;
+}
+
+.dialogHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 28px 28px 12px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #172b4d;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.brandMark {
+  width: 20px;
+  height: 20px;
+}
+
+.dialogTitle {
+  color: #64748b;
+  font-size: 21px;
+  font-weight: 500;
+  line-height: 1.3;
+  text-align: center;
+}
+
+.dialogBody {
+  padding: 6px 28px 0;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.field {
+  width: 100%;
+  min-width: 0;
+}
+
+.inputRow {
+  display: flex;
+  width: 100%;
+  min-height: 34px;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid #d5d9de;
+  box-sizing: border-box;
+  color: #566273;
+}
+
+.inputRow:focus-within {
+  border-bottom-color: #2877ed;
+}
+
+.authInput {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  height: 34px;
+  padding: 0;
+  border: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #26364f;
+  font-size: 13px;
+}
+
+.authInput::placeholder {
+  color: #8a94a3;
+  opacity: 1;
+}
+
+.field [data-part="error-text"] {
+  margin-top: 4px;
+  font-size: 11px;
+}
+
+.alert {
+  margin: 0;
+}
+
+.submitButton {
+  width: 100%;
+  min-height: 40px;
+  margin-top: 2px;
+  border-radius: 3px !important;
+  background: #000 !important;
+  color: #fff !important;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.submitButton:hover:not(:disabled) {
+  background: #222 !important;
+}
+
+.forgotPassword {
+  align-self: center;
+  margin-top: 2px;
+  border: 0;
+  background: transparent;
+  color: #2877ed;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.forgotPassword:hover,
+.switch:hover {
+  text-decoration: underline;
+}
+
+.switchRow {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  margin: 18px -28px 0;
+  padding: 13px 10px;
+  border-top: 1px solid #edf0f3;
+  color: #8993a0;
+  font-size: 11px;
 }
 
 .switch {
-    margin-left: 8px;
-    color: cornflowerblue;
-    cursor: pointer;
-    user-select: none;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #2877ed;
+  font-size: inherit;
+  cursor: pointer;
 }
 
-.switch:hover {
-    text-decoration: underline;
-}
+@media (max-width: 420px) {
+  .dialogHeader {
+    padding-right: 22px;
+    padding-left: 22px;
+  }
 
-.forgetPasswordSwitch {
-    margin-left: 0;
-    color: cornflowerblue;
-    cursor: pointer;
-    user-select: none;
-}
+  .dialogBody {
+    padding-right: 22px;
+    padding-left: 22px;
+  }
 
-.forgetPasswordSwitch:hover {
-    text-decoration: underline;
+  .switchRow {
+    margin-right: -22px;
+    margin-left: -22px;
+  }
 }
