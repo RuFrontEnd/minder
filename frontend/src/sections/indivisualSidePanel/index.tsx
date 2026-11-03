@@ -215,7 +215,8 @@ export default function IndivisualSidePanel(
         : [];
       setMessages(
         loadedMessages.filter(
-          (message) => typeof message.comment === "string" && message.comment.trim()
+          (message) =>
+            typeof message.comment === "string" && message.comment.trim()
         )
       );
       const savedTasks = window.localStorage.getItem(
@@ -369,7 +370,7 @@ export default function IndivisualSidePanel(
   return (
     <>
       <SidePanel
-        className={styles.root}
+        className={styles.sidePanelRoot}
         role={"indivisual"}
         size="sm"
         hideHeader
@@ -383,48 +384,53 @@ export default function IndivisualSidePanel(
         onClickSwitch={onClickSidePanelSwitch}
       >
         {!props.indivisual ? (
-          <div className={styles.emptyState}>
+          <div className={styles.noStepSelectedState}>
             <CloseButton
-              className={styles.closePanelButton}
+              className={styles.closeStepDetailsButton}
               ariaLabel="Close step details"
               size="sm"
               onClick={() => props.setIsIndivisualSidePanelOpen(false)}
             />
-            <div className={styles.emptyStateTitle}>No step selected</div>
-            <div className={styles.emptyStateDescription}>
+            <div className={styles.noStepSelectedTitle}>No step selected</div>
+            <div className={styles.noStepSelectedDescription}>
               Select a step on the canvas to view its details.
             </div>
           </div>
         ) : (
-        <div className={styles.container}>
-          <div className={styles.nameSection}>
-            <div className={styles.detailHeaderRow}>
-              <span className={styles.detailId}>
-                <Circle size={8} fill="currentColor" />
-                ID-{String(props.indivisual.epNumber).padStart(3, "0")}
-              </span>
-              <Menu.Root positioning={{ placement: "bottom-end" }}>
-                <Menu.Trigger asChild>
-                  <button
-                    type="button"
-                    className={`${styles.statusBadge} ${
-                      styles[
-                        `status${(
-                          props.stepStatuses[props.indivisual.id] || "Todo"
-                        ).replace(" ", "")}`
-                      ]
-                    }`}
-                    aria-label="Step status"
-                  >
-                    {props.stepStatuses[props.indivisual.id] || "Todo"}
-                    <ChevronDown size={12} />
-                  </button>
-                </Menu.Trigger>
-                <Portal>
-                  <Menu.Positioner>
-                    <Menu.Content className={styles.statusMenuContent}>
-                      {(["Todo", "In Progress", "Done"] as CommonTypes.StepStatus[]).map(
-                        (status) => (
+          <div className={styles.stepDetailsContent}>
+            <section className={styles.stepOverview}>
+              <div className={styles.stepOverviewHeader}>
+                <span className={styles.stepIdentifier}>
+                  <Circle size={8} fill="currentColor" />
+                  ID-{String(props.indivisual.epNumber).padStart(3, "0")}
+                </span>
+                <Menu.Root positioning={{ placement: "bottom-end" }}>
+                  <Menu.Trigger asChild>
+                    <button
+                      type="button"
+                      className={`${styles.stepStatusMenuTrigger} ${
+                        styles[
+                          `status${(
+                            props.stepStatuses[props.indivisual.id] || "Todo"
+                          ).replace(" ", "")}`
+                        ]
+                      }`}
+                      aria-label="Step status"
+                    >
+                      {props.stepStatuses[props.indivisual.id] || "Todo"}
+                      <ChevronDown size={12} />
+                    </button>
+                  </Menu.Trigger>
+                  <Portal>
+                    <Menu.Positioner>
+                      <Menu.Content className={styles.statusMenuContent}>
+                        {(
+                          [
+                            "Todo",
+                            "In Progress",
+                            "Done",
+                          ] as CommonTypes.StepStatus[]
+                        ).map((status) => (
                           <Menu.Item
                             key={status}
                             value={status}
@@ -433,441 +439,463 @@ export default function IndivisualSidePanel(
                           >
                             {status}
                           </Menu.Item>
-                        )
-                      )}
-                    </Menu.Content>
-                  </Menu.Positioner>
-                </Portal>
-              </Menu.Root>
-              <CloseButton
-                className={styles.closePanelButton}
-                ariaLabel="Close step details"
-                size="sm"
-                onClick={() => props.setIsIndivisualSidePanelOpen(false)}
-              />
-            </div>
-            <div className={styles.descriptionRow}>
-              <div className={styles.descLabel}>Title</div>
-              {!props.isEditingIndivisual && (
-                <IconButton
-                  role="begin_edit_indivisual"
-                  ariaLabel="Begin edit indivisual name"
-                  size="2xs"
-                  variant="outline"
-                  style={{ border: `1px solid ${tailwindColors.grey["5"]}` }}
-                  icon={
-                    <Icon
-                      type={IconTypes.Type.pencilSquare}
-                      w={12}
-                      h={12}
-                      stroke={tailwindColors.grey["1"]}
-                    />
-                  }
-                  onClick={onClickEditIcon}
-                />
-              )}
-            </div>
-            <div className={styles.detailTitleRow}>
-              {props.isEditingIndivisual ? (
-                <Input
-                  role="edit_indivisual_title"
-                  className={styles.nameInput}
-                  value={editingTitle}
-                  onChange={onChangeTitle}
-                />
-              ) : (
-                <h2 className={styles.nameValue}>
-                  {props.indivisual?.title || "-"}
-                </h2>
-              )}
-            </div>
-
-            {props.isEditingIndivisual && (
-              <div className={styles.actions} role="edit_indivisual">
-                <Button
-                  role="cancel_edit_indivisual"
-                  vice
-                  text="Cancel"
+                        ))}
+                      </Menu.Content>
+                    </Menu.Positioner>
+                  </Portal>
+                </Menu.Root>
+                <CloseButton
+                  className={styles.closeStepDetailsButton}
+                  ariaLabel="Close step details"
                   size="sm"
-                  onClick={onClickCancelButton}
-                />
-                <Button
-                  role="save_edit_indivisual"
-                  text="Save"
-                  size="sm"
-                  onClick={onClickSaveEditingButton}
+                  onClick={() => props.setIsIndivisualSidePanelOpen(false)}
                 />
               </div>
-            )}
-          </div>
-
-          <div className={styles.descriptionSection}>
-            <div className={styles.descriptionRow}>
-              <div className={styles.descLabel}>Description</div>
-              {!props.isEditingIndivisual && (
-                <IconButton
-                  role="begin_edit_indivisual_description"
-                  ariaLabel="Begin edit indivisual description"
-                  size="2xs"
-                  variant="outline"
-                  style={{ border: `1px solid ${tailwindColors.grey["5"]}` }}
-                  icon={
-                    <Icon
-                      type={IconTypes.Type.pencilSquare}
-                      w={12}
-                      h={12}
-                      stroke={tailwindColors.grey["1"]}
+              <div className={styles.stepTitleField}>
+                <div className={styles.detailFieldHeader}>
+                  <div className={styles.detailFieldLabel}>Title</div>
+                  {!props.isEditingIndivisual && (
+                    <IconButton
+                      role="begin_edit_indivisual"
+                      ariaLabel="Begin edit indivisual name"
+                      size="2xs"
+                      variant="outline"
+                      style={{
+                        border: `1px solid ${tailwindColors.grey["5"]}`,
+                      }}
+                      icon={
+                        <Icon
+                          type={IconTypes.Type.pencilSquare}
+                          w={12}
+                          h={12}
+                          stroke={tailwindColors.grey["1"]}
+                        />
+                      }
+                      onClick={onClickEditIcon}
                     />
-                  }
-                  onClick={onClickEditIcon}
-                />
-              )}
-            </div>
-            {props.isEditingIndivisual ? (
-              <textarea
-                role="edit_indivisual_description"
-                value={editingDescription || ""}
-                onChange={(e) => setEditingDescription(e.target.value)}
-                className={styles.textarea}
-              />
-            ) : (
-              <div className={styles.descBox}>
-                {(props.indivisual as any)?.description || "-"}
-              </div>
-            )}
-          </div>
-
-          <div className={styles.ownerCreatorGrid}>
-            <div className={styles.ownerCreatorItem}>
-              <div className={styles.fieldLabel}>
-                <UserRound size={13} />
-                Owner
-              </div>
-              {selectedAsignee ? (
-                <div className={styles.ownerValue}>
-                  <Avatar
-                    src={selectedAsignee.logo}
-                    name={selectedAsignee.label}
-                    size="xs"
-                  />
-                  <span>{selectedAsignee.label}</span>
+                  )}
                 </div>
-              ) : (
-                <div className={styles.ownerValue}>
-                  <span className={styles.unassignedAvatar}>
-                    <UserRound size={12} />
-                  </span>
-                  <span>Unassigned</span>
+                <div className={styles.stepTitleContent}>
+                  {props.isEditingIndivisual ? (
+                    <Input
+                      role="edit_indivisual_title"
+                      className={styles.stepTitleInput}
+                      value={editingTitle}
+                      onChange={onChangeTitle}
+                    />
+                  ) : (
+                    <h2 className={styles.stepTitleText}>
+                      {props.indivisual?.title || "-"}
+                    </h2>
+                  )}
                 </div>
-              )}
-            </div>
-            <div className={styles.ownerCreatorItem}>
-              <span className={styles.fieldLabel}>
-                <UserRound size={13} />
-                Creator
-              </span>
-              <div className={styles.ownerValue}>
-                {creator?.avatarUrl ? (
-                  <Avatar
-                    src={creator.avatarUrl}
-                    name={creator.name}
-                    size="xs"
+                {props.isEditingIndivisual && (
+                  <div
+                    className={styles.stepTitleEditActions}
+                    role="edit_indivisual"
+                  >
+                    <Button
+                      role="cancel_edit_indivisual"
+                      vice
+                      text="Cancel"
+                      size="sm"
+                      onClick={onClickCancelButton}
+                    />
+                    <Button
+                      role="save_edit_indivisual"
+                      text="Save"
+                      size="sm"
+                      onClick={onClickSaveEditingButton}
+                    />
+                  </div>
+                )}
+              </div>
+              <div className={styles.stepDescriptionField}>
+                <div className={styles.detailFieldHeader}>
+                  <div className={styles.detailFieldLabel}>Description</div>
+                  {!props.isEditingIndivisual && (
+                    <IconButton
+                      role="begin_edit_indivisual_description"
+                      ariaLabel="Begin edit indivisual description"
+                      size="2xs"
+                      variant="outline"
+                      style={{
+                        border: `1px solid ${tailwindColors.grey["5"]}`,
+                      }}
+                      icon={
+                        <Icon
+                          type={IconTypes.Type.pencilSquare}
+                          w={12}
+                          h={12}
+                          stroke={tailwindColors.grey["1"]}
+                        />
+                      }
+                      onClick={onClickEditIcon}
+                    />
+                  )}
+                </div>
+                {props.isEditingIndivisual ? (
+                  <textarea
+                    role="edit_indivisual_description"
+                    value={editingDescription || ""}
+                    onChange={(e) => setEditingDescription(e.target.value)}
+                    className={styles.stepDescriptionInput}
                   />
                 ) : (
-                  <span className={styles.unassignedAvatar}>
-                    <UserRound size={12} />
-                  </span>
+                  <div className={styles.stepDescriptionText}>
+                    {(props.indivisual as any)?.description || "-"}
+                  </div>
                 )}
-                <span>{creator?.name || "Unknown"}</span>
+              </div>
+            </section>
+
+            <div className={styles.peopleSummaryGrid}>
+              <div className={styles.personSummary}>
+                <div className={styles.metadataLabel}>
+                  <UserRound size={13} />
+                  Owner
+                </div>
+                {selectedAsignee ? (
+                  <div className={styles.personSummaryValue}>
+                    <Avatar
+                      src={selectedAsignee.logo}
+                      name={selectedAsignee.label}
+                      size="xs"
+                    />
+                    <span>{selectedAsignee.label}</span>
+                  </div>
+                ) : (
+                  <div className={styles.personSummaryValue}>
+                    <span className={styles.placeholderAvatar}>
+                      <UserRound size={12} />
+                    </span>
+                    <span>Unassigned</span>
+                  </div>
+                )}
+              </div>
+              <div className={styles.personSummary}>
+                <span className={styles.metadataLabel}>
+                  <UserRound size={13} />
+                  Creator
+                </span>
+                <div className={styles.personSummaryValue}>
+                  {creator?.avatarUrl ? (
+                    <Avatar
+                      src={creator.avatarUrl}
+                      name={creator.name}
+                      size="xs"
+                    />
+                  ) : (
+                    <span className={styles.placeholderAvatar}>
+                      <UserRound size={12} />
+                    </span>
+                  )}
+                  <span>{creator?.name || "Unknown"}</span>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className={styles.statusSection}>
-            <span className={styles.fieldLabel}>Status</span>
-            <div className={styles.statusActionRow}>
-              <span
-                className={`${styles.statusPill} ${
-                  styles[`status${(props.stepStatuses[props.indivisual.id] || "Todo").replace(" ", "")}`]
-                }`}
-              >
-                <Circle size={8} fill="currentColor" />
-                {props.stepStatuses[props.indivisual.id] || "Todo"}
-              </span>
-              <button
-                type="button"
-                className={styles.markDoneButton}
-                onClick={() => onChangeStatus("Done")}
-                disabled={
-                  (props.stepStatuses[props.indivisual.id] || "Todo") === "Done"
-                }
-              >
-                <Check size={14} />
-                Mark as Done
-              </button>
+            <div className={styles.stepStatusSection}>
+              <span className={styles.metadataLabel}>Status</span>
+              <div className={styles.stepStatusActionRow}>
+                <span
+                  className={`${styles.stepStatusPill} ${
+                    styles[
+                      `status${(props.stepStatuses[props.indivisual.id] || "Todo").replace(" ", "")}`
+                    ]
+                  }`}
+                >
+                  <Circle size={8} fill="currentColor" />
+                  {props.stepStatuses[props.indivisual.id] || "Todo"}
+                </span>
+                <button
+                  type="button"
+                  className={styles.completeStepButton}
+                  onClick={() => onChangeStatus("Done")}
+                  disabled={
+                    (props.stepStatuses[props.indivisual.id] || "Todo") ===
+                    "Done"
+                  }
+                >
+                  <Check size={14} />
+                  Mark as Done
+                </button>
+              </div>
             </div>
-          </div>
 
-          <section className={styles.detailSection}>
-            <div className={styles.sectionHeading}>
-              <h3>Dependencies</h3>
-              <span className={styles.countBadge}>{dependencies.length}</span>
-              <button
-                type="button"
-                className={styles.sectionAction}
-                aria-label="Add dependency"
-                title="Connect dependencies from the canvas"
-              >
-                <Plus size={16} />
-              </button>
-            </div>
-            {dependencies.length ? (
-              <ul className={styles.dependencyList}>
-                {dependencies.map((dependency) => {
-                  const dependencyStatus =
-                    props.stepStatuses[dependency.id] || "Todo";
-                  return (
-                    <li key={dependency.id}>
-                      <button
-                        type="button"
-                        className={styles.dependencyItem}
-                        onClick={() => props.setIndivisual(dependency)}
-                      >
-                        <Circle
-                          size={8}
-                          fill="currentColor"
-                          className={styles[`status${dependencyStatus.replace(" ", "")}`]}
-                        />
-                        <span className={styles.dependencyId}>
-                          ID-{String(dependency.epNumber).padStart(3, "0")}
-                        </span>
-                        <span className={styles.dependencyTitle}>
-                          {dependency.title}
-                        </span>
+            <section className={styles.panelSection}>
+              <div className={styles.panelSectionHeading}>
+                <h3>Dependencies</h3>
+                <span className={styles.itemCountBadge}>{dependencies.length}</span>
+                <button
+                  type="button"
+                  className={styles.panelSectionAction}
+                  aria-label="Add dependency"
+                  title="Connect dependencies from the canvas"
+                >
+                  <Plus size={16} />
+                </button>
+              </div>
+              {dependencies.length ? (
+                <ul className={styles.dependencyList}>
+                  {dependencies.map((dependency) => {
+                    const dependencyStatus =
+                      props.stepStatuses[dependency.id] || "Todo";
+                    return (
+                      <li key={dependency.id}>
+                        <button
+                          type="button"
+                          className={styles.dependencyItem}
+                          onClick={() => props.setIndivisual(dependency)}
+                        >
+                          <Circle
+                            size={8}
+                            fill="currentColor"
+                            className={
+                              styles[
+                                `status${dependencyStatus.replace(" ", "")}`
+                              ]
+                            }
+                          />
+                          <span className={styles.dependencyId}>
+                            ID-{String(dependency.epNumber).padStart(3, "0")}
+                          </span>
+                          <span className={styles.dependencyTitle}>
+                            {dependency.title}
+                          </span>
+                          <span
+                            className={`${styles.dependencyStatus} ${
+                              styles[
+                                `status${dependencyStatus.replace(" ", "")}`
+                              ]
+                            }`}
+                          >
+                            {dependencyStatus}
+                          </span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : (
+                <p className={styles.emptySectionMessage}>No dependencies</p>
+              )}
+            </section>
+
+            <section className={styles.panelSection}>
+              <div className={styles.panelSectionHeading}>
+                <h3>Tasks</h3>
+                <span className={styles.itemCountBadge}>{tasks.length}</span>
+              </div>
+              {tasks.length ? (
+                <ul className={styles.taskList}>
+                  {tasks.map((task) => {
+                    const owner = authorOptions.find(
+                      (option) => option.value === task.owner
+                    );
+
+                    return (
+                      <li className={styles.taskItem} key={task.id}>
+                        <button
+                          type="button"
+                          className={`${styles.taskCheckbox} ${
+                            task.completed ? styles.taskCompleted : ""
+                          }`}
+                          aria-label={
+                            task.completed
+                              ? `Mark ${task.title} as incomplete`
+                              : `Mark ${task.title} as complete`
+                          }
+                          aria-pressed={task.completed}
+                          onClick={() => onToggleTask(task.id)}
+                        >
+                          {task.completed && <Check size={11} />}
+                        </button>
+                        <label className={styles.taskOwnerPicker}>
+                          {owner ? (
+                            <Avatar
+                              src={owner.logo}
+                              name={owner.label}
+                              size="2xs"
+                              className={styles.taskOwnerAvatar}
+                            />
+                          ) : (
+                            <span
+                              className={`${styles.placeholderAvatar} ${styles.taskOwnerUnassignedAvatar}`}
+                              aria-hidden="true"
+                            >
+                              <UserRound size={12} />
+                            </span>
+                          )}
+                          <select
+                            className={styles.taskOwnerSelect}
+                            aria-label={`Assign ${task.title} to a member`}
+                            title={
+                              owner
+                                ? `Owner: ${owner.label}`
+                                : "Assign to a member"
+                            }
+                            value={task.owner || ""}
+                            onChange={(event) =>
+                              onChangeTaskOwner(task.id, event.target.value)
+                            }
+                          >
+                            <option value="">Unassigned</option>
+                            {authorOptions.map((member) => (
+                              <option key={member.value} value={member.value}>
+                                {member.label}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
                         <span
-                          className={`${styles.dependencyStatus} ${
-                            styles[`status${dependencyStatus.replace(" ", "")}`]
+                          className={`${styles.taskTitle} ${
+                            task.completed ? styles.taskTitleCompleted : ""
                           }`}
                         >
-                          {dependencyStatus}
+                          {task.title}
                         </span>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            ) : (
-              <p className={styles.sectionEmpty}>No dependencies</p>
-            )}
-          </section>
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : (
+                <p className={styles.emptySectionMessage}>No tasks yet.</p>
+              )}
+              <form className={styles.taskForm} onSubmit={onSubmitTask}>
+                <input
+                  value={taskText}
+                  onChange={(event) => setTaskText(event.target.value)}
+                  placeholder="Add a task..."
+                  aria-label="Add a task"
+                />
+                <button
+                  type="submit"
+                  aria-label="Add task"
+                  disabled={!taskText.trim()}
+                >
+                  <Plus size={15} />
+                </button>
+              </form>
+            </section>
 
-          <section className={styles.detailSection}>
-            <div className={styles.sectionHeading}>
-              <h3>Tasks</h3>
-              <span className={styles.countBadge}>{tasks.length}</span>
-            </div>
-            {tasks.length ? (
-              <ul className={styles.taskList}>
-                {tasks.map((task) => {
-                  const owner = authorOptions.find((option) => option.value === task.owner);
-
-                  return (
-                    <li className={styles.taskItem} key={task.id}>
-                      <button
-                        type="button"
-                        className={`${styles.taskCheckbox} ${
-                          task.completed ? styles.taskCompleted : ""
-                        }`}
-                        aria-label={
-                          task.completed
-                            ? `Mark ${task.title} as incomplete`
-                            : `Mark ${task.title} as complete`
-                        }
-                        aria-pressed={task.completed}
-                        onClick={() => onToggleTask(task.id)}
-                      >
-                        {task.completed && <Check size={11} />}
-                      </button>
-                      <label className={styles.taskOwnerPicker}>
-                        {owner ? (
-                          <Avatar
-                            src={owner.logo}
-                            name={owner.label}
-                            size="2xs"
-                            className={styles.taskOwnerAvatar}
-                          />
-                        ) : (
-                          <span
-                            className={`${styles.unassignedAvatar} ${styles.taskOwnerUnassignedAvatar}`}
-                            aria-hidden="true"
-                          >
-                            <UserRound size={12} />
-                          </span>
-                        )}
-                        <select
-                          className={styles.taskOwnerSelect}
-                          aria-label={`Assign ${task.title} to a member`}
-                          title={owner ? `Owner: ${owner.label}` : "Assign to a member"}
-                          value={task.owner || ""}
-                          onChange={(event) =>
-                            onChangeTaskOwner(task.id, event.target.value)
+            <section className={styles.panelSection}>
+              <div className={styles.panelSectionHeading}>
+                <h3>Attachments</h3>
+                <span className={styles.itemCountBadge}>{attachments.length}</span>
+                <input
+                  ref={attachmentInputRef}
+                  className={styles.attachmentInput}
+                  type="file"
+                  multiple
+                  aria-label="Select attachments"
+                  onChange={onChangeAttachments}
+                />
+                <button
+                  type="button"
+                  className={styles.attachmentAction}
+                  aria-label="Add attachments"
+                  title="Add attachments"
+                  onClick={() => attachmentInputRef.current?.click()}
+                >
+                  <Paperclip size={14} />
+                </button>
+              </div>
+              {attachments.length ? (
+                <ul className={styles.attachmentList}>
+                  {attachments.map(({ id, file, previewUrl }) => (
+                    <li className={styles.attachmentItem} key={id}>
+                      {previewUrl ? (
+                        <button
+                          type="button"
+                          className={styles.attachmentPreviewButton}
+                          aria-label={`Preview ${file.name}`}
+                          onClick={() =>
+                            setPreviewedAttachment({ id, file, previewUrl })
                           }
                         >
-                          <option value="">Unassigned</option>
-                          {authorOptions.map((member) => (
-                            <option key={member.value} value={member.value}>
-                              {member.label}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      <span
-                        className={`${styles.taskTitle} ${
-                          task.completed ? styles.taskTitleCompleted : ""
-                        }`}
-                      >
-                        {task.title}
+                          <img
+                            className={styles.attachmentPreview}
+                            src={previewUrl}
+                            alt=""
+                          />
+                        </button>
+                      ) : (
+                        <FileText size={14} className={styles.attachmentIcon} />
+                      )}
+                      <span className={styles.attachmentInfo}>
+                        <span
+                          className={styles.attachmentName}
+                          title={file.name}
+                        >
+                          {file.name}
+                        </span>
+                        <span className={styles.attachmentSize}>
+                          {formatFileSize(file.size)}
+                        </span>
                       </span>
-                    </li>
-                  );
-                })}
-              </ul>
-            ) : (
-              <p className={styles.sectionEmpty}>No tasks yet.</p>
-            )}
-            <form className={styles.taskForm} onSubmit={onSubmitTask}>
-              <input
-                value={taskText}
-                onChange={(event) => setTaskText(event.target.value)}
-                placeholder="Add a task..."
-                aria-label="Add a task"
-              />
-              <button
-                type="submit"
-                aria-label="Add task"
-                disabled={!taskText.trim()}
-              >
-                <Plus size={15} />
-              </button>
-            </form>
-          </section>
-
-          <section className={styles.detailSection}>
-            <div className={styles.sectionHeading}>
-              <h3>Attachments</h3>
-              <span className={styles.countBadge}>{attachments.length}</span>
-              <input
-                ref={attachmentInputRef}
-                className={styles.attachmentInput}
-                type="file"
-                multiple
-                aria-label="Select attachments"
-                onChange={onChangeAttachments}
-              />
-              <button
-                type="button"
-                className={styles.attachmentAction}
-                aria-label="Add attachments"
-                title="Add attachments"
-                onClick={() => attachmentInputRef.current?.click()}
-              >
-                <Paperclip size={14} />
-              </button>
-            </div>
-            {attachments.length ? (
-              <ul className={styles.attachmentList}>
-                {attachments.map(({ id, file, previewUrl }) => (
-                  <li className={styles.attachmentItem} key={id}>
-                    {previewUrl ? (
                       <button
                         type="button"
-                        className={styles.attachmentPreviewButton}
-                        aria-label={`Preview ${file.name}`}
-                        onClick={() =>
-                          setPreviewedAttachment({ id, file, previewUrl })
-                        }
+                        className={styles.removeAttachment}
+                        aria-label={`Remove ${file.name}`}
+                        onClick={() => onRemoveAttachment(id)}
                       >
-                        <img
-                          className={styles.attachmentPreview}
-                          src={previewUrl}
-                          alt=""
-                        />
+                        <Trash2 size={13} />
                       </button>
-                    ) : (
-                      <FileText
-                        size={14}
-                        className={styles.attachmentIcon}
-                      />
-                    )}
-                    <span className={styles.attachmentInfo}>
-                      <span className={styles.attachmentName} title={file.name}>
-                        {file.name}
-                      </span>
-                      <span className={styles.attachmentSize}>
-                        {formatFileSize(file.size)}
-                      </span>
-                    </span>
-                    <button
-                      type="button"
-                      className={styles.removeAttachment}
-                      aria-label={`Remove ${file.name}`}
-                      onClick={() => onRemoveAttachment(id)}
-                    >
-                      <Trash2 size={13} />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className={styles.sectionEmpty}>No attachments yet.</p>
-            )}
-          </section>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className={styles.emptySectionMessage}>No attachments yet.</p>
+              )}
+            </section>
 
-          <section className={`${styles.detailSection} ${styles.messagesSection}`}>
-            <div className={styles.sectionHeading}>
-              <h3>Messages</h3>
-              <button type="button" className={styles.viewAllButton}>
-                View all
-              </button>
-            </div>
-            {messages.length ? (
-              <ul className={styles.messageList}>
-                {messages.map((item) => (
-                  <li className={styles.messageItem} key={item.id}>
-                    <span className={styles.messageAvatar}>Y</span>
-                    <div className={styles.messageContent}>
-                      <span>{item.text}</span>
-                      {item.comment && (
-                        <span className={styles.messageBody}>
-                          {item.comment}
-                        </span>
-                      )}
-                      <time>{getMessageTimeLabel(item.createdAt)}</time>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className={styles.sectionEmpty}>No messages yet.</p>
-            )}
-            <form className={styles.messageForm} onSubmit={onSubmitMessage}>
-              <input
-                value={messageText}
-                onChange={(event) => setMessageText(event.target.value)}
-                placeholder="Write a message..."
-                aria-label="Write a message"
-              />
-              <button
-                type="submit"
-                aria-label="Send message"
-                disabled={!messageText.trim()}
-              >
-                <Send size={15} />
-              </button>
-            </form>
-          </section>
-
-        </div>
+            <section
+              className={`${styles.panelSection} ${styles.messageSection}`}
+            >
+              <div className={styles.panelSectionHeading}>
+                <h3>Messages</h3>
+                <button type="button" className={styles.viewAllMessagesButton}>
+                  View all
+                </button>
+              </div>
+              {messages.length ? (
+                <ul className={styles.messageList}>
+                  {messages.map((item) => (
+                    <li className={styles.messageItem} key={item.id}>
+                      <span className={styles.messageAvatar}>Y</span>
+                      <div className={styles.messageContent}>
+                        <span>{item.text}</span>
+                        {item.comment && (
+                          <span className={styles.messageBody}>
+                            {item.comment}
+                          </span>
+                        )}
+                        <time>{getMessageTimeLabel(item.createdAt)}</time>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className={styles.emptySectionMessage}>No messages yet.</p>
+              )}
+              <form className={styles.messageForm} onSubmit={onSubmitMessage}>
+                <input
+                  value={messageText}
+                  onChange={(event) => setMessageText(event.target.value)}
+                  placeholder="Write a message..."
+                  aria-label="Write a message"
+                />
+                <button
+                  type="submit"
+                  aria-label="Send message"
+                  disabled={!messageText.trim()}
+                >
+                  <Send size={15} />
+                </button>
+              </form>
+            </section>
+          </div>
         )}
       </SidePanel>
       <Modal

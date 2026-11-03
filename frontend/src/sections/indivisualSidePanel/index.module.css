@@ -1,11 +1,11 @@
-.root {
+.sidePanelRoot {
   width: 320px;
   max-width: calc(100vw - 24px);
   border-left: 1px solid #e8edf3;
   background: #fff;
 }
 
-.root :global([data-scope="drawer"][data-part="body"]) {
+.sidePanelRoot :global([data-scope="drawer"][data-part="body"]) {
   display: flex;
   min-height: 0;
   flex: 1;
@@ -14,7 +14,7 @@
   overflow: hidden;
 }
 
-.container {
+.stepDetailsContent {
   height: 100%;
   min-height: 0;
   display: flex;
@@ -22,16 +22,16 @@
   color: #293951;
 }
 
-.container::-webkit-scrollbar {
+.stepDetailsContent::-webkit-scrollbar {
   width: 5px;
 }
 
-.container::-webkit-scrollbar-thumb {
+.stepDetailsContent::-webkit-scrollbar-thumb {
   border-radius: 999px;
   background: #d7dee8;
 }
 
-.detailHeaderRow {
+.stepOverviewHeader {
   display: flex;
   min-height: 34px;
   align-items: center;
@@ -40,7 +40,7 @@
   padding-bottom: 2px;
 }
 
-.detailId {
+.stepIdentifier {
   display: flex;
   align-items: center;
   gap: 7px;
@@ -49,11 +49,11 @@
   font-weight: 600;
 }
 
-.detailId svg {
+.stepIdentifier svg {
   color: #3478f6;
 }
 
-.statusBadge {
+.stepStatusMenuTrigger {
   display: inline-flex;
   margin-left: auto;
   align-items: center;
@@ -109,30 +109,18 @@
   color: #6d7d91;
 }
 
-.closePanelButton {
+.closeStepDetailsButton {
   flex: 0 0 auto;
   color: #64748b;
 }
 
-.detailTitleRow {
+.stepTitleContent {
   display: flex;
   min-height: 24px;
   align-items: center;
 }
 
-.detailTitleRow .nameValue {
-  flex: 1;
-  overflow: hidden;
-  margin: 0;
-  color: #293951;
-  font-size: 14px;
-  font-weight: 700;
-  line-height: 1.4;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.emptyState {
+.noStepSelectedState {
   position: relative;
   height: 100%;
   display: flex;
@@ -145,44 +133,24 @@
   padding: 1.5rem;
 }
 
-.emptyState .closePanelButton {
+.noStepSelectedState .closeStepDetailsButton {
   position: absolute;
   top: 4px;
   right: 0;
 }
 
-.emptyStateTitle {
+.noStepSelectedTitle {
   font-size: 1rem;
   font-weight: 600;
   color: #111827;
 }
 
-.emptyStateDescription {
+.noStepSelectedDescription {
   font-size: 0.875rem;
   line-height: 1.5;
 }
 
-.column {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.titleRow {
-  display: flex;
-  align-items: center;
-}
-
-.titleText {
-  flex: 1;
-  font-size: 1rem;
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.actions {
+.stepTitleEditActions {
   display: flex;
   justify-content: flex-end;
   align-items: center;
@@ -190,61 +158,69 @@
   margin-top: 8px;
 }
 
-.inputFull {
-  flex: 1;
-}
-
-.iconButton {
-  justify-self: end;
-  cursor: pointer;
-}
-
-.descriptionRow {
+.detailFieldHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 6px;
 }
 
-.nameSection {
+.stepOverview {
   flex: 0 0 auto;
   padding: 0 0 10px;
   border-bottom: 1px solid #edf1f5;
 }
 
-.nameValue {
-  margin: 0;
-  color: #293951;
-  font-size: 16px;
-  font-weight: 700;
-}
-
-.nameInput {
-  width: 100%;
-}
-
-.descriptionSection {
-  display: flex;
-  flex: 0 0 auto;
-  flex-direction: column;
-  padding: 10px 0;
+.stepTitleField {
+  padding-top: 10px;
+  padding-bottom: 10px;
   border-bottom: 1px solid #edf1f5;
 }
 
-.descLabel {
+.stepTitleText {
+  min-width: 0;
+  overflow: hidden;
+  margin: 0;
+  color: #293951;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stepTitleInput {
+  width: 100%;
+}
+
+.stepDescriptionField {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  padding-top: 10px;
+}
+
+.detailFieldLabel,
+.metadataLabel {
   color: #8290a3;
   font-size: 10px;
   font-weight: 500;
 }
 
-.descBox {
+.metadataLabel {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.stepDescriptionText {
   color: #52647a;
   font-size: 11px;
   line-height: 1.5;
   white-space: pre-wrap;
 }
 
-.textarea {
+.stepDescriptionInput {
   width: 100%;
   resize: none;
   min-height: 80px;
@@ -257,7 +233,7 @@
   line-height: 1.5;
 }
 
-.ownerCreatorGrid {
+.peopleSummaryGrid {
   display: grid;
   flex: 0 0 auto;
   grid-template-columns: 1fr 1fr;
@@ -265,7 +241,7 @@
   border-bottom: 1px solid #edf1f5;
 }
 
-.ownerCreatorItem {
+.personSummary {
   display: flex;
   min-height: 58px;
   flex-direction: column;
@@ -273,21 +249,12 @@
   padding: 2px 8px 10px 0;
 }
 
-.ownerCreatorItem + .ownerCreatorItem {
+.personSummary + .personSummary {
   padding-left: 10px;
   border-left: 1px solid #edf1f5;
 }
 
-.fieldLabel {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  color: #8290a3;
-  font-size: 10px;
-  font-weight: 500;
-}
-
-.ownerValue {
+.personSummaryValue {
   display: flex;
   align-items: center;
   gap: 7px;
@@ -296,7 +263,7 @@
   font-weight: 550;
 }
 
-.unassignedAvatar {
+.placeholderAvatar {
   display: inline-flex;
   width: 20px;
   height: 20px;
@@ -307,7 +274,7 @@
   color: #93a0b0;
 }
 
-.statusSection {
+.stepStatusSection {
   display: flex;
   flex: 0 0 auto;
   flex-direction: column;
@@ -316,13 +283,13 @@
   border-bottom: 1px solid #edf1f5;
 }
 
-.statusActionRow {
+.stepStatusActionRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-.statusPill {
+.stepStatusPill {
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -332,7 +299,7 @@
   font-weight: 600;
 }
 
-.markDoneButton {
+.completeStepButton {
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -346,31 +313,31 @@
   cursor: pointer;
 }
 
-.markDoneButton:disabled {
+.completeStepButton:disabled {
   background: #a7b5c8;
   cursor: default;
 }
 
-.detailSection {
+.panelSection {
   flex: 0 0 auto;
   padding: 10px 0;
   border-bottom: 1px solid #edf1f5;
 }
 
-.sectionHeading {
+.panelSectionHeading {
   display: flex;
   min-height: 20px;
   align-items: center;
   gap: 6px;
 }
 
-.sectionHeading h3 {
+.panelSectionHeading h3 {
   color: #34445b;
   font-size: 11px;
   font-weight: 650;
 }
 
-.countBadge {
+.itemCountBadge {
   display: inline-flex;
   min-width: 15px;
   height: 15px;
@@ -382,7 +349,7 @@
   font-size: 9px;
 }
 
-.sectionAction {
+.panelSectionAction {
   display: inline-flex;
   width: 22px;
   height: 22px;
@@ -585,7 +552,7 @@
   font-weight: 600;
 }
 
-.sectionEmpty {
+.emptySectionMessage {
   margin-top: 7px;
   color: #98a4b3;
   font-size: 10px;
@@ -673,16 +640,18 @@
   text-decoration: line-through;
 }
 
-.taskForm {
+.taskForm,
+.messageForm {
   display: flex;
-  min-height: 30px;
+  min-height: 32px;
   align-items: center;
-  margin-top: 7px;
+  margin-top: 8px;
   border: 1px solid #e4e9f0;
   border-radius: 6px;
 }
 
-.taskForm input {
+.taskForm input,
+.messageForm input {
   width: 100%;
   min-width: 0;
   border: 0;
@@ -692,14 +661,16 @@
   font-size: 10px;
 }
 
-.taskForm input::placeholder {
+.taskForm input::placeholder,
+.messageForm input::placeholder {
   color: #9aa7b8;
 }
 
-.taskForm button {
+.taskForm button,
+.messageForm button {
   display: inline-flex;
-  width: 30px;
-  height: 28px;
+  width: 32px;
+  height: 30px;
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
@@ -710,64 +681,20 @@
   cursor: pointer;
 }
 
-.taskForm button:disabled {
+.taskForm button:disabled,
+.messageForm button:disabled {
   color: #b7c1ce;
   cursor: default;
 }
 
-.followers {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  margin-top: 6px;
-}
-
-.followerAvatar {
-  display: inline-flex;
-  width: 23px;
-  height: 23px;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid #fff;
-  border-radius: 50%;
-  background: #e4edfc;
-  color: #456b9f;
-  font-size: 8px;
-  font-weight: 700;
-  box-shadow: 0 0 0 1px #e6ebf2;
-}
-
-.followerAvatar:nth-child(2) {
-  background: #fbe4dc;
-  color: #ad624e;
-}
-
-.followerAvatar:nth-child(3) {
-  background: #e5f3e7;
-  color: #4b8258;
-}
-
-.addFollower {
-  display: inline-flex;
-  width: 23px;
-  height: 23px;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid #e5ebf2;
-  border-radius: 50%;
-  background: #fff;
-  color: #77869a;
-  cursor: pointer;
-}
-
-.messagesSection {
+.messageSection {
   flex: 1 0 auto;
   min-height: 125px;
   padding-bottom: 8px;
   border-bottom: 0;
 }
 
-.viewAllButton {
+.viewAllMessagesButton {
   margin-left: auto;
   border: 0;
   background: transparent;
@@ -818,45 +745,4 @@
 .messageContent time {
   color: #99a5b4;
   font-size: 9px;
-}
-
-.messageForm {
-  display: flex;
-  min-height: 32px;
-  align-items: center;
-  margin-top: 8px;
-  border: 1px solid #e4e9f0;
-  border-radius: 6px;
-}
-
-.messageForm input {
-  width: 100%;
-  min-width: 0;
-  border: 0;
-  outline: 0;
-  padding: 0 8px;
-  color: #394b63;
-  font-size: 10px;
-}
-
-.messageForm input::placeholder {
-  color: #9aa7b8;
-}
-
-.messageForm button {
-  display: inline-flex;
-  width: 32px;
-  height: 30px;
-  flex: 0 0 auto;
-  align-items: center;
-  justify-content: center;
-  border: 0;
-  background: transparent;
-  color: #8392a5;
-  cursor: pointer;
-}
-
-.messageForm button:disabled {
-  color: #c6ced8;
-  cursor: default;
 }
