@@ -50,6 +50,7 @@ export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
       open={props.isOverAllSidePanelOpen}
       placement="start"
       size="xs"
+      footer={false}
       onClickSwitch={onClickOverallSidePanelSwitch}
       onCancel={() => {
         props.setIsOverAllSidePanelOpen(false);
