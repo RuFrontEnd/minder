@@ -22,6 +22,94 @@ namespace Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Domain.Entities.AvatarColorEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("BackgroundColor")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("background_color");
+
+                    b.Property<string>("Color")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("color");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("avatar_colors", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("6f5f2d1c-1d7d-4c8f-9f2d-2f2c80f6a101"),
+                            BackgroundColor = "#dbeafe",
+                            Color = "#1d4ed8",
+                            Name = "blue"
+                        },
+                        new
+                        {
+                            Id = new Guid("6f5f2d1c-1d7d-4c8f-9f2d-2f2c80f6a102"),
+                            BackgroundColor = "#d1fae5",
+                            Color = "#047857",
+                            Name = "green"
+                        },
+                        new
+                        {
+                            Id = new Guid("6f5f2d1c-1d7d-4c8f-9f2d-2f2c80f6a103"),
+                            BackgroundColor = "#f3e8ff",
+                            Color = "#7e22ce",
+                            Name = "purple"
+                        },
+                        new
+                        {
+                            Id = new Guid("6f5f2d1c-1d7d-4c8f-9f2d-2f2c80f6a104"),
+                            BackgroundColor = "#ffedd5",
+                            Color = "#c2410c",
+                            Name = "orange"
+                        },
+                        new
+                        {
+                            Id = new Guid("6f5f2d1c-1d7d-4c8f-9f2d-2f2c80f6a105"),
+                            BackgroundColor = "#ffe4e6",
+                            Color = "#be123c",
+                            Name = "rose"
+                        },
+                        new
+                        {
+                            Id = new Guid("6f5f2d1c-1d7d-4c8f-9f2d-2f2c80f6a106"),
+                            BackgroundColor = "#ccfbf1",
+                            Color = "#0f766e",
+                            Name = "teal"
+                        },
+                        new
+                        {
+                            Id = new Guid("6f5f2d1c-1d7d-4c8f-9f2d-2f2c80f6a107"),
+                            BackgroundColor = "#fef3c7",
+                            Color = "#a16207",
+                            Name = "amber"
+                        },
+                        new
+                        {
+                            Id = new Guid("6f5f2d1c-1d7d-4c8f-9f2d-2f2c80f6a108"),
+                            BackgroundColor = "#e0e7ff",
+                            Color = "#4338ca",
+                            Name = "indigo"
+                        });
+                });
+
             modelBuilder.Entity("Domain.Entities.MemberEntity", b =>
                 {
                     b.Property<Guid>("Id")
@@ -263,6 +351,10 @@ namespace Infrastructure.Migrations
                         .HasColumnName("id")
                         .HasDefaultValueSql("gen_random_uuid()");
 
+                    b.Property<Guid?>("AvatarColorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("avatar_color_id");
+
                     b.Property<string>("AvatarUrl")
                         .HasColumnType("text")
                         .HasColumnName("avatar_url");
@@ -308,6 +400,8 @@ namespace Infrastructure.Migrations
                         .HasColumnName("refresh_token_expiry_time");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AvatarColorId");
 
                     b.ToTable("users", (string)null);
                 });
@@ -391,6 +485,16 @@ namespace Infrastructure.Migrations
                         .HasForeignKey("StepId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Domain.Entities.UserEntity", b =>
+                {
+                    b.HasOne("Domain.Entities.AvatarColorEntity", "AvatarColor")
+                        .WithMany()
+                        .HasForeignKey("AvatarColorId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("AvatarColor");
                 });
 #pragma warning restore 612, 618
         }

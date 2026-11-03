@@ -25,7 +25,13 @@ public class AuthService(ApplicationDbContext dbContext, IAuthRepository authRep
 
         // 3. 建立 Domain Entity
         // 這裡會呼叫你之前寫的那個有 Guid.NewGuid() 的建構函式
-        var user = new UserEntity(email, hashedPassword, firstName, lastName);
+        var avatarColorId = await SelectAvatarColorIdAsync();
+        var user = new UserEntity(
+            email,
+            hashedPassword,
+            firstName,
+            lastName,
+            avatarColorId);
         var verificationToken = Guid.NewGuid().ToString("N");
         var verificationExpiry = DateTime.UtcNow.AddHours(24);
 
@@ -101,7 +107,38 @@ public class AuthService(ApplicationDbContext dbContext, IAuthRepository authRep
             FirstName = user.FirstName,
             LastName = user.LastName,
             AvatarUrl = user.AvatarUrl,
+            AvatarColor = user.AvatarColor is null
+                ? null
+                : new AvatarColorDto
+                {
+                    Name = user.AvatarColor.Name,
+                    Color = user.AvatarColor.Color,
+                    BackgroundColor = user.AvatarColor.BackgroundColor
+                },
         };
+    }
+
+    private async Task<Guid> SelectAvatarColorIdAsync()
+    {
+        var colorUsage = await dbContext.AvatarColors
+            .Select(color => new
+            {
+                color.Id,
+                UsageCount = dbContext.Users.Count(user => user.AvatarColorId == color.Id)
+            })
+            .ToListAsync();
+
+        if (colorUsage.Count == 0)
+        {
+            throw new InvalidOperationException("No avatar colors are configured.");
+        }
+
+        var minimumUsage = colorUsage.Min(color => color.UsageCount);
+        var candidates = colorUsage
+            .Where(color => color.UsageCount == minimumUsage)
+            .ToList();
+
+        return candidates[Random.Shared.Next(candidates.Count)].Id;
     }
 
     public async Task<UserProfileDto?> UpdateAvatarAsync(
@@ -121,6 +158,14 @@ public class AuthService(ApplicationDbContext dbContext, IAuthRepository authRep
             FirstName = user.FirstName,
             LastName = user.LastName,
             AvatarUrl = user.AvatarUrl,
+            AvatarColor = user.AvatarColor is null
+                ? null
+                : new AvatarColorDto
+                {
+                    Name = user.AvatarColor.Name,
+                    Color = user.AvatarColor.Color,
+                    BackgroundColor = user.AvatarColor.BackgroundColor
+                },
         };
     }
 

@@ -19,43 +19,6 @@ type Props = {
   onSelectProject?: (project: ProjectTypes.Project) => void;
 };
 
-const onChangeAvatar = async (
-  event: React.ChangeEvent<HTMLInputElement>
-) => {
-  const file = event.target.files?.[0];
-  event.target.value = "";
-  if (!file) return;
-  if (!file.type.startsWith("image/") || file.size > 3_000_000) {
-    setLoadError("Please choose an image smaller than 3 MB.");
-    return;
-  }
-
-  setIsUploadingAvatar(true);
-  setLoadError("");
-  try {
-    const avatarUrl = await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (typeof reader.result === "string") resolve(reader.result);
-        else reject(new Error("Unable to read avatar image."));
-      };
-      reader.onerror = () => reject(reader.error);
-      reader.readAsDataURL(file);
-    });
-    const response = await authAPIs.updateAvatar(avatarUrl);
-    const savedAvatarUrl = response.data?.avatarUrl || avatarUrl;
-    setUserProfile((current) =>
-      current ? { ...current, avatarUrl: savedAvatarUrl } : current
-    );
-    props.afterAvatarChange?.(savedAvatarUrl);
-  } catch (error) {
-    console.error("Failed to upload avatar:", error);
-    setLoadError("Unable to upload avatar. Please try again.");
-  } finally {
-    setIsUploadingAvatar(false);
-  }
-};
-
 export default function UserInfoModal(props: Props) {
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -66,6 +29,10 @@ export default function UserInfoModal(props: Props) {
     firstName: string;
     lastName: string;
     avatarUrl?: string;
+    avatarColor?: {
+      color: string;
+      backgroundColor: string;
+    };
   } | null>(null);
   const [projects, setProjects] = useState<ProjectTypes.Project[]>([]);
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
@@ -101,6 +68,43 @@ export default function UserInfoModal(props: Props) {
       if (!props.isCloseDisabled) props.onClose();
     } catch (err) {
       console.error("Failed to create project", err);
+    }
+  };
+
+  const onChangeAvatar = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/") || file.size > 3_000_000) {
+      setLoadError("Please choose an image smaller than 3 MB.");
+      return;
+    }
+
+    setIsUploadingAvatar(true);
+    setLoadError("");
+    try {
+      const avatarUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          if (typeof reader.result === "string") resolve(reader.result);
+          else reject(new Error("Unable to read avatar image."));
+        };
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(file);
+      });
+      const response = await authAPIs.updateAvatar(avatarUrl);
+      const savedAvatarUrl = response.data?.avatarUrl || avatarUrl;
+      setUserProfile((current) =>
+        current ? { ...current, avatarUrl: savedAvatarUrl } : current
+      );
+      props.afterAvatarChange?.(savedAvatarUrl);
+    } catch (error) {
+      console.error("Failed to upload avatar:", error);
+      setLoadError("Unable to upload avatar. Please try again.");
+    } finally {
+      setIsUploadingAvatar(false);
     }
   };
 
@@ -157,7 +161,12 @@ export default function UserInfoModal(props: Props) {
   }, [props.isOpen]);
 
   const fullName = `${firstName || ""} ${lastName || ""}`.trim();
-  const initials = `${firstName?.[0] || ""}${lastName?.[0] || ""}`.toUpperCase() || "U";
+  const initials =
+    `${firstName?.[0] || ""}${lastName?.[0] || ""}`.toUpperCase() || "U";
+  const avatarStyle = {
+    backgroundColor: userProfile?.avatarColor?.backgroundColor || "#dbeafe",
+    color: userProfile?.avatarColor?.color || "#1d4ed8",
+  };
 
   return (
     <Modal
@@ -173,6 +182,7 @@ export default function UserInfoModal(props: Props) {
         <button
           type="button"
           className={styles.avatarButton}
+          style={avatarStyle}
           aria-label="Upload profile picture"
           onClick={() => avatarInputRef.current?.click()}
           disabled={isUploadingAvatar}

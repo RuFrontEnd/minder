@@ -99,6 +99,7 @@ public class AuthController(AuthService authService) : ControllerBase
             id = userId,
             email = email,
             avatarUrl = user?.AvatarUrl,
+            avatarColor = user?.AvatarColor,
             message = "authenticated!"
         });
     }

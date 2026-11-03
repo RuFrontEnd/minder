@@ -12,6 +12,7 @@ namespace Infrastructure.Persistence
 
         // table
         public DbSet<UserEntity> Users => Set<UserEntity>();
+        public DbSet<AvatarColorEntity> AvatarColors => Set<AvatarColorEntity>();
         public DbSet<ProjectEntity> Projects => Set<ProjectEntity>();
         public DbSet<MemberEntity> Members => Set<MemberEntity>();
         public DbSet<RoleEntity> Roles => Set<RoleEntity>();
@@ -33,6 +34,11 @@ namespace Infrastructure.Persistence
                 entity.Property(e => e.FirstName).HasColumnName("first_name");
                 entity.Property(e => e.LastName).HasColumnName("last_name");
                 entity.Property(e => e.AvatarUrl).HasColumnName("avatar_url");
+                entity.Property(e => e.AvatarColorId).HasColumnName("avatar_color_id");
+                entity.HasOne(e => e.AvatarColor)
+                    .WithMany()
+                    .HasForeignKey(e => e.AvatarColorId)
+                    .OnDelete(DeleteBehavior.Restrict);
                 entity.Property(e => e.IsEmailVerified).HasColumnName("is_email_verified");
                 entity.Property(e => e.EmailVerificationToken).HasColumnName("email_verification_token");
                 entity.Property(e => e.EmailVerificationTokenExpiry).HasColumnName("email_verification_token_expiry");
@@ -40,6 +46,77 @@ namespace Infrastructure.Persistence
                 entity.Property(e => e.RefreshTokenExpiryTime).HasColumnName("refresh_token_expiry_time");
                 entity.Property(e => e.Id)
                       .HasDefaultValueSql("gen_random_uuid()");
+            });
+
+            modelBuilder.Entity<AvatarColorEntity>(entity =>
+            {
+                entity.ToTable("avatar_colors");
+
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Name).HasColumnName("name").IsRequired();
+                entity.Property(e => e.Color).HasColumnName("color").IsRequired();
+                entity.Property(e => e.BackgroundColor)
+                    .HasColumnName("background_color")
+                    .IsRequired();
+                entity.HasIndex(e => e.Name).IsUnique();
+                entity.HasData(
+                    new
+                    {
+                        Id = AvatarColorEntity.BlueId,
+                        Name = "blue",
+                        Color = "#1d4ed8",
+                        BackgroundColor = "#dbeafe"
+                    },
+                    new
+                    {
+                        Id = AvatarColorEntity.GreenId,
+                        Name = "green",
+                        Color = "#047857",
+                        BackgroundColor = "#d1fae5"
+                    },
+                    new
+                    {
+                        Id = AvatarColorEntity.PurpleId,
+                        Name = "purple",
+                        Color = "#7e22ce",
+                        BackgroundColor = "#f3e8ff"
+                    },
+                    new
+                    {
+                        Id = AvatarColorEntity.OrangeId,
+                        Name = "orange",
+                        Color = "#c2410c",
+                        BackgroundColor = "#ffedd5"
+                    },
+                    new
+                    {
+                        Id = AvatarColorEntity.RoseId,
+                        Name = "rose",
+                        Color = "#be123c",
+                        BackgroundColor = "#ffe4e6"
+                    },
+                    new
+                    {
+                        Id = AvatarColorEntity.TealId,
+                        Name = "teal",
+                        Color = "#0f766e",
+                        BackgroundColor = "#ccfbf1"
+                    },
+                    new
+                    {
+                        Id = AvatarColorEntity.AmberId,
+                        Name = "amber",
+                        Color = "#a16207",
+                        BackgroundColor = "#fef3c7"
+                    },
+                    new
+                    {
+                        Id = AvatarColorEntity.IndigoId,
+                        Name = "indigo",
+                        Color = "#4338ca",
+                        BackgroundColor = "#e0e7ff"
+                    });
             });
 
             modelBuilder.Entity<ProjectEntity>(entity =>

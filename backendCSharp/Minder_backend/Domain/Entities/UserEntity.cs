@@ -2,13 +2,19 @@
 {
     public class UserEntity
     {
-        public UserEntity(string email, string password, string firstName, string lastName)
+        public UserEntity(
+            string email,
+            string password,
+            string firstName,
+            string lastName,
+            Guid avatarColorId)
         {
             Id = Guid.NewGuid();
             Email = email;
             Password = password;
             FirstName = firstName;
             LastName = lastName;
+            AvatarColorId = avatarColorId;
             IsEmailVerified = false;
         }
 
@@ -18,6 +24,8 @@
         public string FirstName { get; private set; } = null!;
         public string LastName { get; private set; } = null!;
         public string? AvatarUrl { get; private set; }
+        public Guid? AvatarColorId { get; private set; }
+        public AvatarColorEntity? AvatarColor { get; private set; }
         public bool IsEmailVerified { get; private set; }
         public string? EmailVerificationToken { get; private set; }
         public DateTime? EmailVerificationTokenExpiry { get; private set; }

@@ -32,12 +32,16 @@ namespace Infrastructure.Repositories
 
         public async Task<UserEntity?> GetUserAsync(string mail)
         {
-            return await dbContext.Users.SingleOrDefaultAsync(u => u.Email == mail);
+            return await dbContext.Users
+                .Include(u => u.AvatarColor)
+                .SingleOrDefaultAsync(u => u.Email == mail);
         }
 
         public async Task<UserEntity?> GetUserByIdAsync(Guid userId)
         {
-            return await dbContext.Users.SingleOrDefaultAsync(u => u.Id == userId);
+            return await dbContext.Users
+                .Include(u => u.AvatarColor)
+                .SingleOrDefaultAsync(u => u.Id == userId);
         }
 
         public async Task<UserEntity?> GetUserByVerificationTokenAsync(string token)
