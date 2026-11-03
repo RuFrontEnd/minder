@@ -13,6 +13,7 @@ namespace Infrastructure.Persistence
         // table
         public DbSet<UserEntity> User => Set<UserEntity>();
         public DbSet<ProjectEntity> Project => Set<ProjectEntity>();
+        public DbSet<MemberEntity> Member => Set<MemberEntity>();
         public DbSet<ShapeEntity> Shape => Set<ShapeEntity>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -33,6 +34,25 @@ namespace Infrastructure.Persistence
                       .WithMany()
                       .HasForeignKey(p => p.UserId)
                       .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<MemberEntity>(entity =>
+            {
+                entity.Property(e => e.Id)
+                    .HasDefaultValueSql("gen_random_uuid()");
+
+                entity.HasOne<UserEntity>()
+                    .WithMany()
+                    .HasForeignKey(e => e.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne<ProjectEntity>()
+                    .WithMany()
+                    .HasForeignKey(e => e.ProjectId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasIndex(e => new { e.UserId, e.ProjectId })
+                    .IsUnique();
             });
 
             modelBuilder.Entity<ShapeEntity>(entity =>
