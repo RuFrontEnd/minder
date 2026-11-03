@@ -9,6 +9,7 @@ type Props = {
   email?: string;
   src?: string;
   fallback?: ReactNode;
+  avatarStyle?: CSSProperties;
   size?: "2xs" | "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "full";
   shape?: "full" | "rounded" | "square";
 };

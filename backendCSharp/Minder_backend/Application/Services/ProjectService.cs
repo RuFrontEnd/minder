@@ -109,4 +109,17 @@ public class ProjectService(IProjectRepository projectRepository)
             member.AvatarBackgroundColor,
             member.Role));
     }
+
+    public Task<RemoveProjectMemberResult> RemoveMemberAsync(
+        Guid projectId,
+        Guid requesterId,
+        Guid targetUserId,
+        CancellationToken cancellationToken)
+    {
+        return projectRepository.RemoveMemberAsync(
+            projectId,
+            requesterId,
+            targetUserId,
+            cancellationToken);
+    }
 };

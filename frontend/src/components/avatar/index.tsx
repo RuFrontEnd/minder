@@ -12,7 +12,12 @@ const Avatar = (props: AvatarTypes.Props) => {
       className={props.className}
       style={props.style}
     >
-      <ChakraAvatar.Root id={props.id} size={props.size} shape={props.shape}>
+      <ChakraAvatar.Root
+        id={props.id}
+        size={props.size}
+        shape={props.shape}
+        style={props.avatarStyle}
+      >
         {props.src && <ChakraAvatar.Image src={props.src} />}
         <ChakraAvatar.Fallback name={props.name}>
           {props.fallback}

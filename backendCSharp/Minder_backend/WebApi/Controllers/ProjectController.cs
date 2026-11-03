@@ -175,4 +175,42 @@ public class ProjectController : ControllerBase
             cancellationToken);
         return members is null ? NotFound() : Ok(members);
     }
+
+    [Authorize]
+    [HttpDelete("{id:guid}/members/{userId:guid}")]
+    public async Task<IActionResult> RemoveMember(
+        Guid id,
+        Guid userId,
+        CancellationToken cancellationToken)
+    {
+        var requesterIdValue = User.FindFirst(
+            System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!Guid.TryParse(requesterIdValue, out var requesterId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await _projectService.RemoveMemberAsync(
+            id,
+            requesterId,
+            userId,
+            cancellationToken);
+
+        return result switch
+        {
+            RemoveProjectMemberResult.Removed => NoContent(),
+            RemoveProjectMemberResult.MemberNotFound => NotFound(new
+            {
+                message = "Project member not found."
+            }),
+            RemoveProjectMemberResult.CannotRemoveOwner => BadRequest(new
+            {
+                message = "The project owner cannot be removed."
+            }),
+            _ => NotFound(new
+            {
+                message = "Project not found or current user is not the owner."
+            })
+        };
+    }
 }

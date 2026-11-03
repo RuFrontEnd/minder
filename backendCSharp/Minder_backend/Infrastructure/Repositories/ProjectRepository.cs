@@ -146,6 +146,39 @@ namespace Infrastructure.Repositories
                     role.Name)
             ).ToListAsync(cancellationToken);
         }
+
+        public async Task<RemoveProjectMemberResult> RemoveMemberAsync(
+            Guid projectId,
+            Guid requesterId,
+            Guid targetUserId,
+            CancellationToken cancellationToken)
+        {
+            var isOwner = await (
+                from member in context.Members
+                join role in context.Roles on member.RoleId equals role.Id
+                where member.ProjectId == projectId
+                    && member.UserId == requesterId
+                    && role.Name == "owner"
+                select member.Id
+            ).AnyAsync(cancellationToken);
+
+            if (!isOwner) return RemoveProjectMemberResult.ProjectNotFoundOrNotOwner;
+
+            var targetMember = await context.Members
+                .FirstOrDefaultAsync(
+                    member => member.ProjectId == projectId
+                        && member.UserId == targetUserId,
+                    cancellationToken);
+            if (targetMember is null) return RemoveProjectMemberResult.MemberNotFound;
+            if (targetMember.RoleId == RoleEntity.OwnerId)
+            {
+                return RemoveProjectMemberResult.CannotRemoveOwner;
+            }
+
+            context.Members.Remove(targetMember);
+            await context.SaveChangesAsync(cancellationToken);
+            return RemoveProjectMemberResult.Removed;
+        }
     }
 
 }

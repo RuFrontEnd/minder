@@ -8,6 +8,7 @@ import {
   addProjectMember,
   deleteProject,
   getProjectMembers,
+  removeProjectMember,
 } from "@/apis/project";
 import { searchUsers, UserSearchResult } from "@/apis/user";
 import * as ProjectTypes from "@/types/project";
@@ -53,6 +54,9 @@ const ProjectModal = ({
   >({});
   const [memberError, setMemberError] = useState("");
   const [isLoadingMembers, setIsLoadingMembers] = useState(false);
+  const [removingMemberId, setRemovingMemberId] = useState<string | null>(
+    null
+  );
 
   const joinedMembers = memberValues
   .map((value) => memberUsers[value])
@@ -97,6 +101,29 @@ const ProjectModal = ({
     } catch (error) {
       console.error("Failed to add project member", error);
       setMemberError("Unable to add this user to the project.");
+    }
+  };
+
+  const onRemoveMember = async (userId: string) => {
+    if (!projectId || removingMemberId) return;
+
+    setRemovingMemberId(userId);
+    setMemberError("");
+    try {
+      await removeProjectMember(projectId, userId);
+      setMemberValues((current) =>
+        current.filter((memberId) => memberId !== userId)
+      );
+      setMemberUsers((current) => {
+        const next = { ...current };
+        delete next[userId];
+        return next;
+      });
+    } catch (error) {
+      console.error("Failed to remove project member", error);
+      setMemberError("Unable to remove this user from the project.");
+    } finally {
+      setRemovingMemberId(null);
     }
   };
 
@@ -321,6 +348,25 @@ const ProjectModal = ({
               <Avatar
                 src={member.avatarUrl || undefined}
                 name={`${member.firstName} ${member.lastName}`}
+                fallback={
+                  <span
+                    className={styles.memberAvatarFallback}
+                    style={{
+                      color: member.avatarColor?.color || "#6b7280",
+                      backgroundColor:
+                        member.avatarColor?.backgroundColor || "#e5e7eb",
+                    }}
+                  >
+                    {`${member.firstName?.[0] || ""}${
+                      member.lastName?.[0] || ""
+                    }`.toUpperCase() || "U"}
+                  </span>
+                }
+                avatarStyle={{
+                  color: member.avatarColor?.color || "#6b7280",
+                  backgroundColor:
+                    member.avatarColor?.backgroundColor || "#e5e7eb",
+                }}
                 size="sm"
               />
               <span>
@@ -329,6 +375,23 @@ const ProjectModal = ({
               <span className={styles.memberRole}>
                 {memberUsers[member.id]?.role || "Member"}
               </span>
+              {memberUsers[member.id]?.role !== "owner" && (
+                <IconButton
+                  ariaLabel={`Remove ${member.firstName} ${member.lastName}`}
+                  variant="outline"
+                  size="2xs"
+                  disabled={removingMemberId !== null}
+                  icon={
+                    <Icon
+                      type={IconTypes.Type.x}
+                      w={10}
+                      h={10}
+                      stroke={tailwindColors.grey["2"]}
+                    />
+                  }
+                  onClick={() => void onRemoveMember(member.id)}
+                />
+              )}
             </div>
           )) : (
             <div className={styles.memberEmptyText}>

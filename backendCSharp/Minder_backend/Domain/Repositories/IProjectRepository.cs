@@ -20,6 +20,14 @@ namespace Domain.Repositories
         AlreadyMember
     }
 
+    public enum RemoveProjectMemberResult
+    {
+        Removed,
+        ProjectNotFoundOrNotOwner,
+        MemberNotFound,
+        CannotRemoveOwner
+    }
+
     public interface IProjectRepository
     {
         Task<List<ProjectMembership>> GetProjectsAsync(Guid userId, CancellationToken cancellationToken);
@@ -35,6 +43,11 @@ namespace Domain.Repositories
         Task<List<ProjectMember>?> GetMembersAsync(
             Guid projectId,
             Guid requesterId,
+            CancellationToken cancellationToken);
+        Task<RemoveProjectMemberResult> RemoveMemberAsync(
+            Guid projectId,
+            Guid requesterId,
+            Guid targetUserId,
             CancellationToken cancellationToken);
     }
 }
