@@ -65,4 +65,15 @@ public class ProjectService(IProjectRepository projectRepository)
                 project.Project.Name,
                 project.Role);
     }
+
+    public Task<bool> DeleteProjectAsync(
+        Guid projectId,
+        Guid userId,
+        CancellationToken cancellationToken)
+    {
+        return projectRepository.DeleteProjectAsync(
+            projectId,
+            userId,
+            cancellationToken);
+    }
 };

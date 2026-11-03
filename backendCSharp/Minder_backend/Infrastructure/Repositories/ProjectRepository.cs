@@ -60,6 +60,28 @@ namespace Infrastructure.Repositories
             await context.SaveChangesAsync(cancellationToken);
             return membership;
         }
+
+        public async Task<bool> DeleteProjectAsync(
+            Guid projectId,
+            Guid userId,
+            CancellationToken cancellationToken)
+        {
+            var membership = await (
+                from member in context.Members
+                join project in context.Projects on member.ProjectId equals project.Id
+                join role in context.Roles on member.RoleId equals role.Id
+                where member.UserId == userId
+                    && project.Id == projectId
+                    && role.Name == "owner"
+                select project
+            ).FirstOrDefaultAsync(cancellationToken);
+
+            if (membership is null) return false;
+
+            context.Projects.Remove(membership);
+            await context.SaveChangesAsync(cancellationToken);
+            return true;
+        }
     }
 
 }

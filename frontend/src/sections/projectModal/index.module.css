@@ -215,6 +215,18 @@
   font-size: 0.875rem;
 }
 
+.deleteConfirmationText {
+  margin: 0 0 12px;
+  color: #4b5563;
+  line-height: 1.5;
+}
+
+.deleteError {
+  margin: 8px 0 0;
+  color: #b42318;
+  font-size: 0.8125rem;
+}
+
 @media (max-width: 520px) {
   .projectModal :global([data-part="header"]) {
     padding: 20px 20px 8px;

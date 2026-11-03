@@ -3282,6 +3282,13 @@ export default function IdPage() {
     setIsProjectModalOpen(true);
   };
 
+  const onProjectDeleted = () => {
+    resetCanvasToDefault();
+    setIsProjectModalOpen(false);
+    setIsProjectSelectionRequired(true);
+    setIsUserInfoOpen(true);
+  };
+
   return (
     <>
       <Navbar
@@ -3347,6 +3354,7 @@ export default function IdPage() {
         onClose={() => setIsProjectModalOpen(false)}
         isAuthorized={isAuthorized}
         projectId={currentProjectId}
+        onDeleted={onProjectDeleted}
         projectName={projectName.val}
         onChangeProjectName={async (name) => {
           if (isAuthorized && currentProjectId) {

@@ -4,7 +4,7 @@ import Modal from "@/components/modal";
 import Button from "@/components/button";
 import Combobox from "@/components/combobox";
 import Avatar from "@/components/avatar";
-import { deleteProject, getProjects } from "@/apis/project";
+import { deleteProject } from "@/apis/project";
 import * as ProjectTypes from "@/types/project";
 import * as ComboboxTypes from "@/types/components/combobox";
 import * as IconTypes from "@/types/components/icon";
@@ -18,6 +18,7 @@ type Props = {
   onClose: () => void;
   isAuthorized: boolean;
   projectId: string | null;
+  onDeleted?: () => void;
   onSelect?: (project: ProjectTypes.Project) => void;
   projectName: string;
   onChangeProjectName: (name: string) => void | Promise<void>;
@@ -51,13 +52,17 @@ const ProjectModal = ({
   onClose,
   isAuthorized,
   projectId,
+  onDeleted,
   projectName,
   onChangeProjectName,
 }: Props) => {
-  const [projects, setProjects] = useState<ProjectTypes.Project[]>([]);
   const [memberValues, setMemberValues] = useState<string[]>([]);
   const [isEditingName, setIsEditingName] = useState(false);
   const [nameDraft, setNameDraft] = useState(projectName);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [deleteName, setDeleteName] = useState("");
+  const [deleteError, setDeleteError] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const joinedMembers = memberValues
     .map((value) => memberOptions.find((member) => member.value === value))
@@ -69,18 +74,8 @@ const ProjectModal = ({
     );
   };
 
-  const load = async () => {
-    try {
-      const res = await getProjects();
-      if (res && res.data) setProjects(res.data);
-    } catch (e) {
-      console.error("Failed to load projects", e);
-    }
-  };
-
   useEffect(() => {
     if (isOpen) {
-      load();
       setNameDraft(projectName);
       setIsEditingName(false);
     }
@@ -98,15 +93,30 @@ const ProjectModal = ({
     }
   };
 
-  const onClickDeleteProject = async () => {
-    const targetProject = projects[0];
-    if (!targetProject) return;
+  const onClickDeleteProject = () => {
+    setDeleteName("");
+    setDeleteError("");
+    setIsDeleteConfirmOpen(true);
+  };
 
+  const onConfirmDeleteProject = async () => {
+    if (deleteName.trim() !== projectName.trim()) {
+      setDeleteError("The project name does not match.");
+      return;
+    }
+    if (!projectId || isDeleting) return;
+
+    setIsDeleting(true);
     try {
-      await deleteProject(targetProject.id);
-      await load();
-    } catch (e) {
-      console.error("Failed to delete project", e);
+      await deleteProject(projectId);
+      setIsDeleteConfirmOpen(false);
+      onDeleted?.();
+      onClose();
+    } catch (error) {
+      console.error("Failed to delete project", error);
+      setDeleteError("Unable to delete this project. Please try again.");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -263,6 +273,44 @@ const ProjectModal = ({
           />
         </div>
       </div>
+
+      <Modal
+        isOpen={isDeleteConfirmOpen}
+        onClose={() => {
+          if (!isDeleting) setIsDeleteConfirmOpen(false);
+        }}
+        onCancel={() => {
+          if (!isDeleting) setIsDeleteConfirmOpen(false);
+        }}
+        placement="center"
+        title="Delete project?"
+        okText={isDeleting ? "Deleting..." : "Delete Project"}
+        cancelText="Cancel"
+        showCancelButton
+        onOk={() => {
+          void onConfirmDeleteProject();
+        }}
+      >
+        <p className={styles.deleteConfirmationText}>
+          This action cannot be undone. Type{" "}
+          <strong>{projectName}</strong> to confirm deletion.
+        </p>
+        <ChakraInput
+          autoFocus
+          aria-label="Project name confirmation"
+          placeholder={projectName}
+          value={deleteName}
+          onChange={(event) => {
+            setDeleteName(event.target.value);
+            setDeleteError("");
+          }}
+        />
+        {deleteError && (
+          <p className={styles.deleteError} role="alert">
+            {deleteError}
+          </p>
+        )}
+      </Modal>
     </Modal>
   );
 };

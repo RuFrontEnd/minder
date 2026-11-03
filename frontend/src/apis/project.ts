@@ -13,7 +13,7 @@ const createProject = async (name: string) => {
   return axios.post(`/Project`, { name });
 };
 
-const deleteProject = async (id: number) => {
+const deleteProject = async (id: number | string) => {
   return axios.delete(`/Project/${id}`);
 };
 

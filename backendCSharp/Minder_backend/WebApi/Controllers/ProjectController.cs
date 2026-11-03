@@ -99,4 +99,21 @@ public class ProjectController : ControllerBase
 
         return project is null ? NotFound() : Ok(project);
     }
+
+    [Authorize]
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Delete(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        var userIdValue = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!Guid.TryParse(userIdValue, out var userId)) return Unauthorized();
+
+        var deleted = await _projectService.DeleteProjectAsync(
+            id,
+            userId,
+            cancellationToken);
+
+        return deleted ? NoContent() : NotFound();
+    }
 }

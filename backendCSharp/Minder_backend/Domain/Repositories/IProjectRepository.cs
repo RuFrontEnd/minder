@@ -10,5 +10,6 @@ namespace Domain.Repositories
         Task<ProjectMembership?> GetProjectAsync(Guid projectId, Guid userId, CancellationToken cancellationToken);
         Task<ProjectEntity> AddProjectAsync(ProjectEntity project, CancellationToken cancellationToken);
         Task<ProjectMembership?> UpdateProjectNameAsync(Guid projectId, Guid userId, string name, CancellationToken cancellationToken);
+        Task<bool> DeleteProjectAsync(Guid projectId, Guid userId, CancellationToken cancellationToken);
     }
 }
