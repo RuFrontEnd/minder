@@ -71,9 +71,6 @@ namespace Infrastructure.Migrations
                     b.Property<Guid>("Creator")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("Owner")
-                        .HasColumnType("uuid");
-
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("text");
@@ -81,11 +78,15 @@ namespace Infrastructure.Migrations
                     b.Property<double>("H")
                         .HasColumnType("double precision");
 
+                    b.Property<Guid>("Owner")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("ProjectId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Status")
                         .IsRequired()
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("text")
                         .HasDefaultValue("todo");
 
@@ -110,7 +111,40 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("ProjectId");
 
-                    b.ToTable("Step", t => t.HasCheckConstraint("CK_Step_Status", "\"Status\" IN ('todo', 'inProgress', 'done')"));
+                    b.ToTable("Step", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Step_Status", "\"Status\" IN ('todo', 'inProgress', 'done')");
+                        });
+                });
+
+            modelBuilder.Entity("Domain.Entities.TaskEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("description");
+
+                    b.Property<Guid>("Owner")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner");
+
+                    b.Property<Guid>("StepId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("stepId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Owner");
+
+                    b.HasIndex("StepId");
+
+                    b.ToTable("Task", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.UserEntity", b =>
@@ -184,19 +218,34 @@ namespace Infrastructure.Migrations
                 {
                     b.HasOne("Domain.Entities.UserEntity", null)
                         .WithMany()
-                        .HasForeignKey("Owner")
+                        .HasForeignKey("Creator")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Domain.Entities.UserEntity", null)
                         .WithMany()
-                        .HasForeignKey("Creator")
+                        .HasForeignKey("Owner")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Domain.Entities.ProjectEntity", null)
                         .WithMany()
                         .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Domain.Entities.TaskEntity", b =>
+                {
+                    b.HasOne("Domain.Entities.UserEntity", null)
+                        .WithMany()
+                        .HasForeignKey("Owner")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.ShapeEntity", null)
+                        .WithMany()
+                        .HasForeignKey("StepId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

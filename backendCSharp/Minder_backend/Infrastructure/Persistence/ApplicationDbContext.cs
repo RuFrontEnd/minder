@@ -15,6 +15,7 @@ namespace Infrastructure.Persistence
         public DbSet<ProjectEntity> Project => Set<ProjectEntity>();
         public DbSet<MemberEntity> Member => Set<MemberEntity>();
         public DbSet<ShapeEntity> Step => Set<ShapeEntity>();
+        public DbSet<TaskEntity> Tasks => Set<TaskEntity>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -82,6 +83,34 @@ namespace Infrastructure.Persistence
                       .WithMany()
                       .HasForeignKey(p => p.Owner)
                       .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<TaskEntity>(entity =>
+            {
+                entity.ToTable("Task");
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .HasDefaultValueSql("gen_random_uuid()");
+
+                entity.Property(e => e.StepId)
+                    .HasColumnName("stepId");
+
+                entity.Property(e => e.Description)
+                    .HasColumnName("description");
+
+                entity.Property(e => e.Owner)
+                    .HasColumnName("owner");
+
+                entity.HasOne<ShapeEntity>()
+                    .WithMany()
+                    .HasForeignKey(e => e.StepId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne<UserEntity>()
+                    .WithMany()
+                    .HasForeignKey(e => e.Owner)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
         }
     }
