@@ -2114,13 +2114,17 @@ export default function IdPage() {
     return leftMouseBtn ? "grabbing" : "grab";
   }, [space, leftMouseBtn]);
 
-  const validateToken = async () => {
+  const validateToken = async (requireProjectSelection = false) => {
     try {
       const res: AxiosResponse<any> = await authAPIs.validateToken();
       // If response status is 200 and has id, then user is authenticated
       const isUserAuthorized = res.status === 200 && !!res.data?.id;
       setIsAuthorized(isUserAuthorized);
       if (isUserAuthorized) {
+        if (requireProjectSelection) {
+          setIsProjectSelectionRequired(true);
+          setIsUserInfoOpen(true);
+        }
         const avatarUrl =
           res.data?.avatarUrl ||
           res.data?.profileImageUrl ||
@@ -3078,7 +3082,7 @@ export default function IdPage() {
 
   useEffect(() => {
     if (!isBrowser) return;
-    validateToken();
+    void validateToken(true);
     try {
       const savedStatuses = window.localStorage.getItem("minder-step-statuses");
       if (savedStatuses) {
