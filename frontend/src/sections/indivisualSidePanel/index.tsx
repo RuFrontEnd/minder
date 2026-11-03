@@ -53,6 +53,12 @@ type ActivityItem = {
   comment?: string;
 };
 
+type TaskItem = {
+  id: string;
+  title: string;
+  completed: boolean;
+};
+
 const getActivityTimeLabel = (createdAt?: number) => {
   if (!createdAt) return "Just now";
   const minutes = Math.max(0, Math.floor((Date.now() - createdAt) / 60000));
@@ -70,6 +76,8 @@ export default function IndivisualSidePanel(
   const [creator, setCreator] = useState<StepCreator | null>(null);
   const [commentText, setCommentText] = useState("");
   const [activityItems, setActivityItems] = useState<ActivityItem[]>([]);
+  const [tasks, setTasks] = useState<TaskItem[]>([]);
+  const [taskText, setTaskText] = useState("");
 
   const dependencies = useMemo(
     () =>
@@ -147,6 +155,7 @@ export default function IndivisualSidePanel(
   useEffect(() => {
     if (!props.indivisual) {
       setActivityItems([]);
+      setTasks([]);
       return;
     }
 
@@ -155,13 +164,50 @@ export default function IndivisualSidePanel(
         `minder-step-activity:${props.indivisual.id}`
       );
       setActivityItems(savedActivity ? JSON.parse(savedActivity) : []);
+      const savedTasks = window.localStorage.getItem(
+        `minder-step-tasks:${props.indivisual.id}`
+      );
+      setTasks(savedTasks ? JSON.parse(savedTasks) : []);
       setCreator(getStepCreator(props.indivisual.id));
     } catch (error) {
-      console.error("Failed to load step activity:", error);
+      console.error("Failed to load step activity or tasks:", error);
       setActivityItems([]);
+      setTasks([]);
       setCreator(null);
     }
   }, [props.indivisual?.id]);
+
+  const saveTasks = (nextTasks: TaskItem[]) => {
+    if (!props.indivisual) return;
+    setTasks(nextTasks);
+    try {
+      window.localStorage.setItem(
+        `minder-step-tasks:${props.indivisual.id}`,
+        JSON.stringify(nextTasks)
+      );
+    } catch (error) {
+      console.error("Failed to save step tasks:", error);
+    }
+  };
+
+  const onSubmitTask = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const title = taskText.trim();
+    if (!title || !props.indivisual) return;
+    saveTasks([
+      ...tasks,
+      { id: `${Date.now()}-${Math.random()}`, title, completed: false },
+    ]);
+    setTaskText("");
+  };
+
+  const onToggleTask = (taskId: string) => {
+    saveTasks(
+      tasks.map((task) =>
+        task.id === taskId ? { ...task, completed: !task.completed } : task
+      )
+    );
+  };
 
   const saveActivity = (nextActivity: ActivityItem[]) => {
     if (!props.indivisual) return;
@@ -480,38 +526,56 @@ export default function IndivisualSidePanel(
 
           <section className={styles.detailSection}>
             <div className={styles.sectionHeading}>
-              <h3>Followers</h3>
-              <span className={styles.countBadge}>3</span>
-              <button
-                type="button"
-                className={styles.sectionAction}
-                aria-label="Add follower"
-                title="Add follower"
-              >
-                <Plus size={16} />
-              </button>
+              <h3>Tasks</h3>
+              <span className={styles.countBadge}>{tasks.length}</span>
             </div>
-            <div className={styles.followers}>
-              {authorOptions.slice(0, 3).map((author) => (
-                <span
-                  key={author.value}
-                  className={styles.followerAvatar}
-                  title={author.label}
-                >
-                  {author.label
-                    .split(" ")
-                    .map((part) => part[0])
-                    .join("")}
-                </span>
-              ))}
+            {tasks.length ? (
+              <ul className={styles.taskList}>
+                {tasks.map((task) => (
+                  <li className={styles.taskItem} key={task.id}>
+                    <button
+                      type="button"
+                      className={`${styles.taskCheckbox} ${
+                        task.completed ? styles.taskCompleted : ""
+                      }`}
+                      aria-label={
+                        task.completed
+                          ? `Mark ${task.title} as incomplete`
+                          : `Mark ${task.title} as complete`
+                      }
+                      aria-pressed={task.completed}
+                      onClick={() => onToggleTask(task.id)}
+                    >
+                      {task.completed && <Check size={11} />}
+                    </button>
+                    <span
+                      className={`${styles.taskTitle} ${
+                        task.completed ? styles.taskTitleCompleted : ""
+                      }`}
+                    >
+                      {task.title}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className={styles.sectionEmpty}>No tasks yet.</p>
+            )}
+            <form className={styles.taskForm} onSubmit={onSubmitTask}>
+              <input
+                value={taskText}
+                onChange={(event) => setTaskText(event.target.value)}
+                placeholder="Add a task..."
+                aria-label="Add a task"
+              />
               <button
-                type="button"
-                className={styles.addFollower}
-                aria-label="Add follower"
+                type="submit"
+                aria-label="Add task"
+                disabled={!taskText.trim()}
               >
-                <Plus size={14} />
+                <Plus size={15} />
               </button>
-            </div>
+            </form>
           </section>
 
           <section className={`${styles.detailSection} ${styles.activitySection}`}>

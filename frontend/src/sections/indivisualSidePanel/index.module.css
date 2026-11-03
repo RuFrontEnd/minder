@@ -441,6 +441,96 @@
   font-size: 10px;
 }
 
+.taskList {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 7px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.taskItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.taskCheckbox {
+  display: inline-flex;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  background: #fff;
+  color: #fff;
+  cursor: pointer;
+}
+
+.taskCheckbox.taskCompleted {
+  border-color: #3478f6;
+  background: #3478f6;
+}
+
+.taskTitle {
+  overflow: hidden;
+  color: #43546b;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.taskTitleCompleted {
+  color: #98a4b3;
+  text-decoration: line-through;
+}
+
+.taskForm {
+  display: flex;
+  min-height: 30px;
+  align-items: center;
+  margin-top: 7px;
+  border: 1px solid #e4e9f0;
+  border-radius: 6px;
+}
+
+.taskForm input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  padding: 0 8px;
+  color: #394b63;
+  font-size: 10px;
+}
+
+.taskForm input::placeholder {
+  color: #9aa7b8;
+}
+
+.taskForm button {
+  display: inline-flex;
+  width: 30px;
+  height: 28px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 0 5px 5px 0;
+  background: transparent;
+  color: #3478f6;
+  cursor: pointer;
+}
+
+.taskForm button:disabled {
+  color: #b7c1ce;
+  cursor: default;
+}
+
 .followers {
   display: flex;
   align-items: center;
