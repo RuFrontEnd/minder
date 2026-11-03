@@ -9,7 +9,7 @@ namespace Infrastructure.Repositories
     {
         public async Task<IEnumerable<UserEntity>> GetAllAsync()
         {
-            return await context.User.ToListAsync();
+            return await context.Users.ToListAsync();
         }
     }
 

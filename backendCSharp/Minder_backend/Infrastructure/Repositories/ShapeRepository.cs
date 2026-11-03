@@ -9,7 +9,7 @@ namespace Infrastructure.Repositories
     {
         public async Task<Guid?> ExsistAsync(Guid projectId)
         {
-            var id = await dbContext.Step
+            var id = await dbContext.Steps
                     .Where(shape => shape.ProjectId == projectId)
                     .Select(shape => shape.Id)
                     .FirstOrDefaultAsync();
@@ -19,7 +19,7 @@ namespace Infrastructure.Repositories
 
         public async Task<ShapeEntity?> GetShapeAsync(Guid projectId)
         {
-            var shape = await dbContext.Step
+            var shape = await dbContext.Steps
                 .Where(s => s.ProjectId == projectId)
                 .FirstOrDefaultAsync();
 
@@ -27,13 +27,13 @@ namespace Infrastructure.Repositories
         }
         public async Task<ShapeEntity> AddShapeAsync(ShapeEntity shape)
         {
-            await dbContext.Step.AddAsync(shape);
+            await dbContext.Steps.AddAsync(shape);
             await dbContext.SaveChangesAsync();
             return shape;
         }
         public async Task<ShapeEntity> UpdateShapeAsync(ShapeEntity shape)
         {
-            dbContext.Step.Update(shape);
+            dbContext.Steps.Update(shape);
             await dbContext.SaveChangesAsync();
             return shape;
         }

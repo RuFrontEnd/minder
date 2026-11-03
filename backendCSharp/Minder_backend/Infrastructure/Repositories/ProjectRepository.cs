@@ -11,7 +11,7 @@ namespace Infrastructure.Repositories
             Guid userId,
             CancellationToken cancellationToken)
         {
-            return await context.Project
+            return await context.Projects
                 .Where(project => project.UserId == userId)
                 .ToListAsync(cancellationToken);
         }
@@ -21,7 +21,7 @@ namespace Infrastructure.Repositories
             Guid userId,
             CancellationToken cancellationToken)
         {
-            return await context.Project.FirstOrDefaultAsync(
+            return await context.Projects.FirstOrDefaultAsync(
                 project => project.Id == projectId && project.UserId == userId,
                 cancellationToken);
         }
@@ -30,7 +30,7 @@ namespace Infrastructure.Repositories
             ProjectEntity project,
             CancellationToken cancellationToken)
         {
-            await context.Project.AddAsync(project, cancellationToken);
+            await context.Projects.AddAsync(project, cancellationToken);
             await context.SaveChangesAsync(cancellationToken);
             return project;
         }

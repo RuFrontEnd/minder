@@ -9,20 +9,20 @@ namespace Infrastructure.Repositories
     {
         public async Task<UserEntity> AddUserAsync(UserEntity user)
         {
-            await dbContext.User.AddAsync(user);
+            await dbContext.Users.AddAsync(user);
             await dbContext.SaveChangesAsync();
             return user;
         }
 
         public async Task<bool> ExsistAsync(string email)
         {
-            bool isExist = await dbContext.User.AnyAsync(u => u.Email == email);
+            bool isExist = await dbContext.Users.AnyAsync(u => u.Email == email);
             return isExist;
         }
 
         public void Add(UserEntity user)
         {
-            dbContext.User.Add(user);
+            dbContext.Users.Add(user);
         }
 
         public async Task SaveChangesAsync()
@@ -32,22 +32,22 @@ namespace Infrastructure.Repositories
 
         public async Task<UserEntity?> GetUserAsync(string mail)
         {
-            return await dbContext.User.SingleOrDefaultAsync(u => u.Email == mail);
+            return await dbContext.Users.SingleOrDefaultAsync(u => u.Email == mail);
         }
 
         public async Task<UserEntity?> GetUserByIdAsync(Guid userId)
         {
-            return await dbContext.User.SingleOrDefaultAsync(u => u.Id == userId);
+            return await dbContext.Users.SingleOrDefaultAsync(u => u.Id == userId);
         }
 
         public async Task<UserEntity?> GetUserByVerificationTokenAsync(string token)
         {
-            return await dbContext.User.SingleOrDefaultAsync(u => u.EmailVerificationToken == token);
+            return await dbContext.Users.SingleOrDefaultAsync(u => u.EmailVerificationToken == token);
         }
 
         public async Task UpdateUserRefreshTokenAsync(Guid userId, string token, DateTime expiry)
         {
-            var user = await dbContext.User.FindAsync(userId);
+            var user = await dbContext.Users.FindAsync(userId);
             if (user != null)
             {
                 user.RefreshToken = token;
@@ -58,7 +58,7 @@ namespace Infrastructure.Repositories
 
         public async Task<(string, DateTime)?> GetUserRefreshTokenAsync(Guid userId)
         {
-            var user = await dbContext.User.FindAsync(userId);
+            var user = await dbContext.Users.FindAsync(userId);
 
             if (user != null && user.RefreshToken != null && user.RefreshTokenExpiryTime != null)
             {
