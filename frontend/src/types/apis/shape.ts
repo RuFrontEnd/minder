@@ -6,6 +6,7 @@ type Data = {
 
 type UpsertData = {
   id: string;
+  epNumber: number;
   title: string;
   w: number;
   h: number;

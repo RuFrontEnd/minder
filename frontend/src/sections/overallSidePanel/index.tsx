@@ -46,7 +46,7 @@ export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
   return (
     <SidePanel
       className={styles.root}
-      title="Stories"
+      title="Steps"
       open={props.isOverAllSidePanelOpen}
       placement="start"
       size="xs"
@@ -118,8 +118,6 @@ export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
 
         <ul className={styles.list}>
           {visibleSteps.map((step) => {
-            const stepNumber =
-              props.steps.findIndex((item) => item.id === step.id) + 1;
             const stepStatus = props.stepStatuses[step.id] || "Todo";
             return (
               <li key={step.id}>
@@ -138,7 +136,7 @@ export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
                     fill="currentColor"
                   />
                   <span className={styles.stepId}>
-                    EP-{String(stepNumber).padStart(3, "0")}
+                    EP-{String(step.epNumber).padStart(3, "0")}
                   </span>
                   <span className={styles.stepTitle}>{step.title}</span>
                 </button>

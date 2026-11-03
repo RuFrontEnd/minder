@@ -22,6 +22,7 @@ import * as authAPIs from "@/apis/auth";
 import * as shapeAPIs from "@/apis/shape";
 import * as handleUtils from "@/utils/handle";
 import * as fileUtils from "@/utils/file";
+import { ensureStepIdentifiers } from "@/utils/stepIdentifier";
 import Navbar from "@/sections/navbar";
 import AuthModal from "@/sections/authModal";
 import UserInfoModal from "@/sections/userInfoModal";
@@ -2129,6 +2130,7 @@ export default function IdPage() {
       shapesData.forEach((shapeData: any) => {
         const {
           id,
+          epNumber,
           title,
           w,
           h,
@@ -2153,6 +2155,9 @@ export default function IdPage() {
         }
 
         if (shapeObj) {
+          if (Number.isSafeInteger(epNumber) && epNumber > 0) {
+            shapeObj.epNumber = epNumber;
+          }
           // Set data arrays
           if (importDatas && Array.isArray(importDatas)) {
             shapeObj.importDatas = importDatas;
@@ -2245,6 +2250,7 @@ export default function IdPage() {
   };
 
   const checkSteps = () => {
+    ensureStepIdentifiers(shapes);
     setSteps(cloneDeep(shapes));
   };
 
@@ -2796,6 +2802,7 @@ export default function IdPage() {
   const buildPayload = () => {
     const shapesPayload = steps.map((step) => ({
       id: step.id,
+      epNumber: step.epNumber,
       title: step.title,
       w: step.w,
       h: step.h,
@@ -2980,6 +2987,7 @@ export default function IdPage() {
       name: projectName.val,
       shapes: steps.map((step) => ({
         id: step.id,
+        epNumber: step.epNumber,
         title: step.title,
         w: step.w,
         h: step.h,

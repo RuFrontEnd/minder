@@ -10,6 +10,7 @@ import {
   ZoomOut,
 } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
+import { assignStepIdentifier } from "@/utils/stepIdentifier";
 import styles from "./CreateShapeButtons.module.css";
 import * as CommonTypes from "@/types/common";
 import * as CreateShapeButtonsTypes from "@/types/sections/id/createShapeButtons";
@@ -87,7 +88,9 @@ export default function CreateShapeButtons(
   const onClickCreateStep = () => {
     if (!isBrowser) return;
     props.actionRecords.register(CommonTypes.Action.add);
-    props.shapes.push(getInitializedStep(props.offset, props.scale));
+    const newStep = getInitializedStep(props.offset, props.scale);
+    assignStepIdentifier(newStep, props.shapes);
+    props.shapes.push(newStep);
     props.actionRecords.finish(CommonTypes.Action.add);
     props.reload();
   };

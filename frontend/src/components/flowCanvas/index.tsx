@@ -26,7 +26,6 @@ import styles from "./index.module.css";
 
 type FlowNodeData = {
   shape: CommonTypes.Shape;
-  stepNumber: number;
 };
 
 type FlowNode = Node<FlowNodeData>;
@@ -54,7 +53,7 @@ const cardWidth = 200;
 const cardHeight = 96;
 
 function FlowCard({ data, selected }: NodeProps<FlowNode>) {
-  const { shape, stepNumber } = data;
+  const { shape } = data;
   const handles = [
     { position: Position.Top, direction: "t" },
     { position: Position.Right, direction: "r" },
@@ -78,7 +77,7 @@ function FlowCard({ data, selected }: NodeProps<FlowNode>) {
           <Square size={14} />
         </span>
         <span className={styles.stepId}>
-          STEP {String(stepNumber).padStart(3, "0")}
+          EP-{String(shape.epNumber).padStart(3, "0")}
         </span>
       </div>
       <div className={styles.title}>{shape.title || "Untitled step"}</div>
@@ -94,7 +93,6 @@ const nodeTypes = { flowCard: FlowCard };
 
 const toFlowNode = (
   shape: CommonTypes.Shape,
-  stepNumber: number,
   selectedShapeId: string | null
 ): FlowNode => ({
   id: shape.id,
@@ -103,7 +101,7 @@ const toFlowNode = (
     x: shape.p.x - cardWidth / 2,
     y: shape.p.y - cardHeight / 2,
   },
-  data: { shape, stepNumber },
+  data: { shape },
   selected: shape.id === selectedShapeId,
   style: { width: cardWidth, height: cardHeight },
 });
@@ -123,14 +121,14 @@ export default function FlowCanvas({
   isConnectMode,
 }: Props) {
   const initialNodes = useMemo(
-    () => shapes.map((shape, index) => toFlowNode(shape, index + 1, selectedShapeId)),
+    () => shapes.map((shape) => toFlowNode(shape, selectedShapeId)),
     []
   );
   const [nodes, setNodes, onNodesChange] = useNodesState<FlowNode>(initialNodes);
 
   useEffect(() => {
     setNodes(
-      shapes.map((shape, index) => toFlowNode(shape, index + 1, selectedShapeId))
+      shapes.map((shape) => toFlowNode(shape, selectedShapeId))
     );
   }, [shapes, selectedShapeId, setNodes]);
 
@@ -205,12 +203,12 @@ export default function FlowCanvas({
         edges={edges}
         connectionMode={ConnectionMode.Loose}
         connectionLineType={ConnectionLineType.SmoothStep}
-        connectionLineStyle={{ stroke: "#7b9ac4", strokeWidth: 3 }}
+        connectionLineStyle={{ stroke: "#7b9ac4", strokeWidth: 2 }}
         nodeTypes={nodeTypes}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         nodesDraggable={!isConnectMode}
-        nodesConnectable={isConnectMode}
+        nodesConnectable
         elementsSelectable={!isConnectMode}
         onNodeClick={handleNodeClick}
         onNodeDoubleClick={handleNodeDoubleClick}

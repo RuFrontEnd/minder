@@ -71,14 +71,6 @@ export default function IndivisualSidePanel(
   const [commentText, setCommentText] = useState("");
   const [activityItems, setActivityItems] = useState<ActivityItem[]>([]);
 
-  const stepNumber = useMemo(
-    () =>
-      props.indivisual
-        ? props.shapes.findIndex((shape) => shape.id === props.indivisual?.id) +
-          1
-        : 0,
-    [props.indivisual?.id, props.shapes]
-  );
   const dependencies = useMemo(
     () =>
       props.indivisual
@@ -268,7 +260,7 @@ export default function IndivisualSidePanel(
             <div className={styles.detailHeaderRow}>
               <span className={styles.detailId}>
                 <Circle size={8} fill="currentColor" />
-                EP-{String(stepNumber).padStart(3, "0")}
+                EP-{String(props.indivisual.epNumber).padStart(3, "0")}
               </span>
               <select
                 className={`${styles.statusBadge} ${
@@ -464,9 +456,6 @@ export default function IndivisualSidePanel(
             {dependencies.length ? (
               <ul className={styles.dependencyList}>
                 {dependencies.map((dependency) => {
-                  const dependencyNumber =
-                    props.shapes.findIndex((shape) => shape.id === dependency.id) +
-                    1;
                   const dependencyStatus =
                     props.stepStatuses[dependency.id] || "Todo";
                   return (
@@ -482,7 +471,7 @@ export default function IndivisualSidePanel(
                           className={styles[`status${dependencyStatus.replace(" ", "")}`]}
                         />
                         <span className={styles.dependencyId}>
-                          EP-{String(dependencyNumber).padStart(3, "0")}
+                          EP-{String(dependency.epNumber).padStart(3, "0")}
                         </span>
                         <span className={styles.dependencyTitle}>
                           {dependency.title}

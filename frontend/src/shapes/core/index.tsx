@@ -8,6 +8,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 export default class Core {
   id: string;
+  epNumber = 0;
   c: string;
   anchor = {
     size: {
