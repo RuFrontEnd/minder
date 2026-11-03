@@ -5,6 +5,8 @@ using Domain.Repositories;
 using Infrastructure.Persistence;
 using Infrastructure.Provider;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
+using System.Data;
 
 namespace Application.Services;
 
@@ -12,44 +14,76 @@ public class AuthService(ApplicationDbContext dbContext, IAuthRepository authRep
 {
     public async Task<UserDto> RegisterUserAsync(string email, string password, string firstName, string lastName)
     {
-        // 1. 檢查 Email 是否已被註冊 (Business Rule)
-        var exists = await authRepository.ExsistAsync(email);
-        if (exists)
-        {
-            throw new Exception("Email has been registered.");
-        }
-
-        // 2. 密碼加密 (重要！實務上不可存明文)
-        // 這裡假設你有一個 PasswordHasher 工具，或是簡單示範
         string hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
-
-        // 3. 建立 Domain Entity
-        // 這裡會呼叫你之前寫的那個有 Guid.NewGuid() 的建構函式
-        var avatarColorId = await SelectAvatarColorIdAsync();
-        var user = new UserEntity(
-            email,
-            hashedPassword,
-            firstName,
-            lastName,
-            avatarColorId);
         var verificationToken = Guid.NewGuid().ToString("N");
         var verificationExpiry = DateTime.UtcNow.AddHours(24);
+        UserEntity? user = null;
+        const int maxAttempts = 3;
 
-        user.SetEmailVerificationToken(verificationToken, verificationExpiry);
+        for (var attempt = 1; attempt <= maxAttempts; attempt++)
+        {
+            await using var transaction = await dbContext.Database.BeginTransactionAsync(
+                IsolationLevel.Serializable);
 
-        // 4. 存入資料庫
-        authRepository.Add(user);
-        await authRepository.SaveChangesAsync();
+            try
+            {
+                var exists = await dbContext.Users.AnyAsync(u => u.Email == email);
+                if (exists)
+                {
+                    throw new Exception("Email has been registered.");
+                }
+
+                var avatarColorId = await SelectAvatarColorIdAsync();
+                user = new UserEntity(
+                    email,
+                    hashedPassword,
+                    firstName,
+                    lastName,
+                    avatarColorId);
+                user.SetEmailVerificationToken(verificationToken, verificationExpiry);
+
+                dbContext.Users.Add(user);
+                await dbContext.SaveChangesAsync();
+                await transaction.CommitAsync();
+                break;
+            }
+            catch (Exception ex) when (
+                IsSerializationFailure(ex) &&
+                attempt < maxAttempts)
+            {
+                await transaction.RollbackAsync();
+                dbContext.ChangeTracker.Clear();
+                await Task.Delay(TimeSpan.FromMilliseconds(20 * attempt));
+            }
+        }
+
+        if (user is null)
+        {
+            throw new InvalidOperationException("User registration failed.");
+        }
 
         var verificationLink = $"http://localhost:5000/api/auth/verify-email?token={verificationToken}";
         await emailProvider.SendVerificationEmailAsync(email, verificationLink);
 
-        // 5. 將 Entity 轉回 DTO 回傳給 Controller
         return new UserDto
         {
             Id = user.Id,
             Email = user.Email
         };
+    }
+
+    private static bool IsSerializationFailure(Exception exception)
+    {
+        for (var current = exception; current is not null; current = current.InnerException)
+        {
+            if (current is PostgresException postgresException &&
+                postgresException.SqlState == PostgresErrorCodes.SerializationFailure)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public (string Token, DateTime Expiration) GenerateAccessToken(Guid userId, string email)
