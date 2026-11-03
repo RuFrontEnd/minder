@@ -95,4 +95,6 @@
 .accountAvatarFallback {
   background: #e5e7eb;
   color: #7b8491;
+  font-size: 0.6875rem;
+  font-weight: 700;
 }

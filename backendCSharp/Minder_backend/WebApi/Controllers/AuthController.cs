@@ -100,6 +100,8 @@ public class AuthController(AuthService authService) : ControllerBase
             email = email,
             avatarUrl = user?.AvatarUrl,
             avatarColor = user?.AvatarColor,
+            firstName = user?.FirstName,
+            lastName = user?.LastName,
             message = "authenticated!"
         });
     }

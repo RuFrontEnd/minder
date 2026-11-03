@@ -14,6 +14,14 @@ type Props = {
   onClose: () => void;
   isCloseDisabled?: boolean;
   afterAvatarChange?: (avatarUrl: string) => void;
+  afterUserProfileLoad?: (profile: {
+    firstName: string;
+    lastName: string;
+    avatarColor?: {
+      color: string;
+      backgroundColor: string;
+    };
+  }) => void;
   afterLogout?: (message: string) => void;
   afterCreateProject?: (project: ProjectTypes.Project) => void;
   onSelectProject?: (project: ProjectTypes.Project) => void;
@@ -132,7 +140,9 @@ export default function UserInfoModal(props: Props) {
 
       const errors: unknown[] = [];
       if (userResult.status === "fulfilled") {
-        setUserProfile(userResult.value.data);
+        const profile = userResult.value.data;
+        setUserProfile(profile);
+        props.afterUserProfileLoad?.(profile);
       } else {
         errors.push(userResult.reason);
       }

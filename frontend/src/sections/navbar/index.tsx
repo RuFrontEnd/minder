@@ -19,6 +19,11 @@ interface NavbarProps {
   onClickProjectName: () => void;
   projectName: string;
   userAvatarUrl?: string;
+  userInitials?: string;
+  userAvatarColor?: {
+    color: string;
+    backgroundColor: string;
+  };
 }
 
 export default function Navbar(props: NavbarProps) {
@@ -127,8 +132,17 @@ export default function Navbar(props: NavbarProps) {
               alt="Your profile"
             />
           ) : (
-            <span className={styles.accountAvatarFallback}>
-              <UserRound size={17} strokeWidth={2} />
+            <span
+              className={styles.accountAvatarFallback}
+              style={{
+                color: props.userAvatarColor?.color || "#7b8491",
+                backgroundColor:
+                  props.userAvatarColor?.backgroundColor || "#e5e7eb",
+              }}
+            >
+              {props.isAuthorized ? props.userInitials || "U" : (
+                <UserRound size={17} strokeWidth={2} />
+              )}
             </span>
           )}
         </button>

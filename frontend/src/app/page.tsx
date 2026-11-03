@@ -2070,6 +2070,11 @@ export default function IdPage() {
   const [isUpsertingShape, setIsUpsertingShape] = useState(false);
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [userAvatarUrl, setUserAvatarUrl] = useState("");
+  const [userInitials, setUserInitials] = useState("U");
+  const [userAvatarColor, setUserAvatarColor] = useState<{
+    color: string;
+    backgroundColor: string;
+  } | null>(null);
   const [isLogIn, setIsLogin] = useState(false);
   const [authModalOpenSignal, setAuthModalOpenSignal] = useState(0);
   const [loginSuccessMessage, setLoginSuccessMessage] = useState("");
@@ -2123,13 +2128,23 @@ export default function IdPage() {
           window.localStorage.getItem("userAvatarUrl") ||
           "";
         setUserAvatarUrl(avatarUrl);
+        const firstName = res.data?.firstName || "";
+        const lastName = res.data?.lastName || "";
+        setUserInitials(
+          `${firstName[0] || ""}${lastName[0] || ""}`.toUpperCase() || "U"
+        );
+        setUserAvatarColor(res.data?.avatarColor || null);
       } else {
         setUserAvatarUrl("");
+        setUserInitials("U");
+        setUserAvatarColor(null);
       }
     } catch (error) {
       // If error (401 Unauthorized), user is not authenticated
       setIsAuthorized(false);
       setUserAvatarUrl("");
+      setUserInitials("U");
+      setUserAvatarColor(null);
     }
   };
 
@@ -3248,6 +3263,8 @@ export default function IdPage() {
   const afterLogout = (message?: string) => {
     setIsAuthorized(false);
     setUserAvatarUrl("");
+    setUserInitials("U");
+    setUserAvatarColor(null);
     resetCanvasToDefault();
     setIsProjectSelectionRequired(false);
     if (message) showSuccessMessage(message);
@@ -3303,6 +3320,8 @@ export default function IdPage() {
         onClickProjectName={onClickProjectName}
         projectName={projectName.val}
         userAvatarUrl={userAvatarUrl}
+        userInitials={userInitials}
+        userAvatarColor={userAvatarColor || undefined}
       />
 
       <AuthModal
@@ -3342,6 +3361,13 @@ export default function IdPage() {
         onClose={() => setIsUserInfoOpen(false)}
         isCloseDisabled={isProjectSelectionRequired}
         afterAvatarChange={setUserAvatarUrl}
+        afterUserProfileLoad={(profile) => {
+          setUserInitials(
+            `${profile.firstName?.[0] || ""}${profile.lastName?.[0] || ""}`.toUpperCase() ||
+              "U"
+          );
+          setUserAvatarColor(profile.avatarColor || null);
+        }}
         afterCreateProject={onCreateProject}
         onSelectProject={onSelectProject}
         afterLogout={(message) => {
