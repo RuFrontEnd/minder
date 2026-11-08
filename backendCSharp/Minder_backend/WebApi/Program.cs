@@ -10,9 +10,11 @@ using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using System.Text;
 using Amazon;
+using Amazon.Runtime;
 using Amazon.S3;
 
 var builder = WebApplication.CreateBuilder(args);
+LoadDotEnv(builder.Environment.ContentRootPath);
 
 builder.Services.AddControllers();
 
@@ -86,12 +88,25 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddSingleton<IAmazonS3>(_ =>
-    new AmazonS3Client(
-        RegionEndpoint.GetBySystemName(
-            builder.Configuration["AWS:Region"]
-                ?? throw new InvalidOperationException("AWS:Region is not configured.")
-        )
-    )
+{
+    var accessKeyId = Environment.GetEnvironmentVariable("MINDER_AWS_ACCESS_KEY_ID")
+        ?? throw new InvalidOperationException(
+            "MINDER_AWS_ACCESS_KEY_ID is not configured.");
+    var secretAccessKey = Environment.GetEnvironmentVariable("MINDER_AWS_SECRET_ACCESS_KEY")
+        ?? throw new InvalidOperationException(
+            "MINDER_AWS_SECRET_ACCESS_KEY is not configured.");
+    var sessionToken = Environment.GetEnvironmentVariable("MINDER_AWS_SESSION_TOKEN");
+    var regionName = builder.Configuration["AWS:Region"]
+        ?? throw new InvalidOperationException("AWS:Region is not configured.");
+
+    AWSCredentials credentials = string.IsNullOrWhiteSpace(sessionToken)
+        ? new BasicAWSCredentials(accessKeyId, secretAccessKey)
+        : new SessionAWSCredentials(accessKeyId, secretAccessKey, sessionToken);
+
+    return new AmazonS3Client(
+        credentials,
+        RegionEndpoint.GetBySystemName(regionName));
+}
 );
 
 var app = builder.Build();
@@ -104,7 +119,7 @@ app.MapGet("/test-db", async (ApplicationDbContext db) =>
         // �ˬd�O�_�ন�\�s�u
         var canConnect = await db.Database.CanConnectAsync();
         return canConnect
-            ? Results.Ok(new { Message = "PostgreSQL �s�u���\�I" })
+            ? Results.Ok(new { Message = "PostgreSQL 啟動" })
             : Results.Problem("�L�k�s�u���Ʈw");
     }
     catch (Exception ex)
@@ -116,3 +131,42 @@ app.MapGet("/test-db", async (ApplicationDbContext db) =>
 app.UseCors("AllowLocalhost3000"); // CORS
 app.MapControllers();
 app.Run();
+
+static void LoadDotEnv(string contentRootPath)
+{
+    var envFilePath = Path.Combine(contentRootPath, ".env");
+    if (!File.Exists(envFilePath))
+    {
+        return;
+    }
+
+    foreach (var rawLine in File.ReadLines(envFilePath))
+    {
+        var line = rawLine.Trim();
+        if (line.Length == 0 || line.StartsWith('#'))
+        {
+            continue;
+        }
+
+        var separatorIndex = line.IndexOf('=');
+        if (separatorIndex <= 0)
+        {
+            continue;
+        }
+
+        var key = line[..separatorIndex].Trim();
+        var value = line[(separatorIndex + 1)..].Trim();
+
+        if (value.Length >= 2 &&
+            ((value[0] == '"' && value[^1] == '"') ||
+             (value[0] == '\'' && value[^1] == '\'')))
+        {
+            value = value[1..^1];
+        }
+
+        Environment.SetEnvironmentVariable(
+            key,
+            value,
+            EnvironmentVariableTarget.Process);
+    }
+}
