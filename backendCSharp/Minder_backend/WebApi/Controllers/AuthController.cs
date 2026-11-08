@@ -120,6 +120,34 @@ public class AuthController(AuthService authService) : ControllerBase
     }
 
     [Authorize]
+    [HttpPost("me/avatar/upload-url")]
+    public async Task<IActionResult> CreateAvatarUploadUrl(
+        [FromBody] CreateAvatarUploadUrlRequest request)
+    {
+        var userIdValue = User.FindFirst(
+            System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+        if (!Guid.TryParse(userIdValue, out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await authService.CreateAvatarUploadUrlAsync(
+            userId,
+            request);
+
+        if (result is null)
+        {
+            return BadRequest(new
+            {
+                message = "Only JPEG, PNG, or WebP images up to 3 MB are allowed."
+            });
+        }
+
+        return Ok(result);
+    }
+
+    [Authorize]
     [HttpPut("me/avatar")]
     public async Task<IActionResult> UpdateAvatar(
         [FromBody] UpdateAvatarRequest request)

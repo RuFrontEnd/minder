@@ -9,6 +9,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using System.Text;
+using Amazon;
+using Amazon.S3;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,7 +19,7 @@ builder.Services.AddControllers();
 // 1. get connection string & register DbContext
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
-dataSourceBuilder.EnableDynamicJson(); // ¸Ñ¨M¨º­Óªøªøªº InvalidCastException ¿ù»~
+dataSourceBuilder.EnableDynamicJson(); // ï¿½Ñ¨Mï¿½ï¿½ï¿½Óªï¿½ï¿½ï¿½ï¿½ï¿½ InvalidCastException ï¿½ï¿½ï¿½~
 var dataSource = dataSourceBuilder.Build();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -39,10 +41,14 @@ builder.Services.AddScoped<ProjectService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ShapeService>();
 
+// AWS S3 Avatar Storage Provider
+builder.Services.AddScoped<IAvatarStorageProvider, S3AvatarStorageProvider>();
+
 // add authentication middleware
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options => {
-        // ³o¸Ì³]©w¦p¦óÅçÃÒ«eºÝ¶Ç¦^¨Óªº Token
+    .AddJwtBearer(options =>
+    {
+        // ï¿½oï¿½Ì³]ï¿½wï¿½pï¿½ï¿½ï¿½ï¿½ï¿½Ò«eï¿½Ý¶Ç¦^ï¿½Óªï¿½ Token
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -71,30 +77,39 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowLocalhost3000",
         policy =>
         {
-            policy.WithOrigins("http://localhost:3000") // ¤¹³\ªº¨Ó·½
-                  .WithOrigins("http://localhost:4000") // ¤¹³\ªº¨Ó·½
-                  .AllowAnyHeader()                   // ¤¹³\¥ô¦ó Header
-                  .AllowAnyMethod()                   // ¤¹³\¥ô¦ó¤èªk (GET, POST, PUT, DELETE)
-                  .AllowCredentials();                // ¦pªG§A¦³¥Î Cookie ©Î JWT¡A³o¦æ«Ü­«­n
+            policy.WithOrigins("http://localhost:3000") // ï¿½ï¿½ï¿½\ï¿½ï¿½ï¿½Ó·ï¿½
+                  .WithOrigins("http://localhost:4000") // ï¿½ï¿½ï¿½\ï¿½ï¿½ï¿½Ó·ï¿½
+                  .AllowAnyHeader()                   // ï¿½ï¿½ï¿½\ï¿½ï¿½ï¿½ï¿½ Header
+                  .AllowAnyMethod()                   // ï¿½ï¿½ï¿½\ï¿½ï¿½ï¿½ï¿½ï¿½k (GET, POST, PUT, DELETE)
+                  .AllowCredentials();                // ï¿½pï¿½Gï¿½Aï¿½ï¿½ï¿½ï¿½ Cookie ï¿½ï¿½ JWTï¿½Aï¿½oï¿½ï¿½Ü­ï¿½ï¿½n
         });
 });
 
+builder.Services.AddSingleton<IAmazonS3>(_ =>
+    new AmazonS3Client(
+        RegionEndpoint.GetBySystemName(
+            builder.Configuration["AWS:Region"]
+                ?? throw new InvalidOperationException("AWS:Region is not configured.")
+        )
+    )
+);
+
 var app = builder.Build();
 
-// 2. ´ú¸Õ¸ê®Æ®w³s½uªººÝÂI
+// 2. ï¿½ï¿½ï¿½Õ¸ï¿½Æ®wï¿½sï¿½uï¿½ï¿½ï¿½ï¿½ï¿½I
 app.MapGet("/test-db", async (ApplicationDbContext db) =>
 {
     try
     {
-        // ÀË¬d¬O§_¯à¦¨¥\³s½u
+        // ï¿½Ë¬dï¿½Oï¿½_ï¿½à¦¨ï¿½\ï¿½sï¿½u
         var canConnect = await db.Database.CanConnectAsync();
         return canConnect
-            ? Results.Ok(new { Message = "PostgreSQL ³s½u¦¨¥\¡I" })
-            : Results.Problem("µLªk³s½u¨ì¸ê®Æ®w");
+            ? Results.Ok(new { Message = "PostgreSQL ï¿½sï¿½uï¿½ï¿½ï¿½\ï¿½I" })
+            : Results.Problem("ï¿½Lï¿½kï¿½sï¿½uï¿½ï¿½ï¿½Æ®w");
     }
     catch (Exception ex)
     {
-        return Results.Problem($"³s½u¥¢±Ñ: {ex.Message}");
+        return Results.Problem($"ï¿½sï¿½uï¿½ï¿½ï¿½ï¿½: {ex.Message}");
     }
 });
 

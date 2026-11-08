@@ -10,6 +10,14 @@ public class UserProfileDto
     public AvatarColorDto? AvatarColor { get; set; }
 }
 
+public sealed record CreateAvatarUploadUrlRequest(
+    string ContentType,
+    long FileSize);
+
+public sealed record AvatarUploadUrlResponse(
+    string UploadUrl,
+    string AvatarKey);
+
 public sealed record UpdateAvatarRequest(string? AvatarUrl);
 
 public class AvatarColorDto

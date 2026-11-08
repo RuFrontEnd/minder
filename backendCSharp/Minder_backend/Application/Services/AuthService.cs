@@ -10,8 +10,42 @@ using System.Data;
 
 namespace Application.Services;
 
-public class AuthService(ApplicationDbContext dbContext, IAuthRepository authRepository, IJwtProvider jwtProvider, IEmailProvider emailProvider)
+public class AuthService(
+    ApplicationDbContext dbContext,
+    IAuthRepository authRepository,
+    IJwtProvider jwtProvider,
+    IEmailProvider emailProvider,
+    IAvatarStorageProvider avatarStorageProvider)
 {
+    private static readonly IReadOnlyDictionary<string, string> AvatarExtensions =
+        new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["image/jpeg"] = ".jpg",
+            ["image/png"] = ".png",
+            ["image/webp"] = ".webp"
+        };
+
+    private const long MaxAvatarFileSize = 3_000_000;
+
+    public async Task<AvatarUploadUrlResponse?> CreateAvatarUploadUrlAsync(
+        Guid userId,
+        CreateAvatarUploadUrlRequest request)
+    {
+        if (!AvatarExtensions.TryGetValue(request.ContentType, out var extension) ||
+            request.FileSize <= 0 ||
+            request.FileSize > MaxAvatarFileSize)
+        {
+            return null;
+        }
+
+        var avatarKey = $"avatars/{userId}/{Guid.NewGuid():N}{extension}";
+        var uploadUrl = await avatarStorageProvider.CreateUploadUrlAsync(
+            avatarKey,
+            request.ContentType);
+
+        return new AvatarUploadUrlResponse(uploadUrl, avatarKey);
+    }
+
     public async Task<UserDto> RegisterUserAsync(string email, string password, string firstName, string lastName)
     {
         string hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
