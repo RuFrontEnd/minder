@@ -2132,7 +2132,6 @@ export default function IdPage() {
           res.data?.avatarUrl ||
           res.data?.profileImageUrl ||
           res.data?.picture ||
-          window.localStorage.getItem("userAvatarUrl") ||
           "";
         setUserAvatarUrl(avatarUrl);
         const firstName = res.data?.firstName || "";
@@ -3274,6 +3273,7 @@ export default function IdPage() {
     setUserAvatarUrl("");
     setUserInitials("U");
     setUserAvatarColor(null);
+    window.localStorage.removeItem("userAvatarUrl");
     resetCanvasToDefault();
     setIsProjectSelectionRequired(false);
     if (message) showSuccessMessage(message);

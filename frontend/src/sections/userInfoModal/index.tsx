@@ -114,12 +114,12 @@ export default function UserInfoModal(props: Props) {
       const avatarUrl = new URL(uploadUrl);
       avatarUrl.search = "";
       avatarUrl.hash = "";
-      const response = await authAPIs.updateAvatar(avatarUrl.toString());
-      const savedAvatarUrl = response.data?.avatarUrl || avatarUrl.toString();
+      await authAPIs.updateAvatar(avatarUrl.toString());
+      const profileResponse = await authAPIs.getCurrentUser();
+      const savedAvatarUrl = profileResponse.data?.avatarUrl || "";
       setUserProfile((current) =>
         current ? { ...current, avatarUrl: savedAvatarUrl } : current
       );
-      localStorage.setItem("userAvatarUrl", savedAvatarUrl);
       props.afterAvatarChange?.(savedAvatarUrl);
     } catch (error) {
       console.error("Failed to upload avatar:", error);
