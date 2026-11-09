@@ -85,28 +85,41 @@ export default function UserInfoModal(props: Props) {
     const file = event.target.files?.[0];
     event.target.value = "";
     if (!file) return;
-    if (!file.type.startsWith("image/") || file.size > 3_000_000) {
-      setLoadError("Please choose an image smaller than 3 MB.");
+    const supportedTypes = ["image/jpeg", "image/png", "image/webp"];
+    if (!supportedTypes.includes(file.type) || file.size > 3_000_000) {
+      setLoadError("Please choose a JPEG, PNG, or WebP image smaller than 3 MB.");
       return;
     }
 
     setIsUploadingAvatar(true);
     setLoadError("");
     try {
-      const avatarUrl = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          if (typeof reader.result === "string") resolve(reader.result);
-          else reject(new Error("Unable to read avatar image."));
-        };
-        reader.onerror = () => reject(reader.error);
-        reader.readAsDataURL(file);
+      const uploadResponse = await authAPIs.createAvatarUploadUrl(
+        file.type,
+        file.size
+      );
+      const { uploadUrl } = uploadResponse.data;
+      const s3Response = await fetch(uploadUrl, {
+        method: "PUT",
+        headers: {
+          "Content-Type": file.type,
+        },
+        body: file,
       });
-      const response = await authAPIs.updateAvatar(avatarUrl);
-      const savedAvatarUrl = response.data?.avatarUrl || avatarUrl;
+
+      if (!s3Response.ok) {
+        throw new Error(`S3 upload failed with status ${s3Response.status}.`);
+      }
+
+      const avatarUrl = new URL(uploadUrl);
+      avatarUrl.search = "";
+      avatarUrl.hash = "";
+      const response = await authAPIs.updateAvatar(avatarUrl.toString());
+      const savedAvatarUrl = response.data?.avatarUrl || avatarUrl.toString();
       setUserProfile((current) =>
         current ? { ...current, avatarUrl: savedAvatarUrl } : current
       );
+      localStorage.setItem("userAvatarUrl", savedAvatarUrl);
       props.afterAvatarChange?.(savedAvatarUrl);
     } catch (error) {
       console.error("Failed to upload avatar:", error);

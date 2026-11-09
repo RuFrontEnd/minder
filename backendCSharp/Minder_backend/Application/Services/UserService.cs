@@ -1,10 +1,14 @@
 ﻿using Application.DTOs;
+using Domain.Provider;
 using Domain.Repositories;
 using Infrastructure.Persistence;
 
 namespace Application.Services;
 
-public class UserService(ApplicationDbContext context, IUserRepository userRepository)
+public class UserService(
+    ApplicationDbContext context,
+    IUserRepository userRepository,
+    IAvatarStorageProvider avatarStorageProvider)
 {
     public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
     {
@@ -25,12 +29,12 @@ public class UserService(ApplicationDbContext context, IUserRepository userRepos
     {
         var users = await userRepository.SearchAsync(query, cancellationToken);
 
-        return users.Select(user => new UserSearchDto(
+        return await Task.WhenAll(users.Select(async user => new UserSearchDto(
             user.Id,
             user.Email,
             user.FirstName,
             user.LastName,
-            user.AvatarUrl,
+            await avatarStorageProvider.CreateDownloadUrlAsync(user.AvatarUrl),
             user.AvatarColor is null
                 ? null
                 : new AvatarColorDto
@@ -38,6 +42,6 @@ public class UserService(ApplicationDbContext context, IUserRepository userRepos
                     Name = user.AvatarColor.Name,
                     Color = user.AvatarColor.Color,
                     BackgroundColor = user.AvatarColor.BackgroundColor
-                }));
+                })));
     }
 }

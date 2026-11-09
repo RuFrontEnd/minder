@@ -44,6 +44,19 @@ const getCurrentUser = async () => {
   return axios.get("/auth/me");
 };
 
+const createAvatarUploadUrl = async (
+  contentType: string,
+  fileSize: number
+) => {
+  return axios.post<{
+    uploadUrl: string;
+    avatarKey: string;
+  }>("/auth/me/avatar/upload-url", {
+    contentType,
+    fileSize,
+  });
+};
+
 const updateAvatar = async (avatarUrl: string | null) => {
   return axios.put("/auth/me/avatar", { avatarUrl });
 };
@@ -58,6 +71,7 @@ export {
   logout,
   validateToken,
   getCurrentUser,
+  createAvatarUploadUrl,
   updateAvatar,
   refresh,
 };

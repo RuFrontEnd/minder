@@ -89,23 +89,23 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddSingleton<IAmazonS3>(_ =>
 {
-    var accessKeyId = Environment.GetEnvironmentVariable("MINDER_AWS_ACCESS_KEY_ID")
+    var awsAccessKeyId = Environment.GetEnvironmentVariable("MINDER_AWS_ACCESS_KEY_ID")
         ?? throw new InvalidOperationException(
             "MINDER_AWS_ACCESS_KEY_ID is not configured.");
-    var secretAccessKey = Environment.GetEnvironmentVariable("MINDER_AWS_SECRET_ACCESS_KEY")
+    var awsSecretAccessKey = Environment.GetEnvironmentVariable("MINDER_AWS_SECRET_ACCESS_KEY")
         ?? throw new InvalidOperationException(
             "MINDER_AWS_SECRET_ACCESS_KEY is not configured.");
-    var sessionToken = Environment.GetEnvironmentVariable("MINDER_AWS_SESSION_TOKEN");
-    var regionName = builder.Configuration["AWS:Region"]
+    var awsSessionToken = Environment.GetEnvironmentVariable("MINDER_AWS_SESSION_TOKEN");
+    var awsRegionName = builder.Configuration["AWS:Region"]
         ?? throw new InvalidOperationException("AWS:Region is not configured.");
 
-    AWSCredentials credentials = string.IsNullOrWhiteSpace(sessionToken)
-        ? new BasicAWSCredentials(accessKeyId, secretAccessKey)
-        : new SessionAWSCredentials(accessKeyId, secretAccessKey, sessionToken);
+    AWSCredentials credentials = string.IsNullOrWhiteSpace(awsSessionToken)
+        ? new BasicAWSCredentials(awsAccessKeyId, awsSecretAccessKey)
+        : new SessionAWSCredentials(awsAccessKeyId, awsSecretAccessKey, awsSessionToken);
 
     return new AmazonS3Client(
         credentials,
-        RegionEndpoint.GetBySystemName(regionName));
+        RegionEndpoint.GetBySystemName(awsRegionName));
 }
 );
 

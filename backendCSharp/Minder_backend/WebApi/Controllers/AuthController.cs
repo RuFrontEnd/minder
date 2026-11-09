@@ -7,7 +7,9 @@ namespace WebAPi.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class AuthController(AuthService authService) : ControllerBase
+public class AuthController(
+    AuthService authService,
+    IConfiguration configuration) : ControllerBase
 {
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] CreateUserRequest request)
@@ -153,8 +155,7 @@ public class AuthController(AuthService authService) : ControllerBase
         [FromBody] UpdateAvatarRequest request)
     {
         if (request.AvatarUrl is not null &&
-            (!request.AvatarUrl.StartsWith("data:image/", StringComparison.OrdinalIgnoreCase) ||
-             request.AvatarUrl.Length > 4_000_000))
+            !IsAllowedAvatarUrl(request.AvatarUrl))
         {
             return BadRequest(new { message = "Avatar image is invalid or too large." });
         }
@@ -164,6 +165,27 @@ public class AuthController(AuthService authService) : ControllerBase
 
         var user = await authService.UpdateAvatarAsync(userId, request.AvatarUrl);
         return user is null ? NotFound(new { message = "User not found." }) : Ok(user);
+    }
+
+    private bool IsAllowedAvatarUrl(string avatarUrl)
+    {
+        if (avatarUrl.StartsWith("data:image/", StringComparison.OrdinalIgnoreCase))
+        {
+            return avatarUrl.Length <= 4_000_000;
+        }
+
+        var bucketName = configuration["AWS:BucketName"];
+        var regionName = configuration["AWS:Region"];
+        if (string.IsNullOrWhiteSpace(bucketName) || string.IsNullOrWhiteSpace(regionName))
+        {
+            return false;
+        }
+
+        var expectedHost = $"{bucketName}.s3.{regionName}.amazonaws.com";
+        return Uri.TryCreate(avatarUrl, UriKind.Absolute, out var uri) &&
+            uri.Scheme == Uri.UriSchemeHttps &&
+            string.Equals(uri.Host, expectedHost, StringComparison.OrdinalIgnoreCase) &&
+            uri.AbsolutePath.StartsWith("/avatars/", StringComparison.Ordinal);
     }
 
     [HttpPost("refresh")]

@@ -174,7 +174,7 @@ public class AuthService(
             Email = user.Email,
             FirstName = user.FirstName,
             LastName = user.LastName,
-            AvatarUrl = user.AvatarUrl,
+            AvatarUrl = await avatarStorageProvider.CreateDownloadUrlAsync(user.AvatarUrl),
             AvatarColor = user.AvatarColor is null
                 ? null
                 : new AvatarColorDto
@@ -225,7 +225,7 @@ public class AuthService(
             Email = user.Email,
             FirstName = user.FirstName,
             LastName = user.LastName,
-            AvatarUrl = user.AvatarUrl,
+            AvatarUrl = await avatarStorageProvider.CreateDownloadUrlAsync(user.AvatarUrl),
             AvatarColor = user.AvatarColor is null
                 ? null
                 : new AvatarColorDto

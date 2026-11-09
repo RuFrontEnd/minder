@@ -1,10 +1,13 @@
 ﻿using Application.DTOs;
 using Domain.Entities;
+using Domain.Provider;
 using Domain.Repositories;
 
 namespace Application.Services;
 
-public class ProjectService(IProjectRepository projectRepository)
+public class ProjectService(
+    IProjectRepository projectRepository,
+    IAvatarStorageProvider avatarStorageProvider)
 {
     public async Task<IEnumerable<ProjectDTO>> GetAllProjectsAsync(
         Guid userId,
@@ -99,15 +102,17 @@ public class ProjectService(IProjectRepository projectRepository)
             projectId,
             requesterId,
             cancellationToken);
-        return members?.Select(member => new ProjectMemberDTO(
-            member.UserId,
-            member.Email,
-            member.FirstName,
-            member.LastName,
-            member.AvatarUrl,
-            member.AvatarColor,
-            member.AvatarBackgroundColor,
-            member.Role));
+        return members is null
+            ? null
+            : await Task.WhenAll(members.Select(async member => new ProjectMemberDTO(
+                member.UserId,
+                member.Email,
+                member.FirstName,
+                member.LastName,
+                await avatarStorageProvider.CreateDownloadUrlAsync(member.AvatarUrl),
+                member.AvatarColor,
+                member.AvatarBackgroundColor,
+                member.Role)));
     }
 
     public Task<RemoveProjectMemberResult> RemoveMemberAsync(
