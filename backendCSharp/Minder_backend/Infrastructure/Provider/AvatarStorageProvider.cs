@@ -17,7 +17,7 @@ public class S3AvatarStorageProvider(
         var request = new GetPreSignedUrlRequest
         {
             BucketName = bucketName,
-            Key = key,
+            Key = key, // 儲存在 S3 中的路徑，例如 "avatars/filename.jpg"
             Verb = HttpVerb.PUT,
             Expires = DateTime.UtcNow.AddMinutes(5),
             ContentType = contentType
@@ -50,7 +50,7 @@ public class S3AvatarStorageProvider(
         var request = new GetPreSignedUrlRequest
         {
             BucketName = bucketName,
-            Key = uri.AbsolutePath.TrimStart('/'),
+            Key = uri.AbsolutePath.TrimStart('/'), // 儲存在 S3 中的路徑，例如 "avatars/filename.jpg"
             Verb = HttpVerb.GET,
             Expires = DateTime.UtcNow.AddMinutes(5)
         };
