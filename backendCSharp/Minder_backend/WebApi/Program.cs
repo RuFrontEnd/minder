@@ -14,12 +14,21 @@ using Amazon.Runtime;
 using Amazon.S3;
 
 var builder = WebApplication.CreateBuilder(args);
-LoadDotEnv(builder.Environment.ContentRootPath);
+LoadDotEnv(Path.GetFullPath(builder.Environment.ContentRootPath));
 
 builder.Services.AddControllers();
 
 // 1. get connection string & register DbContext
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var rawConnectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
+    ?? builder.Configuration.GetConnectionString("DefaultConnection");
+
+if (string.IsNullOrWhiteSpace(rawConnectionString))
+{
+    throw new InvalidOperationException(
+        "Database connection is not configured. Set DATABASE_URL or configure ConnectionStrings:DefaultConnection.");
+}
+
+var connectionString = ToNpgsqlConnectionString(rawConnectionString);
 var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
 dataSourceBuilder.EnableDynamicJson(); // �ѨM���Ӫ����� InvalidCastException ���~
 var dataSource = dataSourceBuilder.Build();
@@ -112,19 +121,21 @@ builder.Services.AddSingleton<IAmazonS3>(_ =>
 var app = builder.Build();
 
 // 2. ���ո�Ʈw�s�u�����I
-app.MapGet("/test-db", async (ApplicationDbContext db) =>
+app.MapGet("/test-db", async (ApplicationDbContext db, ILogger<Program> logger) =>
 {
     try
     {
-        // �ˬd�O�_�ন�\�s�u
-        var canConnect = await db.Database.CanConnectAsync();
-        return canConnect
-            ? Results.Ok(new { Message = "PostgreSQL 啟動" })
-            : Results.Problem("�L�k�s�u���Ʈw");
+        await db.Database.OpenConnectionAsync();
+        await db.Database.CloseConnectionAsync();
+        return Results.Ok(new { Message = "PostgreSQL connected" });
     }
     catch (Exception ex)
     {
-        return Results.Problem($"�s�u����: {ex.Message}");
+        logger.LogError(ex, "Database connection failed.");
+        return Results.Problem(
+            detail: ex.GetBaseException().Message,
+            statusCode: StatusCodes.Status500InternalServerError,
+            title: "Database connection failed");
     }
 });
 
@@ -132,9 +143,9 @@ app.UseCors("AllowLocalhost3000"); // CORS
 app.MapControllers();
 app.Run();
 
-static void LoadDotEnv(string contentRootPath)
+static void LoadDotEnv(string path)
 {
-    var envFilePath = Path.Combine(contentRootPath, ".env");
+    var envFilePath = Path.Combine(path, ".env");
     if (!File.Exists(envFilePath))
     {
         return;
@@ -169,4 +180,33 @@ static void LoadDotEnv(string contentRootPath)
             value,
             EnvironmentVariableTarget.Process);
     }
+}
+
+static string ToNpgsqlConnectionString(string connectionString)
+{
+    if (!connectionString.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase) &&
+        !connectionString.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase))
+    {
+        return connectionString;
+    }
+
+    var uri = new Uri(connectionString);
+    var userInfo = uri.UserInfo.Split(':', 2);
+
+    if (userInfo.Length != 2)
+    {
+        throw new InvalidOperationException("DATABASE_URL must contain both username and password.");
+    }
+
+    var builder = new NpgsqlConnectionStringBuilder
+    {
+        Host = uri.Host,
+        Port = uri.Port > 0 ? uri.Port : 5432,
+        Database = Uri.UnescapeDataString(uri.AbsolutePath.TrimStart('/')),
+        Username = Uri.UnescapeDataString(userInfo[0]),
+        Password = Uri.UnescapeDataString(userInfo[1]),
+        SslMode = SslMode.Require
+    };
+
+    return builder.ConnectionString;
 }
