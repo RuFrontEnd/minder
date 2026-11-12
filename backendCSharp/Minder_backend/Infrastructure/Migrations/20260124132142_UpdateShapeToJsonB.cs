@@ -24,7 +24,7 @@ namespace Infrastructure.Migrations
                 name: "Type",
                 table: "Shape");
 
-            migrationBuilder.AddColumn<List<ShapeEntity.Info>>(
+            migrationBuilder.AddColumn<List<StepEntity.Info>>(
                 name: "Infos",
                 table: "Shape",
                 type: "jsonb",

@@ -152,7 +152,6 @@ export default function AuthModal(props: AuthModalTypes.Props) {
   };
 
   const onClickSignUpButton = async () => {
-    console.log('A');
     const _authInfo = cloneDeep(authInfo);
     const isPasswordLengthGreaterThanSix =
       authInfo.password.value && authInfo.password.value?.length >= 6;
@@ -218,11 +217,6 @@ export default function AuthModal(props: AuthModalTypes.Props) {
 
     setAuthInfo(_authInfo);
 
-    console.log('isPasswordLengthGreaterThanSix', isPasswordLengthGreaterThanSix);
-    console.log('isEmailFormatValid', isEmailFormatValid);
-    console.log('authInfo.password.value', authInfo.password.value);
-    console.log('authInfo.email.value', authInfo.email.value);
-
     if (
       !isPasswordLengthGreaterThanSix ||
       !isEmailFormatValid ||
@@ -247,28 +241,19 @@ export default function AuthModal(props: AuthModalTypes.Props) {
         );
 
       if (res.status >= 200 && res.status < 300) {
-        setTimeout(() => {
-          setAuthMessage({
-            status: AlertTypes.Type.succeess,
-            text: res.data.message,
-          });
-          setIsAuthorizing(false);
-          setAuthInfo(init.authInfo);
-          setTimeout(() => {
-            setAuthMessage((authMessage) => ({
-              ...authMessage,
-              text: "",
-            }));
-          }, 1500);
-        }, 1000);
+        setIsAuthorizing(false);
+        setAuthInfo(init.authInfo);
+        setAuthMessage({
+          status: AlertTypes.Type.succeess,
+          text: res.data.message,
+        });
+        props.setIsLogin(true);
       } else {
-        setTimeout(() => {
-          setIsAuthorizing(false);
-          setAuthMessage({
-            status: AlertTypes.Type.error,
-            text: res.data.message,
-          });
-        }, 1000);
+        setIsAuthorizing(false);
+        setAuthMessage({
+          status: AlertTypes.Type.error,
+          text: res.data.message,
+        });
       }
     } catch (err: any) {
       setIsAuthorizing(false);

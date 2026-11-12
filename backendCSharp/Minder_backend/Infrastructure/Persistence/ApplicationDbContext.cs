@@ -16,7 +16,8 @@ namespace Infrastructure.Persistence
         public DbSet<ProjectEntity> Projects => Set<ProjectEntity>();
         public DbSet<MemberEntity> Members => Set<MemberEntity>();
         public DbSet<RoleEntity> Roles => Set<RoleEntity>();
-        public DbSet<ShapeEntity> Steps => Set<ShapeEntity>();
+        public DbSet<StepEntity> Steps => Set<StepEntity>();
+        public DbSet<StepDependencyEntity> StepDependencies => Set<StepDependencyEntity>();
         public DbSet<TaskEntity> Tasks => Set<TaskEntity>();
         public DbSet<MessageEntity> Messages => Set<MessageEntity>();
 
@@ -197,7 +198,7 @@ namespace Infrastructure.Persistence
                     });
             });
 
-            modelBuilder.Entity<ShapeEntity>(entity =>
+            modelBuilder.Entity<StepEntity>(entity =>
             {
                 entity.ToTable("steps", table =>
                     table.HasCheckConstraint(
@@ -236,6 +237,41 @@ namespace Infrastructure.Persistence
                       .OnDelete(DeleteBehavior.Cascade);
             });
 
+            modelBuilder.Entity<StepDependencyEntity>(entity =>
+            {
+                entity.ToTable("step_dependencies", table =>
+                    table.HasCheckConstraint(
+                        "ck_step_dependencies_not_self",
+                        "step_id <> depends_on_step_id"));
+
+                entity.Property(e => e.Id).HasColumnName("id")
+                    .HasDefaultValueSql("gen_random_uuid()");
+                entity.Property(e => e.StepId).HasColumnName("step_id");
+                entity.Property(e => e.DependsOnStepId).HasColumnName("depends_on_step_id");
+                entity.Property(e => e.CreatedAt).HasColumnName("created_at")
+                    .HasColumnType("timestamp with time zone")
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                entity.HasIndex(e => new { e.StepId, e.DependsOnStepId })
+                    .IsUnique()
+                    .HasDatabaseName("uq_step_dependency");
+
+                entity.HasIndex(e => e.DependsOnStepId)
+                    .HasDatabaseName("ix_step_dependencies_depends_on_step_id");
+
+                entity.HasOne<StepEntity>()
+                    .WithMany()
+                    .HasForeignKey(e => e.StepId)
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .HasConstraintName("fk_dependency_step");
+
+                entity.HasOne<StepEntity>()
+                    .WithMany()
+                    .HasForeignKey(e => e.DependsOnStepId)
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .HasConstraintName("fk_dependency_parent_step");
+            });
+
             modelBuilder.Entity<TaskEntity>(entity =>
             {
                 entity.ToTable("tasks");
@@ -247,7 +283,7 @@ namespace Infrastructure.Persistence
                 entity.Property(e => e.Owner).HasColumnName("owner_id");
                 entity.Property(e => e.Description).HasColumnName("description");
 
-                entity.HasOne<ShapeEntity>()
+                entity.HasOne<StepEntity>()
                     .WithMany()
                     .HasForeignKey(e => e.StepId)
                     .OnDelete(DeleteBehavior.Cascade);
@@ -275,7 +311,7 @@ namespace Infrastructure.Persistence
                     .HasColumnType("timestamp with time zone")
                     .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-                entity.HasOne<ShapeEntity>()
+                entity.HasOne<StepEntity>()
                     .WithMany()
                     .HasForeignKey(e => e.StepId)
                     .OnDelete(DeleteBehavior.Cascade);

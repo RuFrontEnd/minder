@@ -12,7 +12,7 @@ namespace Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<List<ShapeEntity.Curve>>(
+            migrationBuilder.AddColumn<List<StepEntity.Curve>>(
                 name: "Curves",
                 table: "Shape",
                 type: "jsonb",

@@ -29,14 +29,14 @@ namespace Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<List<ShapeEntity.Curve>>(
+            migrationBuilder.AddColumn<List<StepEntity.Curve>>(
                 name: "Curves",
                 table: "Shape",
                 type: "jsonb",
                 nullable: false,
                 defaultValueSql: "'[]'::jsonb");
 
-            migrationBuilder.AddColumn<List<ShapeEntity.Info>>(
+            migrationBuilder.AddColumn<List<StepEntity.Info>>(
                 name: "Infos",
                 table: "Shape",
                 type: "jsonb",

@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domain.Entities
 {
-    public class ShapeEntity
+    public class StepEntity
     {
-        public ShapeEntity(Guid id, Guid projectId)
+        public StepEntity(Guid id, Guid projectId)
         {
             // 注意：這裡使用小寫 id 作為參數名，避免跟屬性 Id 混淆
             Id = id;
@@ -78,5 +78,4 @@ namespace Domain.Entities
         [NotMapped]
         public class Curve { public CurveEnd from { get; set; } = new(); public CurveShape shape { get; set; } = new(); public CurveEnd to { get; set; } = new(); }
     }
-
 }

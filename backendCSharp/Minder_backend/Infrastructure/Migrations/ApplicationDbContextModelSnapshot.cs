@@ -246,7 +246,44 @@ namespace Infrastructure.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Domain.Entities.ShapeEntity", b =>
+            modelBuilder.Entity("Domain.Entities.StepDependencyEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<Guid>("DependsOnStepId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("depends_on_step_id");
+
+                    b.Property<Guid>("StepId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("step_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DependsOnStepId")
+                        .HasDatabaseName("ix_step_dependencies_depends_on_step_id");
+
+                    b.HasIndex("StepId", "DependsOnStepId")
+                        .IsUnique()
+                        .HasDatabaseName("uq_step_dependency");
+
+                    b.ToTable("step_dependencies", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_step_dependencies_not_self", "step_id <> depends_on_step_id");
+                        });
+                });
+
+            modelBuilder.Entity("Domain.Entities.StepEntity", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -435,7 +472,7 @@ namespace Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domain.Entities.ShapeEntity", null)
+                    b.HasOne("Domain.Entities.StepEntity", null)
                         .WithMany()
                         .HasForeignKey("StepId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -451,7 +488,24 @@ namespace Infrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Domain.Entities.ShapeEntity", b =>
+            modelBuilder.Entity("Domain.Entities.StepDependencyEntity", b =>
+                {
+                    b.HasOne("Domain.Entities.StepEntity", null)
+                        .WithMany()
+                        .HasForeignKey("DependsOnStepId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_dependency_parent_step");
+
+                    b.HasOne("Domain.Entities.StepEntity", null)
+                        .WithMany()
+                        .HasForeignKey("StepId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_dependency_step");
+                });
+
+            modelBuilder.Entity("Domain.Entities.StepEntity", b =>
                 {
                     b.HasOne("Domain.Entities.UserEntity", null)
                         .WithMany()
@@ -480,7 +534,7 @@ namespace Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domain.Entities.ShapeEntity", null)
+                    b.HasOne("Domain.Entities.StepEntity", null)
                         .WithMany()
                         .HasForeignKey("StepId")
                         .OnDelete(DeleteBehavior.Cascade)

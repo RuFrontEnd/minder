@@ -25,13 +25,13 @@ namespace Infrastructure.Migrations
                 type: "timestamp with time zone",
                 nullable: true);
 
-            migrationBuilder.AlterColumn<List<ShapeEntity.Info>>(
+            migrationBuilder.AlterColumn<List<StepEntity.Info>>(
                 name: "Infos",
                 table: "Shape",
                 type: "jsonb",
                 nullable: false,
                 defaultValueSql: "'[]'::jsonb",
-                oldClrType: typeof(List<ShapeEntity.Info>),
+                oldClrType: typeof(List<StepEntity.Info>),
                 oldType: "jsonb");
         }
 
@@ -46,12 +46,12 @@ namespace Infrastructure.Migrations
                 name: "RefreshTokenExpriaryTime",
                 table: "User");
 
-            migrationBuilder.AlterColumn<List<ShapeEntity.Info>>(
+            migrationBuilder.AlterColumn<List<StepEntity.Info>>(
                 name: "Infos",
                 table: "Shape",
                 type: "jsonb",
                 nullable: false,
-                oldClrType: typeof(List<ShapeEntity.Info>),
+                oldClrType: typeof(List<StepEntity.Info>),
                 oldType: "jsonb",
                 oldDefaultValueSql: "'[]'::jsonb");
         }

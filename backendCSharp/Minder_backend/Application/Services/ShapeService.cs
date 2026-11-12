@@ -10,7 +10,7 @@ namespace Application.Services;
 
 public class ShapeService(ApplicationDbContext dbContext, IShapeRepository shapeRepository)
 {
-    public async Task<ShapeEntity?> GetAsync(Guid userId)
+    public async Task<StepEntity?> GetAsync(Guid userId)
     {
         return await shapeRepository.GetShapeAsync(userId);
     }

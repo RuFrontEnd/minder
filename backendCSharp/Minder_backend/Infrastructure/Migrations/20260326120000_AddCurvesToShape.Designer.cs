@@ -34,12 +34,12 @@ namespace Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasDefaultValueSql("gen_random_uuid()");
 
-                    b.Property<List<ShapeEntity.Curve>>("Curves")
+                    b.Property<List<StepEntity.Curve>>("Curves")
                         .IsRequired()
                         .HasColumnType("jsonb")
                         .HasDefaultValueSql("'[]'::jsonb");
 
-                    b.Property<List<ShapeEntity.Info>>("Infos")
+                    b.Property<List<StepEntity.Info>>("Infos")
                         .IsRequired()
                         .HasColumnType("jsonb");
 

@@ -17,7 +17,7 @@ namespace Infrastructure.Repositories
             return id == Guid.Empty ? null : id;
         }
 
-        public async Task<ShapeEntity?> GetShapeAsync(Guid projectId)
+        public async Task<StepEntity?> GetShapeAsync(Guid projectId)
         {
             var shape = await dbContext.Steps
                 .Where(s => s.ProjectId == projectId)
@@ -25,13 +25,13 @@ namespace Infrastructure.Repositories
 
             return shape;
         }
-        public async Task<ShapeEntity> AddShapeAsync(ShapeEntity shape)
+        public async Task<StepEntity> AddShapeAsync(StepEntity shape)
         {
             await dbContext.Steps.AddAsync(shape);
             await dbContext.SaveChangesAsync();
             return shape;
         }
-        public async Task<ShapeEntity> UpdateShapeAsync(ShapeEntity shape)
+        public async Task<StepEntity> UpdateShapeAsync(StepEntity shape)
         {
             dbContext.Steps.Update(shape);
             await dbContext.SaveChangesAsync();
