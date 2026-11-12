@@ -16,7 +16,7 @@ import IndivisaulSidePanel from "@/sections/indivisualSidePanel";
 import Console from "@/sections/console";
 import ProjectModal from "@/sections/projectModal";
 import { cloneDeep } from "lodash";
-import { v4 as uuidv4 } from "uuid";
+import { validate as validateUuid, v4 as uuidv4 } from "uuid";
 import { tailwindColors } from "@/variables/colors";
 import * as authAPIs from "@/apis/auth";
 import * as shapeAPIs from "@/apis/shape";
@@ -24,6 +24,7 @@ import { createStep } from "@/apis/step";
 import * as handleUtils from "@/utils/handle";
 import * as fileUtils from "@/utils/file";
 import { ensureStepIdentifiers } from "@/utils/stepIdentifier";
+import { recordStepCreator } from "@/utils/stepCreator";
 import Navbar from "@/sections/navbar";
 import AuthModal from "@/sections/authModal";
 import UserInfoModal from "@/sections/userInfoModal";
@@ -3218,16 +3219,39 @@ export default function IdPage() {
 
     setIsSavingProject(true);
     setSaveProjectError("");
+    let projectId = currentProjectId;
     try {
-      const projectResponse = await createProject(projectName.val || "Untitled Project");
-      const project = projectResponse.data as ProjectTypes.Project;
+      if (!projectId) {
+        const projectResponse = await createProject(
+          projectName.val || "Untitled Project"
+        );
+        const project = projectResponse.data as ProjectTypes.Project;
+        projectId = String(project.id);
 
-      setCurrentProjectId(String(project.id));
-      setCurrentProjectRole("owner");
-      setProjectName({
-        inputVal: project.name || projectName.val || "Untitled Project",
-        val: project.name || projectName.val || "Untitled Project",
-      });
+        setCurrentProjectId(projectId);
+        setCurrentProjectRole("owner");
+        setProjectName({
+          inputVal: project.name || projectName.val || "Untitled Project",
+          val: project.name || projectName.val || "Untitled Project",
+        });
+      }
+
+      for (const step of shapes) {
+        if (validateUuid(step.id)) continue;
+
+        const response = await createStep(projectId, {
+          title: step.title,
+          description: "",
+          width: step.w,
+          height: step.h,
+          x: step.p.x,
+          y: step.p.y,
+        });
+        step.id = response.data.id;
+        recordStepCreator(step.id);
+      }
+
+      checkSteps();
       if (isShapeApiEnabled) {
         await shapeAPIs.upsert(buildPayload());
       }
@@ -3235,8 +3259,11 @@ export default function IdPage() {
       showSuccessMessage("Current project saved successfully.");
     } catch (error) {
       console.error("Failed to save current project:", error);
+      if (projectId) checkSteps();
       setSaveProjectError(
-        "Unable to save the current project. Please try again."
+        projectId
+          ? "The project was created, but not all steps could be saved. Please try again."
+          : "Unable to save the current project. Please try again."
       );
     } finally {
       setIsSavingProject(false);
