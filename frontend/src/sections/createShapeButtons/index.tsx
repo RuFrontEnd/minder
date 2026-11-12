@@ -24,7 +24,6 @@ const stepGap = 24;
 export default function CreateShapeButtons(
   props: CreateShapeButtonsTypes.Props
 ) {
-  const [isCreatingStep, setIsCreatingStep] = useState(false);
   const [createStepError, setCreateStepError] = useState("");
 
   const getInitializedStep = (offset: CommonTypes.Vec, scale: number = 1) => {
@@ -89,26 +88,24 @@ export default function CreateShapeButtons(
     );
   };
 
-  const onClickCreateStep = async () => {
-    if (!isBrowser || isCreatingStep) return;
+  const onClickCreateStep = () => {
+    if (!isBrowser) return;
 
-    setIsCreatingStep(true);
     setCreateStepError("");
-    try {
-      const newStep = getInitializedStep(props.offset, props.scale);
-      await props.onCreateStep(newStep);
-      assignStepIdentifier(newStep, props.shapes);
-      recordStepCreator(newStep.id);
-      props.actionRecords.register(CommonTypes.Action.add);
-      props.shapes.push(newStep);
-      props.actionRecords.finish(CommonTypes.Action.add);
-      props.reload();
-    } catch (error) {
+    const newStep = getInitializedStep(props.offset, props.scale);
+    assignStepIdentifier(newStep, props.shapes);
+    recordStepCreator(newStep.id);
+    props.actionRecords.register(CommonTypes.Action.add);
+    props.shapes.push(newStep);
+    props.actionRecords.finish(CommonTypes.Action.add);
+    props.reload();
+
+    void props.onCreateStep(newStep).catch((error) => {
       console.error("Failed to create step:", error);
-      setCreateStepError("Unable to create step. Please try again.");
-    } finally {
-      setIsCreatingStep(false);
-    }
+      setCreateStepError(
+        "Step added to canvas, but could not be saved to the project."
+      );
+    });
   };
 
   const onClickTool = (e: React.MouseEvent, callback: () => void) => {
@@ -138,8 +135,6 @@ export default function CreateShapeButtons(
           className={styles.toolButton}
           aria-label="Create step"
           title={createStepError || "Create step"}
-          disabled={isCreatingStep}
-          aria-busy={isCreatingStep}
           onClick={(event) =>
             onClickTool(event, onClickCreateStep)
           }

@@ -2309,6 +2309,8 @@ export default function IdPage() {
       y: step.p.y,
     });
     step.id = response.data.id;
+    recordStepCreator(step.id);
+    checkSteps();
   };
 
   const updateShapes = (newShapes: CommonTypes.Shapes) => {
