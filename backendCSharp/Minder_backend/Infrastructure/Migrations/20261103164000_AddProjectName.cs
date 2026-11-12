@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20261103164000_AddProjectName")]
+    [Migration("20261103102300_AddProjectName")]
     public partial class AddProjectName : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)

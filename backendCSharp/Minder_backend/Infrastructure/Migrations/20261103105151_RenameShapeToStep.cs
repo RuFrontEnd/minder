@@ -19,7 +19,7 @@ namespace Infrastructure.Migrations
             migrationBuilder.RenameIndex(name: "IX_Shape_Asignee", table: "Step", newName: "IX_Step_Owner");
             migrationBuilder.RenameIndex(name: "IX_Shape_Author", table: "Step", newName: "IX_Step_Creator");
             migrationBuilder.RenameIndex(name: "IX_Shape_ProjectId", table: "Step", newName: "IX_Step_ProjectId");
-            migrationBuilder.Sql(@"ALTER TABLE ""Step"" RENAME CONSTRAINT ""PK_Shapes"" TO ""PK_Step"";");
+            migrationBuilder.Sql(@"ALTER TABLE ""Step"" RENAME CONSTRAINT ""PK_Shape"" TO ""PK_Step"";");
 
             migrationBuilder.AddColumn<string>(
                 name: "Status",
@@ -70,7 +70,7 @@ namespace Infrastructure.Migrations
             migrationBuilder.RenameColumn(name: "Owner", table: "Step", newName: "Asignee");
             migrationBuilder.RenameColumn(name: "Creator", table: "Step", newName: "Author");
             migrationBuilder.RenameTable(name: "Step", newName: "Shape");
-            migrationBuilder.Sql(@"ALTER TABLE ""Shape"" RENAME CONSTRAINT ""PK_Step"" TO ""PK_Shapes"";");
+            migrationBuilder.Sql(@"ALTER TABLE ""Shape"" RENAME CONSTRAINT ""PK_Step"" TO ""PK_Shape"";");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Shape_User_Asignee",

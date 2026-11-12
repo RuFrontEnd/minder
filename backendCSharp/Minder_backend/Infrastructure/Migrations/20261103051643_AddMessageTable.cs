@@ -34,7 +34,7 @@ namespace Infrastructure.Migrations
                     table.ForeignKey(
                         name: "FK_Message_Step_step_id",
                         column: x => x.step_id,
-                        principalTable: "Step",
+                        principalTable: "Shape",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });

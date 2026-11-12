@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20261103105151_RenameShapeToStep")]
+    [Migration("20261103102000_RenameShapeToStep")]
     partial class RenameShapeToStep
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

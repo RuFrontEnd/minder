@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20261103130000_RenameTasksTable")]
+    [Migration("20261103102200_RenameTasksTable")]
     partial class RenameTasksTable
     {
         /// <inheritdoc />
