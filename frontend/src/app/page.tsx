@@ -20,7 +20,7 @@ import { validate as validateUuid, v4 as uuidv4 } from "uuid";
 import { tailwindColors } from "@/variables/colors";
 import * as authAPIs from "@/apis/auth";
 import * as shapeAPIs from "@/apis/shape";
-import { createStep } from "@/apis/step";
+import { createStep, getSteps } from "@/apis/step";
 import * as handleUtils from "@/utils/handle";
 import * as fileUtils from "@/utils/file";
 import { ensureStepIdentifiers } from "@/utils/stepIdentifier";
@@ -3325,7 +3325,45 @@ export default function IdPage() {
     try {
       const res = await getProject(project.id);
       const name = res.data?.name || "Untitled Project";
-      setCurrentProjectId(String(res.data?.id ?? project.id));
+      const projectId = String(res.data?.id ?? project.id);
+      const stepsResponse = await getSteps(projectId);
+      const loadedSteps = stepsResponse.data.map(
+        (step) =>
+          new Process(step.id, step.width, step.height, {
+            x: step.x,
+            y: step.y,
+          }, step.title)
+      );
+
+      shapes = loadedSteps;
+      curves = [];
+      selection = null;
+      selectionFrame = null;
+      pressingSelection = null;
+      pressingCurve = null;
+      actions.clear();
+      setIndivisual(null);
+      setDatas([]);
+      setConsoles([]);
+      setStepStatuses(
+        Object.fromEntries(
+          stepsResponse.data.map((step) => {
+            const status = step.status.toLowerCase();
+            const stepStatus: CommonTypes.StepStatus =
+              status === "done"
+                ? "Done"
+                : status === "inprogress"
+                  ? "In Progress"
+                  : "Todo";
+            return [step.id, stepStatus];
+          })
+        )
+      );
+      checkSteps();
+      drawCanvas(offset, scale);
+      drawScreenshot(offset, scale);
+
+      setCurrentProjectId(projectId);
       setCurrentProjectRole(res.data?.role || project.role || null);
       setProjectName({ inputVal: name, val: name });
       return true;

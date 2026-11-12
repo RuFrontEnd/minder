@@ -8,6 +8,21 @@ public sealed class ShapeService(
     IProjectRepository projectRepository,
     IShapeRepository shapeRepository) : IShapeService
 {
+    public async Task<IReadOnlyList<StepResponse>?> GetStepsAsync(
+        Guid projectId,
+        Guid userId,
+        CancellationToken cancellationToken)
+    {
+        var membership = await projectRepository.GetProjectAsync(
+            projectId,
+            userId,
+            cancellationToken);
+        if (membership is null) return null;
+
+        var steps = await shapeRepository.GetStepsAsync(projectId, cancellationToken);
+        return steps.Select(ToResponse).ToArray();
+    }
+
     public async Task<StepResponse?> GetStepAsync(
         Guid projectId,
         Guid stepId,

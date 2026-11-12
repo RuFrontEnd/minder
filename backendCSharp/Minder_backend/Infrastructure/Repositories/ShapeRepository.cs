@@ -36,6 +36,16 @@ namespace Infrastructure.Repositories
                 cancellationToken);
         }
 
+        public Task<List<StepEntity>> GetStepsAsync(
+            Guid projectId,
+            CancellationToken cancellationToken)
+        {
+            return dbContext.Steps
+                .Where(step => step.ProjectId == projectId)
+                .OrderBy(step => step.Id)
+                .ToListAsync(cancellationToken);
+        }
+
         public async Task<StepEntity> AddShapeAsync(
             StepEntity shape,
             CancellationToken cancellationToken)

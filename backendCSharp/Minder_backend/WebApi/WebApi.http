@@ -32,6 +32,13 @@ Content-Type: application/json
 @projectId = 00000000-0000-0000-0000-000000000000
 @stepId = 00000000-0000-0000-0000-000000000000
 
+### Get all steps in a project (requires the authenticated X-Access-Token cookie)
+GET {{Minder_backend_HostAddress}}/api/Project/{{projectId}}/steps
+Accept: application/json
+Cookie: X-Access-Token={{accessToken}}
+
+###
+
 ### Create a step (requires the authenticated X-Access-Token cookie)
 POST {{Minder_backend_HostAddress}}/api/Project/{{projectId}}/steps
 Content-Type: application/json

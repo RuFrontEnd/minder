@@ -103,6 +103,26 @@ public class ProjectController : ControllerBase
         return project is null ? NotFound() : Ok(project);
     }
 
+    /// <summary>Returns all steps in a project the current user can access.</summary>
+    [Authorize]
+    [HttpGet("{id:guid}/steps")]
+    [EndpointSummary("Get project steps")]
+    [EndpointDescription("Returns all steps belonging to the project when the current user is a project member.")]
+    [ProducesResponseType(typeof(IReadOnlyList<StepResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<IReadOnlyList<StepResponse>>> GetSteps(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        var userIdValue = User.FindFirst(
+            System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!Guid.TryParse(userIdValue, out var userId)) return Unauthorized();
+
+        var steps = await _shapeService.GetStepsAsync(id, userId, cancellationToken);
+        return steps is null ? NotFound() : Ok(steps);
+    }
+
     /// <summary>Returns a step belonging to a project the current user can access.</summary>
     [Authorize]
     [HttpGet("{id:guid}/steps/{stepId:guid}")]
