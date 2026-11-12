@@ -75,3 +75,16 @@ dotnet ef database update --project Infrastructure --startup-project WebAPi
 dotnet ef database update [target migration file name] --project Infrastructure --startup-project WebAPi
 - remove
 dotnet ef migrations remove --project Infrastructure --startup-project WebAPi
+
+# Activate
+## backend
+```
+cd backendCSharp/Minder_backend
+dotnet run --project .\WebApi\WebAPi.csproj --launch-profile http
+```
+
+## frontend
+```
+cd frontend
+npm run dev
+```
