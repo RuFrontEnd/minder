@@ -20,6 +20,7 @@ import { v4 as uuidv4 } from "uuid";
 import { tailwindColors } from "@/variables/colors";
 import * as authAPIs from "@/apis/auth";
 import * as shapeAPIs from "@/apis/shape";
+import { createStep } from "@/apis/step";
 import * as handleUtils from "@/utils/handle";
 import * as fileUtils from "@/utils/file";
 import { ensureStepIdentifiers } from "@/utils/stepIdentifier";
@@ -1834,7 +1835,7 @@ const disconnect = (curveI: number) => {
 };
 
 const getIsSelectionDisableSendingPoint = (
-  shape: undefined | CommonTypes.Shape
+  shape: undefined | CommonTypes.Step
 ) => {
   if (!shape) return false;
 
@@ -2293,6 +2294,20 @@ export default function IdPage() {
   const checkSteps = () => {
     ensureStepIdentifiers(shapes);
     setSteps(cloneDeep(shapes));
+  };
+
+  const onCreateStep = async (step: CommonTypes.Step) => {
+    if (!isLogIn || !currentProjectId) return;
+
+    const response = await createStep(currentProjectId, {
+      title: step.title,
+      description: "",
+      width: step.w,
+      height: step.h,
+      x: step.p.x,
+      y: step.p.y,
+    });
+    step.id = response.data.id;
   };
 
   const updateShapes = (newShapes: CommonTypes.Shapes) => {
@@ -3471,6 +3486,7 @@ export default function IdPage() {
         isConsoleOpen={isConsoleOpen}
         setIsConsoleOpen={setIsConsoleOpen}
         actionRecords={actionRecords}
+        onCreateStep={onCreateStep}
         reload={() => {
           checkSteps();
           drawCanvas(offset, scale);

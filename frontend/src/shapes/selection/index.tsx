@@ -133,7 +133,7 @@ export default class Selection {
     };
   }
 
-  push(shape: CommonTypes.Shape) {
+  push(shape: CommonTypes.Step) {
     this.__shapes__.push(shape);
   }
 

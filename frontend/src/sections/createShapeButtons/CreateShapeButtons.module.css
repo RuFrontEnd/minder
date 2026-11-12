@@ -31,3 +31,16 @@
 .toolbar {
   position: relative;
 }
+
+.errorMessage {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  padding: 6px 8px;
+  border: 1px solid #fecaca;
+  border-radius: 4px;
+  background: #fff7f7;
+  color: #b42318;
+  font-size: 12px;
+  white-space: nowrap;
+}

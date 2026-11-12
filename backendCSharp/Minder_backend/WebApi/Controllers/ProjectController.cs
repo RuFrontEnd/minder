@@ -14,11 +14,13 @@ public class ProjectController : ControllerBase
 {
     // 1. 定義一個私有欄位
     private readonly ProjectService _projectService;
+    private readonly IShapeService _shapeService;
 
     // 2. 在建構函式中賦值
-    public ProjectController(ProjectService projectServer)
+    public ProjectController(ProjectService projectServer, IShapeService shapeService)
     {
         _projectService = projectServer;
+        _shapeService = shapeService;
     }
 
     [Authorize]
@@ -99,6 +101,69 @@ public class ProjectController : ControllerBase
             cancellationToken);
 
         return project is null ? NotFound() : Ok(project);
+    }
+
+    /// <summary>Returns a step belonging to a project the current user can access.</summary>
+    [Authorize]
+    [HttpGet("{id:guid}/steps/{stepId:guid}")]
+    [EndpointSummary("Get a project step")]
+    [EndpointDescription("Returns the requested step when the current user belongs to the project.")]
+    [ProducesResponseType(typeof(StepResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<StepResponse>> GetStep(
+        Guid id,
+        Guid stepId,
+        CancellationToken cancellationToken)
+    {
+        var userIdValue = User.FindFirst(
+            System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!Guid.TryParse(userIdValue, out var userId)) return Unauthorized();
+
+        var step = await _shapeService.GetStepAsync(
+            id,
+            stepId,
+            userId,
+            cancellationToken);
+        return step is null ? NotFound() : Ok(step);
+    }
+
+    /// <summary>Creates a step in a project where the current user is an owner or member.</summary>
+    [Authorize]
+    [HttpPost("{id:guid}/steps")]
+    [EndpointSummary("Create a project step")]
+    [EndpointDescription("Creates a step owned by the authenticated project member and returns the persisted step.")]
+    [ProducesResponseType(typeof(StepResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<StepResponse>> CreateStep(
+        Guid id,
+        [FromBody] CreateStepRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(request.Title))
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Invalid step title.",
+                Detail = "Step title must not be empty.",
+                Status = StatusCodes.Status400BadRequest
+            });
+        }
+
+        var userIdValue = User.FindFirst(
+            System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!Guid.TryParse(userIdValue, out var userId)) return Unauthorized();
+
+        var step = await _shapeService.CreateStepAsync(id, userId, request, cancellationToken);
+
+        if (step is null) return NotFound();
+
+        return CreatedAtAction(
+            nameof(GetStep),
+            new { id, stepId = step.Id },
+            step);
     }
 
     [Authorize]

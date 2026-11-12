@@ -37,6 +37,7 @@ type Props = {
   offset: CommonTypes.Vec;
   scale: number;
   reload: () => void;
+  onCreateStep: (step: CommonTypes.Step) => Promise<void>;
   initShapeSize: PageIdTypes.Init["shape"]["size"];
   zoom: PageIdTypes.Zoom;
   consoles: Consoles;

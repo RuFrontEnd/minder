@@ -83,7 +83,7 @@ export const ensureStepIdentifiers = (shapes: CommonTypes.Shapes) => {
 };
 
 export const assignStepIdentifier = (
-  shape: CommonTypes.Shape,
+  shape: CommonTypes.Step,
   shapes: CommonTypes.Shapes
 ) => {
   ensureStepIdentifiers(shapes);

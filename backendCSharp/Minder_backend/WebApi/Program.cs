@@ -17,6 +17,8 @@ var builder = WebApplication.CreateBuilder(args);
 LoadDotEnv(Path.GetFullPath(builder.Environment.ContentRootPath));
 
 builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 // 1. get connection string & register DbContext
 var rawConnectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
@@ -50,7 +52,7 @@ builder.Services.AddScoped<IEmailProvider, EmailProvider>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<ProjectService>();
 builder.Services.AddScoped<AuthService>();
-builder.Services.AddScoped<ShapeService>();
+builder.Services.AddScoped<IShapeService, ShapeService>();
 
 // AWS S3 Avatar Storage Provider
 builder.Services.AddScoped<IAvatarStorageProvider, S3AvatarStorageProvider>();
@@ -119,6 +121,12 @@ builder.Services.AddSingleton<IAmazonS3>(_ =>
 );
 
 var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 // 2. ���ո�Ʈw�s�u�����I
 app.MapGet("/test-db", async (ApplicationDbContext db, ILogger<Program> logger) =>

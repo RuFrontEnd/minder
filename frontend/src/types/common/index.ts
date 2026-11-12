@@ -123,11 +123,11 @@ type UploadJSON = {
   consoles: any;
 };
 
-type Shape = Terminal | Process | DataShape | Decision;
+type Step = Terminal | Process | DataShape | Decision;
 
 type Shapes = (Terminal | Process | DataShape | Decision)[];
 
-type Steps = CommonTypes.Shapes;
+type Steps = Step[];
 
 type ProjectName = { val: string; inputVal: string };
 
@@ -147,7 +147,7 @@ export type {
   OverallDatas,
   ConnectionCurves,
   UploadJSON,
-  Shape,
+  Step,
   Steps,
   ProjectName,
   StepStatus,

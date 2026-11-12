@@ -24,6 +24,7 @@ export default function Console(props: ConsoleTypes.Props) {
             offset={props.offset}
             scale={props.scale}
             reload={props.reload}
+            onCreateStep={props.onCreateStep}
             initShapeSize={props.initShapeSize}
             isConnectMode={props.isConnectMode}
             onChangeConnectMode={props.onChangeConnectMode}

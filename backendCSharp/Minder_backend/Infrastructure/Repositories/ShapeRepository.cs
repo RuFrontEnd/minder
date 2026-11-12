@@ -25,10 +25,23 @@ namespace Infrastructure.Repositories
 
             return shape;
         }
-        public async Task<StepEntity> AddShapeAsync(StepEntity shape)
+
+        public Task<StepEntity?> GetStepAsync(
+            Guid projectId,
+            Guid stepId,
+            CancellationToken cancellationToken)
         {
-            await dbContext.Steps.AddAsync(shape);
-            await dbContext.SaveChangesAsync();
+            return dbContext.Steps.FirstOrDefaultAsync(
+                step => step.ProjectId == projectId && step.Id == stepId,
+                cancellationToken);
+        }
+
+        public async Task<StepEntity> AddShapeAsync(
+            StepEntity shape,
+            CancellationToken cancellationToken)
+        {
+            await dbContext.Steps.AddAsync(shape, cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken);
             return shape;
         }
         public async Task<StepEntity> UpdateShapeAsync(StepEntity shape)

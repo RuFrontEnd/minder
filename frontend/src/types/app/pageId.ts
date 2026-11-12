@@ -65,7 +65,7 @@ type UpdateShapes = (shapes: CommonTypes.Shapes) => void;
 
 type Positioning = (p: CommonTypes.Vec) => void;
 
-type Indivisual = null | CommonTypes.Shape;
+type Indivisual = null | CommonTypes.Step;
 
 type ActionRecords = {
   register: (type: CommonTypes.Action) => void;

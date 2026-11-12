@@ -24,7 +24,7 @@ import * as CommonTypes from "@/types/common";
 import styles from "./index.module.css";
 
 type FlowNodeData = {
-  shape: CommonTypes.Shape;
+  shape: CommonTypes.Step;
   stepStatuses: Record<string, CommonTypes.StepStatus>;
 };
 
@@ -116,7 +116,7 @@ function FlowCard({ data, selected }: NodeProps<FlowNode>) {
 const nodeTypes = { flowCard: FlowCard };
 
 const toFlowNode = (
-  shape: CommonTypes.Shape,
+  shape: CommonTypes.Step,
   selectedShapeId: string | null,
   stepStatuses: Record<string, CommonTypes.StepStatus>
 ): FlowNode => ({

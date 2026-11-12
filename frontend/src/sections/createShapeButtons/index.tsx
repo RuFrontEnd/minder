@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import Process from "@/shapes/process";
 import {
   MousePointer2,
@@ -24,6 +24,9 @@ const stepGap = 24;
 export default function CreateShapeButtons(
   props: CreateShapeButtonsTypes.Props
 ) {
+  const [isCreatingStep, setIsCreatingStep] = useState(false);
+  const [createStepError, setCreateStepError] = useState("");
+
   const getInitializedStep = (offset: CommonTypes.Vec, scale: number = 1) => {
     const centerPosition = {
       x: -offset.x + window.innerWidth / 2 / scale,
@@ -86,15 +89,26 @@ export default function CreateShapeButtons(
     );
   };
 
-  const onClickCreateStep = () => {
-    if (!isBrowser) return;
-    props.actionRecords.register(CommonTypes.Action.add);
-    const newStep = getInitializedStep(props.offset, props.scale);
-    assignStepIdentifier(newStep, props.shapes);
-    recordStepCreator(newStep.id);
-    props.shapes.push(newStep);
-    props.actionRecords.finish(CommonTypes.Action.add);
-    props.reload();
+  const onClickCreateStep = async () => {
+    if (!isBrowser || isCreatingStep) return;
+
+    setIsCreatingStep(true);
+    setCreateStepError("");
+    try {
+      const newStep = getInitializedStep(props.offset, props.scale);
+      await props.onCreateStep(newStep);
+      assignStepIdentifier(newStep, props.shapes);
+      recordStepCreator(newStep.id);
+      props.actionRecords.register(CommonTypes.Action.add);
+      props.shapes.push(newStep);
+      props.actionRecords.finish(CommonTypes.Action.add);
+      props.reload();
+    } catch (error) {
+      console.error("Failed to create step:", error);
+      setCreateStepError("Unable to create step. Please try again.");
+    } finally {
+      setIsCreatingStep(false);
+    }
   };
 
   const onClickTool = (e: React.MouseEvent, callback: () => void) => {
@@ -123,7 +137,9 @@ export default function CreateShapeButtons(
           type="button"
           className={styles.toolButton}
           aria-label="Create step"
-          title="Create step"
+          title={createStepError || "Create step"}
+          disabled={isCreatingStep}
+          aria-busy={isCreatingStep}
           onClick={(event) =>
             onClickTool(event, onClickCreateStep)
           }
@@ -170,6 +186,11 @@ export default function CreateShapeButtons(
           <Search size={17} />
         </button>
       </div>
+      {createStepError && (
+        <span className={styles.errorMessage} role="alert">
+          {createStepError}
+        </span>
+      )}
     </section>
   );
 }
