@@ -50,8 +50,22 @@ type Props = {
   isConnectMode: boolean;
 };
 
-const cardWidth = 200;
+const cardWidth = 240;
 const cardHeight = 96;
+const ownerNames: Record<string, string> = {
+  "john-mason": "John Mason",
+  "melissa-jones": "Melissa Jones123456789",
+  "alex-wang": "Alex Wang",
+  "cindy-chen": "Cindy Chen",
+};
+
+const formatOwnerName = (name: string) => {
+  const nameParts = name.trim().split(/\s+/);
+  if (nameParts.length < 2) return name;
+
+  const lastName = nameParts[nameParts.length - 1];
+  return `${nameParts.slice(0, -1).join(" ")} ${lastName.charAt(0)}.`;
+};
 
 function FlowCard({ data, selected }: NodeProps<FlowNode>) {
   const { shape, stepStatuses } = data;
@@ -70,7 +84,12 @@ function FlowCard({ data, selected }: NodeProps<FlowNode>) {
         ? "inProgress"
         : "todo";
 
-  const assignee = shape.epNumber === 3 ? "Charlie" : "Alice";
+  const stepOwner = shape as CommonTypes.Step & {
+    asignee?: string;
+    owner?: string;
+  };
+  const ownerId = stepOwner.asignee || stepOwner.owner;
+  const assignee = formatOwnerName(ownerNames[ownerId || ""] || "Unassigned");
 
   return (
     <div

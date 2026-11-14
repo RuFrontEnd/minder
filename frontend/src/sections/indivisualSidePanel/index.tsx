@@ -387,7 +387,17 @@ export default function IndivisualSidePanel(
   ];
 
   const onChangeOwner = (owner: string) => {
+    if (!props.indivisual) return;
+
     setAsigneeValues(owner ? [owner] : []);
+    props.updateShapes(
+      props.shapes.map((shape) => {
+        if (shape.id === props.indivisual?.id) {
+          (shape as CommonTypes.Step & { asignee?: string }).asignee = owner;
+        }
+        return shape;
+      })
+    );
   };
 
   const onSubmitMessage = (event: React.FormEvent<HTMLFormElement>) => {
