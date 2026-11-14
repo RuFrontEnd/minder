@@ -12,6 +12,17 @@ namespace Domain.Repositories
         Task<List<StepEntity>> GetStepsAsync(
             Guid projectId,
             CancellationToken cancellationToken);
+        Task<List<StepDependencyEntity>> GetStepDependenciesAsync(
+            Guid projectId,
+            CancellationToken cancellationToken);
+        Task<StepDependencyEntity> AddStepDependencyAsync(
+            StepDependencyEntity dependency,
+            CancellationToken cancellationToken);
+        Task<bool> DeleteStepDependencyAsync(
+            Guid projectId,
+            Guid stepId,
+            Guid dependsOnStepId,
+            CancellationToken cancellationToken);
         // Return the StepEntity for the given user. Infos/Curves were removed from the entity,
         // so repository returns the entity itself.
         Task<StepEntity?> GetShapeAsync(Guid userId);

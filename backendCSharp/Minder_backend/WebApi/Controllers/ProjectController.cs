@@ -213,6 +213,80 @@ public class ProjectController : ControllerBase
         return step is null ? NotFound() : Ok(step);
     }
 
+    /// <summary>Returns the dependencies between steps in a project.</summary>
+    [Authorize]
+    [HttpGet("{id:guid}/step-dependencies")]
+    [ProducesResponseType(typeof(IReadOnlyList<StepDependencyResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<IReadOnlyList<StepDependencyResponse>>> GetStepDependencies(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        var userIdValue = User.FindFirst(
+            System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!Guid.TryParse(userIdValue, out var userId)) return Unauthorized();
+
+        var dependencies = await _shapeService.GetStepDependenciesAsync(
+            id,
+            userId,
+            cancellationToken);
+        return dependencies is null ? NotFound() : Ok(dependencies);
+    }
+
+    /// <summary>Creates a dependency where a step requires another step.</summary>
+    [Authorize]
+    [HttpPut("{id:guid}/steps/{stepId:guid}/dependencies/{dependsOnStepId:guid}")]
+    [ProducesResponseType(typeof(StepDependencyResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<StepDependencyResponse>> AddStepDependency(
+        Guid id,
+        Guid stepId,
+        Guid dependsOnStepId,
+        CancellationToken cancellationToken)
+    {
+        if (stepId == dependsOnStepId) return BadRequest();
+
+        var userIdValue = User.FindFirst(
+            System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!Guid.TryParse(userIdValue, out var userId)) return Unauthorized();
+
+        var dependency = await _shapeService.AddStepDependencyAsync(
+            id,
+            stepId,
+            dependsOnStepId,
+            userId,
+            cancellationToken);
+        return dependency is null ? NotFound() : Ok(dependency);
+    }
+
+    /// <summary>Deletes a dependency between two steps.</summary>
+    [Authorize]
+    [HttpDelete("{id:guid}/steps/{stepId:guid}/dependencies/{dependsOnStepId:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteStepDependency(
+        Guid id,
+        Guid stepId,
+        Guid dependsOnStepId,
+        CancellationToken cancellationToken)
+    {
+        var userIdValue = User.FindFirst(
+            System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!Guid.TryParse(userIdValue, out var userId)) return Unauthorized();
+
+        var deleted = await _shapeService.DeleteStepDependencyAsync(
+            id,
+            stepId,
+            dependsOnStepId,
+            userId,
+            cancellationToken);
+        return deleted ? NoContent() : NotFound();
+    }
+
     [Authorize]
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(

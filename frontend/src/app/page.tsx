@@ -20,7 +20,14 @@ import { validate as validateUuid, v4 as uuidv4 } from "uuid";
 import { tailwindColors } from "@/variables/colors";
 import * as authAPIs from "@/apis/auth";
 import * as shapeAPIs from "@/apis/shape";
-import { createStep, getSteps, updateStepPosition } from "@/apis/step";
+import {
+  createStep,
+  createStepDependency,
+  deleteStepDependency,
+  getStepDependencies,
+  getSteps,
+  updateStepPosition,
+} from "@/apis/step";
 import * as handleUtils from "@/utils/handle";
 import * as fileUtils from "@/utils/file";
 import { ensureStepIdentifiers } from "@/utils/stepIdentifier";
@@ -2313,6 +2320,25 @@ export default function IdPage() {
     step.id = response.data.id;
     recordStepCreator(step.id);
     checkSteps();
+
+    if (isAuthorized && currentProjectId) {
+      curves.forEach((curve) => {
+        if (
+          (curve.from.shape !== step && curve.to.shape !== step) ||
+          !validateUuid(curve.from.shape.id) ||
+          !validateUuid(curve.to.shape.id)
+        ) {
+          return;
+        }
+        void createStepDependency(
+          currentProjectId,
+          curve.to.shape.id,
+          curve.from.shape.id
+        ).catch((error) =>
+          console.error("Failed to save step dependency:", error)
+        );
+      });
+    }
   };
 
   const updateShapes = (newShapes: CommonTypes.Shapes) => {
@@ -2363,6 +2389,57 @@ export default function IdPage() {
     scheduleAutoSave();
   };
 
+  const createConnectionCurve = (
+    source: CommonTypes.Step,
+    target: CommonTypes.Step,
+    sourceDirection: CommonTypes.Direction,
+    targetDirection: CommonTypes.Direction,
+    curveId: string = `curve_${uuidv4()}`
+  ): CommonTypes.ConnectionCurves[number] => {
+    const sourcePoint = source.getCenter().receivingPoints[sourceDirection];
+    const targetPoint = target.getCenter().receivingPoints[targetDirection];
+    const getDirectionVector = (direction: CommonTypes.Direction) => {
+      switch (direction) {
+        case CommonTypes.Direction.l:
+          return { x: -1, y: 0 };
+        case CommonTypes.Direction.t:
+          return { x: 0, y: -1 };
+        case CommonTypes.Direction.r:
+          return { x: 1, y: 0 };
+        case CommonTypes.Direction.b:
+          return { x: 0, y: 1 };
+      }
+    };
+    const distance = Math.max(
+      40,
+      Math.min(
+        120,
+        Math.hypot(targetPoint.x - sourcePoint.x, targetPoint.y - sourcePoint.y) / 2
+      )
+    );
+    const sourceVector = getDirectionVector(sourceDirection);
+    const targetVector = getDirectionVector(targetDirection);
+    const curve = new Curve(
+      curveId,
+      sourcePoint,
+      {
+        x: sourcePoint.x + sourceVector.x * distance,
+        y: sourcePoint.y + sourceVector.y * distance,
+      },
+      {
+        x: targetPoint.x + targetVector.x * distance,
+        y: targetPoint.y + targetVector.y * distance,
+      },
+      targetPoint
+    );
+
+    return {
+      shape: curve,
+      from: { shape: source, d: sourceDirection },
+      to: { shape: target, d: targetDirection },
+    };
+  };
+
   const onFlowConnect = (connection: Connection) => {
     if (!connection.source || !connection.target) return;
     const source = shapes.find((shape) => shape.id === connection.source);
@@ -2380,51 +2457,42 @@ export default function IdPage() {
       (direction) => direction === connection.targetHandle
     );
     if (!source || !target || !sourceDirection || !targetDirection) return;
+    if (
+      curves.some(
+        (curve) =>
+          curve.from.shape.id === source.id && curve.to.shape.id === target.id
+      )
+    ) {
+      return;
+    }
 
-    const sourcePoint = source.getCenter().receivingPoints[sourceDirection];
-    const targetPoint = target.getCenter().receivingPoints[targetDirection];
-    const getDirectionVector = (direction: CommonTypes.Direction) => {
-      switch (direction) {
-        case CommonTypes.Direction.l:
-          return { x: -1, y: 0 };
-        case CommonTypes.Direction.t:
-          return { x: 0, y: -1 };
-        case CommonTypes.Direction.r:
-          return { x: 1, y: 0 };
-        case CommonTypes.Direction.b:
-          return { x: 0, y: 1 };
-      }
-    };
-    const distance = Math.max(
-      40,
-      Math.min(120, Math.hypot(targetPoint.x - sourcePoint.x, targetPoint.y - sourcePoint.y) / 2)
+    const newCurve = createConnectionCurve(
+      source,
+      target,
+      sourceDirection,
+      targetDirection
     );
-    const sourceVector = getDirectionVector(sourceDirection);
-    const targetVector = getDirectionVector(targetDirection);
-    const curve = new Curve(
-      `curve_${uuidv4()}`,
-      sourcePoint,
-      {
-        x: sourcePoint.x + sourceVector.x * distance,
-        y: sourcePoint.y + sourceVector.y * distance,
-      },
-      {
-        x: targetPoint.x + targetVector.x * distance,
-        y: targetPoint.y + targetVector.y * distance,
-      },
-      targetPoint
-    );
-
-    updateCurves([
-      ...curves,
-      {
-        shape: curve,
-        from: { shape: source, d: sourceDirection },
-        to: { shape: target, d: targetDirection },
-      },
-    ]);
+    updateCurves([...curves, newCurve]);
     checkSteps();
     scheduleAutoSave();
+
+    if (
+      isAuthorized &&
+      currentProjectId &&
+      validateUuid(source.id) &&
+      validateUuid(target.id)
+    ) {
+      void createStepDependency(currentProjectId, target.id, source.id).catch(
+        (error) => {
+          console.error("Failed to save step dependency:", error);
+          updateCurves(
+            curves.filter((curve) => curve.shape.id !== newCurve.shape.id)
+          );
+          checkSteps();
+          drawCanvas(offset, scale);
+        }
+      );
+    }
   };
 
   const onFlowDelete = (nodeIds: string[], edgeIds: string[]) => {
@@ -2432,6 +2500,29 @@ export default function IdPage() {
     actionRecords.register(CommonTypes.Action.delete);
     const deletedNodeIds = new Set(nodeIds);
     const deletedEdgeIds = new Set(edgeIds);
+    const deletedCurves = curves.filter(
+      (curve) =>
+        deletedEdgeIds.has(curve.shape.id) ||
+        deletedNodeIds.has(curve.from.shape.id) ||
+        deletedNodeIds.has(curve.to.shape.id)
+    );
+    if (isAuthorized && currentProjectId) {
+      deletedCurves.forEach((curve) => {
+        if (
+          !validateUuid(curve.from.shape.id) ||
+          !validateUuid(curve.to.shape.id)
+        ) {
+          return;
+        }
+        void deleteStepDependency(
+          currentProjectId,
+          curve.to.shape.id,
+          curve.from.shape.id
+        ).catch((error) =>
+          console.error("Failed to delete step dependency:", error)
+        );
+      });
+    }
     updateCurves(
       curves.filter(
         (curve) =>
@@ -3261,6 +3352,20 @@ export default function IdPage() {
         recordStepCreator(step.id);
       }
 
+      for (const curve of curves) {
+        if (
+          !validateUuid(curve.from.shape.id) ||
+          !validateUuid(curve.to.shape.id)
+        ) {
+          continue;
+        }
+        await createStepDependency(
+          projectId,
+          curve.to.shape.id,
+          curve.from.shape.id
+        );
+      }
+
       checkSteps();
       if (isShapeApiEnabled) {
         await shapeAPIs.upsert(buildPayload());
@@ -3336,7 +3441,10 @@ export default function IdPage() {
       const res = await getProject(project.id);
       const name = res.data?.name || "Untitled Project";
       const projectId = String(res.data?.id ?? project.id);
-      const stepsResponse = await getSteps(projectId);
+      const [stepsResponse, dependenciesResponse] = await Promise.all([
+        getSteps(projectId),
+        getStepDependencies(projectId),
+      ]);
       const loadedSteps = stepsResponse.data.map(
         (step) =>
           new Process(step.id, step.width, step.height, {
@@ -3344,9 +3452,36 @@ export default function IdPage() {
             y: step.y,
           }, step.title)
       );
+      const loadedStepMap = new Map(loadedSteps.map((step) => [step.id, step]));
+      const loadedCurves = dependenciesResponse.data.flatMap((dependency) => {
+        const source = loadedStepMap.get(dependency.dependsOnStepId);
+        const target = loadedStepMap.get(dependency.stepId);
+        if (!source || !target) return [];
+
+        const deltaX = target.getCenter().m.x - source.getCenter().m.x;
+        const deltaY = target.getCenter().m.y - source.getCenter().m.y;
+        const [sourceDirection, targetDirection] =
+          Math.abs(deltaX) >= Math.abs(deltaY)
+            ? deltaX >= 0
+              ? [CommonTypes.Direction.r, CommonTypes.Direction.l]
+              : [CommonTypes.Direction.l, CommonTypes.Direction.r]
+            : deltaY >= 0
+              ? [CommonTypes.Direction.b, CommonTypes.Direction.t]
+              : [CommonTypes.Direction.t, CommonTypes.Direction.b];
+
+        return [
+          createConnectionCurve(
+            source,
+            target,
+            sourceDirection,
+            targetDirection,
+            `dependency_${dependency.stepId}_${dependency.dependsOnStepId}`
+          ),
+        ];
+      });
 
       shapes = loadedSteps;
-      curves = [];
+      curves = loadedCurves;
       selection = null;
       selectionFrame = null;
       pressingSelection = null;

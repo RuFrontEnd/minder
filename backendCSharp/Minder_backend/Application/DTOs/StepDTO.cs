@@ -31,6 +31,9 @@ public sealed record UpdateStepPositionRequest
     public double Y { get; init; }
 }
 
+/// <summary>Represents a dependency where a step requires another step.</summary>
+public sealed record StepDependencyResponse(Guid StepId, Guid DependsOnStepId);
+
 /// <summary>Represents a step returned by the API.</summary>
 public sealed record StepResponse(
     Guid Id,
