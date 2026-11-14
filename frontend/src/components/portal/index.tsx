@@ -3,7 +3,12 @@ import {
   Portal as ChakraPortal,
   type PortalProps,
 } from "@chakra-ui/react";
+import type { ReactNode } from "react";
 
-const Portal = (props: PortalProps) => <ChakraPortal {...props} />;
+type Props = PortalProps & {
+  children?: ReactNode;
+};
+
+const Portal = (props: Props) => <ChakraPortal {...props} />;
 
 export default Portal;

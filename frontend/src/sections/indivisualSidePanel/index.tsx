@@ -15,6 +15,7 @@ import Button from "@/components/button";
 import Input from "@/components/input";
 import Textarea from "@/components/textarea";
 import Avatar from "@/components/avatar";
+import MemberSelect from "@/components/memberSelect";
 import Icon from "@/components/icon";
 import IconButton from "@/components/iconButton";
 import {
@@ -380,6 +381,11 @@ export default function IndivisualSidePanel(
     props.onChangeStepStatus(props.indivisual.id, status);
   };
 
+  const memberOptions = [
+    { label: "Unassigned", value: "" },
+    ...authorOptions,
+  ];
+
   const onChangeOwner = (owner: string) => {
     setAsigneeValues(owner ? [owner] : []);
   };
@@ -675,52 +681,13 @@ export default function IndivisualSidePanel(
                   <UserRound size={13} />
                   Owner
                 </div>
-                <Menu.Root positioning={{ placement: "bottom-start" }}>
-                  <Menu.Trigger asChild>
-                    <button
-                      type="button"
-                      className={styles.ownerSelectTrigger}
-                      aria-label="Select step owner"
-                    >
-                      {selectedAsignee ? (
-                        <Avatar
-                          className={styles.ownerAvatar}
-                          src={selectedAsignee.logo}
-                          name={selectedAsignee.label}
-                          size="xs"
-                        />
-                      ) : (
-                        <span className={styles.personSummaryValue}>
-                          <span className={styles.placeholderAvatar}>
-                            <UserRound size={12} />
-                          </span>
-                          <span>Unassigned</span>
-                        </span>
-                      )}
-                    </button>
-                  </Menu.Trigger>
-                  <Portal>
-                    <Menu.Positioner>
-                      <Menu.Content className={styles.ownerMenuContent}>
-                        {authorOptions.map((option) => (
-                          <Menu.Item
-                            key={option.value}
-                            value={option.value}
-                            className={styles.ownerMenuItem}
-                            onClick={() => onChangeOwner(option.value)}
-                          >
-                            <Avatar
-                              className={styles.ownerAvatar}
-                              src={option.logo}
-                              name={option.label}
-                              size="2xs"
-                            />
-                          </Menu.Item>
-                        ))}
-                      </Menu.Content>
-                    </Menu.Positioner>
-                  </Portal>
-                </Menu.Root>
+                <MemberSelect
+                  options={memberOptions}
+                  value={asigneeValues[0] || ""}
+                  onChange={onChangeOwner}
+                  showLabel
+                  ariaLabel="Select step owner"
+                />
               </div>
               <div className={styles.personSummary}>
                 <span className={styles.metadataLabel}>
@@ -860,43 +827,16 @@ export default function IndivisualSidePanel(
                         >
                           {task.completed && <Check size={11} />}
                         </button>
-                        <label className={styles.taskOwnerPicker}>
-                          {owner ? (
-                            <Avatar
-                              src={owner.logo}
-                              name={owner.label}
-                              size="2xs"
-                              className={styles.taskOwnerAvatar}
-                            />
-                          ) : (
-                            <span
-                              className={`${styles.placeholderAvatar} ${styles.taskOwnerUnassignedAvatar}`}
-                              aria-hidden="true"
-                            >
-                              <UserRound size={12} />
-                            </span>
-                          )}
-                          <select
-                            className={styles.taskOwnerSelect}
-                            aria-label={`Assign ${task.title} to a member`}
-                            title={
-                              owner
-                                ? `Owner: ${owner.label}`
-                                : "Assign to a member"
-                            }
-                            value={task.owner || ""}
-                            onChange={(event) =>
-                              onChangeTaskOwner(task.id, event.target.value)
-                            }
-                          >
-                            <option value="">Unassigned</option>
-                            {authorOptions.map((member) => (
-                              <option key={member.value} value={member.value}>
-                                {member.label}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
+                        <MemberSelect
+                          options={memberOptions}
+                          value={task.owner || ""}
+                          onChange={(value) =>
+                            onChangeTaskOwner(task.id, value || undefined)
+                          }
+                          triggerClassName={styles.taskOwnerPicker}
+                          avatarSize="2xs"
+                          ariaLabel={`Assign ${task.title} to a member`}
+                        />
                         <span
                           className={`${styles.taskTitle} ${
                             task.completed ? styles.taskTitleCompleted : ""

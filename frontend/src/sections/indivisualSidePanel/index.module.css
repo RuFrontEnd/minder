@@ -215,7 +215,7 @@
 .metadataLabel {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
 }
 
 .stepDescriptionText {
@@ -361,7 +361,7 @@
 .stepStatusPill {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   border-radius: 6px;
   padding: 5px 8px;
   font-size: 10px;
@@ -371,7 +371,7 @@
 .completeStepButton {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   border: 0;
   border-radius: 6px;
   padding: 7px 10px;
@@ -457,7 +457,7 @@
 .attachmentList {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
   margin: 7px 0 0;
   padding: 0;
   list-style: none;
@@ -630,7 +630,7 @@
 .taskList {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
   margin: 7px 0 0;
   padding: 0;
   list-style: none;
@@ -669,13 +669,19 @@
 .taskOwnerPicker {
   position: relative;
   display: inline-flex;
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
   cursor: pointer;
+}
+
+.taskOwnerPicker :global([data-scope="avatar"][data-part="root"]),
+.taskOwnerPicker > :global(span) {
+  width: 22px;
+  height: 22px;
 }
 
 .taskOwnerPicker:hover {
