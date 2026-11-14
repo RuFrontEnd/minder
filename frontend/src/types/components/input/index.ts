@@ -1,4 +1,9 @@
-import { HTMLInputTypeAttribute, ChangeEventHandler, ReactNode } from "react";
+import {
+  HTMLInputTypeAttribute,
+  ChangeEventHandler,
+  KeyboardEventHandler,
+  ReactNode,
+} from "react";
 
 enum Status {
   "normal",
@@ -14,6 +19,7 @@ type Props = {
   placeholder?: string;
   type?: HTMLInputTypeAttribute;
   name?: string;
+  hideLabel?: boolean;
   helperText?: string;
   labelExtra?: ReactNode;
   errorText?: string;
@@ -21,6 +27,7 @@ type Props = {
   status?: null | Status;
   comment?: null | string;
   onChange?: ChangeEventHandler<HTMLInputElement>;
+  onKeyDown?: KeyboardEventHandler<HTMLInputElement>;
 };
 export { Status };
 export type { Props };

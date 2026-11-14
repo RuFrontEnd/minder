@@ -207,6 +207,11 @@
   font-weight: 500;
 }
 
+.requiredMark {
+  margin-left: 3px;
+  color: #dc2626;
+}
+
 .metadataLabel {
   display: flex;
   align-items: center;

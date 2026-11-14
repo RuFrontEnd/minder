@@ -10,28 +10,33 @@ const Input = (props: InputTypes.Props) => {
       invalid={props.errorText ? true : false}
       className={props.className}
     >
-      <Field.Label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        <span>
-          {props.name} <Field.RequiredIndicator />
-        </span>
-        {props.labelExtra && (
-          <span
-            onMouseDown={(e) => {
-              e.preventDefault();
-            }}
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-            }}
-          >
-            {props.labelExtra}
+      {!props.hideLabel && (
+        <Field.Label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span>
+            {props.name} <Field.RequiredIndicator />
           </span>
-        )}
-      </Field.Label>
+          {props.labelExtra && (
+            <span
+              onMouseDown={(e) => {
+                e.preventDefault();
+              }}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+            >
+              {props.labelExtra}
+            </span>
+          )}
+        </Field.Label>
+      )}
       <CharkaInput
+        aria-label={props.hideLabel ? props.name : undefined}
         type={props.type}
         placeholder={props.placeholder}
+        value={props.value ?? undefined}
         onChange={props.onChange}
+        onKeyDown={props.onKeyDown}
       />
       {props.helperText && (
         <Field.HelperText>{props.helperText}</Field.HelperText>

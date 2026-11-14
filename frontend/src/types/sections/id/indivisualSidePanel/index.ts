@@ -39,10 +39,6 @@ type Props = {
   >;
   indivisual: PageIdTypes.Indivisual;
   setIndivisual: Dispatch<SetStateAction<Props["indivisual"]>>;
-  isEditingIndivisual: boolean;
-  setIsEditingIndivisual: Dispatch<
-    SetStateAction<Props["isEditingIndivisual"]>
-  >;
   createImportDatas: CreateDatas;
   setCreateImportDatas: Dispatch<SetStateAction<CreateDatas>>;
   addImportDatas: AddDatas;

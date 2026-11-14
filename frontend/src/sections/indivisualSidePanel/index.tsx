@@ -27,7 +27,6 @@ import {
   Trash2,
   UserRound,
 } from "lucide-react";
-import { cloneDeep } from "lodash";
 import { tailwindColors } from "@/variables/colors";
 import { getStepCreator, type StepCreator } from "@/utils/stepCreator";
 import styles from "./index.module.css";
@@ -95,6 +94,9 @@ const getMessageTimeLabel = (createdAt?: number) => {
 export default function IndivisualSidePanel(
   props: IndivisaulSidePanelTypes.Props
 ) {
+  const [editingField, setEditingField] = useState<
+    "title" | "description" | "ac" | null
+  >(null);
   const [editingTitle, setEditingTitle] = useState<null | string>(null);
   const [editingDescription, setEditingDescription] = useState<null | string>(
     null
@@ -143,7 +145,7 @@ export default function IndivisualSidePanel(
     : [];
 
   const closeEditing = () => {
-    props.setIsEditingIndivisual(false);
+    setEditingField(null);
     setEditingTitle(props.indivisual?.title || null);
     setEditingDescription((props.indivisual as any)?.description || null);
     setEditingAc(props.indivisual?.ac || "");
@@ -159,9 +161,10 @@ export default function IndivisualSidePanel(
     props.setIsIndivisualSidePanelOpen((open) => !open);
   };
 
-  const onClickEditIcon = () => {
+  const onClickEditIcon = (field: "title" | "description" | "ac") => {
     if (!props.indivisual) return false;
     setStepDetailsSaveError("");
+    setEditingField(field);
     setEditingTitle(props.indivisual?.title);
     setEditingDescription((props.indivisual as any)?.description || null);
     setEditingAc(props.indivisual?.ac || "");
@@ -170,7 +173,6 @@ export default function IndivisualSidePanel(
         ? [(props.indivisual as any).asignee]
         : []
     );
-    props.setIsEditingIndivisual(true);
   };
 
   const onClickCancelButton = () => {
@@ -178,16 +180,24 @@ export default function IndivisualSidePanel(
   };
 
   const onClickSaveEditingButton = async () => {
-    if (!props.indivisual) return;
+    if (!props.indivisual || !editingField) return;
 
     setStepDetailsSaveError("");
+    const details = {
+      title:
+        editingField === "title"
+          ? editingTitle?.trim() || props.indivisual.title
+          : props.indivisual.title,
+      description:
+        editingField === "description"
+          ? editingDescription || ""
+          : props.indivisual.description || "",
+      ac: editingField === "ac" ? editingAc : props.indivisual.ac || "",
+    };
+
     try {
-      await props.onSaveStepDetails(props.indivisual.id, {
-        title: editingTitle?.trim() || props.indivisual.title,
-        description: editingDescription || "",
-        ac: editingAc,
-      });
-      props.setIsEditingIndivisual(false);
+      await props.onSaveStepDetails(props.indivisual.id, details);
+      setEditingField(null);
       props.terminateDataChecking();
     } catch (error) {
       console.error("Failed to save step details:", error);
@@ -463,8 +473,13 @@ export default function IndivisualSidePanel(
               </div>
               <div className={styles.stepTitleField}>
                 <div className={styles.detailFieldHeader}>
-                  <div className={styles.detailFieldLabel}>Title</div>
-                  {!props.isEditingIndivisual && (
+                  <div className={styles.detailFieldLabel}>
+                    Title
+                    {editingField === "title" && (
+                      <span className={styles.requiredMark}>*</span>
+                    )}
+                  </div>
+                  {!editingField && (
                     <IconButton
                       role="begin_edit_indivisual"
                       ariaLabel="Begin edit indivisual name"
@@ -481,17 +496,25 @@ export default function IndivisualSidePanel(
                           stroke={tailwindColors.grey["1"]}
                         />
                       }
-                      onClick={onClickEditIcon}
+                      onClick={() => onClickEditIcon("title")}
                     />
                   )}
                 </div>
                 <div className={styles.stepTitleContent}>
-                  {props.isEditingIndivisual ? (
+                  {editingField === "title" ? (
                     <Input
                       role="edit_indivisual_title"
+                      name="Title"
+                      hideLabel
                       className={styles.stepTitleInput}
-                      value={editingTitle}
+                      value={editingTitle || ""}
                       onChange={onChangeTitle}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                          event.preventDefault();
+                          void onClickSaveEditingButton();
+                        }
+                      }}
                     />
                   ) : (
                     <h2 className={styles.stepTitleText}>
@@ -499,14 +522,14 @@ export default function IndivisualSidePanel(
                     </h2>
                   )}
                 </div>
-                {props.isEditingIndivisual && (
+                {editingField === "title" && (
                   <div
                     className={styles.stepTitleEditActions}
                     role="edit_indivisual"
                   >
                     <Button
                       role="cancel_edit_indivisual"
-                      vice
+                      variant="outline"
                       text="Cancel"
                       size="sm"
                       onClick={onClickCancelButton}
@@ -519,7 +542,7 @@ export default function IndivisualSidePanel(
                     />
                   </div>
                 )}
-                {stepDetailsSaveError && (
+                {editingField === "title" && stepDetailsSaveError && (
                   <div className={styles.stepDetailsSaveError} role="alert">
                     {stepDetailsSaveError}
                   </div>
@@ -528,7 +551,7 @@ export default function IndivisualSidePanel(
               <div className={styles.stepDescriptionField}>
                 <div className={styles.detailFieldHeader}>
                   <div className={styles.detailFieldLabel}>Description</div>
-                  {!props.isEditingIndivisual && (
+                  {!editingField && (
                     <IconButton
                       role="begin_edit_indivisual_description"
                       ariaLabel="Begin edit indivisual description"
@@ -545,11 +568,11 @@ export default function IndivisualSidePanel(
                           stroke={tailwindColors.grey["1"]}
                         />
                       }
-                      onClick={onClickEditIcon}
+                      onClick={() => onClickEditIcon("description")}
                     />
                   )}
                 </div>
-                {props.isEditingIndivisual ? (
+                {editingField === "description" ? (
                   <textarea
                     role="edit_indivisual_description"
                     value={editingDescription || ""}
@@ -561,11 +584,31 @@ export default function IndivisualSidePanel(
                     {(props.indivisual as any)?.description || "-"}
                   </div>
                 )}
+                {editingField === "description" && (
+                  <div className={styles.stepTitleEditActions}>
+                    <Button
+                      variant="outline"
+                      text="Cancel"
+                      size="sm"
+                      onClick={onClickCancelButton}
+                    />
+                    <Button
+                      text="Save"
+                      size="sm"
+                      onClick={() => void onClickSaveEditingButton()}
+                    />
+                  </div>
+                )}
+                {editingField === "description" && stepDetailsSaveError && (
+                  <div className={styles.stepDetailsSaveError} role="alert">
+                    {stepDetailsSaveError}
+                  </div>
+                )}
               </div>
               <div className={styles.stepDescriptionField}>
                 <div className={styles.detailFieldHeader}>
                   <div className={styles.detailFieldLabel}>AC</div>
-                  {!props.isEditingIndivisual && (
+                  {!editingField && (
                     <IconButton
                       role="begin_edit_indivisual_ac"
                       ariaLabel="Begin edit AC"
@@ -582,11 +625,11 @@ export default function IndivisualSidePanel(
                           stroke={tailwindColors.grey["1"]}
                         />
                       }
-                      onClick={onClickEditIcon}
+                      onClick={() => onClickEditIcon("ac")}
                     />
                   )}
                 </div>
-                {props.isEditingIndivisual ? (
+                {editingField === "ac" ? (
                   <textarea
                     role="edit_indivisual_ac"
                     value={editingAc}
@@ -596,6 +639,26 @@ export default function IndivisualSidePanel(
                 ) : (
                   <div className={styles.stepDescriptionText}>
                     {props.indivisual.ac || "-"}
+                  </div>
+                )}
+                {editingField === "ac" && (
+                  <div className={styles.stepTitleEditActions}>
+                    <Button
+                      variant="outline"
+                      text="Cancel"
+                      size="sm"
+                      onClick={onClickCancelButton}
+                    />
+                    <Button
+                      text="Save"
+                      size="sm"
+                      onClick={() => void onClickSaveEditingButton()}
+                    />
+                  </div>
+                )}
+                {editingField === "ac" && stepDetailsSaveError && (
+                  <div className={styles.stepDetailsSaveError} role="alert">
+                    {stepDetailsSaveError}
                   </div>
                 )}
               </div>

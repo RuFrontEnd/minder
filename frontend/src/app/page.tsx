@@ -2064,7 +2064,6 @@ export default function IdPage() {
     inputVal: "Untitled",
     val: "Untitled",
   });
-  const [isEditingIndivisual, setIsEditingIndivisual] = useState(false);
   const [indivisual, setIndivisual] = useState<PageIdTypes.Indivisual>(null);
   const [createImportDatas, setCreateImportDatas] =
     useState<IndivisaulSidePanelTypes.CreateDatas>([]);
@@ -3067,7 +3066,6 @@ export default function IdPage() {
     setIsIndivisualSidePanelOpen(true);
 
     const resetIndivisualSidePanel = () => {
-      setIsEditingIndivisual(false);
       setCreateImportDatas([]);
       setAddImportDatas([]);
       setCreateUsingDatas([]);
@@ -3682,8 +3680,6 @@ export default function IdPage() {
         setIsIndivisualSidePanelOpen={setIsIndivisualSidePanelOpen}
         indivisual={indivisual}
         setIndivisual={setIndivisual}
-        isEditingIndivisual={isEditingIndivisual}
-        setIsEditingIndivisual={setIsEditingIndivisual}
         createImportDatas={createImportDatas}
         setCreateImportDatas={setCreateImportDatas}
         addImportDatas={addImportDatas}
