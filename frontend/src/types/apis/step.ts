@@ -7,6 +7,11 @@ type CreateStepRequest = {
   y: number;
 };
 
+type UpdateStepPositionRequest = {
+  x: number;
+  y: number;
+};
+
 type StepResponse = {
   id: string;
   projectId: string;
@@ -21,4 +26,4 @@ type StepResponse = {
   status: string;
 };
 
-export type { CreateStepRequest, StepResponse };
+export type { CreateStepRequest, StepResponse, UpdateStepPositionRequest };

@@ -20,4 +20,11 @@ public interface IShapeService
         Guid userId,
         CreateStepRequest request,
         CancellationToken cancellationToken);
+
+    Task<StepResponse?> UpdateStepPositionAsync(
+        Guid projectId,
+        Guid stepId,
+        Guid userId,
+        UpdateStepPositionRequest request,
+        CancellationToken cancellationToken);
 }

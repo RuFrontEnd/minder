@@ -23,6 +23,14 @@ public sealed record CreateStepRequest
     public double Y { get; init; }
 }
 
+/// <summary>Payload for updating a step's canvas position.</summary>
+public sealed record UpdateStepPositionRequest
+{
+    public double X { get; init; }
+
+    public double Y { get; init; }
+}
+
 /// <summary>Represents a step returned by the API.</summary>
 public sealed record StepResponse(
     Guid Id,

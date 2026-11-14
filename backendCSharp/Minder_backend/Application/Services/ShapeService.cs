@@ -77,6 +77,38 @@ public sealed class ShapeService(
         return ToResponse(createdStep);
     }
 
+    public async Task<StepResponse?> UpdateStepPositionAsync(
+        Guid projectId,
+        Guid stepId,
+        Guid userId,
+        UpdateStepPositionRequest request,
+        CancellationToken cancellationToken)
+    {
+        var membership = await projectRepository.GetProjectAsync(
+            projectId,
+            userId,
+            cancellationToken);
+
+        if (membership is null ||
+            (!string.Equals(membership.Role, "owner", StringComparison.OrdinalIgnoreCase) &&
+             !string.Equals(membership.Role, "member", StringComparison.OrdinalIgnoreCase)))
+        {
+            return null;
+        }
+
+        var step = await shapeRepository.GetStepAsync(
+            projectId,
+            stepId,
+            cancellationToken);
+        if (step is null) return null;
+
+        step.X = request.X;
+        step.Y = request.Y;
+
+        var updatedStep = await shapeRepository.UpdateShapeAsync(step);
+        return ToResponse(updatedStep);
+    }
+
     private static StepResponse ToResponse(StepEntity step) => new(
         step.Id,
         step.ProjectId,

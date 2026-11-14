@@ -186,6 +186,33 @@ public class ProjectController : ControllerBase
             step);
     }
 
+    /// <summary>Updates the canvas position of a step in a project the current user can edit.</summary>
+    [Authorize]
+    [HttpPatch("{id:guid}/steps/{stepId:guid}/position")]
+    [EndpointSummary("Update a project step position")]
+    [ProducesResponseType(typeof(StepResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<StepResponse>> UpdateStepPosition(
+        Guid id,
+        Guid stepId,
+        [FromBody] UpdateStepPositionRequest request,
+        CancellationToken cancellationToken)
+    {
+        var userIdValue = User.FindFirst(
+            System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!Guid.TryParse(userIdValue, out var userId)) return Unauthorized();
+
+        var step = await _shapeService.UpdateStepPositionAsync(
+            id,
+            stepId,
+            userId,
+            request,
+            cancellationToken);
+
+        return step is null ? NotFound() : Ok(step);
+    }
+
     [Authorize]
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(

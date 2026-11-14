@@ -20,7 +20,7 @@ import { validate as validateUuid, v4 as uuidv4 } from "uuid";
 import { tailwindColors } from "@/variables/colors";
 import * as authAPIs from "@/apis/auth";
 import * as shapeAPIs from "@/apis/shape";
-import { createStep, getSteps } from "@/apis/step";
+import { createStep, getSteps, updateStepPosition } from "@/apis/step";
 import * as handleUtils from "@/utils/handle";
 import * as fileUtils from "@/utils/file";
 import { ensureStepIdentifiers } from "@/utils/stepIdentifier";
@@ -2348,6 +2348,12 @@ export default function IdPage() {
       return shape;
     });
     updateShapes(updatedShapes);
+
+    if (isAuthorized && currentProjectId) {
+      void updateStepPosition(currentProjectId, shapeId, position).catch(
+        (error) => console.error("Failed to save step position:", error)
+      );
+    }
   };
 
   const onFlowMoveEnd = () => {

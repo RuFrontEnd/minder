@@ -7,4 +7,14 @@ const createStep = (projectId: string, payload: StepTypes.CreateStepRequest) =>
 const getSteps = (projectId: string) =>
   axios.get<StepTypes.StepResponse[]>(`/Project/${projectId}/steps`);
 
-export { createStep, getSteps };
+const updateStepPosition = (
+  projectId: string,
+  stepId: string,
+  payload: StepTypes.UpdateStepPositionRequest
+) =>
+  axios.patch<StepTypes.StepResponse>(
+    `/Project/${projectId}/steps/${stepId}/position`,
+    payload
+  );
+
+export { createStep, getSteps, updateStepPosition };
