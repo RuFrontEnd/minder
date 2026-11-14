@@ -13,6 +13,7 @@ import { Menu } from "@/components/menu";
 import Portal from "@/components/portal";
 import Button from "@/components/button";
 import Input from "@/components/input";
+import Textarea from "@/components/textarea";
 import Avatar from "@/components/avatar";
 import Icon from "@/components/icon";
 import IconButton from "@/components/iconButton";
@@ -573,7 +574,7 @@ export default function IndivisualSidePanel(
                   )}
                 </div>
                 {editingField === "description" ? (
-                  <textarea
+                  <Textarea
                     role="edit_indivisual_description"
                     value={editingDescription || ""}
                     onChange={(e) => setEditingDescription(e.target.value)}
@@ -630,7 +631,7 @@ export default function IndivisualSidePanel(
                   )}
                 </div>
                 {editingField === "ac" ? (
-                  <textarea
+                  <Textarea
                     role="edit_indivisual_ac"
                     value={editingAc}
                     onChange={(e) => setEditingAc(e.target.value)}
