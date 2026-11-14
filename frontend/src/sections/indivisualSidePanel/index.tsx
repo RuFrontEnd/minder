@@ -380,6 +380,10 @@ export default function IndivisualSidePanel(
     props.onChangeStepStatus(props.indivisual.id, status);
   };
 
+  const onChangeOwner = (owner: string) => {
+    setAsigneeValues(owner ? [owner] : []);
+  };
+
   const onSubmitMessage = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const message = messageText.trim();
@@ -671,23 +675,52 @@ export default function IndivisualSidePanel(
                   <UserRound size={13} />
                   Owner
                 </div>
-                {selectedAsignee ? (
-                  <div className={styles.personSummaryValue}>
-                    <Avatar
-                      src={selectedAsignee.logo}
-                      name={selectedAsignee.label}
-                      size="xs"
-                    />
-                    <span>{selectedAsignee.label}</span>
-                  </div>
-                ) : (
-                  <div className={styles.personSummaryValue}>
-                    <span className={styles.placeholderAvatar}>
-                      <UserRound size={12} />
-                    </span>
-                    <span>Unassigned</span>
-                  </div>
-                )}
+                <Menu.Root positioning={{ placement: "bottom-start" }}>
+                  <Menu.Trigger asChild>
+                    <button
+                      type="button"
+                      className={styles.ownerSelectTrigger}
+                      aria-label="Select step owner"
+                    >
+                      {selectedAsignee ? (
+                        <Avatar
+                          className={styles.ownerAvatar}
+                          src={selectedAsignee.logo}
+                          name={selectedAsignee.label}
+                          size="xs"
+                        />
+                      ) : (
+                        <span className={styles.personSummaryValue}>
+                          <span className={styles.placeholderAvatar}>
+                            <UserRound size={12} />
+                          </span>
+                          <span>Unassigned</span>
+                        </span>
+                      )}
+                    </button>
+                  </Menu.Trigger>
+                  <Portal>
+                    <Menu.Positioner>
+                      <Menu.Content className={styles.ownerMenuContent}>
+                        {authorOptions.map((option) => (
+                          <Menu.Item
+                            key={option.value}
+                            value={option.value}
+                            className={styles.ownerMenuItem}
+                            onClick={() => onChangeOwner(option.value)}
+                          >
+                            <Avatar
+                              className={styles.ownerAvatar}
+                              src={option.logo}
+                              name={option.label}
+                              size="2xs"
+                            />
+                          </Menu.Item>
+                        ))}
+                      </Menu.Content>
+                    </Menu.Positioner>
+                  </Portal>
+                </Menu.Root>
               </div>
               <div className={styles.personSummary}>
                 <span className={styles.metadataLabel}>

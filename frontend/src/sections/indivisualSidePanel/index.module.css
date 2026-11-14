@@ -274,10 +274,68 @@
   font-weight: 550;
 }
 
+.ownerSelectTrigger {
+  display: flex;
+  width: 100%;
+  min-height: 20px;
+  align-items: center;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: #364861;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ownerSelectTrigger :global(p),
+.ownerMenuItem :global(p) {
+  margin: 0;
+  color: inherit;
+  font-size: 11px;
+  font-weight: 550;
+  line-height: 1.25;
+}
+
+.ownerAvatar {
+  gap: 7px !important;
+}
+
+.ownerAvatar :global([data-scope="avatar"][data-part="root"]) {
+  width: 24px;
+  height: 24px;
+}
+
+.ownerMenuContent {
+  z-index: 2000;
+  min-width: 180px;
+  padding: 4px;
+  border: 1px solid #e4e9f0;
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: 0 6px 18px rgba(34, 51, 74, 0.14);
+}
+
+.ownerMenuItem {
+  display: flex;
+  min-height: 30px;
+  align-items: center;
+  border-radius: 4px;
+  padding: 3px 8px;
+  color: #3d4d63;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.ownerMenuItem[data-highlighted] {
+  background: #f2f6fb;
+  color: #2877ed;
+}
+
 .placeholderAvatar {
   display: inline-flex;
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
