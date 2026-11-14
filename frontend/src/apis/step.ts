@@ -17,6 +17,16 @@ const updateStepPosition = (
     payload
   );
 
+const updateStepDetails = (
+  projectId: string,
+  stepId: string,
+  payload: StepTypes.UpdateStepDetailsRequest
+) =>
+  axios.patch<StepTypes.StepResponse>(
+    `/Project/${projectId}/steps/${stepId}`,
+    payload
+  );
+
 const getStepDependencies = (projectId: string) =>
   axios.get<StepTypes.StepDependency[]>(
     `/Project/${projectId}/step-dependencies`
@@ -46,5 +56,6 @@ export {
   deleteStepDependency,
   getStepDependencies,
   getSteps,
+  updateStepDetails,
   updateStepPosition,
 };

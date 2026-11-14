@@ -7,6 +7,7 @@ import * as InputTypes from "@/types/components/input";
 import * as SelectTypes from "@/types/components/input";
 import * as CommonTypes from "@/types/common";
 import * as PageIdTypes from "@/types/app/pageId";
+import * as StepApiTypes from "@/types/apis/step";
 
 type CreateDatas = {
   val: null | string;
@@ -61,6 +62,10 @@ type Props = {
   setConsoles: any;
   terminateDataChecking: () => void;
   deSelect: () => void;
+  onSaveStepDetails: (
+    stepId: string,
+    details: StepApiTypes.UpdateStepDetailsRequest
+  ) => Promise<void>;
 };
 
 export type { Props, CreateDatas, AddDatas };

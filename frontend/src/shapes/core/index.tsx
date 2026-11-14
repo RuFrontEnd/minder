@@ -19,6 +19,8 @@ export default class Core {
   private __w__: number;
   private __h__: number;
   title: CommonTypes.Title;
+  description = "";
+  ac = "";
   private __p__: CommonTypes.Vec;
   // private __selecting__: boolean;
   protected __receivePoint__: CoreTypes.ReceivePoint;

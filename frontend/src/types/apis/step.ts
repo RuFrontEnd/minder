@@ -1,6 +1,7 @@
 type CreateStepRequest = {
   title: string;
   description: string;
+  ac: string;
   width: number;
   height: number;
   x: number;
@@ -10,6 +11,12 @@ type CreateStepRequest = {
 type UpdateStepPositionRequest = {
   x: number;
   y: number;
+};
+
+type UpdateStepDetailsRequest = {
+  title: string;
+  description: string;
+  ac: string;
 };
 
 type StepDependency = {
@@ -24,6 +31,7 @@ type StepResponse = {
   ownerId: string;
   title: string;
   description: string;
+  ac: string;
   width: number;
   height: number;
   x: number;
@@ -35,5 +43,6 @@ export type {
   CreateStepRequest,
   StepDependency,
   StepResponse,
+  UpdateStepDetailsRequest,
   UpdateStepPositionRequest,
 };

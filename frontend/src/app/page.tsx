@@ -26,6 +26,7 @@ import {
   deleteStepDependency,
   getStepDependencies,
   getSteps,
+  updateStepDetails,
   updateStepPosition,
 } from "@/apis/step";
 import * as handleUtils from "@/utils/handle";
@@ -2312,6 +2313,7 @@ export default function IdPage() {
     const response = await createStep(currentProjectId, {
       title: step.title,
       description: "",
+      ac: step.ac,
       width: step.w,
       height: step.h,
       x: step.p.x,
@@ -2339,6 +2341,23 @@ export default function IdPage() {
         );
       });
     }
+  };
+
+  const onSaveStepDetails = async (
+    stepId: string,
+    details: { title: string; description: string; ac: string }
+  ) => {
+    const step = shapes.find((shape) => shape.id === stepId);
+    if (!step) throw new Error("Step not found.");
+
+    if (isAuthorized && currentProjectId) {
+      await updateStepDetails(currentProjectId, stepId, details);
+    }
+
+    step.title = details.title;
+    step.description = details.description;
+    step.ac = details.ac;
+    updateShapes([...shapes]);
   };
 
   const updateShapes = (newShapes: CommonTypes.Shapes) => {
@@ -3342,7 +3361,8 @@ export default function IdPage() {
 
         const response = await createStep(projectId, {
           title: step.title,
-          description: "",
+          description: step.description,
+          ac: step.ac,
           width: step.w,
           height: step.h,
           x: step.p.x,
@@ -3445,13 +3465,15 @@ export default function IdPage() {
         getSteps(projectId),
         getStepDependencies(projectId),
       ]);
-      const loadedSteps = stepsResponse.data.map(
-        (step) =>
-          new Process(step.id, step.width, step.height, {
+      const loadedSteps = stepsResponse.data.map((step) => {
+        const loadedStep = new Process(step.id, step.width, step.height, {
             x: step.x,
             y: step.y,
-          }, step.title)
-      );
+          }, step.title);
+        loadedStep.description = step.description;
+        loadedStep.ac = step.ac;
+        return loadedStep;
+      });
       const loadedStepMap = new Map(loadedSteps.map((step) => [step.id, step]));
       const loadedCurves = dependenciesResponse.data.flatMap((dependency) => {
         const source = loadedStepMap.get(dependency.dependsOnStepId);
@@ -3683,6 +3705,7 @@ export default function IdPage() {
         setConsoles={setConsoles}
         terminateDataChecking={terminateDataChecking}
         deSelect={deSelect}
+        onSaveStepDetails={onSaveStepDetails}
       />
 
       <Console

@@ -291,6 +291,13 @@ namespace Infrastructure.Migrations
                         .HasColumnName("id")
                         .HasDefaultValueSql("gen_random_uuid()");
 
+                    b.Property<string>("Ac")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("")
+                        .HasColumnName("ac");
+
                     b.Property<Guid>("Creator")
                         .HasColumnType("uuid")
                         .HasColumnName("creator_id");

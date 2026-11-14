@@ -215,6 +215,7 @@ namespace Infrastructure.Persistence
                 entity.Property(e => e.Y).HasColumnName("position_y");
                 entity.Property(e => e.Title).HasColumnName("title");
                 entity.Property(e => e.Description).HasColumnName("description");
+                entity.Property(e => e.Ac).HasColumnName("ac").HasDefaultValue("");
                 entity.Property(e => e.Status).HasColumnName("status")
                     .HasDefaultValue("todo");
 

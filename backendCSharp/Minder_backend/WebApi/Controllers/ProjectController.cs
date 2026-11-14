@@ -213,6 +213,32 @@ public class ProjectController : ControllerBase
         return step is null ? NotFound() : Ok(step);
     }
 
+    /// <summary>Updates the title, description, and acceptance criteria of a project step.</summary>
+    [Authorize]
+    [HttpPatch("{id:guid}/steps/{stepId:guid}")]
+    [ProducesResponseType(typeof(StepResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<StepResponse>> UpdateStepDetails(
+        Guid id,
+        Guid stepId,
+        [FromBody] UpdateStepDetailsRequest request,
+        CancellationToken cancellationToken)
+    {
+        var userIdValue = User.FindFirst(
+            System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!Guid.TryParse(userIdValue, out var userId)) return Unauthorized();
+
+        var step = await _shapeService.UpdateStepDetailsAsync(
+            id,
+            stepId,
+            userId,
+            request,
+            cancellationToken);
+        return step is null ? NotFound() : Ok(step);
+    }
+
     /// <summary>Returns the dependencies between steps in a project.</summary>
     [Authorize]
     [HttpGet("{id:guid}/step-dependencies")]

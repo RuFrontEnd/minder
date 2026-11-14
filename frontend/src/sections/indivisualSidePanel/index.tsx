@@ -99,6 +99,8 @@ export default function IndivisualSidePanel(
   const [editingDescription, setEditingDescription] = useState<null | string>(
     null
   );
+  const [editingAc, setEditingAc] = useState("");
+  const [stepDetailsSaveError, setStepDetailsSaveError] = useState("");
   const [asigneeValues, setAsigneeValues] = useState<string[]>([]);
   const [creator, setCreator] = useState<StepCreator | null>(null);
   const [messageText, setMessageText] = useState("");
@@ -144,6 +146,8 @@ export default function IndivisualSidePanel(
     props.setIsEditingIndivisual(false);
     setEditingTitle(props.indivisual?.title || null);
     setEditingDescription((props.indivisual as any)?.description || null);
+    setEditingAc(props.indivisual?.ac || "");
+    setStepDetailsSaveError("");
     setAsigneeValues(
       (props.indivisual as any)?.asignee
         ? [(props.indivisual as any).asignee]
@@ -157,8 +161,10 @@ export default function IndivisualSidePanel(
 
   const onClickEditIcon = () => {
     if (!props.indivisual) return false;
+    setStepDetailsSaveError("");
     setEditingTitle(props.indivisual?.title);
     setEditingDescription((props.indivisual as any)?.description || null);
+    setEditingAc(props.indivisual?.ac || "");
     setAsigneeValues(
       (props.indivisual as any)?.asignee
         ? [(props.indivisual as any).asignee]
@@ -171,18 +177,22 @@ export default function IndivisualSidePanel(
     closeEditing();
   };
 
-  const onClickSaveEditingButton = () => {
-    if (!props.indivisual) return false;
+  const onClickSaveEditingButton = async () => {
+    if (!props.indivisual) return;
 
-    if (editingTitle) props.indivisual.title = editingTitle;
-    (props.indivisual as any).description = editingDescription || "";
-
-    const _indivisual = cloneDeep(props.indivisual);
-    props.setIndivisual(_indivisual);
-    props.draw();
-    closeEditing();
-    props.terminateDataChecking();
-    return false;
+    setStepDetailsSaveError("");
+    try {
+      await props.onSaveStepDetails(props.indivisual.id, {
+        title: editingTitle?.trim() || props.indivisual.title,
+        description: editingDescription || "",
+        ac: editingAc,
+      });
+      props.setIsEditingIndivisual(false);
+      props.terminateDataChecking();
+    } catch (error) {
+      console.error("Failed to save step details:", error);
+      setStepDetailsSaveError("Unable to save step details. Please try again.");
+    }
   };
 
   const onChangeTitle: ChangeEventHandler<HTMLInputElement> = (e) => {
@@ -505,8 +515,13 @@ export default function IndivisualSidePanel(
                       role="save_edit_indivisual"
                       text="Save"
                       size="sm"
-                      onClick={onClickSaveEditingButton}
+                      onClick={() => void onClickSaveEditingButton()}
                     />
+                  </div>
+                )}
+                {stepDetailsSaveError && (
+                  <div className={styles.stepDetailsSaveError} role="alert">
+                    {stepDetailsSaveError}
                   </div>
                 )}
               </div>
@@ -544,6 +559,43 @@ export default function IndivisualSidePanel(
                 ) : (
                   <div className={styles.stepDescriptionText}>
                     {(props.indivisual as any)?.description || "-"}
+                  </div>
+                )}
+              </div>
+              <div className={styles.stepDescriptionField}>
+                <div className={styles.detailFieldHeader}>
+                  <div className={styles.detailFieldLabel}>AC</div>
+                  {!props.isEditingIndivisual && (
+                    <IconButton
+                      role="begin_edit_indivisual_ac"
+                      ariaLabel="Begin edit AC"
+                      size="2xs"
+                      variant="outline"
+                      style={{
+                        border: `1px solid ${tailwindColors.grey["5"]}`,
+                      }}
+                      icon={
+                        <Icon
+                          type={IconTypes.Type.pencilSquare}
+                          w={12}
+                          h={12}
+                          stroke={tailwindColors.grey["1"]}
+                        />
+                      }
+                      onClick={onClickEditIcon}
+                    />
+                  )}
+                </div>
+                {props.isEditingIndivisual ? (
+                  <textarea
+                    role="edit_indivisual_ac"
+                    value={editingAc}
+                    onChange={(e) => setEditingAc(e.target.value)}
+                    className={styles.stepDescriptionInput}
+                  />
+                ) : (
+                  <div className={styles.stepDescriptionText}>
+                    {props.indivisual.ac || "-"}
                   </div>
                 )}
               </div>

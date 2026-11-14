@@ -12,6 +12,9 @@ public sealed record CreateStepRequest
     [StringLength(5000)]
     public string Description { get; init; } = string.Empty;
 
+    [StringLength(5000)]
+    public string Ac { get; init; } = string.Empty;
+
     [Range(1, 10000)]
     public double Width { get; init; }
 
@@ -31,6 +34,20 @@ public sealed record UpdateStepPositionRequest
     public double Y { get; init; }
 }
 
+/// <summary>Payload for updating a step's title, description, and acceptance criteria.</summary>
+public sealed record UpdateStepDetailsRequest
+{
+    [Required]
+    [StringLength(200, MinimumLength = 1)]
+    public required string Title { get; init; }
+
+    [StringLength(5000)]
+    public string Description { get; init; } = string.Empty;
+
+    [StringLength(5000)]
+    public string Ac { get; init; } = string.Empty;
+}
+
 /// <summary>Represents a dependency where a step requires another step.</summary>
 public sealed record StepDependencyResponse(Guid StepId, Guid DependsOnStepId);
 
@@ -42,6 +59,7 @@ public sealed record StepResponse(
     Guid OwnerId,
     string Title,
     string Description,
+    string Ac,
     double Width,
     double Height,
     double X,

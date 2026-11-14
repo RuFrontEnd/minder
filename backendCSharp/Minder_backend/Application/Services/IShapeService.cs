@@ -28,6 +28,13 @@ public interface IShapeService
         UpdateStepPositionRequest request,
         CancellationToken cancellationToken);
 
+    Task<StepResponse?> UpdateStepDetailsAsync(
+        Guid projectId,
+        Guid stepId,
+        Guid userId,
+        UpdateStepDetailsRequest request,
+        CancellationToken cancellationToken);
+
     Task<IReadOnlyList<StepDependencyResponse>?> GetStepDependenciesAsync(
         Guid projectId,
         Guid userId,

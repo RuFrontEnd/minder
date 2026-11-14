@@ -27,6 +27,7 @@ namespace Domain.Entities
         public double Y { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
+        public string Ac { get; set; } = string.Empty;
         public string Status { get; set; } = "todo";
 
         // Legacy -> for some reason, they can not be removed.
