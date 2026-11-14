@@ -2298,7 +2298,9 @@ export default function IdPage() {
   };
 
   const onCreateStep = async (step: CommonTypes.Step) => {
-    if (!isLogIn || !currentProjectId) return;
+    if (!isAuthorized || !currentProjectId) {
+      throw new Error("A signed-in user and selected project are required.");
+    }
 
     const response = await createStep(currentProjectId, {
       title: step.title,
