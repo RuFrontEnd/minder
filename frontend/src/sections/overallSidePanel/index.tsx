@@ -4,12 +4,27 @@ import SidePanel from "@/components/sidePanel";
 import CloseButton from "@/components/closeButton";
 import { Menu } from "@/components/menu";
 import Portal from "@/components/portal";
+import Avatar from "@/components/avatar";
 import { ChevronDown, Circle, Search, UserRound } from "lucide-react";
 import styles from "./index.module.css";
 import * as CommonTypes from "@/types/common";
 import * as OverallSidePanelTypes from "@/types/sections/id/overallSidePanel";
 
 type StatusFilter = "All Statuses" | CommonTypes.StepStatus;
+
+const ownerNames: Record<string, string> = {
+  "john-mason": "John Mason",
+  "melissa-jones": "Melissa Jones",
+  "alex-wang": "Alex Wang",
+  "cindy-chen": "Cindy Chen",
+};
+
+const ownerAvatars: Record<string, string> = {
+  "john-mason": "https://i.pravatar.cc/300?u=iu",
+  "melissa-jones": "https://i.pravatar.cc/300?u=po",
+  "alex-wang": "https://i.pravatar.cc/300?u=alex",
+  "cindy-chen": "https://i.pravatar.cc/300?u=cindy",
+};
 
 export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
   const [searchText, setSearchText] = useState("");
@@ -153,6 +168,11 @@ export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
         <ul className={styles.list}>
           {visibleSteps.map((step) => {
             const stepStatus = props.stepStatuses[step.id] || "Todo";
+            const stepOwner = step as CommonTypes.Step & {
+              asignee?: string;
+              owner?: string;
+            };
+            const ownerId = stepOwner.asignee || stepOwner.owner || "";
             return (
               <li key={step.id}>
                 <button
@@ -176,8 +196,13 @@ export default function OverallSidePanel(props: OverallSidePanelTypes.Props) {
                 </button>
                 <div className={styles.stepMeta}>
                   <span className={styles.assignee}>
-                    <UserRound size={13} />
-                    <span>Unassigned</span>
+                    <Avatar
+                      className={styles.assigneeAvatar}
+                      src={ownerAvatars[ownerId]}
+                      size="2xs"
+                      fallback={ownerNames[ownerId]?.charAt(0) || "U"}
+                    />
+                    <span>{ownerNames[ownerId] || "Unassigned"}</span>
                   </span>
                   <Menu.Root positioning={{ placement: "bottom-end" }}>
                     <Menu.Trigger asChild>

@@ -54,7 +54,7 @@ const cardWidth = 240;
 const cardHeight = 96;
 const ownerNames: Record<string, string> = {
   "john-mason": "John Mason",
-  "melissa-jones": "Melissa Jones123456789",
+  "melissa-jones": "Melissa Jones",
   "alex-wang": "Alex Wang",
   "cindy-chen": "Cindy Chen",
 };

@@ -1,6 +1,6 @@
 .root {
   z-index: 60;
-  width: 240px;
+  width: 300px;
   max-width: calc(100vw - 24px);
   border-right: 1px solid #e8edf3;
   background: #fff;
@@ -265,7 +265,7 @@
   flex: 1 1 0;
   min-width: 0;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   overflow: hidden;
   color: #8997aa;
   font-size: 10px;
@@ -277,7 +277,16 @@
   flex: 0 0 auto;
 }
 
-.assignee span {
+.assigneeAvatar {
+  flex: 0 0 auto;
+}
+
+.assigneeAvatar :global([data-scope="avatar"][data-part="root"]) {
+  width: 22px;
+  height: 22px;
+}
+
+.assignee > span {
   flex: 1 1 0;
   min-width: 0;
   overflow: hidden;
