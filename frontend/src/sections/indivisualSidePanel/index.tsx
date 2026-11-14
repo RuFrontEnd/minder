@@ -686,6 +686,7 @@ export default function IndivisualSidePanel(
                   value={asigneeValues[0] || ""}
                   onChange={onChangeOwner}
                   showLabel
+                  triggerClassName={styles.ownerSelectTrigger}
                   ariaLabel="Select step owner"
                 />
               </div>
@@ -743,14 +744,6 @@ export default function IndivisualSidePanel(
               <div className={styles.panelSectionHeading}>
                 <h3>Dependencies</h3>
                 <span className={styles.itemCountBadge}>{dependencies.length}</span>
-                <button
-                  type="button"
-                  className={styles.panelSectionAction}
-                  aria-label="Add dependency"
-                  title="Connect dependencies from the canvas"
-                >
-                  <Plus size={16} />
-                </button>
               </div>
               {dependencies.length ? (
                 <ul className={styles.dependencyList}>

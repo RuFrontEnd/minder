@@ -297,6 +297,12 @@
   line-height: 1.25;
 }
 
+.ownerSelectTrigger :global([data-scope="avatar"][data-part="root"]),
+.ownerSelectTrigger > :global(span) {
+  width: 22px;
+  height: 22px;
+}
+
 .ownerAvatar {
   gap: 7px !important;
 }
@@ -334,8 +340,8 @@
 
 .placeholderAvatar {
   display: inline-flex;
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
