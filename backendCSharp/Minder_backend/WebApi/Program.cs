@@ -12,6 +12,7 @@ using System.Text;
 using Amazon;
 using Amazon.Runtime;
 using Amazon.S3;
+using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 LoadDotEnv(Path.GetFullPath(builder.Environment.ContentRootPath));
@@ -37,6 +38,15 @@ var dataSource = dataSourceBuilder.Build();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(dataSource));
+
+var redisUrl = Environment.GetEnvironmentVariable("REDIS_URL")
+    ?? builder.Configuration.GetConnectionString("Redis");
+
+if (!string.IsNullOrWhiteSpace(redisUrl))
+{
+    builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
+        ConnectionMultiplexer.Connect(ToRedisConfiguration(redisUrl)));
+}
 
 // register Repository (interface to instance)
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -147,6 +157,34 @@ app.MapGet("/test-db", async (ApplicationDbContext db, ILogger<Program> logger) 
     }
 });
 
+app.MapGet("/test-redis", async (IServiceProvider services, ILogger<Program> logger) =>
+{
+    var redis = services.GetService<IConnectionMultiplexer>();
+    if (redis is null)
+    {
+        return Results.Problem(
+            detail: "Redis is not configured. Set REDIS_URL in the backend .env file.",
+            statusCode: StatusCodes.Status503ServiceUnavailable,
+            title: "Redis is not configured");
+    }
+
+    try
+    {
+        var database = redis.GetDatabase();
+        await database.StringSetAsync("minder:connection-test", "ok", TimeSpan.FromMinutes(1));
+        var value = await database.StringGetAsync("minder:connection-test");
+        return Results.Ok(new { Message = "Redis connected", Value = value.ToString() });
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Redis connection failed.");
+        return Results.Problem(
+            detail: ex.GetBaseException().Message,
+            statusCode: StatusCodes.Status500InternalServerError,
+            title: "Redis connection failed");
+    }
+});
+
 app.UseCors("AllowLocalhost3000"); // CORS
 app.MapControllers();
 app.Run();
@@ -217,4 +255,39 @@ static string ToNpgsqlConnectionString(string connectionString)
     };
 
     return builder.ConnectionString;
+}
+
+static ConfigurationOptions ToRedisConfiguration(string connectionString)
+{
+    if (!Uri.TryCreate(connectionString, UriKind.Absolute, out var uri) ||
+        (uri.Scheme != "redis" && uri.Scheme != "rediss") ||
+        string.IsNullOrWhiteSpace(uri.Host))
+    {
+        return ConfigurationOptions.Parse(connectionString);
+    }
+
+    var options = new ConfigurationOptions
+    {
+        AbortOnConnectFail = false,
+        Ssl = uri.Scheme == "rediss",
+        SslHost = uri.Host
+    };
+
+    options.EndPoints.Add(uri.Host, uri.Port > 0 ? uri.Port : 6379);
+
+    if (!string.IsNullOrWhiteSpace(uri.UserInfo))
+    {
+        var userInfo = uri.UserInfo.Split(':', 2);
+        if (userInfo.Length == 2)
+        {
+            options.User = Uri.UnescapeDataString(userInfo[0]);
+            options.Password = Uri.UnescapeDataString(userInfo[1]);
+        }
+        else
+        {
+            options.Password = Uri.UnescapeDataString(userInfo[0]);
+        }
+    }
+
+    return options;
 }

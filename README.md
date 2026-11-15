@@ -88,3 +88,21 @@ dotnet run --project .\WebApi\WebAPi.csproj --launch-profile http
 cd frontend
 npm run dev
 ```
+
+### Redis Cloud
+
+在 `backendCSharp/Minder_backend/WebApi/.env` 加入 Redis Cloud 控制台
+Connect 頁面提供的連線字串，不要把密碼提交到 git：
+
+```env
+REDIS_URL=rediss://default:<password>@<endpoint>:<port>
+```
+
+啟動後端後，可以用 `GET http://localhost:5000/test-redis` 測試連線。
+成功時會回傳 `Redis connected`；這個端點只用來驗證連線，實際功能可透過
+`IConnectionMultiplexer` 取得 Redis database：
+
+```csharp
+var database = redis.GetDatabase();
+await database.StringSetAsync("key", "value", TimeSpan.FromMinutes(10));
+```
