@@ -3,6 +3,8 @@ using Application.Services;
 using Application.DTOs;
 using Domain.Repositories;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.SignalR;
+using WebAPi.Realtime;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -15,12 +17,17 @@ public class ProjectController : ControllerBase
     // 1. 定義一個私有欄位
     private readonly ProjectService _projectService;
     private readonly IShapeService _shapeService;
+    private readonly IHubContext<ProjectHub> _projectHub;
 
     // 2. 在建構函式中賦值
-    public ProjectController(ProjectService projectServer, IShapeService shapeService)
+    public ProjectController(
+        ProjectService projectServer,
+        IShapeService shapeService,
+        IHubContext<ProjectHub> projectHub)
     {
         _projectService = projectServer;
         _shapeService = shapeService;
+        _projectHub = projectHub;
     }
 
     [Authorize]
@@ -180,6 +187,8 @@ public class ProjectController : ControllerBase
 
         if (step is null) return NotFound();
 
+        await BroadcastProjectEventAsync("step.created", id, step, cancellationToken);
+
         return CreatedAtAction(
             nameof(GetStep),
             new { id, stepId = step.Id },
@@ -210,7 +219,14 @@ public class ProjectController : ControllerBase
             request,
             cancellationToken);
 
-        return step is null ? NotFound() : Ok(step);
+        if (step is null) return NotFound();
+
+        await BroadcastProjectEventAsync(
+            "step.position-updated",
+            id,
+            step,
+            cancellationToken);
+        return Ok(step);
     }
 
     /// <summary>Updates the title, description, and acceptance criteria of a project step.</summary>
@@ -236,7 +252,10 @@ public class ProjectController : ControllerBase
             userId,
             request,
             cancellationToken);
-        return step is null ? NotFound() : Ok(step);
+        if (step is null) return NotFound();
+
+        await BroadcastProjectEventAsync("step.updated", id, step, cancellationToken);
+        return Ok(step);
     }
 
     /// <summary>Returns the dependencies between steps in a project.</summary>
@@ -285,7 +304,14 @@ public class ProjectController : ControllerBase
             dependsOnStepId,
             userId,
             cancellationToken);
-        return dependency is null ? NotFound() : Ok(dependency);
+        if (dependency is null) return NotFound();
+
+        await BroadcastProjectEventAsync(
+            "step-dependency.created",
+            id,
+            dependency,
+            cancellationToken);
+        return Ok(dependency);
     }
 
     /// <summary>Deletes a dependency between two steps.</summary>
@@ -310,7 +336,14 @@ public class ProjectController : ControllerBase
             dependsOnStepId,
             userId,
             cancellationToken);
-        return deleted ? NoContent() : NotFound();
+        if (!deleted) return NotFound();
+
+        await BroadcastProjectEventAsync(
+            "step-dependency.deleted",
+            id,
+            new { stepId, dependsOnStepId },
+            cancellationToken);
+        return NoContent();
     }
 
     [Authorize]
@@ -424,5 +457,30 @@ public class ProjectController : ControllerBase
                 message = "Project not found or current user is not the owner."
             })
         };
+    }
+
+    private async Task BroadcastProjectEventAsync(
+        string eventType,
+        Guid projectId,
+        object data,
+        CancellationToken cancellationToken)
+    {
+        var userIdValue = User.FindFirst(
+            System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!Guid.TryParse(userIdValue, out var userId))
+        {
+            return;
+        }
+
+        var message = new ProjectUpdatedEvent(
+            eventType,
+            projectId,
+            data,
+            userId,
+            DateTimeOffset.UtcNow);
+
+        await _projectHub.Clients
+            .Group(ProjectHub.GroupName(projectId))
+            .SendAsync("projectUpdated", message, cancellationToken);
     }
 }

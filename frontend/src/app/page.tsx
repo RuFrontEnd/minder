@@ -19,6 +19,10 @@ import { cloneDeep } from "lodash";
 import { validate as validateUuid, v4 as uuidv4 } from "uuid";
 import { tailwindColors } from "@/variables/colors";
 import * as authAPIs from "@/apis/auth";
+import {
+  createProjectConnection,
+  type ProjectUpdatedEvent,
+} from "@/apis/realtime";
 import * as shapeAPIs from "@/apis/shape";
 import {
   createStep,
@@ -2057,6 +2061,7 @@ export default function IdPage() {
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(
     null
   );
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [currentProjectRole, setCurrentProjectRole] = useState<string | null>(
     null
   );
@@ -2133,6 +2138,7 @@ export default function IdPage() {
       const isUserAuthorized = res.status === 200 && !!res.data?.id;
       setIsAuthorized(isUserAuthorized);
       if (isUserAuthorized) {
+        setCurrentUserId(String(res.data.id));
         if (requireProjectSelection) {
           setIsProjectSelectionRequired(true);
           setIsUserInfoOpen(true);
@@ -2150,6 +2156,7 @@ export default function IdPage() {
         );
         setUserAvatarColor(res.data?.avatarColor || null);
       } else {
+        setCurrentUserId(null);
         setUserAvatarUrl("");
         setUserInitials("U");
         setUserAvatarColor(null);
@@ -2157,6 +2164,7 @@ export default function IdPage() {
     } catch (error) {
       // If error (401 Unauthorized), user is not authenticated
       setIsAuthorized(false);
+      setCurrentUserId(null);
       setUserAvatarUrl("");
       setUserInitials("U");
       setUserAvatarColor(null);
@@ -2554,6 +2562,97 @@ export default function IdPage() {
     updateShapes(shapes.filter((shape) => !deletedNodeIds.has(shape.id)));
     actionRecords.finish(CommonTypes.Action.delete);
     scheduleAutoSave();
+  };
+
+  const applyProjectUpdatedEvent = (event: ProjectUpdatedEvent) => {
+    const data = event.data as Record<string, unknown>;
+
+    if (
+      event.eventType === "step.created" ||
+      event.eventType === "step.position-updated" ||
+      event.eventType === "step.updated"
+    ) {
+      const stepId = String(data.id || "");
+      if (!validateUuid(stepId)) return;
+
+      const existingStep = shapes.find((shape) => shape.id === stepId);
+      if (!existingStep) {
+        const remoteStep = new Process(
+          stepId,
+          Number(data.width),
+          Number(data.height),
+          {
+            x: Number(data.x),
+            y: Number(data.y),
+          },
+          String(data.title || "")
+        );
+        remoteStep.description = String(data.description || "");
+        remoteStep.ac = String(data.ac || "");
+        updateShapes([...shapes, remoteStep]);
+        return;
+      }
+
+      existingStep.p = {
+        x: Number(data.x),
+        y: Number(data.y),
+      };
+      existingStep.title = String(data.title || "");
+      existingStep.description = String(data.description || "");
+      existingStep.ac = String(data.ac || "");
+      existingStep.w = Number(data.width);
+      existingStep.h = Number(data.height);
+      updateShapes([...shapes]);
+      return;
+    }
+
+    if (event.eventType === "step-dependency.created") {
+      const stepId = String(data.stepId || "");
+      const dependsOnStepId = String(data.dependsOnStepId || "");
+      const source = shapes.find((shape) => shape.id === dependsOnStepId);
+      const target = shapes.find((shape) => shape.id === stepId);
+      if (
+        !source ||
+        !target ||
+        curves.some(
+          (curve) =>
+            curve.from.shape.id === dependsOnStepId &&
+            curve.to.shape.id === stepId
+        )
+      ) {
+        return;
+      }
+
+      updateCurves([
+        ...curves,
+        createConnectionCurve(
+          source,
+          target,
+          CommonTypes.Direction.r,
+          CommonTypes.Direction.l,
+          `dependency_${stepId}_${dependsOnStepId}`
+        ),
+      ]);
+      checkSteps();
+      drawCanvas(offset, scale);
+      return;
+    }
+
+    if (event.eventType === "step-dependency.deleted") {
+      const stepId = String(data.stepId || "");
+      const dependsOnStepId = String(data.dependsOnStepId || "");
+      updateCurves(
+        curves.filter(
+          (curve) =>
+            !(
+              curve.from.shape.id === dependsOnStepId &&
+              curve.to.shape.id === stepId
+            )
+        )
+      );
+      checkSteps();
+      drawCanvas(offset, scale);
+    }
   };
 
   const zoom: PageIdTypes.Zoom = (delta, client) => {
@@ -3560,6 +3659,45 @@ export default function IdPage() {
     setIsProjectSelectionRequired(true);
     setIsUserInfoOpen(true);
   };
+
+  useEffect(() => {
+    if (!isAuthorized || !currentProjectId) return;
+
+    const connection = createProjectConnection();
+    let isDisposed = false;
+
+    connection.on("projectUpdated", (event: ProjectUpdatedEvent) => {
+      if (
+        event.projectId !== currentProjectId ||
+        event.updatedBy === currentUserId
+      ) {
+        return;
+      }
+
+      applyProjectUpdatedEvent(event);
+    });
+
+    const connect = async () => {
+      try {
+        await connection.start();
+        if (!isDisposed) {
+          await connection.invoke("JoinProject", currentProjectId);
+        }
+      } catch (error) {
+        if (!isDisposed) {
+          console.error("Failed to connect to project updates:", error);
+        }
+      }
+    };
+
+    void connect();
+
+    return () => {
+      isDisposed = true;
+      connection.off("projectUpdated");
+      void connection.stop();
+    };
+  }, [currentProjectId, currentUserId, isAuthorized]);
 
   return (
     <>

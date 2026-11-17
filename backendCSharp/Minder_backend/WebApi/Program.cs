@@ -13,11 +13,13 @@ using Amazon;
 using Amazon.Runtime;
 using Amazon.S3;
 using StackExchange.Redis;
+using WebAPi.Realtime;
 
 var builder = WebApplication.CreateBuilder(args);
 LoadDotEnv(Path.GetFullPath(builder.Environment.ContentRootPath));
 
 builder.Services.AddControllers();
+builder.Services.AddSignalR();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -89,6 +91,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             OnMessageReceived = context =>
             {
                 context.Token = context.Request.Cookies["X-Access-Token"];
+                if (string.IsNullOrEmpty(context.Token) &&
+                    context.HttpContext.Request.Path.StartsWithSegments("/hubs"))
+                {
+                    context.Token = context.Request.Query["access_token"];
+                }
+
                 return Task.CompletedTask;
             }
         };
@@ -131,6 +139,11 @@ builder.Services.AddSingleton<IAmazonS3>(_ =>
 );
 
 var app = builder.Build();
+
+app.UseRouting();
+app.UseCors("AllowLocalhost3000");
+app.UseAuthentication();
+app.UseAuthorization();
 
 if (app.Environment.IsDevelopment())
 {
@@ -185,7 +198,8 @@ app.MapGet("/test-redis", async (IServiceProvider services, ILogger<Program> log
     }
 });
 
-app.UseCors("AllowLocalhost3000"); // CORS
+app.MapHub<ProjectHub>("/hubs/project")
+    .RequireCors("AllowLocalhost3000");
 app.MapControllers();
 app.Run();
 
