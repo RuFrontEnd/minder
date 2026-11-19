@@ -27,6 +27,7 @@ import * as shapeAPIs from "@/apis/shape";
 import {
   createStep,
   createStepDependency,
+  deleteStep,
   deleteStepDependency,
   getStepDependencies,
   getSteps,
@@ -2342,7 +2343,11 @@ export default function IdPage() {
         void createStepDependency(
           currentProjectId,
           curve.to.shape.id,
-          curve.from.shape.id
+          curve.from.shape.id,
+          {
+            sourceDirection: curve.from.d,
+            targetDirection: curve.to.d,
+          }
         ).catch((error) =>
           console.error("Failed to save step dependency:", error)
         );
@@ -2508,16 +2513,22 @@ export default function IdPage() {
       validateUuid(source.id) &&
       validateUuid(target.id)
     ) {
-      void createStepDependency(currentProjectId, target.id, source.id).catch(
-        (error) => {
-          console.error("Failed to save step dependency:", error);
-          updateCurves(
-            curves.filter((curve) => curve.shape.id !== newCurve.shape.id)
-          );
-          checkSteps();
-          drawCanvas(offset, scale);
+      void createStepDependency(
+        currentProjectId,
+        target.id,
+        source.id,
+        {
+          sourceDirection,
+          targetDirection,
         }
-      );
+      ).catch((error) => {
+        console.error("Failed to save step dependency:", error);
+        updateCurves(
+          curves.filter((curve) => curve.shape.id !== newCurve.shape.id)
+        );
+        checkSteps();
+        drawCanvas(offset, scale);
+      });
     }
   };
 
@@ -2533,6 +2544,14 @@ export default function IdPage() {
         deletedNodeIds.has(curve.to.shape.id)
     );
     if (isAuthorized && currentProjectId) {
+      deletedNodeIds.forEach((stepId) => {
+        if (!validateUuid(stepId)) return;
+
+        void deleteStep(currentProjectId, stepId).catch((error) =>
+          console.error("Failed to delete step:", error)
+        );
+      });
+
       deletedCurves.forEach((curve) => {
         if (
           !validateUuid(curve.from.shape.id) ||
@@ -2606,6 +2625,20 @@ export default function IdPage() {
       return;
     }
 
+    if (event.eventType === "step.deleted") {
+      const stepId = String(data.stepId || "");
+      if (!validateUuid(stepId)) return;
+
+      updateShapes(shapes.filter((shape) => shape.id !== stepId));
+      updateCurves(
+        curves.filter(
+          (curve) =>
+            curve.from.shape.id !== stepId && curve.to.shape.id !== stepId
+        )
+      );
+      return;
+    }
+
     if (event.eventType === "step-dependency.created") {
       const stepId = String(data.stepId || "");
       const dependsOnStepId = String(data.dependsOnStepId || "");
@@ -2623,13 +2656,38 @@ export default function IdPage() {
         return;
       }
 
+      const validDirections = [
+        CommonTypes.Direction.l,
+        CommonTypes.Direction.t,
+        CommonTypes.Direction.r,
+        CommonTypes.Direction.b,
+      ];
+      const eventSourceDirection = validDirections.find(
+        (direction) => direction === data.sourceDirection
+      );
+      const eventTargetDirection = validDirections.find(
+        (direction) => direction === data.targetDirection
+      );
+      const deltaX = target.getCenter().m.x - source.getCenter().m.x;
+      const deltaY = target.getCenter().m.y - source.getCenter().m.y;
+      const [sourceDirection, targetDirection] =
+        eventSourceDirection && eventTargetDirection
+          ? [eventSourceDirection, eventTargetDirection]
+          : Math.abs(deltaX) >= Math.abs(deltaY)
+            ? deltaX >= 0
+              ? [CommonTypes.Direction.r, CommonTypes.Direction.l]
+              : [CommonTypes.Direction.l, CommonTypes.Direction.r]
+            : deltaY >= 0
+              ? [CommonTypes.Direction.b, CommonTypes.Direction.t]
+              : [CommonTypes.Direction.t, CommonTypes.Direction.b];
+
       updateCurves([
         ...curves,
         createConnectionCurve(
           source,
           target,
-          CommonTypes.Direction.r,
-          CommonTypes.Direction.l,
+          sourceDirection,
+          targetDirection,
           `dependency_${stepId}_${dependsOnStepId}`
         ),
       ]);
@@ -3479,7 +3537,11 @@ export default function IdPage() {
         await createStepDependency(
           projectId,
           curve.to.shape.id,
-          curve.from.shape.id
+          curve.from.shape.id,
+          {
+            sourceDirection: curve.from.d,
+            targetDirection: curve.to.d,
+          }
         );
       }
 

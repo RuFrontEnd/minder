@@ -30,5 +30,9 @@ namespace Domain.Repositories
             StepEntity shape,
             CancellationToken cancellationToken);
         Task<StepEntity> UpdateShapeAsync(StepEntity shape);
+        Task<bool> DeleteStepAsync(
+            Guid projectId,
+            Guid stepId,
+            CancellationToken cancellationToken);
     }
 }

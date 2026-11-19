@@ -27,6 +27,9 @@ const updateStepDetails = (
     payload
   );
 
+const deleteStep = (projectId: string, stepId: string) =>
+  axios.delete(`/Project/${projectId}/steps/${stepId}`);
+
 const getStepDependencies = (projectId: string) =>
   axios.get<StepTypes.StepDependency[]>(
     `/Project/${projectId}/step-dependencies`
@@ -35,10 +38,12 @@ const getStepDependencies = (projectId: string) =>
 const createStepDependency = (
   projectId: string,
   stepId: string,
-  dependsOnStepId: string
+  dependsOnStepId: string,
+  payload: StepTypes.CreateStepDependencyRequest
 ) =>
   axios.put<StepTypes.StepDependency>(
-    `/Project/${projectId}/steps/${stepId}/dependencies/${dependsOnStepId}`
+    `/Project/${projectId}/steps/${stepId}/dependencies/${dependsOnStepId}`,
+    payload
   );
 
 const deleteStepDependency = (
@@ -54,6 +59,7 @@ export {
   createStep,
   createStepDependency,
   deleteStepDependency,
+  deleteStep,
   getStepDependencies,
   getSteps,
   updateStepDetails,

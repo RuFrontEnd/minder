@@ -3,8 +3,8 @@ using Application.Services;
 using Application.DTOs;
 using Domain.Repositories;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.SignalR;
 using WebAPi.Realtime;
+using WebAPi.PubSub;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -17,17 +17,17 @@ public class ProjectController : ControllerBase
     // 1. 定義一個私有欄位
     private readonly ProjectService _projectService;
     private readonly IShapeService _shapeService;
-    private readonly IHubContext<ProjectHub> _projectHub;
+    private readonly IProjectEventPublisher _projectEventPublisher;
 
     // 2. 在建構函式中賦值
     public ProjectController(
         ProjectService projectServer,
         IShapeService shapeService,
-        IHubContext<ProjectHub> projectHub)
+        IProjectEventPublisher projectEventPublisher)
     {
         _projectService = projectServer;
         _shapeService = shapeService;
-        _projectHub = projectHub;
+        _projectEventPublisher = projectEventPublisher;
     }
 
     [Authorize]
@@ -258,6 +258,36 @@ public class ProjectController : ControllerBase
         return Ok(step);
     }
 
+    /// <summary>Deletes a step and its dependent relationships.</summary>
+    [Authorize]
+    [HttpDelete("{id:guid}/steps/{stepId:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteStep(
+        Guid id,
+        Guid stepId,
+        CancellationToken cancellationToken)
+    {
+        var userIdValue = User.FindFirst(
+            System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!Guid.TryParse(userIdValue, out var userId)) return Unauthorized();
+
+        var deleted = await _shapeService.DeleteStepAsync(
+            id,
+            stepId,
+            userId,
+            cancellationToken);
+        if (!deleted) return NotFound();
+
+        await BroadcastProjectEventAsync(
+            "step.deleted",
+            id,
+            new { stepId },
+            cancellationToken);
+        return NoContent();
+    }
+
     /// <summary>Returns the dependencies between steps in a project.</summary>
     [Authorize]
     [HttpGet("{id:guid}/step-dependencies")]
@@ -290,6 +320,7 @@ public class ProjectController : ControllerBase
         Guid id,
         Guid stepId,
         Guid dependsOnStepId,
+        [FromBody] CreateStepDependencyRequest? request,
         CancellationToken cancellationToken)
     {
         if (stepId == dependsOnStepId) return BadRequest();
@@ -309,7 +340,13 @@ public class ProjectController : ControllerBase
         await BroadcastProjectEventAsync(
             "step-dependency.created",
             id,
-            dependency,
+            new
+            {
+                dependency.StepId,
+                dependency.DependsOnStepId,
+                request?.SourceDirection,
+                request?.TargetDirection
+            },
             cancellationToken);
         return Ok(dependency);
     }
@@ -479,8 +516,6 @@ public class ProjectController : ControllerBase
             userId,
             DateTimeOffset.UtcNow);
 
-        await _projectHub.Clients
-            .Group(ProjectHub.GroupName(projectId))
-            .SendAsync("projectUpdated", message, cancellationToken);
+        await _projectEventPublisher.PublishAsync(message);
     }
 }

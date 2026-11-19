@@ -51,6 +51,16 @@ public sealed record UpdateStepDetailsRequest
 /// <summary>Represents a dependency where a step requires another step.</summary>
 public sealed record StepDependencyResponse(Guid StepId, Guid DependsOnStepId);
 
+/// <summary>Payload for creating a dependency with its canvas connection directions.</summary>
+public sealed record CreateStepDependencyRequest
+{
+    [RegularExpression("^[ltrb]$")]
+    public string? SourceDirection { get; init; }
+
+    [RegularExpression("^[ltrb]$")]
+    public string? TargetDirection { get; init; }
+}
+
 /// <summary>Represents a step returned by the API.</summary>
 public sealed record StepResponse(
     Guid Id,

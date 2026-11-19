@@ -14,6 +14,7 @@ using Amazon.Runtime;
 using Amazon.S3;
 using StackExchange.Redis;
 using WebAPi.Realtime;
+using WebAPi.PubSub;
 
 var builder = WebApplication.CreateBuilder(args);
 LoadDotEnv(Path.GetFullPath(builder.Environment.ContentRootPath));
@@ -48,6 +49,12 @@ if (!string.IsNullOrWhiteSpace(redisUrl))
 {
     builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
         ConnectionMultiplexer.Connect(ToRedisConfiguration(redisUrl)));
+    builder.Services.AddSingleton<IProjectEventPublisher, ProjectEventPublisher>();
+    builder.Services.AddHostedService<ProjectEventSubscriber>();
+}
+else
+{
+    builder.Services.AddSingleton<IProjectEventPublisher, LocalProjectEventPublisher>();
 }
 
 // register Repository (interface to instance)

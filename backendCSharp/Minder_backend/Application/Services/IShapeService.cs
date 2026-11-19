@@ -35,6 +35,12 @@ public interface IShapeService
         UpdateStepDetailsRequest request,
         CancellationToken cancellationToken);
 
+    Task<bool> DeleteStepAsync(
+        Guid projectId,
+        Guid stepId,
+        Guid userId,
+        CancellationToken cancellationToken);
+
     Task<IReadOnlyList<StepDependencyResponse>?> GetStepDependenciesAsync(
         Guid projectId,
         Guid userId,

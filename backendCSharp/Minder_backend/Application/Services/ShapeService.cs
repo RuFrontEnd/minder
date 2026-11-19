@@ -139,6 +139,30 @@ public sealed class ShapeService(
         return ToResponse(updatedStep);
     }
 
+    public async Task<bool> DeleteStepAsync(
+        Guid projectId,
+        Guid stepId,
+        Guid userId,
+        CancellationToken cancellationToken)
+    {
+        var membership = await projectRepository.GetProjectAsync(
+            projectId,
+            userId,
+            cancellationToken);
+
+        if (membership is null ||
+            (!string.Equals(membership.Role, "owner", StringComparison.OrdinalIgnoreCase) &&
+             !string.Equals(membership.Role, "member", StringComparison.OrdinalIgnoreCase)))
+        {
+            return false;
+        }
+
+        return await shapeRepository.DeleteStepAsync(
+            projectId,
+            stepId,
+            cancellationToken);
+    }
+
     public async Task<IReadOnlyList<StepDependencyResponse>?> GetStepDependenciesAsync(
         Guid projectId,
         Guid userId,

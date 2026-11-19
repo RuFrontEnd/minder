@@ -102,6 +102,21 @@ namespace Infrastructure.Repositories
             await dbContext.SaveChangesAsync();
             return shape;
         }
+
+        public async Task<bool> DeleteStepAsync(
+            Guid projectId,
+            Guid stepId,
+            CancellationToken cancellationToken)
+        {
+            var step = await dbContext.Steps.FirstOrDefaultAsync(
+                item => item.ProjectId == projectId && item.Id == stepId,
+                cancellationToken);
+            if (step is null) return false;
+
+            dbContext.Steps.Remove(step);
+            await dbContext.SaveChangesAsync(cancellationToken);
+            return true;
+        }
     }
 
 }

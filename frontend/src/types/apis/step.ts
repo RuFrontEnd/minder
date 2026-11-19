@@ -24,6 +24,11 @@ type StepDependency = {
   dependsOnStepId: string;
 };
 
+type CreateStepDependencyRequest = {
+  sourceDirection: "l" | "t" | "r" | "b";
+  targetDirection: "l" | "t" | "r" | "b";
+};
+
 type StepResponse = {
   id: string;
   projectId: string;
@@ -41,6 +46,7 @@ type StepResponse = {
 
 export type {
   CreateStepRequest,
+  CreateStepDependencyRequest,
   StepDependency,
   StepResponse,
   UpdateStepDetailsRequest,
