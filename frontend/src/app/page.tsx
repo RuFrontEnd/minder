@@ -1,6 +1,7 @@
 // indivsual data hover color / change shape type when editing shape / edit data name in overall datas / edit data name in indivisual / copy data / downloaded data with project name / icon component default should be empty
 "use client";
 import React, { useState, useRef, useEffect, useMemo } from "react";
+import { HubConnectionState, type HubConnection } from "@microsoft/signalr";
 import axios, { AxiosResponse } from "axios";
 import Terminal from "@/shapes/terminal";
 import Process from "@/shapes/process";
@@ -21,6 +22,8 @@ import { tailwindColors } from "@/variables/colors";
 import * as authAPIs from "@/apis/auth";
 import {
   createProjectConnection,
+  type ProjectCursor,
+  type ProjectUser,
   type ProjectUpdatedEvent,
 } from "@/apis/realtime";
 import * as shapeAPIs from "@/apis/shape";
@@ -2103,6 +2106,37 @@ export default function IdPage() {
   const [saveProjectError, setSaveProjectError] = useState("");
   const [isProjectSelectionRequired, setIsProjectSelectionRequired] =
     useState(false);
+  const [projectUsers, setProjectUsers] = useState<ProjectUser[]>([]);
+  const [remoteCursors, setRemoteCursors] = useState<
+    Record<string, ProjectCursor["position"]>
+  >({});
+  const projectConnectionRef = useRef<HubConnection | null>(null);
+  const localCursorRef = useRef<CommonTypes.Vec | null>(null);
+  const cursorSendTimeoutRef = useRef<number | null>(null);
+  const pendingCursorRef = useRef<CommonTypes.Vec | null>(null);
+
+  const sendCursor = (position: CommonTypes.Vec) => {
+    localCursorRef.current = position;
+    pendingCursorRef.current = position;
+    if (
+      cursorSendTimeoutRef.current !== null ||
+      projectConnectionRef.current?.state !== HubConnectionState.Connected ||
+      !currentProjectId
+    ) {
+      return;
+    }
+
+    cursorSendTimeoutRef.current = window.setTimeout(() => {
+      cursorSendTimeoutRef.current = null;
+      const pendingPosition = pendingCursorRef.current;
+      const connection = projectConnectionRef.current;
+      if (!pendingPosition || !connection || !currentProjectId) return;
+      pendingCursorRef.current = null;
+      void connection
+        .invoke("UpdateCursor", currentProjectId, pendingPosition)
+        .catch((error) => console.error("Failed to send cursor position:", error));
+    }, 33);
+  };
 
   const onChangeStepStatus = (
     shapeId: string,
@@ -3726,8 +3760,39 @@ export default function IdPage() {
     if (!isAuthorized || !currentProjectId) return;
 
     const connection = createProjectConnection();
+    projectConnectionRef.current = connection;
     let isDisposed = false;
 
+    connection.on("projectUsers", (users: ProjectUser[]) => {
+      setProjectUsers(users.filter((user) => user.userId !== currentUserId));
+    });
+    connection.on("projectUserJoined", (user: ProjectUser) => {
+      if (user.userId !== currentUserId) {
+        setProjectUsers((users) => [
+          ...users.filter((current) => current.userId !== user.userId),
+          user,
+        ]);
+        if (localCursorRef.current) {
+          sendCursor(localCursorRef.current);
+        }
+      }
+    });
+    connection.on("projectUserLeft", (userId: string) => {
+      setProjectUsers((users) => users.filter((user) => user.userId !== userId));
+      setRemoteCursors((cursors) => {
+        const next = { ...cursors };
+        delete next[userId];
+        return next;
+      });
+    });
+    connection.on("projectCursorMoved", (cursor: ProjectCursor) => {
+      if (cursor.userId !== currentUserId) {
+        setRemoteCursors((cursors) => ({
+          ...cursors,
+          [cursor.userId]: cursor.position,
+        }));
+      }
+    });
     connection.on("projectUpdated", (event: ProjectUpdatedEvent) => {
       if (
         event.projectId !== currentProjectId ||
@@ -3752,11 +3817,23 @@ export default function IdPage() {
       }
     };
 
+    connection.onreconnected(async () => {
+      if (!isDisposed) {
+        await connection.invoke("JoinProject", currentProjectId);
+      }
+    });
     void connect();
 
     return () => {
       isDisposed = true;
+      setProjectUsers([]);
+      setRemoteCursors({});
+      projectConnectionRef.current = null;
       connection.off("projectUpdated");
+      connection.off("projectUsers");
+      connection.off("projectUserJoined");
+      connection.off("projectUserLeft");
+      connection.off("projectCursorMoved");
       void connection.stop();
     };
   }, [currentProjectId, currentUserId, isAuthorized]);
@@ -3953,6 +4030,9 @@ export default function IdPage() {
         onInit={(instance) => {
           flowInstanceRef.current = instance;
         }}
+        projectUsers={projectUsers}
+        cursors={remoteCursors}
+        onCursorMove={sendCursor}
       />
 
       {loginSuccessMessage && (

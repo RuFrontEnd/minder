@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import {
   Background,
   BackgroundVariant,
@@ -10,6 +10,7 @@ import {
   MiniMap,
   Position,
   ReactFlow,
+  ViewportPortal,
   useEdgesState,
   useNodesState,
   type Connection,
@@ -20,6 +21,7 @@ import {
   type OnDelete,
   type ReactFlowInstance,
 } from "@xyflow/react";
+import type { ProjectCursor, ProjectUser } from "@/apis/realtime";
 import * as CommonTypes from "@/types/common";
 import styles from "./index.module.css";
 
@@ -48,6 +50,9 @@ type Props = {
   onDelete: (nodeIds: string[], edgeIds: string[]) => void;
   onInit: (instance: FlowCanvasInstance) => void;
   isConnectMode: boolean;
+  projectUsers: ProjectUser[];
+  cursors: Record<string, ProjectCursor["position"]>;
+  onCursorMove: (position: CommonTypes.Vec) => void;
 };
 
 const cardWidth = 240;
@@ -164,12 +169,18 @@ export default function FlowCanvas({
   onInit,
   isConnectMode,
   stepStatuses,
+  projectUsers,
+  cursors,
+  onCursorMove,
 }: Props & { stepStatuses?: Record<string, CommonTypes.StepStatus> }) {
   const initialNodes = useMemo(
     () => shapes.map((shape) => toFlowNode(shape, selectedShapeId, stepStatuses || {})),
     [shapes, selectedShapeId, stepStatuses]
   );
   const [nodes, setNodes, onNodesChange] = useNodesState<FlowNode>(initialNodes);
+  const reactFlowInstanceRef = useRef<ReactFlowInstance<FlowNode, Edge> | null>(
+    null
+  );
 
   useEffect(() => {
     setNodes(
@@ -262,7 +273,20 @@ export default function FlowCanvas({
         onConnect={handleConnect}
         onDelete={handleDelete}
         deleteKeyCode={["Backspace", "Delete"]}
-        onInit={onInit}
+        onInit={(instance) => {
+          reactFlowInstanceRef.current = instance;
+          onInit(instance);
+        }}
+        onPaneMouseMove={(event) => {
+          const instance = reactFlowInstanceRef.current;
+          if (!instance) return;
+          onCursorMove(
+            instance.screenToFlowPosition({
+              x: event.clientX,
+              y: event.clientY,
+            })
+          );
+        }}
         fitView
         fitViewOptions={{ padding: 0.3 }}
         minZoom={0.2}
@@ -273,6 +297,32 @@ export default function FlowCanvas({
         proOptions={{ hideAttribution: true }}
         defaultEdgeOptions={{ type: "smoothstep" }}
       >
+        <ViewportPortal>
+          {projectUsers.map((user) => {
+            const position = cursors[user.userId];
+            if (!position) return null;
+            const initials =
+              `${user.firstName[0] || ""}${user.lastName[0] || ""}`.toUpperCase() ||
+              "U";
+            return (
+              <div
+                key={user.userId}
+                className={styles.remoteCursor}
+                style={
+                  {
+                    left: position.x,
+                    top: position.y,
+                    "--cursor-color": user.avatarColor || "#4f46e5",
+                    "--cursor-background": user.avatarBackgroundColor || "#eef2ff",
+                  } as React.CSSProperties
+                }
+              >
+                <span className={styles.cursorArrow} aria-hidden="true" />
+                <span className={styles.cursorName}>{initials}</span>
+              </div>
+            );
+          })}
+        </ViewportPortal>
         <Background
           variant={BackgroundVariant.Dots}
           gap={20}

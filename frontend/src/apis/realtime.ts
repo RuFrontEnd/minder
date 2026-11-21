@@ -12,6 +12,25 @@ type ProjectUpdatedEvent = {
   occurredAt: string;
 };
 
+type ProjectUser = {
+  userId: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  avatarUrl: string | null;
+  avatarColor: string | null;
+  avatarBackgroundColor: string | null;
+  role: string;
+};
+
+type ProjectCursor = {
+  userId: string;
+  position: {
+    x: number;
+    y: number;
+  };
+};
+
 const createProjectConnection = (): HubConnection => {
   const token = typeof window === "undefined"
     ? null
@@ -32,4 +51,4 @@ const createProjectConnection = (): HubConnection => {
 };
 
 export { createProjectConnection };
-export type { ProjectUpdatedEvent };
+export type { ProjectUpdatedEvent, ProjectUser, ProjectCursor };

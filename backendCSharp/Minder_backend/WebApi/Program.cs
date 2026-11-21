@@ -20,7 +20,6 @@ var builder = WebApplication.CreateBuilder(args);
 LoadDotEnv(Path.GetFullPath(builder.Environment.ContentRootPath));
 
 builder.Services.AddControllers();
-builder.Services.AddSignalR();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -44,6 +43,20 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 var redisUrl = Environment.GetEnvironmentVariable("REDIS_URL")
     ?? builder.Configuration.GetConnectionString("Redis");
+
+if (string.IsNullOrWhiteSpace(redisUrl))
+{
+    builder.Services.AddSignalR();
+}
+else
+{
+    builder.Services
+        .AddSignalR()
+        .AddStackExchangeRedis(options =>
+        {
+            options.Configuration = ToRedisConfiguration(redisUrl);
+        });
+}
 
 if (!string.IsNullOrWhiteSpace(redisUrl))
 {

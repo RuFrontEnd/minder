@@ -17,6 +17,37 @@
   opacity: 1;
 }
 
+.remoteCursor {
+  position: absolute;
+  z-index: 20;
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  pointer-events: none;
+  transform: translate(2px, 2px);
+}
+
+.cursorArrow {
+  width: 18px;
+  height: 24px;
+  background: var(--cursor-color);
+  clip-path: polygon(0 0, 100% 35%, 48% 47%, 72% 100%, 52% 100%, 29% 54%, 0 72%);
+  filter: drop-shadow(0 1px 1px rgba(15, 23, 42, 0.25));
+}
+
+.cursorName {
+  margin-top: 7px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: var(--cursor-background);
+  color: var(--cursor-color);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.15);
+}
+
 .card {
   position: relative;
   display: flex;
