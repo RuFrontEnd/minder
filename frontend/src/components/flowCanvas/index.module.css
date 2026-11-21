@@ -29,10 +29,8 @@
 
 .cursorArrow {
   width: 18px;
-  height: 24px;
-  background: var(--cursor-color);
-  clip-path: polygon(0 0, 100% 35%, 48% 47%, 72% 100%, 52% 100%, 29% 54%, 0 72%);
-  filter: drop-shadow(0 1px 1px rgba(15, 23, 42, 0.25));
+  height: 17px;
+  object-fit: contain;
 }
 
 .cursorName {

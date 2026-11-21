@@ -317,7 +317,12 @@ export default function FlowCanvas({
                   } as React.CSSProperties
                 }
               >
-                <span className={styles.cursorArrow} aria-hidden="true" />
+                <img
+                  className={styles.cursorArrow}
+                  src="/cursor-arrow.svg"
+                  alt=""
+                  aria-hidden="true"
+                />
                 <span className={styles.cursorName}>{initials}</span>
               </div>
             );
