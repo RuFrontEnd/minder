@@ -70,6 +70,9 @@ else
     builder.Services.AddSingleton<IProjectEventPublisher, LocalProjectEventPublisher>();
 }
 
+builder.Services.AddSingleton<ProjectCursorBroadcaster>();
+builder.Services.AddHostedService(services => services.GetRequiredService<ProjectCursorBroadcaster>());
+
 // register Repository (interface to instance)
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IProjectRepository, ProjectRepository>();

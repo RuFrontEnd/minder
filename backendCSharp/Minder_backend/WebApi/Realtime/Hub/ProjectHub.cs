@@ -5,7 +5,9 @@ using Microsoft.AspNetCore.SignalR;
 namespace WebAPi.Realtime;
 
 [Authorize]
-public sealed class ProjectHub(IProjectRepository projectRepository) : Hub
+public sealed class ProjectHub(
+    IProjectRepository projectRepository,
+    ProjectCursorBroadcaster cursorBroadcaster) : Hub
 {
     public async Task JoinProject(Guid projectId)
     {
@@ -54,6 +56,7 @@ public sealed class ProjectHub(IProjectRepository projectRepository) : Hub
         }
 
         Context.Items.Remove(ProjectKey(projectId));
+        cursorBroadcaster.Remove(projectId, Context.ConnectionId);
         await Groups.RemoveFromGroupAsync(
             Context.ConnectionId,
             GroupName(projectId),
@@ -64,21 +67,15 @@ public sealed class ProjectHub(IProjectRepository projectRepository) : Hub
             Context.ConnectionAborted);
     }
 
-    public async Task UpdateCursor(Guid projectId, CursorPosition position)
+    public Task UpdateCursor(Guid projectId, CursorPosition position)
     {
         if (!IsJoined(projectId))
         {
             throw new HubException("The connection has not joined this project.");
         }
 
-        await Clients.OthersInGroup(GroupName(projectId)).SendAsync(
-            "projectCursorMoved",
-            new
-            {
-                UserId = GetUserId(),
-                Position = position
-            },
-            Context.ConnectionAborted);
+        cursorBroadcaster.Update(projectId, Context.ConnectionId, GetUserId(), position);
+        return Task.CompletedTask;
     }
 
     public override async Task OnDisconnectedAsync(Exception? exception)
@@ -96,6 +93,7 @@ public sealed class ProjectHub(IProjectRepository projectRepository) : Hub
 
         foreach (var projectId in joinedProjects)
         {
+            cursorBroadcaster.Remove(projectId, Context.ConnectionId);
             await Clients.Group(GroupName(projectId)).SendAsync(
                 "projectUserLeft",
                 userId,
