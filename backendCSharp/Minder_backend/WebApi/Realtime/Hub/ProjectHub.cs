@@ -33,8 +33,8 @@ public sealed class ProjectHub(
         }
 
         await Groups.AddToGroupAsync(
-            Context.ConnectionId,
-            GroupName(projectId), // 透過 project id 來區分不同的 client 端群組
+            Context.ConnectionId, // 辨別 client 端
+            GroupName(projectId), // 透過 project id 來區分不同的 client 端群組，形成不同的群組
             Context.ConnectionAborted);
         Context.Items[ProjectKey(projectId)] = true;
 
