@@ -28,7 +28,8 @@ namespace Domain.Entities
         public string Title { get; set; }
         public string Description { get; set; }
         public string Ac { get; set; } = string.Empty;
-        public string Status { get; set; } = "todo";
+        public Guid StatusId { get; set; }
+        public StatusEntity Status { get; set; } = null!;
 
         // Legacy -> for some reason, they can not be removed.
         [Obsolete("Legacy type for migrations only. Do not use in new code.")]

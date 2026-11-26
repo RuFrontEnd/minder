@@ -246,6 +246,43 @@ namespace Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Domain.Entities.StatusEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("statuses", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("a4f6c6d2-8d0d-4c8f-9f7b-8cf9b9f1f001"),
+                            Name = "todo"
+                        },
+                        new
+                        {
+                            Id = new Guid("a4f6c6d2-8d0d-4c8f-9f7b-8cf9b9f1f002"),
+                            Name = "inProgress"
+                        },
+                        new
+                        {
+                            Id = new Guid("a4f6c6d2-8d0d-4c8f-9f7b-8cf9b9f1f003"),
+                            Name = "Done"
+                        });
+                });
+
             modelBuilder.Entity("Domain.Entities.StepDependencyEntity", b =>
                 {
                     b.Property<Guid>("Id")
@@ -319,12 +356,9 @@ namespace Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("project_id");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("text")
-                        .HasDefaultValue("todo")
-                        .HasColumnName("status");
+                    b.Property<Guid>("StatusId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("status_id");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -351,10 +385,9 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("ProjectId");
 
-                    b.ToTable("steps", null, t =>
-                        {
-                            t.HasCheckConstraint("ck_steps_status", "\"status\" IN ('todo', 'inProgress', 'done')");
-                        });
+                    b.HasIndex("StatusId");
+
+                    b.ToTable("steps", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.TaskEntity", b =>
@@ -531,6 +564,14 @@ namespace Infrastructure.Migrations
                         .HasForeignKey("ProjectId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("Domain.Entities.StatusEntity", "Status")
+                        .WithMany()
+                        .HasForeignKey("StatusId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Status");
                 });
 
             modelBuilder.Entity("Domain.Entities.TaskEntity", b =>

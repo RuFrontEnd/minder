@@ -21,6 +21,7 @@ namespace Infrastructure.Repositories
         {
             var shape = await dbContext.Steps
                 .Where(s => s.ProjectId == projectId)
+                .Include(s => s.Status)
                 .FirstOrDefaultAsync();
 
             return shape;
@@ -31,9 +32,11 @@ namespace Infrastructure.Repositories
             Guid stepId,
             CancellationToken cancellationToken)
         {
-            return dbContext.Steps.FirstOrDefaultAsync(
-                step => step.ProjectId == projectId && step.Id == stepId,
-                cancellationToken);
+            return dbContext.Steps
+                .Include(step => step.Status)
+                .FirstOrDefaultAsync(
+                    step => step.ProjectId == projectId && step.Id == stepId,
+                    cancellationToken);
         }
 
         public Task<List<StepEntity>> GetStepsAsync(
@@ -42,6 +45,7 @@ namespace Infrastructure.Repositories
         {
             return dbContext.Steps
                 .Where(step => step.ProjectId == projectId)
+                .Include(step => step.Status)
                 .OrderBy(step => step.Id)
                 .ToListAsync(cancellationToken);
         }
@@ -94,6 +98,9 @@ namespace Infrastructure.Repositories
         {
             await dbContext.Steps.AddAsync(shape, cancellationToken);
             await dbContext.SaveChangesAsync(cancellationToken);
+            await dbContext.Entry(shape)
+                .Reference(step => step.Status)
+                .LoadAsync(cancellationToken);
             return shape;
         }
         public async Task<StepEntity> UpdateShapeAsync(StepEntity shape)

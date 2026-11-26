@@ -16,6 +16,7 @@ namespace Infrastructure.Persistence
         public DbSet<ProjectEntity> Projects => Set<ProjectEntity>();
         public DbSet<MemberEntity> Members => Set<MemberEntity>();
         public DbSet<RoleEntity> Roles => Set<RoleEntity>();
+        public DbSet<StatusEntity> Statuses => Set<StatusEntity>();
         public DbSet<StepEntity> Steps => Set<StepEntity>();
         public DbSet<StepDependencyEntity> StepDependencies => Set<StepDependencyEntity>();
         public DbSet<TaskEntity> Tasks => Set<TaskEntity>();
@@ -198,12 +199,36 @@ namespace Infrastructure.Persistence
                     });
             });
 
+            modelBuilder.Entity<StatusEntity>(entity =>
+            {
+                entity.ToTable("statuses");
+
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Name).HasColumnName("name").IsRequired();
+                entity.HasIndex(e => e.Name).IsUnique();
+
+                entity.HasData(
+                    new
+                    {
+                        Id = StatusEntity.TodoId,
+                        Name = "todo"
+                    },
+                    new
+                    {
+                        Id = StatusEntity.InProgressId,
+                        Name = "inProgress"
+                    },
+                    new
+                    {
+                        Id = StatusEntity.DoneId,
+                        Name = "Done"
+                    });
+            });
+
             modelBuilder.Entity<StepEntity>(entity =>
             {
-                entity.ToTable("steps", table =>
-                    table.HasCheckConstraint(
-                        "ck_steps_status",
-                        "\"status\" IN ('todo', 'inProgress', 'done')"));
+                entity.ToTable("steps");
 
                 entity.Property(e => e.Id).HasColumnName("id");
                 entity.Property(e => e.ProjectId).HasColumnName("project_id");
@@ -216,8 +241,7 @@ namespace Infrastructure.Persistence
                 entity.Property(e => e.Title).HasColumnName("title");
                 entity.Property(e => e.Description).HasColumnName("description");
                 entity.Property(e => e.Ac).HasColumnName("ac").HasDefaultValue("");
-                entity.Property(e => e.Status).HasColumnName("status")
-                    .HasDefaultValue("todo");
+                entity.Property(e => e.StatusId).HasColumnName("status_id");
 
                 entity.Property(e => e.Id)
                     .HasDefaultValueSql("gen_random_uuid()");
@@ -236,6 +260,11 @@ namespace Infrastructure.Persistence
                       .WithMany()
                       .HasForeignKey(p => p.Owner)
                       .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.Status)
+                      .WithMany()
+                      .HasForeignKey(e => e.StatusId)
+                      .OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<StepDependencyEntity>(entity =>

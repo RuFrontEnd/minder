@@ -71,7 +71,7 @@ public sealed class ShapeService(
             H = request.Height,
             X = request.X,
             Y = request.Y,
-            Status = "todo"
+            StatusId = StatusEntity.TodoId
         };
 
         var createdStep = await shapeRepository.AddShapeAsync(step, cancellationToken);
@@ -266,5 +266,5 @@ public sealed class ShapeService(
         step.H,
         step.X,
         step.Y,
-        step.Status);
+        step.Status.Name);
 }
