@@ -78,6 +78,8 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IShapeRepository, ShapeRepository>();
+builder.Services.AddScoped<ITaskRepository, TaskRepository>();
+builder.Services.AddScoped<IMessageRepository, MessageRepository>();
 
 // register Provider
 builder.Services.AddScoped<IJwtProvider, JwtProvider>();
@@ -88,6 +90,8 @@ builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<ProjectService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<IShapeService, ShapeService>();
+builder.Services.AddScoped<TaskService>();
+builder.Services.AddScoped<MessageService>();
 
 // AWS S3 Avatar Storage Provider
 builder.Services.AddScoped<IAvatarStorageProvider, S3AvatarStorageProvider>();

@@ -311,7 +311,9 @@ namespace Infrastructure.Persistence
 
                 entity.Property(e => e.StepId).HasColumnName("step_id");
                 entity.Property(e => e.Owner).HasColumnName("owner_id");
+                entity.Property(e => e.Title).HasColumnName("title");
                 entity.Property(e => e.Description).HasColumnName("description");
+                entity.Property(e => e.Completed).HasColumnName("completed").HasDefaultValue(false);
 
                 entity.HasOne<StepEntity>()
                     .WithMany()
@@ -334,6 +336,7 @@ namespace Infrastructure.Persistence
                 entity.Property(e => e.StepId).HasColumnName("step_id");
                 entity.Property(e => e.MemberId).HasColumnName("member_id");
                 entity.Property(e => e.Content).HasColumnName("content");
+                entity.Property(e => e.Comment).HasColumnName("comment");
                 entity.Property(e => e.CreatedAt).HasColumnName("created_at")
                     .HasColumnType("timestamp with time zone")
                     .HasDefaultValueSql("CURRENT_TIMESTAMP");

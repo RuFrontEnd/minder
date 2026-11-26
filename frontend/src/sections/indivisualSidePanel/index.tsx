@@ -30,7 +30,9 @@ import {
   UserRound,
 } from "lucide-react";
 import { tailwindColors } from "@/variables/colors";
-import { getStepCreator, type StepCreator } from "@/utils/stepCreator";
+import { getMessages, createMessage } from "@/apis/message";
+import { getTasks, createTask, updateTask } from "@/apis/task";
+import type { StepCreator } from "@/utils/stepCreator";
 import styles from "./index.module.css";
 
 import * as IconTypes from "@/types/components/icon";
@@ -106,7 +108,7 @@ export default function IndivisualSidePanel(
   const [editingAc, setEditingAc] = useState("");
   const [stepDetailsSaveError, setStepDetailsSaveError] = useState("");
   const [asigneeValues, setAsigneeValues] = useState<string[]>([]);
-  const [creator, setCreator] = useState<StepCreator | null>(null);
+  const [creator] = useState<StepCreator | null>(null);
   const [messageText, setMessageText] = useState("");
   const [messages, setMessages] = useState<MessageItem[]>([]);
   const [tasks, setTasks] = useState<TaskItem[]>([]);
@@ -228,75 +230,99 @@ export default function IndivisualSidePanel(
       return;
     }
 
-    try {
-      const savedMessages = window.localStorage.getItem(
-        `minder-step-activity:${props.indivisual.id}`
-      );
-      const loadedMessages: MessageItem[] = savedMessages
-        ? JSON.parse(savedMessages)
-        : [];
-      setMessages(
-        loadedMessages.filter(
-          (message) =>
-            typeof message.comment === "string" && message.comment.trim()
-        )
-      );
-      const savedTasks = window.localStorage.getItem(
-        `minder-step-tasks:${props.indivisual.id}`
-      );
-      setTasks(savedTasks ? JSON.parse(savedTasks) : []);
-      setCreator(getStepCreator(props.indivisual.id));
-    } catch (error) {
-      console.error("Failed to load step messages or tasks:", error);
-      setMessages([]);
-      setTasks([]);
-      setCreator(null);
-    }
-  }, [props.indivisual?.id]);
+    if (!props.projectId) return;
+    void Promise.all([
+      getMessages(props.indivisual.id),
+      getTasks(props.indivisual.id),
+    ])
+      .then(([messageResponse, taskResponse]) => {
+        setMessages(
+          messageResponse.data.map((message) => ({
+            id: message.id,
+            text: message.content,
+            createdAt: Date.parse(message.createdAt),
+            comment: message.comment,
+          }))
+        );
+        setTasks(
+          taskResponse.data.map((task) => ({
+            id: task.id,
+            title: task.title,
+            completed: task.completed,
+            owner: task.ownerId,
+          }))
+        );
+      })
+      .catch((error) => {
+        console.error("Failed to load step messages or tasks:", error);
+        setMessages([]);
+        setTasks([]);
+      });
+  }, [props.indivisual?.id, props.projectId]);
 
-  const saveTasks = (nextTasks: TaskItem[]) => {
-    if (!props.indivisual) return;
-    setTasks(nextTasks);
-    try {
-      window.localStorage.setItem(
-        `minder-step-tasks:${props.indivisual.id}`,
-        JSON.stringify(nextTasks)
-      );
-    } catch (error) {
-      console.error("Failed to save step tasks:", error);
-    }
-  };
-
-  const onSubmitTask = (event: React.FormEvent<HTMLFormElement>) => {
+  const onSubmitTask = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const title = taskText.trim();
-    if (!title || !props.indivisual) return;
-    saveTasks([
-      ...tasks,
-      {
-        id: `${Date.now()}-${Math.random()}`,
+    if (!title || !props.indivisual || !props.currentUserId) return;
+    try {
+      const response = await createTask(props.indivisual.id, {
         title,
         completed: false,
-        owner: selectedAsignee?.value,
-      },
-    ]);
-    setTaskText("");
+        ownerId: props.currentUserId,
+      });
+      setTasks((current) => [
+        ...current,
+        {
+          id: response.data.id,
+          title: response.data.title,
+          completed: response.data.completed,
+          owner: response.data.ownerId,
+        },
+      ]);
+      setTaskText("");
+    } catch (error) {
+      console.error("Failed to create task:", error);
+    }
   };
 
-  const onToggleTask = (taskId: string) => {
-    saveTasks(
-      tasks.map((task) =>
-        task.id === taskId ? { ...task, completed: !task.completed } : task
-      )
-    );
+  const onToggleTask = async (taskId: string) => {
+    const task = tasks.find((item) => item.id === taskId);
+    if (!task || !props.indivisual || !props.currentUserId) return;
+    try {
+      const response = await updateTask(props.indivisual.id, taskId, {
+        title: task.title,
+        completed: !task.completed,
+        ownerId: task.owner || props.currentUserId,
+      });
+      setTasks((current) =>
+        current.map((item) =>
+          item.id === taskId
+            ? { ...item, completed: response.data.completed }
+            : item
+        )
+      );
+    } catch (error) {
+      console.error("Failed to update task:", error);
+    }
   };
 
-  const onChangeTaskOwner = (taskId: string, owner?: string) => {
-    saveTasks(
-      tasks.map((task) =>
-        task.id === taskId ? { ...task, owner: owner || undefined } : task
-      )
-    );
+  const onChangeTaskOwner = async (taskId: string, owner?: string) => {
+    const task = tasks.find((item) => item.id === taskId);
+    if (!task || !props.indivisual || !props.currentUserId) return;
+    try {
+      const response = await updateTask(props.indivisual.id, taskId, {
+        title: task.title,
+        completed: task.completed,
+        ownerId: owner || props.currentUserId,
+      });
+      setTasks((current) =>
+        current.map((item) =>
+          item.id === taskId ? { ...item, owner: response.data.ownerId } : item
+        )
+      );
+    } catch (error) {
+      console.error("Failed to update task owner:", error);
+    }
   };
 
   const onChangeAttachments: ChangeEventHandler<HTMLInputElement> = (event) => {
@@ -349,29 +375,25 @@ export default function IndivisualSidePanel(
     }));
   };
 
-  const saveMessages = (nextMessages: MessageItem[]) => {
+  const addMessage = async (text: string, comment?: string) => {
     if (!props.indivisual) return;
-    setMessages(nextMessages);
     try {
-      window.localStorage.setItem(
-        `minder-step-activity:${props.indivisual.id}`,
-        JSON.stringify(nextMessages)
-      );
-    } catch (error) {
-      console.error("Failed to save step messages:", error);
-    }
-  };
-
-  const addMessage = (text: string, comment?: string) => {
-    saveMessages([
-      {
-        id: `${Date.now()}-${Math.random()}`,
-        text,
-        createdAt: Date.now(),
+      const response = await createMessage(props.indivisual.id, {
+        content: text,
         comment,
-      },
-      ...messages,
-    ]);
+      });
+      setMessages((current) => [
+        {
+          id: response.data.id,
+          text: response.data.content,
+          createdAt: Date.parse(response.data.createdAt),
+          comment: response.data.comment,
+        },
+        ...current,
+      ]);
+    } catch (error) {
+      console.error("Failed to create step message:", error);
+    }
   };
 
   const onChangeStatus = (status: CommonTypes.StepStatus) => {
@@ -381,10 +403,9 @@ export default function IndivisualSidePanel(
     props.onChangeStepStatus(props.indivisual.id, status);
   };
 
-  const memberOptions = [
-    { label: "Unassigned", value: "" },
-    ...authorOptions,
-  ];
+  const memberOptions = props.currentUserId
+    ? [{ label: "You", value: props.currentUserId }]
+    : [];
 
   const onChangeOwner = (owner: string) => {
     if (!props.indivisual) return;
@@ -404,7 +425,7 @@ export default function IndivisualSidePanel(
     event.preventDefault();
     const message = messageText.trim();
     if (!message) return;
-    addMessage("You added a message", message);
+    void addMessage("You added a message", message);
     setMessageText("");
   };
 
@@ -809,10 +830,6 @@ export default function IndivisualSidePanel(
               {tasks.length ? (
                 <ul className={styles.taskList}>
                   {tasks.map((task) => {
-                    const owner = authorOptions.find(
-                      (option) => option.value === task.owner
-                    );
-
                     return (
                       <li className={styles.taskItem} key={task.id}>
                         <button

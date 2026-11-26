@@ -14,9 +14,11 @@ type UpdateStepPositionRequest = {
 };
 
 type UpdateStepDetailsRequest = {
-  title: string;
-  description: string;
-  ac: string;
+  title?: string;
+  description?: string;
+  ac?: string;
+  statusId?: string;
+  ownerId?: string;
 };
 
 type StepDependency = {

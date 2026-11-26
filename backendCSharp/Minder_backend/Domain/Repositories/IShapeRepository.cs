@@ -9,6 +9,9 @@ namespace Domain.Repositories
             Guid projectId,
             Guid stepId,
             CancellationToken cancellationToken);
+        Task<StatusEntity?> GetStatusAsync(
+            Guid statusId,
+            CancellationToken cancellationToken);
         Task<List<StepEntity>> GetStepsAsync(
             Guid projectId,
             CancellationToken cancellationToken);

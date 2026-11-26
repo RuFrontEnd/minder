@@ -131,9 +131,40 @@ public sealed class ShapeService(
         var step = await shapeRepository.GetStepAsync(projectId, stepId, cancellationToken);
         if (step is null) return null;
 
-        step.Title = request.Title.Trim();
-        step.Description = request.Description.Trim();
-        step.Ac = request.Ac.Trim();
+        if (request.Title is not null)
+            step.Title = request.Title.Trim();
+
+        if (request.Description is not null)
+            step.Description = request.Description.Trim();
+
+        if (request.Ac is not null)
+            step.Ac = request.Ac.Trim();
+
+        if (request.StatusId.HasValue)
+        {
+            var status = await shapeRepository.GetStatusAsync(
+                request.StatusId.Value,
+                cancellationToken);
+            if (status is null) return null;
+
+            step.StatusId = status.Id;
+            step.Status = status;
+        }
+
+        if (request.OwnerId.HasValue)
+        {
+            var members = await projectRepository.GetMembersAsync(
+                projectId,
+                userId,
+                cancellationToken);
+            if (members is null ||
+                !members.Any(member => member.UserId == request.OwnerId.Value))
+            {
+                return null;
+            }
+
+            step.Owner = request.OwnerId.Value;
+        }
 
         var updatedStep = await shapeRepository.UpdateShapeAsync(step);
         return ToResponse(updatedStep);

@@ -39,6 +39,15 @@ namespace Infrastructure.Repositories
                     cancellationToken);
         }
 
+        public Task<StatusEntity?> GetStatusAsync(
+            Guid statusId,
+            CancellationToken cancellationToken)
+        {
+            return dbContext.Statuses.FirstOrDefaultAsync(
+                status => status.Id == statusId,
+                cancellationToken);
+        }
+
         public Task<List<StepEntity>> GetStepsAsync(
             Guid projectId,
             CancellationToken cancellationToken)

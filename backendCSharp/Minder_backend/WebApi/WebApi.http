@@ -59,3 +59,35 @@ Accept: application/json
 Cookie: X-Access-Token={{accessToken}}
 
 ###
+
+### Get tasks for a step
+GET {{Minder_backend_HostAddress}}/api/steps/{{stepId}}/tasks
+Accept: application/json
+Cookie: X-Access-Token={{accessToken}}
+
+### Create a task
+POST {{Minder_backend_HostAddress}}/api/steps/{{stepId}}/tasks
+Content-Type: application/json
+Cookie: X-Access-Token={{accessToken}}
+
+{
+  "title": "Review acceptance criteria",
+  "description": "Check the completed step before release.",
+  "completed": false,
+  "ownerId": "00000000-0000-0000-0000-000000000000"
+}
+
+### Get messages for a step
+GET {{Minder_backend_HostAddress}}/api/steps/{{stepId}}/messages
+Accept: application/json
+Cookie: X-Access-Token={{accessToken}}
+
+### Create a message
+POST {{Minder_backend_HostAddress}}/api/steps/{{stepId}}/messages
+Content-Type: application/json
+Cookie: X-Access-Token={{accessToken}}
+
+{
+  "content": "You added a message",
+  "comment": "Please review this step."
+}

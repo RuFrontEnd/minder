@@ -22,6 +22,8 @@ type AddDatas = {
 }[];
 
 type Props = {
+  projectId: string | null;
+  currentUserId: string | null;
   isLogIn: boolean;
   authModalOpenSignal: number;
   setIsLogin: Dispatch<SetStateAction<Props["isLogIn"]>>;

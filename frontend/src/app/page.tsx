@@ -49,6 +49,7 @@ import * as ProjectTypes from "@/types/project";
 import * as CurveTypes from "@/types/shapes/curve";
 import * as CommonTypes from "@/types/common";
 import * as AuthTypes from "@/types/apis/auth";
+import * as StepApiTypes from "@/types/apis/step";
 import * as SelectionTypes from "@/types/shapes/selection";
 import * as IndivisaulSidePanelTypes from "@/types/sections/id/indivisualSidePanel";
 import * as InputTypes from "@/types/components/input";
@@ -69,6 +70,12 @@ const api = axios.create({
   baseURL: "http://localhost:5000/api",
   withCredentials: true,
 });
+
+const statusIds: Record<CommonTypes.StepStatus, string> = {
+  Todo: "a4f6c6d2-8d0d-4c8f-9f7b-8cf9b9f1f001",
+  "In Progress": "a4f6c6d2-8d0d-4c8f-9f7b-8cf9b9f1f002",
+  Done: "a4f6c6d2-8d0d-4c8f-9f7b-8cf9b9f1f003",
+};
 
 // 回應攔截器
 api.interceptors.response.use(
@@ -2138,22 +2145,23 @@ export default function IdPage() {
     }, 33);
   };
 
-  const onChangeStepStatus = (
+  const onChangeStepStatus = async (
     shapeId: string,
     status: CommonTypes.StepStatus
   ) => {
-    setStepStatuses((currentStatuses) => {
-      const nextStatuses = { ...currentStatuses, [shapeId]: status };
-      try {
-        window.localStorage.setItem(
-          "minder-step-statuses",
-          JSON.stringify(nextStatuses)
-        );
-      } catch (error) {
-        console.error("Failed to save step statuses:", error);
-      }
-      return nextStatuses;
-    });
+    if (!currentProjectId || !statusIds[status]) return;
+
+    try {
+      await updateStepDetails(currentProjectId, shapeId, {
+        statusId: statusIds[status],
+      });
+      setStepStatuses((currentStatuses) => ({
+        ...currentStatuses,
+        [shapeId]: status,
+      }));
+    } catch (error) {
+      console.error("Failed to save step status:", error);
+    }
   };
 
   const movingViewport = useMemo(
@@ -2391,7 +2399,7 @@ export default function IdPage() {
 
   const onSaveStepDetails = async (
     stepId: string,
-    details: { title: string; description: string; ac: string }
+    details: StepApiTypes.UpdateStepDetailsRequest
   ) => {
     const step = shapes.find((shape) => shape.id === stepId);
     if (!step) throw new Error("Step not found.");
@@ -2400,9 +2408,10 @@ export default function IdPage() {
       await updateStepDetails(currentProjectId, stepId, details);
     }
 
-    step.title = details.title;
-    step.description = details.description;
-    step.ac = details.ac;
+    if (details.title !== undefined) step.title = details.title;
+    if (details.description !== undefined)
+      step.description = details.description;
+    if (details.ac !== undefined) step.ac = details.ac;
     updateShapes([...shapes]);
   };
 
@@ -3410,16 +3419,6 @@ export default function IdPage() {
   useEffect(() => {
     if (!isBrowser) return;
     void validateToken(true);
-    try {
-      const savedStatuses = window.localStorage.getItem("minder-step-statuses");
-      if (savedStatuses) {
-        setStepStatuses(
-          JSON.parse(savedStatuses) as Record<string, CommonTypes.StepStatus>
-        );
-      }
-    } catch (error) {
-      console.error("Failed to load step statuses:", error);
-    }
 
     (async () => {
       drawCanvas(offset, scale);
@@ -3623,7 +3622,6 @@ export default function IdPage() {
     setIsOverAllSidePanelOpen(false);
     setIsIndivisualSidePanelOpen(true);
     try {
-      window.localStorage.removeItem("minder-step-statuses");
     } catch (error) {
       console.error("Failed to clear step statuses:", error);
     }
@@ -3942,6 +3940,8 @@ export default function IdPage() {
       />
 
       <IndivisaulSidePanel
+        projectId={currentProjectId}
+        currentUserId={currentUserId}
         projectName={projectName.val}
         isLogIn={isLogIn}
         authModalOpenSignal={authModalOpenSignal}

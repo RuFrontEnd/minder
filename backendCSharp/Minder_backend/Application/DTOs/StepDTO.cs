@@ -34,18 +34,21 @@ public sealed record UpdateStepPositionRequest
     public double Y { get; init; }
 }
 
-/// <summary>Payload for updating a step's title, description, and acceptance criteria.</summary>
+/// <summary>Payload for partially updating a step.</summary>
 public sealed record UpdateStepDetailsRequest
 {
-    [Required]
     [StringLength(200, MinimumLength = 1)]
-    public required string Title { get; init; }
+    public string? Title { get; init; }
 
     [StringLength(5000)]
-    public string Description { get; init; } = string.Empty;
+    public string? Description { get; init; }
 
     [StringLength(5000)]
-    public string Ac { get; init; } = string.Empty;
+    public string? Ac { get; init; }
+
+    public Guid? StatusId { get; init; }
+
+    public Guid? OwnerId { get; init; }
 }
 
 /// <summary>Represents a dependency where a step requires another step.</summary>
