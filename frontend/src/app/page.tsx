@@ -3867,7 +3867,7 @@ export default function IdPage() {
         isOpen={isSaveProjectPromptOpen}
         onClose={onClickDoNotSaveProject}
         placement="center"
-        title="Save current project?"
+        title="Save this canvas as a new project?"
         okText={isSavingProject ? "Saving..." : "Save Project"}
         cancelText="No, Thanks"
         showCancelButton
