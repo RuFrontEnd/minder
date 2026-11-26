@@ -3708,7 +3708,7 @@ export default function IdPage() {
       setStepStatuses(
         Object.fromEntries(
           stepsResponse.data.map((step) => {
-            const status = step.status.toLowerCase();
+            const status = step.status.toLowerCase().replace(/\s+/g, "");
             const stepStatus: CommonTypes.StepStatus =
               status === "done"
                 ? "Done"

@@ -269,12 +269,12 @@ namespace Infrastructure.Migrations
                         new
                         {
                             Id = new Guid("a4f6c6d2-8d0d-4c8f-9f7b-8cf9b9f1f001"),
-                            Name = "todo"
+                            Name = "Todo"
                         },
                         new
                         {
                             Id = new Guid("a4f6c6d2-8d0d-4c8f-9f7b-8cf9b9f1f002"),
-                            Name = "inProgress"
+                            Name = "In Progress"
                         },
                         new
                         {

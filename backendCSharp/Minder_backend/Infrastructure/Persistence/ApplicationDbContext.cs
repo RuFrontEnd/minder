@@ -212,12 +212,12 @@ namespace Infrastructure.Persistence
                     new
                     {
                         Id = StatusEntity.TodoId,
-                        Name = "todo"
+                        Name = "Todo"
                     },
                     new
                     {
                         Id = StatusEntity.InProgressId,
-                        Name = "inProgress"
+                        Name = "In Progress"
                     },
                     new
                     {
