@@ -8,7 +8,8 @@ namespace WebAPi.Realtime;
 public sealed class ProjectHub(
     IProjectRepository projectRepository,
     ProjectCursorBroadcaster cursorBroadcaster,
-    StepPositionBroadcaster stepPositionBroadcaster) : Hub
+    StepPositionBroadcaster stepPositionBroadcaster,
+    ProjectPresenceTracker presenceTracker) : Hub
 {
     public async Task JoinProject(Guid projectId)
     {
@@ -38,15 +39,30 @@ public sealed class ProjectHub(
             GroupName(projectId), // 透過 project id 來區分不同的 client 端群組，形成不同的群組
             Context.ConnectionAborted);
         Context.Items[ProjectKey(projectId)] = true;
+        var firstConnection = presenceTracker.Add(
+            projectId,
+            userId,
+            Context.ConnectionId);
+        var onlineUserIds = presenceTracker.GetOnlineUsers(projectId);
+        var onlineMembers = (members ?? [])
+            .Where(member => onlineUserIds.Contains(member.UserId))
+            .ToList();
 
         await Clients.Caller.SendAsync(
             "projectUsers",
+            onlineMembers,
+            Context.ConnectionAborted);
+        await Clients.Caller.SendAsync(
+            "projectMembers",
             members,
             Context.ConnectionAborted);
-        await Clients.OthersInGroup(GroupName(projectId)).SendAsync(
-            "projectUserJoined",
-            currentMember,
-            Context.ConnectionAborted);
+        if (firstConnection)
+        {
+            await Clients.OthersInGroup(GroupName(projectId)).SendAsync(
+                "projectUserJoined",
+                currentMember,
+                Context.ConnectionAborted);
+        }
     }
 
     public async Task LeaveProject(Guid projectId)
@@ -57,16 +73,20 @@ public sealed class ProjectHub(
         }
 
         Context.Items.Remove(ProjectKey(projectId));
+        var userId = GetUserId();
         cursorBroadcaster.Remove(projectId, Context.ConnectionId);
         stepPositionBroadcaster.Remove(projectId, Context.ConnectionId);
         await Groups.RemoveFromGroupAsync(
             Context.ConnectionId,
             GroupName(projectId),
             Context.ConnectionAborted);
-        await Clients.Group(GroupName(projectId)).SendAsync(
-            "projectUserLeft",
-            GetUserId(),
-            Context.ConnectionAborted);
+        if (presenceTracker.Remove(projectId, userId, Context.ConnectionId))
+        {
+            await Clients.Group(GroupName(projectId)).SendAsync(
+                "projectUserLeft",
+                userId,
+                Context.ConnectionAborted);
+        }
     }
 
     public Task UpdateCursor(Guid projectId, CursorPosition position)
@@ -140,10 +160,13 @@ public sealed class ProjectHub(
         {
             cursorBroadcaster.Remove(projectId, Context.ConnectionId);
             stepPositionBroadcaster.Remove(projectId, Context.ConnectionId);
-            await Clients.Group(GroupName(projectId)).SendAsync(
-                "projectUserLeft",
-                userId,
-                Context.ConnectionAborted);
+            if (presenceTracker.Remove(projectId, userId, Context.ConnectionId))
+            {
+                await Clients.Group(GroupName(projectId)).SendAsync(
+                    "projectUserLeft",
+                    userId,
+                    Context.ConnectionAborted);
+            }
         }
 
         await base.OnDisconnectedAsync(exception);

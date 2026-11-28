@@ -3909,6 +3909,8 @@ export default function IdPage() {
 
     connection.on("projectUsers", (users: ProjectUser[]) => {
       setProjectUsers(users.filter((user) => user.userId !== currentUserId));
+    });
+    connection.on("projectMembers", (users: ProjectUser[]) => {
       setProjectMembers(users);
     });
     connection.on("projectUserJoined", (user: ProjectUser) => {
@@ -3932,16 +3934,18 @@ export default function IdPage() {
         user,
       ]);
       if (user.userId !== currentUserId) {
-        setProjectUsers((users) => [
-          ...users.filter((current) => current.userId !== user.userId),
-          user,
-        ]);
+        setProjectUsers((users) => {
+          if (!users.some((current) => current.userId === user.userId)) {
+            return users;
+          }
+
+          return users.map((current) =>
+            current.userId === user.userId ? user : current
+          );
+        });
       }
     });
     connection.on("projectUserLeft", (userId: string) => {
-      setProjectMembers((users) =>
-        users.filter((user) => user.userId !== userId)
-      );
       setProjectUsers((users) => users.filter((user) => user.userId !== userId));
       setRemoteCursors((cursors) => {
         const next = { ...cursors };
@@ -4012,6 +4016,7 @@ export default function IdPage() {
       connection.off("projectUpdated");
       connection.off("stepPositionPreview");
       connection.off("projectUsers");
+      connection.off("projectMembers");
       connection.off("projectUserJoined");
       connection.off("projectUserUpdated");
       connection.off("projectUserLeft");
