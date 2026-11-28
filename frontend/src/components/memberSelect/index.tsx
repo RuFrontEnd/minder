@@ -3,13 +3,14 @@ import Avatar from "@/components/avatar";
 import { Menu } from "@/components/menu";
 import Portal from "@/components/portal";
 import * as MemberSelectTypes from "@/types/components/memberSelect";
+import { getAvatarInitials } from "@/lib/utils";
 import styles from "./index.module.css";
 
 const MemberSelect = (props: MemberSelectTypes.Props) => {
   const selectedOption = props.options.find(
     (option) => option.value === props.value
   );
-  const avatarSize = props.avatarSize || "xs";
+  const avatarSize = props.avatarSize || "2xs";
 
   return (
     <Menu.Root positioning={{ placement: "bottom-start" }}>
@@ -24,12 +25,17 @@ const MemberSelect = (props: MemberSelectTypes.Props) => {
               className={styles.avatar}
               src={selectedOption.src}
               name={props.showLabel ? selectedOption.label : undefined}
-              fallback={selectedOption.label.charAt(0)}
+              fallback={getAvatarInitials(selectedOption.label)}
+              avatarStyle={selectedOption.avatarStyle}
               size={avatarSize}
             />
           ) : (
             <span className={styles.placeholderAvatar}>
-              <span>{props.options[0]?.label.charAt(0) || "?"}</span>
+              <span>
+                {props.options[0]
+                  ? getAvatarInitials(props.options[0].label)
+                  : "?"}
+              </span>
             </span>
           )}
         </button>
@@ -48,7 +54,8 @@ const MemberSelect = (props: MemberSelectTypes.Props) => {
                   className={styles.avatar}
                   src={option.src}
                   name={option.label}
-                  fallback={option.label.charAt(0)}
+                  fallback={getAvatarInitials(option.label)}
+                  avatarStyle={option.avatarStyle}
                   size="2xs"
                 />
               </Menu.Item>

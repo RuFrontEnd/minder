@@ -297,12 +297,6 @@
   line-height: 1.25;
 }
 
-.ownerSelectTrigger :global([data-scope="avatar"][data-part="root"]),
-.ownerSelectTrigger > :global(span) {
-  width: 22px;
-  height: 22px;
-}
-
 .ownerAvatar {
   gap: 7px !important;
 }

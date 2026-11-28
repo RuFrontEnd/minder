@@ -13,7 +13,7 @@ type Props = {
   isOpen: boolean;
   onClose: () => void;
   isCloseDisabled?: boolean;
-  afterAvatarChange?: (avatarUrl: string) => void;
+  afterAvatarChange?: (avatarUrl: string) => void | Promise<void>;
   afterUserProfileLoad?: (profile: {
     firstName: string;
     lastName: string;
@@ -120,7 +120,7 @@ export default function UserInfoModal(props: Props) {
       setUserProfile((current) =>
         current ? { ...current, avatarUrl: savedAvatarUrl } : current
       );
-      props.afterAvatarChange?.(savedAvatarUrl);
+      await props.afterAvatarChange?.(savedAvatarUrl);
     } catch (error) {
       console.error("Failed to upload avatar:", error);
       setLoadError("Unable to upload avatar. Please try again.");

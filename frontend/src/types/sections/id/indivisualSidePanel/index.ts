@@ -8,6 +8,7 @@ import * as SelectTypes from "@/types/components/input";
 import * as CommonTypes from "@/types/common";
 import * as PageIdTypes from "@/types/app/pageId";
 import * as StepApiTypes from "@/types/apis/step";
+import type { ProjectUser } from "@/apis/realtime";
 
 type CreateDatas = {
   val: null | string;
@@ -24,6 +25,7 @@ type AddDatas = {
 type Props = {
   projectId: string | null;
   currentUserId: string | null;
+  projectMembers: ProjectUser[];
   isLogIn: boolean;
   authModalOpenSignal: number;
   setIsLogin: Dispatch<SetStateAction<Props["isLogIn"]>>;

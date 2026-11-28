@@ -1,11 +1,14 @@
 ﻿using Domain.Entities;
+using Domain.Provider;
 using Domain.Repositories;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories
 {
-    public class ProjectRepository(ApplicationDbContext context) : IProjectRepository
+    public class ProjectRepository(
+        ApplicationDbContext context,
+        IAvatarStorageProvider avatarStorageProvider) : IProjectRepository
     {
         public async Task<List<ProjectMembership>> GetProjectsAsync(
             Guid userId,
@@ -125,7 +128,7 @@ namespace Infrastructure.Repositories
                 cancellationToken);
             if (!isMember) return null;
 
-            return await (
+            var members = await (
                 from member in context.Members
                 join user in context.Users on member.UserId equals user.Id
                 join role in context.Roles on member.RoleId equals role.Id
@@ -141,6 +144,15 @@ namespace Infrastructure.Repositories
                     user.AvatarColor == null ? null : user.AvatarColor.BackgroundColor,
                     role.Name)
             ).ToListAsync(cancellationToken);
+
+            var membersWithAvatar = await Task.WhenAll(
+                members.Select(async member => member with
+                {
+                    AvatarUrl = await avatarStorageProvider.CreateDownloadUrlAsync(
+                        member.AvatarUrl)
+                }));
+
+            return membersWithAvatar.ToList();
         }
 
         public async Task<RemoveProjectMemberResult> RemoveMemberAsync(

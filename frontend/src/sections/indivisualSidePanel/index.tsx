@@ -217,8 +217,19 @@ export default function IndivisualSidePanel(
     if (!props.indivisual) return;
 
     setAsigneeValues(
-      (props.indivisual as any).asignee
-        ? [(props.indivisual as any).asignee]
+      (props.indivisual as CommonTypes.Step & {
+        asignee?: string;
+        owner?: string;
+      }).asignee ||
+        (props.indivisual as CommonTypes.Step & { owner?: string }).owner
+        ? [
+            (props.indivisual as CommonTypes.Step & {
+              asignee?: string;
+              owner?: string;
+            }).asignee ||
+              (props.indivisual as CommonTypes.Step & { owner?: string }).owner ||
+              "",
+          ]
         : []
     );
   }, [props.indivisual]);
@@ -403,13 +414,21 @@ export default function IndivisualSidePanel(
     props.onChangeStepStatus(props.indivisual.id, status);
   };
 
-  const memberOptions = props.currentUserId
-    ? [{ label: "You", value: props.currentUserId }]
-    : [];
+  const memberOptions = props.projectMembers.map((member) => ({
+    label:
+      `${member.firstName} ${member.lastName}`.trim() || member.email,
+    value: member.userId,
+    src: member.avatarUrl || undefined,
+    avatarStyle: {
+      color: member.avatarColor || "#334155",
+      backgroundColor: member.avatarBackgroundColor || "#e5e7eb",
+    },
+  }));
 
-  const onChangeOwner = (owner: string) => {
+  const onChangeOwner = async (owner: string) => {
     if (!props.indivisual) return;
 
+    const previousOwner = asigneeValues[0] || "";
     setAsigneeValues(owner ? [owner] : []);
     props.updateShapes(
       props.shapes.map((shape) => {
@@ -419,6 +438,16 @@ export default function IndivisualSidePanel(
         return shape;
       })
     );
+
+    try {
+      await props.onSaveStepDetails(props.indivisual.id, {
+        ownerId: owner || undefined,
+      });
+    } catch (error) {
+      setAsigneeValues(previousOwner ? [previousOwner] : []);
+      setStepDetailsSaveError("Unable to update the step owner.");
+      console.error("Failed to update step owner:", error);
+    }
   };
 
   const onSubmitMessage = (event: React.FormEvent<HTMLFormElement>) => {

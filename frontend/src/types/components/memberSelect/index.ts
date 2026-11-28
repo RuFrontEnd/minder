@@ -1,7 +1,10 @@
+import { CSSProperties } from "react";
+
 type Option = {
   label: string;
   value: string;
   src?: string;
+  avatarStyle?: CSSProperties;
 };
 
 type Props = {

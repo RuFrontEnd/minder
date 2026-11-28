@@ -2115,6 +2115,7 @@ export default function IdPage() {
   const [isProjectSelectionRequired, setIsProjectSelectionRequired] =
     useState(false);
   const [projectUsers, setProjectUsers] = useState<ProjectUser[]>([]);
+  const [projectMembers, setProjectMembers] = useState<ProjectUser[]>([]);
   const [remoteCursors, setRemoteCursors] = useState<
     Record<string, ProjectCursor["position"]>
   >({});
@@ -2485,6 +2486,10 @@ export default function IdPage() {
     if (details.description !== undefined)
       step.description = details.description;
     if (details.ac !== undefined) step.ac = details.ac;
+    if (details.ownerId !== undefined) {
+      (step as CommonTypes.Step & { owner?: string }).owner =
+        details.ownerId;
+    }
     updateShapes([...shapes]);
   };
 
@@ -2768,6 +2773,9 @@ export default function IdPage() {
       existingStep.title = String(data.title || "");
       existingStep.description = String(data.description || "");
       existingStep.ac = String(data.ac || "");
+      (existingStep as CommonTypes.Step & { owner?: string }).owner = String(
+        data.ownerId || ""
+      );
       existingStep.w = Number(data.width);
       existingStep.h = Number(data.height);
       updateShapes([...shapes]);
@@ -3820,6 +3828,8 @@ export default function IdPage() {
           }, step.title);
         loadedStep.description = step.description;
         loadedStep.ac = step.ac;
+        (loadedStep as CommonTypes.Step & { owner?: string }).owner =
+          step.ownerId;
         return loadedStep;
       });
       const loadedStepMap = new Map(loadedSteps.map((step) => [step.id, step]));
@@ -3920,9 +3930,14 @@ export default function IdPage() {
 
     connection.on("projectUsers", (users: ProjectUser[]) => {
       setProjectUsers(users.filter((user) => user.userId !== currentUserId));
+      setProjectMembers(users);
     });
     connection.on("projectUserJoined", (user: ProjectUser) => {
       if (user.userId !== currentUserId) {
+        setProjectMembers((users) => [
+          ...users.filter((current) => current.userId !== user.userId),
+          user,
+        ]);
         setProjectUsers((users) => [
           ...users.filter((current) => current.userId !== user.userId),
           user,
@@ -3932,7 +3947,22 @@ export default function IdPage() {
         }
       }
     });
+    connection.on("projectUserUpdated", (user: ProjectUser) => {
+      setProjectMembers((users) => [
+        ...users.filter((current) => current.userId !== user.userId),
+        user,
+      ]);
+      if (user.userId !== currentUserId) {
+        setProjectUsers((users) => [
+          ...users.filter((current) => current.userId !== user.userId),
+          user,
+        ]);
+      }
+    });
     connection.on("projectUserLeft", (userId: string) => {
+      setProjectMembers((users) =>
+        users.filter((user) => user.userId !== userId)
+      );
       setProjectUsers((users) => users.filter((user) => user.userId !== userId));
       setRemoteCursors((cursors) => {
         const next = { ...cursors };
@@ -3996,6 +4026,7 @@ export default function IdPage() {
       pendingStepSavePositionsRef.current.clear();
       pendingRemoteStepPositionsRef.current.clear();
       setProjectUsers([]);
+      setProjectMembers([]);
       setRemoteCursors({});
       setRemoteStepPositions({});
       projectConnectionRef.current = null;
@@ -4003,6 +4034,7 @@ export default function IdPage() {
       connection.off("stepPositionPreview");
       connection.off("projectUsers");
       connection.off("projectUserJoined");
+      connection.off("projectUserUpdated");
       connection.off("projectUserLeft");
       connection.off("projectCursorMoved");
       void connection.stop();
@@ -4064,7 +4096,18 @@ export default function IdPage() {
         isOpen={isUserInfoOpen}
         onClose={() => setIsUserInfoOpen(false)}
         isCloseDisabled={isProjectSelectionRequired}
-        afterAvatarChange={setUserAvatarUrl}
+        afterAvatarChange={async (avatarUrl) => {
+          setUserAvatarUrl(avatarUrl);
+          if (
+            currentProjectId &&
+            projectConnectionRef.current?.state === HubConnectionState.Connected
+          ) {
+            await projectConnectionRef.current.invoke(
+              "UpdateMemberProfile",
+              currentProjectId
+            );
+          }
+        }}
         afterUserProfileLoad={(profile) => {
           setUserInitials(
             `${profile.firstName?.[0] || ""}${profile.lastName?.[0] || ""}`.toUpperCase() ||
@@ -4116,6 +4159,7 @@ export default function IdPage() {
       <IndivisaulSidePanel
         projectId={currentProjectId}
         currentUserId={currentUserId}
+        projectMembers={projectMembers}
         projectName={projectName.val}
         isLogIn={isLogIn}
         authModalOpenSignal={authModalOpenSignal}

@@ -99,6 +99,30 @@ public sealed class ProjectHub(
         return Task.CompletedTask;
     }
 
+    public async Task UpdateMemberProfile(Guid projectId)
+    {
+        if (!IsJoined(projectId))
+        {
+            throw new HubException("The connection has not joined this project.");
+        }
+
+        var currentMember = (await projectRepository.GetMembersAsync(
+            projectId,
+            GetUserId(),
+            Context.ConnectionAborted))?.SingleOrDefault(member =>
+                member.UserId == GetUserId());
+
+        if (currentMember is null)
+        {
+            throw new HubException("The project member could not be loaded.");
+        }
+
+        await Clients.OthersInGroup(GroupName(projectId)).SendAsync(
+            "projectUserUpdated",
+            currentMember,
+            Context.ConnectionAborted);
+    }
+
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
         var userId = GetUserId();
