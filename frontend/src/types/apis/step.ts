@@ -6,6 +6,7 @@ type CreateStepRequest = {
   height: number;
   x: number;
   y: number;
+  ownerId?: string;
 };
 
 type UpdateStepPositionRequest = {

@@ -33,6 +33,7 @@ import { tailwindColors } from "@/variables/colors";
 import { getMessages, createMessage } from "@/apis/message";
 import { getTasks, createTask, updateTask } from "@/apis/task";
 import type { StepCreator } from "@/utils/stepCreator";
+import { getAvatarInitials } from "@/lib/utils";
 import styles from "./index.module.css";
 
 import * as IconTypes from "@/types/components/icon";
@@ -108,7 +109,20 @@ export default function IndivisualSidePanel(
   const [editingAc, setEditingAc] = useState("");
   const [stepDetailsSaveError, setStepDetailsSaveError] = useState("");
   const [asigneeValues, setAsigneeValues] = useState<string[]>([]);
-  const [creator] = useState<StepCreator | null>(null);
+  const creator = useMemo<StepCreator | null>(() => {
+    const member = props.projectMembers.find(
+      (projectMember) => projectMember.userId === props.currentUserId
+    );
+    if (!member) return null;
+
+    return {
+      name:
+        `${member.firstName} ${member.lastName}`.trim() || member.email,
+      avatarUrl: member.avatarUrl || undefined,
+      avatarColor: member.avatarColor,
+      avatarBackgroundColor: member.avatarBackgroundColor,
+    };
+  }, [props.currentUserId, props.projectMembers]);
   const [messageText, setMessageText] = useState("");
   const [messages, setMessages] = useState<MessageItem[]>([]);
   const [tasks, setTasks] = useState<TaskItem[]>([]);
@@ -157,7 +171,9 @@ export default function IndivisualSidePanel(
     setAsigneeValues(
       (props.indivisual as any)?.asignee
         ? [(props.indivisual as any).asignee]
-        : []
+        : props.currentUserId
+          ? [props.currentUserId]
+          : []
     );
   };
 
@@ -175,7 +191,9 @@ export default function IndivisualSidePanel(
     setAsigneeValues(
       (props.indivisual as any)?.asignee
         ? [(props.indivisual as any).asignee]
-        : []
+        : props.currentUserId
+          ? [props.currentUserId]
+          : []
     );
   };
 
@@ -230,7 +248,9 @@ export default function IndivisualSidePanel(
               (props.indivisual as CommonTypes.Step & { owner?: string }).owner ||
               "",
           ]
-        : []
+        : props.currentUserId
+          ? [props.currentUserId]
+          : []
     );
   }, [props.indivisual]);
 
@@ -429,7 +449,9 @@ export default function IndivisualSidePanel(
     if (!props.indivisual) return;
 
     const previousOwner = asigneeValues[0] || "";
-    setAsigneeValues(owner ? [owner] : []);
+    setAsigneeValues(owner ? [owner]     : props.currentUserId
+      ? [props.currentUserId]
+      : []);
     props.updateShapes(
       props.shapes.map((shape) => {
         if (shape.id === props.indivisual?.id) {
@@ -756,11 +778,16 @@ export default function IndivisualSidePanel(
                   Creator
                 </span>
                 <div className={styles.personSummaryValue}>
-                  {creator?.avatarUrl ? (
+                  {creator ? (
                     <Avatar
-                      src={creator.avatarUrl}
-                      name={creator.name}
-                      size="xs"
+                      src={creator.avatarUrl || undefined}
+                      fallback={getAvatarInitials(creator.name)}
+                      avatarStyle={{
+                        color: creator.avatarColor || "#334155",
+                        backgroundColor:
+                          creator.avatarBackgroundColor || "#e5e7eb",
+                      }}
+                      size="2xs"
                     />
                   ) : (
                     <span className={styles.placeholderAvatar}>

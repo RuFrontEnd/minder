@@ -1,6 +1,8 @@
 export type StepCreator = {
   name: string;
   avatarUrl?: string;
+  avatarColor?: string | null;
+  avatarBackgroundColor?: string | null;
 };
 
 export const recordStepCreator = (_stepId: string) => null;

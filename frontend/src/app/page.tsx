@@ -2442,8 +2442,13 @@ export default function IdPage() {
       height: step.h,
       x: step.p.x,
       y: step.p.y,
+      ownerId: currentUserId || undefined,
     });
     step.id = response.data.id;
+    (step as CommonTypes.Step & { owner?: string; asignee?: string }).owner =
+      currentUserId || undefined;
+    (step as CommonTypes.Step & { owner?: string; asignee?: string }).asignee =
+      currentUserId || undefined;
     recordStepCreator(step.id);
     checkSteps();
 
@@ -3720,8 +3725,13 @@ export default function IdPage() {
           height: step.h,
           x: step.p.x,
           y: step.p.y,
+          ownerId: currentUserId || undefined,
         });
         step.id = response.data.id;
+        (step as CommonTypes.Step & { owner?: string; asignee?: string }).owner =
+          currentUserId || undefined;
+        (step as CommonTypes.Step & { owner?: string; asignee?: string }).asignee =
+          currentUserId || undefined;
         recordStepCreator(step.id);
       }
 
