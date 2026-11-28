@@ -57,7 +57,11 @@ namespace Infrastructure.Repositories
             CancellationToken cancellationToken)
         {
             var membership = await GetProjectAsync(projectId, userId, cancellationToken);
-            if (membership is null) return null;
+            if (membership is null ||
+                !string.Equals(membership.Role, "owner", StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
 
             membership.Project.Rename(name);
             await context.SaveChangesAsync(cancellationToken);

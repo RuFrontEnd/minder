@@ -4116,9 +4116,11 @@ export default function IdPage() {
         onDeleted={onProjectDeleted}
         projectName={projectName.val}
         onChangeProjectName={async (name) => {
-          if (isAuthorized && currentProjectId) {
-            await updateProjectName(currentProjectId, name);
+          if (!isAuthorized || !currentProjectId || currentProjectRole !== "owner") {
+            return;
           }
+
+          await updateProjectName(currentProjectId, name);
           setProjectName({ inputVal: name, val: name });
         }}
       />

@@ -250,7 +250,7 @@ const ProjectModal = ({
         <h3 className={styles.sectionTitle}>General</h3>
         <div className={styles.nameRow}>
           <span className={styles.nameLabel}>Project name</span>
-          {!isEditingName && (
+          {isOwner && !isEditingName && (
             <IconButton
               ariaLabel="Edit project name"
               size="2xs"
@@ -271,7 +271,7 @@ const ProjectModal = ({
             />
           )}
         </div>
-        {isEditingName ? (
+        {isOwner && isEditingName ? (
           <>
             <ChakraInput
               autoFocus
