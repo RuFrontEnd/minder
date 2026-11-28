@@ -2118,6 +2118,9 @@ export default function IdPage() {
   const [remoteCursors, setRemoteCursors] = useState<
     Record<string, ProjectCursor["position"]>
   >({});
+  const [remoteStepPositions, setRemoteStepPositions] = useState<
+    Record<string, CommonTypes.Vec>
+  >({});
   const projectConnectionRef = useRef<HubConnection | null>(null);
   const localCursorRef = useRef<CommonTypes.Vec | null>(null);
   const cursorSendTimeoutRef = useRef<number | null>(null);
@@ -2131,6 +2134,10 @@ export default function IdPage() {
   const stepPositionSendTimeoutRef = useRef<number | null>(null);
   const isSendingStepPositionsRef = useRef(false);
   const draggingStepIdsRef = useRef(new Set<string>());
+  const pendingRemoteStepPositionsRef = useRef<
+    Map<string, StepPositionPreview>
+  >(new Map());
+  const remoteStepPositionApplyTimeoutRef = useRef<number | null>(null);
 
   const sendCursor = (position: CommonTypes.Vec) => {
     localCursorRef.current = position;
@@ -2731,6 +2738,9 @@ export default function IdPage() {
     ) {
       const stepId = String(data.id || "");
       if (!validateUuid(stepId)) return;
+      const x = Number(data.x);
+      const y = Number(data.y);
+      if (!Number.isFinite(x) || !Number.isFinite(y)) return;
 
       const existingStep = shapes.find((shape) => shape.id === stepId);
       if (draggingStepIdsRef.current.has(stepId)) return;
@@ -2740,8 +2750,8 @@ export default function IdPage() {
           Number(data.width),
           Number(data.height),
           {
-            x: Number(data.x),
-            y: Number(data.y),
+            x,
+            y,
           },
           String(data.title || "")
         );
@@ -2752,8 +2762,8 @@ export default function IdPage() {
       }
 
       existingStep.p = {
-        x: Number(data.x),
-        y: Number(data.y),
+        x,
+        y,
       };
       existingStep.title = String(data.title || "");
       existingStep.description = String(data.description || "");
@@ -2852,7 +2862,16 @@ export default function IdPage() {
     }
   };
 
+  const isValidStepPositionPreview = (
+    preview: StepPositionPreview
+  ): boolean =>
+    validateUuid(preview.stepId) &&
+    Number.isFinite(preview.position?.x) &&
+    Number.isFinite(preview.position?.y);
+
   const applyStepPositionPreview = (preview: StepPositionPreview) => {
+    if (!preview || !isValidStepPositionPreview(preview)) return;
+
     if (
       preview.userId === currentUserId ||
       draggingStepIdsRef.current.has(preview.stepId)
@@ -2860,13 +2879,38 @@ export default function IdPage() {
       return;
     }
 
-    const shape = shapes.find(
-      (currentShape) => currentShape.id === preview.stepId
-    );
-    if (!shape) return;
+    pendingRemoteStepPositionsRef.current.set(preview.stepId, preview);
+    if (remoteStepPositionApplyTimeoutRef.current !== null) return;
 
-    shape.p = preview.position;
-    updateShapes([...shapes]);
+    remoteStepPositionApplyTimeoutRef.current = window.setTimeout(() => {
+      remoteStepPositionApplyTimeoutRef.current = null;
+      const previews = Array.from(
+        pendingRemoteStepPositionsRef.current.values()
+      );
+      pendingRemoteStepPositionsRef.current.clear();
+
+      const positions = new Map(
+        previews
+          .filter(
+            (currentPreview) =>
+              isValidStepPositionPreview(currentPreview) &&
+              !draggingStepIdsRef.current.has(currentPreview.stepId)
+          )
+          .map((currentPreview) => [
+            currentPreview.stepId,
+            currentPreview.position,
+          ])
+      );
+      if (positions.size === 0) return;
+
+      setRemoteStepPositions((currentPositions) => {
+        const nextPositions = { ...currentPositions };
+        positions.forEach((position, stepId) => {
+          nextPositions[stepId] = position;
+        });
+        return nextPositions;
+      });
+    }, 33);
   };
 
   const zoom: PageIdTypes.Zoom = (delta, client) => {
@@ -3944,10 +3988,16 @@ export default function IdPage() {
         window.clearTimeout(stepPositionSendTimeoutRef.current);
         stepPositionSendTimeoutRef.current = null;
       }
+      if (remoteStepPositionApplyTimeoutRef.current !== null) {
+        window.clearTimeout(remoteStepPositionApplyTimeoutRef.current);
+        remoteStepPositionApplyTimeoutRef.current = null;
+      }
       pendingStepPositionsRef.current.clear();
       pendingStepSavePositionsRef.current.clear();
+      pendingRemoteStepPositionsRef.current.clear();
       setProjectUsers([]);
       setRemoteCursors({});
+      setRemoteStepPositions({});
       projectConnectionRef.current = null;
       connection.off("projectUpdated");
       connection.off("stepPositionPreview");
@@ -4139,6 +4189,7 @@ export default function IdPage() {
 
       <FlowCanvas
         shapes={steps}
+        remoteStepPositions={remoteStepPositions}
         curves={curves}
         stepStatuses={stepStatuses}
         selectedShapeId={indivisual?.id || null}

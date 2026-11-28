@@ -38,6 +38,7 @@ export type FlowCanvasInstance = Pick<
 
 type Props = {
   shapes: CommonTypes.Shapes;
+  remoteStepPositions: Record<string, CommonTypes.Vec>;
   curves: CommonTypes.ConnectionCurves;
   stepStatuses: Record<string, CommonTypes.StepStatus>;
   selectedShapeId: string | null;
@@ -158,6 +159,7 @@ const toFlowNode = (
 
 export default function FlowCanvas({
   shapes,
+  remoteStepPositions,
   curves,
   selectedShapeId,
   onSelectShape,
@@ -191,6 +193,25 @@ export default function FlowCanvas({
       shapes.map((shape) => toFlowNode(shape, selectedShapeId, stepStatuses || {}))
     );
   }, [shapes, selectedShapeId, stepStatuses, setNodes]);
+
+  useEffect(() => {
+    if (isDraggingNodeRef.current) return;
+
+    setNodes((currentNodes) =>
+      currentNodes.map((node) => {
+        const position = remoteStepPositions[node.id];
+        if (!position) return node;
+
+        return {
+          ...node,
+          position: {
+            x: position.x - cardWidth / 2,
+            y: position.y - cardHeight / 2,
+          },
+        };
+      })
+    );
+  }, [remoteStepPositions, setNodes]);
 
   const flowEdges = useMemo<Edge[]>(
     () =>
