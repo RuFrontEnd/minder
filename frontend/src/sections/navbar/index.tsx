@@ -106,26 +106,32 @@ export default function Navbar(props: NavbarProps) {
               "U";
             const name = `${member.firstName} ${member.lastName}`.trim() || member.email;
 
-            return member.avatarUrl ? (
-              <img
-                key={member.userId}
-                className={styles.collaboratorAvatar}
-                src={member.avatarUrl}
-                alt={name}
-                title={name}
-              />
-            ) : (
+            return (
               <span
                 key={member.userId}
-                className={`${styles.collaboratorAvatar} ${styles.collaboratorAvatarFallback}`}
-                style={{
-                  color: member.avatarColor || "#7b8491",
-                  backgroundColor: member.avatarBackgroundColor || "#e5e7eb",
-                }}
-                aria-label={name}
-                title={name}
+                className={styles.collaborator}
+                aria-label={`${name} is online`}
+                title={`${name} · Online`}
               >
-                {initials}
+                {member.avatarUrl ? (
+                  <img
+                    className={styles.collaboratorAvatar}
+                    src={member.avatarUrl}
+                    alt={name}
+                  />
+                ) : (
+                  <span
+                    className={`${styles.collaboratorAvatar} ${styles.collaboratorAvatarFallback}`}
+                    style={{
+                      color: member.avatarColor || "#334155",
+                      backgroundColor:
+                        member.avatarBackgroundColor || "#e5e7eb",
+                    }}
+                  >
+                    {initials}
+                  </span>
+                )}
+                <span className={styles.onlineIndicator} aria-hidden="true" />
               </span>
             );
           })}
@@ -155,10 +161,12 @@ export default function Navbar(props: NavbarProps) {
               className={styles.accountAvatar}
               src={props.userAvatarUrl}
               alt="Your profile"
+              title="Your profile"
             />
           ) : (
             <span
               className={styles.accountAvatarFallback}
+              title="Your profile"
               style={{
                 color: props.userAvatarColor?.color || "#7b8491",
                 backgroundColor:
