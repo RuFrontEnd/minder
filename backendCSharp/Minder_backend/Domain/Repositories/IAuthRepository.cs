@@ -13,6 +13,8 @@ namespace Domain.Repositories
         Task<UserEntity?> GetUserByVerificationTokenAsync(string token);
         Task UpdateUserRefreshTokenAsync(Guid userId, string refreshToken, DateTime expiry);
         Task<(string, DateTime)?> GetUserRefreshTokenAsync(Guid userId);
+        Task<UserEntity?> GetUserByRefreshTokenAsync(string refreshToken);
+        Task RevokeRefreshTokenAsync(string refreshToken);
     }
 
 }

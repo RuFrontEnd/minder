@@ -71,5 +71,21 @@ namespace Infrastructure.Repositories
 
             return null;
         }
+
+        public async Task<UserEntity?> GetUserByRefreshTokenAsync(string refreshToken)
+        {
+            return await dbContext.Users
+                .SingleOrDefaultAsync(user => user.RefreshToken == refreshToken);
+        }
+
+        public async Task RevokeRefreshTokenAsync(string refreshToken)
+        {
+            var user = await GetUserByRefreshTokenAsync(refreshToken);
+            if (user == null) return;
+
+            user.RefreshToken = null;
+            user.RefreshTokenExpiryTime = null;
+            await dbContext.SaveChangesAsync();
+        }
     }
 }

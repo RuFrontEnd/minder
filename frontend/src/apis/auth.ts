@@ -65,6 +65,43 @@ const refresh = async () => {
   return axios.post("/auth/refresh");
 };
 
+let refreshPromise: Promise<unknown> | null = null;
+
+axios.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    const requestUrl = originalRequest?.url || "";
+    const isAuthRequest =
+      requestUrl.endsWith("/auth/login") ||
+      requestUrl.endsWith("/auth/register") ||
+      requestUrl.endsWith("/auth/refresh");
+
+    if (
+      error.response?.status !== 401 ||
+      !originalRequest ||
+      originalRequest._retry ||
+      isAuthRequest
+    ) {
+      return Promise.reject(error);
+    }
+
+    originalRequest._retry = true;
+    if (!refreshPromise) {
+      refreshPromise = refresh().finally(() => {
+        refreshPromise = null;
+      });
+    }
+
+    try {
+      await refreshPromise;
+      return axios(originalRequest);
+    } catch (refreshError) {
+      return Promise.reject(refreshError);
+    }
+  }
+);
+
 export {
   register,
   login,

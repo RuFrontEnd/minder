@@ -2,7 +2,7 @@
 "use client";
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { HubConnectionState, type HubConnection } from "@microsoft/signalr";
-import axios, { AxiosResponse } from "axios";
+import { AxiosResponse } from "axios";
 import Terminal from "@/shapes/terminal";
 import Process from "@/shapes/process";
 import Data from "@/shapes/data";
@@ -65,42 +65,11 @@ import * as AlertTypes from "@/types/components/alert";
 import type { Connection } from "@xyflow/react";
 import styles from "./page.module.css";
 
-axios.defaults.baseURL = process.env.BASE_URL || "http://localhost:5000/api";
-axios.defaults.withCredentials = true;
-const api = axios.create({
-  baseURL: "http://localhost:5000/api",
-  withCredentials: true,
-});
-
 const statusIds: Record<CommonTypes.StepStatus, string> = {
   Todo: "a4f6c6d2-8d0d-4c8f-9f7b-8cf9b9f1f001",
   "In Progress": "a4f6c6d2-8d0d-4c8f-9f7b-8cf9b9f1f002",
   Done: "a4f6c6d2-8d0d-4c8f-9f7b-8cf9b9f1f003",
 };
-
-// 回應攔截器
-api.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
-
-    console.log("error", error);
-
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-
-      try {
-        await authAPIs.refresh();
-
-        return api(originalRequest);
-      } catch (refreshError) {
-        console.error("Token refresh failed:", refreshError);
-        // Token refresh failed - user should login again
-      }
-    }
-    return Promise.reject(error);
-  }
-);
 
 const isBrowser = typeof window !== "undefined";
 const isShapeApiEnabled = false;

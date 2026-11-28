@@ -54,21 +54,7 @@ public class AuthController(
                 return StatusCode(StatusCodes.Status500InternalServerError, new { message = "login failed due to a server error.", data = (object?)null });
             }
 
-            Response.Cookies.Append("X-Access-Token", userData.Token, new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.Strict,
-                Expires = DateTime.UtcNow.AddMinutes(10)
-            });
-
-            Response.Cookies.Append("X-Refresh-Token", userData.Token, new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.Strict,
-                Expires = DateTime.UtcNow.AddDays(7)
-            });
+            SetAuthCookies(userData.Token, userData.Expiration, refreshToken);
 
             return Ok(new { message = "login successfully!", data = new { id = userData.User.Id, Email = userData.User.Email } });
         }
@@ -79,9 +65,15 @@ public class AuthController(
     }
 
     [HttpPost("logout")]
-    public IActionResult Logout()
+    public async Task<IActionResult> Logout()
     {
-        Response.Cookies.Delete("X-Access-Token");
+        var refreshToken = Request.Cookies["X-Refresh-Token"];
+        if (!string.IsNullOrWhiteSpace(refreshToken))
+        {
+            await authService.RevokeRefreshTokenAsync(refreshToken);
+        }
+
+        DeleteAuthCookies();
         return Ok(new { message = "logged out successfully!" });
     }
 
@@ -191,55 +183,73 @@ public class AuthController(
     [HttpPost("refresh")]
     public async Task<IActionResult> Refresh()
     {
-        var cookcieRefreshToken = Request.Cookies["X-Refresh-Token"];
-        if (string.IsNullOrEmpty(cookcieRefreshToken)) return Unauthorized();
-
-        var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
-
-        if (!Guid.TryParse(userIdStr, out Guid userId) || email == null)
+        var refreshToken = Request.Cookies["X-Refresh-Token"];
+        if (string.IsNullOrWhiteSpace(refreshToken))
         {
-            return Unauthorized(new { message = "invalid auth token." });
+            DeleteAuthCookies();
+            return Unauthorized("refresh token is missing.");
         }
 
-        var dbRefreshToken = await authService.GetUserRefreshTokenAsync(userId);
-
-        if (dbRefreshToken.HasValue)
+        var user = await authService.GetUserByRefreshTokenAsync(refreshToken);
+        if (user == null ||
+            user.RefreshTokenExpiryTime is null ||
+            user.RefreshTokenExpiryTime <= DateTime.UtcNow)
         {
-
-            var (refreshToken, refreshTokenExpiryTime) = dbRefreshToken.Value;
-            if (refreshToken == null || refreshTokenExpiryTime <= DateTime.UtcNow)
-            {
-                Response.Cookies.Delete("X-Access-Token");
-                Response.Cookies.Delete("X-Refresh-Token");
-
-                return Unauthorized("refresh token expired.");
-            }
-
-            var newAccessToken = authService.GenerateAccessToken(userId, email);
-
-            var postponedRefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
-            var newRefreshToken = await authService.UpdateUserRefreshTokenAsync(userId, postponedRefreshTokenExpiryTime);
-
-            if (newRefreshToken != null)
-            {
-                Response.Cookies.Append("X-Access-Token", newAccessToken.Token, new CookieOptions
-                {
-                    HttpOnly = true,
-                    Expires = DateTime.UtcNow.AddSeconds(10)
-                });
-                Response.Cookies.Append("X-Refresh-Token", newRefreshToken, new CookieOptions
-                {
-                    Expires = postponedRefreshTokenExpiryTime // Cookie 的壽命也同步更新
-                });
-            }
-
-        }
-        else
-        {
+            DeleteAuthCookies();
             return Unauthorized("refresh token expired.");
         }
 
+        var newAccessToken = authService.GenerateAccessToken(user.Id, user.Email);
+        var newRefreshToken = await authService.UpdateUserRefreshTokenAsync(
+            user.Id,
+            DateTime.UtcNow.AddDays(7));
+
+        if (newRefreshToken == null)
+        {
+            DeleteAuthCookies();
+            return StatusCode(
+                StatusCodes.Status500InternalServerError,
+                new { message = "unable to refresh authentication session." });
+        }
+
+        SetAuthCookies(
+            newAccessToken.Token,
+            newAccessToken.Expiration,
+            newRefreshToken);
+
         return Ok(new { message = "token refreshed!" });
+    }
+
+    private void SetAuthCookies(
+        string accessToken,
+        DateTime accessTokenExpiration,
+        string refreshToken)
+    {
+        Response.Cookies.Append(
+            "X-Access-Token",
+            accessToken,
+            CreateAuthCookieOptions(accessTokenExpiration));
+        Response.Cookies.Append(
+            "X-Refresh-Token",
+            refreshToken,
+            CreateAuthCookieOptions(DateTime.UtcNow.AddDays(7)));
+    }
+
+    private void DeleteAuthCookies()
+    {
+        Response.Cookies.Delete("X-Access-Token", CreateAuthCookieOptions());
+        Response.Cookies.Delete("X-Refresh-Token", CreateAuthCookieOptions());
+    }
+
+    private static CookieOptions CreateAuthCookieOptions(DateTime? expires = null)
+    {
+        return new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Path = "/",
+            Expires = expires
+        };
     }
 }

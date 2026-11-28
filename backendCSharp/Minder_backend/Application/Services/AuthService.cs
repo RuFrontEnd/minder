@@ -7,6 +7,8 @@ using Infrastructure.Provider;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using System.Data;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace Application.Services;
 
@@ -261,9 +263,13 @@ public class AuthService(
     {
         try
         {
-            var refreshToken = Guid.NewGuid().ToString();
+            var refreshToken = Convert.ToBase64String(
+                RandomNumberGenerator.GetBytes(32));
 
-            await authRepository.UpdateUserRefreshTokenAsync(userId, refreshToken, expiry);
+            await authRepository.UpdateUserRefreshTokenAsync(
+                userId,
+                HashRefreshToken(refreshToken),
+                expiry);
 
             return refreshToken;
         }
@@ -285,5 +291,23 @@ public class AuthService(
         {
             return null;
         }
+    }
+
+    public async Task<UserEntity?> GetUserByRefreshTokenAsync(string refreshToken)
+    {
+        return await authRepository.GetUserByRefreshTokenAsync(
+            HashRefreshToken(refreshToken));
+    }
+
+    public async Task RevokeRefreshTokenAsync(string refreshToken)
+    {
+        await authRepository.RevokeRefreshTokenAsync(
+            HashRefreshToken(refreshToken));
+    }
+
+    private static string HashRefreshToken(string refreshToken)
+    {
+        var hash = SHA256.HashData(Encoding.UTF8.GetBytes(refreshToken));
+        return Convert.ToHexString(hash);
     }
 }
