@@ -4,6 +4,7 @@ import Icon from "@/components/icon";
 import Button from "@/components/button";
 import { UserRound } from "lucide-react";
 import * as IconTypes from "@/types/components/icon";
+import type { ProjectUser } from "@/apis/realtime";
 import { tailwindColors } from "@/variables/colors";
 import styles from "./Navbar.module.css";
 
@@ -24,10 +25,13 @@ interface NavbarProps {
     color: string;
     backgroundColor: string;
   };
+  projectUsers: ProjectUser[];
 }
 
 export default function Navbar(props: NavbarProps) {
   const currentProjectName = props.projectName || "Untitled Project";
+  const visibleProjectUsers = props.projectUsers.slice(0, 3);
+  const remainingProjectUsers = Math.max(props.projectUsers.length - 3, 0);
 
   return (
     <div
@@ -96,22 +100,43 @@ export default function Navbar(props: NavbarProps) {
         {/* <div className={styles.separator} /> */}
 
         <div className={styles.collaborators} aria-label="Project members">
-          {[
-            { name: "John Mason", image: "https://i.pravatar.cc/80?u=iu" },
-            { name: "Melissa Jones", image: "https://i.pravatar.cc/80?u=po" },
-            { name: "Alex Wang", image: "https://i.pravatar.cc/80?u=alex" },
-          ].map((member) => (
-            <img
-              key={member.name}
-              className={styles.collaboratorAvatar}
-              src={member.image}
-              alt={member.name}
-              title={member.name}
-            />
-          ))}
-          <span className={styles.moreMembers} aria-label="2 more members">
-            +2
-          </span>
+          {visibleProjectUsers.map((member) => {
+            const initials =
+              `${member.firstName[0] || ""}${member.lastName[0] || ""}`.toUpperCase() ||
+              "U";
+            const name = `${member.firstName} ${member.lastName}`.trim() || member.email;
+
+            return member.avatarUrl ? (
+              <img
+                key={member.userId}
+                className={styles.collaboratorAvatar}
+                src={member.avatarUrl}
+                alt={name}
+                title={name}
+              />
+            ) : (
+              <span
+                key={member.userId}
+                className={`${styles.collaboratorAvatar} ${styles.collaboratorAvatarFallback}`}
+                style={{
+                  color: member.avatarColor || "#7b8491",
+                  backgroundColor: member.avatarBackgroundColor || "#e5e7eb",
+                }}
+                aria-label={name}
+                title={name}
+              >
+                {initials}
+              </span>
+            );
+          })}
+          {remainingProjectUsers > 0 && (
+            <span
+              className={styles.moreMembers}
+              aria-label={`${remainingProjectUsers} more members`}
+            >
+              +{remainingProjectUsers}
+            </span>
+          )}
         </div>
 
         <button

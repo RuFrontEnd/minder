@@ -4022,6 +4022,7 @@ export default function IdPage() {
         onClickUser={onClickUser}
         onClickProjectName={onClickProjectName}
         projectName={projectName.val}
+        projectUsers={projectUsers}
         userAvatarUrl={userAvatarUrl}
         userInitials={userInitials}
         userAvatarColor={userAvatarColor || undefined}
