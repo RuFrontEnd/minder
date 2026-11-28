@@ -7,7 +7,8 @@ namespace WebAPi.Realtime;
 [Authorize]
 public sealed class ProjectHub(
     IProjectRepository projectRepository,
-    ProjectCursorBroadcaster cursorBroadcaster) : Hub
+    ProjectCursorBroadcaster cursorBroadcaster,
+    StepPositionBroadcaster stepPositionBroadcaster) : Hub
 {
     public async Task JoinProject(Guid projectId)
     {
@@ -57,6 +58,7 @@ public sealed class ProjectHub(
 
         Context.Items.Remove(ProjectKey(projectId));
         cursorBroadcaster.Remove(projectId, Context.ConnectionId);
+        stepPositionBroadcaster.Remove(projectId, Context.ConnectionId);
         await Groups.RemoveFromGroupAsync(
             Context.ConnectionId,
             GroupName(projectId),
@@ -78,6 +80,25 @@ public sealed class ProjectHub(
         return Task.CompletedTask;
     }
 
+    public Task UpdateStepPositionPreview(
+        Guid projectId,
+        Guid stepId,
+        StepPosition position)
+    {
+        if (!IsJoined(projectId))
+        {
+            throw new HubException("The connection has not joined this project.");
+        }
+
+        stepPositionBroadcaster.Update(
+            projectId,
+            Context.ConnectionId,
+            GetUserId(),
+            stepId,
+            position);
+        return Task.CompletedTask;
+    }
+
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
         var userId = GetUserId();
@@ -94,6 +115,7 @@ public sealed class ProjectHub(
         foreach (var projectId in joinedProjects)
         {
             cursorBroadcaster.Remove(projectId, Context.ConnectionId);
+            stepPositionBroadcaster.Remove(projectId, Context.ConnectionId);
             await Clients.Group(GroupName(projectId)).SendAsync(
                 "projectUserLeft",
                 userId,
@@ -125,3 +147,5 @@ public sealed class ProjectHub(
 }
 
 public sealed record CursorPosition(double X, double Y);
+
+public sealed record StepPosition(double X, double Y);

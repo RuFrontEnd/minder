@@ -25,6 +25,7 @@ import {
   type ProjectCursor,
   type ProjectUser,
   type ProjectUpdatedEvent,
+  type StepPositionPreview,
 } from "@/apis/realtime";
 import * as shapeAPIs from "@/apis/shape";
 import {
@@ -2121,6 +2122,15 @@ export default function IdPage() {
   const localCursorRef = useRef<CommonTypes.Vec | null>(null);
   const cursorSendTimeoutRef = useRef<number | null>(null);
   const pendingCursorRef = useRef<CommonTypes.Vec | null>(null);
+  const pendingStepPositionsRef = useRef<Map<string, CommonTypes.Vec>>(
+    new Map()
+  );
+  const pendingStepSavePositionsRef = useRef<Map<string, CommonTypes.Vec>>(
+    new Map()
+  );
+  const stepPositionSendTimeoutRef = useRef<number | null>(null);
+  const isSendingStepPositionsRef = useRef(false);
+  const draggingStepIdsRef = useRef(new Set<string>());
 
   const sendCursor = (position: CommonTypes.Vec) => {
     localCursorRef.current = position;
@@ -2142,6 +2152,62 @@ export default function IdPage() {
       void connection
         .invoke("UpdateCursor", currentProjectId, pendingPosition)
         .catch((error) => console.error("Failed to send cursor position:", error));
+    }, 33);
+  };
+
+  const sendStepPositionPreview = (
+    stepId: string,
+    position: CommonTypes.Vec
+  ) => {
+    pendingStepPositionsRef.current.set(stepId, position);
+    pendingStepSavePositionsRef.current.set(stepId, position);
+    if (
+      stepPositionSendTimeoutRef.current !== null ||
+      isSendingStepPositionsRef.current ||
+      projectConnectionRef.current?.state !== HubConnectionState.Connected ||
+      !currentProjectId
+    ) {
+      return;
+    }
+
+    stepPositionSendTimeoutRef.current = window.setTimeout(() => {
+      stepPositionSendTimeoutRef.current = null;
+      const connection = projectConnectionRef.current;
+      if (!connection || !currentProjectId) return;
+
+      const pendingPositions = Array.from(
+        pendingStepPositionsRef.current.entries()
+      );
+      pendingStepPositionsRef.current.clear();
+      if (pendingPositions.length === 0) return;
+
+      isSendingStepPositionsRef.current = true;
+      void Promise.all(
+        pendingPositions.map(([pendingStepId, pendingPosition]) =>
+          connection.invoke(
+            "UpdateStepPositionPreview",
+            currentProjectId,
+            pendingStepId,
+            pendingPosition
+          )
+        )
+      )
+        .catch((error) =>
+          console.error("Failed to send step position preview:", error)
+        )
+        .finally(() => {
+          isSendingStepPositionsRef.current = false;
+          if (pendingStepPositionsRef.current.size > 0) {
+            stepPositionSendTimeoutRef.current = window.setTimeout(() => {
+              stepPositionSendTimeoutRef.current = null;
+              const nextEntry = pendingStepPositionsRef.current.entries().next()
+                .value as [string, CommonTypes.Vec] | undefined;
+              if (nextEntry) {
+                sendStepPositionPreview(nextEntry[0], nextEntry[1]);
+              }
+            }, 33);
+          }
+        });
     }, 33);
   };
 
@@ -2450,16 +2516,45 @@ export default function IdPage() {
       return shape;
     });
     updateShapes(updatedShapes);
+    draggingStepIdsRef.current.add(shapeId);
+    pendingStepSavePositionsRef.current.set(shapeId, position);
+  };
 
-    if (isAuthorized && currentProjectId) {
-      void updateStepPosition(currentProjectId, shapeId, position).catch(
-        (error) => console.error("Failed to save step position:", error)
-      );
-    }
+  const onFlowMovePreview = (
+    shapeId: string,
+    position: CommonTypes.Vec
+  ) => {
+    draggingStepIdsRef.current.add(shapeId);
+    sendStepPositionPreview(shapeId, position);
   };
 
   const onFlowMoveEnd = () => {
     actionRecords.finish(CommonTypes.Action.move);
+    const pendingPositions = Array.from(
+      pendingStepSavePositionsRef.current.entries()
+    );
+    if (isAuthorized && currentProjectId) {
+      void Promise.all(
+        pendingPositions.map(([stepId, position]) =>
+          updateStepPosition(currentProjectId, stepId, position)
+        )
+      )
+        .catch((error) =>
+          console.error("Failed to save step position:", error)
+        )
+        .finally(() => {
+          pendingPositions.forEach(([stepId]) =>
+            draggingStepIdsRef.current.delete(stepId)
+          );
+        });
+    } else {
+      pendingPositions.forEach(([stepId]) =>
+        draggingStepIdsRef.current.delete(stepId)
+      );
+    }
+    pendingPositions.forEach(([stepId]) =>
+      pendingStepSavePositionsRef.current.delete(stepId)
+    );
     scheduleAutoSave();
   };
 
@@ -2638,6 +2733,7 @@ export default function IdPage() {
       if (!validateUuid(stepId)) return;
 
       const existingStep = shapes.find((shape) => shape.id === stepId);
+      if (draggingStepIdsRef.current.has(stepId)) return;
       if (!existingStep) {
         const remoteStep = new Process(
           stepId,
@@ -2754,6 +2850,23 @@ export default function IdPage() {
       checkSteps();
       drawCanvas(offset, scale);
     }
+  };
+
+  const applyStepPositionPreview = (preview: StepPositionPreview) => {
+    if (
+      preview.userId === currentUserId ||
+      draggingStepIdsRef.current.has(preview.stepId)
+    ) {
+      return;
+    }
+
+    const shape = shapes.find(
+      (currentShape) => currentShape.id === preview.stepId
+    );
+    if (!shape) return;
+
+    shape.p = preview.position;
+    updateShapes([...shapes]);
   };
 
   const zoom: PageIdTypes.Zoom = (delta, client) => {
@@ -3801,6 +3914,9 @@ export default function IdPage() {
 
       applyProjectUpdatedEvent(event);
     });
+    connection.on("stepPositionPreview", (preview: StepPositionPreview) => {
+      applyStepPositionPreview(preview);
+    });
 
     const connect = async () => {
       try {
@@ -3824,10 +3940,17 @@ export default function IdPage() {
 
     return () => {
       isDisposed = true;
+      if (stepPositionSendTimeoutRef.current !== null) {
+        window.clearTimeout(stepPositionSendTimeoutRef.current);
+        stepPositionSendTimeoutRef.current = null;
+      }
+      pendingStepPositionsRef.current.clear();
+      pendingStepSavePositionsRef.current.clear();
       setProjectUsers([]);
       setRemoteCursors({});
       projectConnectionRef.current = null;
       connection.off("projectUpdated");
+      connection.off("stepPositionPreview");
       connection.off("projectUsers");
       connection.off("projectUserJoined");
       connection.off("projectUserLeft");
@@ -4021,6 +4144,7 @@ export default function IdPage() {
         selectedShapeId={indivisual?.id || null}
         onSelectShape={onSelectStepFromOverallPanel}
         onOpenShape={() => setIsIndivisualSidePanelOpen(true)}
+        onMovePreview={onFlowMovePreview}
         onMoveShape={onFlowMoveShape}
         onMoveStart={onFlowMoveStart}
         onMoveEnd={onFlowMoveEnd}

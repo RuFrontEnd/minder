@@ -31,6 +31,15 @@ type ProjectCursor = {
   };
 };
 
+type StepPositionPreview = {
+  userId: string;
+  stepId: string;
+  position: {
+    x: number;
+    y: number;
+  };
+};
+
 const createProjectConnection = (): HubConnection => {
   const token = typeof window === "undefined"
     ? null
@@ -51,4 +60,9 @@ const createProjectConnection = (): HubConnection => {
 };
 
 export { createProjectConnection };
-export type { ProjectUpdatedEvent, ProjectUser, ProjectCursor };
+export type {
+  ProjectUpdatedEvent,
+  ProjectUser,
+  ProjectCursor,
+  StepPositionPreview,
+};

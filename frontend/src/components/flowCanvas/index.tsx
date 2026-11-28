@@ -43,6 +43,7 @@ type Props = {
   selectedShapeId: string | null;
   onSelectShape: (shapeId: string) => void;
   onOpenShape: () => void;
+  onMovePreview: (shapeId: string, position: CommonTypes.Vec) => void;
   onMoveShape: (shapeId: string, position: CommonTypes.Vec) => void;
   onMoveStart: () => void;
   onMoveEnd: () => void;
@@ -161,6 +162,7 @@ export default function FlowCanvas({
   selectedShapeId,
   onSelectShape,
   onOpenShape,
+  onMovePreview,
   onMoveShape,
   onMoveStart,
   onMoveEnd,
@@ -181,8 +183,10 @@ export default function FlowCanvas({
   const reactFlowInstanceRef = useRef<ReactFlowInstance<FlowNode, Edge> | null>(
     null
   );
+  const isDraggingNodeRef = useRef(false);
 
   useEffect(() => {
+    if (isDraggingNodeRef.current) return;
     setNodes(
       shapes.map((shape) => toFlowNode(shape, selectedShapeId, stepStatuses || {}))
     );
@@ -233,8 +237,27 @@ export default function FlowCanvas({
         y: node.position.y + cardHeight / 2,
       });
       onMoveEnd();
+      isDraggingNodeRef.current = false;
     },
     [onMoveEnd, onMoveShape]
+  );
+
+  const handleNodeDragStart: OnNodeDrag<FlowNode> = useCallback(
+    () => {
+      isDraggingNodeRef.current = true;
+      onMoveStart();
+    },
+    [onMoveStart]
+  );
+
+  const handleNodeDrag: OnNodeDrag<FlowNode> = useCallback(
+    (_event: MouseEvent | TouchEvent, node: FlowNode) => {
+      onMovePreview(node.id, {
+        x: node.position.x + cardWidth / 2,
+        y: node.position.y + cardHeight / 2,
+      });
+    },
+    [onMovePreview]
   );
 
   const handleConnect = useCallback(
@@ -268,7 +291,8 @@ export default function FlowCanvas({
         elementsSelectable={!isConnectMode}
         onNodeClick={handleNodeClick}
         onNodeDoubleClick={handleNodeDoubleClick}
-        onNodeDragStart={onMoveStart}
+        onNodeDragStart={handleNodeDragStart}
+        onNodeDrag={handleNodeDrag}
         onNodeDragStop={handleNodeDragStop}
         onConnect={handleConnect}
         onDelete={handleDelete}

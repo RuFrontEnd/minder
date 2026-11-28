@@ -72,6 +72,8 @@ else
 
 builder.Services.AddSingleton<ProjectCursorBroadcaster>();
 builder.Services.AddHostedService(services => services.GetRequiredService<ProjectCursorBroadcaster>());
+builder.Services.AddSingleton<StepPositionBroadcaster>();
+builder.Services.AddHostedService(services => services.GetRequiredService<StepPositionBroadcaster>());
 
 // register Repository (interface to instance)
 builder.Services.AddScoped<IUserRepository, UserRepository>();
